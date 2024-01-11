@@ -30,6 +30,7 @@
 */
 
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
  
 class AzureOauth2
 {
@@ -96,16 +97,15 @@ class AzureOauth2
         }
 
         try{
-            $jwt = $_POST['id_token'];
+            $jwt = $_POST['id_token'];            
             $decoded=$this->validate_jwt($jwt);
-            
+
             if(!$decoded){
                 throw new Exception("token not valid");
             }
         }
         catch(Exception $e){
-          show_error($e->getMessage());
-          die();
+          die($e->getMessage());
         }
       
         $user= new stdclass();
@@ -116,11 +116,10 @@ class AzureOauth2
         $additional_data = array(
             'first_name' => $user->fname,
             'last_name'  => $user->lname,
-            //'company'    => 'WB',
+            //'company'    => '',
             'email'		=>$user->email,
             'identity'	=>$user->email
-        );
-			
+        );	
 						
         if (!$user->email){
             show_error('USER_NOT_FOUND');
@@ -146,16 +145,30 @@ class AzureOauth2
 			
         //log
         $this->ci->db_logger->write_log('login',$user->email);
-
         return true;
     }
 
 
+    /**
+     * 
+     * Validate JWT tokens
+     *      
+     * 
+     */
     function validate_jwt($jwt)
     {
-        $decoded = JWT::decode($jwt, $this->get_azure_public_keys(), array('RS256'));
+        //$decoded = JWT::decode($jwt, $this->get_azure_public_keys(), array('RS256')); //for Firbase/JWT version below 6	    
+        $keys=$this->get_azure_public_keys();
+
+        $decoded=JWT::decode(
+            $jwt,
+            array_map(
+                fn (string $key) => new Key($key, 'RS256'),
+                $keys
+            )
+        );
+
         $decoded_array = (array) $decoded;
-        print_r($decoded_array);    
         return $decoded_array;
     }
 
@@ -167,13 +180,14 @@ class AzureOauth2
      */
     function get_azure_public_keys()
     {
-        if (file_exists('datafiles/tmp/public_keys.json')){
-            $public_keys=file_get_contents('datafiles/tmp/public_keys.json');
+        $filename='datafiles/tmp/public_keys.json';
+        if (file_exists($filename) && (time()-filemtime($filename) > 1 * 3600)) { //older than 1 hour
+            $public_keys=file_get_contents($filename);
             $public_keys=json_decode($public_keys,true);
         }else{
             $public_keys_url = 'https://login.windows.net/common/discovery/keys';
             $public_keys = $this->download_azure_public_keys($public_keys_url);
-            file_put_contents('datafiles/tmp/public_keys.json',json_encode($public_keys));
+            file_put_contents($filename,json_encode($public_keys));
         }
 
         return $public_keys;
