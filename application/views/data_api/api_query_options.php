@@ -67,10 +67,14 @@
             <div style="max-height:300px;overflow:auto;">
                 <div class="row no-gutters">
 
-                    <div class="col-md-2" v-for="(column,column_name) in tableColumnsDictionaryWithSearch">
-                        <span>
-                            <input type="checkbox" :id="column_name" :value="column_name" v-model="selected_columns">
-                            <label :for="column_name" :title="column.label">{{column_name}}</label>
+                    <div class="col-md-3" v-for="(column,column_name) in tableColumnsDictionaryWithSearch">
+                        <span>                            
+                            <label :for="column_name" :title="column.label">
+                                <span class="d-table-cell pr-1"><input type="checkbox" :id="column_name" :value="column_name" v-model="selected_columns"></span>
+                                <span class="d-table-cell text-truncate" style="max-width: 150px;">
+                                    {{column_name}}
+                                </span>
+                            </label>
                         </span>
                     </div>
 
