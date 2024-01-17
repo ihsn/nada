@@ -675,7 +675,7 @@ CREATE TABLE `users` (
   `salt` varchar(40) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
   `activation_code` varchar(40) DEFAULT NULL,
-  `forgotten_password_code` varchar(40) DEFAULT NULL,
+  `forgotten_password_code` varchar(100) DEFAULT NULL,
   `remember_code` varchar(40) DEFAULT NULL,
   `created_on` int NOT NULL,
   `last_login` int NOT NULL,
