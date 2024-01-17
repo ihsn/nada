@@ -15,6 +15,7 @@ class MarkdownParser{
 	function __construct()
 	{
 		$this->parsedown = new Parsedown();
+		$this->parsedown->setBreaksEnabled(true);
 	}	
 
 	function parse_markdown($string)
