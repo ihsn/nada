@@ -458,7 +458,10 @@ label, legend {
 
         var sid_arr=$.data(document.body,"attached_surveys");
         var search_keywords=$("#sk").val();
-        var form_data ={q: search_keywords }; //exclude: sid_arr.join(",")
+        var form_data ={
+          q: search_keywords,
+          '<?php echo $this->security->get_csrf_token_name(); ?>' : '<?php echo $this->security->get_csrf_hash(); ?>'
+         }; //exclude: sid_arr.join(",")
 
 
         if ($.data(document.body,"search_related_survey_query")==search_keywords) {
