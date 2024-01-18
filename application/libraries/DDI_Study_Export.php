@@ -169,7 +169,7 @@ class DDI_Study_Export
 		$i                       = &$variables['{scope_class}'];
 		if ($this->_is($i)) {
 			$i                       = json_decode($i);
-			$scope_class             = '';
+			$scope_class             = ''; 
 			foreach($i as $rows) {
 				$scope_class .= "<topcClas vocab=\"{$rows[1]}\" vocabURI=\"{$rows[2]}\">{$rows[0]}</topcClas>" . PHP_EOL;
 			}
@@ -179,22 +179,27 @@ class DDI_Study_Export
 		$i                       = &$variables['{coll_dates}'];
 		if ($this->_is($i)) {
 			$i                       = json_decode($i);
-			$coll_dates              = '';
-			foreach($i as $rows) {
-				$coll_dates .= "<timePrd date=\"{$rows[0]}\" event=\"start\" cycle=\"{$rows[2]}\" />\n<timePrd date=\"{$rows[1]}\" event=\"end\" cycle=\"{$rows[2]}\" />" . PHP_EOL;
-			}
-			$i                       = $coll_dates;
-		}
-		// coll_periods
-		$i                       = &$variables['{coll_periods}'];
-		if ($this->_is($i)) {
-			$i                       = json_decode($i);
 			$coll_periods = '';
 			foreach($i as $rows) {
 				$coll_periods .= "<collDate date=\"{$rows[0]}\" event=\"start\" cycle=\"{$rows[2]}\" />\n<collDate date=\"{$rows[1]}\" event=\"end\" cycle=\"{$rows[2]}\" />" . PHP_EOL;
 			}	
 			$i                       = $coll_periods;
 		}
+
+
+		// coll_periods
+		$i                       = &$variables['{coll_periods}'];
+		if ($this->_is($i)) {
+			$i                       = json_decode($i);
+			$coll_dates              = '';
+			foreach($i as $rows) {
+				$coll_dates .= "<timePrd date=\"{$rows[0]}\" event=\"start\" cycle=\"{$rows[2]}\" />\n<timePrd date=\"{$rows[1]}\" event=\"end\" cycle=\"{$rows[2]}\" />" . PHP_EOL;
+			}
+			$i                       = $coll_dates;
+		}
+
+
+
 		// coverage_country
 		$i                       = &$variables['{coverage_country}'];
 		if ($this->_is($i)) {
@@ -234,6 +239,17 @@ class DDI_Study_Export
 				$impact_wb_members .= "<contact affiliation=\"{$rows[1]}\" email=\"{$rows[2]}\" URI=\"{$rows[3]}\">{$rows[0]}</contact>" . PHP_EOL;
 			}
 			$i                       = $impact_wb_members;
+		}
+
+		// access_authority
+		$i                       = &$variables['{access_authority}'];
+		if ($this->_is($i)) {
+			$i                       = json_decode($i);
+			$access_authority       = '';
+			foreach ($i as $rows) {
+				$access_authority .= "<contact affiliation=\"{$rows[1]}\" email=\"{$rows[2]}\" URI=\"{$rows[3]}\">{$rows[0]}</contact>" . PHP_EOL;
+			}
+			$i                       = $access_authority;
 		}
 		
 	}
