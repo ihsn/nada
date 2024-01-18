@@ -204,12 +204,14 @@ $fields_arr=array(
                                     $download_str[]=$file_size;
 
                                     $download_str=array_filter($download_str);
+                                    $button_icon_class="fa fa-arrow-circle-down";
 
                                     if ($file_size!=''){
                                         $download_str=t('download'). " [". implode(", ",$download_str)."]";
                                     }
                                     else{
-                                        $download_str=t('download');
+                                        $download_str=t('External link');
+							            $button_icon_class="fas fa-external-link-square-alt";
                                     }
 
                                 ?>
@@ -222,7 +224,7 @@ $fields_arr=array(
                                         data-extension="<?php echo html_escape($ext);?>"
                                         data-sid="<?php echo $row['survey_id'];?>"
                                         class="download btn btn-outline-primary btn-sm btn-block">
-                                            <i class="fa fa-arrow-circle-down" aria-hidden="true"></i> 
+                                            <i class="<?php echo $button_icon_class;?>" aria-hidden="true"></i> 
                                             <?php echo $download_str;?>
                                     </a>
 

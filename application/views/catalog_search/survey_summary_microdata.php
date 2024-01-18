@@ -52,16 +52,18 @@ td.caption{
 		?>
 		
 		<div class="<?php echo $class;?>" data-file-type="microdata" >
-			<div class="resource-left-col">
-				<span class="resource-info" class="resource-info" 
-					title="<?php echo t('click_to_view_information');?>" 
-					alt="<?php echo t('view_more_information');?>" 
-					id="<?php echo $row['resource_id'];?>">
-					<i class="fa fa-plus-square-o icon-expand" aria-hidden="true"></i>
-					<i class="fa fa-minus-square-o icon-collapsed" aria-hidden="true"></i>
-					<?php echo $row['title'];?>                                 
-				</span>
-				<div class="resource-right-col float-right">
+			<div class="row">
+				<div class="col-md-8 col-lg-9">
+					<span class="resource-info" class="resource-info" 
+						title="<?php echo t('click_to_view_information');?>" 
+						alt="<?php echo t('view_more_information');?>" 
+						id="<?php echo $row['resource_id'];?>">
+						<i class="far fa-plus-square icon-expand" aria-hidden="true"></i>
+						<i class="far fa-minus-square icon-collapsed" aria-hidden="true"></i>
+						<?php echo $row['title'];?>                                 
+					</span>
+				</div>
+				<div class="col-md-4 col-lg-3">
 					<?php if($url!='' || $file_size!=''):?>
 					<?php
 						$download_str=array();
@@ -69,32 +71,31 @@ td.caption{
 						$download_str[]=$file_size;
 
 						$download_str=array_filter($download_str);
+						$button_icon_class="fa fa-arrow-circle-down";
 
 						if ($file_size!=''){
 							$download_str=t('download'). " [". implode(", ",$download_str)."]";
 						}
 						else{
-							$download_str=t('download');
+							$download_str=t('External link');
+							$button_icon_class="fas fa-external-link-square-alt";
 						}
 
 					?>
 						<a  target="_blank" 
-							href="<?php echo $url;?>" 
-							title="<?php echo basename($row['filename']);?>"
+							href="<?php echo $url;?>" 							
 							title="<?php echo html_escape(basename($row['filename']));?>"
 							data-filename="<?php echo html_escape(basename($row['filename']));?>"
 							data-dctype="<?php echo html_escape($row['dctype']);?>"
 							data-extension="<?php echo html_escape($ext);?>"
 							data-sid="<?php echo $row['survey_id'];?>" 
-							class="download btn btn-outline-primary btn-sm">
-								<i class="fa fa-arrow-circle-down" aria-hidden="true"></i> 
+							class="download btn btn-outline-primary btn-sm btn-block">
+								<i class="<?php echo $button_icon_class;?>" aria-hidden="true"></i> 
 								<?php echo $download_str;?>
 						</a>
 					<?php endif;?>
-					</div>
-			</div>
-			
-			
+				</div>
+			</div>		
 
 			<?php if ($row['description']!='' || $row['title']!=''  || $row['toc']!='' ):?>                    
 				<div id="info_<?php echo $row['resource_id'];?>" class="abstract">
@@ -144,6 +145,7 @@ td.caption{
 				</div>
 			<?php endif;?>
 		
+			
 			</div>
 		<?php endforeach;?>
 		<?php if ($count>$show_rows):?>
