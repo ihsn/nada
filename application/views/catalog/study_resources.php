@@ -148,11 +148,13 @@ function batch_delete(){
 		alert("You have not selected any items");
 		return false;
 	}
-	if (!confirm("Are you sure you want to delete the selected item(s)?"))
-	{
+	if (!confirm("Are you sure you want to delete the selected item(s)?")){
 		return false;
 	}
-	selected='';
+
+	let selected='';
+	let sid='<?php echo $survey_id;?>';
+	
 	$('.resources .chk:checked').each(function(){
 		if (selected!=''){selected+=',';}
         selected+= this.value;
@@ -166,7 +168,7 @@ function batch_delete(){
 			'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
 			},
 		type:'POST',
-		url: CI.base_url+'/admin/resources/delete/'+selected+'/?ajax=true',
+		url: CI.base_url+'/admin/resources/delete/'+sid + '/' + selected+'/?ajax=true',
 		success: function(data) {
 			if (data.success){
 				location.reload();
