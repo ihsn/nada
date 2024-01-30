@@ -8,7 +8,7 @@ $data=$widgets;
 ?>
 <?php if (isset($data) && is_array($data) && count($data)>0 ):?>    
 
-<div class="iframe_field field field-<?php echo str_replace(".","__",$name);?>">
+<div class="iframe_field field field-<?php echo str_replace(".'","-",$template['key']);?>">
     
     <div class="field-value">                
         <?php foreach($data as $row):?>
