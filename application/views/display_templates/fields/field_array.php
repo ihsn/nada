@@ -8,9 +8,7 @@
  * 
  *  - hide_column_headings - hide column headings 
  */
-if (!isset($template['props'])){
-    var_dump($template);
-}
+
 $columns=$template['props'];
 $name=$template['title'];
 $hide_field_title=isset($template['hide_field_title']) ? $template['hide_field_title'] : false;
@@ -32,6 +30,14 @@ if (count($non_empty_columns)<1){
 $columns=$non_empty_columns;
 $data= array_remove_empty($data);
 
+//add scrollable class
+$table_scrollable=isset($template['display_options']['scrollable']) ? $template['display_options']['scrollable'] : false;
+$table_container_class="table-overflow-max-height-400";
+
+if ($table_scrollable!==true){
+    $table_container_class="";
+}
+
 //remove empty rows
 /*foreach($data as $idx=>$row){
     $row=array_filter($row);
@@ -45,7 +51,8 @@ $data= array_remove_empty($data);
 <?php if ($hide_field_title!=true):?>
     <div class="field-title"><?php echo tt('metadata.'.$template['key'],$template['title']);?></div>
 <?php endif;?>
-<table class="table table-sm table-bordered table-striped table-condensed xsl-table table-grid">
+<div class="<?php echo $table_container_class;?>">
+<table class="table table-sm table-bordered table-striped table-condensed xsl-table table-grid ">
     <?php if ($hide_column_headings!=true):?>
         <tr>
             <?php foreach($columns as $column):?>
@@ -83,6 +90,7 @@ $data= array_remove_empty($data);
     </tr>
     <?php endforeach;?>    
 </table>
+</div>
 </div>
 
 <?php endif;?>

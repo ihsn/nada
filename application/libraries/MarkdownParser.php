@@ -20,6 +20,10 @@ class MarkdownParser{
 
 	function parse_markdown($string)
 	{
+		if (is_array($string)){
+			$string=implode("\n",$string);
+		}
+		
 		$this->parsedown->setSafeMode(true);
 		$this->parsedown->setMarkupEscaped(true);
 		return $this->parsedown->text($string);
