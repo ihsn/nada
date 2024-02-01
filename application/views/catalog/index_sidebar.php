@@ -17,7 +17,8 @@
 * RIGHT SIDE BAR
 *
 */?>
-<?php echo form_open(null, 'id="form_filter"');?>
+
+<form method="get" id="form_filter">
 	<input type="hidden" name="ps" value="<?php echo get_form_value('ps',isset($ps) ? $ps : '15') ; ?>" id="ps"/>
 	<!--
 		<div style="font-size:smaller;text-align:right;">
@@ -164,4 +165,4 @@
 	</div>
 	<?php endif;?>
 
-<?php echo form_close();?>
+</form>
