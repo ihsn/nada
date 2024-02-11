@@ -435,8 +435,7 @@ class Tables extends MY_REST_Controller
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
-				'message'=>$e->getMessage(),
-				'error'=>$this->Data_table_model->get_db_error()
+				'message'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
@@ -492,8 +491,7 @@ class Tables extends MY_REST_Controller
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
-				'message'=>$e->getMessage(),
-				'error'=>$this->Data_table_model->get_db_error()
+				'message'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
@@ -902,13 +900,12 @@ class Tables extends MY_REST_Controller
 				throw new exception("Missing Param:: tableId");
 			}
 
-			if (!isset($options['sid'])){
-				throw new exception("Missing Param:: sid");
+			if (!isset($options['idno'])){
+				throw new exception("Missing Param:: idno");
 			}
 
 			$result=$this->Survey_data_api_model->insert($options);
 			
-
 			$response=array(
 				'status'=>'success',
 				'result'=>$result
