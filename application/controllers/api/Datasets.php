@@ -2398,6 +2398,85 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+
+	/**
+	 * 
+	 * Get related datasets
+	 * 
+	 * @idno - study IDNO	 
+	 * 
+	 **/
+	function related_datasets_get($idno=null)
+	{
+		$this->load->model("Related_study_model");
+		try{
+			$this->has_access('study','view');
+			$sid=$this->get_sid_from_idno($idno);
+
+			$result=$this->Related_study_model->get_related_studies_list($sid);
+			
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Add related datasets
+	 * 
+	 * @idno - study IDNO
+	 * @related_datasets - array of related datasets IDNos
+	 * 
+	 **/
+	function related_datasets_post()
+	{
+		$this->load->model("Related_study_model");
+		try{
+			$this->has_access('study','edit');
+			$options=(array)$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+
+			$idno=isset($options['idno']) ? $options['idno'] : null;
+			$related_studies=isset($options['related_datasets']) ? $options['related_datasets'] : null;
+
+			if (!$idno){
+				throw new Exception("PARAM_MISSING: idno");
+			}
+
+			if (!$related_studies){
+				throw new Exception("PARAM_MISSING: related_datasets");
+			}
+
+			$result=$this->Related_study_model->upsert($idno,$related_studies);
+			
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
 	private function pagination_links($endpoint, $found, $offset, $limit)
 	{
 		$prev_page=null;

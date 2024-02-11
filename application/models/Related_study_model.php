@@ -31,6 +31,7 @@ class Related_study_model extends CI_Model {
     {
         parent::__construct();
 		//$this->output->enable_profiler(TRUE);
+		$this->load->library("Dataset_manager");		
     }
 
 	/**
@@ -95,12 +96,60 @@ class Related_study_model extends CI_Model {
 				//add new relationship
 				$result=$this->db->insert('survey_relationships', $options);
 
-				if ($result===false){
-					throw new MY_Exception($this->db->_error_message());
+				if(!$result){
+					$err=$this->db->error();
+					throw new MY_Exception($err['message']);
 				}
 			}
 		}
 		return TRUE;
+	}
+
+
+	/**
+	*
+	* Upsert relationship
+	*
+	*/
+	public function upsert($idno,$related_datasets,$relation_id=null)
+	{
+		$sid=$this->dataset_manager->find_by_idno($idno);
+
+		if (!$sid){
+			throw new MY_Exception("SURVEY_NOT_FOUND");
+		}
+
+		$output=array();
+
+		foreach($related_datasets as $dataset)
+		{
+			//check if relationship already exists
+			$existing_related_datasets=$this->get_related_studies_id_list($sid);
+
+			$dataset_sid=$this->dataset_manager->find_by_idno($dataset);
+
+			if (!$dataset_sid || $dataset_sid==$sid || in_array($dataset_sid,$existing_related_datasets)){
+				$output['skipped'][]=$dataset;
+				continue;
+			}
+			
+			//add new relationship
+			$result=$this->db->insert('survey_relationships', array(
+				'sid_1'				=>	$sid,
+				'sid_2'				=>	$dataset_sid,
+				'relationship_id'	=>	$relation_id,
+				'pair_id'			=>	$sid.'-'.$dataset_sid
+			));
+
+			if(!$result){
+				$err=$this->db->error();
+				throw new MY_Exception($err['message']);
+			}else{
+				$output['added'][]=$dataset;
+			}
+		}
+
+		return $output;
 	}
 
 	/**
@@ -193,7 +242,7 @@ class Related_study_model extends CI_Model {
 	//return a list of related surveys
 	public function get_related_studies_list($sid)
 	{
-		$this->db->select('surveys.id,surveys.title,surveys.nation,surveys.year_start, surveys.year_end');
+		$this->db->select('surveys.id,surveys.idno,surveys.title,surveys.nation,surveys.year_start, surveys.year_end');
 		$this->db->where('sid_1',$sid);
 		$this->db->join('surveys','surveys.id=survey_relationships.sid_2','INNER');
 		$result=$this->db->get('survey_relationships')->result_array();

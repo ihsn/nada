@@ -102,6 +102,18 @@ class survey_data_api_model extends CI_Model {
 	**/
 	function insert($options)
 	{
+		if (!isset($options['idno'])){
+			throw new Exception("missing: IDNO");
+		}
+
+		$sid=$this->get_sid_by_idno($options['idno']);
+
+		if (!$sid){
+			throw new Exception("IDNO not found");
+		}
+
+		$options['sid']=$sid;
+
 		$data=array();
 		foreach($options as $key=>$value){
 			if (in_array($key,$this->fields)){
@@ -110,7 +122,7 @@ class survey_data_api_model extends CI_Model {
 		}
 
 		if ($this->exists($data['sid'],$data['db_id'],$data['table_id'])){
-			return false;
+			return true;
 		}
 		
 		$result=$this->db->insert('survey_data_api', $data); 
@@ -142,6 +154,20 @@ class survey_data_api_model extends CI_Model {
 		if($result){
 			return true;
 		}		
+
+		return false;
+	}
+
+
+	function get_sid_by_idno($idno)
+	{
+		$this->db->select("id");
+		$this->db->where('idno',$idno);
+		$result=$this->db->get('surveys')->row_array();
+
+		if ($result){
+			return $result['id'];
+		}
 
 		return false;
 	}
