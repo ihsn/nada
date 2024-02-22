@@ -35,7 +35,7 @@
             </button>
         </div>
         <div class="modal-body">
-        <?php echo form_open_multipart('api/datasets/thumbnail/'.$idno, 'style="margin-left:10px;"');?>
+        <?php echo form_open_multipart('api/datasets/thumbnail/'.$idno, 'style="margin-left:10px;" id="form-thumbnail"');?>
 
         <div class="form-group">
             <input type="file" class="form-control" name="file" id="thumbnail-file" xstyle="width:100px;">
