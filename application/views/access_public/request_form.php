@@ -23,7 +23,7 @@
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
 
-<?php echo form_open(null,'style="padding:0px;margin:0px" name="orderform" id="orderform"');?>
+<?php echo form_open(site_url('catalog/'.$survey_id.'/get-microdata'),'style="padding:0px;margin:0px" name="orderform" id="orderform"');?>
 
 	<input type="hidden" name="surveytitle" value="<?php echo get_form_value('survey_title',isset($survey_title) ? $survey_title : ''); ?>" />
 	<input type="hidden" name="surveyid" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id : ''); ?>" />
