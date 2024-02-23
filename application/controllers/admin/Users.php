@@ -124,7 +124,7 @@ class Users extends MY_Controller {
 		$this->acl_manager->has_access_or_die('user', 'create');
 		$this->data['page_title'] = t("create_user_account");
 
-		$use_complex_password=$this->ci->config->item("require_complex_password");
+		$use_complex_password=$this->config->item("require_complex_password");
 
 		//validate form input
 		$this->form_validation->set_rules('username', t('username'), 'xss_clean|max_length[20]|required|callback_username_exists');
