@@ -2004,7 +2004,7 @@ class Datadeposit extends MY_Controller {
 		$email = html_escape($this->input->post("email"));
 
 		if (! $this->DD_project_model->has_access($id, $this->session->userdata('email'))) {
-			echo json_encode(['error' => t("PERMISSIONS_DENIED")]);
+			echo json_encode(['error' => t("permissions_denied")]);
 			exit;
 		}
 
@@ -2012,7 +2012,7 @@ class Datadeposit extends MY_Controller {
 		$this->load->library('email');
 
 		if (! valid_email($email)) {
-			echo json_encode(['error' => t("INVALID_EMAIL_ADDRESS")]);
+			echo json_encode(['error' => t("invalid_email")]);
 			exit;
 		}
 
@@ -2043,10 +2043,10 @@ class Datadeposit extends MY_Controller {
 		$this->email->message($contents);
 
 		if (! @$this->email->send()) {
-			echo json_encode(['error' => t("EMAIL_FAILED")]);
+			echo json_encode(['error' => t("email_failed")]);
 			exit;
 		} else {
-			echo json_encode(['success' => t("EMAIL_SENT")]);
+			echo json_encode(['success' => t("email_sent_successful")]);
 			exit;
 		}
 	}
