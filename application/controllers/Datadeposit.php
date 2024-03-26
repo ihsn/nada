@@ -1996,41 +1996,38 @@ class Datadeposit extends MY_Controller {
 
 	/**
 	*
-	* Email project summary
+	* Send project summary by email.
 	**/
 	public function email_summary()
 	{
-		$id=(int)$this->input->post("pid");
-		$email=$this->input->post("email");
-	
-		//$id=27;
-		//$email='';
-		
-		if (!$this->DD_project_model->has_access($id, $this->session->userdata('email'))) {
-			//redirect('datadeposit/projects');
-			show_error("PERMISSIONS_DENIED");
+		$id = (int)$this->input->post("pid");
+		$email = html_escape($this->input->post("email"));
+
+		if (! $this->DD_project_model->has_access($id, $this->session->userdata('email'))) {
+			echo json_encode(['error' => t("PERMISSIONS_DENIED")]);
+			exit;
 		}
-		
+
 		$this->load->helper('email');
 		$this->load->library('email');
-		
-		if (!valid_email($email))
-		{
-			show_error("INVALID_EMAIL_ADDRESS");
+
+		if (! valid_email($email)) {
+			echo json_encode(['error' => t("INVALID_EMAIL_ADDRESS")]);
+			exit;
 		}
 
-		$project_title=$this->DD_project_model->get_title_by_id($id);
-		$user_name=$this->session->userdata('username');
+		$project_title = $this->DD_project_model->get_title_by_id($id);
+		$user_name = $this->session->userdata('username');
 
-		//get formatted project summary
-		$data['content']=$this->_get_formatted_project_summary($id);		
-		$data['message']=sprintf(t('email_user_shared_project'),$user_name,$project_title);
+		//Get formatted project summary.
+		$data['content'] = $this->_get_formatted_project_summary($id);
+		$data['message'] = sprintf(t('email_user_shared_project'),$user_name,$project_title);
 
-		//format html for email		
-		$css= file_get_contents(APPPATH.'../themes/datadeposit/email.css');
-		$contents=$this->load->view('datadeposit/emails/template', $data,TRUE);
+		//Format html for email.
+		$css = file_get_contents(APPPATH.'../themes/datadeposit/email.css');
+		$contents = $this->load->view('datadeposit/emails/template', $data,TRUE);
 		
-		//convert external styles to inline styles
+		//Convert external styles to inline styles.
 		$this->load->library('CssToInlineStyles');
 		$this->csstoinlinestyles->setCSS($css);
 		$this->csstoinlinestyles->setHTML($contents);
@@ -2044,20 +2041,16 @@ class Datadeposit extends MY_Controller {
 		$this->email->to($email);
 		$this->email->subject($project_title);
 		$this->email->message($contents);
-		
-		if (!@$this->email->send()) 
-		{
-			die ("EMAIL_FAILED");
-			//echo $this->email->print_debugger();
+
+		if (! @$this->email->send()) {
+			echo json_encode(['error' => t("EMAIL_FAILED")]);
+			exit;
+		} else {
+			echo json_encode(['success' => t("EMAIL_SENT")]);
+			exit;
 		}
-		else
-		{
-			die ("EMAIL_SENT");
-		}	
 	}
-	
-	
-	
+
 	//get project summary
 	private function _get_formatted_project_summary($id)
 	{		
