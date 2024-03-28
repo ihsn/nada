@@ -59,25 +59,23 @@ $(function() {
 
 
 <div class="panel panel-default">
-  <div class="panel-body" style="background:#eee;">
+	<div class="panel-body" style="background:#eee;">
 		<?php echo form_open('admin/catalog_notes/add/'.$id, 'class="form-post-note" style="padding:10px;"'); ?>
 
-		<div class="form-group">
-		    <label class="inline"><?php echo t('select_note_type');?>
-		    <?php echo form_dropdown('type', array('admin'=>t('admin_note'),'reviewer'=>t('reviewer_note'),'public'=>t('public_note')),null,'class="edit_note_type"'); ?>
-		    </label>
-		</div>
+			<div class="form-group">
+		    	<label class="inline"><?php echo t('select_note_type');?>
+		    		<?php echo form_dropdown('type', array('admin'=>t('admin_note'),'reviewer'=>t('reviewer_note'),'public'=>t('public_note')),null,'class="edit_note_type"'); ?>
+		    	</label>
+			</div>
 
-		<div class="form-group">
-		    <textarea name="note" class="form-control note_body_text" rows="4" placeholder="<?php echo t('Type note...');?>" ></textarea>
-		</div>
-		<div class="form-group">
+			<div class="form-group">
+				<textarea name="note" class="form-control note_body_text" rows="4" placeholder="<?php echo t('Type note...');?>" ></textarea>
+			</div>
+			<div class="form-group">
 				<button id="submit-form" type="button" class="btn btn-default"><?php echo t('Submit');?></button>
-		</div>
+			</div>
 		<?php echo form_close(); ?>
-
-
-</div>
+	</div>
 </div>
 
 <div class="notes-container">
