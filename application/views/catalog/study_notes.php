@@ -62,8 +62,6 @@ $(function() {
   <div class="panel-body" style="background:#eee;">
 		<?php echo form_open('admin/catalog_notes/add/'.$id, 'class="form-post-note" style="padding:10px;"'); ?>
 
-		<input type="hidden" name="<?=$csrf['name'];?>" value="<?=$csrf['hash'];?>" />
-
 		<div class="form-group">
 		    <label class="inline"><?php echo t('select_note_type');?>
 		    <?php echo form_dropdown('type', array('admin'=>t('admin_note'),'reviewer'=>t('reviewer_note'),'public'=>t('public_note')),null,'class="edit_note_type"'); ?>
