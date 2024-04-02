@@ -613,7 +613,7 @@ class Breadcrumb
 					if (strlen($title) > 100) {
 						$title = substr($title, 0, 100) . '...';
 					}
-					$breadcrumbs['admin/datadeposit/id/'.$segments[4]]=$title;
+					$breadcrumbs['admin/datadeposit/id/'.$segments[4]] = $title;
 				break;
 
 				case 'delete':
@@ -621,8 +621,8 @@ class Breadcrumb
 					if (strlen($title) > 100) {
 						$title = substr($title, 0, 100) . '...';
 					}
-					$breadcrumbs['admin/datadeposit/id/'.$segments[4]]=$title;
-					$breadcrumbs['admin/datadeposit/delete/'.$segments[4]]=t('delete');
+					$breadcrumbs['admin/datadeposit/id/'.$segments[4]] = $title;
+					$breadcrumbs['admin/datadeposit/delete/'.$segments[4]] = t('delete');
 				break;
 
 				case 'assign':
@@ -630,8 +630,8 @@ class Breadcrumb
 					if (strlen($title) > 100) {
 						$title = substr($title, 0, 100) . '...';
 					}
-					$breadcrumbs['admin/datadeposit/id/'.$segments[4]]=$title;
-					$breadcrumbs['admin/datadeposit/assign/'.$segments[4]]=t('assign');
+					$breadcrumbs['admin/datadeposit/id/'.$segments[4]] = $title;
+					$breadcrumbs['admin/datadeposit/assign/'.$segments[4]] = t('assign');
 				break;
 
 			}
