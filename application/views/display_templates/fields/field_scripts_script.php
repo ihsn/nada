@@ -14,60 +14,75 @@
  $hide_column_headings=false;
  $data= array_remove_empty($data);
  if (count($data)<1 ){return false;}
+
+ $readme='';
+ if(isset($resources)){
+  foreach($resources as $resource){
+      $filename = pathinfo($resource['filename'], PATHINFO_FILENAME);
+      
+      if (strcasecmp($filename,'readme')==0){
+        $readme=$resource;
+        break;
+      }
+    }
+}  
 ?>
 
 <div id="<?php echo str_replace(".","_",$template['key']);?>" class="mb-3 field-accordion">  
 <div class="field-title"><?php echo t($template['title']);?></div>
-
-  <?php /*
-    <div class="row">
-      <div class="col">
-        <div class="field-title"><?php echo t($template['title']);?></div>
-      </div>
-      <div class="col">
-        <div class="float-right">
-          <button class="btn btn-sm btn-xs btn-outline-primary"><i class="fa fa-download" aria-hidden="true"></i> Download package</button>
-        </div>
-      </div>
-    </div>
-  */ ?>
 
 <div class="row mb-1">
       <div class="col">
         <div class="text-muted" ></div>
       </div>
       <div class="col-auto">
-        <div class="float-right">
-          
-        </div>
-
-
-        <?php if(isset($resources) && count($resources)>0):?>
-          <?php $resource=$resources[0];?>
-          <?php if($resource['_links']['type']):?>
-            <?php
-                $link_type_class='fa fa-download';
-                if ($resource['_links']['type']=='link'){
-                    $link_type_class='fas fa-external-link-alt';
-                }
-            ?>
-            <a  
-                href="<?php echo $resource['_links']['download'];?>" 
-                class="get-microdata-btn badge badge-primary wb-text-link-uppercase float-left ml-3" 
-                target="_blank"
-                title="<?php echo t('get_reproducibility_package');?>">                    
-                <span class="<?php echo $link_type_class;?>"></span>
-                <?php echo t('get_reproducibility_package');?>
-            </a>
-          <?php endif;?>
+        <?php if ($readme):?>
+              <a href class="get-microdata-btn badge badge-success wb-text-link-uppercase float-left" data-toggle="collapse" data-target="#readmepreview" aria-expanded="false" aria-controls="reamepreview">
+                <i class="fab fa-readme"></i> <?php echo t('Readme');?>
+              </a>            
         <?php endif;?>
 
+        <?php //GET REPRODUCIBILITY PACKAGE BUTTON ?>
+          <?php foreach($resources as $resource):?>
+            <?php 
+              //find resource of type PRG
+              if (stristr($resource['dctype'],'[prg]')==false){
+                continue;
+              }
+            ?>
+
+            <?php if(isset($resource['_links']['type'])):?>
+              <?php
+                  $link_type_class='fa fa-download';
+                  if ($resource['_links']['type']=='link'){
+                      $link_type_class='fas fa-external-link-alt';
+                  }
+              ?>
+              <a  
+                  href="<?php echo $resource['_links']['download'];?>" 
+                  class="get-microdata-btn badge badge-primary wb-text-link-uppercase float-left ml-3" 
+                  target="_blank"
+                  title="<?php echo t('get_reproducibility_package');?>">                    
+                  <span class="<?php echo $link_type_class;?>"></span>
+                  <?php echo t('get_reproducibility_package');?>
+              </a>
+              <?php break; //only show one package ?>
+            <?php endif;?>
+            <?php endforeach;?>
+        <?php //END GET REPRODUCIBILITY PACKAGE BUTTON ?>          
 
       </div>
     </div>
 
+  <?php if ($readme):?>
+    <div class="collapse" id="readmepreview">
+      <div>Link: <a target="_blank" href="<?php echo $readme['_links']['download'];?>"><?php echo $readme['_links']['download'];?></a></div>
+      <iframe src="https://docs.google.com/gview?url=<?php echo $readme['_links']['download'];?>&embedded=true" class="bg-secondary p-2 mb-3" style="width:100%; height:500px;" frameborder="0"></iframe>
+    </div>
+  <?php endif;?>
+
   <?php foreach($data as $idx=>$row):?>
-  <div class="card mb-1">
+  <div class="card mb-1 scripts-section">
     <div class="card-header-x card-heading bg-light border-bottom p-2" id="heading-<?php echo str_replace(".","_",$template['key'].$idx);?>">
       
         <a href class="collapsed d-block" data-toggle="collapse" data-target="#collapse-<?php echo str_replace(".","_",$template['key'].$idx);?>" aria-expanded="false" aria-controls="collapseOne">          
@@ -130,11 +145,11 @@
     font-size:small;
   }
 
-  [data-toggle="collapse"] i:before{
+  .scripts-section [data-toggle="collapse"] i:before{
         content: "\f139";
     }
     
-    [data-toggle="collapse"].collapsed i:before{
+  .scripts-section  [data-toggle="collapse"].collapsed i:before{
         content: "\f13a";
     }
 </style>
