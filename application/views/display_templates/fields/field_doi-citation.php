@@ -1,14 +1,17 @@
-<?php 
-if (!isset($data) || !is_array($data)){
-    return false;
-}
+<?php if (isset($data) && is_array($data) || isset($metadata['doi']) ):?>
+<?php     
 
-$doi='';
-foreach($data as $row){
-    if (isset($row['type']) && strtolower($row['type'])=='doi'){
-        if (isset($row['identifier'])){
-            $doi=$row['identifier'];
-            break;
+if (isset($metadata['doi'])){
+    $doi=$metadata['doi'];
+}
+else{
+    $doi='';
+    foreach($data as $row){
+        if (isset($row['type']) && strtolower($row['type'])=='doi'){
+            if (isset($row['identifier'])){
+                $doi=$row['identifier'];
+                break;
+            }
         }
     }
 }
@@ -156,3 +159,5 @@ if (empty($doi)){
     });
 
 </script>
+
+<?php endif;?>
