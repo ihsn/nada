@@ -705,6 +705,9 @@ $config['userdata_path']='userdata'; //relative or absolute path
 $config['catalog_default_sort_by']='';
 $config['catalog_default_sort_order']='';
 
+
+$config['catalog_variable_view']=false;
+
 /*
 |--------------------------------------------------------------------------
 | Search providers

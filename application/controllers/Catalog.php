@@ -410,6 +410,11 @@ class Catalog extends MY_Controller {
 		$search_options->ps				=$limit;
 		$offset=						($search_options->page-1)*$limit;
 
+
+		if ($this->config->item("catalog_variable_view")===FALSE && $search_options->view=='v'){
+			show_error("Page is not available");
+		}
+
 		foreach($this->facets as $facet_key=>$facet){
 			if(isset($facet['type']) && isset($facet['type'])=='user'){
 				$search_options->{$facet_key}=xss_clean($this->input->get($facet_key));
