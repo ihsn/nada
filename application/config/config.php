@@ -706,7 +706,18 @@ $config['catalog_default_sort_by']='';
 $config['catalog_default_sort_order']='';
 
 
-$config['catalog_variable_view']=false;
+/*
+|--------------------------------------------------------------------------
+| Enable/Disable variable search view
+|--------------------------------------------------------------------------
+|
+| True | False
+|
+| true or NULL - enable variable search view
+| false - disable variable search view
+|
+*/
+//$config['catalog_variable_view']=false;
 
 /*
 |--------------------------------------------------------------------------
