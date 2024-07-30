@@ -1,4 +1,3 @@
-<?php //var_dump($data);return;?>
 <?php
     $show_empty=false;
     if(isset($options['show_empty'])){
@@ -14,11 +13,11 @@
             <?php if (is_array($value)){
                 $value=implode(" ",$value);
             }?>
-            <span><?php echo ((markdown_parse(xss_clean($data))));?></span>
+            <span><?php echo markdown_parse($data);?></span>
         <?php endforeach;?>
         <?php else:?>
             <?php if(!empty($data)):?>
-                <span><?php echo ((markdown_parse(xss_clean($data))));?></span>
+                <span><?php echo markdown_parse($data);?></span>
             <?php else: //for empt values when show_empty is true ?>
                 -
             <?php endif;?>
