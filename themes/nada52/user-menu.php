@@ -13,7 +13,7 @@ $user=$this->session->userdata('username');
     <?php if ($user!=''): ?>
         <div class="dropdown ml-auto">
             <a class="nav-link dropdown-toggle " href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-user-circle fa-lg"></i><?php echo $user; ?>
+                <i class="fas fa-user-circle fa-lg"></i><?php echo html_escape($user); ?>
             </a>
 
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
