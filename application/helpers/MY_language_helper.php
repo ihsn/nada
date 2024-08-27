@@ -66,6 +66,13 @@ if ( ! function_exists('tt'))
 	function tt($line,$default=null)
 	{
 		$CI =& get_instance();
+		$use_template_translation = $CI->config->item('use_template_translation');
+
+		//use template translation [default value]
+		if ($use_template_translation==true && $default!=null){
+			$line = $default;			
+		}
+		
 		$str = $CI->lang->line($line);
 
 		if ($str=='')
