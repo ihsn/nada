@@ -166,10 +166,22 @@ class Catalog extends MY_Controller {
 	}
 
 
+	/**
+	 * 
+	 * Render HTML for all enabled facets with user defined order
+	 * 
+	 */
 	private function load_facets_html()
 	{
-		//$filters=(array)$this->enabled_filters;
-		$filters=$this->filters_list;
+		//enabled filters with user defined order
+		$filters=(array)$this->enabled_filters;
+
+		//add filters that are not in the list
+		foreach($this->filters_list as $filter_key){
+			if(!in_array($filter_key,$filters)){
+				$filters[]=$filter_key;
+			}
+		}
 
 		//flip to keep the keys for sorting facets
 		$filters=array_flip($filters);
@@ -201,7 +213,7 @@ class Catalog extends MY_Controller {
 		}
 
 		//regions
-		$filters['regions']=$this->load->view('search/facet', 
+		$filters['region']=$this->load->view('search/facet', 
 			array(
 				'items'=>$this->facets['regions'], 
 				'filter_id'=>'region',
