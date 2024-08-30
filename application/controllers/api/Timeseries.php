@@ -1,0 +1,464 @@
+<?php
+
+require(APPPATH.'/libraries/MY_REST_Controller.php');
+
+class Timeseries extends MY_REST_Controller
+{
+	public function __construct()
+	{
+		parent::__construct(); 
+		$this->load->helper("date");
+		$this->load->model("Data_table_mongo_model");
+		$this->load->model("Data_table_model");
+		$this->load->model("Survey_data_api_model");
+		$this->load->model("Timeseries_model");
+		$this->load->model("Timeseries_tables_model");
+	}
+
+
+	public function status_get()
+	{
+		$this->is_authenticated_or_die();
+		$connected=$this->Timeseries_model->get_database_info();
+		$response=array(
+			'status'=>'success',
+			'message'=>'Timeseries API is working',
+			'connected'=>$connected
+		);
+		$this->set_response($response, REST_Controller::HTTP_OK);
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * List of available timeseries
+	 * 
+	 */
+	public function index_get()
+	{
+
+	}
+
+
+	private function validate_required_params($param_keys, $values)
+	{
+		foreach($param_keys as $key){
+			if (!isset($values[$key])){
+				throw new exception("Missing Param:: $key");
+			}
+		}		
+	}
+
+	/**
+	 * 
+	 * 
+	 * Insert data into timeseries
+	 * 
+	 */
+	public function insert_data_post($db_id=null, $series_id=null)
+	{
+		$this->is_authenticated_or_die();
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+
+			$result=$this->Timeseries_model->series_batch_insert($db_id, $series_id, $options);			
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
+	/**
+	 * 
+	 * 
+	 * Import series data from JSON or CSV file
+	 * 
+	 * @db_id - database id
+	 * @series_id - series_id
+	 * @file - [FILE] - CSV file to upload
+	 * 
+	 * @append - [Boolean] - querystring - append to existing table. Default is overwrite
+	 * 
+	 * Note: This will drop existing series data
+	 * 
+	 */
+	function import_data_post($db_id,$series_id)
+	{
+		try{			
+			if (!$db_id){
+				throw new exception("Missing Param:: db_id");
+			}
+
+			if (!$series_id){
+				throw new exception("Missing Param:: series_id");
+			}
+
+			$append=$this->input->get("append") == 'true' ? true : false;
+			$uploaded_file=$this->upload_file('datafiles/'.$db_id);
+			$uploaded_file_path=$uploaded_file['full_path'];
+
+			$user_id=$this->get_api_user_id();
+
+			if (!file_exists($uploaded_file_path)){
+				throw new Exception("file was not uploaded");
+			}
+
+			if($this->is_zip_file($uploaded_file_path)){
+				$unzip_path='datafiles/'.$db_id.'/'.$series_id;
+				$uploaded_file_path=$this->get_file_from_zip($uploaded_file_path,$unzip_path);
+			}
+
+			if (!$append){
+				//drop existing series data
+				$this->Timeseries_model->series_delete($db_id, $series_id);
+			}
+
+			//import csv
+			$result=$this->Timeseries_model->import_csv(
+				$db_id,
+				$series_id,
+				$uploaded_file_path, 
+				$this->input->post("delimiter")
+			);
+
+			//remove uploaded files
+			$files=array($uploaded_file_path, $uploaded_file['full_path']);
+			foreach($files as $file){
+				if (!empty($file) && file_exists($file)){
+					unlink($file);
+				}
+			}
+
+			$response=array(
+                'status'=>'success',
+				'file_path'=>$uploaded_file_path,
+				'rows_imported'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'files'=>$_FILES
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Delete timeseries data
+	 * 
+	 */
+	public function delete_data_post($db_id=null, $series_id=null)
+	{
+		$this->is_authenticated_or_die();
+
+		try{
+			$user_id=$this->get_api_user_id();		
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+			$result=$this->Timeseries_model->series_delete($db_id, $series_id);			
+
+			$response=array(
+				'status'=>'success',
+				'deleted'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	public function data_get($db_id=null, $series_id=null)
+	{
+		//$this->is_authenticated_or_die();
+
+		try{
+			$user_id=$this->get_api_user_id();
+			$query_params=$this->input->get();
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+			$result=$this->Timeseries_model->series_data($db_id, $series_id, $offset=null, $limit=null,$query_params);
+
+			$response=array(
+				'status'=>'success',
+				'data'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
+	/**
+	 * 
+	 * 
+	 * List all available timeseries
+	 * 
+	 * @db_id - database id
+	 * @series_id - series_id
+	 * 
+	 */
+	public function list_get($db_id=null, $series_id=null)
+	{
+		//$this->is_authenticated_or_die();
+
+		try{
+			$user_id=$this->get_api_user_id();
+			$result=$this->Timeseries_tables_model->list_timeseries($db_id, $series_id);
+
+			$response=array(
+				'status'=>'success',
+				'data'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Info for a single timeseries table
+	 * 
+	 * @db_id - database id
+	 * @series_id - series_id
+	 * 
+	 */
+	public function info_get($db_id=null, $series_id=null)
+	{
+		//$this->is_authenticated_or_die();
+
+		try{
+
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+
+			$user_id=$this->get_api_user_id();
+			$result=$this->Timeseries_tables_model->list_timeseries($db_id, $series_id);
+
+			$response=array(
+				'status'=>'success',
+				'data'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * 
+	 * Insert timeseries info
+	 * 
+	 * @db_id - database id
+	 * @series_id - series id
+	 * @options - options
+	 * @overwrite - overwrite existing
+	 * 
+	 */
+	public function create_post($db_id=null, $series_id=null)
+	{
+		$this->is_authenticated_or_die();
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+			$result=$this->Timeseries_tables_model->upsert($db_id, $series_id, $options, $overwrite=true);
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	public function delete_post($db_id=null, $series_id=null)
+	{
+		$this->is_authenticated_or_die();
+
+		try{
+			$user_id=$this->get_api_user_id();		
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+			$result=$this->Timeseries_tables_model->delete($db_id, $series_id);			
+
+			$response=array(
+				'status'=>'success',
+				'deleted'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	public function data_structure_get($db_id=null, $series_id=null)
+	{
+		$this->is_authenticated_or_die();
+
+		try{
+			$user_id=$this->get_api_user_id();
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+			$result=$this->Timeseries_tables_model->get_data_structure($db_id, $series_id);
+
+			$response=array(
+				'data_structure'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+
+
+	private function is_zip_file($file_name)
+	{
+		$file_ext=pathinfo($file_name,PATHINFO_EXTENSION);
+
+		if ($file_ext=='zip'){
+			return true;
+		}
+
+		return false;
+	}
+
+	private function unzip_file($zip_file,$output_path)
+	{
+		$zip = new ZipArchive;
+		if ($zip->open($zip_file) === TRUE) {
+			$zip->extractTo($output_path);
+			$zip->close();
+		} else {
+			throw new Exception("Failed to unzip file: ". $zip_file);
+		}
+	}
+
+	private function get_file_from_zip($zip_file, $output_path)
+	{
+		$this->unzip_file($zip_file,$output_path);
+
+		$base_name=pathinfo($zip_file,PATHINFO_FILENAME);
+
+		$files=array(
+			$output_path.'/'.$base_name.'.csv',
+			$output_path.'/'.$base_name.'.txt',
+			$output_path.'/'.$base_name.'.CSV',
+			$output_path.'/'.$base_name.'.TXT'
+		);
+
+		foreach($files as $file){
+			if(file_exists($file)){
+				return $file;
+			}
+		}
+
+		throw new Exception("CSV file not found in ZIP");
+	}
+
+	private function upload_file($upload_path='datafiles')
+	{		
+		if(!isset($_FILES['file'])){
+			throw new Exception("FILE NOT PROVIDED");
+		}
+
+		if(!file_exists($upload_path)){
+			mkdir($upload_path,0777,true);
+		}
+
+		$file_name=$_FILES['file'];
+		$this->load->library('upload');
+	
+		$config['upload_path'] = $upload_path;
+		$config['overwrite'] = true;
+		$config['encrypt_name']=false;
+		$config['allowed_types'] = 'txt|csv|zip';
+		
+		$this->upload->initialize($config);
+		
+		$upload_result=$this->upload->do_upload('file');
+
+		if(!$upload_result){
+			$error = $this->upload->display_errors();            
+			throw new Exception("UPLOAD_FAILED::".$upload_path. ' - error:: '.$error);
+		}
+
+		$upload_data = $this->upload->data();			
+		return $upload_data;
+	}
+
+}
