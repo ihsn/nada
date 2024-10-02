@@ -87,6 +87,38 @@ class MY_Form_validation extends CI_Form_validation {
     {
         return @fsockopen("$url", 80, $errno, $errstr, 30);
     }
+
+
+    /**
+     * Check if string contains html tags
+     *
+     * @access    public
+     * @param    string
+     * @return    bool
+     */
+    function disable_html_tags($str)
+    {
+        if (strip_tags($str) != $str)
+        {
+            $this->set_message('disable_html_tags', t('Invalid characters in %s.'));
+            return FALSE;
+        }
+        return TRUE;
+    }
+
+
+    function validate_name($str)
+    {
+        //disallowed characters
+        $pattern = "/[!'\"><@#$%&*()^;:]/";
+        if (preg_match($pattern, $str))
+        {
+            $this->set_message('validate_name', t('Invalid characters in %s.'));
+            return FALSE;
+        }
+        return TRUE;
+    }
+
 	
 	function set_error($message,$field=NULL)
 	{

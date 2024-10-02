@@ -473,12 +473,12 @@ class DefaultAuth implements AuthInterface
 		$csrf=$this->ci->nada_csrf->generate_token();
 
         //validate form input
-    	$this->ci->form_validation->set_rules('first_name', t('first_name'), 'trim|required|xss_clean|max_length[50]');
-    	$this->ci->form_validation->set_rules('last_name', t('last_name'), 'trim|required|xss_clean|max_length[50]');
+    	$this->ci->form_validation->set_rules('first_name', t('first_name'), 'trim|disable_html_tags|validate_name|required|xss_clean|max_length[50]');
+    	$this->ci->form_validation->set_rules('last_name', t('last_name'), 'trim|disable_html_tags|validate_name|required|xss_clean|max_length[50]');
     	$this->ci->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]|check_user_email_exists');
     	//$this->ci->form_validation->set_rules('phone1', t('phone'), 'trim|xss_clean|max_length[20]');
     	//$this->ci->form_validation->set_rules('company', t('company'), 'trim|xss_clean|max_length[100]');
-		$this->ci->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[150]|check_user_country_valid');
+		$this->ci->form_validation->set_rules('country', t('country'), 'trim|disable_html_tags|xss_clean|max_length[150]|check_user_country_valid');
     	$this->ci->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->ci->config->item('min_password_length').']|max_length['.$this->ci->config->item('max_password_length').']|matches[password_confirm]|is_complex_password['.$use_complex_password.']');
     	$this->ci->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
 		//$this->ci->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
