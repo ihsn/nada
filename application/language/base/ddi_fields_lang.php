@@ -319,7 +319,7 @@ $lang['var_stdev']='Standard deviation';
 
 
 $lang['imputation_n_derivation']='Imputation and derivation';
-$lang['var_codinstr']='Derivation';
+$lang['var_codinstr']='Coder instructinos';
 $lang['var_resp_unit']='Source of information';
 
 
