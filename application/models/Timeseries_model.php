@@ -171,9 +171,9 @@ class Timeseries_model extends CI_Model {
         $limit=intval($limit);
         $offset=intval($offset);
         
-        if ($limit<=0 || $limit>10000){
+        if ($limit<=0 || $limit>2000){
             $limit=100;
-        }        
+        }
 
         //get table type info
         //$this->table_type_obj= $this->get_table_type($db_id,$table_id);

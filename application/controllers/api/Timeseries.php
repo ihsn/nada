@@ -18,11 +18,10 @@ class Timeseries extends MY_REST_Controller
 
 	public function status_get()
 	{
-		$this->is_authenticated_or_die();
+		//$this->is_authenticated_or_die();
 		$connected=$this->Timeseries_model->get_database_info();
 		$response=array(
-			'status'=>'success',
-			'message'=>'Timeseries API is working',
+			'status'=>'success',			
 			'connected'=>$connected
 		);
 		$this->set_response($response, REST_Controller::HTTP_OK);
@@ -204,8 +203,49 @@ class Timeseries extends MY_REST_Controller
 		try{
 			$user_id=$this->get_api_user_id();
 			$query_params=$this->input->get();
+			$limit=$this->input->get("limit");
+			$offset=$this->input->get("offset");
+
+			if (!is_numeric($limit)){
+				$limit=100;
+			}
+
+			if (!is_numeric($offset)){
+				$offset=0;
+			}
+
+
 			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
-			$result=$this->Timeseries_model->series_data($db_id, $series_id, $offset=null, $limit=null,$query_params);
+			$result=$this->Timeseries_model->series_data($db_id, $series_id, $offset, $limit,$query_params);
+
+			$response=array(
+				'status'=>'success',
+				'data'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	function distinct_get($db_id=null, $series_id=null)
+	{
+		try{
+			$user_id=$this->get_api_user_id();
+			$query_field=$this->input->get("field");
+
+			if (!$query_field){
+				throw new Exception("Missing querystring param:: field");
+			}
+
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+			$result=$this->Timeseries_model->get_series_distinct_values($db_id, $series_id, $query_field);
 
 			$response=array(
 				'status'=>'success',
@@ -240,13 +280,10 @@ class Timeseries extends MY_REST_Controller
 
 		try{
 			$user_id=$this->get_api_user_id();
-			$result=$this->Timeseries_tables_model->list_timeseries($db_id, $series_id);
-
-			$response=array(
-				'status'=>'success',
-				'data'=>$result
-			);
-
+			$query_params=$this->input->get();
+			$offset=$query_params['offset'] ?? 0;
+			$limit=$query_params['limit'] ?? 100;
+			$response=$this->Timeseries_tables_model->search($db_id, $series_id, $limit, $offset, $query_params);			
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
@@ -278,6 +315,29 @@ class Timeseries extends MY_REST_Controller
 
 			$user_id=$this->get_api_user_id();
 			$result=$this->Timeseries_tables_model->list_timeseries($db_id, $series_id);
+
+			$response=array(
+				'status'=>'success',
+				'data'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	public function databases_get()
+	{
+		try{
+			$user_id=$this->get_api_user_id();
+			$result=$this->Timeseries_tables_model->get_distinct_pipeline($field='db_id', $filter=array());
 
 			$response=array(
 				'status'=>'success',
@@ -361,10 +421,7 @@ class Timeseries extends MY_REST_Controller
 
 	public function data_structure_get($db_id=null, $series_id=null)
 	{
-		$this->is_authenticated_or_die();
-
-		try{
-			$user_id=$this->get_api_user_id();
+		try{		
 			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
 			$result=$this->Timeseries_tables_model->get_data_structure($db_id, $series_id);
 
