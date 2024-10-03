@@ -205,7 +205,19 @@ class Timeseries_model extends CI_Model {
         //if query string is provided - check options[c]
         if (isset($options['c'])){
             foreach($options['c'] as $key=>$value){
-                $filters[$key]=is_numeric($value) ? $value + 0 : $value; //this->get_query_value($value);
+
+                $values=explode("|",$value);
+                foreach($values as $idx=>$value){
+                    $values[$idx]=is_numeric($value) ? trim($value) + 0 : trim($value);
+                }
+
+                //use $in for multiple values
+                if (count($values)>1){
+                    $filters[$key]=array('$in'=>$values);
+                }else{
+                    $filters[$key]=is_numeric($value) ? $value + 0 : $value;
+                }
+                
             }
         }
 
@@ -303,6 +315,52 @@ class Timeseries_model extends CI_Model {
    }
 
 
+   function get_series_distinct_values($db_id,$series_id,$field)
+   {
+
+        //validate field name [max length, allowed characters]
+        if (strlen($field)>100){
+            throw new Exception("Field name too long");
+        }
+
+        //allow ._a-zA-Z0-9
+        if (!preg_match('/^[a-zA-Z0-9_\.]+$/', $field)){
+            throw new Exception("Invalid field name");
+        }
+        
+
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_series_name($db_id,$series_id)};
+
+         $pipeline = [
+                [
+                 '$match' => [
+                      '_db_id' => $db_id, 
+                      '_series_id' => $series_id
+                 ]
+                ],
+                [
+                 '$group' => [
+                      '_id' => '$'.$field,
+                        'count' => [
+                             '$sum' => 1
+                        ]
+                 ]
+                        ],
+                [
+                    //$project use field name
+                    '$project' => [
+                        $field => '$_id',
+                        '_id' => 1,
+                        'count' => 1
+                    ]
+                ]       
+          ];
+
+        $cursor = $collection->aggregate($pipeline);
+        return $cursor->toArray();
+   }
+
+
 
    /**
     * 
@@ -361,5 +419,20 @@ class Timeseries_model extends CI_Model {
         return array($qs_value_parts[0]=>$qs_value_parts[1]);
     }
 
+
+    function text_search($keywords)
+   {        
+        /* format for text search
+        return ['$text' => ['$search' => "jammu"]];
+        */
+        
+        $keywords=explode(" ", $keywords);
+        $output=array();
+        foreach($keywords as $keyword){
+            $output[]='"'.str_replace('"','',trim($keyword)).'"'; 
+        }
+
+        return array('$search' => implode(" ", $output));
+   }
    	
 }    
