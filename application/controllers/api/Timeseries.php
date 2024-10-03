@@ -216,7 +216,7 @@ class Timeseries extends MY_REST_Controller
 
 
 			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
-			$result=$this->Timeseries_model->series_data($db_id, $series_id, $offset, $limit,$query_params);
+			$result=$this->Timeseries_model->series_data($db_id, $series_id, $limit ,$offset, $query_params);			
 
 			$response=array(
 				'status'=>'success',
