@@ -76,3 +76,41 @@ $config['video']=array(
     'template' => 'metadata_templates/video-template',
     'language_translations'=>'fields_video'
 ); 
+
+
+/**
+ * 
+ * Metadata preprocess callback
+ * 
+ * This callback is called before the metadata is rendered 
+ * 
+ * @param array $metadata - metadata array
+ * 
+ * @return array $metadata - metadata array
+ * 
+ * example usage:
+ * 
+ * $config['metadata_template_preprocess_metadata']=array(
+ *    'function'=>'preprocess_metadata',
+ *    'file'=>'application/hooks/metadata_template_preprocess_metadata.php',
+ *    "debug"=>false
+ * );
+ * 
+ * Create a file: application/hooks/metadata_template_preprocess_metadata.php
+ * 
+ * <?php
+ * function preprocess_metadata($metadata)
+ * {
+ *   //load codeigniter instance
+ *   $ci=& get_instance();
+ * 
+ *   //do something with metadata
+ *   return $metadata;
+ * }
+ * 
+ * 
+ **/
+$config['metadata_template_preprocess_metadata']=array(
+    'function'=>'preprocess_metadata',
+    'file'=>'application/hooks/metadata_template_preprocess_metadata.php'
+);

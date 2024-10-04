@@ -21,6 +21,7 @@ class Display_template{
         $this->ci =& get_instance();
         $this->ci->load->helper("array");
         //$this->ci->load->model("Editor_template_model");
+        $this->ci->load->config('metadata_template');
     }
 
     function initialize($metadata,$template)
@@ -28,6 +29,25 @@ class Display_template{
         $this->metadata=$metadata;
         $this->template=$template;
         $this->load_translations($metadata['type']);
+        $this->apply_preprocess_callback();
+    }
+
+    function apply_preprocess_callback()
+    {
+        //check if preprocess callback is defined
+        $process_callback=$this->ci->config->item('metadata_template_preprocess_metadata');
+
+        if ($process_callback){
+            if (isset($process_callback['file']) && file_exists($process_callback['file'])){
+                include($process_callback['file']);
+                $this->metadata=call_user_func($process_callback['function'],$this->metadata);
+                //$this->metadata=$process_callback['function']($this->metadata);
+            }
+            else{
+                //log
+                log_message('error', "missing preprocess file: ".$process_callback['file']);
+            }            
+        }        
     }
 
     function load_translations($type)
