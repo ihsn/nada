@@ -1,0 +1,197 @@
+{
+	"$id": "http://ihsn.org/schemas/data-api",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Data API Schema [Draft]",
+	"description": "Schema for Data API",
+	"@version": "1.0.0",
+	"type": "object",
+	"properties": {
+		"db_id": {
+			"type": "string",
+			"title": "Databae ID",
+			"description": "Database unique identifier (ID)"
+		},
+		"series_id": {
+			"type": "string",
+			"title": "Series ID",
+			"description": "Series unique identifier (ID)"
+		},
+		"title": {
+			"type": "string",
+			"title": "Title",
+			"description": "Title"
+		},
+		"description": {
+			"type": "string",
+			"title": "Description",
+			"description": "Description"
+		},		
+		"data_structure": {
+			"type": "array",
+			"description": "Data structure definition",			
+				"items": {
+					"type": "object",
+					"properties": {
+						"name": {
+							"title": "Name",
+							"description": "Name (required)",
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100,
+							"pattern": "^[a-zA-Z0-9_]*$"
+						},
+						"label": {
+							"title": "Label",
+							"type": "string"
+						},
+						"description": {
+							"title": "Description",
+							"type": "string"
+						},
+						"data_type": {							
+							"title": "Data type",
+							"type": "string",
+							"enum":[
+								"string",
+								"integer",
+								"float",
+								"double",
+								"date",
+								"boolean"
+							]
+						},
+						"column_type": {
+							"title": "Column type",
+							"type": "string",
+							"enum":[
+								"dimension",
+								"time_period",
+								"measure",
+								"attribute",
+								"indicator_id",
+								"indicator_name",
+								"annotation",
+								"geography",
+								"observation_value"
+							]
+						},	
+						"time_period_format": 
+						{
+							"title":"Time period format",
+							"type": "string",
+							"enum":[
+								"YYYY",
+								"YYYY-MM",
+								"YYYY-MM-DD",
+								"YYYY-MM-DDTHH:MM:SS",
+								"YYYY-MM-DDTHH:MM:SSZ"
+							]
+						},
+						"code_list": {
+							"title": "Code list",
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"code": {
+										"title": "Code",
+										"type": "string"
+									},
+									"label": {
+										"title": "Label",
+										"type": "string"
+									},
+									"description": {
+										"title": "Description",
+										"type": "string"
+									}
+								},
+								"required": [
+									"code"
+								],
+								"additionalProperties": false
+							}
+						},
+						"code_list_reference": {
+							"title": "Code list reference",							
+								"type": "object",
+								"properties": {
+									"id": {
+										"title": "Identifier (ID)",
+										"type": "string"
+									},
+									"name": {
+										"title": "Name",
+										"type": "string"
+									},
+									"version": {
+										"title": "Version",
+										"type": "string"
+									},
+									"uri": {
+										"title": "URI",
+										"description": "URI",
+										"type": "string"
+									},
+									"note": {
+										"title": "Note",
+										"description": "Note",
+										"type": "string"
+									}
+								},
+								"required": [
+									"uri"
+								]
+						}
+					},
+					"required": [
+						"name",
+						"data_type",
+						"column_type"
+					],
+					"additionalProperties": false
+				}
+		},
+		"data_notes":{
+			"type": "array",
+			"title": "Data notes",
+			"description": "Data notes",
+			"items": {
+				"type": "object",
+				"properties": {					
+					  "filters":{
+						"type": "array",
+						"title": "Filters",
+						"description": "Filters",
+						"items": {
+							"type": "object",
+							"properties": {
+											"field": {
+												"title": "Field",
+												"type": "string"
+											},
+											"operator": {
+												"title": "Operator",												
+												"type": "string",
+												"enum": ["=", "!=", "<", "<=", ">", ">=", "in", "!in"]
+											},
+											"value": {
+												"title": "Value",
+												"type": ["string", "number", "boolean", "array"]
+											}
+										}
+					  	}
+					},					
+					"note": {
+						"title": "Note",			
+						"type": "string"
+					}
+				}
+			}
+		}
+	},
+	"required": [
+		"data_structure",
+		"title"	
+	]
+}
