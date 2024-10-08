@@ -434,5 +434,40 @@ class Timeseries_model extends CI_Model {
 
         return array('$search' => implode(" ", $output));
    }
+
+
+   /**
+    * 
+    * Validate data structure against schema
+    *
+    */
+   function validate_data_structure($data)
+   {
+       $schema_file="application/schemas/data-api-schema.json";
+
+       if(!file_exists($schema_file)){
+           throw new Exception("DATA-API-SCHEMA-NOT-FOUND");
+       }
+
+       // Validate
+       $validator = new JsonSchema\Validator;
+       $validator->validate($data, 
+               (object)['$ref' => 'file://' . unix_path(realpath($schema_file))],
+               Constraint::CHECK_MODE_TYPE_CAST 
+               + Constraint::CHECK_MODE_COERCE_TYPES 
+               + Constraint::CHECK_MODE_APPLY_DEFAULTS
+           );
+
+       if ($validator->isValid()) {
+           return true;
+       } else {			
+           /*foreach ($validator->getErrors() as $error) {
+               echo sprintf("[%s] %s\n", $error['property'], $error['message']);
+           }*/
+           throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", $validator->getErrors());
+       }
+   }
+
+
    	
 }    

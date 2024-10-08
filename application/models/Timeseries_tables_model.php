@@ -79,6 +79,173 @@ class Timeseries_tables_model extends CI_Model {
     }
 
 
+    /**
+     * 
+     * Get all timeseries info
+     * 
+     */
+    function search($db_id=null,$series_id=null,$limit=100,$offset=0,$options=array())
+   {    
+        $limit=intval($limit);
+        $offset=intval($offset);
+        
+        if ($limit<=0 || $limit>1000){
+            $limit=100;
+        }        
+
+        //$collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_series_name($db_id,$series_id)};   
+        $collection=$this->mongo_client->selectCollection($this->Timeseries_model->get_db_name(), $this->table_name);     
+
+        if (!isset($options['fields'])){
+            $options['fields']="";
+        }
+
+        //which fields to display
+        $projection=array(
+            'data_structure'=>0,
+            'data_notes'=>0
+        );
+
+        //filters
+        $filters=[];
+        
+        if (!empty($db_id)){
+            $filters['db_id']=$db_id;
+        }
+        if (!empty($series_id)){
+            $filters['series_id']=$series_id;
+        }
+        
+        /*$series_filter=[
+            '_db_id' => $db_id, 
+            '_series_id' => $series_id
+        ];*/
+
+        //text search?
+        if (isset($options['q']) && !empty($options['q'])){
+            //$filters['$text'] = ['$search' => $options['q']];
+            $filters['$text'] =$this->Timeseries_model->text_search($options['q']);            
+        }
+
+        
+
+        //if query string is provided - check options[c]
+        if (isset($options['c'])){
+            foreach($options['c'] as $key=>$value){
+                $filters[$key]=is_numeric($value) ? $value + 0 : $value; //this->get_query_value($value);
+            }
+        }
+
+        $cursor = $collection->find(
+            $filters,
+            [
+                'projection'=>$projection,
+                'limit' => $limit,
+                'skip'  => $offset
+            ]
+        );
+
+        $output=array();
+        $debug=true;
+        if ($debug=true){
+            $output['debug']=array(
+                'filters'=>$filters,
+                'options'=>$options,
+                'projection'=>$projection
+            );
+        }
+
+        $output['rows_count']=0;
+        $output['limit']=$limit;
+        $output['offset']=$offset;
+        $output['found']=$collection->count($filters);
+        $output['total']=$collection->count();
+        $output['data']=array();
+        
+
+        foreach ($cursor as $document) {
+            //convert to array from mongodb object
+            $output['data'][]= iterator_to_array($document);
+        }
+
+        $output['rows_count']=count($output['data']);
+        return $output;
+   }
+   
+   
+   /**
+    *
+    * Get distinct list of values from series table
+    * 
+    */
+   function get_distinct($field, $filter=array())
+   {
+        $collection=$this->mongo_client->selectCollection($this->Timeseries_model->get_db_name(), $this->table_name);
+        $cursor = $collection->distinct($field,$filter);
+        return $cursor;
+   }
+
+   function get_distinct_pipeline($field, $filter=array())
+   {
+        $collection=$this->mongo_client->selectCollection($this->Timeseries_model->get_db_name(), $this->table_name);
+        $pipeline=[];
+
+        //filter
+        if (!empty($filter)){
+            $pipeline[]=[
+                '$match' => $filter
+            ];
+        }
+
+        //group
+        $pipeline[]=[
+            '$group' => [
+                '_id' => '$'.$field,
+                'count' => [
+                    '$sum' => 1
+                ]
+            ]
+        ];
+
+        /*$pipeline = [
+                [
+                 '$match' => $filter
+                ],
+                [
+                 '$group' => [
+                      '_id' => '$'.$field,
+                        'count' => [
+                             '$sum' => 1
+                        ]
+                 ]
+                ]
+          ];*/
+          
+
+
+          //use aggregation to get distinct values
+        /* $pipeline = [
+            [
+             '$match' => [
+                  '_db_id' => $db_id, 
+                  '_series_id' => $series_id
+             ]
+            ],
+            [
+             '$group' => [
+                  '_id' => '$areaName',
+                    'count' => [
+                         '$sum' => 1
+                    ]
+             ]
+            ]
+      ];*/
+
+        $cursor = $collection->aggregate($pipeline)->toArray();        
+        return $cursor;
+   }
+   
+
 
     /**
      * 
@@ -159,6 +326,36 @@ class Timeseries_tables_model extends CI_Model {
         }
 
         return $result['data_structure'];
+   }
+
+
+   /**
+    * 
+    * Get single timeseries info
+    *   
+    */
+   public function get_single($db_id, $series_id)
+   {
+        $collection=$this->mongo_client->{$this->Timeseries_model->get_db_name()}->{$this->table_name};
+        $series_filter=array(
+            'db_id'=>$db_id,
+            'series_id'=>$series_id
+        );
+
+        $projection=array(
+            //'data_structure'=>1
+        );
+
+        $result = $collection->findOne($series_filter, ['projection'=>$projection]);
+
+        //convert to array from mongodb object
+        if ($result !== null) {
+            $result = json_decode(json_encode($result), true);
+        } else {
+            throw new Exception("Timeseries not found");
+        }
+        
+        return $result;
    }
 
 	
