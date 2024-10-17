@@ -92,6 +92,7 @@ class Solr_manager{
             surveys.type as dataset_type,
             surveys.id as survey_uid,
             surveys.idno as idno,
+			surveys.doi,
             surveys.formid,        
             forms.model as form_model,    
             surveys.title as title,
@@ -558,6 +559,7 @@ class Solr_manager{
 		$fields="1 as doctype,
 		surveys.id as survey_uid,
 		surveys.idno as idno,
+		surveys.doi,
 		surveys.formid,
 		surveys.thumbnail,
 		surveys.type as dataset_type,
@@ -1134,6 +1136,7 @@ class Solr_manager{
 		$this->ci->db->select("
 			1 as doctype,
             surveys.id,
+			surveys.doi,
             surveys.thumbnail as thumbnail,
             surveys.type as dataset_type,
             surveys.id as survey_uid,

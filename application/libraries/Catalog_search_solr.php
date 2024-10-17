@@ -288,6 +288,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
         $query->setFields(array(
             'id:survey_uid',
 			'idno',
+			'doi',
             'type:dataset_type',
             'title',
             'nation',
