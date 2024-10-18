@@ -1993,5 +1993,33 @@ class Dataset_model extends CI_Model {
         }
     }
 
+
+	/**
+	 * 
+	 * 
+	 * Get thumbnail
+	 * 
+	 */
+    function get_thumbnail($sid)
+    {
+		if (!is_numeric($sid) || is_float($sid)){
+            return false;
+        }
+
+		$this->db->select("surveys.thumbnail");
+		$this->db->where("surveys.id",$sid);		
+		$survey=$this->db->get("surveys");
+
+		if ($survey){
+			$survey=$survey->row_array();
+		}
+
+        if (isset($survey['thumbnail'])){
+			return $survey['thumbnail'];
+		}
+
+		return false;
+	}
+
 }//end-class
 	

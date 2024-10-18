@@ -1200,4 +1200,39 @@ class Catalog extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
 	}
+
+
+	/**
+	 * 
+	 * Get thumbnail
+	 * 
+	 */
+	function thumbnail_get($idno=null)
+	{
+		try{			
+			$sid=$this->get_sid_from_idno($idno);
+			$thumbnail=$this->Dataset_model->get_thumbnail($sid);
+
+			if (!$thumbnail){
+				throw new Exception("THUMBNAIL_NOT_FOUND");
+			}
+
+			//thumbnail path
+			$thumbnail_path=base_url().'files/thumbnails/'.$thumbnail;
+
+			$response=array(
+				'status'=>'success',
+				'thumbnail'=>$thumbnail_path
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+        }		
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
 }
