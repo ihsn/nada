@@ -191,6 +191,8 @@
 		}
 	},
 	"required": [
+		"db_id",
+		"series_id",
 		"data_structure",
 		"title"	
 	]

@@ -1,0 +1,522 @@
+swagger: '2.0'
+info:
+  description: >-
+    Timeseries API
+
+  version: "1.0"
+  title: Timeseries API
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+basePath: /index.php/api/
+tags:
+  - name: timeseries
+    description: Timeseries API
+x-tagGroups:
+  - name: timeseries
+    tags:
+      - timeseries
+schemes:
+  - http
+  - https
+paths:
+  /timeseries:
+      get:
+        tags:
+          - timeseries
+        summary: List all timeseries
+        description: Returns a list of all timeseries
+        operationId: listtimeseries
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        responses:
+          '200':
+            description: successful operation            
+        security:
+          - ApiKeyAuth: []
+  /timeseries/info/{dbId}/{seriesId}:
+      get:
+        tags:
+          - timeseries
+        summary: Get series info
+        description: Returns series definition
+        operationId: seriesInfo
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "seriesId"
+            type: string
+            format: string
+            required: true
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'data-api-schema.json'
+        security:
+          - ApiKeyAuth: []
+  /timeseries/data/{dbId}/{seriesId}:
+      get:
+        tags:
+          - timeseries
+        summary: Get series data
+        description: Get series data
+        operationId: getseriesData
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "seriesId"
+            type: string
+            format: string
+            required: true
+          - in: "query"
+            name: "limit"
+            type: integer
+            required: false
+          - in: "query"
+            name: "offset"
+            type: integer
+            required: false
+          - in: "query"
+            name: "c[<field-name>]"
+            description: Column filter e.g. `c[state]=CA`
+            type: string
+            required: false      
+          - in: "query"
+            name: "fields"
+            type: string
+            description: A comma seperated list of fields to output
+            required: false                      
+          - in: "query"
+            name: "format"
+            type: string
+            description: Output format - json, csv
+            required: false
+
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []       
+  
+  /timeseries/create_series:
+      post:
+        tags:
+          - timeseries
+        summary: Create new series
+        description: Create new series type
+        operationId: createseriesType
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'data-api-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'data-api-schema.json'
+        security:
+          - ApiKeyAuth: [] 
+                   
+  /timeseries/upload:
+      post:
+        tags:
+          - timeseries
+        summary: Upload CSV
+        description: Upload CSV file. By default, it will replace an existing series or create a new one. To append data to an existing series, set `append` to `true`
+        operationId: uploadCsv
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            description: Database ID
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "seriesId"
+            description: series ID
+            type: string
+            format: string
+            required: true  
+          - in: "query"
+            name: "append"
+            description: Append data to existing series
+            type: boolean
+            required: false
+          - in: "formData"
+            name: "file"
+            type: file
+            description: "CSV file"
+            required: true
+          - in: "formData"
+            name: "delimiter"
+            type: string
+            description: "CSV delimiter character - default is `,`. For tabs, use `tab`"
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
+  
+  /timeseries/insert/{dbId}/{seriesId}:      
+        post:
+          tags:
+            - timeseries
+          summary: Insert series data
+          description: Insert rows of data as JSON object
+          operationId: postseries
+          consumes:
+            - application/json
+          produces:
+            - application/json
+          parameters:
+            - in: "path"
+              name: "dbId"
+              type: string
+              format: string
+              required: true
+            - in: "path"
+              name: "seriesId"
+              type: string
+              format: string
+              required: true
+            - in: "body"
+              name: "body"
+              description: "series rows as JSON object"
+              required: true
+              schema:
+                type: object
+          responses:
+            '200':
+              description: successful operation
+          security:
+            - ApiKeyAuth: []  
+
+
+  /timeseries/indexes/{dbId}/{seriesId}:
+      get:
+        tags:
+          - timeseries
+        summary: Get series indexes
+        description: Returns a list of series indexes
+        operationId: seriesIndexes
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "seriesId"
+            type: string
+            format: string
+            required: true
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []   
+      post:
+        tags:
+          - timeseries
+        summary: Create series index
+        description: Create a new index
+        operationId: seriesIndex
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "seriesId"
+            type: string
+            format: string
+            required: true
+          - in: body
+            name: index_fields
+            description: A comma seperated list of fields for creating new index e.g. `state, district, urbrur`
+            schema:
+              type: object
+              required:
+                - index_fields
+              properties:
+                index_fields:
+                  type: string                
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
+      delete:
+        tags:
+          - timeseries
+        summary: Delete series index
+        description: Delete a series index - `timeseries/indexes/{dbId}/{seriesId}/{indexName}`
+        operationId: seriesIndexesDelete
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "seriesId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "indexName"
+            type: string
+            format: string
+            required: true  
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
+  /timeseries/text_index/{dbId}/{seriesId}:
+      post:
+        tags:
+          - timeseries
+        summary: Create fulltext index
+        description: Create a fulltext index for series. Only one text index can be created per series.
+        operationId: seriesTextIndex
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            format: string
+            required: true
+          - in: "path"
+            name: "seriesId"
+            type: string
+            format: string
+            required: true
+          - in: body
+            name: index_fields
+            description: A comma seperated list of fields for creating new index e.g. `state, district, urbrur`
+            schema:
+              type: object
+              required:
+                - index_fields
+              properties:
+                index_fields:
+                  type: string                
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
+  
+  /timeseries/attach_to_study:
+      post:
+        tags:
+          - timeseries
+        summary: Attach series to a study
+        description: Attach series to a study
+        operationId: seriesAttachToStudy
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            schema:
+              type: object
+              required:
+                - db_id
+                - series_id
+                - sid
+                - title
+              properties:
+                db_id:
+                  type: string                
+                series_id:
+                  type: string
+                sid:
+                  type: string
+                  description: Study ID
+                title:
+                  type: string
+                  description: Dataset title
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []  
+  /timeseries/detach_from_study:
+      post:
+        tags:
+          - timeseries
+        summary: Remove series from study
+        description: Dettach series from study
+        operationId: seriesDettachFromStudy
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            schema:
+              type: object
+              required:
+                - db_id
+                - series_id
+                - sid
+                - title
+              properties:
+                db_id:
+                  type: string                
+                series_id:
+                  type: string
+                sid:
+                  type: string
+                  description: Study ID
+                title:
+                  type: string
+                  description: Dataset title
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []
+  /timeseries/list_by_study/{sid}:
+      post:
+        tags:
+          - timeseries
+        summary: List timeseries by study
+        description: Get a list of timeseries attached to a study
+        operationId: seriesListByStudy
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: url
+            name: sid
+            type: string
+            description: Study ID
+            required: true
+        responses:
+          '200':
+            description: successful operation
+        security:
+          - ApiKeyAuth: []    
+  
+###############################################################
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    name: X-API-KEY
+    in: header
+definitions:
+  CsvImport:
+    type: object
+    properties:
+      db_id:
+        type: string
+      series_id:
+        type: string
+      file_path:
+        type: string
+        description: File name for uploaded CSV file
+        example: "series-name.csv"
+      delimiter:
+        type: string  
+        description: CSV delimiter - default is Comma(,)
+        example: "tab"
+    required:
+      - db_id
+      - series_id
+      - file_path 
+    xml:
+      name: CsvImport
+
+  series:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        readOnly: true
+      series_id:
+        type: string
+        required: true
+        title: "series unique IDNo"        
+      title:
+        type: string 
+        required: true
+        description: series Title 
+      description:
+        required: true
+        type: string 
+        description: A short description
+      unit_observation:
+        type: string 
+        required: true
+        description: Unit of observation
+      features:
+        type: array
+        required: true
+        description: Features
+        items:
+          type: string
+    xml:
+      name: series
+      
+  
+  ApiResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      type:
+        type: string
+      message:
+        type: string
