@@ -14,6 +14,8 @@ class Catalog extends MY_REST_Controller
 		$this->load->model('Variable_model');
 		$this->load->model("Form_model");
 		$this->load->library('Dataset_manager');
+		$this->load->model('Facet_model');
+		$this->load->config("facets");
 	}
 
 	/**
@@ -186,6 +188,18 @@ class Catalog extends MY_REST_Controller
 
 		//collections to array
 		$params['collections']=explode(",",$params['collections']);		
+
+		//custom facet filters by data type	
+		$custom_filters_by_data_type=(array)json_decode($this->config->item('facets_'.'all'),true);
+
+		//list of user defined enabled filters
+		$custom_filters_list_active=array_keys($this->Facet_model->select_all($facet_type='user', $is_enabled=1));
+
+		foreach($custom_filters_by_data_type as $custom_filter){			
+			if ($this->input->get($custom_filter)){
+				$params[$custom_filter]=xss_clean($this->input->get($custom_filter));
+			}
+		}
 		
 		//default page size
 		$limit=15;
@@ -258,7 +272,8 @@ class Catalog extends MY_REST_Controller
 				}
 
 				$response=array(
-					'result'=>$result
+					'result'=>$result,
+					'params'=>$params
 				);
 			}
 			else{
