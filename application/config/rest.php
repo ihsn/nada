@@ -185,15 +185,27 @@ $config['auth_library_function'] = '';
 // $config['auth_override_class_method']['dashboard']['*'] = 'basic';
 
 //no authentication required
+$config['auth_override_class_method']['logs']['*'] = 'none';
 $config['auth_override_class_method']['catalog']['*'] = 'none';
 $config['auth_override_class_method']['auth']['*'] = 'none';
 $config['auth_override_class_method']['tables']['list'] = 'none';
 $config['auth_override_class_method']['tables']['index'] = 'none';
 $config['auth_override_class_method']['tables']['info'] = 'none';
 $config['auth_override_class_method']['tables']['data'] = 'none';
+$config['auth_override_class_method']['tables']['pipeline'] = 'none';
 $config['auth_override_class_method']['tables']['collection_tables'] = 'none';
 $config['auth_override_class_method']['tables']['aggregate'] = 'none';
 $config['auth_override_class_method']['tables']['databases'] = 'none';
+
+$config['auth_override_class_method']['timeseries']['list'] = 'none';
+$config['auth_override_class_method']['timeseries']['index'] = 'none';
+$config['auth_override_class_method']['timeseries']['info'] = 'none';
+$config['auth_override_class_method']['timeseries']['data'] = 'none';
+$config['auth_override_class_method']['timeseries']['pipeline'] = 'none';
+$config['auth_override_class_method']['timeseries']['collection_tables'] = 'none';
+$config['auth_override_class_method']['timeseries']['aggregate'] = 'none';
+$config['auth_override_class_method']['timeseries']['databases'] = 'none';
+//$config['auth_override_class_method']['timeseries']['*'] = 'none';
 
 
 // ---Uncomment list line for the wildard unit test
@@ -592,7 +604,8 @@ $config['allowed_cors_methods'] = [
   'OPTIONS',
   'PUT',
   'PATCH',
-  'DELETE'
+  'DELETE',
+  'HEAD'
 ];
 
 /*

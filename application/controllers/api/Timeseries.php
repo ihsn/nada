@@ -456,6 +456,7 @@ class Timeseries extends MY_REST_Controller
 			$user_id=$this->get_api_user_id();
 			
 			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+			$result= $this->Timeseries_model->validate_data_structure($options);
 			$result=$this->Timeseries_tables_model->upsert($db_id, $series_id, $options, $overwrite=true);
 
 			$response=array(
@@ -464,6 +465,14 @@ class Timeseries extends MY_REST_Controller
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>"VALIDATION_ERRORS",
+				'errors'=>$e->GetValidationErrors()				
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 		catch(Exception $e){
 			$error_output=array(
