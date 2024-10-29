@@ -459,13 +459,40 @@ class Timeseries_model extends CI_Model {
            );
 
        if ($validator->isValid()) {
-           return true;
+            $this->validate_additional_data_structure($data);
+            return true;
        } else {			
            /*foreach ($validator->getErrors() as $error) {
                echo sprintf("[%s] %s\n", $error['property'], $error['message']);
            }*/
            throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", $validator->getErrors());
        }
+   }
+
+
+
+   /**
+    * 
+    * Additional validation for data structure
+    * 
+    *  - there must be one Geography column_type
+    */
+   function validate_additional_data_structure($data)
+   {
+        $geography_count=0;
+
+        foreach($data['data_structure'] as $field){
+            if ($field['column_type']=='geography'){
+                $geography_count++;
+            }
+        }
+
+        if ($geography_count==0){
+            throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", "At least one `geography` column_type is required");
+        }
+        else if ($geography_count>1){
+            throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", "Only one `geography` column_type is allowed");
+        }
    }
 
 

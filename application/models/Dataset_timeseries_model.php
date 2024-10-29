@@ -50,6 +50,11 @@ class Dataset_timeseries_model extends Dataset_model {
 		//validate schema
         $this->validate_schema($type,$options);
 
+        //validate data structure definition
+        if(isset($options['data_structure'])){
+            $this->validate_data_structure_fields($options);
+        }
+
         //get core fields for listing datasets in the catalog
         $core_fields=$this->get_core_fields($options);
         $options=array_merge($options,$core_fields);
@@ -78,7 +83,7 @@ class Dataset_timeseries_model extends Dataset_model {
 
         $options['changed']=date("U");
         
-        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional','data_structure','data_notes');
+        $study_metadata_sections=array('metadata_creation','series_description','provenance','datacite','tags','additional','data_structure','data_notes');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -254,5 +259,30 @@ class Dataset_timeseries_model extends Dataset_model {
 
         return false;
     }
+
+
+    /**
+    * 
+    * Additional validation for data structure
+    * 
+    *  - there must be one Geography column_type
+    */
+   function validate_data_structure_fields($data)
+   {
+        $geography_count=0;
+
+        foreach($data['data_structure'] as $field){
+            if ($field['column_type']=='geography'){
+                $geography_count++;
+            }
+        }
+
+        if ($geography_count==0){
+            throw new ValidationException("SCHEMA_VALIDATION_FAILED: ", "At least one `geography` column_type is required");
+        }
+        else if ($geography_count>1){
+            throw new ValidationException("SCHEMA_VALIDATION_FAILED: ", "Only one `geography` column_type is allowed");
+        }
+   }
 
 }

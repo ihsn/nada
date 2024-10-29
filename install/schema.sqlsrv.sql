@@ -193,12 +193,14 @@ CREATE TABLE survey_tags (
   id int NOT NULL IDENTITY(1,1),
   sid int NOT NULL,
   tag varchar(100) NOT NULL,
+  tag_group varchar(100) DEFAULT NULL,
   PRIMARY KEY (id)
 ) ;
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_survey_tags on [dbo].[survey_tags](
 	[sid] ASC,
-	[tag] ASC
+	[tag] ASC,
+  [tag_group] ASC
 );
 
 

@@ -205,8 +205,9 @@ CREATE TABLE `survey_tags` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `sid` int(11) NOT NULL,
   `tag` varchar(100) NOT NULL,
+  'tag_group' varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_tag` (`sid`,`tag`)
+  UNIQUE KEY `uq_tag` (`sid`,`tag`,`tag_group`)
 ) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

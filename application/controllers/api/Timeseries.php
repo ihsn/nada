@@ -70,7 +70,7 @@ class Timeseries extends MY_REST_Controller
 				$response['data'][$key]['_links']=array(
 					'info'=>site_url('api/timeseries/info/'.$db_id.'/'.$series_id),
 					'data'=>site_url('api/timeseries/data/'.$db_id.'/'.$series_id),					
-					'data_structure'=>site_url('api/timeseries/data_structure/'.$db_id.'/'.$series_id),					
+					'data_structure'=>site_url('api/timeseries/data_structure/'.$db_id.'/'.$series_id)					
 				);				
 			}
 
@@ -122,36 +122,49 @@ class Timeseries extends MY_REST_Controller
 		}
 	}
 
+	
 
 	function validate_data_structure_get($db_id=null, $series_id=null)
 	{
 		//$this->is_authenticated_or_die();
 
-		$fixes=[];
+		try{
+			$user_id=$this->get_api_user_id();
+			$data_structure=$this->Timeseries_tables_model->get_single($db_id, $series_id);
+			$response= $this->Timeseries_model->validate_data_structure($data_structure);
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>"VALIDATION_ERRORS",
+				'errors'=>$e->GetValidationErrors(),
+				'data'=>$data_structure
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	function validate_data_structure_post($db_id=null, $series_id=null)
+	{
+		//$this->is_authenticated_or_die();
 
 		try{
 			$user_id=$this->get_api_user_id();
-			//get data structure definition
-			$data_structure=$this->Timeseries_tables_model->get_single($db_id, $series_id);
-
-			if (isset($data_structure['data_structure'])){
-				foreach($data_structure['data_structure'] as $key=>$item){
-					if (isset($item['list_codes'])){
-						$data_structure['data_structure'][$key]['code_list']=$data_structure['data_structure'][$key]['list_codes'];
-						unset($data_structure['data_structure'][$key]['list_codes']);
-						$fixes[]='list_codes changed to code_list';
-					}
-				}
-			}
-
-			$result=$this->Timeseries_model->validate_data_structure($data_structure);
+			$data_structure=$this->raw_json_input();
+			$result= $this->Timeseries_model->validate_data_structure($data_structure);
 
 			$response=array(
 				'status'=>'success',
-				'fixes'=>$fixes,
-				'validation'=>$result,
-				'data'=>$data_structure
-
+				'result'=>$result
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -175,73 +188,7 @@ class Timeseries extends MY_REST_Controller
 	}
 
 
-	/*
-	function bulk_validate_get()
-	{
-		$query_params=$this->input->get();
-		$offset=$query_params['offset'] ?? 0;
-		$limit=$query_params['limit'] ?? 100;
 		
-		$validation_result=array(
-			'passed'=>[], 
-			'failed'=>[]);
-		
-
-		try{
-			$response=$this->Timeseries_tables_model->search($db_id=null, $series_id=null, $limit, $offset, $query_params);
-			
-			
-			foreach($response['data'] as $key=>$item){
-				$db_id=$item['db_id'];
-				$series_id=$item['series_id'];
-
-				//echo "Validating: $db_id - $series_id\n";
-
-				$data_structure=$this->Timeseries_tables_model->get_single($db_id, $series_id);
-				try{
-					$validate=$this->Timeseries_model->validate_data_structure($data_structure);
-				}
-				catch(ValidationException $e){
-					$validation_result['failed'][]=array(
-						'db_id'=>$db_id,
-						'series_id'=>$series_id,
-						'errors'=>$e->GetValidationErrors()
-					);
-				}
-			}
-
-			unset($response['data']);
-
-			//$response['validation_result']=$validation_result;
-			$result_set=array(
-				'status'=>'success',
-				'data'=>$response,
-				'validation_result'=>$validation_result
-			);
-			$this->set_response($result_set, REST_Controller::HTTP_OK);
-			//$this->set_response($response, REST_Controller::HTTP_OK);
-		}
-		catch(ValidationException $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>"VALIDATION_ERRORS",
-				'errors'=>$e->GetValidationErrors(),
-				'data'=>$data_structure
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'error'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-	}
-		*/
-
-
-
 
 	private function validate_required_params($param_keys, $values)
 	{
@@ -553,11 +500,32 @@ class Timeseries extends MY_REST_Controller
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * Get data structure for a single timeseries
+	 * 
+	 * @db_id - database id
+	 * @series_id - series id
+	 * 
+	 * querystring params:
+	 * 	- column_names_only - [Boolean] - return only column names
+	 *  - columns - [String] - comma separated list of columns to return
+	 *  - code_lists_only - [Boolean] - return code lists 
+	 *  - code_list - [String] - return code list for a specific column
+	 *  
+	 * 
+	 * 
+	 * 
+	 * @return array
+	 * 
+	 */
 	public function data_structure_get($db_id=null, $series_id=null)
 	{
 		try{		
 			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
-			$result=$this->Timeseries_tables_model->get_data_structure($db_id, $series_id);
+			$params=$this->input->get();
+			$result=$this->Timeseries_tables_model->get_data_structure($db_id, $series_id, $params);
 
 			$response=array(
 				'data_structure'=>$result
@@ -573,6 +541,7 @@ class Timeseries extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+	
 
 
 

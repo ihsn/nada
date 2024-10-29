@@ -13,30 +13,32 @@ class Catalog_tags_model extends CI_Model {
 	public function insert($data) 
 	{
 		$result = $this->db->insert('survey_tags', $data);
-		return $result;
 	}
 
-	public function upsert($sid,$tag) 
+	public function upsert($sid,$tag, $tag_group=null) 
 	{
-		$tag_exists=$this->tag_exists($sid, $tag);
-		
+		$tag_exists=$this->tag_exists($sid, $tag, $tag_group);
+
 		if (!$tag_exists){
 
 			$options=array(
 				'sid'=>$sid,
-				'tag'=>$tag
+				'tag'=>$tag,
+				'tag_group'=>$tag_group
 				);
 			
 			return $this->insert($options);
 		}
 	}
 	
-	public function tag_exists($sid,$tag)
+	public function tag_exists($sid,$tag,$tag_group=null)
 	{
-		$this->db->select('sid');		
+		$this->db->select('sid');
 		$this->db->from('survey_tags');		
 		$this->db->where('sid',$sid);
-		$this->db->where('tag',$tag);				
+		$this->db->where('tag',$tag);
+		$this->db->where('tag_group',$tag_group);
+
         return $this->db->count_all_results();
 	}
 	
@@ -63,7 +65,7 @@ class Catalog_tags_model extends CI_Model {
 
 	function survey_tags_with_key($sid)
 	{
-		$this->db->select("tag");
+		$this->db->select("tag,tag_group");
 		$this->db->where('sid',$sid);
 		return $this->db->get('survey_tags')->result_array();
 	}
@@ -76,7 +78,7 @@ class Catalog_tags_model extends CI_Model {
 		$tags=$this->db->get('survey_tags')->result_array();
 		
 		if($tags){
-			return array_column($tags,'tag');
+			return array_unique(array_column($tags,'tag'));
 		}
 	}
 

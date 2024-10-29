@@ -95,7 +95,8 @@
 								"properties": {
 									"code": {
 										"title": "Code",
-										"type": ["string", "number"]
+										"type": ["string", "number"],
+										"minLength": 1
 									},
 									"label": {
 										"title": "Label",

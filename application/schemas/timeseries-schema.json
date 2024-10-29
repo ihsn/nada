@@ -743,21 +743,21 @@
 					"title": "Errata",
 					"description": "List of corrected errors in data or metadata",
 					"items": {
-					  "type": "object",
-					  "properties": {
-						"date": {
-						  "title": "Date of erratum",
-						  "description": "Date when the erratum was reported or published",
-						  "type": "string"
-						},
-						"description": {
-						  "title": "Description of the erratum",
-						  "description": "A description of the erratum, with information on which data or metadata were impacted",
-						  "type": "string"
+						"type": "object",
+						"properties": {
+							"date": {
+								"title": "Date of erratum",
+								"description": "Date when the erratum was reported or published",
+								"type": "string"
+							},
+							"description": {
+								"title": "Description of the erratum",
+								"description": "A description of the erratum, with information on which data or metadata were impacted",
+								"type": "string"
+							}
 						}
-					  }
 					}
-				  },
+				},
 				"notes": {
 					"title": "Notes",
 					"description": "Notes",
@@ -933,6 +933,189 @@
 				"name"
 			]
 		},
+		"data_structure": {
+			"type": "array",
+			"description": "Data structure definition",			
+				"items": {
+					"type": "object",
+					"properties": {
+						"name": {
+							"title": "Name",
+							"description": "Name (required)",
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100,
+							"pattern": "^[a-zA-Z0-9_]*$"
+						},
+						"label": {
+							"title": "Label",
+							"type": "string"
+						},
+						"description": {
+							"title": "Description",
+							"type": "string"
+						},
+						"data_type": {							
+							"title": "Data type",
+							"type": "string",
+							"enum":[
+								"string",
+								"integer",
+								"float",
+								"double",
+								"date",
+								"boolean"
+							]
+						},
+						"column_type": {
+							"title": "Column type",
+							"type": "string",
+							"enum":[
+								"dimension",
+								"time_period",
+								"measure",
+								"attribute",
+								"indicator_id",
+								"indicator_name",
+								"annotation",
+								"geography",
+								"observation_value"
+							]
+						},	
+						"time_period_format": 
+						{
+							"title":"Time period format",
+							"type": "string",
+							"enum":[
+								"YYYY",
+								"YYYY-MM",
+								"YYYY-MM-DD",
+								"YYYY-MM-DDTHH:MM:SS",
+								"YYYY-MM-DDTHH:MM:SSZ"
+							]
+						},
+						"code_list": {
+							"title": "Code list",
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"code": {
+										"title": "Code",
+										"type": ["string", "number"],
+										"minLength": 1
+									},
+									"label": {
+										"title": "Label",
+										"type": ["string", "number"]
+									},
+									"description": {
+										"title": "Description",
+										"type": "string"
+									}
+								},
+								"required": [
+									"code"
+								],
+								"additionalProperties": false
+							}
+						},
+						"code_list_reference": {
+							"title": "Code list reference",							
+								"type": "object",
+								"properties": {
+									"id": {
+										"title": "Identifier (ID)",
+										"type": "string"
+									},
+									"name": {
+										"title": "Name",
+										"type": "string"
+									},
+									"version": {
+										"title": "Version",
+										"type": "string"
+									},
+									"uri": {
+										"title": "URI",
+										"description": "URI",
+										"type": "string"
+									},
+									"note": {
+										"title": "Note",
+										"description": "Note",
+										"type": "string"
+									}
+								},
+								"required": [
+									"uri"
+								]
+						}
+					},
+					"required": [
+						"name",
+						"data_type",
+						"column_type"
+					],
+					"additionalProperties": false
+				}
+		},
+		"data_notes": {
+			"type": "array",
+			"title": "Data notes",
+			"description": "Data notes",
+			"items": {
+				"type": "object",
+				"properties": {
+					"filters": {
+						"type": "array",
+						"title": "Filters",
+						"description": "Filters",
+						"items": {
+							"type": "object",
+							"properties": {
+								"field": {
+									"title": "Field",
+									"type": "string"
+								},
+								"operator": {
+									"title": "Operator",
+									"type": "string",
+									"enum": [
+										"=",
+										"!=",
+										"<",
+										"<=",
+										">",
+										">=",
+										"in",
+										"!in"
+									]
+								},
+								"value": {
+									"title": "Value",
+									"type": [
+										"string",
+										"number",
+										"boolean",
+										"array"
+									]
+								}
+							}
+						}
+					},
+					"note": {
+						"title": "Note",
+						"type": "string"
+					}
+				}
+			}
+		},
+		"datacite": {
+			"type": "object",
+			"description": "DataCite metadata for generating DOI",
+			"$ref": "datacite-schema.json"
+		},
 		"provenance": {
 			"type": "array",
 			"description": "Provenance",
@@ -960,145 +1143,6 @@
 			"required": [
 				"tag"
 			]
-		},
-		"lda_topics": {
-			"type": "array",
-			"title": "LDA topics",
-			"description": "LDA topics",
-			"items": {
-				"type": "object",
-				"properties": {
-					"model_info": {
-						"type": "array",
-						"title": "Model information",
-						"items": {
-							"type": "object",
-							"properties": {
-								"source": {
-									"title": "Source",
-									"type": "string"
-								},
-								"author": {
-									"title": "Author",
-									"type": "string"
-								},
-								"version": {
-									"title": "Version",
-									"type": "string"
-								},
-								"model_id": {
-									"title": "Model Identifier",
-									"type": "string"
-								},
-								"nb_topics": {
-									"title": "Number of topics",
-									"type": "number"
-								},
-								"description": {
-									"title": "Description",
-									"type": "string"
-								},
-								"corpus": {
-									"title": "Corpus name",
-									"type": "string"
-								},
-								"uri": {
-									"title": "URI",
-									"type": "string"
-								}
-							}
-						},
-						"required": [
-							"model_id"
-						]
-					},
-					"topic_description": {
-						"type": "array",
-						"title": "Topic information",
-						"items": {
-							"type": "object",
-							"properties": {
-								"topic_id": {
-									"title": "Topic identifier",
-									"type": [
-										"integer",
-										"string"
-									]
-								},
-								"topic_score": {
-									"title": "Topic score",
-									"type": [
-										"number",
-										"string"
-									]
-								},
-								"topic_label": {
-									"title": "Topic label",
-									"type": "string"
-								},
-								"topic_words": {
-									"type": "array",
-									"title": "Topic words",
-									"description": "Words",
-									"items": {
-										"type": "object",
-										"properties": {
-											"word": {
-												"title": "Word",
-												"type": "string"
-											},
-											"word_weight": {
-												"title": "Word weight",
-												"type": "number"
-											}
-										}
-									},
-									"required": [
-										"word"
-									]
-								}
-							}
-						},
-						"required": [
-							"topic_id"
-						]
-					}
-				},
-				"additionalProperties": false
-			}
-		},
-		"embeddings": {
-			"type": "array",
-			"title": "Word embeddings",
-			"description": "Word embeddings",
-			"items": {
-				"type": "object",
-				"properties": {
-					"id": {
-						"title": "Vector Model ID",
-						"type": "string"
-					},
-					"description": {
-						"title": "Vector Model Description",
-						"type": "string"
-					},
-					"date": {
-						"title": "Date (YYYY-MM-DD)",
-						"type": "string"
-					},
-					"vector": {
-						"title": "Vector",
-						"type": [
-							"object",
-							"array"
-						]
-					}
-				},
-				"required": [
-					"id",
-					"vector"
-				]
-			}
 		},
 		"additional": {
 			"type": "object",

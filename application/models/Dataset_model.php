@@ -713,7 +713,7 @@ class Dataset_model extends CI_Model {
 
 		//tags
 		if(isset($options['tags'])){
-			$this->add_survey_tags($sid, $options['tags']);
+			$this->add_tags($sid, $options['tags']);
 			unset($options['tags']);
 		}
 
@@ -1215,37 +1215,28 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	function add_survey_tags($sid, $tags=array())
-	{
-		$this->load->model("Catalog_tags_model");
-				
-        if (!is_array($tags)){
-            return;
-        }
-
-		$existing_tags=(array)$this->Catalog_tags_model->survey_tags_list($sid);
-
-		//remove duplicates or null
-		$tags=array_unique(array_filter($tags));
-		$tags=array_diff($tags, $existing_tags);
-        
-		foreach ($tags as $tag){
-            $options=array(
-					'sid'	=>$sid,
-					'tag'	=>$tag
-				);
-            $this->db->insert('survey_tags',$options);
-		}
-	}
-
-	function add_tags($sid, $tags)
+	function add_tags($sid, $tags=array())
     {
         if(empty($tags)){
             return false;
         }
-        
-        $tags=array_column($tags,'tag');
-        return $this->add_survey_tags($sid,$tags);        
+
+		foreach($tags as $tag){
+
+			$tag_group=isset($tag['tag_group']) ? $tag['tag_group'] : null;
+
+			if ($tag_group==''){
+				$tag_group=null;
+			}
+
+			$tag=isset($tag['tag']) ? $tag['tag'] : null;
+
+			if (!$tag){
+				continue;
+			}
+
+        	$this->Catalog_tags_model->upsert($sid,$tag, $tag_group);
+		}
     }
 
 
