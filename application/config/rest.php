@@ -205,6 +205,8 @@ $config['auth_override_class_method']['timeseries']['pipeline'] = 'none';
 $config['auth_override_class_method']['timeseries']['collection_tables'] = 'none';
 $config['auth_override_class_method']['timeseries']['aggregate'] = 'none';
 $config['auth_override_class_method']['timeseries']['databases'] = 'none';
+$config['auth_override_class_method']['timeseries']['data_structure'] = 'none';
+$config['auth_override_class_method']['timeseries']['data_structure_columns'] = 'none';
 //$config['auth_override_class_method']['timeseries']['*'] = 'none';
 
 

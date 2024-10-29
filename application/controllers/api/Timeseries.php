@@ -280,6 +280,12 @@ class Timeseries extends MY_REST_Controller
 				$this->Timeseries_model->series_delete($db_id, $series_id);
 			}
 
+			//validate csv columns match the series data structure
+			//$series_data_structure=$this->Timeseries_tables_model->get_data_structure_columns($db_id, $series_id);
+
+			//$csv_columns=$this->Timeseries_model->get_csv_columns($uploaded_file_path);
+			$this->Timeseries_tables_model->validate_csv_data($db_id, $series_id, $uploaded_file_path);
+
 			//import csv
 			$result=$this->Timeseries_model->import_csv(
 				$db_id,
@@ -550,6 +556,30 @@ class Timeseries extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+
+	public function data_structure_columns_get($db_id=null, $series_id=null)
+	{
+		try{		
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));			
+			$result=$this->Timeseries_tables_model->get_data_structure_columns($db_id, $series_id);
+
+			$response=array(
+				'data_structure'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	
 	
 
 

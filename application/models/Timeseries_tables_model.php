@@ -306,6 +306,12 @@ class Timeseries_tables_model extends CI_Model {
    }
 
 
+
+   /**
+    * 
+    * Get data structure
+    * 
+    */
    public function get_data_structure($db_id, $series_id)
    {
         $collection=$this->mongo_client->{$this->Timeseries_model->get_db_name()}->{$this->table_name};
@@ -327,6 +333,38 @@ class Timeseries_tables_model extends CI_Model {
 
         return $result['data_structure'];
    }
+
+
+   /**
+    * 
+    * Get data structure columns list
+    *
+    */
+   public function get_data_structure_columns($db_id, $series_id)
+   {
+        $collection=$this->mongo_client->{$this->Timeseries_model->get_db_name()}->{$this->table_name};
+        $series_filter=array(
+            'db_id'=>$db_id,
+            'series_id'=>$series_id
+        );
+        $projection=array(            
+            "data_structure.name"=>1, 
+            "data_structure.data_type"=>1, 
+            "data_structure.column_type"=>1        
+        );
+
+        $result = $collection->findOne($series_filter, ['projection'=>$projection]);
+        if (empty($result)){
+            throw new Exception("Timeseries not found");
+        }
+        
+        if (!isset($result['data_structure'])){
+            throw new Exception("Data structure not found");
+        }
+
+        return json_decode(json_encode($result['data_structure']),true);
+   }
+
 
 
    /**
@@ -358,5 +396,48 @@ class Timeseries_tables_model extends CI_Model {
         return $result;
    }
 
-	
+
+   public function validate_csv_data($db_id, $series_id, $csv_file_path)
+   {
+        //data structure columns
+        $data_structure=$this->get_data_structure_columns($db_id, $series_id);
+        $csv = Reader::createFromPath($csv_file_path);
+
+        //get csv header
+        $csv->setHeaderOffset(0);
+        $header = $csv->getHeader();
+        $header=array_map('trim', $header);
+        $columns=array_column($data_structure, 'name');
+        $columns=array_map('trim', $columns);
+
+        $column_diff=[];
+
+        //check if all columns are present from data structure
+        foreach($columns as $column){
+            if (!in_array($column, $header)){
+                $column_diff[]=$column;
+            }
+        }
+
+        if (!empty($column_diff)){
+            throw new Exception("CSV data does not match with the Data structure definition: ".implode(",",$column_diff));
+        }
+
+
+        $column_errors=[];
+        //check if csv column name only use alphanumeric characters and underscore
+        foreach($header as $column){
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $column)){
+                $column_errors[]=$column;
+            }
+        }
+
+        if (!empty($column_errors)){
+            throw new Exception("CSV column names should only contain alphanumeric characters and underscore: ".implode(",",$column_errors));
+        }
+        
+
+        return true;
+    }
+   	
 }    
