@@ -70,7 +70,8 @@ class Timeseries extends MY_REST_Controller
 				$response['data'][$key]['_links']=array(
 					'info'=>site_url('api/timeseries/info/'.$db_id.'/'.$series_id),
 					'data'=>site_url('api/timeseries/data/'.$db_id.'/'.$series_id),					
-					'data_structure'=>site_url('api/timeseries/data_structure/'.$db_id.'/'.$series_id)					
+					'data_structure'=>site_url('api/timeseries/data_structure/'.$db_id.'/'.$series_id),
+					'chart'=>site_url('data/chart?db_id='.$db_id.'&series_id='.$series_id)
 				);				
 			}
 
