@@ -121,7 +121,7 @@ class Timeseries_model extends CI_Model {
      * Batch insert rows into a timeseries collection
      * 
      */
-    public function series_batch_insert($db_id,$series_id,$rows)
+    public function series_batch_insert($db_id,$series_id,$rows) 
     {
         $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_series_name($db_id,$series_id)};
         $insertManyResult = null;
@@ -179,9 +179,16 @@ class Timeseries_model extends CI_Model {
         //$this->table_type_obj= $this->get_table_type($db_id,$table_id);
 
 
-        //TOOD: get from the series data structure 
+        //series data structure 
+        $dsd=$this->Timeseries_tables_model->get_series_data_structure($db_id,$series_id);
+
+        
         //$fields=$this->get_table_field_names($db_id,$table_id);
         //$fields=null;
+
+
+
+
         $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_series_name($db_id,$series_id)};        
 
         if (!isset($options['fields'])){
@@ -349,8 +356,9 @@ class Timeseries_model extends CI_Model {
                 [
                     //$project use field name
                     '$project' => [
-                        $field => '$_id',
-                        '_id' => 1,
+                        //$field => '$_id',
+                        '_id' => 0,
+                        'value' => '$_id',
                         'count' => 1
                     ]
                 ]       

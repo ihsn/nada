@@ -579,6 +579,83 @@ class Timeseries extends MY_REST_Controller
 		}
 	}
 
+	/**
+	 * 
+	 * Get a list of geographies in a series
+	 * 
+	 */
+	public function geographies_get($db_id=null, $series_id=null)
+	{
+		try{		
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+			
+			$query_field=$this->Timeseries_tables_model->get_data_structure_column_by_type($db_id,$series_id,'geography');
+			
+			if (!$query_field){
+				throw new Exception("Column type not found");
+			}
+
+
+			$field_name=$query_field['name'];
+
+			//get unqiue values
+			$values=$this->Timeseries_model->get_series_distinct_values($db_id, $series_id, $field_name);
+
+			$response=array(
+				'column_info'=>$query_field,
+				'data'=>$values
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * Get a list of time_periods in a series
+	 * 
+	 */
+	public function time_periods_get($db_id=null, $series_id=null)
+	{
+		try{		
+			$this->validate_required_params(array("db_id","series_id"), array("db_id"=>$db_id, "series_id"=>$series_id));
+			
+			$query_field=$this->Timeseries_tables_model->get_data_structure_column_by_type($db_id,$series_id,'time_period');
+			
+			if (!$query_field){
+				throw new Exception("Column type not found");
+			}
+
+
+			$field_name=$query_field['name'];
+
+			//get unqiue values
+			$values=$this->Timeseries_model->get_series_distinct_values($db_id, $series_id, $field_name);
+
+			$response=array(
+				'column_info'=>$query_field,
+				'data'=>$values
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
 	
 	
 

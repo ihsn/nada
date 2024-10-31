@@ -366,6 +366,31 @@ class Timeseries_tables_model extends CI_Model {
    }
 
 
+   /**
+    * 
+    * Return data structure column by column type
+    * - geography, time_period, observation_value, ...
+    *
+    */
+   public function get_data_structure_column_by_type($db_id,$series_id,$column_type)
+   {
+        $dsd=$this->get_data_structure_columns($db_id,$series_id);
+
+        if (!$dsd){
+            return false;
+        }
+
+        foreach($dsd as $row)
+        {
+            if ($row['column_type']==$column_type){
+                return $row;
+            }
+        }
+
+        return false;
+   }
+
+
 
    /**
     * 
