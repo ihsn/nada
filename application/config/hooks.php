@@ -183,7 +183,7 @@ function disable_annonymous_access($params)
         $CI->load->helper('url'); // to be on the safe side
 
 		//disable rules for the auth/ url, otherwise user will never see the login page
-        if($CI->uri->segment(1) !== 'auth' && $CI->uri->segment(1) !== 'api')
+        if($CI->uri->segment(1) !== 'auth' && $CI->uri->segment(1) !== 'api' && $CI->uri->segment(1) !== 'data')
         {
 			//remember the page user was on
 			$destination=$CI->uri->uri_string();
