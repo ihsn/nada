@@ -180,14 +180,11 @@ class Timeseries_model extends CI_Model {
 
 
         //series data structure 
-        $dsd=$this->Timeseries_tables_model->get_series_data_structure($db_id,$series_id);
+        //$dsd=$this->Timeseries_tables_model->get_series_data_structure($db_id,$series_id);
 
         
         //$fields=$this->get_table_field_names($db_id,$table_id);
         //$fields=null;
-
-
-
 
         $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_series_name($db_id,$series_id)};        
 
