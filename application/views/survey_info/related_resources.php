@@ -149,7 +149,7 @@ $fields_arr=array(
             <?php if (count($resourcetype)>0):?>
                 <fieldset>
                     <legend>
-                        <?php echo isset($legend_labels[$key]) ? $legend_labels[$key] : $legend_labels['other'];?>
+                        <?php echo isset($legend_labels[$key]) ? $legend_labels[$key] : t($key);?>
                     </legend>
                     <?php foreach($resourcetype as $row):?>
                         <?php
