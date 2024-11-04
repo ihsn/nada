@@ -485,19 +485,57 @@ class Timeseries_model extends CI_Model {
    function validate_additional_data_structure($data)
    {
         $geography_count=0;
+        $time_period_count=0;
+        $obs_value_count=0;
 
         foreach($data['data_structure'] as $field){
             if ($field['column_type']=='geography'){
                 $geography_count++;
             }
+
+            if ($field['column_type']=='time_period'){
+                $time_period_count++;
+            }
+
+            if ($field['column_type']=='observation_value'){
+                $obs_value_count++;
+            }
         }
 
+        $validation_errors=array();
+
         if ($geography_count==0){
-            throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", "At least one `geography` column_type is required");
+            $validation_errors[]="At least one `geography` column_type is required";
+            //throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", "At least one `geography` column_type is required");
         }
         else if ($geography_count>1){
-            throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", "Only one `geography` column_type is allowed");
+            //throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", "Only one `geography` column_type is allowed");
+            $validation_errors[]="Only one `geography` column_type is allowed";
         }
+
+        if ($time_period_count==0){
+            //throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", "At least one `time_period` column_type is required");
+            $validation_errors[]="At least one `time_period` column_type is required";
+        }
+        else if ($time_period_count>1){
+            //throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", "Only one `time_period` column_type is allowed");
+            $validation_errors[]="Only one `time_period` column_type is allowed";
+        }
+
+        if ($obs_value_count==0){
+            //throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", "At least one `observation_value` column_type is required");
+            $validation_errors[]="At least one `observation_value` column_type is required";
+        }
+        else if ($obs_value_count>1){
+            //throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", "Only one `observation_value` column_type is allowed");
+            $validation_errors[]="Only one `observation_value` column_type is allowed";
+        }
+
+        if (count($validation_errors)>0){
+            throw new ValidationException("SCHEMA_VALIDATION_FAILED [DATA_API]: ", $validation_errors);
+        }
+
+        return true;
    }
 
 
