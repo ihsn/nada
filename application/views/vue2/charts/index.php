@@ -31,12 +31,13 @@
             data: {
                 db_id:'',
                 series_id:'',
-                geographies:[],
+                geographies:[],                
                 dataset:[],
                 dsd:[],
                 //computed from dataset
                 dataset_timeperiods:[],
                 dataset_geographies:[],
+                dataset_geographies_labels:[],
                 dataset_values:[],
                 //geographies referenced by series
                 series_geographies:[],
@@ -56,7 +57,6 @@
                     this.geographies=[];
                     this.geographies.push(this.randomGeography);
                 }
-                
                 this.loadDataStructure();
             },
             watch:{
@@ -85,7 +85,8 @@
                                 trigger:'axis'
                             },
                             legend: {
-                                data: this.dataset_geographies//['Sales', 'Expenses', 'Profit']
+                                //data: this.dataset_geographies//['Sales', 'Expenses', 'Profit']
+                                data: this.dataset_geographies_labels
                             },
                             xAxis: {
                                 data: this.dataset_timeperiods//['A', 'B', 'C', 'D', 'E', 'F']
@@ -176,7 +177,14 @@
                     }
                     
                     //get unique time periods
-                    this.dataset_timeperiods = [...new Set(this.dataset.data.map(item => item[this.dsdTimeperiod]))];                
+                    //this.dataset_timeperiods = [...new Set(this.dataset.data.map(item => item[this.dsdTimeperiod]))];                
+
+                    //get min and max time period
+                    let min_timeperiod = Math.min(...this.dataset.data.map(item => item[this.dsdTimeperiod]));
+                    let max_timeperiod = Math.max(...this.dataset.data.map(item => item[this.dsdTimeperiod]));
+
+                    //create time periods
+                    this.dataset_timeperiods = Array.from({length: max_timeperiod - min_timeperiod + 1}, (_, i) => min_timeperiod + i);                    
                 },
                 computeDatasetGeographies: function()
                 {
@@ -184,8 +192,11 @@
                         this.dataset_geographies = [];
                     }
                     
-                    //get unique time periods
-                    this.dataset_geographies = [...new Set(this.dataset.data.map(item => item[this.dsdGeography]))];                
+                    //get unique geographies
+                    this.dataset_geographies = [...new Set(this.dataset.data.map(item => item[this.dsdGeography]))];
+                    
+                    //geographies labels
+                    this.dataset_geographies_labels = this.dataset_geographies.map(item => this.findGeographyLabelByCode(item));
                 },
                 computeDatasetValues: function()
                 {
@@ -232,7 +243,7 @@
                         //create series
                         series.push(
                             {
-                                name: geography,
+                                name: this.findGeographyLabelByCode(geography),
                                 type: 'line',
                                 data: geography_data
                             }
@@ -245,6 +256,10 @@
                 },
                 findGeographyLabelByCode: function(code)
                 {
+                    if (!this.dsdGeographyCodeList){
+                        return code;
+                    }
+
                     let label = '';
                     this.dsdGeographyCodeList.forEach(item => {
                         if (item.code === code) {
@@ -289,6 +304,18 @@
                     } else {
                         return null;
                     }
+                },
+                geographyLabels: function(){
+                    let labels=[];
+                    this.geographies.forEach((item) => {
+                        let label=this.findGeographyLabelByCode(item);
+                        if (label){
+                            labels.push(label);
+                        }else{
+                            labels.push(item);                            
+                        }
+                    });
+                    return labels;
                 }
 
             }
