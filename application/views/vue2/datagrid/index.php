@@ -37,6 +37,12 @@
 
         <v-card class="ma-2 elevation-4">            
             <v-card-text>
+            <div v-if="geographies.length > 0">                                        
+                    <v-chip small close outlined pill @click="geographies=[]" @click:close="geographies=[]">
+                        <v-icon small>mdi-filter-outline</v-icon>
+                        <strong>{{dsdGeography}}:</strong>&nbsp; {{GeographiesString}}
+                    </v-chip>                
+            </div>
                 <v-data-table          
                     :headers="getHeaders"  
                     :items="dataset.data"
@@ -45,7 +51,7 @@
                     :loading="dataset_isloading"
                     loading-text="Loading... Please wait"
                     hide-default-header
-                    :server-items-length="dataset.total"
+                    :server-items-length="dataset.found"
                     :options.sync="options"
                     :footer-props="{
                         'items-per-page-options': [5, 15, 30, 40, 50]
@@ -63,8 +69,7 @@
                 <tr>
                     <th v-for="h in headers" class="th-secondary-header">
                         <div class="th-secondary-text">{{h.label}}<br/>
-                        ({{h.data_type}})
-                        </div>
+                        ({{h.data_type}})                        
                     </th>
                 </tr>
                 </thead>
@@ -90,7 +95,9 @@
                 dsd:[],
                 api_base_url:'https://data-compass.ihsn.org/index.php/api/',
                 options: {},
-                grid_height: '500px'
+                grid_height: '500px',
+                geographies: [],
+                filters: [],
             },
             async mounted() {
                 //load db_id and series_id from url query string
@@ -103,6 +110,10 @@
                     this.grid_height = grid_height;
                 }
 
+                if (countries){
+                    this.geographies = countries.split('|');
+                }
+
 
                 this.loadDataStructure();
             },
@@ -113,8 +124,17 @@
                     },
                     deep: true,
                 },
+                geographies: {
+                    handler () {
+                        this.loadData();
+                    },
+                    deep: true,
+                }
             },
-            methods:{       
+            methods:{   
+                removeGeography: function(geo){
+                    this.geographies = this.geographies.filter(item => item !== geo);
+                },    
                 getPaginationOffset: function(){
                     return (this.options.page-1)*this.options.itemsPerPage;
                 },
@@ -125,6 +145,10 @@
                     
                     let url = this.api_base_url + 'timeseries/data/'+this.db_id+'/'+this.series_id;
                     url += '?limit=' + itemsPerPage + '&offset=' + this.getPaginationOffset();
+
+                    if (this.geographies.length > 0 && this.dsdGeography){
+                        url += '&c[' + this.dsdGeography + ']=' + this.geographies.join('|');
+                    }
                     
                     axios.get(url)
                     .then(response => {
@@ -171,6 +195,15 @@
                     });
 
                     return headers;
+                },
+                dsdGeography: function(){                    
+                    let item= this.dsd.filter(item => item.column_type.toLowerCase() == 'geography');
+                    if (item.length > 0){
+                        return item[0].name;
+                    }
+                },
+                GeographiesString: function(){
+                    return this.geographies.join(' | ');
                 }
             }
         });
