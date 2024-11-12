@@ -38,7 +38,7 @@
         <v-card class="ma-2 elevation-4">            
             <v-card-text>
             <div v-if="geographies.length > 0">                                        
-                    <v-chip small close outlined pill @click="geographies=[]" @click:close="geographies=[]">
+                    <v-chip small close outlined pill @click="removeAllGeographies" @click:close="removeAllGeographies">
                         <v-icon small>mdi-filter-outline</v-icon>
                         <strong>{{dsdGeography}}:</strong>&nbsp; {{GeographiesString}}
                     </v-chip>                
@@ -114,26 +114,32 @@
                     this.geographies = countries.split('|');
                 }
 
-
                 this.loadDataStructure();
             },
             watch:{
                 options: {
-                    handler () {
+                    handler: function (newVal, oldVal) {
+                        if (!oldVal.page ){
+                            return;
+                        }
                         this.loadData();
                     },
-                    deep: true,
                 },
-                geographies: {
+                /*geographies: {
                     handler () {
                         this.loadData();
                     },
                     deep: true,
-                }
+                }*/
             },
-            methods:{   
+            methods:{
+                removeAllGeographies: function(){
+                    this.geographies = [];
+                    this.loadData();
+                },
                 removeGeography: function(geo){
                     this.geographies = this.geographies.filter(item => item !== geo);
+                    this.loadData();
                 },    
                 getPaginationOffset: function(){
                     return (this.options.page-1)*this.options.itemsPerPage;
