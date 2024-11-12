@@ -13,7 +13,7 @@
             overflow: hidden;
             padding: 10px;
             width: 100%;
-            min-height: 200px;
+            height:100%;
             position: relative;
         }
     </style>
@@ -21,7 +21,7 @@
 <body>
     <div id="app">
         <div class="chart-panel">
-            <div id="chart" style="width: 100%; height: 100%;"></div>
+            <div id="chart" :style="'width: ' + chart_width + '; height: ' + chart_height + ';'"></div>
         </div>
     </div>
 
@@ -41,13 +41,26 @@
                 dataset_values:[],
                 //geographies referenced by series
                 series_geographies:[],
-                api_base_url:'https://data-compass.ihsn.org/index.php/api/'
+                api_base_url:'https://data-compass.ihsn.org/index.php/api/',
+                chart_height:'100%',
+                chart_width:'100%'
             },
             async mounted() {
                 //load db_id and series_id from url query string
                 this.db_id = new URLSearchParams(window.location.search).get('db_id');
                 this.series_id = new URLSearchParams(window.location.search).get('series_id');
                 let countries = new URLSearchParams(window.location.search).get('geography');
+
+                let chart_height = new URLSearchParams(window.location.search).get('height');
+                let chart_width = new URLSearchParams(window.location.search).get('width');
+
+                if (this.validateChartWidthOrHeight(chart_height)){
+                    this.chart_height = chart_height;
+                }
+
+                if (this.validateChartWidthOrHeight(chart_width)){
+                    this.chart_width = chart_width;
+                }
 
                 await this.loadAvailableGeographies();
 
@@ -57,6 +70,7 @@
                     this.geographies=[];
                     this.geographies.push(this.randomGeography);
                 }
+                
                 this.loadDataStructure();
             },
             watch:{
@@ -67,7 +81,26 @@
                     this.drawChart();
                 }
             },
-            methods:{                
+            methods:{   
+                validateChartWidthOrHeight: function(val){
+
+                    if (!val){
+                        return false;
+                    }
+
+                    if (!val.endsWith('px') && !val.endsWith('em') && !val.endsWith('%') && !val.endsWith('vh') && !val.endsWith('vw')){
+                        return false;
+                    }
+                    
+                    let value=parseInt(val.slice(0, -2));
+
+                    if (isNaN(value) || value < 0){
+                        return false;
+                    }
+
+                    return true;
+
+                },             
                 drawChart(){
                         var chart = echarts.init(document.getElementById('chart'));
 
