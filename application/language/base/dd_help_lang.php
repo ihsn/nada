@@ -300,7 +300,9 @@ $lang['section_version']='Version';
 $lang['no_files_uploaded']='No files uploaded';
 $lang['no_citations_attached']='No citations';
 
-
+$lang['delete_not_owner_error']='Only owner can delete this project.';
+$lang['delete_already_submitted_error']='You can\'t delete project already submitted.';
+$lang['project_deleted'] = "Project deleted successfully!";
 
 
 /* End of file help_lang.php */
