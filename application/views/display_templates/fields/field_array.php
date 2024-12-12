@@ -82,7 +82,7 @@ if ($table_scrollable!==true){
                             </a>
                         <?php endif;?>
                     <?php else:?>
-                    <?php echo isset($row[$column['key']]) ? $row[$column['key']] : '';?>
+                        <?php echo isset($row[$column['key']]) ? nl2br($row[$column['key']]) : '';?>
                 <?php endif;?>
             <?php endif;?>
         </td>
