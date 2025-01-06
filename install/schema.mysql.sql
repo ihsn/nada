@@ -684,9 +684,13 @@ CREATE TABLE `users` (
   `otp_code` varchar(45) DEFAULT NULL,
   `otp_expiry` int DEFAULT NULL,
   `forgotten_code_expiry` int DEFAULT NULL,
+  `forgot_request_ts` INT NULL,
+  `forgot_request_count` INT DEFAULT 0,
   PRIMARY KEY (`id`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+
 
 --
 -- Table structure for table `survey_countries`

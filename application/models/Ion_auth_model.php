@@ -1613,4 +1613,99 @@ class Ion_auth_model extends CI_Model
 		return bin2hex(random_bytes(16));
 	}
 
+
+
+
+	/**
+	 * 
+	 * Add forgot password timestamp
+	 * 
+	 */
+	function add_forgot_password_timestamp($email)
+	{
+		$options=array(
+			'forgot_request_ts'=> date("U"),
+			'forgot_request_count'=>0
+		);
+
+		$this->db->where('email',$email);
+		return $this->db->update('users',$options);		
+	}
+
+	function is_max_forgot_attempts_exceeded($email)
+	{
+		//get forgot password request count + last request timestamp
+		$this->db->select('forgot_request_count,forgot_request_ts');
+		$this->db->where('email',$email);
+		$result=$this->db->get('users')->row_array();
+
+		if(!$result){
+			return false;
+		}
+
+		$last_request_ts=$result['forgot_request_ts'];
+		$request_count=$result['forgot_request_count'];
+
+		if (!is_numeric($request_count) ){
+			return false;
+		}
+
+		if (is_numeric($request_count) && $request_count<3){
+			return false;
+		}
+
+		//check if request count is exceeded + last request was within 5 minutes
+		if($result['forgot_request_count']>=3 && (date("U")-$result['forgot_request_ts'])<300){
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * 
+	 * Get forgot password request info
+	 * 
+	 */
+	function get_forgot_pass_request($email)
+	{
+		$this->db->select('forgot_request_ts,forgot_request_count');
+		$this->db->where('email',$email);
+		$result=$this->db->get('users')->row_array();
+
+		if(!$result){
+			return false;
+		}
+
+		return $result;
+	}
+
+	function add_forgot_attempt($email)
+	{
+		$request_info=$this->get_forgot_pass_request($email);
+
+		$request_count=0;
+
+		if (isset($request_info['forgot_request_count'])) {
+			$request_count=$request_info['forgot_request_count'];
+		}
+
+		if (!is_numeric($request_count)){
+			$request_count=0;
+		}else if($request_count>=3){
+			$request_count=0;
+		}
+		
+		//add new request
+		$options=array(
+			'forgot_request_ts'=>date("U"),
+			'forgot_request_count'=>$request_count+1
+		);
+
+		$this->db->where('email',$email);
+		return $this->db->update('users',$options);		
+	}
+
+
+
 }

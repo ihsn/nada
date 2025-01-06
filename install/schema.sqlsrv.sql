@@ -663,6 +663,8 @@ CREATE TABLE users (
   authtype varchar(40) DEFAULT NULL,
   otp_code varchar(45) DEFAULT NULL,
   otp_expiry int DEFAULT NULL,
+  forgot_request_ts INT NULL, 
+  forgot_request_count INT DEFAULT 0;
   PRIMARY KEY (id)
 );
 

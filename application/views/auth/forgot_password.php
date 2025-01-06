@@ -1,3 +1,28 @@
+<style>
+	.image_captcha {
+    padding-top:15px;
+	padding-bottom:15px;
+    margin-bottom:20px;
+	max-width: 400px;
+	}
+.image_captcha input{
+    display:block;
+}
+
+.image_captch label{
+	padding-top:20px;
+}
+
+.captcha_container{
+	max-width: 300px;
+}
+
+.captcha_container input{
+	width:100%
+}
+
+</style>
+
 <div class='container'>
 
 	<h1 class="page-title"><?php echo t('forgot_password'); ?></h1>
@@ -6,9 +31,8 @@
 		<?php echo ($reason != "") ? '<div class="reason">' . $reason . '</div>' : ''; ?>
 	<?php endif; ?>
 
-	<?php $message = $this->session->flashdata('message'); ?>
 	<?php if (isset($error) && $error != '') : ?>
-		<?php $error = '<div class="alert alert-danger">' . $error . '</div>' ?>
+		<?php $error = '<div class="alert-danger">' . $error . '</div>' ?>
 	<?php else : ?>
 		<?php $error = $this->session->flashdata('error'); ?>
 		<?php $error = ($error != "") ? '<div class="alert-danger">' . $error . '</div>' : ''; ?>
@@ -27,10 +51,21 @@
 	<form method="post" class="form" autocomplete="off">
 
 		<div class="field">
-			<label for="email"><?php echo t('email'); ?></label>
-			<?php echo form_input($email); ?>
-			<?php echo form_submit('submit', t('submit')); ?>
+			<?php if (!$captcha_question) : ?>
+				<label for="email"><?php echo t('email'); ?></label>
+				<?php echo form_input($email); ?>							
+				<?php echo form_submit('submit', t('submit')); ?>
+			<?php endif; ?>
 		</div>
+		<?php if ($captcha_question) : ?>
+			<div class="captcha_container">
+				<label for="email"><?php echo t('email'); ?></label><br/>
+				<?php echo form_input($email); ?>
+
+				<?php echo $captcha_question; ?>				
+				<?php echo form_submit('submit', t('submit')); ?>
+			</div>
+		<?php endif; ?>
 
 		<?php echo form_close(); ?>
 

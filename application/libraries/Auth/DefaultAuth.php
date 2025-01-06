@@ -311,16 +311,18 @@ class DefaultAuth implements AuthInterface
 	function forgot_password()
 	{
 		$this->disable_page_cache();
-		$this->ci->form_validation->set_rules('email', t('email'), 'trim|required|xss_clean|max_length[100]');
+		$this->ci->form_validation->set_rules('email', t('email'), 'trim|required|xss_clean|max_length[100]|valid_email');
+		$this->ci->form_validation->set_rules($this->ci->captcha_lib->get_question_field(), t('captcha'), 'trim|required|callback_validate_captcha');
 
 		if ($this->ci->form_validation->run() == false)
-		{
+		{			
 	    	//setup the input
 	    	$this->data['email'] = array('name'    => 'email',
                                          'id'      => 'email',
         						   	    );
+			$this->data['captcha_question']=$this->ci->captcha_lib->get_html();
 	    	//set any errors and display the form
-        	$this->data['message'] = (validation_errors()) ? validation_errors() : $this->ci->session->flashdata('message');
+        	$this->data['error'] = (validation_errors()) ? validation_errors() : $this->ci->session->flashdata('message');
     		$content=$this->ci->load->view('auth/forgot_password', $this->data,true);
 
 			$this->ci->template->write('content', $content,true);
@@ -333,9 +335,7 @@ class DefaultAuth implements AuthInterface
 			$forgotten = $this->ci->ion_auth->forgotten_password($this->ci->input->post('email'));
 
 			if ($forgotten) //if there were no errors
-			{
-				//$this->ci->session->set_flashdata('message', $this->message);
-	            //redirect("auth/login", 'refresh'); //we should display a confirmation page here instead of the login page
+			{				
 				$contents=$this->ci->load->view('auth/forgot_pass_confirm',NULL,TRUE);
 				$this->ci->template->write('content', $contents,true);
 				$this->ci->template->write('title', t('forgot_password'),true);
