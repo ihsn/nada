@@ -179,18 +179,21 @@ class Ion_auth
 	 **/
 	public function forgotten_password($email)
 	{
-		//check if there are less than 3 attempts in last 5 minutes
-		$max_exceeded=$this->ci->ion_auth_model->is_max_forgot_attempts_exceeded($email);
-				
-		if ($max_exceeded)
+		if ($this->ci->config->item('forgot_password_throttle') == TRUE)
 		{
-			//always return true to avoid email enumeration			
-			return TRUE;
-			//$this->set_error('forgot_password_unsuccessful.');
-			//return FALSE;
-		}else{			
-			//add forgot password attempt + counts
-			$this->ci->ion_auth_model->add_forgot_attempt($email);
+			//check if there are less than 3 attempts in last 5 minutes
+			$max_exceeded=$this->ci->ion_auth_model->is_max_forgot_attempts_exceeded($email);
+					
+			if ($max_exceeded)
+			{
+				//always return true to avoid email enumeration			
+				return TRUE;
+				//$this->set_error('forgot_password_unsuccessful.');
+				//return FALSE;
+			}else{			
+				//add forgot password attempt + counts
+				$this->ci->ion_auth_model->add_forgot_attempt($email);
+			}
 		}
 
 		if ( $this->ci->ion_auth_model->forgotten_password($email) ) 

@@ -41,6 +41,16 @@
 	**/
 	$config['maximum_login_attempts'] = 10;	
 	$config['login_lockout_period'] = 60*5;//5 minutes
+
+	/**
+	 * Throttle forgotten password requests
+	 * 
+	 * true - the time between requests is throttled
+	 * false - the time between requests is not throttled
+	 *  
+	 */
+	$config['forgot_password_throttle'] = false;
+
 	
 	/**
 	 * Site Title, example.com
