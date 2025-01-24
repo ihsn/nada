@@ -21,6 +21,8 @@ class Survey_resource_model extends CI_Model {
 		'dcformat',
 		'description'
 	);
+
+	private $dctype_groups=array();
 	
 			
     public function __construct()
@@ -28,6 +30,9 @@ class Survey_resource_model extends CI_Model {
 		parent::__construct();
 		$this->load->model("Dataset_model");
 		$this->load->model("Catalog_model");
+		$this->load->config("external_resources");
+
+		$this->dctype_groups=$this->config->item("dctype_groups","external_resources");
 		//$this->output->enable_profiler(TRUE);
     }
 	
@@ -559,6 +564,29 @@ class Survey_resource_model extends CI_Model {
 	function get_grouped_resources_by_survey($surveyid)
 	{
 		$output=FALSE;
+		$dctypes_exclude=[];
+		
+		if ($this->dctype_groups){
+			foreach($this->dctype_groups as $group_name=>$dctypes){
+				foreach($dctypes as $dctype){
+					$dctypes_exclude[]=$dctype;
+					$result=$this->get_resources_by_type($surveyid,$dctype.']');
+					if ($result){
+						if (!isset($output[$group_name])){
+							$output[$group_name]=$result;
+						}else{
+							$output[$group_name]= array_merge($output[$group_name],$result);
+						}
+					}
+
+				}
+			}
+
+			//other materials
+			$output['other_materials']=$this->get_resources_other_materials($surveyid,$dctypes_exclude);
+			return $output;
+		}
+
 		
 		//questionnaires
 		$result=$this->get_resources_by_type($surveyid,'doc/qst]');
@@ -597,7 +625,7 @@ class Survey_resource_model extends CI_Model {
 	* Return resource by survey and resource type
 	*
 	*/
-	function get_resources_by_type($surveyid,$dctype)
+	function get_resources_by_type($surveyid,$dctype) 
 	{
 		$this->db->select('resources.*,surveys.idno as dataset_idno');
 		$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
@@ -617,6 +645,33 @@ class Survey_resource_model extends CI_Model {
 		{
 			$this->db->like('dctype',$dctype);
 		}	
+		
+		$result= $this->db->get('resources')->result_array();
+		foreach($result as $row_idx=>$row){
+			$result[$row_idx]['is_microdata']=$this->is_microdata_resource($row['dctype']);
+		}
+		return $result;
+	}
+
+	/**
+	*
+	* 
+	*
+	*/
+	function get_resources_other_materials($surveyid,$dctypes_exclude) 
+	{
+		$this->db->select('resources.*,surveys.idno as dataset_idno');
+		$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
+		$this->db->where('survey_id',$surveyid);
+		
+		//exclude dctypes
+		$this->db->not_like('dctype','dat]');
+		$this->db->not_like('dctype','dat/micro]');
+		$this->db->not_like('dctype','[dat/');
+
+		foreach($dctypes_exclude as $exclude){
+			$this->db->not_like('dctype','['.$exclude);
+		}
 		
 		$result= $this->db->get('resources')->result_array();
 		foreach($result as $row_idx=>$row){
