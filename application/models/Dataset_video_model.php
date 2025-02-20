@@ -132,6 +132,7 @@ class Dataset_video_model extends Dataset_model {
         $output['idno']=$this->get_array_nested_value($options,'video_description/idno');
 
         $nations=(array)$this->get_array_nested_value($options,'video_description/country');
+        $nations=$this->get_country_names($nations);
 
         $output['nations']=$nations;
         $output['nation']=$this->get_country_names_string($nations);
@@ -149,6 +150,24 @@ class Dataset_video_model extends Dataset_model {
         return $output;
     }
 
+    /**
+     * 
+     * Return an array of country names from array column 'name'
+     * 
+     */
+	function get_country_names($nations)
+	{
+        if(!is_array($nations)){
+            return false;
+        }
+
+        $nation_names=array();
+
+        foreach($nations as $nation){
+            $nation_names[]=$nation['name'];
+        }	
+        return $nation_names;	
+    }
 
 
     /**
