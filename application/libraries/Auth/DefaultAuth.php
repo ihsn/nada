@@ -425,16 +425,8 @@ class DefaultAuth implements AuthInterface
 		$this->disable_page_cache();
 		$activation = $this->ci->ion_auth->activate($id, $code);
 
-		$data=array();
-
-        if ($activation)
-		{
-			$data['success']=true;
-        }
-        else
-		{
-			$data['failed']=true;
-        }
+		//always return true
+		$data['success']=true;
 
 		$content=$this->ci->load->view('auth/msg_account_activation',$data,TRUE);
 		$this->ci->template->write('title', t('user_account_activation'),true);
