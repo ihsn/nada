@@ -1587,5 +1587,85 @@ class Catalog_model extends CI_Model {
 		return $result['repositoryid'];
 	}
 
+
+	/**
+	 * 
+	 * 
+	 * Export all catalog entries to CSV
+	 * 
+	 */
+	function download_csv($repositoryid=NULL)
+	{
+        $columns=array(
+            'surveys.id'=>'id',
+			'surveys.idno'=>'idno',
+			'surveys.doi'=>'doi',
+			'surveys.title'=>'title',
+			'surveys.year_start'=>'year_start',
+			'surveys.year_end'=>'year_end',
+			'surveys.nation'=>'nation',
+			'surveys.repositoryid as collection_id' => 'collection_id',
+			'repositories.title as collection' => 'collection',
+			'surveys.created'=>'created',
+			'surveys.changed' => 'changed',
+			'forms.fname as data_access' => 'data_access',
+			'forms.model as da_type' => 'da_type',
+        );
+
+
+		$this->db->select(implode(",",array_keys($columns)));
+		$this->db->join('forms', 'forms.formid= surveys.formid','left');
+		$this->db->join('repositories', 'repositories.repositoryid= surveys.repositoryid','left');
+		
+		if ($repositoryid){
+			$this->db->where_in('surveys.id','select sid from survey_repos where repositoryid='.$this->db->escape($repositoryid),false);
+		}
+
+		$rows=$this->db->get('surveys')->result_array();
+
+		if (!$rows){
+			show_error('No data found');
+		}
+        
+        $filename='catalog-'.date("m-d-y-his").'.csv';
+        header('Content-Encoding: UTF-8');
+        header( 'Content-Type: text/csv' );
+        header( 'Content-Disposition: attachment;filename='.$filename);
+        $fp = fopen('php://output', 'w');
+
+        echo "\xEF\xBB\xBF"; // UTF-8 BOM
+
+        //add column names
+        fputcsv($fp, array_values($columns));
+
+        foreach($rows as $row)
+        {
+
+			$row['created']=date("Y-m-d",$row['created']);
+			$row['changed']=date("Y-m-d",$row['changed']);
+
+            $data=array();
+            foreach($columns as $col)
+            {
+                if (!isset($row[$col])){
+                    $data[$col]='';
+                    continue;
+                }
+                
+                if(is_array($row[$col])){
+                    $data[$col]=json_encode($row[$col]);
+                }
+                else{
+                    $data[$col]=$row[$col];
+                }                
+            }
+
+            fputcsv($fp, $data);
+        }
+
+        fclose($fp);
+	}
+
+
 	
 }

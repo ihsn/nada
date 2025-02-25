@@ -38,5 +38,6 @@ font-size:12px;
 		<a href="<?php echo site_url('admin/catalog/copy_study'); ?>" class="btn btn-primary btn-sm" title="<?php echo t('copy_studies');?>"><?php echo t('copy_studies');?></a>
     <?php endif;?>
     <a href="<?php echo site_url('admin/licensed_requests'); ?>" class="btn btn-primary btn-sm" title="<?php echo t('licensed_requests');?>"><?php echo t('licensed_requests');?></a>
+    <a href="<?php echo site_url('admin/catalog/export_csv'); ?>" class="btn btn-primary btn-sm" title="<?php echo t('export_to_csv');?>"><?php echo t('export_to_csv');?></a>
 </div>    
 </div>
