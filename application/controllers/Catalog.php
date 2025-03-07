@@ -414,7 +414,7 @@ class Catalog extends MY_Controller {
 		$search_options->dtype			=xss_clean($this->input->get("dtype"));
 		$search_options->data_class		=xss_clean($this->input->get("data_class"));
 		$search_options->tag			=xss_clean($this->input->get("tag"));
-		$search_options->sid			=xss_clean($this->input->get("sid"));
+		$search_options->sid			=$this->is_numeric_array(xss_clean($this->input->get("sid")));
 		$search_options->type			=xss_clean($this->input->get("type"));
 		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
 		$search_options->tab_type		=xss_clean($this->input->get("tab_type"));
@@ -986,5 +986,25 @@ class Catalog extends MY_Controller {
 	private function get_featured_studies_by_repo($repository_id=null,$study_type=null)
 	{
 		return $this->Repository_model->get_featured_study($repository_id,$study_type);
+	}
+
+	/**
+	 * 
+	 * 
+	 * check if all values are numeric, if not return empty string
+	 * 
+	 */
+	private function is_numeric_array($arr_str)
+	{		
+		$arr=explode(",",$arr_str);
+		$numeric_arr=array();
+
+		foreach($arr as $val){
+			if(!is_numeric($val)){
+				return '';
+			}
+		}
+
+		return $arr_str;
 	}
 }    

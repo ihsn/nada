@@ -2286,6 +2286,25 @@ class Catalog extends MY_Controller {
 		$this->template->write('content', $contents,true);
 	  	$this->template->render();
 	}
+
+
+	/**
+	 * 
+	 * 
+	 * Export all studies as CSV
+	 * 
+	 */
+	function export_csv()
+	{
+		$this->acl_manager->has_access_or_die('study', 'view',null,$this->active_repo->repositoryid);
+
+		$repo=$this->active_repo->repositoryid;
+		if ($repo=='central'){
+			$repo=null;
+		}
+
+		$this->Catalog_model->download_csv($repo);
+	}
 	
 }
 /* End of file catalog.php */
