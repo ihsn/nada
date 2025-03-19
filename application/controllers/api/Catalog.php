@@ -1250,4 +1250,95 @@ class Catalog extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
 	}
+
+
+
+	/**
+	 * 
+	 * Get search filters
+	 * 
+	 * @filter_name - string - filter name
+	 *  - countries
+	 *  - years
+	 *  - topics
+	 * 
+	 */
+	function filters_get($filter_name=null)
+	{
+		try{
+			$this->load->model('Facet_model');
+			$this->load->model('Search_helper_model');
+			
+			$filters=$this->Facet_model->select_all();
+			$filters_list=array_keys($filters);
+			$result=[];
+
+			if ($filter_name){
+				if (!in_array($filter_name,$filters_list)){
+					throw new Exception("FILTER_NOT_FOUND");
+				}
+				
+				foreach($filters as $fc){
+					if ($fc['title']==$filter_name && $fc['facet_type']=='user'){
+						$result=array(
+							'type'=>$fc['facet_type'],
+							'title'=>$fc['title'],
+							'values'=>$this->Facet_model->get_facet_values(
+								$fc['id'],
+								$published=1,
+								$sort_='value',
+								$sort_order_='ASC'
+							)
+						);
+					}
+				}
+
+				//country
+				if ($filter_name=='country'){
+					$result=$this->Search_helper_model->get_active_countries();
+				}
+
+				//years
+				if ($filter_name=='year'){
+					$result=$this->Search_helper_model->get_min_max_years();
+				}
+				
+				//collection
+				if ($filter_name=='collection'){
+					$result=$this->Search_helper_model->get_active_repositories();
+				}
+
+				//dtype
+				if ($filter_name=='dtype'){
+					$result=$this->Search_helper_model->get_active_data_types();
+				}
+
+				//region
+				if ($filter_name=='region'){
+					$result=$this->Search_helper_model->get_active_regions();
+				}
+
+			}
+			else{
+				$result=[
+					'message'=>'Please provide a filter name',
+					'filters'=>$filters_list
+				];
+			}
+			
+			$response=array(
+				'status'=>'success',
+				'values'=>$result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+        }		
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'errors'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}		
+	}
 }
