@@ -670,7 +670,7 @@ class Survey_resource_model extends CI_Model {
 		$this->db->not_like('dctype','[dat/');
 
 		foreach($dctypes_exclude as $exclude){
-			$this->db->not_like('dctype','['.$exclude);
+			$this->db->not_like('dctype','['.$exclude.']');
 		}
 		
 		$result= $this->db->get('resources')->result_array();
