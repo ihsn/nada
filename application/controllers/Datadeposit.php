@@ -959,13 +959,13 @@ class Datadeposit extends MY_Controller {
 
 		$project_obj = $this->DD_project_model->project_id($id, $this->session->userdata('email')); 
 		$user_obj=$this->ion_auth->current_user();
-				
+
 		if (!$project_obj)
 		{
 			show_error("PROJECT_NOT_FOUND");
 		}
 
-		$this->load->helper('email_notifications');
+		$this->load->helper('admin_notifications');
 		$this->form_validation->set_rules('reason', 'Reason', 'required');
 		
 		if ($this->input->post('reopen')) 
@@ -988,7 +988,7 @@ class Datadeposit extends MY_Controller {
 				));
 				
 				$this->session->set_flashdata('message', t('reopen_requested'));
-				dd_notify_admin($subject,$message,$notify_all_admins=false);
+				notify_admin($subject, $message, false);
 				$this->_write_history_entry("Requested reopen", $id, 'submitted/closed');
 				redirect('datadeposit/projects');
 			}
