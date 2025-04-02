@@ -78,7 +78,7 @@ $publish_options=array(
 
                 <div class="col form-row">
                     <h6 class="col form-row mt-1"><?php echo t('Refine by');?></h6>
-                    <h6 class="col form-row d-flex justify-content-end clear-all-filters btn btn-link">Clear all</h6>
+                    <h6 class="col form-row d-flex justify-content-end clear-all-filters btn btn-link"><?php echo t('Clear all');?></h6>
                 </div>
                 
                 <hr>

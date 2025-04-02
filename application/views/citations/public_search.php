@@ -58,14 +58,14 @@
             $to_page=$this->pagination->get_total_rows();
         }
 
-        $pager=sprintf(t('showing %d-%d of %d')
+        $pager=sprintf(t('showing %s-%s of %s')
             ,(($this->pagination->cur_page-1)*$this->pagination->per_page+(1))
             ,$to_page
             ,$this->pagination->get_total_rows());
     }
     else
     {
-        $pager=sprintf(t('showing %d-%d of %d')
+        $pager=sprintf(t('showing %s-%s of %s')
             ,$current_page
             ,$this->pagination->get_total_rows()
             ,$this->pagination->get_total_rows());
