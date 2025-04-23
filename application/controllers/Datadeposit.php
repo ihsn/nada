@@ -1953,18 +1953,21 @@ class Datadeposit extends MY_Controller {
 		$this->load->helper('form');
 		$project = $this->DD_project_model->project_id($id, $this->session->userdata('email'));
 		
-		if (!$this->DD_project_model->has_access($project[0]->id, $this->session->userdata('email'))) 
+		if (! $this->DD_project_model->has_access($project[0]->id, $this->session->userdata('email')))
 		{
-    			 redirect('datadeposit/projects');
+			$this->session->set_flashdata('error', t('delete_not_owner_error'));
+			redirect('datadeposit/projects');
 	    }
 	   
 	   	if ($project[0]->access != 'owner') 
 		{
-    		redirect('datadeposit/projects');
+			$this->session->set_flashdata('error', t('delete_not_owner_error'));
+			redirect('datadeposit/projects');
 		}
 		
 		if ($project[0]->status != 'draft') 
 		{
+			$this->session->set_flashdata('error', t('delete_already_submitted_error'));
 			redirect('datadeposit/projects');
 		}
 		
@@ -1972,6 +1975,7 @@ class Datadeposit extends MY_Controller {
 		{
 			$this->DD_project_model->delete($id);
 			$this->_write_history_entry("Project deleted", $project[0]->id, $project[0]->status);
+			$this->session->set_flashdata('message', t('project_deleted'));
 			redirect('datadeposit/projects');
 		} 
 		else if ($this->input->post('cancel') == 'No') 
