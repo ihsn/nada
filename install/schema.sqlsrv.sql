@@ -16,7 +16,7 @@ CREATE TABLE repositories (
   changed int DEFAULT NULL,
   type int  DEFAULT NULL,
   short_text varchar(1000) DEFAULT NULL,
-  long_text text,
+  long_text varchar(max),
   thumbnail varchar(255) DEFAULT NULL,
   weight int  DEFAULT NULL,
   ispublished tinyint  DEFAULT NULL,
@@ -108,10 +108,10 @@ CREATE TABLE variables (
   vid varchar(45) DEFAULT '',
   name varchar(100) DEFAULT '',
   labl varchar(255) DEFAULT '',
-  qstn text,
-  catgry text,
-  metadata text,
-  keywords text,
+  qstn varchar(max),
+  catgry varchar(max),
+  metadata varchar(max),
+  keywords varchar(max),
   PRIMARY KEY (uid)
 ) ;
 
@@ -363,9 +363,9 @@ CREATE TABLE surveys (
   created_by int DEFAULT NULL,
   changed_by int DEFAULT NULL,
   thumbnail varchar(300) DEFAULT NULL,
-  metadata text,
-  var_keywords text,
-  keywords text,  
+  metadata varchar(max),
+  var_keywords varchar(max),
+  keywords varchar(max),  
   PRIMARY KEY (id)
 );
 
@@ -418,7 +418,7 @@ CREATE TABLE da_collections (
 CREATE TABLE cache (
   id bigint NOT NULL IDENTITY(1,1),
   uid varchar(100) NOT NULL,
-  data text,
+  data varchar(max),
   created int DEFAULT NULL,
   expiry int DEFAULT NULL,
   PRIMARY KEY (id)
@@ -471,23 +471,23 @@ CREATE TABLE lic_requests (
   address varchar(255) DEFAULT NULL,
   tel varchar(150) DEFAULT NULL,
   fax varchar(100) DEFAULT NULL,
-  datause text,
-  outputs text,
+  datause varchar(max),
+  outputs varchar(max),
   compdate varchar(45) DEFAULT NULL,
   datamatching int DEFAULT NULL,
-  mergedatasets text,
-  team text,
+  mergedatasets varchar(max),
+  team varchar(max),
   dataset_access varchar(20) DEFAULT 'whole',
   created int DEFAULT NULL,
   status varchar(45) DEFAULT NULL,
-  comments text,
+  comments varchar(max),
   locked tinyint DEFAULT NULL,
   orgtype_other varchar(145) DEFAULT NULL,
   updated int DEFAULT NULL,
   updatedby varchar(45) DEFAULT NULL,
   ip_limit varchar(255) DEFAULT NULL,
   expiry_date int DEFAULT NULL,
-  additional_info text,
+  additional_info varchar(max),
   PRIMARY KEY (id)
 );
 
@@ -603,9 +603,9 @@ CREATE TABLE resources (
   contributor varchar(255) DEFAULT NULL,
   publisher varchar(255) DEFAULT NULL,
   rights varchar(255) DEFAULT NULL,
-  description text,
-  abstract text,
-  toc text,
+  description varchar(max),
+  abstract varchar(max),
+  toc varchar(max),
   subjects varchar(45) DEFAULT NULL,
   filename varchar(255) DEFAULT NULL,
   dcformat varchar(255) DEFAULT NULL,
@@ -664,7 +664,7 @@ CREATE TABLE users (
   otp_code varchar(45) DEFAULT NULL,
   otp_expiry int DEFAULT NULL,
   forgot_request_ts INT NULL, 
-  forgot_request_count INT DEFAULT 0;
+  forgot_request_count INT DEFAULT 0,
   PRIMARY KEY (id)
 );
 
@@ -790,7 +790,7 @@ CREATE TABLE menus (
   id int NOT NULL IDENTITY(1,1),
   url varchar(255) NOT NULL,
   title varchar(255) NOT NULL,
-  body text,
+  body varchar(max),
   published tinyint DEFAULT NULL,
   target varchar(45) DEFAULT NULL,
   changed int DEFAULT NULL,
@@ -899,7 +899,7 @@ CREATE TABLE lic_requests_history (
   user_id varchar(100) DEFAULT NULL,
   logtype varchar(45) DEFAULT NULL,
   request_status varchar(45) DEFAULT NULL,
-  description text,
+  description varchar(max),
   created int DEFAULT NULL,
   PRIMARY KEY (id)
 ) ;
@@ -1004,7 +1004,7 @@ CREATE TABLE region_countries (
 CREATE TABLE survey_notes (
   id int  NOT NULL IDENTITY(1,1),
   sid int  DEFAULT NULL,
-  note text NOT NULL,
+  note varchar(max) NOT NULL,
   type varchar(50) NOT NULL,
   userid int  NOT NULL,
   created int DEFAULT NULL,
@@ -1156,7 +1156,7 @@ CREATE TABLE public_requests (
   id int NOT NULL IDENTITY(1,1),
   userid int NOT NULL,
   surveyid int DEFAULT NULL,
-  abstract text NOT NULL,
+  abstract varchar(max) NOT NULL,
   posted int NOT NULL,
   request_type varchar(45) DEFAULT 'study',
   collectionid varchar(45) DEFAULT NULL,
@@ -1370,7 +1370,7 @@ CREATE TABLE data_files (
   sid int NOT NULL,
   file_id varchar(100) DEFAULT NULL,
   file_name varchar(255) DEFAULT NULL,
-  description text,
+  description varchar(max),
   case_count int DEFAULT NULL,
   var_count int DEFAULT NULL,
   producer varchar(255) DEFAULT NULL,
@@ -1396,7 +1396,7 @@ CREATE TABLE api_keys (
   api_key varchar(40) NOT NULL,
   level int NOT NULL,
   ignore_limits tinyint NOT NULL DEFAULT '0',
-  ip_addresses text,
+  ip_addresses varchar(max),
   date_created int NOT NULL,
   user_id int DEFAULT NULL,
   is_private_key int NOT NULL DEFAULT '0',
@@ -1415,7 +1415,7 @@ CREATE TABLE api_logs (
   id int NOT NULL identity(1,1),
   uri varchar(255) NOT NULL,
   method varchar(6) NOT NULL,
-  params text,
+  params varchar(max),
   user_id int default NULL,
   api_key varchar(40) NOT NULL,
   ip_address varchar(45) NOT NULL,
@@ -1448,7 +1448,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_data_files_resources on [dbo].[data_files_re
 CREATE TABLE survey_locations (
   id int NOT NULL identity(1,1),
   sid int DEFAULT NULL,
-  location text NOT NULL,
+  location varchar(max) NOT NULL,
   PRIMARY KEY (id)  
 );
 
@@ -1554,7 +1554,7 @@ CREATE TABLE widgets (
   changed int DEFAULT NULL,
   created_by int DEFAULT NULL,
   changed_by int DEFAULT NULL,
-  options text,
+  options varchar(max),
   PRIMARY KEY (id)
 );
 
@@ -1577,13 +1577,13 @@ CREATE TABLE ts_databases (
   id int NOT NULL identity(1,1),
   idno varchar(150) DEFAULT NULL,
   title varchar(300) DEFAULT NULL,
-  abstract text,
+  abstract varchar(max),
   published int DEFAULT NULL,
   created varchar(45) DEFAULT NULL,
   changed varchar(45) DEFAULT NULL,
   created_by int DEFAULT NULL,
   changed_by int DEFAULT NULL,
-  metadata text,
+  metadata varchar(max),
   PRIMARY KEY (id)
 );
 
@@ -1600,7 +1600,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_ts_db on [dbo].[ts_databases](
   title varchar(45) DEFAULT NULL,
   facet_type varchar(10) DEFAULT NULL,
   enabled int DEFAULT '0',
-  mappings text,
+  mappings varchar(max),
   PRIMARY KEY (id)
   );
 
