@@ -415,9 +415,7 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-			$labels=explode(",",$this->input->get("labels"));
-
-			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$offset,$options,$labels);
+			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$offset,$options);
 			
 			if(isset($options['format']) && $options['format']=='csv'){
 
@@ -437,6 +435,53 @@ class Tables extends MY_REST_Controller
 				'status'=>'failed',
 				'message'=>$e->getMessage(),
 				'error'=>$this->Data_table_model->get_db_error()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Export data to CSV and JSON
+	 * 
+	 * 
+	 */
+	function export_get($db_id=null,$table_id=null)
+	{
+		try{
+			$get_params=array();
+			parse_str($_SERVER['QUERY_STRING'], $get_params);
+			
+			$options=array();			
+			foreach(array_keys($get_params) as $param){
+				$options[$param]=$this->input->get($param,true);
+			}
+
+			$user_id=$this->get_api_user_id();
+
+			if(!$db_id){
+				throw new Exception("MISSING_PARAM:: db_id");
+			}
+
+			if(!$table_id){
+				throw new Exception("MISSING_PARAM:: table_id");
+			}
+
+			$data_format=isset($options['format']) ? $options['format'] : 'json';
+
+			if (!in_array($data_format,array('json','csv'))){
+				throw new Exception("Invalid format:: $data_format. Supported formats are: json, csv");
+			}
+
+			$this->Data_table_mongo_model->export_data($db_id,$table_id,$data_format,$options);
+			die();
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
