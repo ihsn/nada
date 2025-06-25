@@ -50,6 +50,15 @@ class DefaultAuth implements AuthInterface
 	function generate_api_key()
 	{
 		$this->_is_logged_in();
+
+		//check if user already has 5 api keys
+		$api_keys=$this->ci->ion_auth->get_api_keys($this->ci->session->userdata('user_id'));
+		
+		if (is_array($api_keys) && count($api_keys) >= 5)
+		{
+			show_error(t('Maximum number of API keys reached. You can only have 5 API keys at a time.'), 403, "Error");
+		}
+
 		$this->ci->ion_auth->set_api_key($this->ci->session->userdata('user_id'));
 		redirect("auth/profile", 'refresh');
 	}
@@ -98,11 +107,11 @@ class DefaultAuth implements AuthInterface
 		//currently logged in user
 		$data['user']= $this->ci->ion_auth->get_user($this->ci->session->userdata('user_id'));
 
-    	$this->ci->form_validation->set_rules('first_name', t('first_name'), 'trim|required|xss_clean|max_length[50]');
-    	$this->ci->form_validation->set_rules('last_name', t('last_name'), 'trim|required|xss_clean|max_length[50]');
-    	$this->ci->form_validation->set_rules('phone', t('phone'), 'trim|xss_clean|max_length[20]');
-    	$this->ci->form_validation->set_rules('company', t('company'), 'trim|xss_clean|max_length[100]');
-		$this->ci->form_validation->set_rules('country', t('country'), 'trim|xss_clean|max_length[100]');
+    	$this->ci->form_validation->set_rules('first_name', t('first_name'), 'trim|required|disable_html_tags|xss_clean|max_length[50]');
+    	$this->ci->form_validation->set_rules('last_name', t('last_name'), 'trim|required|disable_html_tags|xss_clean|max_length[50]');
+    	$this->ci->form_validation->set_rules('phone', t('phone'), 'trim|disable_html_tags|xss_clean|max_length[20]');
+    	$this->ci->form_validation->set_rules('company', t('company'), 'trim|disable_html_tags|xss_clean|max_length[100]');
+		$this->ci->form_validation->set_rules('country', t('country'), 'trim|disable_html_tags|xss_clean|max_length[100]');
 		$this->ci->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
 
 		if ($this->ci->form_validation->run() == true) {
@@ -113,6 +122,7 @@ class DefaultAuth implements AuthInterface
 				'phone'      => $this->ci->input->post('phone'),
 				'country'    => $this->ci->input->post('country'),
 				);
+				
 			$this->ci->ion_auth->update_user($data['user']->id,$update_data);
         	$this->ci->session->set_flashdata('message', t("profile_updated"));
        		redirect("auth/profile", 'refresh');
