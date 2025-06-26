@@ -60,6 +60,42 @@ class Survey_country_model extends CI_Model {
 		return $this->db->insert('survey_countries',$options);
 	}
 
+
+	/**
+	 * 
+	 * 
+	 * Get all countries for surveys by IDs
+	 * 
+	 * @param array $sid_arr
+	 * 
+	 */
+	function get_survey_country_names($sid_arr)
+	{
+		if(!is_array($sid_arr) || count($sid_arr)==0){
+			return array();
+		}
+
+		$this->db->select('survey_countries.sid, survey_countries.cid, countries.name as country_name');
+		$this->db->join('countries','countries.countryid=survey_countries.cid','left');
+		$this->db->where_in('survey_countries.sid',$sid_arr);
+		
+		$result=$this->db->get('survey_countries')->result_array();
+		
+		if (!$result || count($result)==0){
+			return array();
+		}
+
+		$countries= array();
+
+		foreach ($result as $key => $value) {
+			if ($value['country_name']!='' ) {
+				$countries[$value['sid']][]=$value['country_name'];	
+			}
+		}
+
+		return $countries;
+	}
+
 	
 }
 	
