@@ -75,7 +75,7 @@ class Survey_country_model extends CI_Model {
 			return array();
 		}
 
-		$this->db->select('survey_countries.sid, survey_countries.cid, countries.name as country_name');
+		$this->db->select('survey_countries.sid, survey_countries.cid, countries.iso, countries.name as country_name');
 		$this->db->join('countries','countries.countryid=survey_countries.cid','left');
 		$this->db->where_in('survey_countries.sid',$sid_arr);
 		
@@ -89,7 +89,10 @@ class Survey_country_model extends CI_Model {
 
 		foreach ($result as $key => $value) {
 			if ($value['country_name']!='' ) {
-				$countries[$value['sid']][]=$value['country_name'];	
+				$countries[$value['sid']][]=[
+					'iso'=>$value['iso'],
+					'name'=>$value['country_name']					
+				];
 			}
 		}
 
