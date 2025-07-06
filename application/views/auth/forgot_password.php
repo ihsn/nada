@@ -1,31 +1,33 @@
 <style>
 	.image_captcha {
-    padding-top:15px;
-	padding-bottom:15px;
-    margin-bottom:20px;
-	max-width: 400px;
+		padding-top:15px;
+		padding-bottom:15px;
+		margin-bottom:20px;
+		max-width: 400px;
 	}
-.image_captcha input{
-    display:block;
-}
+	.image_captcha input{
+		display:block;
+	}
 
-.image_captch label{
-	padding-top:20px;
-}
+	.image_captch label{
+		padding-top:20px;
+	}
 
-.captcha_container{
-	max-width: 300px;
-}
+	.captcha_container{
+		max-width: 300px;
+	}
 
-.captcha_container input{
-	width:100%
-}
+	.captcha_container input{
+		width:100%
+	}
 
 </style>
 
 <div class='container'>
 
 	<h1 class="page-title"><?php echo t('forgot_password'); ?></h1>
+	<p><?php echo t('enter_email_to_reset_password'); ?></p>
+
 	<?php $reason = $this->session->flashdata('reason'); ?>
 	<?php if ($reason !== "") : ?>
 		<?php echo ($reason != "") ? '<div class="reason">' . $reason . '</div>' : ''; ?>
@@ -42,11 +44,9 @@
 		<div class="error"><?php echo $error; ?></div>
 	<?php endif; ?>
 
-	<?php if ($message != '') : ?>
+	<?php if (isset($message) && $message != '') : ?>
 		<div class="alert alert-primary"><?php echo $message; ?></div>
 	<?php endif; ?>
-
-	<p><?php echo t('enter_email_to_reset_password'); ?></p>
 
 	<form method="post" class="form" autocomplete="off">
 
@@ -63,7 +63,7 @@
 				<?php echo form_input($email); ?>
 
 				<?php echo $captcha_question; ?>				
-				<?php echo form_submit('submit', t('submit')); ?>
+				<input type="submit" name="submit" value="<?php echo t('submit'); ?>" class="btn btn-primary btn-block"/>
 			</div>
 		<?php endif; ?>
 

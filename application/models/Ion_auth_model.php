@@ -466,7 +466,7 @@ class Ion_auth_model extends CI_Model
 		$this->db->update($this->tables['users'], 
 			array(
 				'forgotten_password_code' => null,
-				'forgotten_code_expiry' => null
+				'forgotten_code_expiry' => null,
 				));
 
 		//login user
@@ -491,7 +491,37 @@ class Ion_auth_model extends CI_Model
 		$this->db->where('email',$email);
 		$this->db->update($this->tables['users'], array('forgotten_password_code' => null));
 
+		//enable user account + complete email verification
+		$this->email_verification_complete($email);
+
 		return true;
+	}
+
+
+	/**
+	 * 
+	 * Email verification complete
+	 * 
+	 * - removes verification code + sets user to active
+	 * 
+	 */
+	public function email_verification_complete($email)
+	{
+		if (empty($email))
+	    {
+	        return FALSE;
+	    }
+		   
+		$this->db->where('email', $email);
+		
+		$result=$this->db->update($this->tables['users'], 
+			array(
+				'activation_code' => null,
+				'active' => 1
+			));
+
+		return $result;
+
 	}
 
 
@@ -605,7 +635,7 @@ class Ion_auth_model extends CI_Model
 	 * @return bool
 	 * @author Mathew
 	 **/
-	public function register($username, $password, $email, $additional_data = false, $group_name = false, $auth_type=NULL)
+	public function register($username, $password, $email, $additional_data = false, $group_name = false, $auth_type=NULL, $auth_type_id=NULL)
 	{	
 	    if (empty($username) || empty($password) || empty($email) )
 	    {
@@ -667,7 +697,8 @@ class Ion_auth_model extends CI_Model
         	'created_on' => now(),
 			'last_login' => now(),
 			'active'     => 1,
-			'authtype'	 => $auth_type
+			'authtype'	 => $auth_type,
+			'authtype_id'	 => $auth_type_id,
 		);
 		
 		if ($this->store_salt) 
@@ -679,7 +710,7 @@ class Ion_auth_model extends CI_Model
         
 		// Meta table.
 		$id = $this->db->insert_id();
-		
+
 		//Add user info to the meta table
 		$data = array($this->meta_join => $id);
 		
@@ -918,6 +949,17 @@ class Ion_auth_model extends CI_Model
 		
 		return $this->get_users();
 	}
+
+
+	public function get_user_by_auth_type($auth_type,$auth_type_id)
+	{
+		$this->db->where('authtype', $auth_type);
+		$this->db->where('authtype_id', $auth_type_id);
+		$this->db->limit(1);
+		
+		return $this->get_users();
+	}
+
 	
 	/**
 	 * get_newest_users

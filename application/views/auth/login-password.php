@@ -25,8 +25,31 @@
 .wb-template-blank .wb-page-body.container-fluid{
     margin-top:150px;
 }
-</style>
 
+/* Email display styling for long addresses */
+.email-display {
+    display: inline-block;
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    word-break: break-all;
+}
+
+.email-display:hover {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow: visible;
+    position: relative;
+    z-index: 10;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 4px;
+}
+
+</style>
 <div class="login-form border roudned p-5 shadow" >
 
 
@@ -61,36 +84,26 @@
 <div style="padding:5px;">
 
     <div class="form-group mt-3">
-        <!-- <label for="email"><?php echo t('email');?></label> -->
-        <input class="form-control"  name="email" type="text" id="email"  value="" placeholder="<?php echo t('email');?>" />
+        <span class="border rounded p-1 email-display" title="<?php echo htmlspecialchars($email);?>"><?php echo htmlspecialchars($email);?></span>
+        <a href="<?php echo site_url('auth/login');?>" class="btn btn-link btn-sm"><?php echo t('change_email');?></a>
     </div>
-
-    <?php /*
+    
     <div class="form-group">
         <input class="form-control"  name="password" type="password" id="password"  value="" placeholder="<?php echo t('password');?>"/>
     </div>
-    */?>
     
-    <div class="captcha_container">
-        <?php echo $captcha_question;?>
-    </div>
-
-    <div>
-        <input type="submit" name="submit" value="<?php echo t('login');?>" class="btn btn-primary btn-block"/>                        
-    </div>
-
-    <div class="ot clearfix mb-3">
+    
+    <div class="login-footer">
+        <input type="submit" name="submit" value="<?php echo t('login');?>" class="btn btn-primary btn-block"/>                
+        <div class="ot clearfix">
         <?php if ($this->config->item("site_user_register")!=='no' && $this->config->item("site_password_protect")!=='yes'):?>	
             <span class="lnk first float-left"><?php echo anchor('auth/register',t('register'),'class="jx btn btn-link btn-sm"'); ?></span>
         <?php endif;?>
         <span class="lnk float-right"><?php echo anchor('auth/forgot_password',t('forgot_password'),'class="jx btn btn-link btn-sm"'); ?></span>
+        </div>
     </div>
-    
 </form>
-
-
-
-
+        
 <div class="privacy-info mt-4 text-secondary"><?php echo t('site_login_privacy_terms');?></div>
         
 </div>    
@@ -102,6 +115,6 @@
 <script type="text/javascript">
 
 $(function() {
-  $("#email").focus();
+  $("#password").focus();
 });
 </script>

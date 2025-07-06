@@ -257,14 +257,14 @@ class Ion_auth
 	 * @return void
 	 * @author Mathew
 	 **/
-	public function register($username, $password, $email, $additional_data, $group_name = false, $auth_type=NULL) //need to test email activation
+	public function register($username, $password, $email, $additional_data, $group_name = false, $auth_type=NULL, $auth_type_id=NULL) //need to test email activation
 	{
 	    $email_activation = $this->ci->config->item('email_activation');
 
 		//NO EMAIL verification is required
 		if (!$email_activation)
 		{
-			if ($this->ci->ion_auth_model->register($username, $password, $email, $additional_data, $group_name, $auth_type) )
+			if ($this->ci->ion_auth_model->register($username, $password, $email, $additional_data, $group_name, $auth_type, $auth_type_id) )
 			{
 				$this->set_message('account_creation_successful');
 				return TRUE;
@@ -277,8 +277,8 @@ class Ion_auth
 		}
 		else	//WITH EMAIL VERIFICATION
 		{			
-			$id = $this->ci->ion_auth_model->register($username, $password, $email, $additional_data, $group_name, $auth_type);
-            
+			$id = $this->ci->ion_auth_model->register($username, $password, $email, $additional_data, $group_name, $auth_type, $auth_type_id);
+			
 			if (!$id) 
 			{ 
 				$this->set_error('account_creation_unsuccessful');
@@ -961,6 +961,81 @@ class Ion_auth
 		}
 		
 		return true;
+	}
+
+
+	function send_email_verification($user_id)
+	{
+		// Get user information
+		$user = $this->ci->ion_auth_model->get_user($user_id);
+
+		//user not found
+		if (!$user){
+			throw new Exception("User not found");
+		}
+
+		$email = $user->email;
+		$identity= $this->ci->config->item('identity');
+
+		//sets the activation code
+		$deactivate = $this->ci->ion_auth_model->deactivate($user_id);
+
+		if (!$deactivate) 
+		{ 
+			$this->set_error('deactivate_unsuccessful');
+			return FALSE; 
+		}
+
+		$activation_code = $this->ci->ion_auth_model->activation_code;
+
+		$data = array('identity'   	=> $user->{$identity},
+						'id'         	=> $user->id,
+						'email'      	=> $email,
+						'activation' 	=> $activation_code,
+						);
+            
+		$message = $this->ci->load->view($this->ci->config->item('email_templates').$this->ci->config->item('email_activate'), $data, true);
+            
+		$this->ci->email->clear();			
+		$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
+		$this->ci->email->to($email);
+		$this->ci->email->subject($this->ci->config->item('website_title') . ' - '.t('account_activation'));
+		$this->ci->email->message($message);
+		
+		if ($this->ci->email->send() == TRUE) 
+		{
+			$this->set_message('activation_email_successful');
+			return TRUE;
+		}
+		else 
+		{
+			$this->set_error('activation_email_unsuccessful');
+			return FALSE;
+		}
+
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Check if the user account is activated or not
+	 * 
+	 */
+	public function is_user_active($email)
+	{
+		$user=$this->ci->get_user_by_email($email);
+
+		if (!$user){
+			return false;
+		}
+
+		if ($user->active==1){
+			return TRUE;
+		}
+		else{
+			return FALSE;
+		}
 	}
 
 

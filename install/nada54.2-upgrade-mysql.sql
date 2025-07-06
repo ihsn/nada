@@ -1,0 +1,6 @@
+ALTER TABLE `users`
+ADD COLUMN `authtype` VARCHAR(100) NULL;
+
+ALTER TABLE `users`
+ADD COLUMN `authtype_id` VARCHAR(300) NULL;
+
