@@ -164,18 +164,39 @@
                             <span class="mr-2 link-col">
                                 <?php $report_file=unix_path($survey['storage_path'].'/ddi-documentation-'.$this->config->item("language").'-'.$survey['id'].'.pdf');?>
                                 <?php if (file_exists($report_file)):?>
-                                    <a class="download" href="<?php echo site_url('catalog/'.$survey['id'].'/pdf-documentation');?>" title="<?php echo t('documentation_in_pdf');?>" >
+                                    <a class="download" 
+                                       href="<?php echo site_url('catalog/'.$survey['id'].'/pdf-documentation');?>" 
+                                       title="<?php echo t('documentation_in_pdf');?>"
+                                       data-filename="ddi-documentation-<?php echo $this->config->item("language");?>-<?php echo $survey['id'];?>.pdf"
+                                       data-dctype="report"
+                                       data-isurl="0"
+                                       data-extension="pdf"
+                                       data-sid="<?php echo $survey['id'];?>">
                                         <span class="badge badge-success"><i class="fa fa-file-pdf-o" aria-hidden="true"> </i> <?php echo t('documentation_in_pdf');?></span>
                                     </a>
                                 <?php endif;?>
                             
                                 <?php if($survey['type']=='survey'):?>
-                                    <a class="download" href="<?php echo site_url('metadata/export/'.$survey['id'].'/ddi');?>" title="<?php echo t('metadata_in_ddi_xml');?>">
+                                    <a class="download" 
+                                       href="<?php echo site_url('metadata/export/'.$survey['id'].'/ddi');?>" 
+                                       title="<?php echo t('metadata_in_ddi_xml');?>"
+                                       data-filename="metadata-<?php echo $survey['id'];?>.xml"
+                                       data-dctype="metadata"
+                                       data-isurl="0"
+                                       data-extension="xml"
+                                       data-sid="<?php echo $survey['id'];?>">
                                         <span class="badge badge-primary"> <?php echo t('DDI/XML');?></span>
                                     </a>
                                 <?php endif;?>
 
-                                <a class="download" href="<?php echo site_url('metadata/export/'.$survey['id'].'/json');?>" title="<?php echo t('metadata_in_json');?>">
+                                <a class="download" 
+                                   href="<?php echo site_url('metadata/export/'.$survey['id'].'/json');?>" 
+                                   title="<?php echo t('metadata_in_json');?>"
+                                   data-filename="metadata-<?php echo $survey['id'];?>.json"
+                                   data-dctype="metadata"
+                                   data-isurl="0"
+                                   data-extension="json"
+                                   data-sid="<?php echo $survey['id'];?>">
                                     <span class="badge badge-info"><?php echo t('JSON');?></span>
                                 </a>
                             </span>	
