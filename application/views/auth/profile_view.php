@@ -54,7 +54,7 @@
             <h3><?php echo t('api_keys'); ?></h3>
         </div>
         <div class="col-md-4">
-            <?php if (is_array($api_keys) && count($api_keys) < 5) : ?>                
+            <?php if (is_array($api_keys) && count($api_keys) < 5 || !is_array($api_keys)) : ?>                
             <a href="<?php echo site_url('auth/generate_api_key'); ?>" class="btn btn-primary btn-sm float-right"><?php echo t('generate_api_key'); ?></a>
             <?php endif; ?>
         </div>
