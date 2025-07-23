@@ -800,6 +800,11 @@ class Ion_auth
 		
 		return $_output;
 	}
+
+	public function errors_raw()
+	{
+		return $this->errors;
+	}
 	
 	/**
 	*

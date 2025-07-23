@@ -845,15 +845,19 @@ class SocialAuth extends DefaultAuth implements AuthInterface {
 				$social_id = $this->ci->session->userdata('social_id')
 			);
 
-			//errors
-			if ($this->ci->ion_auth->errors()) {
-				$this->ci->session->set_flashdata('error', implode(', ', $this->ci->ion_auth->errors()));
-				redirect('auth/social_register');
-			}
-
 			if (!$user_id) {
-				$this->ci->session->set_flashdata('error', 'Registration failed. Please try again.');
-				redirect('auth/social_register');
+				//ignore activation_email_unsuccessful error
+				if ($this->ci->ion_auth->errors_raw()) {
+				
+					if (!in_array('activation_email_unsuccessful', $this->ci->ion_auth->errors_raw())) {
+						$this->ci->session->set_flashdata('error', $this->ci->ion_auth->errors());
+						redirect('auth/social_register');
+					}
+				}
+				else{
+					$this->ci->session->set_flashdata('error', 'Registration failed. Please try again.');
+					redirect('auth/social_register');
+				}
 			}
 
 			// Unset session
