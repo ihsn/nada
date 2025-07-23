@@ -435,7 +435,7 @@ class Data_table_mongo_model extends CI_Model {
 	 * 
 	 * 
 	 */
-   function get_table_data($db_id,$table_id,$limit=100,$offset=0,$options,$labels=array())
+   function get_table_data($db_id,$table_id,$limit=100,$offset=0,$options)
    {    
         $limit=intval($limit);
         $offset=intval($offset);
@@ -445,8 +445,6 @@ class Data_table_mongo_model extends CI_Model {
         }        
 
         $table_id=strtolower($table_id);
-
-        $labels=array_filter($labels);
 
         //get table type info
         $this->table_type_obj= $this->get_table_type($db_id,$table_id);
@@ -510,8 +508,6 @@ class Data_table_mongo_model extends CI_Model {
         );
         */
 
-        //return $feature_filters;
-
         $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};        
 
         if (!isset($options['fields'])){
@@ -530,96 +526,198 @@ class Data_table_mongo_model extends CI_Model {
             ]
         );
 
-        $geo_features=array(
-            'state',
-            'district'
-        );
-
         $output=array();
-        $geo_codes=array();
 
         if (isset($options['debug'])){
             $output['options']=$options;
             $output['features']=$features;        
-            $output['feature_filters']=$feature_filters;        
-            $output['labels']=$labels;
+            $output['feature_filters']=$feature_filters;
         }
 
         $output['rows_count']=0;
         $output['limit']=$limit;
         $output['offset']=$offset;
         $output['found']=$collection->count($feature_filters);
-        $output['total']=$collection->count();
-        $output['codelist']=array();
+        $output['total']=$collection->count();        
         $output['data']=array();
         
-
         foreach ($cursor as $document) {
             //convert to array from mongodb object
-            $output['data'][]= iterator_to_array($document);            
-            
-            foreach($geo_features as $geo_feature_name){
-                if (isset($document[$geo_feature_name])){
-                    $geo_codes[$geo_feature_name][]=$document[$geo_feature_name];
-                }
-            }
+            $output['data'][]= iterator_to_array($document);
         }
 
-        if (is_array($labels) && !empty($labels)){
-            
-            //get codelists for features
-            $feature_code_lists=$this->get_table_features_list($db_id,$table_id,$labels);
-
-            foreach($feature_code_lists as $code_list_){
-                $output['codelist'][$code_list_['feature_name']]=$code_list_;
-            }
-
-            //include indicator code list?
-            if (in_array('indicator',$labels)){
-                $output['codelist']['indicator']=array(
-                    'feature_name'=>'indicator',
-                    'code_list'=>$this->get_table_indicator_codelist($db_id, $table_id)
-                );
-            }
-
-            //codelists for geocodes
-            foreach($geo_codes as $geo_feature_name_=>$geo_values)
-            {
-                /*if (!in_array(trim($geo_feature_name_),$labels)){
-                    continue;
-                }*/
-
-                $geo_codes[$geo_feature_name_]=array_values(array_unique($geo_values));
-
-                $params_=array();
-                $params_['level']=$geo_feature_name_;
-                $params_[$geo_feature_name_]=implode(",",array_values(array_unique($geo_values)));
-                $labels=$this->geo_search($db_id,$params_,$fields=implode(",",array('areaname',$geo_feature_name_)));
-                $output['codelist'][$geo_feature_name_]=array(
-                    'feature_name'=>$geo_feature_name_,
-                    'code_list'=>$labels['data']
-                );
-            }
-
-        }else{
-            unset($output['codelist']);
-        }
-
-
-        /*
-        $indicators= json_decode(json_encode($output['codelist']['indicator']),true);
-
-        $new=array();
-        foreach($indicators['code_list'] as $indicator){
-            $new[$indicator['code']]=$indicator['label'];
-        }*/
-
-        //$output['codelist']=$geo_codes;
         $output['rows_count']=count($output['data']);
         return $output;
    } 
 
 
+   /**
+    * 
+    *
+    *  Export data from a table
+    *  
+    *  - output_format - json, csv
+    * 
+    */
+    function export_data($db_id, $table_id, $output_format = 'json', $options = array())
+    {
+        $table_id = strtolower($table_id);
+    
+        $output_file_name = $db_id . '_' . $table_id . '_' . base64_encode(json_encode($options)) . '.' . $output_format;
+        $output_file_name = 'datafiles/tmp/' . $output_file_name;
+        $download_file_name = $db_id . '_' . $table_id . '_' . date('Y-m-d') . '.' . $output_format;
+    
+        if (file_exists($output_file_name)) {
+            // check if the file is older than 5 hours
+            if (filemtime($output_file_name) < (time() - 5 * 3600)) {
+                unlink($output_file_name);
+            } else {
+                $this->download_file($output_file_name, $output_format, $download_file_name);
+                return;
+            }
+        }
+    
+        $this->table_type_obj = $this->get_table_type($db_id, $table_id);    
+        $fields = $this->get_table_field_names($db_id, $table_id);
+    
+        $features = $fields;
+        $feature_filters = array();
+        $filter_options = array();
+    
+        // See if any key matches with the feature name
+        foreach ($options as $key => $value) {
+            if (array_key_exists($key, $features)) {
+                $filter_options[$key] = $value; // age = something
+            }
+        }
+    
+        $tmp_feature_filters = array();
+    
+        // Filter by features
+        foreach ($filter_options as $feature_key => $value) {
+            $tmp_feature_filters[$feature_key] = $this->apply_feature_filter($feature_key, $value);
+        }
+    
+        // Full-text query
+        if (isset($options['ft_query']) && !empty($options['ft_query'])) {
+            $tmp_feature_filters['ft_query'][]['$text'] = $this->text_search($options['ft_query']);
+        }
+    
+        $feature_filters = array();
+    
+        if (!empty($tmp_feature_filters)) {
+            $feature_filters = array('$and' => array());
+    
+            foreach ($tmp_feature_filters as $feature_key => $filter) {
+                $feature_filters['$and'][]['$or'] = $filter;
+            }
+        }
+    
+        $collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
+    
+        if (!isset($options['fields'])) {
+            $options['fields'] = "";
+        }
+    
+        // Which fields to display
+        $output_fields = $this->get_projection_fields($options['fields']);
+    
+        $cursor = $collection->find(
+            $feature_filters,
+            [
+                'projection' => $output_fields
+            ]
+        );
+
+        $file_handle = fopen($output_file_name, 'w');
+
+        $rows_found= $collection->count($feature_filters);
+
+        if ($output_format === 'json') {
+            // Start JSON array for output
+            fwrite($file_handle, '[');
+    
+            $first_row = true;
+            foreach ($cursor as $document) {
+                // Convert MongoDB object to array
+                $data = iterator_to_array($document);
+    
+                // Write JSON for each document
+                if (!$first_row) {
+                    fwrite($file_handle, ',');
+                }
+                fwrite($file_handle, json_encode($data));
+    
+                $first_row = false;
+            }
+    
+            // End JSON array
+            fwrite($file_handle, ']');
+
+        } elseif ($output_format === 'csv') {
+            // Prepare CSV format
+            $headers_written = false;
+            $batch_size = 1000; // Set batch size for flushing data
+            $batch_data = [];
+    
+            foreach ($cursor as $document) {
+                // Convert MongoDB object to array
+                $data = iterator_to_array($document);
+    
+                // Write headers if not already written
+                if (!$headers_written) {
+                    fputcsv($file_handle, array_keys($data));
+                    $headers_written = true;
+                }
+    
+                // Store data in batch
+                $batch_data[] = $data;
+    
+                // Write batch to CSV after reaching batch size
+                if (count($batch_data) >= $batch_size) {
+                    foreach ($batch_data as $row) {
+                        fputcsv($file_handle, $row);
+                    }
+                    // Clear the batch data
+                    $batch_data = [];
+                }
+            }
+    
+            // Write any remaining data in the batch
+            if (count($batch_data) > 0) {
+                foreach ($batch_data as $row) {
+                    fputcsv($file_handle, $row);
+                }
+            }
+        }    
+        fclose($file_handle);        
+        $this->download_file($output_file_name, $output_format);
+    }
+    
+
+
+    function download_file($file_path, $output_format = 'json', $download_file_name=null)
+    {
+        if (!file_exists($file_path)) {
+            throw new Exception("File not found: " . $file_path);
+        }
+
+        if ($download_file_name === null) {
+            $download_file_name = basename($file_path);
+        }
+
+        // Set headers for download
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/' . $output_format);
+        header('Content-Disposition: attachment; filename=' . $download_file_name);
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($file_path));
+
+        readfile($file_path);
+        exit;
+    }
    
 
    function get_projection_fields($fields)

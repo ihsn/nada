@@ -112,7 +112,17 @@ $lang['Other options']="Other options";
 $lang['Has notes']="Has notes";
 $lang['status']="Status";
 $lang['Search by title, country and year']="Search by title, country and year";
-
+$lang['Search by keyword']="Search by keyword";
+$lang['keywords']="Keywords";
+$lang['Search']="Search";
+$lang['Reset']="Reset";
+$lang['Filter by Year']="Filter by Year";
+$lang['From']="From";
+$lang['To']="To";
+$lang['Apply']="Apply";
+$lang['Filter by type']="Filter by type";
+$lang['citations']="Citations";
+$lang['showing %s-%s of %s']="Showing %s-%s of %s";
 
 /* End of file citations */
 /* Location: ./application/language/english/citations */

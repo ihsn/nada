@@ -112,6 +112,18 @@ $lang['Other options']="Autres options";
 $lang['Has notes']="A des notes";
 $lang['status']="Statuts";
 $lang['Search by title, country and year']="Recherche par titre, pays et année";
+$lang['Search by keyword']="Recherche par mots-clés";
+$lang['keywords']="Mots-clés";
+$lang['Search']="Rechercher";
+$lang['Reset']="Annuler";
+$lang['Filter by Year']="Filtrer par année";
+$lang['From']="De";
+$lang['To']="À";
+$lang['Apply']="Appliquer";
+$lang['Filter by type']="Filtrer par type";
+$lang['citations']="Bibliographie";
+$lang['showing %s-%s of %s']="Affichage de %s-%s sur %s";
+
 
 
 /* End of file citations */

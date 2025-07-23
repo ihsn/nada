@@ -215,6 +215,7 @@ class Catalog extends MY_REST_Controller
 		$this->load->library('catalog_search',$params);
 
 		try{
+
 			$result=$this->catalog_search->search($limit,$offset);			
 
 			if(isset($result['rows'])){
@@ -226,6 +227,11 @@ class Catalog extends MY_REST_Controller
 				if ($this->input->get("inc_iso")){
 					//iso3 codes
 					$iso3_codes=$this->Dataset_model->get_dataset_country_codes(array_column($result['rows'],'id') );	
+				}
+
+				//include countries list
+				if ($this->input->get("inc_countries")){					
+					$country_names=$this->Survey_country_model->get_survey_country_names(array_column($result['rows'],'id'));
 				}
 
 				//include external resources
@@ -257,6 +263,11 @@ class Catalog extends MY_REST_Controller
 					if (isset($iso3_codes[$row['id']])){
 						$result['rows'][$idx]['iso3'] = implode(",",$iso3_codes[$row['id']]);
 					}
+
+					//attach country names
+					if (isset($country_names[$row['id']])){
+						$result['rows'][$idx]['countries'] = $country_names[$row['id']];
+					}					
 
 					//attach external resources
 					if ($include_resources=='true'){

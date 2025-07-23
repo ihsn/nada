@@ -1129,7 +1129,7 @@ class Catalog_search_mysql{
 		$this->ci->db->limit($limit, $offset);		
 		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.qstn, v.vid,  surveys.title as title,surveys.idno, surveys.nation, v.sid",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
-		//$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		$this->ci->db->order_by($sort_by, $sort_order); 
 		$this->ci->db->where($where);

@@ -105,6 +105,18 @@ $lang['sort']="Clasificar";
 $lang['published-status-1']="Publicado";
 $lang['published-status-0']="Borrador";
 
+$lang['Search by keyword']="Buscar por palabra clave";
+$lang['keywords']="Palabras clave";
+$lang['Search']="Buscar";
+$lang['Reset']="Reiniciar";
+$lang['Filter by Year']="Filtrar por Año";
+$lang['From']="De";
+$lang['To']="A";
+$lang['Apply']="Aplicar";
+$lang['Filter by type']="Filtrar por tipo";
+$lang['citations']="Citas";
+$lang['showing %s-%s of %s']="Mostrando %s-%s de %s";
+
 
 /* End of file citations */
 /* Location: ./application/language/spanish/citations */
