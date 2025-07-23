@@ -158,6 +158,13 @@ class Data_file_model extends CI_Model {
 		$data=array();
 		//$data['created']=date("U");
 		//$data['changed']=date("U");
+
+		$numeric_fields=array('case_count','var_count');
+		foreach($numeric_fields as $field){
+			if(isset($options[$field])){
+				$options[$field]=(int) filter_var($options[$field], FILTER_SANITIZE_NUMBER_INT);
+			}
+		}
 		
 		foreach($options as $key=>$value)
 		{
@@ -187,6 +194,13 @@ class Data_file_model extends CI_Model {
 	function update($id,$options)
 	{
 		$data=array();
+
+		$numeric_fields=array('case_count','var_count');
+		foreach($numeric_fields as $field){
+			if(isset($options[$field])){
+				$options[$field]=(int) filter_var($options[$field], FILTER_SANITIZE_NUMBER_INT);
+			}
+		}
 		
 		foreach($options as $key=>$value)
 		{
