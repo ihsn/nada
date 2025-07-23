@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laminas\Permissions\Acl\Assertion;
 
 use Laminas\Permissions\Acl\Acl;
@@ -8,6 +10,22 @@ use Laminas\Permissions\Acl\Exception\RuntimeException;
 use Laminas\Permissions\Acl\Resource\ResourceInterface;
 use Laminas\Permissions\Acl\Role\RoleInterface;
 use ReflectionProperty;
+
+use function array_flip;
+use function array_intersect_key;
+use function count;
+use function explode;
+use function in_array;
+use function is_array;
+use function is_string;
+use function method_exists;
+use function preg_match;
+use function property_exists;
+use function sprintf;
+use function str_replace;
+use function strpos;
+use function strtolower;
+use function ucwords;
 
 /**
  * Create an assertion based on expression rules.
@@ -34,24 +52,22 @@ use ReflectionProperty;
  */
 final class ExpressionAssertion implements AssertionInterface
 {
-    const OPERAND_CONTEXT_PROPERTY = '__context';
+    public const OPERAND_CONTEXT_PROPERTY = '__context';
 
-    const OPERATOR_EQ     = '=';
-    const OPERATOR_NEQ    = '!=';
-    const OPERATOR_LT     = '<';
-    const OPERATOR_LTE    = '<=';
-    const OPERATOR_GT     = '>';
-    const OPERATOR_GTE    = '>=';
-    const OPERATOR_IN     = 'in';
-    const OPERATOR_NIN    = '!in';
-    const OPERATOR_REGEX  = 'regex';
-    const OPERATOR_NREGEX = '!regex';
-    const OPERATOR_SAME   = '===';
-    const OPERATOR_NSAME  = '!==';
+    public const OPERATOR_EQ     = '=';
+    public const OPERATOR_NEQ    = '!=';
+    public const OPERATOR_LT     = '<';
+    public const OPERATOR_LTE    = '<=';
+    public const OPERATOR_GT     = '>';
+    public const OPERATOR_GTE    = '>=';
+    public const OPERATOR_IN     = 'in';
+    public const OPERATOR_NIN    = '!in';
+    public const OPERATOR_REGEX  = 'regex';
+    public const OPERATOR_NREGEX = '!regex';
+    public const OPERATOR_SAME   = '===';
+    public const OPERATOR_NSAME  = '!==';
 
-    /**
-     * @var array
-     */
+    /** @var list<string> */
     private static $validOperators = [
         self::OPERATOR_EQ,
         self::OPERATOR_NEQ,
@@ -67,19 +83,13 @@ final class ExpressionAssertion implements AssertionInterface
         self::OPERATOR_NSAME,
     ];
 
-    /**
-     * @var mixed
-     */
+    /** @var mixed */
     private $left;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     private $operator;
 
-    /**
-     * @var mixed
-     */
+    /** @var mixed */
     private $right;
 
     /**
@@ -94,9 +104,9 @@ final class ExpressionAssertion implements AssertionInterface
      */
     private function __construct($left, $operator, $right)
     {
-        $this->left = $left;
+        $this->left     = $left;
         $this->operator = $operator;
-        $this->right = $right;
+        $this->right    = $right;
     }
 
     /**
@@ -104,8 +114,8 @@ final class ExpressionAssertion implements AssertionInterface
      * @param string $operator One of the OPERATOR constants (or their values)
      * @param mixed|array $right See the class description for valid values.
      * @return self
-     * @throws InvalidAssertionException if either operand is invalid.
-     * @throws InvalidAssertionException if the operator is not supported.
+     * @throws InvalidAssertionException If either operand is invalid.
+     * @throws InvalidAssertionException If the operator is not supported.
      */
     public static function fromProperties($left, $operator, $right)
     {
@@ -126,9 +136,9 @@ final class ExpressionAssertion implements AssertionInterface
      *     See the class description for valid values for the left and right
      *     hand side values.
      * @return self
-     * @throws InvalidAssertionException if missing one of the required keys.
-     * @throws InvalidAssertionException if either operand is invalid.
-     * @throws InvalidAssertionException if the operator is not supported.
+     * @throws InvalidAssertionException If missing one of the required keys.
+     * @throws InvalidAssertionException If either operand is invalid.
+     * @throws InvalidAssertionException If the operator is not supported.
      */
     public static function fromArray(array $expression)
     {
@@ -149,7 +159,7 @@ final class ExpressionAssertion implements AssertionInterface
 
     /**
      * @param mixed|array $operand
-     * @throws InvalidAssertionException if the operand is invalid.
+     * @throws InvalidAssertionException If the operand is invalid.
      */
     private static function validateOperand($operand)
     {
@@ -161,8 +171,8 @@ final class ExpressionAssertion implements AssertionInterface
     }
 
     /**
-     * @param string $operand
-     * @throws InvalidAssertionException if the operator is not supported.
+     * @param string $operator
+     * @throws InvalidAssertionException If the operator is not supported.
      */
     private static function validateOperator($operator)
     {
@@ -174,8 +184,12 @@ final class ExpressionAssertion implements AssertionInterface
     /**
      * {@inheritDoc}
      */
-    public function assert(Acl $acl, RoleInterface $role = null, ResourceInterface $resource = null, $privilege = null)
-    {
+    public function assert(
+        Acl $acl,
+        ?RoleInterface $role = null,
+        ?ResourceInterface $resource = null,
+        $privilege = null
+    ) {
         return $this->evaluate([
             'acl'       => $acl,
             'role'      => $role,
@@ -191,7 +205,7 @@ final class ExpressionAssertion implements AssertionInterface
      */
     private function evaluate(array $context)
     {
-        $left = $this->getLeftValue($context);
+        $left  = $this->getLeftValue($context);
         $right = $this->getRightValue($context);
 
         return static::evaluateExpression($left, $this->operator, $right);
@@ -218,12 +232,12 @@ final class ExpressionAssertion implements AssertionInterface
     }
 
     /**
-     * @param mixed|array
+     * @param mixed|array $operand
      * @param array $context Contains the acl, privilege, role, and resource
      *     being tested currently.
      * @return mixed
-     * @throws RuntimeException if object cannot be resolved in context.
-     * @throws RuntimeException if property cannot be resolved.
+     * @throws RuntimeException If object cannot be resolved in context.
+     * @throws RuntimeException If property cannot be resolved.
      */
     private function resolveOperandValue($operand, array $context)
     {
@@ -234,7 +248,7 @@ final class ExpressionAssertion implements AssertionInterface
         $contextProperty = $operand[self::OPERAND_CONTEXT_PROPERTY];
 
         if (strpos($contextProperty, '.') !== false) { // property path?
-            list($objectName, $objectField) = explode('.', $contextProperty, 2);
+            [$objectName, $objectField] = explode('.', $contextProperty, 2);
             return $this->getObjectFieldValue($context, $objectName, $objectField);
         }
 
@@ -254,8 +268,8 @@ final class ExpressionAssertion implements AssertionInterface
      * @param string $objectName Name of object in context to use.
      * @param string $field
      * @return mixed
-     * @throws RuntimeException if object cannot be resolved in context.
-     * @throws RuntimeException if property cannot be resolved.
+     * @throws RuntimeException If object cannot be resolved in context.
+     * @throws RuntimeException If property cannot be resolved.
      */
     private function getObjectFieldValue(array $context, $objectName, $field)
     {
@@ -266,8 +280,8 @@ final class ExpressionAssertion implements AssertionInterface
             ));
         }
 
-        $object = $context[$objectName];
-        $accessors = ['get', 'is'];
+        $object        = $context[$objectName];
+        $accessors     = ['get', 'is'];
         $fieldAccessor = false === strpos($field, '_')
             ? $field
             : str_replace(' ', '', ucwords(str_replace('_', ' ', $field)));
@@ -293,12 +307,14 @@ final class ExpressionAssertion implements AssertionInterface
 
     /**
      * @param mixed $left
-     * @param string $right
+     * @param string $operator
      * @param mixed $right
-     * @throws RuntimeException if operand is not supported.
+     * @return bool|void
+     * @throws RuntimeException If operand is not supported.
      */
     private static function evaluateExpression($left, $operator, $right)
     {
+        // phpcs:disable SlevomatCodingStandard.Operators.DisallowEqualOperators
         switch ($operator) {
             case self::OPERATOR_EQ:
                 return $left == $right;
@@ -325,12 +341,13 @@ final class ExpressionAssertion implements AssertionInterface
             case self::OPERATOR_NSAME:
                 return $left !== $right;
         }
+        // phpcs:enable SlevomatCodingStandard.Operators.DisallowEqualOperators
     }
 
     /**
      * @param object $object
-     * @param string $field
-     * @return mixed
+     * @param string $property
+     * @return bool
      */
     private function propertyExists($object, $property)
     {

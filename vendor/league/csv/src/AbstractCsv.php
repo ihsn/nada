@@ -35,64 +35,19 @@ abstract class AbstractCsv implements ByteSequence
 {
     protected const STREAM_FILTER_MODE = STREAM_FILTER_READ;
 
-    /**
-     * collection of stream filters.
-     *
-     * @var bool[]
-     */
-    protected $stream_filters = [];
-
-    /**
-     * The CSV document BOM sequence.
-     *
-     * @var string|null
-     */
-    protected $input_bom = null;
-
-    /**
-     * The Output file BOM character.
-     *
-     * @var string
-     */
-    protected $output_bom = '';
-
-    /**
-     * the field delimiter (one character only).
-     *
-     * @var string
-     */
-    protected $delimiter = ',';
-
-    /**
-     * the field enclosure character (one character only).
-     *
-     * @var string
-     */
-    protected $enclosure = '"';
-
-    /**
-     * the field escape character (one character only).
-     *
-     * @var string
-     */
-    protected $escape = '\\';
-
-    /**
-     * The CSV document.
-     *
-     * @var SplFileObject|Stream
-     */
+    /** @var SplFileObject|Stream The CSV document. */
     protected $document;
+    /** @var array<string, bool> collection of stream filters. */
+    protected array $stream_filters = [];
+    protected ?string $input_bom = null;
+    protected string $output_bom = '';
+    protected string $delimiter = ',';
+    protected string $enclosure = '"';
+    protected string $escape = '\\';
+    protected bool $is_input_bom_included = false;
 
     /**
-     * Tells whether the Input BOM must be included or skipped.
-     *
-     * @var bool
-     */
-    protected $is_input_bom_included = false;
-
-    /**
-     * New instance.
+     * @final This method should not be overwritten in child classes
      *
      * @param SplFileObject|Stream $document The CSV Object instance
      */
@@ -108,17 +63,11 @@ abstract class AbstractCsv implements ByteSequence
      */
     abstract protected function resetProperties(): void;
 
-    /**
-     * {@inheritdoc}
-     */
     public function __destruct()
     {
         unset($this->document);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function __clone()
     {
         throw UnavailableStream::dueToForbiddenCloning(static::class);
@@ -258,7 +207,7 @@ abstract class AbstractCsv implements ByteSequence
     public function supportsStreamFilterOnRead(): bool
     {
         return $this->document instanceof Stream
-            && ((static::STREAM_FILTER_MODE & STREAM_FILTER_READ) === STREAM_FILTER_READ);
+            && (static::STREAM_FILTER_MODE & STREAM_FILTER_READ) === STREAM_FILTER_READ;
     }
 
     /**
@@ -267,7 +216,7 @@ abstract class AbstractCsv implements ByteSequence
     public function supportsStreamFilterOnWrite(): bool
     {
         return $this->document instanceof Stream
-            && ((static::STREAM_FILTER_MODE & STREAM_FILTER_WRITE) === STREAM_FILTER_WRITE);
+            && (static::STREAM_FILTER_MODE & STREAM_FILTER_WRITE) === STREAM_FILTER_WRITE;
     }
 
     /**

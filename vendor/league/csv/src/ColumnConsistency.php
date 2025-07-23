@@ -20,16 +20,9 @@ use function count;
  */
 class ColumnConsistency
 {
-    /**
-     * The number of column per record.
-     *
-     * @var int
-     */
-    protected $columns_count;
+    protected int $columns_count;
 
     /**
-     * New Instance.
-     *
      * @throws InvalidArgument if the column count is lesser than -1
      */
     public function __construct(int $columns_count = -1)

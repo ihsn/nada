@@ -1,10 +1,11 @@
+
+[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/support-ukraine.svg?t=1" />](https://supportukrainenow.org)
+
 # Convert an array to xml
 
 [![Latest Version](https://img.shields.io/github/release/spatie/array-to-xml.svg?style=flat-square)](https://github.com/spatie/array-to-xml/releases)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Build Status](https://img.shields.io/travis/spatie/array-to-xml/master.svg?style=flat-square)](https://travis-ci.org/spatie/array-to-xml)
-[![Quality Score](https://img.shields.io/scrutinizer/g/spatie/array-to-xml.svg?style=flat-square)](https://scrutinizer-ci.com/g/spatie/array-to-xml)
-[![StyleCI](https://styleci.io/repos/32388747/shield?branch=master)](https://styleci.io/repos/32388747)
+![Tests](https://github.com/spatie/array-to-xml/workflows/Tests/badge.svg)
 [![Total Downloads](https://img.shields.io/packagist/dt/spatie/array-to-xml.svg?style=flat-square)](https://packagist.org/packages/spatie/array-to-xml)
 
 This package provides a very simple class to convert an array to an xml string.
@@ -330,6 +331,44 @@ A custom key contains three, colon-separated parts: "__custom:[custom-tag]:[uniq
 - [unique-string]
   - A unique string that avoids overwriting of duplicate keys in PHP arrays.
 
+a colon character can be included within the custom-tag portion by escaping it with a backslash:
+
+```php
+$array = [
+    '__custom:ns\\:custom-key:1' => [
+        'name' => 'Vladimir',
+        'nickname' => 'greeflas',
+    ],
+    '__custom:ns\\:custom-key:2' => [
+        'name' => 'Marina',
+        'nickname' => 'estacet',
+        'tags' => [
+            '__custom:ns\\:tag:1' => 'first-tag',
+            '__custom:ns\\:tag:2' => 'second-tag',
+        ]
+    ],
+];
+```
+This will result in:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <ns:custom-key>
+        <name>Vladimir</name>
+        <nickname>greeflas</nickname>
+    </ns:custom-key>
+    <ns:custom-key>
+        <name>Marina</name>
+        <nickname>estacet</nickname>
+        <tags>
+            <ns:tag>first-tag</ns:tag>
+            <ns:tag>second-tag</ns:tag>
+        </tags>
+    </ns:custom-key>
+</root>
+```
+
 ### Setting DOMDocument properties
 
 To set properties of the internal DOMDocument object just pass an array consisting of keys and values. For a full list of valid properties consult https://www.php.net/manual/en/class.domdocument.php.
@@ -441,23 +480,43 @@ This will result in:
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope/"><soap:Header/><soap:Body><soap:key>soap:value</soap:key></soap:Body></soap:Envelope>
 ```
 
+### Adding processing instructions
+
+Call `$arrayToXml->addProcessingInstruction($target, $data)` method on ArrayToXml object to prepend a processing instruction before the root element.
+
+Example:
+
+```php
+$arrayToXml = new ArrayToXml($array);
+$arrayToXml->addProcessingInstruction('xml-stylesheet', 'type="text/xsl" href="base.xsl"');
+$result = $arrayToXml->toXml();
+```
+
+This will result in:
+
+```xml
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="base.xsl"?>
+<root><Good_guy><name>Luke Skywalker</name><weapon>Lightsaber</weapon></Good_guy><Bad_guy><name>Sauron</name><weapon>Evil Eye</weapon></Bad_guy></root>
+```
+
 ## Testing
 
 ```bash
 vendor/bin/phpunit
 ```
 
-### Changelog
+## Changelog
 
-Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
+Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+Please see [CONTRIBUTING](https://github.com/spatie/.github/blob/main/CONTRIBUTING.md) for details.
 
-## Security
+## Security Vulnerabilities
 
-If you discover any security related issues, please email freek@spatie.be instead of using the issue tracker.
+Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
 
 ## Postcardware
 

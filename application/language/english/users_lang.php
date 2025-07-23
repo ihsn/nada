@@ -106,6 +106,11 @@ $lang['verify_your_email']="Verify your email address";
 $lang['resend_verification_email']="Resend verification email";
 $lang['verification_email_sent']="A verification email has been sent to your email address. Please check your inbox and follow the instructions to verify your email.";
 
+$lang['enter_your_email']="Enter your email";
+$lang['continue']="Continue";
+$lang['back_to_login']="Back to login";
+$lang['choose_social_provider']="Choose your social login provider";
+
 
 /* End of file users_lang.php */
 /* Location: ./application/language/english/users_lang.php */
