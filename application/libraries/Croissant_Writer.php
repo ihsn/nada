@@ -29,11 +29,14 @@ class Croissant_Writer
 
         //distribution information (external resources/files)
         $resources=$this->ci->Survey_resource_model->get_resources_by_survey($sid);
+
         $distribution_info=$this->map_distribution_info($sid,$resources);
 
-        if (!empty($distribution_info)){
-            $dataset_info['distribution']=$distribution_info;
+        if (empty($distribution_info)){
+            return $dataset_info;
         }
+
+        $dataset_info['distribution']=$distribution_info;
 
         //recordset information (data file level metadata)
         $data_files=$this->ci->Data_file_model->get_all_by_survey($sid);
@@ -44,7 +47,6 @@ class Croissant_Writer
             $file_name=strtoupper($file_name);
             $data_files_by_name[$file_name]=$data_file;
         }
-
         
         $microdata_files=[];
         foreach($resources as $resource){
@@ -63,7 +65,6 @@ class Croissant_Writer
                 $microdata_files[]=$data_files_by_name[$file_name];
             }
         }
-
 
         //add variable data dictionary
         foreach($microdata_files as $data_file){
