@@ -276,7 +276,7 @@ class Croissant_Writer
 
         foreach ($variables as $variable) {
 
-            if (isset($data_types_map[$variable['field_dtype']])){
+            if (isset($variable['field_dtype']) && isset($data_types_map[$variable['field_dtype']])){
                 $data_type=$data_types_map[$variable['field_dtype']];
             }else{
                 $data_type='sc:Text';
