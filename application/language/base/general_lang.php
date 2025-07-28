@@ -128,6 +128,9 @@ $lang['export_to_csv']="Export to CSV";
 
 $lang['translate']="Translate";
 $lang['get_reproducibility_package']="Get Reproducibility Package";
+$lang['croissant']="CROISSANT";
+$lang['metadata_in_croissant']="Download metadata in CROISSANT format";
+
 
 /* End of file general_lang.php */
 /* Location: ./application/language/english/general_lang.php */

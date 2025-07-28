@@ -186,7 +186,7 @@
                                        data-extension="xml"
                                        data-sid="<?php echo $survey['id'];?>">
                                         <span class="badge badge-primary"> <?php echo t('DDI/XML');?></span>
-                                    </a>
+                                    </a>                                    
                                 <?php endif;?>
 
                                 <a class="download" 
@@ -199,6 +199,22 @@
                                    data-sid="<?php echo $survey['id'];?>">
                                     <span class="badge badge-info"><?php echo t('JSON');?></span>
                                 </a>
+
+                                <?php if($survey['type']=='survey'):?>
+                                <a class="download" 
+                                       href="<?php echo site_url('metadata/export/'.$survey['id'].'/croissant');?>" 
+                                       title="<?php echo t('metadata_in_croissant');?>"
+                                       data-filename="metadata-<?php echo $survey['id'];?>.json"
+                                       data-dctype="metadata"
+                                       data-isurl="0"
+                                       data-extension="json"
+                                       data-sid="<?php echo $survey['id'];?>">
+                                       <span class="badge badge-primary" style="padding:2px;">
+                                        <img src="<?php echo base_url();?>/images/croissant-icon.png" alt="CROISSANT" class="m-0 border-0" style="height:18px;">
+                                            <?php echo t('CROISSANT');?>
+                                        </span>
+                                    </a>
+                                <?php endif;?>
                             </span>	
                             <!--end-metadata-->
                         </div>

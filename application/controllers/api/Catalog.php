@@ -14,6 +14,7 @@ class Catalog extends MY_REST_Controller
 		$this->load->model('Variable_model');
 		$this->load->model("Form_model");
 		$this->load->library('Dataset_manager');
+		$this->load->library('Croissant_Writer');
 		$this->load->model('Facet_model');
 		$this->load->config("facets");
 	}
@@ -1159,6 +1160,24 @@ class Catalog extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
+	}
+
+
+	function croissant_get($sid=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($sid);			
+			
+			$result=$this->croissant_writer->write_croissant($sid);
+			$this->set_response($result, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
 	}
 
 	/**

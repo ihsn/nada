@@ -123,7 +123,8 @@ $lang['DDI/XML']="DDI/XML";
 $lang['page not found']="Page non trouvée";
 $lang['export_to_csv']="Exporter au format CSV";
 $lang['translate']="Traduire";
-
+$lang['croissant']="CROISSANT";
+$lang['metadata_in_croissant']="Télécharger les métadonnées au format CROISSANT";
 
 /* End of file general */
 /* Location: ./application/language/french/general */

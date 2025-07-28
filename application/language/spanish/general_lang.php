@@ -105,43 +105,26 @@ $lang['exit_impersonate']="Salir del modo &quot;hacerse pasar por...&quot;";
 $lang['content_is_not_published']="El contenido de la página actual no está publicado aun y está solo disponible para revisión.";
 $lang['licensed_requests']="Solicitudes de acceso a datos con licencia";
 $lang['create_region']="Crear región";
-$lang['tab_about']="Acerca de
-";
-$lang['tab_datasets']="Bases de datos
-";
-$lang['tab_citations']="Citas
-";
-$lang['tab_collections']="Colecciones
-";
-$lang['collection']="Colección
-";
-$lang['add_country']="Agregar nuevo país
-";
-$lang['countries']="Países
-";
-$lang['iso']="ISO
-";
-$lang['edit_country']="Editar pais
-";
-$lang['country_mappings']="Mapeos de países
-";
-$lang['latest_additions']="Últimas incorporaciones
-";
-$lang['idno']="No. ID
-";
-$lang['related_datasets']="Bases de datos relacionadas
-";
-$lang['JSON']="JSON
-";
-$lang['DDI/XML']="DDI / XML
-";
-$lang['page not found']="Página no encontrada
-";
-$lang['export_to_csv']="Exportar a CSV
-";
-$lang['translate']="Traducir
-";
-
+$lang['tab_about']="Acerca de";
+$lang['tab_datasets']="Bases de datos";
+$lang['tab_citations']="Citas";
+$lang['tab_collections']="Colecciones";
+$lang['collection']="Colección";
+$lang['add_country']="Agregar nuevo país";
+$lang['countries']="Países";
+$lang['iso']="ISO";
+$lang['edit_country']="Editar pais";
+$lang['country_mappings']="Mapeos de países";
+$lang['latest_additions']="Últimas incorporaciones";
+$lang['idno']="No. ID";
+$lang['related_datasets']="Bases de datos relacionadas";
+$lang['JSON']="JSON";
+$lang['DDI/XML']="DDI / XML";
+$lang['page not found']="Página no encontrada";
+$lang['export_to_csv']="Exportar a CSV";
+$lang['translate']="Traducir";
+$lang['croissant']="CROISSANT";
+$lang['metadata_in_croissant']="Descargar metadatos en formato CROISSANT";
 
 /* End of file general */
 /* Location: ./application/language/spanish/general */

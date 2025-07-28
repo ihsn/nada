@@ -41,6 +41,14 @@ class Metadata extends MY_Controller {
         else if($format=='ddi' && $dataset['type']=='survey'){
             $this->Dataset_model->download_metadata_ddi($sid);
         }
+        else if($format=='croissant' && $dataset['type']=='survey'){
+            $this->load->library('Croissant_Writer');
+            $metadata=$this->croissant_writer->write_croissant($sid);
+            $this->output
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode($metadata));            
+            return;
+        }
     }
     
     
