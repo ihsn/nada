@@ -172,7 +172,7 @@ class Croissant_Writer
         $dataset_info['version'] = $metadata->get('study_desc.version_statement.version');
 
         $dataset_info['spatialCoverage'] = [];
-        foreach ($metadata->get('study_desc.study_info.nation') as $nation) {
+        foreach ((array)$metadata->get('study_desc.study_info.nation') as $nation) {
             $dataset_info['spatialCoverage'][] = [
                 '@type' => 'Place',
                 'name' => $nation['name']
@@ -186,7 +186,7 @@ class Croissant_Writer
         //$dataset_info['isAccessibleForFree'] = true;
 
         $dataset_info['keywords'] = [];
-        foreach ($metadata->get('study_desc.study_info.keywords') as $keyword) {
+        foreach ((array)$metadata->get('study_desc.study_info.keywords') as $keyword) {
             $dataset_info['keywords'][] = $keyword['keyword'];
         }
 
