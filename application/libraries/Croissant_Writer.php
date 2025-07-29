@@ -115,6 +115,23 @@ class Croissant_Writer
     {
         $metadata = new \Adbar\Dot($projectObj['metadata']);
         $dataset_info=array();
+        
+        // Process extended metadata context definitions first
+        if ($this->extended_metadata) {
+            $method_data = $metadata->get('study_desc.method');
+            if ($method_data) {
+                // add extended context definitions
+                $this->add_context_item('method', 'nada:method');
+                $this->add_context_item('dataCollection', 'nada:dataCollection');
+                $this->add_context_item('timeMethod', 'nada:timeMethod');
+                $this->add_context_item('researchInstrument', 'nada:researchInstrument');
+                $this->add_context_item('weight', 'nada:weight');
+                $this->add_context_item('cleaningOperations', 'nada:cleaningOperations');
+                $this->add_context_item('methodNotes', 'nada:methodNotes');
+            }
+        }
+        
+        // Set the context after processing extended metadata definitions
         $dataset_info['@context'] = $this->get_current_context();
 
         $dataset_info['@type'] = 'sc:Dataset';
@@ -188,15 +205,6 @@ class Croissant_Writer
             $method_data = $metadata->get('study_desc.method');
             
             if ($method_data) {
-                // Add method context definitions only when extended metadata is enabled
-                $this->add_context_item('method', 'nada:method');
-                $this->add_context_item('dataCollection', 'nada:dataCollection');
-                $this->add_context_item('timeMethod', 'nada:timeMethod');
-                $this->add_context_item('researchInstrument', 'nada:researchInstrument');
-                $this->add_context_item('weight', 'nada:weight');
-                $this->add_context_item('cleaningOperations', 'nada:cleaningOperations');
-                $this->add_context_item('methodNotes', 'nada:methodNotes');
-                
                 // Use the custom fields with proper structure
                 $dataset_info['method'] = [];
                 
@@ -228,9 +236,6 @@ class Croissant_Writer
                 }
             }
         }
-
-        
-
 
         return $dataset_info;
     }
@@ -339,6 +344,7 @@ class Croissant_Writer
                     ]*/
                 ]
             ];
+                        
         }
 
         return $recordset_info;
