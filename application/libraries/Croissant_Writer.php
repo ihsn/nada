@@ -5,6 +5,9 @@ class Croissant_Writer
     private $data;
     private $writer;
     private $ci;
+    private $extended_metadata=false;
+    private $context_config;
+
 
     public function __construct()
     {
@@ -16,6 +19,27 @@ class Croissant_Writer
     }
 
 
+    /**
+     * 
+     * Enable extended metadata
+     * 
+     * Add additional metadata to the croissant file
+     * 
+     * @param bool $enable - Enable extended metadata
+     */
+    function enable_extended_metadata($enable=true)
+    {
+        $this->extended_metadata=$enable;
+    }
+
+
+    /**
+     * 
+     * Write croissant file
+     * 
+     * @param string $sid - Survey ID
+     * @param string $output - Output file
+     */
     function write_croissant($sid, $output='php://output')
     {
         $dataset=$this->ci->Dataset_model->get_row_detailed($sid);
@@ -91,52 +115,7 @@ class Croissant_Writer
     {
         $metadata = new \Adbar\Dot($projectObj['metadata']);
         $dataset_info=array();
-        $dataset_info['@context'] = [
-            '@language' => 'en',
-            '@vocab' => 'https://schema.org/',
-            'citeAs' => 'cr:citeAs',
-            'column' => 'cr:column',
-            'conformsTo' => 'dct:conformsTo',
-            'cr' => 'http://mlcommons.org/croissant/',
-            'rai' => 'http://mlcommons.org/croissant/RAI/',
-            'dct' => 'http://purl.org/dc/terms/',
-            'data' => [
-                '@id' => 'cr:data',
-                '@type' => '@json'
-            ],
-            'dataType' => [
-                '@id' => 'cr:dataType',
-                '@type' => '@vocab'
-            ],
-            //"dataType"=> "http://mlcommons.org/croissant/dataType/Text",
-            'examples' => [
-                '@id' => 'cr:examples',
-                '@type' => '@json'
-            ],
-            'extract' => 'cr:extract',
-            'field' => 'cr:field',
-            'fileProperty' => 'cr:fileProperty',
-            'fileObject' => 'cr:fileObject',
-            'fileSet' => 'cr:fileSet',
-            'format' => 'cr:format',
-            'includes' => 'cr:includes',
-            'isLiveDataset' => 'cr:isLiveDataset',
-            'jsonPath' => 'cr:jsonPath',
-            'key' => 'cr:key',
-            'md5' => 'cr:md5',
-            'parentField' => 'cr:parentField',
-            'path' => 'cr:path',
-            'recordSet' => 'cr:recordSet',
-            'references' => 'cr:references',
-            'regex' => 'cr:regex',
-            'repeated' => 'cr:repeated',
-            'replace' => 'cr:replace',
-            'separator' => 'cr:separator',
-            'source' => 'cr:source',
-            'subField' => 'cr:subField',
-            'transform' => 'cr:transform',
-            'sc' => 'https://schema.org/'
-        ];
+        $dataset_info['@context'] = $this->get_current_context();
 
         $dataset_info['@type'] = 'sc:Dataset';
         $dataset_info['conformsTo'] = 'http://mlcommons.org/croissant/1.0';
@@ -189,6 +168,69 @@ class Croissant_Writer
         foreach ((array)$metadata->get('study_desc.study_info.keywords') as $keyword) {
             $dataset_info['keywords'][] = $keyword['keyword'];
         }
+
+        if ($this->extended_metadata){
+            //add study_desc.series_statement using schema.org properties
+            $series_name = $metadata->get('study_desc.series_statement.series_name');
+            $series_info = $metadata->get('study_desc.series_statement.series_info');
+            
+            if ($series_name) {
+                $dataset_info['isPartOf'] = [
+                    '@type' => 'CreativeWork',
+                    'name' => $series_name,
+                    'description' => $series_info
+                ];
+            }
+        }
+
+        // Handle method data only when extended metadata is enabled
+        if ($this->extended_metadata) {
+            $method_data = $metadata->get('study_desc.method');
+            
+            if ($method_data) {
+                // Add method context definitions only when extended metadata is enabled
+                $this->add_context_item('method', 'nada:method');
+                $this->add_context_item('dataCollection', 'nada:dataCollection');
+                $this->add_context_item('timeMethod', 'nada:timeMethod');
+                $this->add_context_item('researchInstrument', 'nada:researchInstrument');
+                $this->add_context_item('weight', 'nada:weight');
+                $this->add_context_item('cleaningOperations', 'nada:cleaningOperations');
+                $this->add_context_item('methodNotes', 'nada:methodNotes');
+                
+                // Use the custom fields with proper structure
+                $dataset_info['method'] = [];
+                
+                // Add data collection information
+                if (isset($method_data['data_collection'])) {
+                    $data_collection = $method_data['data_collection'];
+                    $dataset_info['method']['dataCollection'] = [];
+                    
+                    if (isset($data_collection['time_method'])) {
+                        $dataset_info['method']['dataCollection']['timeMethod'] = $data_collection['time_method'];
+                    }
+                    
+                    if (isset($data_collection['research_instrument'])) {
+                        $dataset_info['method']['dataCollection']['researchInstrument'] = $data_collection['research_instrument'];
+                    }
+                    
+                    if (isset($data_collection['weight'])) {
+                        $dataset_info['method']['dataCollection']['weight'] = $data_collection['weight'];
+                    }
+                    
+                    if (isset($data_collection['cleaning_operations'])) {
+                        $dataset_info['method']['dataCollection']['cleaningOperations'] = $data_collection['cleaning_operations'];
+                    }
+                }
+                
+                // Add method notes
+                if (isset($method_data['method_notes'])) {
+                    $dataset_info['method']['methodNotes'] = $method_data['method_notes'];
+                }
+            }
+        }
+
+        
+
 
         return $dataset_info;
     }
@@ -366,6 +408,142 @@ class Croissant_Writer
 
         return 'application/octet-stream';
 
+    }
+
+    /**
+     * 
+     * Get the @context configuration
+     * 
+     * @return array - Context configuration
+     */
+    private function get_context_config()
+    {
+        return [
+            '@language' => 'en',
+            '@vocab' => 'https://schema.org/',
+            'citeAs' => 'cr:citeAs',
+            'column' => 'cr:column',
+            'conformsTo' => 'dct:conformsTo',
+            'cr' => 'http://mlcommons.org/croissant/',
+            'rai' => 'http://mlcommons.org/croissant/RAI/',
+            'dct' => 'http://purl.org/dc/terms/',
+            'data' => [
+                '@id' => 'cr:data',
+                '@type' => '@id'
+            ],
+            'dataType' => [
+                '@id' => 'cr:dataType',
+                '@type' => '@id'
+            ],
+            'examples' => [
+                '@id' => 'cr:examples',
+                '@type' => '@id'
+            ],
+            'extract' => 'cr:extract',
+            'field' => 'cr:field',
+            'fileProperty' => 'cr:fileProperty',
+            'fileObject' => 'cr:fileObject',
+            'fileSet' => 'cr:fileSet',
+            'format' => 'cr:format',
+            'includes' => 'cr:includes',
+            'isLiveDataset' => 'cr:isLiveDataset',
+            'jsonPath' => 'cr:jsonPath',
+            'key' => 'cr:key',
+            'md5' => 'cr:md5',
+            'parentField' => 'cr:parentField',
+            'path' => 'cr:path',
+            'recordSet' => 'cr:recordSet',
+            'references' => 'cr:references',
+            'regex' => 'cr:regex',
+            'repeated' => 'cr:repeated',
+            'replace' => 'cr:replace',
+            'separator' => 'cr:separator',
+            'source' => 'cr:source',
+            'subField' => 'cr:subField',
+            'transform' => 'cr:transform',
+            'sc' => 'https://schema.org/',
+            'nada' => 'http://nada.org/terms/'
+        ];
+    }
+
+    /**
+     * 
+     * Add or update context configuration
+     * 
+     * @param string $key - Context key
+     * @param mixed $value - Context value
+     */
+    public function add_context_item($key, $value)
+    {
+        if (!isset($this->context_config)) {
+            $this->context_config = $this->get_context_config();
+        }
+        $this->context_config[$key] = $value;
+    }
+
+    /**
+     * 
+     * Remove context configuration item
+     * 
+     * @param string $key - Context key to remove
+     */
+    public function remove_context_item($key)
+    {
+        if (isset($this->context_config) && isset($this->context_config[$key])) {
+            unset($this->context_config[$key]);
+        }
+    }
+
+    /**
+     * 
+     * Get current context configuration
+     * 
+     * @return array - Current context configuration
+     */
+    public function get_current_context()
+    {
+        if (!isset($this->context_config)) {
+            $this->context_config = $this->get_context_config();
+        }
+        return $this->context_config;
+    }
+
+    /**
+     * 
+     * Set the entire context configuration
+     * 
+     * @param array $context - Complete context configuration
+     */
+    public function set_context($context)
+    {
+        $this->context_config = $context;
+    }
+
+    /**
+     * 
+     * Reset context to default configuration
+     * 
+     */
+    public function reset_context()
+    {
+        $this->context_config = null;
+    }
+
+    /**
+     * 
+     * Add multiple context items at once
+     * 
+     * @param array $items - Array of key-value pairs to add
+     */
+    public function add_context_items($items)
+    {
+        if (!isset($this->context_config)) {
+            $this->context_config = $this->get_context_config();
+        }
+        
+        foreach ($items as $key => $value) {
+            $this->context_config[$key] = $value;
+        }
     }
 
 }  

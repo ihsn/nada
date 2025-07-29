@@ -43,6 +43,13 @@ class Metadata extends MY_Controller {
         }
         else if($format=='croissant' && $dataset['type']=='survey'){
             $this->load->library('Croissant_Writer');
+
+            $extended_metadata=$this->input->get('extended');
+
+			if ($extended_metadata=='true'){
+				$this->croissant_writer->enable_extended_metadata(true);
+			}
+
             $metadata=$this->croissant_writer->write_croissant($sid);
             $this->output
                     ->set_content_type('application/json')

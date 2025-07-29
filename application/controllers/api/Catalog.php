@@ -1167,6 +1167,11 @@ class Catalog extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($sid);			
+			$extended_metadata=$this->input->get('extended');
+
+			if ($extended_metadata=='true'){
+				$this->croissant_writer->enable_extended_metadata(true);
+			}
 			
 			$result=$this->croissant_writer->write_croissant($sid);
 			$this->set_response($result, REST_Controller::HTTP_OK);
