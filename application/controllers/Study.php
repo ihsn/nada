@@ -252,6 +252,10 @@ class Study extends MY_Controller {
 		$options['file']=$file_info;		
 		$options['variable']=$this->Variable_model->get_by_var_id($sid, $file_id, $var_id);
 
+		if (!$options['variable']){
+			show_404();
+		}
+
 		if($this->input->is_ajax_request()){
 			$content=$this->load->view('survey_info/'.$variable_template,$options,TRUE);
 			return $this->render_page($sid, $content,'data_dictionary');
