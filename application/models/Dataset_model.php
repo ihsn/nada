@@ -518,6 +518,11 @@ class Dataset_model extends CI_Model {
 			}
 		}
 
+		//abbreviation
+		if (isset($data['abbreviation'])){
+			$data['abbreviation']=substr($data['abbreviation'],0,40);
+		}
+
 		//keywords
 		if (isset($data['metadata']) && !isset($data['keywords'])){
 			//$keywords=str_replace("\n","",$this->array_to_plain_text($options['metadata']));
@@ -571,6 +576,11 @@ class Dataset_model extends CI_Model {
 			if (in_array($key,$this->survey_fields) ){
 				$data[$key]=$value;
 			}
+		}
+
+		//abbreviation
+		if (isset($data['abbreviation'])){
+			$data['abbreviation']=substr($data['abbreviation'],0,40);
 		}
 
 		//keywords

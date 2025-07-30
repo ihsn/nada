@@ -186,7 +186,7 @@ class Metadata_Import{
             'repositoryid'	=> $repositoryid,
             'surveyid'		=> $idno,
             'titl'			=> $parser->get_title(),
-            'abbreviation'	=> substr($parser->get_abbreviation(), 0, 45),
+            'abbreviation'	=> $parser->get_abbreviation(),
             'authenty'		=> $parser->array_to_string($parser->get_authenty(),'array'),
             'producer'		=> $parser->array_to_string($parser->get_producers(),'array'),
 
