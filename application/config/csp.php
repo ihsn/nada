@@ -20,7 +20,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |--------------------------------------------------------------------------
 | Set to TRUE to enable CSP headers, FALSE to disable
 */
-$config['csp_enabled'] = TRUE;
+$config['csp_enabled'] = FALSE;
 
 /*
 |--------------------------------------------------------------------------
