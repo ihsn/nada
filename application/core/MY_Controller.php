@@ -37,8 +37,11 @@ class MY_Controller extends CI_Controller
 		$this->lang->load("general");
 		$this->load->model('Permissions_model');
 			
-		$this->load->library(array('site_configurations','session','ion_auth','form_validation','acl_manager'));	
+		$this->load->library(array('site_configurations','session','ion_auth','form_validation','acl_manager','CSP_Library'));	
 		$this->is_admin=$is_admin;
+		
+		// Apply Content Security Policy headers
+		$this->csp_library->apply_headers();
 		
 		//require authentication for protected pages e.g. admin	
 		if ($skip===FALSE){
@@ -286,6 +289,7 @@ class MY_Controller extends CI_Controller
             redirect("install");
         }
 	}
+
 
 	
 }	
