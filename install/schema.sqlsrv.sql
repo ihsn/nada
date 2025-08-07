@@ -1156,6 +1156,7 @@ CREATE TABLE public_requests (
   id int NOT NULL IDENTITY(1,1),
   userid int NOT NULL,
   surveyid int DEFAULT NULL,
+  title varchar(max) DEFAULT NULL,
   abstract varchar(max) NOT NULL,
   posted int NOT NULL,
   request_type varchar(45) DEFAULT 'study',

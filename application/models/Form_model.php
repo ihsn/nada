@@ -84,11 +84,12 @@ class Form_model extends CI_Model {
 	*
 	*
 	*/
-	function insert_public_request($survey_id,$user_id,$data_use)
+	function insert_public_request($survey_id,$user_id,$title,$data_use)
 	{
 		$data = array(
                'surveyid' => $survey_id ,
                'userid' => $user_id ,
+			   'title' => $title,
                'abstract' => $data_use,
 			   'posted' => date("U")
             );

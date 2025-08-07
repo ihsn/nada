@@ -135,8 +135,11 @@ class Access_public extends MY_Controller {
 		//process form				
 		if ($this->form_validation->run() == TRUE)
 		{
+			//get study title
+			$title=$this->Catalog_model->get_survey_title($data->survey_uid);
+
 			//insert
-			$db_result=$this->Form_model->insert_public_request($data->survey_uid,$data->user_id,$data->abstract);
+			$db_result=$this->Form_model->insert_public_request($data->survey_uid,$data->user_id,$title,$data->abstract);
 			
 			//log
 			$this->db_logger->write_log('public-request','request submitted for public use','public-request',$data->survey_uid);
@@ -372,7 +375,7 @@ class Access_public extends MY_Controller {
 		$this->template->write('title', t('public_use_files'),true);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
-	}
+	}	
 
 }
 /* End of file access_public.php */

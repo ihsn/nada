@@ -381,9 +381,42 @@ class Catalog_model extends CI_Model {
 	**/
 	function get_survey($id)
 	{
-		$this->db->select('id,title,idno,year_start,nation,repositoryid');
+		$this->db->select('id,title,idno,year_start,year_end,nation,repositoryid');
 		$this->db->where('id', $id); 
 		return $this->db->get('surveys')->row_array();
+	}
+
+
+	function get_survey_title($sid)
+	{
+		$survey=$this->get_survey($sid);
+
+		$title=[];
+		$title[]=$survey['title'];
+
+		//country/nation
+		if (isset($survey['nation']) && $survey['nation']!='')
+		{
+			$title[]=$survey['nation'];
+		}
+
+		//year info
+		$years=[];
+		if (isset($survey['year_start']) && $survey['year_start']!='')
+		{
+			$years[]=$survey['year_start'];
+		}
+
+		if (isset($survey['year_end']) && $survey['year_end']!='')
+		{
+			$years[]=$survey['year_end'];
+		}
+
+		if (count($years)>0){
+			$title[]=implode('-',array_filter($years));
+		}
+
+		return implode(' - ',array_filter($title));
 	}
 
 	/**

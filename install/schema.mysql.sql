@@ -1082,6 +1082,7 @@ CREATE TABLE `public_requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userid` int(11) NOT NULL,
   `surveyid` int(11) DEFAULT NULL,
+  `title` varchar(500) DEFAULT NULL,
   `abstract` text NOT NULL,
   `posted` int(11) NOT NULL,
   `request_type` varchar(45) DEFAULT 'study',
