@@ -389,6 +389,14 @@
                                                     "is_uri": true
                                                 },
                                                 "display_type": "text"
+                                            },
+                                            {
+                                                "key":"citation",
+                                                "title": "Citation",
+                                                "type": "string",
+                                                "prop_key": "project_desc.datasets.citation",
+                                                "help_text": "The citation for the dataset.",
+                                                "display_type": "text"
                                             }
                                         ]
                                     },
@@ -564,6 +572,25 @@
                                         "title": "DOI",
                                         "prop_key": "project_desc.output.doi",
                                         "help_text": "The Digital Object Identifier (DOI) of the output, if available.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "license",
+                                        "title": "License",
+                                        "type": "string",
+                                        "prop_key": "project_desc.datasets.license",
+                                        "help_text": "The access or data use license that applies to the dataset.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "license_uri",
+                                        "title": "License URL",
+                                        "type": "string",
+                                        "prop_key": "project_desc.datasets.license_uri",
+                                        "help_text": "The URL of a web page where more information on the license can be obtained.",
+                                        "rules": {
+                                            "is_uri": true
+                                        },
                                         "display_type": "text"
                                     }
                                 ],

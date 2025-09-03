@@ -1,8 +1,10 @@
 {
-  "$id": "http://ihsn.org/schemas/script",
+  "$id": "https://ihsn.org/schemas/script/1.0.0",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Research Project Schema [DRAFT]",
+  "title": "Research Project Schema",
   "description": "Schema for documenting research projects and data analysis scripts",
+  "version": "1.0.0",
+  "id": "script-schema.json",
   "type": "object",
   "properties": {
     "repositoryid": {
@@ -210,6 +212,16 @@
               "doi": {
                 "title": "DOI",
                 "description": "Digital Object Identifier (DOI) of the output",
+                "type": "string"
+              },
+              "license": {
+                "title": "License",
+                "description": "License of the output",
+                "type": "string"
+              },
+              "license_uri": {
+                "title": "License URI",
+                "description": "URI of the license of the output",
                 "type": "string"
               }
             },
@@ -470,7 +482,7 @@
                 "title": "Funding Agency/Sponsor",
                 "type": "string"
               },
-              "abbreviation": {
+              "abbr": {
                 "title": "Abbreviation",
                 "type": "string"
               },
@@ -560,7 +572,7 @@
             }
           }
         },
-        "acknowledgments": {
+        "acknowledgements": {
           "type": "array",
           "title": "Other acknowledgments",
           "description": "Acknowledgments of persons or organizations (other than sponsors) who contributed to the project.",
@@ -585,9 +597,9 @@
             "name"
           ]
         },
-        "acknowledgment_statement": {
-          "title": "Acknowledgment statement",
-          "description": "Acknowledgment statement",
+        "acknowledgement_statement": {
+          "title": "Acknowledgement statement",
+          "description": "Acknowledgement statement",
           "type": "string"
         },
         "disclaimer": {
@@ -930,8 +942,8 @@
                       "title": "Person or organization name",
                       "type": "string"
                     },
-                    "affiliation": {
-                      "title": "Affiliation",
+                    "abbr": {
+                      "title": "Abbreviation",
                       "type": "string"
                     },
                     "role": {
@@ -993,10 +1005,6 @@
                     "uri": {
                       "title": "License URI",
                       "type": "string"
-                    },
-                    "note": {
-                      "title": "Note",
-                      "type": "string"
                     }
                   }
                 }
@@ -1048,6 +1056,11 @@
                 "title": "Dataset URI",
                 "description": "Link to the website where the data may be accessed or more information on access can be found",
                 "type": "string"
+              },
+              "citation": {
+                "type": "string",
+                "title": "Citation",
+                "description": "A bibliographic reference for the resource."
               }
             }
           },
@@ -1122,142 +1135,7 @@
         "tag"
       ]
     },
-    "lda_topics": {
-      "type": "array",
-      "title": "LDA topics",
-      "description": "LDA topics",
-      "items": {
-        "type": "object",
-        "properties": {
-          "model_info": {
-            "type": "array",
-            "title": "Model information",
-            "items": {
-              "type": "object",
-              "properties": {
-                "source": {
-                  "title": "Source",
-                  "type": "string"
-                },
-                "author": {
-                  "title": "Author",
-                  "type": "string"
-                },
-                "version": {
-                  "title": "Version",
-                  "type": "string"
-                },
-                "model_id": {
-                  "title": "Model Identifier",
-                  "type": "string"
-                },
-                "nb_topics": {
-                  "title": "Number of topics",
-                  "type": "number"
-                },
-                "description": {
-                  "title": "Description",
-                  "type": "string"
-                },
-                "corpus": {
-                  "title": "Corpus name",
-                  "type": "string"
-                },
-                "uri": {
-                  "title": "URI",
-                  "type": "string"
-                }
-              }
-            },
-            "required": [
-              "model_id"
-            ]
-          },
-          "topic_description": {
-            "type": "array",
-            "title": "Topic information",
-            "items": {
-              "type": "object",
-              "properties": {
-                "topic_id": {
-                  "title": "Topic identifier",
-                  "type": [
-                    "integer",
-                    "string"
-                  ]
-                },
-                "topic_score": {
-                  "title": "Topic score",
-                  "type": [
-                    "number",
-                    "string"
-                  ]
-                },
-                "topic_label": {
-                  "title": "Topic label",
-                  "type": "string"
-                },
-                "topic_words": {
-                  "type": "array",
-                  "title": "Topic words",
-                  "description": "Words",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "word": {
-                        "title": "Word",
-                        "type": "string"
-                      },
-                      "word_weight": {
-                        "title": "Word weight",
-                        "type": "number"
-                      }
-                    }
-                  },
-                  "required": [
-                    "word"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "topic_id"
-            ]
-          }
-        },
-        "additionalProperties": false
-      }
-    },
-    "embeddings": {
-      "type": "array",
-      "title": "Word embeddings",
-      "description": "Word embeddings",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "title": "Vector Model ID",
-            "type": "string"
-          },
-          "description": {
-            "title": "Vector Model Description",
-            "type": "string"
-          },
-          "date": {
-            "title": "Date (YYYY-MM-DD)",
-            "type": "string"
-          },
-          "vector": {
-            "title": "Vector",
-            "type": "object"
-          }
-        },
-        "required": [
-          "id",
-          "vector"
-        ]
-      }
-    },
+       
     "additional": {
       "type": "object",
       "description": "Additional metadata",
