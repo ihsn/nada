@@ -578,7 +578,7 @@
                                         "key": "license",
                                         "title": "License",
                                         "type": "string",
-                                        "prop_key": "project_desc.datasets.license",
+                                        "prop_key": "project_desc.output.license",
                                         "help_text": "The access or data use license that applies to the dataset.",
                                         "display_type": "text"
                                     },
@@ -586,7 +586,7 @@
                                         "key": "license_uri",
                                         "title": "License URL",
                                         "type": "string",
-                                        "prop_key": "project_desc.datasets.license_uri",
+                                        "prop_key": "project_desc.output.license_uri",
                                         "help_text": "The URL of a web page where more information on the license can be obtained.",
                                         "rules": {
                                             "is_uri": true
