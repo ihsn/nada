@@ -691,32 +691,26 @@ class Tables extends MY_REST_Controller
 				throw new Exception("file was not uploaded");
 			}
 
+			$table_dir = 'datafiles/'.$db_id.'/'.$table_id;
 			$is_zip = $this->is_zip_file($uploaded_file_path);
-			if($is_zip){
-				$unzip_path='datafiles/'.$db_id.'/'.$table_id;
-				$uploaded_file_path=$this->get_file_from_zip($uploaded_file_path,$unzip_path);
-			}
-
-			// Prepare form data for table definition
-			$partial_file_path = str_replace('datafiles/', '', $uploaded_file_path);
-			$form_data = array(
-				'title' => $this->input->post('title'),
-				'description' => $this->input->post('description'),
-				'indicators' => $this->input->post('indicators')
-			);
 			
-			// Add features if provided
-			for ($i = 1; $i <= 9; $i++) {
-				$feature_key = 'feature_' . $i;
-				$form_data[$feature_key] = $this->input->post($feature_key);
+			if($is_zip){
+				//extract zip to table folder
+				$uploaded_file_path = $this->get_file_from_zip($uploaded_file_path, $table_dir);
+			} else {
+				//move csv to table folder
+				$this->move_csv_to_table_dir($uploaded_file_path, $table_dir);
+				$uploaded_file_path = $table_dir.'/'.basename($uploaded_file_path);
 			}
 
-			// remove zip but keep the extracted csv
+			$partial_file_path = str_replace('datafiles/', '', $uploaded_file_path);			
+			$form_data = $this->collect_form_data();
+
+			//delete original uploaded zip file, keep csv
 			if($is_zip && file_exists($uploaded_file['full_path'])){
 				unlink($uploaded_file['full_path']);				
 			}
 						
-			// Upsert table definition (create or update)
 			$definition_result = $this->Data_table_mongo_model->upsert_table_type($db_id, $table_id, $partial_file_path, $form_data);			
 
 			$response=array(
@@ -728,7 +722,7 @@ class Tables extends MY_REST_Controller
 				'csv_uploaded_at' => date('Y-m-d H:i:s'),
 				'import_status' => 'ready',
 				'links' => array(
-					'import' => base_url() . 'api/tables/import/' . $db_id . '/' . $table_id
+					'import' => site_url() . '/api/tables/import/' . $db_id . '/' . $table_id
 				),
 				'message' => 'File uploaded and table definition ' . $definition_result['action'] . ' - import progress reset, ready for new import'
 			);
@@ -1169,6 +1163,43 @@ class Tables extends MY_REST_Controller
 		} else {
 			throw new Exception("Failed to unzip file: ". $zip_file);
 		}
+	}
+
+	/**
+	 * Move CSV file to table-specific directory
+	 */
+	private function move_csv_to_table_dir($csv_file_path, $table_dir)
+	{
+		if (!file_exists($table_dir)) {
+			mkdir($table_dir, 0777, true);
+		}
+		
+		$filename = basename($csv_file_path);
+		$new_path = $table_dir.'/'.$filename;
+		
+		if (!rename($csv_file_path, $new_path)) {
+			throw new Exception("Failed to move CSV file to table directory");
+		}
+	}
+
+	/**
+	 * Collect form data for table definition
+	 */
+	private function collect_form_data()
+	{
+		$form_data = array(
+			'title' => $this->input->post('title'),
+			'description' => $this->input->post('description'),
+			'indicators' => $this->input->post('indicators')
+		);
+		
+		// Add features if provided
+		for ($i = 1; $i <= 9; $i++) {
+			$feature_key = 'feature_' . $i;
+			$form_data[$feature_key] = $this->input->post($feature_key);
+		}
+		
+		return $form_data;
 	}
 
 	private function get_file_from_zip($zip_file, $output_path)

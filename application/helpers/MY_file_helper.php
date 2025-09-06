@@ -386,9 +386,10 @@ if ( ! function_exists('validate_file_path'))
 		// Remove any directory traversal attempts
 		$file_path = str_replace(['../', '..\\', '..'], '', $file_path);
 		
-		// Ensure path starts with expected pattern
-		$expected_pattern = $db_id . '/' . $table_id . '/';
-		if (strpos($file_path, $expected_pattern) !== 0) {
+		// Ensure path starts with expected pattern (case-insensitive)
+		$expected_pattern = strtolower($db_id) . '/' . strtolower($table_id) . '/';
+		$file_path_lower = strtolower($file_path);
+		if (strpos($file_path_lower, $expected_pattern) !== 0) {
 			throw new Exception("Invalid file path - must be within authorized directory");
 		}
 		
