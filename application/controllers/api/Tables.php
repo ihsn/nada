@@ -8,6 +8,7 @@ class Tables extends MY_REST_Controller
 	{
 		parent::__construct(); 
 		$this->load->helper("date");
+		$this->load->helper("file_helper");
 		$this->load->model("Data_table_mongo_model");
 		$this->load->model("Data_table_model");
 		$this->load->model("Survey_data_api_model");
@@ -17,9 +18,6 @@ class Tables extends MY_REST_Controller
 	function index_get($db_id=null)
 	{
 		try{
-			//$options=$this->raw_json_input();
-			//$user_id=$this->get_api_user_id(); 
-			
 			$get_params=array();
 			parse_str($_SERVER['QUERY_STRING'], $get_params);
 			
@@ -149,6 +147,12 @@ class Tables extends MY_REST_Controller
 
 			$result=$this->Data_table_mongo_model->get_table_info($db_id,$table_id);
 
+			//remove import_progress
+			$metadata = $result['table_type'];
+			if (isset($metadata['import_progress'])) {
+				unset($metadata['import_progress']);
+			}
+
 			$result=array(
 				//'storageUnit'=>'M',
 				//'size'=>$result['size'],
@@ -157,7 +161,7 @@ class Tables extends MY_REST_Controller
 				//'nindexes'=>$result['nindexes'],
 				//'indexes'=>$result['indexDetails'],
 				//'indexNames'=>array_keys((array)$result['indexDetails']),
-				'metadata'=>$result['table_type']
+				'metadata'=>$metadata
 			);
 			
 			$response=array(
@@ -253,6 +257,8 @@ class Tables extends MY_REST_Controller
 	 */
 	function indexes_post($db_id=null,$table_id=null)
 	{
+		$this->is_admin_or_die();
+		
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
@@ -297,6 +303,8 @@ class Tables extends MY_REST_Controller
 	 */
 	function text_index_post($db_id=null,$table_id=null)
 	{
+		$this->is_admin_or_die();
+		
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
@@ -341,6 +349,8 @@ class Tables extends MY_REST_Controller
 	 */
 	function indexes_delete($db_id=null,$table_id=null,$index_name=null)
 	{
+		$this->is_admin_or_die();
+		
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
@@ -641,19 +651,28 @@ class Tables extends MY_REST_Controller
 	/**
 	 * 
 	 * 
-	 * Create table via CSV upload
+	 * Upload CSV file and create table definition
 	 * 
 	 * @db_id - database id
 	 * @table_id - table id	 
 	 * @file - [FILE] - CSV file to upload
 	 * 
-	 * @append - [Boolean] - querystring - append to existing table. Default is overwrite
+	 * Form data for table definition (optional):
+	 * @title - [String] - table title (optional, defaults to "{db_id} - {table_id}")
+	 * @description - [String] - table description (optional, defaults to "N/A")
+	 * @delimiter - [String] - CSV delimiter (optional, defaults to comma)
+	 * @indicators - [JSON] - indicators array (optional)
+	 * @feature_1 to @feature_9 - [JSON] - feature objects (optional)
 	 * 
-	 * Note: This will drop existing table and create a new one	  
+	 * Note: This function only uploads files and creates table definitions
+	 * Note: Use import_post to import CSV data into the table
+	 * Note: CSV file is kept for later import via import_post
 	 * 
 	 */
 	function upload_post($db_id,$table_id)
 	{
+		$this->is_admin_or_die();
+		
 		try{			
 			if (!$db_id){
 				throw new exception("Missing Param:: dbId");
@@ -663,7 +682,6 @@ class Tables extends MY_REST_Controller
 				throw new exception("Missing Param:: tableId");
 			}
 
-			$append=$this->input->get("append") == 'true' ? true : false;
 			$uploaded_file=$this->upload_file('datafiles/'.$db_id);
 			$uploaded_file_path=$uploaded_file['full_path'];
 
@@ -673,31 +691,46 @@ class Tables extends MY_REST_Controller
 				throw new Exception("file was not uploaded");
 			}
 
-			if($this->is_zip_file($uploaded_file_path)){
+			$is_zip = $this->is_zip_file($uploaded_file_path);
+			if($is_zip){
 				$unzip_path='datafiles/'.$db_id.'/'.$table_id;
 				$uploaded_file_path=$this->get_file_from_zip($uploaded_file_path,$unzip_path);
 			}
 
-			if (!$append){
-				//drop existing table
-				$this->Data_table_mongo_model->delete_table_data($db_id,$table_id);
+			// Prepare form data for table definition
+			$partial_file_path = str_replace('datafiles/', '', $uploaded_file_path);
+			$form_data = array(
+				'title' => $this->input->post('title'),
+				'description' => $this->input->post('description'),
+				'indicators' => $this->input->post('indicators')
+			);
+			
+			// Add features if provided
+			for ($i = 1; $i <= 9; $i++) {
+				$feature_key = 'feature_' . $i;
+				$form_data[$feature_key] = $this->input->post($feature_key);
 			}
 
-			//import csv
-			$result=$this->Data_table_mongo_model->import_csv($db_id,$table_id,$uploaded_file_path, $this->input->post("delimiter"));
-
-			//remove uploaded files
-			$files=array($uploaded_file_path, $uploaded_file['full_path']);
-			foreach($files as $file){
-				if (!empty($file) && file_exists($file)){
-					unlink($file);
-				}
+			// remove zip but keep the extracted csv
+			if($is_zip && file_exists($uploaded_file['full_path'])){
+				unlink($uploaded_file['full_path']);				
 			}
+						
+			// Upsert table definition (create or update)
+			$definition_result = $this->Data_table_mongo_model->upsert_table_type($db_id, $table_id, $partial_file_path, $form_data);			
 
 			$response=array(
                 'status'=>'success',
-				'file_path'=>$uploaded_file_path,
-				'rows_imported'=>$result
+				'file_path'=>$partial_file_path,  // Partial path for import_post
+				'definition_updated' => $definition_result['was_existing'] ? $definition_result['result'] : 0,
+				'definition_created' => $definition_result['was_existing'] ? 0 : $definition_result['result'],
+				'action' => $definition_result['action'],
+				'csv_uploaded_at' => date('Y-m-d H:i:s'),
+				'import_status' => 'ready',
+				'links' => array(
+					'import' => base_url() . 'api/tables/import/' . $db_id . '/' . $table_id
+				),
+				'message' => 'File uploaded and table definition ' . $definition_result['action'] . ' - import progress reset, ready for new import'
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -715,72 +748,68 @@ class Tables extends MY_REST_Controller
 
 
 	/**
+	 * Validate import consistency before processing
 	 * 
-	 * 
-	 * Create/replace a table by importing a CSV file by file path
-	 * 
-	 *  options:
-	 * 	 @db_id - database id
-	 * 	 @table_id - table id
-	 * 	 @file_path - path to CSV file
-	 * 
-	 *  Note: This will drop existing table and create a new one
+	 * @param string $db_id Database ID
+	 * @param string $table_id Table ID
+	 * @param int $start_row Starting row for import
+	 * @param array $table_definition Table definition data
+	 * @throws Exception if validation fails
 	 */
-	function import_post()
+
+	/**
+	 * Import CSV data into table using chunked processing
+	 * 
+	 * @param string $db_id Database ID
+	 * @param string $table_id Table ID
+	 * @param int $max_rows Maximum rows per batch (default: 10000, max: 50000)
+	 */
+	function import_post($db_id=null, $table_id=null)
 	{
 		$this->is_admin_or_die();
 
-		try{
-			$user_id=$this->get_api_user_id();
-			$options=$this->raw_json_input();
+		try {
+			$options = $this->raw_json_input();
 
-			if (!isset($options['file_path']) ){
-				throw new Exception("File_path not provided");
+			// Get db_id and table_id from options if not provided
+			if (!$db_id) {
+				$db_id = $options['db_id'] ?? null;
+				$table_id = $options['table_id'] ?? null;
 			}
 
-			if (!file_exists('datafiles/'.$options['file_path'])){
-				throw new Exception("file_path was not found");
-			}
-			
-			$db_id=$options['db_id'];
-			$table_id=$options['table_id'];
-
-
-			if (!$db_id){
-				throw new exception("Missing Param:: dbId");
+			// Validate required parameters
+			if (!$db_id || !$table_id) {
+				throw new Exception("Missing required parameters: dbId and tableId");
 			}
 
-			if (!$table_id){
-				throw new exception("Missing Param:: tableId");
-			}
-			
-			$start_time=date("H:i:s");
+			// Process the import request through the model
+			$result = $this->Data_table_mongo_model->process_import_request($db_id, $table_id, $options);
 
-			//drop existing table
-			$this->Data_table_mongo_model->delete_table_data($db_id,$table_id);
+			$this->set_response($result, REST_Controller::HTTP_OK);
 
-			//import csv
-			$result=$this->Data_table_mongo_model->import_csv($db_id,$table_id,'datafiles/'.$options['file_path']);
-			
-			$response=array(
-                'status'=>'success',
-				"result"=>$result,
-				'start'=>$start_time,
-				'end'=>date("H:i:s")
-			);
-
-			$this->set_response($response, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
+		} catch (Exception $e) {
+			$error_output = array(
+				'status' => 'failed',
+				'message' => $e->getMessage(),
+				'action_required' => $this->determine_action_required($e->getMessage())
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
 
-
+	/**
+	 * Determine action required based on error message
+	 */
+	private function determine_action_required($message)
+	{
+		if (strpos($message, 'already contains') !== false) {
+			return 'delete_data_first';
+		}
+		if (strpos($message, 'inconsistency') !== false) {
+			return 'reset_import';
+		}
+		return null;
+	}
 
 	
 	/**
@@ -897,6 +926,7 @@ class Tables extends MY_REST_Controller
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 			
+			$delete_definition = isset($options['delete_definition']) ? $options['delete_definition'] : false;
 
 			if (!$db_id){
 				throw new exception("Missing Param:: dbId");
@@ -906,12 +936,30 @@ class Tables extends MY_REST_Controller
 				throw new exception("Missing Param:: tableId");
 			}
 
-            $result=$this->Data_table_mongo_model->delete_table_data($db_id,$table_id);
-			
+            $data_result = $this->Data_table_mongo_model->delete_table_data($db_id, $table_id);
+            
+            $this->Data_table_mongo_model->update_import_progress($db_id, $table_id, array(
+                'last_processed_row' => -1,
+                'total_rows_processed' => 0,
+                'import_status' => 'ready',
+                'import_started_at' => null,
+                'import_completed_at' => null,
+                'last_import_at' => null
+            ));
+            
+            $definition_result = 0;
+            if ($delete_definition) {
+                $definition_result = $this->Data_table_mongo_model->delete_table_type($db_id, $table_id);
+            }
 
-			$response=array(
-                'status'=>'success',
-                'result'=>$result
+			$response = array(
+                'status' => 'success',
+                'data_deleted' => $data_result,
+                'definition_deleted' => $definition_result,
+                'import_progress_reset' => true,
+                'message' => $delete_definition ? 
+                    'Table data and definition deleted successfully, import progress reset' : 
+                    'Table data deleted successfully, import progress reset (definition preserved)'
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -933,7 +981,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function attach_to_study_post()
 	{
-		$this->is_authenticated_or_die();
+		$this->is_admin_or_die();
 
 		try{
 			$options=$this->raw_json_input();
@@ -977,7 +1025,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function detach_from_study_post()
 	{
-		$this->is_authenticated_or_die();
+		$this->is_admin_or_die();
 		
 		try{
 			$options=$this->raw_json_input();
@@ -1144,4 +1192,127 @@ class Tables extends MY_REST_Controller
 
 		throw new Exception("CSV file not found in ZIP");
 	}
+
+	/**
+	 * 
+	 * 
+	 * Get table schema (fields and data types)
+	 * 
+	 * @db_id - database id
+	 * @table_id - table id
+	 * 
+	 */
+	function schema_get($db_id=null,$table_id=null)
+	{
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();			
+			
+			if(!$db_id){
+				throw new Exception("MISSING_PARAM:: db_id");
+			}
+
+			if(!$table_id){
+				throw new Exception("MISSING_PARAM:: table_id");
+			}
+
+			// Get field metadata from the separate data dictionary table
+			$field_metadata = $this->Data_table_mongo_model->get_field_metadata($db_id, $table_id);
+			
+			if (!$field_metadata) {
+				throw new Exception("No field metadata found for this table");
+			}
+
+			$response=array(
+				'status'=>'success',
+				'db_id' => $db_id,
+				'table_id' => $table_id,
+				'total_fields' => count($field_metadata),
+				'schema' => $field_metadata
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Populate table schema by reading one row from the actual data collection
+	 * and storing field information in the table_types collection
+	 * 
+	 * @db_id - database id
+	 * @table_id - table id
+	 * 
+	 */
+	function populate_schema_post($db_id=null,$table_id=null)
+	{
+		$this->is_admin_or_die();
+		
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();			
+			
+			if(!$db_id){
+				throw new Exception("MISSING_PARAM:: db_id");
+			}
+
+			if(!$table_id){
+				throw new Exception("MISSING_PARAM:: table_id");
+			}
+
+			// Get field names from actual data collection
+			$field_names = $this->Data_table_mongo_model->get_data_field_names($db_id, $table_id);
+			
+			if (empty($field_names)) {
+				throw new Exception("No data found in the collection to extract schema from");
+			}
+
+			// Create basic field metadata with just names
+			$fields_metadata = array();
+			foreach ($field_names as $field_name) {
+				$fields_metadata[] = array(
+					'name' => $field_name,
+					'title' => $field_name, // Use field name as default title
+					'dataType' => 'string', // Default data type
+					'required' => false,    // Default to not required
+					'description' => '',    // Empty description by default
+					'created_at' => date('Y-m-d H:i:s'),
+					'updated_at' => date('Y-m-d H:i:s')
+				);
+			}
+
+			// Store the schema in table_types collection
+			$result = $this->Data_table_mongo_model->update_table_schema($db_id, $table_id, $fields_metadata);
+			
+			if ($result === false) {
+				throw new Exception("Failed to update table schema");
+			}
+
+			$response=array(
+				'status'=>'success',
+				'db_id' => $db_id,
+				'table_id' => $table_id,
+				'total_fields' => count($fields_metadata),
+				'message' => 'Table schema populated successfully',
+				'schema' => $fields_metadata
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
 }	

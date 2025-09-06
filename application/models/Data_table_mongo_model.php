@@ -953,6 +953,163 @@ class Data_table_mongo_model extends CI_Model {
         return $inserted_count;
    }
 
+   function update_table_type($db_id,$table_id,$update_data)
+   {
+        $table_id=strtolower($table_id);
+        $db_id=strtolower($db_id);
+
+        $collection=$this->mongo_client->{$this->get_db_name()}->{'table_types'};
+        $result = $collection->updateOne(
+            ['_id' => $this->get_table_name($db_id,$table_id)],
+            ['$set' => $update_data]
+        );
+        
+        return $result->getModifiedCount();
+   }
+
+   
+   /**
+    * 
+    * Update import progress
+    * 
+    * @db_id - database id
+    * @table_id - table id
+    * @progress_data - progress data
+    * 
+    */
+   function update_import_progress($db_id, $table_id, $progress_data)
+   {
+        $table_id = strtolower($table_id);
+        $db_id = strtolower($db_id);
+
+        $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+                
+        $update_data = array();
+        foreach ($progress_data as $key => $value) {
+            if ($key === 'last_batch') {
+                $update_data['import_progress.last_batch'] = $value;
+            } else {
+                $update_data['import_progress.' . $key] = $value;
+            }
+        }
+        
+        $result = $collection->updateOne(
+            ['_id' => $this->get_table_name($db_id, $table_id)],
+            ['$set' => $update_data]
+        );
+        
+        return $result->getModifiedCount();
+   }
+
+
+   /**
+    * 
+    * Upsert table type
+    * 
+    * @db_id - database id
+    * @table_id - table id
+    * @csv_file_path - csv file path
+    * @form_data - form data
+    * 
+    */
+   function upsert_table_type($db_id, $table_id, $csv_file_path, $form_data = array())
+   {
+        $table_id = strtolower($table_id);
+        $db_id = strtolower($db_id);
+        
+        $existing_table = $this->get_table_type($db_id, $table_id);
+        
+        $title = isset($form_data['title']) ? $form_data['title'] : null;
+        $description = isset($form_data['description']) ? $form_data['description'] : null;
+        
+        if ($existing_table) {
+            // Update existing table definition
+            $update_data = array(
+                'csv_file_path' => $csv_file_path,  // Always update file path
+                'updated_at' => date('Y-m-d H:i:s'),
+                'csv_uploaded_at' => date('Y-m-d H:i:s'),
+                // reset import progress fields under import_progress
+                'import_progress' => array(
+                    'last_processed_row' => -1,
+                    'total_rows_processed' => 0,
+                    'import_status' => 'ready',
+                    'import_started_at' => null,
+                    'import_completed_at' => null,
+                    'last_import_at' => null
+                )
+            );
+            
+            if ($title) {
+                $update_data['title'] = $title;
+            }
+            
+            if ($description) {
+                $update_data['description'] = $description;
+            }
+            
+            if (isset($form_data['indicators']) && $form_data['indicators']) {
+                $update_data['indicators'] = is_string($form_data['indicators']) ? 
+                    json_decode($form_data['indicators'], true) : $form_data['indicators'];
+            }
+            
+            for ($i = 1; $i <= 9; $i++) {
+                $feature_key = 'feature_' . $i;
+                if (isset($form_data[$feature_key]) && $form_data[$feature_key]) {
+                    $update_data[$feature_key] = is_string($form_data[$feature_key]) ? 
+                        json_decode($form_data[$feature_key], true) : $form_data[$feature_key];
+                }
+            }
+            
+            $result = $this->update_table_type($db_id, $table_id, $update_data);
+
+            return array(
+                'action' => 'updated',
+                'result' => $result,
+                'was_existing' => true
+            );
+        } else {
+            // Create new table definition
+            $table_metadata = array(
+                'title' => $title ?: $db_id . ' - ' . $table_id,
+                'description' => $description ?: 'N/A',
+                'table_id' => $table_id,
+                'csv_file_path' => $csv_file_path,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+                'csv_uploaded_at' => date('Y-m-d H:i:s'),
+                // Initialize import progress fields under import_progress
+                'import_progress' => array(
+                    'last_processed_row' => -1,
+                    'total_rows_processed' => 0,
+                    'import_status' => 'ready',
+                    'import_started_at' => null,
+                    'import_completed_at' => null,
+                    'last_import_at' => null
+                )
+            );
+            
+            if (isset($form_data['indicators']) && $form_data['indicators']) {
+                $table_metadata['indicators'] = is_string($form_data['indicators']) ? 
+                    json_decode($form_data['indicators'], true) : $form_data['indicators'];
+            }
+            
+            for ($i = 1; $i <= 9; $i++) {
+                $feature_key = 'feature_' . $i;
+                if (isset($form_data[$feature_key]) && $form_data[$feature_key]) {
+                    $table_metadata[$feature_key] = is_string($form_data[$feature_key]) ? 
+                        json_decode($form_data[$feature_key], true) : $form_data[$feature_key];
+                }
+            }
+            
+            $result = $this->create_table($db_id, $table_id, $table_metadata);
+            return array(
+                'action' => 'created',
+                'result' => $result,
+                'was_existing' => false
+            );
+        }
+   }
+
 
    function update_many($db_id,$table_id,$update_filter,$update_options)
    {
@@ -1182,64 +1339,101 @@ class Data_table_mongo_model extends CI_Model {
    } 
 
 
-   function import_csv($db_id,$table_id,$csv_path,$delimiter='')
-   {       
-        $csv=Reader::createFromPath($csv_path,'r');
-        $csv->setHeaderOffset(0);
+   function import_csv_chunked($db_id, $table_id, $csv_path, $delimiter = ',', $start_row = 0, $max_rows = 10000, $max_time_seconds = 60)
+   {
+       $start_time = microtime(true);
+       $total_processed = 0;
+       $chunk_size = 1000;
+       $chunked_rows = [];
 
-        $delimiters=array(
-            'tab'=>"\t",
-            ','=>',',
-            ';'=>';'
-        );
+       set_time_limit(0);
 
-        if (!empty($delimiter) && array_key_exists($delimiter,$delimiters)){
-            $csv->setDelimiter($delimiters[$delimiter]);
-        }
-        
+       // Use League CSV with header + encoding
+       $csv = Reader::createFromPath($csv_path, 'r');
+       $csv->setHeaderOffset(0);
 
-        $header=$csv->getHeader();
-        $records= $csv->getRecords();
+       $delimiters = [
+           'comma' => ',',
+           'tab' => "\t",
+           'semicolon' => ';',
+           ',' => ',',
+           ';' => ';',
+       ];
+       if (!empty($delimiter) && isset($delimiters[$delimiter])) {
+           $csv->setDelimiter($delimiters[$delimiter]);
+       }
 
-        $chunk_size =15000;
-        $chunked_rows=array();
-        $k=1;
-        $total=0;
-        
-        //delete existing table data
-        //$this->Data_table_model->delete_table_data($table_id);
+       $header = $csv->getHeader();
 
-        $intval_func= function($value){
-            if (is_numeric($value)){
-                return $value + 0;
-            }
+       $current_row = 0;
+       $has_more = false;
 
-            //return $value;
-            return utf8_encode(utf8_decode($value));
-        };
+       foreach ($csv->getRecords() as $row) {
+           // Skip rows until we reach the start row
+           if ($current_row < $start_row) {
+               $current_row++;
+               continue;
+           }
 
-        foreach($records as $row){
+           // Check if we've reached the maximum rows or time limit
+           if ($total_processed >= $max_rows || (microtime(true) - $start_time) >= $max_time_seconds) {
+               $has_more = true;
+               break;
+           }
 
-            $row=array_map($intval_func, $row);            
-            $total++;
-            $chunked_rows[]=$row;
+           $row = array_map(array($this, 'clean_csv_value'), $row);
+           $chunked_rows[] = $row;
+           $total_processed++;
+           $current_row++;
 
-            if($k>=$chunk_size){
-                $result=$this->table_batch_insert($db_id,$table_id,$chunked_rows);
-                $k=1;
-                $chunked_rows=array();
-                set_time_limit(0);
-                //break;
-            }
+           if (count($chunked_rows) >= $chunk_size) {
+               $this->table_batch_insert($db_id, $table_id, $chunked_rows);
+               $chunked_rows = [];
+           }
+       }
 
-            $k++;				
-        }
+       // Insert remaining rows
+       if (!empty($chunked_rows)) {
+           $this->table_batch_insert($db_id, $table_id, $chunked_rows);
+       }
 
-        if(count($chunked_rows)>0){
-            $result=$this->table_batch_insert($db_id,$table_id,$chunked_rows);
-        }
+       $execution_time = microtime(true) - $start_time;
 
-        return $total;
+       return [
+           'rows_processed' => $total_processed,
+           'start_row' => $start_row,
+           'end_row' => $start_row + $total_processed - 1,
+           'has_more' => $has_more,
+           'execution_time_seconds' => round($execution_time, 2),
+           'execution_time_formatted' => $this->format_execution_time($execution_time)
+       ];
+   }
+
+/**
+ * Helper: Format seconds as H:M:S
+ */
+function format_execution_time($seconds)
+{
+    $hours = floor($seconds / 3600);
+    $minutes = floor(($seconds % 3600) / 60);
+    $seconds = floor($seconds % 60);
+    return sprintf("%02dh:%02dm:%02ds", $hours, $minutes, $seconds);
+}
+
+
+   function import_csv($db_id, $table_id, $csv_path, $delimiter = '')
+   {
+       $result = $this->import_csv_chunked(
+           $db_id, 
+           $table_id, 
+           $csv_path, 
+           $delimiter, 
+           0, // start row
+           999999999, //max rows
+           600 // 10 minutes timeout
+       );
+       
+        return $result;
    }
 
 
@@ -1383,5 +1577,471 @@ class Data_table_mongo_model extends CI_Model {
 
         return $feature_filters;
    }
+	
+   /**
+    * 
+    * Get field metadata for a table
+    * 
+    */
+   function get_field_metadata($db_id, $table_id, $field_name = null)
+   {
+       $table_type = $this->get_table_type($db_id, $table_id);
+       
+       if (!$table_type || !isset($table_type['fields'])) {
+           return null;
+       }
+       
+       if ($field_name) {
+           foreach ($table_type['fields'] as $field) {
+               if ($field['name'] === $field_name) {
+                   return $field;
+               }
+           }
+           return null;
+       }
+       
+       // Return all fields
+       return $table_type['fields'];
+   }
+
+   /**
+    * 
+    * Create or update field metadata
+    * 
+    */
+   function create_field_metadata($db_id, $table_id, $field_metadata)
+   {
+       $this->ensure_fields_array_exists($db_id, $table_id);
+       
+       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+       
+       $result = $collection->updateOne(
+           ['_id' => $this->get_table_name($db_id, $table_id)],
+           ['$push' => ['fields' => $field_metadata]]
+       );
+       
+       return $result->getModifiedCount();
+   }
+
+   /**
+    * 
+    * Update field metadata
+    * 
+    */
+   function update_field_metadata($db_id, $table_id, $field_name, $field_metadata)
+   {
+       $this->ensure_fields_array_exists($db_id, $table_id);
+       
+       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+       
+       $result = $collection->updateOne(
+           [
+               '_id' => $this->get_table_name($db_id, $table_id),
+               'fields.name' => $field_name
+           ],
+           ['$set' => ['fields.$' => $field_metadata]]
+       );
+       
+       return $result->getModifiedCount();
+   }
+
+   /**
+    * 
+    * Delete field metadata
+    * 
+    */
+   function delete_field_metadata($db_id, $table_id, $field_name)
+   {
+       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+       
+       // Remove field from the fields array
+       $result = $collection->updateOne(
+           ['_id' => $this->get_table_name($db_id, $table_id)],
+           ['$pull' => ['fields' => ['name' => $field_name]]]
+       );
+       
+       return $result->getModifiedCount();
+   }
+	
+   /**
+    * 
+    * Ensure fields array exists in table type
+    * 
+    */
+   function ensure_fields_array_exists($db_id, $table_id)
+   {
+       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+       
+       $result = $collection->updateOne(
+           [
+               '_id' => $this->get_table_name($db_id, $table_id),
+               'fields' => ['$exists' => false]
+           ],
+           ['$set' => ['fields' => []]]
+       );
+       
+       return $result->getModifiedCount();
+   }
+	
+   /**
+    * 
+    * Get field names from actual data collection
+    * 
+    */
+   function get_data_field_names($db_id, $table_id)
+   {
+       $collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
+       
+       // Get a sample document to extract field names
+       $sample = $collection->findOne();
+       
+       if (!$sample) {
+           return array();
+       }
+       
+       $field_names = array();
+       foreach (array_keys((array)$sample) as $field_name) {
+           if ($field_name !== '_id') { // Exclude MongoDB _id field
+               $field_names[] = $field_name;
+           }
+       }
+       
+       return $field_names;
+   }
+
+	/**
+	 * 
+	 * Update table schema in table_types collection
+	 * 
+	 */
+	function update_table_schema($db_id, $table_id, $fields_metadata)
+	{
+		try {
+			$collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+			
+			$this->ensure_fields_array_exists($db_id, $table_id);
+			
+			// Replace the entire fields array with new metadata
+			$result = $collection->updateOne(
+				['_id' => $this->get_table_name($db_id, $table_id)],
+				['$set' => ['fields' => $fields_metadata]]
+			);
+			
+			return $result->getModifiedCount() > 0 || $result->getMatchedCount() > 0;
+		} catch (Exception $e) {
+			log_message('error', 'Failed to update table schema: ' . $e->getMessage());
+			return false;
+		}
+	}
+
+	/**
+	 * Get the number of rows in a table (optimized)
+	 * 
+	 * @param string $db_id Database ID
+	 * @param string $table_id Table ID
+	 * @param bool $exact_count Whether to get exact count (slower) or estimated count (faster)
+	 * @return int Number of rows in the table
+	 */
+	function get_table_row_count($db_id, $table_id, $exact_count = false)
+	{
+		try {
+			$collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
+			
+			if ($exact_count) {
+				// Use countDocuments() for exact count (slower but accurate)
+				return $collection->countDocuments();
+			} else {
+				// Use estimatedDocumentCount() for fast approximate count
+				return $collection->estimatedDocumentCount();
+			}
+		} catch (Exception $e) {
+			log_message('error', 'Failed to get table row count: ' . $e->getMessage());
+			return 0;
+		}
+	}
+
+	/**
+	 * Get fast row count using _id index filter (optimized for large collections)
+	 * 
+	 * @param string $db_id Database ID
+	 * @param string $table_id Table ID
+	 * @return int Number of rows in the table
+	 */
+	function get_table_row_count_fast($db_id, $table_id)
+	{
+		try {
+			$collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
+			// Use _id index filter for faster counting
+			return $collection->countDocuments(['_id' => ['$ne' => null]]);
+		} catch (Exception $e) {
+			log_message('error', 'Failed to get fast table row count: ' . $e->getMessage());
+			return 0;
+		}
+	}
+
+	/**
+	 * Clean and convert CSV values to appropriate data types
+	 * 
+	 * @param mixed $value The value to clean
+	 * @return mixed Cleaned value with proper data type
+	 */
+	private function clean_csv_value($value)
+	{
+		if (is_numeric($value)) {
+			return $value + 0;
+		}
+		return mb_convert_encoding($value, 'UTF-8', 'auto');
+	}
+
+	/**
+	 * Process import request - main orchestrator method
+	 */
+	public function process_import_request($db_id, $table_id, $options)
+	{
+		// Validate parameters
+		$validated_options = $this->validate_import_parameters($options);
+		
+		// Validate table and file
+		$table_definition = $this->validate_table_and_file($db_id, $table_id);
+		
+		// Handle status-only request
+		if ($validated_options['status_only']) {
+			return $this->get_import_status_response($table_definition);
+		}
+		
+		// Handle completed import
+		if (isset($table_definition['import_progress']['import_status']) && 
+			$table_definition['import_progress']['import_status'] === 'completed') {
+			return $this->get_completed_import_response($table_definition, $validated_options);
+		}
+		
+		// Execute import process
+		$result = $this->execute_import_process($db_id, $table_id, $validated_options, $table_definition);
+		
+		// Build and return response
+		return $this->build_import_response($table_definition, $result, $validated_options);
+	}
+
+	/**
+	 * Validate import parameters
+	 */
+	private function validate_import_parameters($options)
+	{
+		$status_only = isset($options['status']) ? (bool)$options['status'] : false;
+		$max_rows = isset($options['max_rows']) ? (int)$options['max_rows'] : 10000;
+		$delimiter = isset($options['delimiter']) ? $options['delimiter'] : 'comma';
+		
+		// Validate and normalize max_rows
+		if ($max_rows <= 0) {
+			$max_rows = 10000;
+		}
+		if ($max_rows > 50000) {
+			$max_rows = 50000;
+		}
+		
+		return array(
+			'status_only' => $status_only,
+			'max_rows' => $max_rows,
+			'delimiter' => $delimiter,
+			'max_time' => 60 // Fixed timeout for safety
+		);
+	}
+
+	/**
+	 * Validate table and file existence
+	 */
+	private function validate_table_and_file($db_id, $table_id)
+	{
+		$table_definition = $this->get_table_type($db_id, $table_id);
+		
+		if (!$table_definition) {
+			throw new Exception("Table definition not found - please upload a file first");
+		}
+
+		if (!isset($table_definition['csv_file_path']) || empty($table_definition['csv_file_path'])) {
+			throw new Exception("No CSV file path found in table definition - please upload a file first");
+		}
+
+		$validated_file_path = validate_file_path($table_definition['csv_file_path'], $db_id, $table_id);
+		$full_file_path = 'datafiles/' . $validated_file_path;
+
+		if (!file_exists($full_file_path)) {
+			throw new Exception("CSV file not found: " . $validated_file_path);
+		}
+
+		return $table_definition;
+	}
+
+	/**
+	 * Get import status response (status-only request)
+	 */
+	private function get_import_status_response($table_definition)
+	{
+		return array(
+			'status' => 'success',
+			'csv_info' => array(
+				'csv_file_path' => $table_definition['csv_file_path'],
+				'csv_uploaded_at' => $table_definition['csv_uploaded_at']
+			),
+			'progress' => array(
+				'total_rows_processed' => isset($table_definition['import_progress']['total_rows_processed']) ? $table_definition['import_progress']['total_rows_processed'] : 0,
+				'last_processed_row' => isset($table_definition['import_progress']['last_processed_row']) ? $table_definition['import_progress']['last_processed_row'] : -1,
+				'import_status' => isset($table_definition['import_progress']['import_status']) ? $table_definition['import_progress']['import_status'] : 'ready',
+				'has_more' => isset($table_definition['import_progress']['import_status']) ? $table_definition['import_progress']['import_status'] !== 'completed' : true
+			)
+		);
+	}
+
+	/**
+	 * Get completed import response
+	 */
+	private function get_completed_import_response($table_definition, $options)
+	{
+		$start_row = isset($table_definition['import_progress']['last_processed_row']) ? 
+			$table_definition['import_progress']['last_processed_row'] + 1 : 0;
+
+		return array(
+			'status' => 'success',
+			'csv_info' => array(
+				'csv_file_path' => $table_definition['csv_file_path'],
+				'csv_uploaded_at' => $table_definition['csv_uploaded_at']
+			),
+			'batch' => array(
+				'rows_processed' => 0,
+				'start_row' => $start_row,
+				'end_row' => $start_row - 1,
+				'execution_time_seconds' => 0,
+				'execution_time_formatted' => '00h:00m:00s'
+			),
+			'progress' => array(
+				'total_rows_processed' => $table_definition['import_progress']['total_rows_processed'],
+				'last_processed_row' => $table_definition['import_progress']['last_processed_row'],
+				'import_status' => 'completed',
+				'has_more' => false
+			),
+			'next' => null
+		);
+	}
+
+	/**
+	 * Execute import process
+	 */
+	private function execute_import_process($db_id, $table_id, $options, $table_definition)
+	{
+		$start_row = isset($table_definition['import_progress']['last_processed_row']) ? 
+			$table_definition['import_progress']['last_processed_row'] + 1 : 0;
+
+		// Validate import consistency
+		$this->validate_import_consistency($db_id, $table_id, $start_row, $table_definition);
+
+		// Update progress if starting fresh
+		if ($start_row == 0) {
+			$this->update_import_progress($db_id, $table_id, array(
+				'import_status' => 'in_progress',
+				'total_rows_processed' => 0,
+				'last_processed_row' => -1,
+				'import_started_at' => date('Y-m-d H:i:s'),
+				'import_completed_at' => null
+			));
+		}
+
+		// Get file path
+		$validated_file_path = validate_file_path($table_definition['csv_file_path'], $db_id, $table_id);
+		$full_file_path = 'datafiles/' . $validated_file_path;
+
+		// Execute import
+		$result = $this->import_csv_chunked(
+			$db_id, 
+			$table_id, 
+			$full_file_path, 
+			$options['delimiter'], 
+			$start_row, 
+			$options['max_rows'], 
+			$options['max_time']
+		);
+
+		// Update progress
+		$progress_data = array(
+			'total_rows_processed' => $result['end_row'] + 1,
+			'last_processed_row' => $result['end_row'],
+			'last_batch' => array(
+				'rows_processed' => $result['rows_processed'],
+				'start_row' => $result['start_row'],
+				'end_row' => $result['end_row'],
+				'execution_time' => $result['execution_time_seconds']
+			)
+		);
+
+		if (!$result['has_more']) {
+			$progress_data['import_status'] = 'completed';
+			$progress_data['import_completed_at'] = date('Y-m-d H:i:s');
+		} else {
+			$progress_data['import_status'] = 'in_progress';
+		}
+
+		$this->update_import_progress($db_id, $table_id, $progress_data);
+
+		return $result;
+	}
+
+	/**
+	 * Build import response
+	 */
+	private function build_import_response($table_definition, $result, $options)
+	{
+		$progress_data = array(
+			'total_rows_processed' => $result['end_row'] + 1,
+			'last_processed_row' => $result['end_row'],
+			'import_status' => $result['has_more'] ? 'in_progress' : 'completed'
+		);
+
+		return array(
+			'status' => 'success',
+			'csv_info' => array(
+				'csv_file_path' => $table_definition['csv_file_path'],
+				'csv_uploaded_at' => $table_definition['csv_uploaded_at']
+			),
+			'batch' => array(
+				'rows_processed' => $result['rows_processed'],
+				'start_row' => $result['start_row'],
+				'end_row' => $result['end_row'],
+				'execution_time_seconds' => $result['execution_time_seconds'],
+				'execution_time_formatted' => $result['execution_time_formatted']
+			),
+			'progress' => array(
+				'total_rows_processed' => $progress_data['total_rows_processed'],
+				'last_processed_row' => $progress_data['last_processed_row'],
+				'import_status' => $progress_data['import_status'],
+				'has_more' => $result['has_more']
+			),
+			'next' => $result['has_more'] ? array(
+				'start_row' => $result['end_row'] + 1,
+				'endpoint' => base_url() . 'api/tables/import/' . $table_definition['db_id'] . '/' . $table_definition['table_id']
+			) : null
+		);
+	}
+
+	/**
+	 * Validate import consistency
+	 */
+	private function validate_import_consistency($db_id, $table_id, $start_row, $table_definition)
+	{
+		$existing_rows = $this->get_table_row_count_fast($db_id, $table_id);
+		
+		if ($start_row == 0) {
+			// New import - table must be empty
+			if ($existing_rows > 0) {
+				throw new Exception("Table already contains {$existing_rows} rows. Use DELETE /api/tables/{$db_id}/{$table_id} to clear data first.");
+			}
+		} else {
+			// Resume import - check consistency
+			$expected_rows = isset($table_definition['import_progress']['total_rows_processed']) ? 
+				$table_definition['import_progress']['total_rows_processed'] : 0;
+			
+			if ($existing_rows !== $expected_rows) {
+				throw new Exception("Data inconsistency: expected {$expected_rows} rows, found {$existing_rows} rows. Use DELETE endpoint to reset.");
+			}
+		}
+	}
 	
 }    

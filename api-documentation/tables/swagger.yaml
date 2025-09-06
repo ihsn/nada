@@ -62,7 +62,7 @@ paths:
           '200':
             description: successful operation
             schema:
-              $ref: "#/definitions/Table"
+              $ref: "#/definitions/TableInfoResponse"
         security:
           - ApiKeyAuth: []
   /tables/data/{dbId}/{tableId}:
@@ -145,13 +145,87 @@ paths:
         security:
           - ApiKeyAuth: [] 
                    
-  /tables/upload:
+  /tables/upload/{dbId}/{tableId}:
       post:
         tags:
           - Tables
-        summary: Upload CSV
-        description: Upload CSV file. By default, it will replace an existing table or create a new one. To append data to an existing table, set `append` to `true`
+        summary: Upload CSV file
+        description: Upload CSV or ZIP file and create/update table definition. This is the first step in the import workflow, it only uploads the file and prepares the table structure. Use the `/import` endpoint to actually process and import the data into the database. For ZIP files, the CSV file must match the ZIP filename (e.g., `data.zip` must contain `data.csv`).
         operationId: uploadCsv
+        consumes:
+          - multipart/form-data
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            description: Database ID
+            type: string
+            required: true
+          - in: "path"
+            name: "tableId"
+            description: Table ID
+            type: string
+            required: true  
+          - in: "formData"
+            name: "file"
+            type: file
+            description: "CSV or ZIP file containing CSV. For ZIP files: CSV filename must match ZIP filename (e.g., data.zip → data.csv). Supported CSV extensions: .csv, .txt, .CSV, .TXT"
+            required: true
+          - in: "formData"
+            name: "title"
+            type: string
+            description: "Table title"
+            required: false
+          - in: "formData"
+            name: "description"
+            type: string
+            description: "Table description"
+            required: false
+          - in: "formData"
+            name: "indicators"
+            type: string
+            description: "JSON string of indicators"
+            required: false
+          - in: "formData"
+            name: "feature_1"
+            type: string
+            description: "Feature 1 (JSON string)"
+            required: false
+          - in: "formData"
+            name: "feature_2"
+            type: string
+            description: "Feature 2 (JSON string)"
+            required: false
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: "#/definitions/UploadResponse"
+          '400':
+            description: "Upload error"
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "failed"
+                message:
+                  type: string
+                  examples:
+                    zip_extraction_failed: "Failed to unzip file: filename.zip"
+                    csv_not_found: "CSV file not found in ZIP"
+                    file_upload_failed: "File upload failed"
+        security:
+          - ApiKeyAuth: []
+
+  /tables/import/{dbId}/{tableId}:
+      post:
+        tags:
+          - Tables
+        summary: Import CSV data
+        description: Import CSV data in chunks for large files. Requires that a file has been uploaded using the `/upload` endpoint first. Automatically resumes from last processed row. Use `status=true` to check import progress without processing data.
+        operationId: importCsv
         consumes:
           - application/json
         produces:
@@ -161,33 +235,95 @@ paths:
             name: "dbId"
             description: Database ID
             type: string
-            format: string
             required: true
           - in: "path"
             name: "tableId"
             description: Table ID
             type: string
-            format: string
-            required: true  
-          - in: "query"
-            name: "append"
-            description: Append data to existing table
-            type: boolean
-            required: false
-          - in: "formData"
-            name: "file"
-            type: file
-            description: "CSV file"
             required: true
-          - in: "formData"
-            name: "delimiter"
-            type: string
-            description: "CSV delimiter character - default is `,`. For tabs, use `tab`"
+          - in: "body"
+            name: "body"
+            description: "Import parameters"
+            required: false
+            schema:
+              type: object
+              properties:
+                status:
+                  type: boolean
+                  description: "If true, returns only import status without processing data (default: false)"
+                  default: false
+                max_rows:
+                  type: integer
+                  description: "Maximum rows to process in this batch (default: 10000, max: 50000)"
+                  minimum: 1
+                  maximum: 50000
+                  default: 10000
+                delimiter:
+                  type: string
+                  description: "CSV delimiter - comma, tab, semicolon (default: comma)"
+                  enum: ["comma", "tab", "semicolon", ","]
+                  default: "comma"
         responses:
           '200':
             description: successful operation
+            schema:
+              $ref: "#/definitions/ImportResponse"
+          '400':
+            description: "Validation error - table has data or data inconsistency"
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "failed"
+                message:
+                  type: string
+                action_required:
+                  type: string
+                  enum: ["delete_data_first", "reset_import"]
         security:
-          - ApiKeyAuth: []  
+          - ApiKeyAuth: []
+
+  /tables/{dbId}/{tableId}:
+      delete:
+        tags:
+          - Tables
+        summary: Delete table data
+        description: Delete table data and optionally table definition.
+        operationId: deleteTable
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            description: Database ID
+            type: string
+            required: true
+          - in: "path"
+            name: "tableId"
+            description: Table ID
+            type: string
+            required: true
+          - in: "body"
+            name: "body"
+            description: "Delete options"
+            required: false
+            schema:
+              type: object
+              properties:
+                delete_definition:
+                  type: boolean
+                  description: "Delete table definition as well (default: false)"
+                  default: false
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: "#/definitions/DeleteResponse"
+        security:
+          - ApiKeyAuth: []
   
   /tables/insert/{dbId}/{tableId}:      
         post:
@@ -511,6 +647,52 @@ definitions:
           type: string
     xml:
       name: table
+
+  TableInfoResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        example: "success"
+      result:
+        type: object
+        properties:
+          count:
+            type: integer
+            description: "Total number of rows in the table"
+          metadata:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: "Table definition ID"
+              title:
+                type: string
+                description: "Table title"
+              description:
+                type: string
+                description: "Table description"
+              table_id:
+                type: string
+                description: "Table ID"
+              csv_file_path:
+                type: string
+                description: "Path to CSV file"
+              delimiter:
+                type: string
+                description: "CSV delimiter"
+              created_at:
+                type: string
+                format: date-time
+              updated_at:
+                type: string
+                format: date-time
+              db_id:
+                type: string
+                description: "Database ID"
+              csv_uploaded_at:
+                type: string
+                format: date-time
       
   
   ApiResponse:
@@ -521,5 +703,143 @@ definitions:
         format: int32
       type:
         type: string
+      message:
+        type: string
+
+  UploadResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        example: "success"
+      file_path:
+        type: string
+        description: "Partial file path for import"
+      action:
+        type: string
+        enum: ["created", "updated"]
+      csv_uploaded_at:
+        type: string
+        format: date-time
+      import_status:
+        type: string
+        example: "ready"
+      links:
+        type: object
+        properties:
+          import:
+            type: string
+            description: "Import endpoint URL"
+      message:
+        type: string
+
+  ZipFileRequirements:
+    type: object
+    description: "Requirements for ZIP files containing CSV data"
+    properties:
+      filename_matching:
+        type: string
+        description: "CSV filename must match ZIP filename (without extension)"
+        example: "data.zip must contain data.csv"
+      supported_extensions:
+        type: array
+        items:
+          type: string
+        description: "Supported CSV file extensions"
+        example: [".csv", ".txt", ".CSV", ".TXT"]
+      file_structure:
+        type: string
+        description: "ZIP file structure requirements"
+        example: "ZIP must contain exactly one CSV file at root level"
+      examples:
+        type: object
+        properties:
+          valid:
+            type: object
+            properties:
+              zip_file: 
+                type: string
+                example: "report.zip"
+              csv_file:
+                type: string
+                example: "report.csv"
+          invalid:
+            type: object
+            properties:
+              zip_file:
+                type: string
+                example: "data.zip"
+              csv_file:
+                type: string
+                example: "other.csv"
+              reason:
+                type: string
+                example: "Filename mismatch"
+
+  ImportResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        example: "success"
+      csv_info:
+        type: object
+        properties:
+          csv_file_path:
+            type: string
+            description: "Path to the CSV file being imported"
+          csv_uploaded_at:
+            type: string
+            format: date-time
+            description: "When the CSV file was uploaded"
+      batch:
+        type: object
+        properties:
+          rows_processed:
+            type: integer
+          start_row:
+            type: integer
+          end_row:
+            type: integer
+          execution_time_seconds:
+            type: number
+          execution_time_formatted:
+            type: string
+      progress:
+        type: object
+        properties:
+          total_rows_processed:
+            type: integer
+          last_processed_row:
+            type: integer
+          import_status:
+            type: string
+            enum: ["ready", "in_progress", "completed"]
+          has_more:
+            type: boolean
+      next:
+        type: object
+        properties:
+          start_row:
+            type: integer
+          endpoint:
+            type: string
+        description: "Only present if has_more is true"
+
+  DeleteResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        example: "success"
+      data_deleted:
+        type: integer
+        description: "Number of data rows deleted"
+      definition_deleted:
+        type: integer
+        description: "Number of definitions deleted (0 or 1)"
+      import_progress_reset:
+        type: boolean
+        example: true
       message:
         type: string

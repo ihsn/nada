@@ -367,6 +367,57 @@ if ( ! function_exists('get_zip_archive_list'))
 }
 
 
+/**
+ * validate_file_path
+ *
+ * Validates and sanitizes file paths to prevent directory traversal attacks
+ *
+ * @access	public
+ * @param	string	file path to validate
+ * @param	string	database id for path validation
+ * @param	string	table id for path validation
+ * @return	string	validated and sanitized file path
+ * @throws	Exception	if path is invalid
+ */	
+if ( ! function_exists('validate_file_path'))
+{
+	function validate_file_path($file_path, $db_id, $table_id)
+	{
+		// Remove any directory traversal attempts
+		$file_path = str_replace(['../', '..\\', '..'], '', $file_path);
+		
+		// Ensure path starts with expected pattern
+		$expected_pattern = $db_id . '/' . $table_id . '/';
+		if (strpos($file_path, $expected_pattern) !== 0) {
+			throw new Exception("Invalid file path - must be within authorized directory");
+		}
+		
+		// Ensure file has .csv extension
+		if (!preg_match('/\.csv$/i', $file_path)) {
+			throw new Exception("Invalid file type - only CSV files allowed");
+		}
+		
+		// Ensure path contains only safe characters (alphanumeric, underscore, forward slash, hyphen, dot)
+		if (!preg_match('/^[a-zA-Z0-9_\/\-\.]+$/', $file_path)) {
+			throw new Exception("Invalid characters in file path");
+		}
+		
+		// Additional validation: ensure no double slashes or suspicious patterns
+		if (strpos($file_path, '//') !== false || 
+			strpos($file_path, '\\') !== false ||
+			strpos($file_path, '..') !== false) {
+			throw new Exception("Invalid path format detected");
+		}
+		
+		// Ensure the path is not too long (prevent buffer overflow attacks)
+		if (strlen($file_path) > 255) {
+			throw new Exception("File path too long");
+		}
+		
+		return $file_path;
+	}
+}
+
 // ------------------------------------------------------------------------
 /* End of file MY_file_helper.php */
 /* Location: ./system/helpers/MY_file_helper.php */
