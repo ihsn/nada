@@ -914,6 +914,11 @@ class Tables extends MY_REST_Controller
 
 	function delete_delete($db_id=null,$table_id=null)
 	{
+		return $this->delete_post($db_id, $table_id);
+	}
+
+	function delete_post($db_id=null,$table_id=null)
+	{
 		$this->is_admin_or_die();
 		
 		try{
