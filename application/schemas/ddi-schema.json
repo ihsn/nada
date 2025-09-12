@@ -687,10 +687,7 @@
                     "description": "Country ISO code",
                     "type": "string"
                   }
-                },
-                "required": [
-                  "name"
-                ]
+                }                
               }
             },
             "bbox": {
@@ -890,7 +887,7 @@
                 }
               }
             }
-          }          
+          }
         },
         "study_development": {
           "title": "Study Development",
@@ -1579,8 +1576,7 @@
         }
       },
       "required": [
-        "title_statement",
-        "study_info"
+        "title_statement"
       ],
       "additionalProperties": false
     }
