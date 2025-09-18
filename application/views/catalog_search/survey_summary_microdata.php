@@ -137,7 +137,22 @@ td.caption{
 					<?php if ($url):?>
 					<tr>						
 						<td class="caption"><?php echo t('download');?></td>
-						<td><?php echo ($url==="") ? "N/A" : '<a data-file-id="'.$row['resource_id'].'" class="download" title="'.$file_basename.'" href="'.$url.'">'.$url.'</a>';?></td>
+						<td>
+							<?php if ($url===''):?>
+								N/A
+							<?php else:?>
+							<a  target="_blank" 
+								href="<?php echo $url;?>" 							
+								title="<?php echo html_escape(basename($row['filename']));?>"
+								data-filename="<?php echo html_escape(basename($row['filename']));?>"
+								data-dctype="<?php echo html_escape($row['dctype']);?>"
+								data-extension="<?php echo html_escape($ext);?>"
+								data-sid="<?php echo $row['survey_id'];?>" 
+								class="download">									
+									<?php echo $url;?>
+							</a>
+							<?php endif;?>						
+						</td>
 					</tr> 
 					<?php endif;?>
 				</table>

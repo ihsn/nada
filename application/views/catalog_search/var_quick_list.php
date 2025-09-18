@@ -6,7 +6,7 @@ if ($variables): ?>
     <table class="table table-striped table-hover grid-table variable-list">
         <thead>
             <tr>
-                <th><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank'));?></th>
+                <th><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank', 'rel'=>'noopener noreferrer'));?></th>
                 <?php if (isset($variables[0]['fid'])):?>
                 <th><?php echo t('File');?></th>
                 <?php endif;?>

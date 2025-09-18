@@ -126,7 +126,7 @@
                             <a href="#" onclick="change_view('v');return false;"><?php echo t('switch_to_variable_view');?></a>
                         </span>|
                         <span>
-                            <a class="btn-compare-var" title="<?php echo t('compare_hover_text');?>" target="_blank" href="<?php echo site_url(); ?>/catalog/compare"><?php echo t('compare');?></a>
+                            <a class="btn-compare-var" rel="noopener noreferrer" title="<?php echo t('compare_hover_text');?>" target="_blank" href="<?php echo site_url(); ?>/catalog/compare"><?php echo t('compare');?></a>
                         </span>
                         </small>                    
                     <?php endif;?>

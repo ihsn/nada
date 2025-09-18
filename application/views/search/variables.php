@@ -76,7 +76,7 @@
     <div class="variable-list-container variable-search">
             <div class="table-hover grid-table variable-list">
                 
-                <div><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank'));?></div>
+                <div><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank', 'rel'=>'noopener noreferrer'));?></div>
 
                 <div class="variables-container border-top">
                 <?php foreach($variables['rows'] as $row):?>

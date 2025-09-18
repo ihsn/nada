@@ -145,7 +145,7 @@
            <div class="col-12 wb-var-actions">
                <div class="align-middle mt-2"> 
                     <button class="btn btn-link btn-sm rounded clear-variables"><?php echo t("Clear");?></button>
-                    <a target="_blank" class="btn btn-primary btn-sm rounded" href="<?php echo site_url('catalog/compare');?>"><?php echo t("Compare");?></a>                   
+                    <a target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm rounded" href="<?php echo site_url('catalog/compare');?>"><?php echo t("Compare");?></a>                   
                 </div>
            </div>
        </div>

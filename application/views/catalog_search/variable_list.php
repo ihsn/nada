@@ -55,7 +55,7 @@
                                 <a class="" href="#" onclick="change_view('s');return false;"><?php echo t('switch_to_study_view');?></a>
                             </span>|
                         <span>
-                                <a class="btn-compare-var" target="_blank" title="<?php echo t('compare_hover');?>" target="_blank" href="<?php echo site_url(); ?>/catalog/compare"><?php echo t('compare');?></a>
+                                <a class="btn-compare-var" rel="noopener noreferrer" target="_blank" title="<?php echo t('compare_hover');?>" target="_blank" href="<?php echo site_url(); ?>/catalog/compare"><?php echo t('compare');?></a>
                             </span>
                     </small>
 
@@ -95,7 +95,7 @@
         <div class="variable-list-container">
             <table class="table table-striped table-hover grid-table variable-list">
                 <thead>
-                <th><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank'));?></th>
+                <th><?php echo anchor('catalog/compare',t('compare'), array('class'=>'btn-compare-var','title'=>t('compare_selected_variables'),'target'=>'_blank', 'rel'=>'noopener noreferrer'));?></th>
                 <th><?php echo t('name');?></th>
                 <th><?php echo t('label');?></th>
                 </thead>
