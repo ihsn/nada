@@ -78,6 +78,8 @@ class Catalog_tags_model extends CI_Model {
 		if($tags){
 			return array_column($tags,'tag');
 		}
+		
+		return array();
 	}
 
 

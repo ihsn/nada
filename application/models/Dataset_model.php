@@ -1233,11 +1233,11 @@ class Dataset_model extends CI_Model {
             return;
         }
 
-		$existing_tags=(array)$this->Catalog_tags_model->survey_tags_list($sid);
+		$existing_tags = $this->Catalog_tags_model->survey_tags_list($sid);
 
-		//remove duplicates or null
-		$tags=array_unique(array_filter($tags));
-		$tags=array_diff($tags, $existing_tags);
+		//remove duplicates and nulls
+		$tags = array_values(array_unique(array_filter($tags)));
+		$tags = array_diff($tags, $existing_tags);
         
 		foreach ($tags as $tag){
             $options=array(
