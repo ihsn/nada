@@ -24,24 +24,25 @@ class DDI_Writer
 
     function el($path)
     {
-        echo htmlspecialchars($this->get_el($path));
+        $value = $this->get_el($path);
+        echo htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
     }
 
     function escape_text($value)
     {
-        return htmlspecialchars($value); 
+        return htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8'); 
     }
 
     function el_val($data, $el){
         if (isset($data[$el])){
-            return htmlspecialchars($data[$el]);
+            return htmlspecialchars($data[$el], ENT_XML1 | ENT_QUOTES, 'UTF-8');
         }
     }
 
     function attr_val($data, $attr)
     {
         if (isset($data[$attr])){
-            return htmlspecialchars($data[$attr]);
+            return htmlspecialchars($data[$attr], ENT_XML1 | ENT_QUOTES, 'UTF-8');
         }
     }
 
