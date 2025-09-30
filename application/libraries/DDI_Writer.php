@@ -25,17 +25,17 @@ class DDI_Writer
     function el($path)
     {
         $value = $this->get_el($path);
-        echo htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        echo htmlspecialchars($value, ENT_XML1, 'UTF-8');
     }
 
     function escape_text($value)
     {
-        return htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8'); 
+        return htmlspecialchars($value, ENT_XML1, 'UTF-8'); 
     }
 
     function el_val($data, $el){
         if (isset($data[$el])){
-            return htmlspecialchars($data[$el], ENT_XML1 | ENT_QUOTES, 'UTF-8');
+            return htmlspecialchars($data[$el], ENT_XML1, 'UTF-8');
         }
     }
 
