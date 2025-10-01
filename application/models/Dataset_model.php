@@ -1023,12 +1023,15 @@ class Dataset_model extends CI_Model {
 	}
 
     
-    /**
+	/**
 	* returns internal survey id by IDNO
 	* checks for ID in both surveys and aliases table
+	* @param string $idno - Main IDNO to search for
+	* @param array $alternate_idnos - Optional array of alternative IDNOs to also check
 	**/
-	function find_by_idno($idno)
+	function find_by_idno($idno, $alternate_idnos = null)
 	{
+		// First check the main IDNO
 		$this->db->select('id');
 		$this->db->where('idno', (string)$idno); 
 		$query=$this->db->get('surveys')->row_array();
@@ -1044,6 +1047,33 @@ class Dataset_model extends CI_Model {
 
 		if ($query){
 			return $query[0]['sid'];
+		}
+		
+		// If alternate IDNOs provided, check them as well
+		if (!empty($alternate_idnos) && is_array($alternate_idnos)) {
+			foreach($alternate_idnos as $alt_idno) {
+				if(empty($alt_idno)) {
+					continue;
+				}
+				
+				// Check main surveys table
+				$this->db->select('id');
+				$this->db->where('idno', (string)$alt_idno); 
+				$query=$this->db->get('surveys')->row_array();
+				
+				if ($query){
+					return $query['id'];
+				}
+				
+				// Check survey aliases table
+				$this->db->select('sid');
+				$this->db->where(array('alternate_id' => $alt_idno) );
+				$query=$this->db->get('survey_aliases')->result_array();
+
+				if ($query){
+					return $query[0]['sid'];
+				}
+			}
 		}
 		
 		return false;
@@ -1268,7 +1298,15 @@ class Dataset_model extends CI_Model {
             return;
         }
 
+		// Get the main IDNO for this dataset to avoid creating duplicate aliases
+		$main_idno = $this->get_idno($sid);
+
 		foreach($aliases as $alias){
+			// Skip if alias is empty or same as main IDNO
+			if(empty($alias) || $alias === $main_idno) {
+				continue;
+			}
+
 			if (!$this->Survey_alias_model->id_exists($alias)){
 				$options = array(
 					'sid'  => $sid,
@@ -1622,6 +1660,7 @@ class Dataset_model extends CI_Model {
 
 		return $result;
 	}
+
 
 
 

@@ -69,8 +69,11 @@ class Dataset_microdata_model extends Dataset_model {
             throw new exception("IDNO-NOT-SET");
         }
 
-        //validate IDNO field
-        $dataset_id=$this->find_by_idno($core_fields['idno']); 
+        //get alternative IDNOs from identifiers
+        $alternative_idnos = $this->get_core_idno_from_options($options);
+        
+        //try to find existing dataset by main IDNO and alternative IDNOs
+        $dataset_id=$this->find_by_idno($core_fields['idno'], $alternative_idnos);
         
 		if(!empty($sid)){//for updating a study
             //if IDNO is changed, it should not be an existing IDNO
@@ -143,6 +146,9 @@ class Dataset_microdata_model extends Dataset_model {
         
         $this->index_variable_data($dataset_id);
 
+        //create aliases for alternative IDNOs to prevent duplicates
+        $this->add_survey_aliases($dataset_id, $alternative_idnos);
+
 		return $dataset_id;
     }
 
@@ -163,6 +169,9 @@ class Dataset_microdata_model extends Dataset_model {
 	{
 		//need this to validate IDNO for uniqueness
         $options['sid']=$sid;
+        
+        //get alternative IDNOs from identifiers
+        $alternative_idnos = $this->get_core_idno_from_options($options);
         
         //merge/replace metadata
         if ($merge_metadata==true){
@@ -321,8 +330,24 @@ class Dataset_microdata_model extends Dataset_model {
             }
 
             $variable['fid']=$variable['file_id'];
-            $this->validate_schema($type='variable',$variable);
-            $this->Variable_model->validate_variable($variable);
+            
+            try{
+                $this->validate_schema($type='variable',$variable);
+                $this->Variable_model->validate_variable($variable);
+            }
+            catch(ValidationException $e){
+                $error_details=$e->GetValidationErrors();
+
+                if (isset($error_details[0])){
+                    $error_details=$error_details[0];
+                }
+
+                $error_details['variable_file_id'] = $variable['file_id'];
+                $error_details['variable_name'] = isset($variable['name']) ? $variable['name'] : 'unknown';
+                $error_details['variable_vid'] = isset($variable['vid']) ? $variable['vid'] : 'unknown';
+                
+                throw new ValidationException("VALIDATION_ERROR: VARIABLE: ".$variable['vid'].": ", $error_details);
+            }        
         }
 
         $result=array();
@@ -528,6 +553,27 @@ class Dataset_microdata_model extends Dataset_model {
                 return $identifier['identifier'];
             }
         }
+    }
+
+    /**
+     * 
+     * Get core IDNOs from options
+     * 
+     * 
+     */
+    function get_core_idno_from_options($options)
+    {
+        $identifiers=(array)$this->get_array_nested_value($options,'study_desc/title_statement/identifiers');
+
+        $idnos=[];
+
+        foreach($identifiers as $identifier){
+            if (isset($identifier['type']) && strtolower($identifier['type'])=='idno'){
+                $idnos[]=$identifier['identifier'];
+            }
+        }
+
+        return $idnos;
     }
 
 

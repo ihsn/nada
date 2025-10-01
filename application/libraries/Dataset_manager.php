@@ -76,10 +76,11 @@ class Dataset_manager{
     }
 
 
-    function find_by_idno($idno)
+    function find_by_idno($idno, $alternate_idnos = null)
     {
-        return $this->ci->Dataset_model->find_by_idno($idno);    
+        return $this->ci->Dataset_model->find_by_idno($idno, $alternate_idnos);    
     }
+
 
 
     /**
