@@ -44,7 +44,7 @@
  *
  *
  */
-	define('APP_VERSION', '5.4');
+	define('APP_VERSION', '5.5');
 
 /*
  *---------------------------------------------------------------
@@ -76,7 +76,7 @@
 switch (ENVIRONMENT)
 {
 	case 'development':
-		error_reporting(E_ERROR ^  (~E_DEPRECATED & ~E_STRICT & ~E_USER_DEPRECATED));
+		error_reporting(E_ERROR ^  (~E_DEPRECATED && ~E_USER_DEPRECATED));
 		ini_set('display_errors', 1);
 	break;
 
