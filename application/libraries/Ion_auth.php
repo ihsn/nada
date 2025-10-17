@@ -213,9 +213,9 @@ class Ion_auth
 						 );
 
 			$message = $this->ci->load->view($this->ci->config->item('email_templates').$this->ci->config->item('email_forgot_password'), $data, true);
+			
 			$this->ci->email->clear();
-			$this->ci->email->initialize();			
-			$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
+			$this->ci->email->initialize();
 			$this->ci->email->to($profile->email);
 			$this->ci->email->subject(t('forgot_password_verification'));
 			$this->ci->email->message($message);
@@ -227,9 +227,8 @@ class Ion_auth
 			}
 			else
 			{
-				$this->set_error('forgot_password_unsuccessful');
-				//log email error
-				//log_message('error', $this->ci->email->print_debugger());
+				$this->set_error('forgot_password_unsuccessful');				
+				log_message('error', 'Debug info: ' . $this->ci->email->print_debugger());
 				return FALSE;
 			}
 		}
@@ -306,8 +305,8 @@ class Ion_auth
             
 			$message = $this->ci->load->view($this->ci->config->item('email_templates').$this->ci->config->item('email_activate'), $data, true);
             
-			$this->ci->email->clear();			
-			$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
+			$this->ci->email->clear();
+			$this->ci->email->initialize();
 			$this->ci->email->to($email);
 			$this->ci->email->subject($this->ci->config->item('website_title') . ' - '.t('account_activation'));
 			$this->ci->email->message($message);
@@ -947,10 +946,9 @@ class Ion_auth
 			throw new Exception("User not found");
 		}
 
-		//email
 		$message='Your verification code is: <b>'.$otp_code.'</b>';
 		$this->ci->email->clear();
-		$this->ci->email->from($this->ci->config->item('website_webmaster_email'), $this->ci->config->item('website_webmaster_name'));
+		$this->ci->email->initialize();
 		$this->ci->email->to($user->email);
 		$this->ci->email->subject($this->ci->config->item('website_title') . ' - '.t('verification_code'));
 		$this->ci->email->message($message);

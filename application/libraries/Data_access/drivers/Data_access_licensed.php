@@ -351,9 +351,7 @@ class Data_access_licensed extends CI_Driver {
 		$this->CI->load->helper('admin_notifications');
 		$this->CI->load->library('email');
 		$this->CI->email->clear();
-		$this->CI->email->initialize();//intialize using the settings in mail
-		$this->CI->email->set_newline("\r\n");
-		$this->CI->email->from($this->CI->config->item('website_webmaster_email'), $this->CI->config->item('website_title'));
+		$this->CI->email->initialize();
 		$this->CI->email->to($data->email);
 		$this->CI->email->subject($subject);
 		$this->CI->email->message($message);

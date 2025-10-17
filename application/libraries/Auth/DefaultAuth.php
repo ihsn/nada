@@ -505,13 +505,20 @@ class DefaultAuth implements AuthInterface
 									 'email'=>$email,
 									 'identity'=>$username
         							);
-        	$this->ci->ion_auth->register($username,$password,$email,$additional_data);
+        	$registration_result = $this->ci->ion_auth->register($username,$password,$email,$additional_data);
+			log_message('debug', 'User registration result: ' . ($registration_result ? 'SUCCESS' : 'FAILED'));
+			log_message('debug', 'Registered user: ' . $username . ' (' . $email . ')');
+			
 			$content=$this->ci->load->view('auth/create_user_confirm',NULL,TRUE);
 
 			//notify admins
+			log_message('debug', 'Preparing admin notification email for new user registration');
 			$subject=sprintf('[%s] - %s',t('notification'), t('new_user_registration')).' - '.$username;
 			$message=$this->ci->load->view('auth/email/admin_notice_new_registration', $additional_data,true);
-			notify_admin($subject,$message);
+			
+			log_message('debug', 'Calling notify_admin() function');
+			$notification_result = notify_admin($subject,$message);
+			log_message('debug', 'notify_admin() result: ' . ($notification_result ? 'SUCCESS' : 'FAILED'));
 		}
 		else
 		{

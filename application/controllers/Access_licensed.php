@@ -95,9 +95,7 @@ class Access_licensed extends MY_Controller {
 
 		$this->load->library('email');
 		$this->email->clear();		
-		$this->email->initialize();//intialize using the settings in mail
-		$this->email->set_newline("\r\n");
-		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_title'));
+		$this->email->initialize();
 		$this->email->to($data->email);
 		$this->email->subject($subject);
 		$this->email->message($message);

@@ -25,28 +25,46 @@ function notify_admin($subject,$message,$notify_all=FALSE)
 	}
 	else
 	{
-		//site web master only
-		$admin_emails[]=$ci->config->item('website_webmaster_email');
+		//site web master only - use DB config
+		$admin_emails[] = $ci->config->item('website_webmaster_email');
 	}	
 
-	//configure mail
-	$ci->email->clear();
-	$config['mailtype'] = "html";
-	$ci->email->initialize($config);
-	$ci->email->set_newline("\r\n");
-	$ci->email->from($ci->config->item('website_webmaster_email'), $ci->config->item('website_title'));
-	//$ci->email->to($ci->config->item('website_webmaster_email'));
+	log_message('debug', 'notify_admin() called');
+	log_message('debug', 'Subject: ' . $subject);
+	log_message('debug', 'Notify all: ' . ($notify_all ? 'Yes' : 'No'));
+	log_message('debug', 'Admin emails: ' . print_r($admin_emails, true));
+	log_message('debug', 'Webmaster email: ' . $ci->config->item('website_webmaster_email'));
 	
-	$ci->email->bcc($admin_emails);	
+	$ci->email->clear();
+	$ci->email->initialize();
+	
+	// Set TO to webmaster (required by most email servers when using BCC)
+	$webmaster_email = $ci->config->item('website_webmaster_email');
+	$ci->email->to($webmaster_email);
+	log_message('debug', 'Email TO set to: ' . $webmaster_email);
+	
+	// Send to all admins via BCC
+	if (is_array($admin_emails) && count($admin_emails) > 0) {
+		$ci->email->bcc($admin_emails);
+		log_message('debug', 'Email BCC set to ' . count($admin_emails) . ' admin(s)');
+	} else {
+		log_message('error', 'No admin emails found for notification');
+	}
+	
 	$ci->email->subject($subject);
 	$ci->email->message($message);
 	
+	log_message('debug', 'Attempting to send admin notification email...');
+	
 	if ($ci->email->send())
 	{
+		log_message('info', 'Admin notification email sent successfully');
 		return TRUE;
 	}
 	else
 	{
+		log_message('error', 'Admin notification email failed to send');
+		log_message('error', 'Email debug info: ' . $ci->email->print_debugger());
 		return FALSE;
 	}
 }

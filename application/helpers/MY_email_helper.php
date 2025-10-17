@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------
 
 /**
- * Load email settings from database
+ * Load email settings from email.php config file
  *
  *
  * @access	public
@@ -22,17 +22,75 @@ if ( ! function_exists('load_email_settings'))
 function load_email_settings()
 {
   $ci =& get_instance();
-  $config['protocol']  = $ci->config->item("mail_protocol");
+  
+  // Load email configuration from email.php config file
+  $ci->config->load('email');
+  
+  // Get email driver (new system) or fallback to legacy useragent
+  $email_driver = $ci->config->item("email_driver");
+  if ($email_driver === FALSE) {
+    // Fallback to legacy useragent setting
+    $useragent = $ci->config->item("useragent");
+    if ($useragent === FALSE) {
+      return FALSE;
+    }
+    // Map legacy useragent to driver (default to SMTP)
+    if (strpos(strtolower($useragent), 'phpmailer') !== false) {
+      $email_driver = 'smtp';
+    } else {
+      $email_driver = 'smtp'; // Default to SMTP instead of sendmail
+    }
+  }
+  
+  $config['email_driver'] = $email_driver;
+  $config['useragent'] = $ci->config->item("useragent");
+  $config['protocol'] = $ci->config->item("protocol");
+  $config['mailpath'] = $ci->config->item("mailpath");
   $config['smtp_host'] = $ci->config->item("smtp_host");
   $config['smtp_user'] = $ci->config->item("smtp_user");
   $config['smtp_pass'] = $ci->config->item("smtp_pass");
   $config['smtp_port'] = $ci->config->item("smtp_port");
-  $config['mailtype']  = 'html';
-  $config['charset']   = 'utf-8';
+  $config['smtp_auth'] = $ci->config->item("smtp_auth");
+  $config['smtp_crypto'] = $ci->config->item("smtp_crypto");
+  $config['smtp_timeout'] = $ci->config->item("smtp_timeout");
+  $config['smtp_email'] = $ci->config->item("smtp_email");
+  $config['smtp_display_name'] = $ci->config->item("smtp_display_name");
+  $config['smtp_keepalive'] = $ci->config->item("smtp_keepalive");
+  $config['smtp_auto_tls'] = $ci->config->item("smtp_auto_tls");
+  $config['smtp_conn_options'] = $ci->config->item("smtp_conn_options");
+  $config['smtp_debug'] = $ci->config->item("smtp_debug");
+  $config['debug_output'] = $ci->config->item("debug_output");
+  $config['wordwrap'] = $ci->config->item("wordwrap");
+  $config['wrapchars'] = $ci->config->item("wrapchars");
+  $config['mailtype'] = $ci->config->item("mailtype");
+  $config['charset'] = $ci->config->item("charset");
+  $config['multipart'] = $ci->config->item("multipart");
+  $config['alt_message'] = $ci->config->item("alt_message");
+  $config['validate'] = $ci->config->item("validate");
+  $config['priority'] = $ci->config->item("priority");
+  $config['newline'] = $ci->config->item("newline");
+  $config['crlf'] = $ci->config->item("crlf");
+  $config['dsn'] = $ci->config->item("dsn");
+  $config['send_multipart'] = $ci->config->item("send_multipart");
+  $config['bcc_batch_mode'] = $ci->config->item("bcc_batch_mode");
+  $config['bcc_batch_size'] = $ci->config->item("bcc_batch_size");
+  $config['encoding'] = $ci->config->item("encoding");
   
-  if ($config['protocol']===FALSE)
-  {
-      return FALSE;
+  // DKIM configuration
+  $config['dkim_domain'] = $ci->config->item("dkim_domain");
+  $config['dkim_private'] = $ci->config->item("dkim_private");
+  $config['dkim_private_string'] = $ci->config->item("dkim_private_string");
+  $config['dkim_selector'] = $ci->config->item("dkim_selector");
+  $config['dkim_passphrase'] = $ci->config->item("dkim_passphrase");
+  $config['dkim_identity'] = $ci->config->item("dkim_identity");
+  
+  // Driver-specific configurations
+  if ($email_driver === 'sendgrid') {
+    $config['sendgrid_api_key'] = $ci->config->item("sendgrid_api_key");
+  } elseif ($email_driver === 'microsoft_graph') {
+    $config['microsoft_graph_client_id'] = $ci->config->item("microsoft_graph_client_id");
+    $config['microsoft_graph_client_secret'] = $ci->config->item("microsoft_graph_client_secret");
+    $config['microsoft_graph_tenant_id'] = $ci->config->item("microsoft_graph_tenant_id");
   }
   
   return $config;

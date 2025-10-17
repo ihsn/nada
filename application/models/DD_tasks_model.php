@@ -239,13 +239,7 @@ class dd_tasks_model extends CI_Model {
         $contents=$this->csstoinlinestyles->convert();
 
         $this->email->clear();
-        $config['mailtype'] = 'html';
-        $this->email->debug=true;
-        $this->email->initialize($config);
-        $this->email->CharSet = 'UTF-8';
-        $this->email->set_newline("\r\n");
-
-        $this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_title'));
+        $this->email->initialize();
         $this->email->to($to);
 
         if ($cc){

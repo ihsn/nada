@@ -297,10 +297,7 @@ class Licensed_requests extends MY_Controller {
 
 		$this->load->library('email');
 		$this->email->clear();
-		$config['mailtype'] = "html";
-		$this->email->initialize($config);
-		$this->email->set_newline("\r\n");
-		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_webmaster_name'));
+		$this->email->initialize();
 		$this->email->to($user->email);
 		$this->email->bcc($this->config->item('website_webmaster_email'), $this->config->item('website_webmaster_name'));
 		$this->email->subject('[#'.$requestid.'] - Request status updated for '.$data->title );
@@ -370,10 +367,7 @@ class Licensed_requests extends MY_Controller {
 
 		$this->load->library('email');
 		$this->email->clear();
-		$config['mailtype'] = "html";
-		$this->email->initialize($config);
-		$this->email->set_newline("\r\n");
-		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_webmaster_name'));
+		$this->email->initialize();
 		$this->email->to($this->input->post("to"));
 		$this->email->cc($this->input->post("cc"));
 		$this->email->subject($this->input->post("subject") );
@@ -450,10 +444,7 @@ class Licensed_requests extends MY_Controller {
 		
 		$this->load->library('email');
 		$this->email->clear();
-		$config['mailtype'] = "html";
-		$this->email->initialize($config);
-		$this->email->set_newline("\r\n");
-		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_webmaster_name'));
+		$this->email->initialize();
 		$this->email->to($this->input->post("to"));
 		$this->email->cc($this->input->post("cc"));
 		$this->email->subject($this->input->post("subject") );

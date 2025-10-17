@@ -249,15 +249,15 @@ class Configurations extends MY_Controller {
 			$config['smtp_pass']=$this->config->item("smtp_pass");
 		}
 
-		//mail from
-		$email_sender=$this->input->post("mail_from");
-
-		if(empty($email_sender)){
-			$email_sender=$this->input->post('smtp_user');
+		// Initialize email with test config
+		$this->email->initialize($config);
+		
+		// Override FROM if provided
+		$email_sender = $this->input->post("mail_from");
+		if (!empty($email_sender)) {
+			$this->email->from($email_sender);
 		}
-
-		$this->email->initialize($config);		
-		$this->email->from($email_sender);
+		
 		$this->email->to($this->input->post('mail_to'));		
 		$this->email->subject('NADA test email');
 		$this->email->message('NADA test email message body');

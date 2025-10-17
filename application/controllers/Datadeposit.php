@@ -2036,11 +2036,8 @@ class Datadeposit extends MY_Controller {
 		$this->csstoinlinestyles->setHTML($contents);
 		$contents=$this->csstoinlinestyles->convert();
 		
-		$this->email->clear();		
-		$config['mailtype'] = 'html';
-		$this->email->initialize($config);
-		$this->email->set_newline("\r\n");
-		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_title'));
+		$this->email->clear();
+		$this->email->initialize();
 		$this->email->to($email);
 		$this->email->subject($project_title);
 		$this->email->message($contents);
@@ -2368,11 +2365,8 @@ class Datadeposit extends MY_Controller {
 		$message.=$project_summary;
 
 		$this->load->library('email');
-		$this->email->clear();		
-		$config['mailtype'] = 'html';
-		$this->email->initialize($config);//intialize using the settings in mail
-		$this->email->set_newline("\r\n");
-		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_title'));
+		$this->email->clear();
+		$this->email->initialize();
 		if ($to !== false) {
 			$this->email->to($to);
 		} else {
@@ -2839,12 +2833,8 @@ class Datadeposit extends MY_Controller {
             echo $contents;
         }
 		
-		$this->email->clear();		
-		$config['mailtype'] = 'html';
-		$this->email->initialize($config);
-		$this->email->CharSet = 'UTF-8';
-		$this->email->set_newline("\r\n");
-		$this->email->from($this->config->item('website_webmaster_email'), $this->config->item('website_title'));
+		$this->email->clear();
+		$this->email->initialize();
 		$this->email->to($to);
 		
 		if ($cc){

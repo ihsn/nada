@@ -1,22 +1,50 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed.');
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * CodeIgniter compatible email-library powered by PHPMailer.
+ * Email library with driver support
  *
- * @author Ivan Tcholakov <ivantcholakov@gmail.com>, 2012-2018.
- * @license The MIT License (MIT), http://opensource.org/licenses/MIT
- * @link https://github.com/ivantcholakov/codeigniter-phpmailer
- *
- * This class is intended to be compatible with CI 3.1.x.
+ * This class extends CI_Email and provides a driver-based architecture
+ * for sending emails through different providers (SMTP, SendGrid, Microsoft Graph, etc.)
  */
 
-use PHPMailer\PHPMailer\PHPMailer;
+use Email\Drivers\EmailInterface;
+use Email\Drivers\EmailFactory;
+use Email\Drivers\SmtpDriver;
+use Email\Drivers\SendgridDriver;
 
+require_once(APPPATH . 'libraries/Email/drivers/EmailInterface.php');
+require_once(APPPATH . 'libraries/Email/drivers/EmailFactory.php');
+require_once(APPPATH . 'libraries/Email/drivers/SmtpDriver.php');
+require_once(APPPATH . 'libraries/Email/drivers/SendgridDriver.php');
 
 class MY_Email extends CI_Email {
 
-    public $phpmailer;  // This property has been made public for testing purposes.
-
+    /**
+     * Current email driver instance
+     * 
+     * @var EmailInterface
+     */
+    protected $driver;
+    
+    /**
+     * Driver name
+     * 
+     * @var string
+     */
+    protected $driver_name;
+    
+    /**
+     * CodeIgniter instance
+     * 
+     * @var object
+     */
+    protected $CI;
+    
+    /**
+     * Default properties for backward compatibility
+     * 
+     * @var array
+     */
     protected static $default_properties = array(
         'useragent' => 'CodeIgniter',
         'mailpath' => '/usr/sbin/sendmail',
@@ -54,34 +82,31 @@ class MY_Email extends CI_Email {
         'dkim_selector' => '',
         'dkim_passphrase' => '',
         'dkim_identity' => '',
+        'email_driver' => 'smtp',
     );
 
     protected $properties = array();
 
-    protected $mailer_engine = 'codeigniter';
-    protected $CI;
-
-    protected static $protocols = array('mail', 'sendmail', 'smtp');
+    protected static $protocols = array('mail', 'smtp');
     protected static $mailtypes = array('html', 'text');
     protected static $encodings_ci = array('8bit', '7bit');
     protected static $encodings_phpmailer = array('8bit', '7bit', 'binary', 'base64', 'quoted-printable');
 
-
-    // The Constructor ---------------------------------------------------------
-
+    /**
+     * Constructor
+     * 
+     * @param array $config Configuration array
+     */
     public function __construct(array $config = array()) {
-
         $this->CI = get_instance();
         $this->CI->load->helper('email');
         $this->CI->load->helper('html');
 
-        // Set the default property 'debug_output' by using CLI autodetection.
         self::$default_properties['debug_output'] = (strpos(PHP_SAPI, 'cli') !== false OR defined('STDIN')) ? 'echo' : 'html';
 
-        // Wipe out certain properties that are declared within the parent class.
-        // These properties would be accessed by magic.
+        // remove parent class properties
+        // this is needed to avoid conflicts with the parent class properties
         foreach (array_keys(self::$default_properties) as $name) {
-
             if (property_exists($this, $name)) {
                 unset($this->{$name});
             }
@@ -98,32 +123,58 @@ class MY_Email extends CI_Email {
 
         $this->initialize($config);
 
-        log_message('info', 'Email Class Initialized (Engine: '.$this->mailer_engine.')');
+        log_message('info', 'Email Class Initialized (Driver: '.$this->driver_name.')');
     }
 
-    // Triggers the setter functions to do their job.
+    /**
+     * Triggers the setter functions to do their job.
+     */
     protected function refresh_properties() {
-
         foreach (array_keys(self::$default_properties) as $name) {
             $this->{$name} = $this->{$name};
         }
     }
 
-
-    // The Destructor ----------------------------------------------------------
-
+    /**
+     * Destructor
+     */
     public function __destruct() {
-
-        if (is_callable('parent::__destruct')) {
+        if (method_exists(get_parent_class($this), '__destruct')) {
             parent::__destruct();
         }
     }
 
+    /**
+     * Extract names from email addresses
+     * 
+     * @param array $emails Array of email addresses
+     * @return array Array of names
+     */
+    protected function _extract_name($emails) {
+        $names = array();
+        
+        if (!is_array($emails)) {
+            $emails = array($emails);
+        }
+        
+        foreach ($emails as $email) {
+            if (preg_match('/^(.+)\s*<(.+)>$/', $email, $matches)) {
+                $names[] = trim($matches[1], '"\'');
+            } else {
+                $names[] = '';
+            }
+        }
+        
+        return $names;
+    }
 
-    // Magic -------------------------------------------------------------------
-
+    /**
+     * Magic setter
+     * 
+     * @param string $name Property name
+     * @param mixed $value Property value
+     */
     function __set($name, $value) {
-
         $method = 'set_'.$name;
 
         if (is_callable(array($this, $method))) {
@@ -133,8 +184,13 @@ class MY_Email extends CI_Email {
         }
     }
 
+    /**
+     * Magic getter
+     * 
+     * @param string $name Property name
+     * @return mixed Property value
+     */
     function __get($name) {
-
         if (array_key_exists($name, $this->properties)) {
             return $this->properties[$name];
         } else {
@@ -142,13 +198,22 @@ class MY_Email extends CI_Email {
         }
     }
 
+    /**
+     * Magic isset
+     * 
+     * @param string $name Property name
+     * @return bool
+     */
     public function __isset($name) {
-
         return isset($this->properties[$name]);
     }
 
+    /**
+     * Magic unset
+     * 
+     * @param string $name Property name
+     */
     public function __unset($name) {
-
         $this->$name = null;
 
         if (array_key_exists($name, $this->properties)) {
@@ -158,106 +223,172 @@ class MY_Email extends CI_Email {
         }
     }
 
-
-    // Keep the API Fluent -----------------------------------------------------
-
     /**
-     * An empty method that keeps chaining, the parameter does the desired operation as a side-effect.
-     *
-     * @param   mixed   $expression     A (conditional) expression that is to be executed.
-     * @return  object                  Returns a reference to the created library instance.
+     * An empty method that keeps chaining
+     * 
+     * @param mixed $expression A (conditional) expression that is to be executed.
+     * @return object Returns a reference to the created library instance.
      */
     public function that($expression = NULL) {
-
         return $this;
     }
 
-
-    // Initialization & Clearing -----------------------------------------------
-
+    /**
+     * Initialize email with configuration
+     * 
+     * @param array $config Configuration array
+     * @return object
+     */
     public function initialize(array $config = array()) {
-
+        // If no config provided, load from email.php config file
+        if (empty($config)) {
+            $this->CI->load->helper('email');
+            $config = load_email_settings();
+            
+            if (empty($config)) {
+                // Final fallback: load directly from config
+                $this->CI->config->load('email');
+                $config = array(
+                    'email_driver' => $this->CI->config->item('email_driver') ?: 'smtp',
+                    'smtp_host' => $this->CI->config->item('smtp_host'),
+                    'smtp_auth' => $this->CI->config->item('smtp_auth'),
+                    'smtp_user' => $this->CI->config->item('smtp_user'),
+                    'smtp_pass' => $this->CI->config->item('smtp_pass'),
+                    'smtp_port' => $this->CI->config->item('smtp_port'),
+                    'smtp_crypto' => $this->CI->config->item('smtp_crypto'),
+                    'smtp_debug' => $this->CI->config->item('smtp_debug'),
+                    'debug_output' => $this->CI->config->item('debug_output'),
+                    'mailtype' => $this->CI->config->item('mailtype'),
+                    'charset' => $this->CI->config->item('charset')
+                );
+            }
+        }
+        
         foreach ($config as $key => $value) {
             $this->{$key} = $value;
         }
 
-        $this->clear();
+        // Initialize driver if it exists
+        if ($this->driver) {
+            $this->driver->initialize($config);
+        }
 
+        $this->clear();
+        
+        // Automatically set FROM address from configuration (after clear)
+        $this->_set_default_from_address($config);
+        
         return $this;
     }
+    
+    /**
+     * Set default FROM address from configuration
+     * 
+     * @param array $config Configuration array
+     * @return void
+     */
+    protected function _set_default_from_address($config) {
+        // Get from email with fallback chain
+        $from_email = null;
+        $from_name = null;
+        
+        // Priority 1: smtp_email from email.php config file
+        if (!empty($config['smtp_email'])) {
+            $from_email = $config['smtp_email'];
+        }
+        // Priority 2: website_webmaster_email from DB config
+        elseif (!empty($this->CI->config->item('website_webmaster_email'))) {
+            $from_email = $this->CI->config->item('website_webmaster_email');
+        }
+        // Final fallback
+        elseif (isset($_SERVER['HTTP_HOST'])) {
+            $from_email = 'noreply@' . $_SERVER['HTTP_HOST'];
+        }
+        
+        // Get from name with fallback chain
+        // Priority 1: smtp_display_name from email.php config file
+        if (!empty($config['smtp_display_name'])) {
+            $from_name = $config['smtp_display_name'];
+        }
+        // Priority 2: website_webmaster_name from DB config
+        elseif (!empty($this->CI->config->item('website_webmaster_name'))) {
+            $from_name = $this->CI->config->item('website_webmaster_name');
+        }
+        // Final fallback
+        else {
+            $from_name = 'NADA Administrator';
+        }
+        
+        // Set the from address if we have one
+        if ($from_email) {
+            $this->from($from_email, $from_name);
+        }
+    }
 
+    /**
+     * Clear email data
+     * 
+     * @param bool $clear_attachments Whether to clear attachments
+     * @return object
+     */
     public function clear($clear_attachments = false) {
-
         $clear_attachments = !empty($clear_attachments);
 
         parent::clear($clear_attachments);
 
-        if ($this->mailer_engine == 'phpmailer') {
-
-            $this->phpmailer->clearAllRecipients();
-            $this->phpmailer->clearReplyTos();
-            if ($clear_attachments) {
-                $this->phpmailer->clearAttachments();
-            }
-
-            $this->phpmailer->clearCustomHeaders();
-
-            $this->phpmailer->Subject = '';
-            $this->phpmailer->Body = '';
-            $this->phpmailer->AltBody = '';
+        if ($this->driver) {
+            $this->driver->clear();
         }
 
         return $this;
     }
 
-
-    // Prepare & Send a Message ------------------------------------------------
-
+    /**
+     * Set sender email and name
+     * 
+     * @param string $from Sender email
+     * @param string $name Sender name
+     * @param string $return_path Return path
+     * @return object
+     */
     public function from($from, $name = '', $return_path = NULL) {
-
         $from = (string) $from;
         $name = (string) $name;
         $return_path = (string) $return_path;
 
-        if ($this->mailer_engine == 'phpmailer') {
-
-            if (preg_match( '/\<(.*)\>/', $from, $match)) {
+        if ($this->driver) {
+            if (preg_match('/\<(.*)\>/', $from, $match)) {
                 $from = $match['1'];
             }
 
             if ($this->validate) {
-
                 $this->validate_email($this->_str_to_array($from));
-
                 if ($return_path) {
                     $this->validate_email($this->_str_to_array($return_path));
                 }
             }
 
-            $this->phpmailer->setFrom($from, $name, 0);
-
-            if (!$return_path) {
-                $return_path = $from;
-            }
-
-            $this->phpmailer->Sender = $return_path;
-
+            $this->driver->from($from, $name);
         } else {
-
             parent::from($from, $name, $return_path);
         }
 
         return $this;
     }
 
+    /**
+     * Set reply-to email
+     * 
+     * @param string $replyto Reply-to email
+     * @param string $name Reply-to name
+     * @return object
+     */
     public function reply_to($replyto, $name = '') {
-
         $replyto = (string) $replyto;
         $name = (string) $name;
 
-        if ($this->mailer_engine == 'phpmailer') {
-
-            if (preg_match( '/\<(.*)\>/', $replyto, $match)) {
+        if ($this->driver) {
+            if (preg_match('/\<(.*)\>/', $replyto, $match)) {
                 $replyto = $match['1'];
             }
 
@@ -269,22 +400,23 @@ class MY_Email extends CI_Email {
                 $name = $replyto;
             }
 
-            $this->phpmailer->addReplyTo($replyto, $name);
-
+            $this->driver->setHeader('Reply-To', $name . ' <' . $replyto . '>');
             $this->_replyto_flag = TRUE;
-
         } else {
-
             parent::reply_to($replyto, $name);
         }
 
         return $this;
     }
 
+    /**
+     * Add recipient
+     * 
+     * @param string $to Recipient email
+     * @return object
+     */
     public function to($to) {
-
-        if ($this->mailer_engine == 'phpmailer') {
-
+        if ($this->driver) {
             $to = $this->_str_to_array($to);
             $names = $this->_extract_name($to);
             $to = $this->clean_email($to);
@@ -293,27 +425,24 @@ class MY_Email extends CI_Email {
                 $this->validate_email($to);
             }
 
-            $i = 0;
-
             foreach ($to as $address) {
-
-                $this->phpmailer->addAddress($address, $names[$i]);
-
-                $i++;
+                $this->driver->to($address);
             }
-
         } else {
-
             parent::to($to);
         }
 
         return $this;
     }
 
+    /**
+     * Add CC recipient
+     * 
+     * @param string $cc CC recipient email
+     * @return object
+     */
     public function cc($cc) {
-
-        if ($this->mailer_engine == 'phpmailer') {
-
+        if ($this->driver) {
             $cc = $this->_str_to_array($cc);
             $names = $this->_extract_name($cc);
             $cc = $this->clean_email($cc);
@@ -322,27 +451,24 @@ class MY_Email extends CI_Email {
                 $this->validate_email($cc);
             }
 
-            $i = 0;
-
             foreach ($cc as $address) {
-
-                $this->phpmailer->addCC($address, $names[$i]);
-
-                $i++;
+                $this->driver->cc($address);
             }
-
         } else {
-
             parent::cc($cc);
         }
 
         return $this;
     }
 
+    /**
+     * Add BCC recipient
+     * 
+     * @param string $bcc BCC recipient email
+     * @return object
+     */
     public function bcc($bcc, $limit = '') {
-
-        if ($this->mailer_engine == 'phpmailer') {
-
+        if ($this->driver) {
             $bcc = $this->_str_to_array($bcc);
             $names = $this->_extract_name($bcc);
             $bcc = $this->clean_email($bcc);
@@ -351,285 +477,166 @@ class MY_Email extends CI_Email {
                 $this->validate_email($bcc);
             }
 
-            $i = 0;
-
             foreach ($bcc as $address) {
-
-                $this->phpmailer->addBCC($address, $names[$i]);
-
-                $i++;
+                $this->driver->bcc($address);
             }
-
         } else {
-
             parent::bcc($bcc, $limit);
         }
 
         return $this;
     }
 
+    /**
+     * Set email subject
+     * 
+     * @param string $subject Email subject
+     * @return object
+     */
     public function subject($subject) {
-
-        $subject = (string) $subject;
-
-        if ($this->mailer_engine == 'phpmailer') {
-
-            // Modified by Ivan Tcholakov, 01-AUG-2015.
-            // See https://github.com/ivantcholakov/codeigniter-phpmailer/issues/8
-            // This change probably is not needed, done anyway.
-            //$this->phpmailer->Subject = $subject;
-            $this->phpmailer->Subject = str_replace(array('{unwrap}', '{/unwrap}'), '', $subject);
-            //
-
+        if ($this->driver) {
+            $this->driver->subject($subject);
         } else {
-
             parent::subject($subject);
         }
 
         return $this;
     }
 
-    public function message($body) {
-
-        $body = (string) $body;
-
-        if ($this->mailer_engine == 'phpmailer') {
-
-            // Modified by Ivan Tcholakov, 01-AUG-2015.
-            // See https://github.com/ivantcholakov/codeigniter-phpmailer/issues/8
-            //$this->phpmailer->Body = $body;
-            $this->phpmailer->Body = str_replace(array('{unwrap}', '{/unwrap}'), '', $body);
-            //
-        }
-
-        parent::message($body);
-
-        return $this;
-    }
-
-    // Modified by Ivan Tcholakov, 16-JAN-2014.
-    //public function attach($file, $disposition = '', $newname = NULL, $mime = '') {
-    public function attach($file, $disposition = '', $newname = NULL, $mime = '', $embedded_image = false) {
-    //
-
-        $file = (string) $file;
-
-        $disposition = (string) $disposition;
-
-        if ($disposition == '') {
-            $disposition ='attachment';
-        }
-
-        $newname = (string) $newname;
-
-        if ($newname == '') {
-            // For making strict NULL checks happy.
-            $newname = NULL;
-        }
-
-        $mime = (string) $mime;
-
-        if ($this->mailer_engine == 'phpmailer') {
-
-            if ($mime == '') {
-
-                if (strpos($file, '://') === FALSE && ! file_exists($file)) {
-
-                    $this->_set_error_message('lang:email_attachment_missing', $file);
-                    // Modified by Ivan Tcholakov, 14-JAN-2014.
-                    //return FALSE;
-                    return $this;
-                    //
-                }
-
-                if (!$fp = @fopen($file, FOPEN_READ)) {
-
-                    $this->_set_error_message('lang:email_attachment_unreadable', $file);
-                    // Modified by Ivan Tcholakov, 14-JAN-2014.
-                    //return FALSE;
-                    return $this;
-                    //
-                }
-
-                $file_content = stream_get_contents($fp);
-                $mime = $this->_mime_types(pathinfo($file, PATHINFO_EXTENSION));
-                fclose($fp);
-
-                $this->_attachments[] = array(
-                    'name' => array($file, $newname),
-                    'disposition' => $disposition,
-                    'type' => $mime,
-                );
-
-                $newname = $newname === NULL ? basename($file) : $newname;
-                $cid = $this->attachment_cid($file);
-
-            } else {
-
-                // A buffered file, in this case make sure that $newname has been set.
-
-                $file_content =& $file;
-
-                $this->_attachments[] = array(
-                    'name' => array($newname, $newname),
-                    'disposition' => $disposition,
-                    'type' => $mime,
-                );
-
-                $cid = $this->attachment_cid($newname);
-            }
-
-            if (empty($embedded_image)) {
-                $this->phpmailer->addStringAttachment($file_content, $newname, 'base64', $mime, $disposition);
-            } else {
-                $this->phpmailer->addStringEmbeddedImage($file_content, $cid, $newname, 'base64', $mime, $disposition);
-            }
-
+    /**
+     * Set email message
+     * 
+     * @param string $message Email message
+     * @return object
+     */
+    public function message($message) {
+        if ($this->driver) {
+            $this->driver->message($message);
         } else {
-
-            parent::attach($file, $disposition, $newname, $mime);
+            parent::message($message);
         }
 
         return $this;
     }
 
-    public function attachment_cid($filename) {
-
-        if ($this->mailer_engine == 'phpmailer') {
-
-            for ($i = 0, $c = count($this->_attachments); $i < $c; $i++) {
-
-                if ($this->_attachments[$i]['name'][0] === $filename) {
-
-                    $this->_attachments[$i]['cid'] = uniqid(basename($this->_attachments[$i]['name'][0]).'@');
-                    return $this->_attachments[$i]['cid'];
-                }
-            }
-
-        } else {
-
-            return parent::attachment_cid($filename);
-        }
-
-        return FALSE;
-    }
-
-    // Added by Ivan Tcholakov, 16-JAN-2014.
-    public function get_attachment_cid($filename) {
-
-        for ($i = 0, $c = count($this->_attachments); $i < $c; $i++) {
-
-            if ($this->_attachments[$i]['name'][0] === $filename) {
-                return empty($this->_attachments[$i]['cid']) ? FALSE : $this->_attachments[$i]['cid'];
-            }
-        }
-
-        return FALSE;
-    }
-
-    public function set_header($header, $value) {
-
-        $header = (string) $header;
-        $value = (string) $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->addCustomHeader($header, str_replace(array("\n", "\r"), '', $value));
-        }
-
-        parent::set_header($header, $value);
-
-        return $this;
-    }
-
+    /**
+     * Send email
+     * 
+     * @param bool $auto_clear Whether to clear after sending
+     * @return bool Success status
+     */
     public function send($auto_clear = true) {
-
         $auto_clear = !empty($auto_clear);
 
-        if ($this->mailer_engine == 'phpmailer') {
-
-            if ($this->mailtype == 'html') {
-
-                // Modified by Ivan Tcholakov, 01-AUG-2015.
-                // See https://github.com/ivantcholakov/codeigniter-phpmailer/issues/8
-                //$this->phpmailer->AltBody = $this->_get_alt_message();
-                $this->phpmailer->AltBody = str_replace(array('{unwrap}', '{/unwrap}'), '', $this->_get_alt_message());
-                //
-            }
-
-            $result = (bool) $this->phpmailer->send();
+        if ($this->driver) {
+            $result = $this->driver->send();
 
             if ($result) {
-
                 $this->_set_error_message('lang:email_sent', $this->_get_protocol());
-
                 if ($auto_clear) {
                     $this->clear();
                 }
-
             } else {
-
-                $this->_set_error_message($this->phpmailer->ErrorInfo);
+                $error_info = $this->driver->getErrorInfo();
+                $this->_set_error_message($error_info);
+                
+                // Log detailed error information
+                log_message('error', 'Email send failed: ' . $error_info);
+                log_message('error', 'Email driver: ' . $this->driver_name);
+                log_message('error', 'SMTP Host: ' . $this->smtp_host);
+                log_message('error', 'SMTP Port: ' . $this->smtp_port);
             }
 
+            return $result;
         } else {
-
-            $result = parent::send($auto_clear);
+            return parent::send($auto_clear);
         }
-
-        return $result;
     }
 
+    /**
+     * Print debugger messages
+     * 
+     * @return string Debug output
+     */
+    public function print_debugger($include = array('headers', 'subject', 'body')) {
+        if ($this->driver) {
+            $output = '';
+            
+            // Get error information
+            $error_info = $this->driver->getErrorInfo();
+            if (!empty($error_info)) {
+                $output .= "Error Information:\n";
+                $output .= $error_info . "\n\n";
+            }
+            
+            // Get debug output from driver
+            if (method_exists($this->driver, 'getDebugOutput')) {
+                $debug_output = $this->driver->getDebugOutput();
+                if (!empty($debug_output)) {
+                    $output .= "Debug Output:\n";
+                    $output .= $debug_output . "\n\n";
+                }
+            }
+            
+            // Add configuration information
+            $output .= "Configuration:\n";
+            $output .= "Driver: " . $this->driver_name . "\n";
+            $output .= "SMTP Host: " . $this->smtp_host . "\n";
+            $output .= "SMTP Port: " . $this->smtp_port . "\n";
+            $output .= "SMTP User: " . $this->smtp_user . "\n";
+            $output .= "SMTP Auth: " . ($this->smtp_auth ? 'Yes' : 'No') . "\n";
+            $output .= "SMTP Crypto: " . $this->smtp_crypto . "\n";
+            
+            return $output;
+        } else {
+            return parent::print_debugger($include);
+        }
+    }
 
-    // Methods for setting configuration options -------------------------------
+    /**
+     * Set custom header
+     * 
+     * @param string $header Header name
+     * @param string $value Header value
+     * @return object
+     */
+    public function set_header($header, $value) {
+        if ($this->driver) {
+            $this->driver->setHeader($header, $value);
+        } else {
+            parent::set_header($header, $value);
+        }
 
-    public function set_mailer_engine($mailer_engine) {
+        return $this;
+    }
 
-        $mailer_engine = strpos(strtolower($mailer_engine), 'phpmailer') !== false ? 'phpmailer' : 'codeigniter';
+    /**
+     * Set email driver
+     * 
+     * @param string $driver_name Driver name
+     * @return object
+     */
+    public function set_email_driver($driver_name) {
+        $driver_name = strtolower($driver_name);
+        
+        // Map legacy useragent to driver name for backward compatibility
+        if (strpos($driver_name, 'phpmailer') !== false) {
+            $driver_name = 'smtp';
+        } elseif (strpos($driver_name, 'codeigniter') !== false) {
+            $driver_name = 'smtp'; // Default to SMTP instead of sendmail
+        }
 
-        if ($this->mailer_engine == $mailer_engine) {
+        if ($this->driver_name === $driver_name) {
             return $this;
         }
 
-        $this->mailer_engine = $mailer_engine;
+        $this->driver_name = $driver_name;
+        $this->driver = EmailFactory::create($driver_name);
 
-        if ($mailer_engine == 'phpmailer') {
-
-            if (!is_object($this->phpmailer)) {
-
-                /*
-                // Try to autoload the PHPMailer if there is already a registered autoloader.
-                $phpmailer_class_exists = class_exists('PHPMailer', true);
-                
-                // No? Search for autoloader at some fixed places.
-                if (!$phpmailer_class_exists && defined('COMMONPATH')) {
-
-                    $autoloader = COMMONPATH.'third_party/phpmailer/PHPMailerAutoload.php';
-                    @ include_once $autoloader;
-                    $phpmailer_class_exists = class_exists('PHPMailer', true);
-                }
-
-                if (!$phpmailer_class_exists) {
-
-                    $autoloader = APPPATH.'third_party/phpmailer/PHPMailerAutoload.php';
-                    @ include_once $autoloader;
-                    $phpmailer_class_exists = class_exists('PHPMailer', true);
-                }
-
-                if (!$phpmailer_class_exists) {
-                    throw new Exception('The file PHPMailerAutoload.php can not be found.');
-                }
-                */
-
-                $this->phpmailer = new PHPMailer();
-
-                // The property PluginDir seems to be useless, setting it just in case.
-                if (property_exists($this->phpmailer, 'PluginDir')) {
-
-                    $phpmailer_reflection = new ReflectionClass($this->phpmailer);
-                    $this->phpmailer->PluginDir = dirname($phpmailer_reflection->getFileName()).DIRECTORY_SEPARATOR;
-                    unset($phpmailer_reflection);
-                }
-            }
+        if ($this->driver) {
+            // Initialize driver with current configuration
+            $config = $this->getDriverConfig();
+            $this->driver->initialize($config);
         }
 
         $this->refresh_properties();
@@ -638,742 +645,272 @@ class MY_Email extends CI_Email {
         return $this;
     }
 
-    public function set_useragent($useragent) {
-
-        $useragent = (string) $useragent;
-
-        $this->properties['useragent'] = $useragent;
-
-        $this->set_mailer_engine($useragent);
-
-        return $this;
+    /**
+     * Set mailer engine (legacy method for backward compatibility)
+     * 
+     * @param string $mailer_engine Mailer engine
+     * @return object
+     */
+    public function set_mailer_engine($mailer_engine) {
+        // Map legacy mailer engine to driver
+        if (strpos(strtolower($mailer_engine), 'phpmailer') !== false) {
+            return $this->set_email_driver('smtp');
+        } else {
+            return $this->set_email_driver('smtp'); // Default to SMTP instead of sendmail
+        }
     }
 
-    public function set_mailpath($value) {
-
-        $value = (string) $value;
-
-        $this->properties['mailpath'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->Sendmail = $value;
+    /**
+     * Get driver-specific configuration
+     * 
+     * @return array Configuration array
+     */
+    protected function getDriverConfig() {
+        $config = array();
+        
+        // Common configuration
+        $config['charset'] = $this->charset;
+        $config['mailtype'] = $this->mailtype;
+        $config['newline'] = $this->newline;
+        $config['crlf'] = $this->crlf;
+        $config['wordwrap'] = $this->wordwrap;
+        $config['wrapchars'] = $this->wrapchars;
+        $config['priority'] = $this->priority;
+        $config['encoding'] = $this->encoding;
+        $config['validate'] = $this->validate;
+        
+        // SMTP-specific configuration
+        if ($this->driver_name === 'smtp') {
+            $config['smtp_host'] = $this->smtp_host;
+            $config['smtp_auth'] = $this->smtp_auth;
+            $config['smtp_user'] = $this->smtp_user;
+            $config['smtp_pass'] = $this->smtp_pass;
+            $config['smtp_port'] = $this->smtp_port;
+            $config['smtp_timeout'] = $this->smtp_timeout;
+            $config['smtp_keepalive'] = $this->smtp_keepalive;
+            $config['smtp_crypto'] = $this->smtp_crypto;
+            $config['smtp_auto_tls'] = $this->smtp_auto_tls;
+            $config['smtp_conn_options'] = $this->smtp_conn_options;
+            $config['smtp_debug'] = $this->smtp_debug;
+            $config['debug_output'] = $this->debug_output;
+            
+            // DKIM configuration
+            $config['dkim_domain'] = $this->dkim_domain;
+            $config['dkim_private'] = $this->dkim_private;
+            $config['dkim_private_string'] = $this->dkim_private_string;
+            $config['dkim_selector'] = $this->dkim_selector;
+            $config['dkim_passphrase'] = $this->dkim_passphrase;
+            $config['dkim_identity'] = $this->dkim_identity;
         }
+        
+        return $config;
+    }
 
-        return $this;
+    /**
+     * Get current driver instance
+     * 
+     * @return EmailInterface|null
+     */
+    public function getDriver() {
+        return $this->driver;
+    }
+
+    /**
+     * Get current driver name
+     * 
+     * @return string
+     */
+    public function getDriverName() {
+        return $this->driver_name;
+    }
+
+    /**
+     * Get PHPMailer instance (for backward compatibility)
+     * 
+     * @return PHPMailer|null
+     */
+    public function getPhpMailer() {
+        if ($this->driver && $this->driver instanceof SmtpDriver) {
+            return $this->driver->getPhpMailer();
+        }
+        return null;
+    }
+
+    /**
+     * Setter methods for configuration properties
+     */
+    public function set_useragent($useragent) {
+        $this->useragent = $useragent;
+        return $this->set_mailer_engine($useragent);
     }
 
     public function set_protocol($protocol = 'mail') {
-
-        $protocol = in_array($protocol, self::$protocols, TRUE) ? strtolower($protocol) : 'mail';
-
-        $this->properties['protocol'] = $protocol;
-
-        if ($this->mailer_engine == 'phpmailer') {
-
-            switch ($protocol) {
-
-                case 'mail':
-                    $this->phpmailer->isMail();
-                    break;
-
-                case 'sendmail':
-                    $this->phpmailer->isSendmail();
-                    break;
-
-                case 'smtp':
-                    $this->phpmailer->isSMTP();
-                    break;
-            }
-        }
-
+        $this->protocol = $protocol;
         return $this;
     }
 
-    public function set_smtp_host($value) {
-
-        $value = (string) $value;
-
-        $this->properties['smtp_host'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->Host = $value;
-        }
-
+    public function set_smtp_host($smtp_host) {
+        $this->smtp_host = $smtp_host;
         return $this;
     }
 
-    // See https://github.com/ivantcholakov/codeigniter-phpmailer/issues/31
-    public function set_smtp_auth($value) {
-
-        $this->properties['smtp_auth'] = $value;
-
-        $this->_smtp_auth =
-            $value === NULL
-                ? !($this->smtp_user == '' && $this->smtp_pass == '')
-                : !empty($value);
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->SMTPAuth = $this->_smtp_auth;
-        }
-
+    public function set_smtp_auth($smtp_auth) {
+        $this->smtp_auth = $smtp_auth;
         return $this;
     }
 
-    public function set_smtp_user($value) {
-
-        $value = (string) $value;
-
-        $this->properties['smtp_user'] = $value;
-
-        $this->_smtp_auth =
-            $this->smtp_auth === NULL
-                ? !($value == '' && $this->smtp_pass == '')
-                : !empty($this->smtp_auth);
-
-        if ($this->mailer_engine == 'phpmailer') {
-
-            $this->phpmailer->Username = $value;
-            $this->phpmailer->SMTPAuth = $this->_smtp_auth;
-        }
-
+    public function set_smtp_user($smtp_user) {
+        $this->smtp_user = $smtp_user;
         return $this;
     }
 
-    public function set_smtp_pass($value) {
-
-        $value = (string) $value;
-
-        $this->properties['smtp_pass'] = $value;
-
-        $this->_smtp_auth =
-            $this->smtp_auth === NULL
-                ? !($this->smtp_user == '' && $value == '')
-                : !empty($this->smtp_auth);
-
-        if ($this->mailer_engine == 'phpmailer') {
-
-            $this->phpmailer->Password = $value;
-            $this->phpmailer->SMTPAuth = $this->_smtp_auth;
-        }
-
+    public function set_smtp_pass($smtp_pass) {
+        $this->smtp_pass = $smtp_pass;
         return $this;
     }
 
-    public function set_smtp_port($value) {
-
-        $value = (int) $value;
-
-        $this->properties['smtp_port'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->Port = $value;
-        }
-
+    public function set_smtp_port($smtp_port) {
+        $this->smtp_port = $smtp_port;
         return $this;
     }
 
-    public function set_smtp_timeout($value) {
-
-        $value = (int) $value;
-
-        $this->properties['smtp_timeout'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->Timeout = $value;
-        }
-
+    public function set_smtp_timeout($smtp_timeout) {
+        $this->smtp_timeout = $smtp_timeout;
         return $this;
     }
 
-    public function set_smtp_keepalive($value) {
-
-        $value = !empty($value);
-
-        $this->properties['smtp_keepalive'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->SMTPKeepAlive = $value;
-        }
-
+    public function set_smtp_keepalive($smtp_keepalive) {
+        $this->smtp_keepalive = $smtp_keepalive;
         return $this;
     }
 
-    public function set_smtp_crypto($smtp_crypto = '') {
-
-        $smtp_crypto = trim(strtolower($smtp_crypto));
-
-        if ($smtp_crypto != 'tls' && $smtp_crypto != 'ssl') {
-            $smtp_crypto = '';
-        }
-
-        $this->properties['smtp_crypto'] = $smtp_crypto;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->SMTPSecure = $smtp_crypto;
-        }
-
+    public function set_smtp_crypto($smtp_crypto) {
+        $this->smtp_crypto = $smtp_crypto;
         return $this;
     }
 
-    public function set_wordwrap($wordwrap = TRUE) {
+    public function set_smtp_auto_tls($smtp_auto_tls) {
+        $this->smtp_auto_tls = $smtp_auto_tls;
+        return $this;
+    }
 
-        $wordwrap = !empty($wordwrap);
+    public function set_smtp_conn_options($smtp_conn_options) {
+        $this->smtp_conn_options = $smtp_conn_options;
+        return $this;
+    }
 
-        $this->properties['wordwrap'] = $wordwrap;
+    public function set_smtp_debug($smtp_debug) {
+        $this->smtp_debug = $smtp_debug;
+        return $this;
+    }
 
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->WordWrap = $wordwrap ? (int) $this->wrapchars : 0;
-        }
+    public function set_debug_output($debug_output) {
+        $this->debug_output = $debug_output;
+        return $this;
+    }
 
+    public function set_wordwrap($wordwrap = true) {
+        $this->wordwrap = $wordwrap;
         return $this;
     }
 
     public function set_wrapchars($wrapchars) {
-
-        $wrapchars = (int) $wrapchars;
-
-        $this->properties['wrapchars'] = $wrapchars;
-
-        if ($this->mailer_engine == 'phpmailer') {
-
-            if (!$this->wordwrap) {
-
-                $this->phpmailer->WordWrap = 0;
-
-            } else {
-
-                if (empty($wrapchars)) {
-                    $wrapchars = 76;
-                }
-
-                $this->phpmailer->WordWrap = (int) $wrapchars;
-            }
-        }
-
+        $this->wrapchars = $wrapchars;
         return $this;
     }
 
     public function set_mailtype($type = 'text') {
-
-        $type = trim(strtolower($type));
-        $type = in_array($type, self::$mailtypes) ? $type : 'text';
-
-        $this->properties['mailtype'] = $type;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->isHTML($type == 'html');
-        }
-
+        $this->mailtype = $type;
         return $this;
     }
 
     public function set_charset($charset) {
-
-        if ($charset == '') {
-            $charset = config_item('charset');
-        }
-
-        $charset = strtoupper($charset);
-
-        $this->properties['charset'] = $charset;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->CharSet = $charset;
-        }
-
+        $this->charset = $charset;
         return $this;
     }
 
-    // Not used by PHPMailer.
-    public function set_multipart($value) {
-
-        $this->properties['multipart'] = (string) $value;
-
+    public function set_multipart($multipart) {
+        $this->multipart = $multipart;
         return $this;
     }
 
     public function set_alt_message($str) {
-
-        $this->properties['alt_message'] = (string) $str;
-
+        $this->alt_message = $str;
         return $this;
     }
 
-    public function set_validate($value) {
-
-        $this->properties['validate'] = !empty($value);
-
+    public function set_validate($validate) {
+        $this->validate = $validate;
         return $this;
     }
 
     public function set_priority($n = 3) {
-
-        $n = preg_match('/^[1-5]$/', $n) ? (int) $n : 3;
-
-        $this->properties['priority'] = $n;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->Priority = $n;
-        }
-
+        $this->priority = $n;
         return $this;
     }
 
     public function set_newline($newline = "\n") {
-
-        $newline = in_array($newline, array("\n", "\r\n", "\r")) ? $newline : "\n";
-
-        $this->properties['newline'] = $newline;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->set("CRLF", $newline);
-        }
-
+        $this->newline = $newline;
         return $this;
     }
 
-    // A CodeIgniter specific option, PHPMailer uses the standard value "\r\n" only.
     public function set_crlf($crlf = "\n") {
-
-        $crlf = ($crlf !== "\n" && $crlf !== "\r\n" && $crlf !== "\r") ? "\n" : $crlf;
-
-        $this->properties['crlf'] = $crlf;
-
+        $this->crlf = $crlf;
         return $this;
     }
 
-    // Not used by PHPMailer.
-    public function set_dsn($value) {
-
-        $this->properties['dsn'] = !empty($value);
-
+    public function set_dsn($dsn) {
+        $this->dsn = $dsn;
         return $this;
     }
 
-    // Not used by PHPMailer.
-    public function set_send_multipart($value) {
-
-        $this->properties['send_multipart'] = !empty($value);
-
+    public function set_send_multipart($send_multipart) {
+        $this->send_multipart = $send_multipart;
         return $this;
     }
 
-    // Not used by PHPMailer.
-    public function set_bcc_batch_mode($value) {
-
-        $this->properties['bcc_batch_mode'] = !empty($value);
-
+    public function set_bcc_batch_mode($bcc_batch_mode) {
+        $this->bcc_batch_mode = $bcc_batch_mode;
         return $this;
     }
 
-    // Not used by PHPMailer.
-    public function set_bcc_batch_size($value) {
-
-        $this->properties['bcc_batch_size'] = (int) $value;
-
+    public function set_bcc_batch_size($bcc_batch_size) {
+        $this->bcc_batch_size = $bcc_batch_size;
         return $this;
     }
 
-    // PHPMailer's SMTP debug info level.
-    // 0 = off, 1 = commands, 2 = commands and data, 3 = as 2 plus connection status, 4 = low level data output.
-    public function set_smtp_debug($level) {
-
-        $level = (int) $level;
-
-        if ($level < 0) {
-            $level = 0;
-        }
-
-        $this->properties['smtp_debug'] = $level;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->SMTPDebug = $level;
-        }
-
-        return $this;
-    }
-
-    // PHPMailer's SMTP debug output.
-    // How to handle debug output.
-    // Options:
-    // `html` - the output gets escaped, line breaks are to be converted to `<br>`, appropriate for browser output;
-    // `echo` - the output is plain-text "as-is", it should be avoided in production web pages;
-    // `error_log` - the output is saved in error log as it is configured in php.ini;
-    // NULL or '' - default: 'echo' on CLI, 'html' otherwise.
-    //
-    // Alternatively, you can provide a callable expecting two params: a message string and the debug level:
-    // <code>
-    // function custom_debug($str, $level) {echo "debug level $level; message: $str";};
-    // $this->email->set_debug_output('custom_debug');
-    // </code>
-    public function set_debug_output($handle) {
-
-        if ($handle === null
-            ||
-            is_string($handle) && $handle == ''
-        ) {
-            $handle = self::$default_properties['debug_output'];
-        }
-
-        $this->properties['debug_output'] = $handle;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->Debugoutput = $handle;
-        }
-
-        return $this;
-    }
-
-    // Setting explicitly the body encoding.
-    // See https://github.com/ivantcholakov/codeigniter-phpmailer/issues/3
     public function set_encoding($encoding) {
-
-        $encoding = (string) $encoding;
-
-        if (!in_array($encoding, $this->mailer_engine == 'phpmailer' ? self::$encodings_phpmailer : self::$encodings_ci)) {
-            $encoding = '8bit';
-        }
-
-        $this->properties['encoding'] = $encoding;
-        $this->_encoding = $encoding;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->Encoding = $encoding;
-        }
-
+        $this->encoding = $encoding;
         return $this;
     }
 
-    // PHPMailer: Whether to enable TLS encryption automatically if a server supports it,
-    // even if `SMTPSecure` is not set to 'tls'.
-    // Be aware that in PHP >= 5.6 this requires that the server's certificates are valid.
-    public function set_smtp_auto_tls($value) {
-
-        $value = !empty($value);
-
-        $this->properties['smtp_auto_tls'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->SMTPAutoTLS = $value;
-        }
-
+    public function set_dkim_domain($dkim_domain) {
+        $this->dkim_domain = $dkim_domain;
         return $this;
     }
 
-    // PHPMailer: Options array passed to stream_context_create when connecting via SMTP.
-    // See https://github.com/ivantcholakov/codeigniter-phpmailer/issues/12
-    public function set_smtp_conn_options($value) {
-
-        if (!is_array($value)) {
-            $value = array();
-        }
-
-        $this->properties['smtp_conn_options'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->SMTPOptions = $value;
-        }
-
+    public function set_dkim_private($dkim_private) {
+        $this->dkim_private = $dkim_private;
         return $this;
     }
 
-    // DKIM signing, see https://github.com/ivantcholakov/codeigniter-phpmailer/issues/11
-
-    // PHPMailer: DKIM signing domain name, for exmple 'example.com'.
-    public function set_dkim_domain($value) {
-
-        $value = (string) $value;
-
-        $this->properties['dkim_domain'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->DKIM_domain = $value;
-        }
-
+    public function set_dkim_private_string($dkim_private_string) {
+        $this->dkim_private_string = $dkim_private_string;
         return $this;
     }
 
-    // PHPMailer: DKIM private key, set as a file path.
-    public function set_dkim_private($value) {
-
-        $value = (string) $value;
-
-        $this->properties['dkim_private'] = $value;
-
-        // Parse the provided path seek for constant and translate it.
-        // For example the path to the private key could be set as follows:
-        // {APPPATH}config/rsa.private
-        $value_parsed = str_replace(array_keys(self::_get_file_name_variables()), array_values(self::_get_file_name_variables()), $value);
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->DKIM_private = $value_parsed;
-        }
-
-        if ($value != '') {
-
-            // Reset the alternative setting.
-            $this->set_dkim_private_string('');
-        }
-
+    public function set_dkim_selector($dkim_selector) {
+        $this->dkim_selector = $dkim_selector;
         return $this;
     }
 
-    // PHPMailer: DKIM private key, set directly from a string.
-    public function set_dkim_private_string($value) {
-
-        $value = (string) $value;
-
-        $this->properties['dkim_private_string'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->DKIM_private_string = $value;
-        }
-
-        if ($value != '') {
-
-            // Reset the alternative setting.
-            $this->set_dkim_private('');
-        }
-
+    public function set_dkim_passphrase($dkim_passphrase) {
+        $this->dkim_passphrase = $dkim_passphrase;
         return $this;
     }
 
-    // PHPMailer: DKIM selector.
-    public function set_dkim_selector($value) {
-
-        $value = (string) $value;
-
-        $this->properties['dkim_selector'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->DKIM_selector = $value;
-        }
-
+    public function set_dkim_identity($dkim_identity) {
+        $this->dkim_identity = $dkim_identity;
         return $this;
     }
-
-    // PHPMailer: DKIM passphrase, used if your key is encrypted.
-    public function set_dkim_passphrase($value) {
-
-        $value = (string) $value;
-
-        $this->properties['dkim_passphrase'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->DKIM_passphrase = $value;
-        }
-
-        return $this;
-    }
-
-    // PHPMailer: DKIM Identity, usually the email address used as the source of the email.
-    public function set_dkim_identity($value) {
-
-        $value = (string) $value;
-
-        $this->properties['dkim_identity'] = $value;
-
-        if ($this->mailer_engine == 'phpmailer') {
-            $this->phpmailer->DKIM_identity = $value;
-        }
-
-        return $this;
-    }
-
-
-    // Overridden public methods -----------------------------------------------
-
-    public function valid_email($email) {
-
-        return valid_email($email);
-    }
-
-
-    // Custom public methods ---------------------------------------------------
-
-    public function full_html($subject, $message) {
-
-        $full_html =
-'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset='.strtolower($this->charset).'" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>'.htmlspecialchars($subject, ENT_QUOTES, $this->charset).'</title>
-
-    <style type="text/css">
-
-        /* See http://htmlemailboilerplate.com/ */
-
-        /* Based on The MailChimp Reset INLINE: Yes. */
-        /* Client-specific Styles */
-        #outlook a {padding:0;} /* Force Outlook to provide a "view in browser" menu link. */
-        body {
-            width:100% !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; margin:0; padding:40px;
-            font-family: Arial, Verdana, Helvetica, sans-serif; font-size: 16px;
-        }
-        /* End reset */
-
-        /* Some sensible defaults for images
-        Bring inline: Yes. */
-        img {outline:none; text-decoration:none; -ms-interpolation-mode: bicubic;}
-        a img {border:none;}
-
-        /* Yahoo paragraph fix
-        Bring inline: Yes. */
-        p {margin: 1em 0;}
-
-        /* Hotmail header color reset
-        Bring inline: Yes. */
-        h1, h2, h3, h4, h5, h6 {color: black !important;}
-
-        h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {color: blue !important;}
-
-        h1 a:active, h2 a:active,  h3 a:active, h4 a:active, h5 a:active, h6 a:active {
-        color: red !important; /* Preferably not the same color as the normal header link color.  There is limited support for psuedo classes in email clients, this was added just for good measure. */
-        }
-
-        h1 a:visited, h2 a:visited,  h3 a:visited, h4 a:visited, h5 a:visited, h6 a:visited {
-        color: purple !important; /* Preferably not the same color as the normal header link color. There is limited support for psuedo classes in email clients, this was added just for good measure. */
-        }
-
-        /* Outlook 07, 10 Padding issue fix
-        Bring inline: No.*/
-        table td {border-collapse: collapse;}
-
-        /* Remove spacing around Outlook 07, 10 tables
-        Bring inline: Yes */
-        table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
-
-        /* Styling your links has become much simpler with the new Yahoo.  In fact, it falls in line with the main credo of styling in email and make sure to bring your styles inline.  Your link colors will be uniform across clients when brought inline.
-        Bring inline: Yes. */
-        a {color: blue;}
-
-    </style>
-
-</head>
-
-<body>
-
-'.$message.'
-
-</body>
-</html>';
-
-        return $full_html;
-    }
-
-
-    // Protected methods -------------------------------------------------------
-
-    protected function _get_alt_message() {
-
-        $alt_message = (string) $this->alt_message;
-
-        if ($alt_message == '') {
-            $alt_message = $this->_plain_text($this->_body);
-        }
-
-        if ($this->mailer_engine == 'phpmailer') {
-            // PHPMailer would do the word wrapping.
-            return $alt_message;
-        }
-
-        return ($this->wordwrap)
-            ? $this->word_wrap($alt_message, 76)
-            : $alt_message;
-    }
-
-    protected function _plain_text($html) {
-
-        if (!function_exists('html_to_text')) {
-
-            $body = @ html_entity_decode($html, ENT_QUOTES, $this->charset); // Added by Ivan Tcholakov, 28-JUL-2013.
-
-            $body = preg_match('/\<body.*?\>(.*)\<\/body\>/si', $body, $match) ? $match[1] : $body;
-            $body = str_replace("\t", '', preg_replace('#<!--(.*)--\>#', '', trim(strip_tags($body))));
-
-            for ($i = 20; $i >= 3; $i--) {
-                $body = str_replace(str_repeat("\n", $i), "\n\n", $body);
-            }
-
-            // Reduce multiple spaces
-            $body = preg_replace('| +|', ' ', $body);
-
-            return $body;
-        }
-
-        // You can implement your own helper function html_to_text().
-        //
-        // An example of Markdownify-based implementation, see https://github.com/Elephant418/Markdownify
-        //
-        // Install using Composer the following package: pixel418/markdownify
-        // Place in MY_html_helper.php the following function:
-        //
-        // function html_to_text($html) {
-        //
-        //     static $parser;
-        //
-        //     if (!isset($parser)) {
-        //         $parser = new \Markdownify\ConverterExtra();
-        //     }
-        //
-        //     $parser->setKeepHTML(false);
-        //
-        //     return @ $parser->parseString($html);
-        // }
-        //
-
-        return html_to_text($html);
-    }
-
-    protected function _extract_name($address) {
-
-        if (!is_array($address)) {
-
-            $address = trim($address);
-
-            if (preg_match('/(.*)\<(.*)\>/', $address, $match)) {
-                return trim($match['1']);
-            } else {
-                return '';
-            }
-        }
-
-        $result = array();
-
-        foreach ($address as $addr) {
-
-            $addr = trim($addr);
-
-            if (preg_match('/(.*)\<(.*)\>/', $addr, $match)) {
-                $result[] = trim($match['1']);
-            } else {
-                $result[] = '';
-            }
-        }
-
-        return $result;
-    }
-
-    protected static function _get_file_name_variables() {
-
-        static $result = null;
-
-        if ($result === null) {
-
-            $result = array('{APPPATH}' => APPPATH);
-
-            if (defined('COMMONPATH')) {
-                $result['{COMMONPATH}'] = COMMONPATH;
-            }
-
-            if (defined('PLATFORMPATH')) {
-                $result['{PLATFORMPATH}'] = PLATFORMPATH;
-            }
-        }
-
-        return $result;
-    }
-
 }
