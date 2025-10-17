@@ -116,7 +116,7 @@ class Data_access_licensed extends CI_Driver {
 		$this->CI->form_validation->set_rules('org_rec', t('receiving_organization_name'), 'trim|required|xss_clean|max_length[255]');
 		//$this->form_validation->set_rules('address', t('postal_address'), 'trim|required|xss_clean|max_length[255]');
 		$this->CI->form_validation->set_rules('tel', t('telephone'), 'trim|required|xss_clean|max_length[14]');
-		$this->CI->form_validation->set_rules('datause', t('intended_use_of_data'), 'trim|required|xss_clean|max_length[1000]');
+		$this->CI->form_validation->set_rules('datause', t('intended_use_of_data'), 'trim|required|xss_clean|max_length[3000]');
 		//$this->CI->form_validation->set_rules('dataset_access', t('dataset_access'), 'trim|required|xss_clean|max_length[15]');
 
 		//optional fields
