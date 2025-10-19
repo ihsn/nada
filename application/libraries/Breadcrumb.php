@@ -424,7 +424,11 @@ class Breadcrumb
 			case 'menu':
 				$breadcrumbs['admin/menu']=t('menu');
 			break;
-			
+
+			case 'datadeposit':
+				$breadcrumbs['admin/datadeposit']=t('datadeposit');
+			break;
+
 			case 'reports':
 				$breadcrumbs['admin/reports']=t('reports');
 			break;
@@ -598,7 +602,41 @@ class Breadcrumb
 
 			}
 		}
-		
+
+		if ($segments[2] === 'datadeposit')
+		{
+
+			switch ($segments[3])
+			{
+				case 'id':
+					$title = $this->get_data_deposit_project_title($segments[4]);
+					if (strlen($title) > 100) {
+						$title = substr($title, 0, 100) . '...';
+					}
+					$breadcrumbs['admin/datadeposit/id/'.$segments[4]] = $title;
+				break;
+
+				case 'delete':
+					$title = $this->get_data_deposit_project_title($segments[4]);
+					if (strlen($title) > 100) {
+						$title = substr($title, 0, 100) . '...';
+					}
+					$breadcrumbs['admin/datadeposit/id/'.$segments[4]] = $title;
+					$breadcrumbs['admin/datadeposit/delete/'.$segments[4]] = t('delete');
+				break;
+
+				case 'assign':
+					$title = $this->get_data_deposit_project_title($segments[4]);
+					if (strlen($title) > 100) {
+						$title = substr($title, 0, 100) . '...';
+					}
+					$breadcrumbs['admin/datadeposit/id/'.$segments[4]] = $title;
+					$breadcrumbs['admin/datadeposit/assign/'.$segments[4]] = t('assign');
+				break;
+
+			}
+		}
+
 		if ($segments[2]=='resources')
 		{
 			//$breadcrumbs['admin/catalog']=t('manage_studies');			
