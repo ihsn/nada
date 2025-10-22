@@ -26,6 +26,7 @@ class DefaultAuth implements AuthInterface
 		$this->ci->lang->load('users');
 
 		$this->ci->load->driver('captcha_lib');
+		$this->ci->load->config('auth_fields');
 
       	//$this->output->enable_profiler(TRUE);
     }
@@ -153,72 +154,26 @@ class DefaultAuth implements AuthInterface
     	}
 	}
 
-    //log the user in
-    function login()
-    {
-		
+
+	//log the user in
+	function login()
+	{
 		$this->ci->template->set_template('blank');
         $this->data['title'] = t("login");
+		$csrf=$this->ci->nada_csrf->generate_token();
 
         //validate form input
     	$this->ci->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]');
-	    $this->ci->form_validation->set_rules('password', t('password'), 'required|max_length[100]');
 		$this->ci->form_validation->set_rules($this->ci->captcha_lib->get_question_field(), t('captcha'), 'trim|required|callback_validate_captcha');
+		$this->ci->form_validation->set_rules('csrf_token', 'CSRF TOKEN', 'trim|callback_validate_token');
 
-        if ($this->ci->form_validation->run() == true) { //check to see if the user is logging in
-        	//check for "remember me"
-        	if ($this->ci->input->post('remember') == 1)
-			{
-        		$remember = true;
-        	}
-        	else
-			{
-        		$remember = false;
-        	}
+        if ($this->ci->form_validation->run() == true) {
 
+			//store email in session
+			$this->ci->session->set_userdata('login_email',$this->ci->input->post('email'));
 
-			//track login attempts?
-			if ($this->ci->config->item("track_login_attempts")===TRUE)
-			{
-				//check if max login attempts limit reached
-				$max_login_limit=$this->ci->ion_auth->is_max_login_attempts_exceeded($this->ci->input->post('email'));
-
-				if ($max_login_limit)
-				{
-					$this->ci->session->set_flashdata('error', t("max_login_attempted"));
-					sleep(3);
-					redirect("auth/login");
-				}
-			}
-
-
-        	if ($this->ci->ion_auth->login($this->ci->input->post('email'), $this->ci->input->post('password'), $remember)) //if the login is successful
-			{
-				//log
-				$this->ci->db_logger->write_log('login',$this->ci->input->post('email'));
-
-				$destination=$this->ci->session->userdata("destination");
-
-				if ($destination!="")
-				{
-					$this->ci->session->unset_userdata('destination');
-					redirect($destination, 'refresh');
-				}
-				else
-				{
-				 	redirect($this->ci->config->item('base_url'), 'refresh');
-				}
-	        }
-	        else
-			{ 	//if the login was un-successful
-	        	//redirect them back to the login page
-	        	$this->ci->session->set_flashdata('error', t("login_failed"));
-
-				//log
-				$this->ci->db_logger->write_log('login-failed',$this->ci->input->post('email'));
-
-	        	redirect("auth/login", 'refresh'); //use redirects instead of loading views for compatibility with MY_Controller libraries
-	        }
+			//redirect to password page
+			redirect("auth/password", 'refresh');
         }
 		else
 		{  	//the user is not logging in so display the login page
@@ -230,11 +185,8 @@ class DefaultAuth implements AuthInterface
                                               'type'    => 'text',
                                               'value'   => $this->ci->form_validation->set_value('email'),
                                              );
-            $this->data['password']   = array('name'    => 'password',
-                                              'id'      => 'password',
-                                              'type'    => 'password',
-                                             );
 			$this->data['captcha_question']=$this->ci->captcha_lib->get_html();
+			$this->data['csrf']=$csrf;
 			
 			$content=$this->ci->load->view('auth/login', $this->data,TRUE);
 
@@ -242,7 +194,156 @@ class DefaultAuth implements AuthInterface
 			$this->ci->template->write('title', t('login'),true);
 			$this->ci->template->render();
 		}
+
+	}
+
+
+    function password()
+    {		
+		$email=$this->ci->session->userdata('login_email');
+
+		if (empty($email)){
+			redirect("auth/login", 'refresh');
+		}
+
+		$this->ci->template->set_template('blank');
+        $this->data['title'] = t("login");
+		$csrf=$this->ci->nada_csrf->generate_token();
+
+        //validate form input
+    	$this->ci->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]');
+	    $this->ci->form_validation->set_rules('password', t('password'), 'required|max_length[100]');
+		$this->ci->form_validation->set_rules('csrf_token', 'CSRF TOKEN', 'trim|callback_validate_token');
+
+		//add email to post data
+		$_POST['email']=$email;
+
+        if ($this->ci->form_validation->run() == true) {
+        	
+			//track login attempts?
+			if ($this->ci->config->item("track_login_attempts")===TRUE)
+			{
+				//check if max login attempts limit reached
+				$max_login_limit=$this->ci->ion_auth->is_max_login_attempts_exceeded($email);
+
+				if ($max_login_limit)
+				{
+					$this->ci->session->set_flashdata('error', t("max_login_attempted"));
+					sleep(3);
+					redirect("auth/login");
+				}
+			}
+
+			//check if user account exists
+			$user=$this->ci->ion_auth->get_user_by_email($email);
+
+			if ($user==false)
+			{
+				//failed login, redirect to login page
+	        	$this->ci->session->set_flashdata('error', t("login_failed"));
+				$this->ci->db_logger->write_log('login-failed',$email);
+	        	redirect("auth/password", 'refresh'); 	
+			}
+
+			//check user account is active
+			if ($user->active==0)
+			{
+				//user account is not active, redirect to email verification page
+				$this->ci->session->set_flashdata('error', t("user_email_not_verified"));
+				//$this->ci->session->set_flashdata('verify_email', $email);
+				$this->ci->session->set_userdata('verify_email',$email);
+				redirect("auth/verify", 'refresh');
+			}
+
+			//login user
+        	if ($this->ci->ion_auth->login($email, $this->ci->input->post('password')))
+			{
+				//log
+				$this->ci->db_logger->write_log('login',$email);
+
+				$destination=$this->ci->session->userdata("destination");
+				
+				//unset email from session
+				$this->ci->session->unset_userdata('login_email');
+
+				if ($destination!=""){
+					$this->ci->session->unset_userdata('destination');
+					redirect($destination, 'refresh');
+				}
+				else{
+				 	redirect($this->ci->config->item('base_url'), 'refresh');
+				}
+	        }
+	        else{ 	
+	        	//failed login, redirect to login page
+	        	$this->ci->session->set_flashdata('error', t("login_failed"));
+				$this->ci->db_logger->write_log('login-failed',$email);
+	        	redirect("auth/password", 'refresh'); 				
+	        }
+        }
+		else
+		{	     
+	        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->ci->session->flashdata('error');
+
+			$this->data['email']      = $email;
+            $this->data['password']   = array('name'    => 'password',
+                                              'id'      => 'password',
+                                              'type'    => 'password',
+                                             );
+			$this->data['csrf']=$csrf;
+			
+			$content=$this->ci->load->view('auth/login-password', $this->data,TRUE);
+
+			$this->ci->template->write('content', $content,true);
+			$this->ci->template->write('title', t('login'),true);
+			$this->ci->template->render();
+		}
     }
+
+
+	function verify()
+	{
+		$this->disable_page_cache();
+		
+		//get email from session flashdata
+		$email=$this->ci->session->userdata('verify_email');
+
+		if (empty($email)){
+			redirect("auth/login", 'refresh');
+		}
+
+		//check if user exists
+		$user=$this->ci->ion_auth->get_user_by_email($email);
+
+		if (!$user){
+			redirect("auth/login", 'refresh');
+		}		
+
+		//check for querystring resend=true
+		if ($this->ci->input->get('resend')==1)
+		{
+			//get user id
+			$user_id=$user->id;
+
+			//send verification email
+			$this->ci->ion_auth->send_email_verification($user_id);
+			$this->ci->session->set_flashdata('message', t('verification_email_sent'));
+			redirect("auth/verify", 'refresh');
+		}
+
+		$data=array(
+			'email' => $email,
+			'user'  => $user,
+		);
+
+		//load view
+		$content=$this->ci->load->view('auth/verify_email',$data,TRUE);
+
+		$this->ci->template->write('title', t('verify_account'),true);
+		$this->ci->template->write('content', $content,true);
+		$this->ci->template->render();
+	}
+
 
     //log the user out
 	function logout()
@@ -320,6 +421,7 @@ class DefaultAuth implements AuthInterface
 	//forgot password
 	function forgot_password()
 	{
+		$this->ci->template->set_template('blank');
 		$this->disable_page_cache();
 		$this->ci->form_validation->set_rules('email', t('email'), 'trim|required|xss_clean|max_length[100]|valid_email');
 		$this->ci->form_validation->set_rules($this->ci->captcha_lib->get_question_field(), t('captcha'), 'trim|required|callback_validate_captcha');
@@ -474,13 +576,24 @@ class DefaultAuth implements AuthInterface
 		$use_complex_password=$this->ci->config->item("require_complex_password");
 		$csrf=$this->ci->nada_csrf->generate_token();
 
+		$auth_fields=$this->ci->config->item('auth_fields');
+		$this->data['extra_fields']=$auth_fields;
+
         //validate form input
     	$this->ci->form_validation->set_rules('first_name', t('first_name'), 'trim|disable_html_tags|validate_name|required|xss_clean|max_length[50]');
     	$this->ci->form_validation->set_rules('last_name', t('last_name'), 'trim|disable_html_tags|validate_name|required|xss_clean|max_length[50]');
     	$this->ci->form_validation->set_rules('email', t('email'), 'trim|required|valid_email|max_length[100]|check_user_email_exists');
     	//$this->ci->form_validation->set_rules('phone1', t('phone'), 'trim|xss_clean|max_length[20]');
     	//$this->ci->form_validation->set_rules('company', t('company'), 'trim|xss_clean|max_length[100]');
-		$this->ci->form_validation->set_rules('country', t('country'), 'trim|disable_html_tags|xss_clean|max_length[150]|check_user_country_valid');
+		
+		if (isset($auth_fields['company']) && $auth_fields['company']['enabled']===true){
+			$this->ci->form_validation->set_rules('company', t('company'), $auth_fields['company']['validation']);
+		}
+
+		if (isset($auth_fields['country']) && $auth_fields['country']['enabled']===true){
+			$this->ci->form_validation->set_rules('country', t('country'), $auth_fields['country']['validation']);
+		}
+
     	$this->ci->form_validation->set_rules('password', t('password'), 'required|min_length['.$this->ci->config->item('min_password_length').']|max_length['.$this->ci->config->item('max_password_length').']|matches[password_confirm]|is_complex_password['.$use_complex_password.']');
     	$this->ci->form_validation->set_rules('password_confirm', t('password_confirmation'), 'required');
 		//$this->ci->form_validation->set_rules('form_token', 'FORM TOKEN', 'trim|callback_validate_token');
@@ -501,24 +614,30 @@ class DefaultAuth implements AuthInterface
         							 'last_name'  => $this->ci->input->post('last_name'),
         							 //'company'    => $this->ci->input->post('company'),
         							 //'phone'      => $this->ci->input->post('phone1'),// .'-'. $this->ci->input->post('phone2') .'-'. $this->ci->input->post('phone3'),
-									 'country'      => $this->ci->input->post('country'),
+									 //'country'      => $this->ci->input->post('country'),
 									 'email'=>$email,
 									 'identity'=>$username
         							);
-        	$registration_result = $this->ci->ion_auth->register($username,$password,$email,$additional_data);
-			log_message('debug', 'User registration result: ' . ($registration_result ? 'SUCCESS' : 'FAILED'));
-			log_message('debug', 'Registered user: ' . $username . ' (' . $email . ')');
-			
+			// add additional fields if enabled
+			if (isset($auth_fields['company']) && $auth_fields['company']['enabled'] === true) {
+				$additional_data['company'] = $this->ci->input->post('company');
+			}
+
+			if (isset($auth_fields['country']) && $auth_fields['country']['enabled'] === true) {
+				$additional_data['country'] = $this->ci->input->post('country');
+			}
+
+        	$registration_result = $this->ci->ion_auth->register($username, $password, $email, $additional_data);
 			$content=$this->ci->load->view('auth/create_user_confirm',NULL,TRUE);
 
 			//notify admins
-			log_message('debug', 'Preparing admin notification email for new user registration');
 			$subject=sprintf('[%s] - %s',t('notification'), t('new_user_registration')).' - '.$username;
 			$message=$this->ci->load->view('auth/email/admin_notice_new_registration', $additional_data,true);
-			
-			log_message('debug', 'Calling notify_admin() function');
-			$notification_result = notify_admin($subject,$message);
-			log_message('debug', 'notify_admin() result: ' . ($notification_result ? 'SUCCESS' : 'FAILED'));
+			$notification_result = notify_admin($subject, $message);
+
+			//redirect to confirmation page
+			$this->ci->session->set_userdata('email', $email);
+			redirect('auth/registration_complete', 'refresh');
 		}
 		else
 		{
@@ -542,16 +661,22 @@ class DefaultAuth implements AuthInterface
 		                                              'type'    => 'text',
 		                                              'value'   => $this->ci->form_validation->set_value('email'),
 		                                             );
-            /*$this->data['company']            = array('name'    => 'company',
+
+			if (isset($auth_fields['company']) && $auth_fields['company']['enabled']===true){
+            $this->data['company']            = array('name'    => 'company',
 		                                              'id'      => 'company',
 		                                              'type'    => 'text',
-		                                              'value'   => $this->ci->form_validation->set_value('company'),
+		                                              'value'   => $this->ci->form_validation->set_value('company'),			
 		                                             );
-            $this->data['phone1']             = array('name'    => 'phone1',
-		                                              'id'      => 'phone1',
-		                                              'type'    => 'text',
-		                                              'value'   => $this->ci->form_validation->set_value('phone1'),
-		                                             );*/
+			}
+			if (isset($auth_fields['coduntry']) && $auth_fields['country']['enabled']===true){
+			$this->data['country']            = array('name'    => 'country',
+		                                              'id'      => 'country',
+		                                              'type'    => 'select',
+		                                              'value'   => $this->ci->form_validation->set_value('country'),			
+		                                             );
+			}
+
 		    $this->data['password']           = array('name'    => 'password',
 		                                              'id'      => 'password',
 		                                              'type'    => 'password',
@@ -680,5 +805,23 @@ class DefaultAuth implements AuthInterface
 		$this->ci->session->set_flashdata('message', t('Check your email for verification code'));
 		redirect("auth/verify_code", 'refresh');
 	}
+
+
+
+	function registration_complete()
+	{
+		if ($this->ci->session->userdata('email')==NULL){
+			show_404();
+		}
+
+		//$this->ci->template->set_template('blank');
+		$this->data['title'] = t("registration_complete");
+		$content=$this->ci->load->view('auth/create_user_confirm',NULL,TRUE);
+		$this->ci->template->write('content', $content,true);
+		$this->ci->template->write('title', t('registration_complete'),true);
+		$this->ci->template->render();		
+	}
+
+	
 
 }//end-class

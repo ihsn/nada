@@ -1,12 +1,15 @@
 # <img align="right" src="img/github.png" alt="JSON Machine" />
 
 Very easy to use and memory efficient drop-in replacement for inefficient iteration of big JSON files or streams
-for PHP >=7.0. See [TL;DR](#tl-dr). No dependencies in production except optional `ext-json`. README in sync with the code
+for PHP >=7.2. See [TL;DR](#tl-dr). No dependencies in production except optional `ext-json`. README in sync with the code
 
 [![Build Status](https://github.com/halaxa/json-machine/actions/workflows/makefile.yml/badge.svg)](https://github.com/halaxa/json-machine/actions)
 [![codecov](https://img.shields.io/codecov/c/gh/halaxa/json-machine?label=phpunit%20%40covers)](https://codecov.io/gh/halaxa/json-machine)
 [![Latest Stable Version](https://img.shields.io/github/v/release/halaxa/json-machine?color=blueviolet&include_prereleases&logoColor=white)](https://packagist.org/packages/halaxa/json-machine)
 [![Monthly Downloads](https://img.shields.io/packagist/dt/halaxa/json-machine?color=%23f28d1a)](https://packagist.org/packages/halaxa/json-machine)
+
+---
+NEW in version `1.2.0` - [Recursive iteration](#recursive)
 
 ---
 
@@ -18,6 +21,7 @@ for PHP >=7.0. See [TL;DR](#tl-dr). No dependencies in production except optiona
   + [Parsing nested values in arrays](#parsing-nested-values)
   + [Parsing a single scalar value](#getting-scalar-values)
   + [Parsing multiple subtrees](#parsing-multiple-subtrees)
+  + [Recursive iteration](#recursive)
   + [What is JSON Pointer anyway?](#json-pointer)
 * [Options](#options)
 * [Parsing streaming responses from a JSON API](#parsing-json-stream-api-responses)
@@ -51,10 +55,12 @@ for PHP >=7.0. See [TL;DR](#tl-dr). No dependencies in production except optiona
 
 use \JsonMachine\Items;
 
-// this often causes Allowed Memory Size Exhausted
+// this often causes Allowed Memory Size Exhausted,
+// because it loads all the items in the JSON into memory
 - $users = json_decode(file_get_contents('500MB-users.json'));
 
-// this usually takes few kB of memory no matter the file size
+// this has very small memory footprint no matter the file size
+// because it loads items into memory one by one
 + $users = Items::fromFile('500MB-users.json');
 
 foreach ($users as $id => $user) {
@@ -66,10 +72,11 @@ foreach ($users as $id => $user) {
 Random access like `$users[42]` is not yet possible.
 Use above-mentioned `foreach` and find the item or use [JSON Pointer](#parsing-a-subtree).
 
-Count the items via [`iterator_count($users)`](https://www.php.net/manual/en/function.iterator-count.php).
-Remember it will still have to internally iterate the whole thing to get the count and thus will take about the same time.
+Counting the items is possible via [`iterator_count($users)`](https://www.php.net/manual/en/function.iterator-count.php).
+Remember it will still have to internally iterate the whole thing to get the count and thus will take about the same time
+as iterating it and counting in a loop.
 
-Requires `ext-json` if used out of the box. See [Decoders](#decoders).
+Requires `ext-json` if used out of the box but doesn't if a custom decoder is used. See [Decoders](#decoders).
 
 Follow [CHANGELOG](CHANGELOG.md).
 
@@ -81,7 +88,7 @@ based on generators developed for unpredictably long JSON streams or documents. 
 - Constant memory footprint for unpredictably large JSON documents.
 - Ease of use. Just iterate JSON of any size with `foreach`. No events and callbacks.
 - Efficient iteration on any subtree of the document, specified by [JSON Pointer](#json-pointer)
-- Speed. Performance critical code contains no unnecessary function calls, no regular expressions
+- Speed. Performance critical code is optimized for speed with JIT in mind,
 and uses native `json_decode` to decode JSON document items by default. See [Decoders](#decoders).
 - Parses not only streams but any iterable that produces JSON chunks.
 - Thoroughly tested. More than 200 tests and 1000 assertions.
@@ -318,6 +325,117 @@ foreach ($fruits as $key => $value) {
 }
 ```
 
+<a name="recursive"></a>
+### Recursive iteration
+Use `RecursiveItems` instead of `Items` when the JSON structure is difficult or even impossible to handle with `Items`
+and JSON pointers or the individual items you iterate are too big to handle.
+On the other hand it's notably slower than `Items`, so bear that in mind.
+
+When `RecursiveItems` encounters a list or dict in the JSON, it returns a new instance of itself
+which can then be iterated over and the cycle repeats.
+Thus, it never returns a PHP array or object, but only either scalar values or `RecursiveItems`.
+No JSON dict nor list will ever be fully loaded into memory at once.
+
+Let's see an example with many, many users with many, many friends:
+```json
+// users.json
+[
+  {
+    "username": "user",
+    "e-mail": "user@example.com",
+    "friends": [
+      {
+        "username": "friend1",
+        "e-mail": "friend1@example.com"
+      },
+      {
+        "username": "friend2",
+        "e-mail": "friend2@example.com"
+      }
+    ]
+  }
+]
+```
+
+```php
+<?php
+
+use JsonMachine\RecursiveItems
+
+$users = RecursiveItems::fromFile('users.json');
+foreach ($users as $user) {
+    /** @var $user RecursiveItems */
+    foreach ($user as $field => $value) {
+        if ($field === 'friends') {
+            /** @var $value RecursiveItems */
+            foreach ($value as $friend) {
+                /** @var $friend RecursiveItems */
+                foreach ($friend as $friendField => $friendValue) {
+                    $friendField == 'username';
+                    $friendValue == 'friend1';
+                }
+            }
+        }
+    }
+}
+```
+
+> If you break an iteration of such lazy deeper-level (i.e. you skip some `"friends"` via `break`)
+> and advance to a next value (i.e. next `user`), you will not be able to iterate it later.
+> JSON Machine must iterate it in the background to be able to read next value.
+> Such an attempt will result in closed generator exception.
+
+#### Convenience methods of `RecursiveItems`
+- `toArray(): array`
+If you are sure that a certain instance of RecursiveItems is pointing to a memory-manageable data structure
+(for example, $friend), you can call `$friend->toArray()`, and the item will materialize into a plain PHP array.
+
+- `advanceToKey(int|string $key): scalar|RecursiveItems`
+When searching for a specific key in a collection (for example, `'friends'` in `$user`),
+you do not need to use a loop and a condition to search for it.
+Instead, you can simply call `$user->advanceToKey("friends")`.
+It will iterate for you and return the value at this key. Calls can be chained.
+It also supports **array like syntax** for advancing to and getting following indices.
+So `$user['friends']` would be an alias for `$user->advanceToKey('friends')`. Calls can be chained.
+Keep in mind that it's just an alias - **you won't be able to random-access previous indices**
+after using this directly on `RecursiveItems`. It's just a syntax sugar.
+Use `toArray()` if you need random access to indices on a record/item.
+
+The previous example could thus be simplified as follows:
+```php
+<?php
+
+use JsonMachine\RecursiveItems
+
+$users = RecursiveItems::fromFile('users.json');
+foreach ($users as $user) {
+    /** @var $user RecursiveItems */
+    foreach ($user['friends'] as $friend) { // or $user->advanceToKey('friends')
+        /** @var $friend RecursiveItems */
+        $friendArray = $friend->toArray();
+        $friendArray['username'] === 'friend1';
+    }
+}
+```
+Chaining allows you to do something like this:
+```php
+<?php
+
+use JsonMachine\RecursiveItems
+
+$users = RecursiveItems::fromFile('users.json');
+$users[0]['friends'][1]['username'] === 'friend2';
+
+```
+
+#### Also `RecursiveItems implements \RecursiveIterator`
+So you can use for example PHP's builtin tools to work over `\RecursiveIterator` like those:
+
+- [RecursiveCallbackFilterIterator](https://www.php.net/manual/en/class.recursivecallbackfilteriterator.php) 
+- [RecursiveFilterIterator](https://www.php.net/manual/en/class.recursivefilteriterator.php) 
+- [RecursiveRegexIterator](https://www.php.net/manual/en/class.recursiveregexiterator.php) 
+- [RecursiveTreeIterator](https://www.php.net/manual/en/class.recursivetreeiterator.php)
+
 <a name="json-pointer"></a>
 ### What is JSON Pointer anyway?
 It's a way of addressing one item in JSON document. See the [JSON Pointer RFC 6901](https://tools.ietf.org/html/rfc6901).
@@ -516,30 +634,13 @@ but you forgot to specify a JSON Pointer. See [Parsing a subtree](#parsing-a-sub
 ### "That didn't help"
 The other reason may be, that one of the items you iterate is itself so huge it cannot be decoded at once.
 For example, you iterate over users and one of them has thousands of "friend" objects in it.
-Use `PassThruDecoder` which does not decode an item, get the json string of the user
-and parse it iteratively yourself using `Items::fromString()`.
-
-```php
-<?php
-
-use JsonMachine\Items;
-use JsonMachine\JsonDecoder\PassThruDecoder;
-
-$users = Items::fromFile('users.json', ['decoder' => new PassThruDecoder]);
-foreach ($users as $user) {
-    foreach (Items::fromString($user, ['pointer' => "/friends"]) as $friend) {
-        // process friends one by one
-    }
-}
-```
+The most efficient solution is to use [Recursive iteration](#recursive).
 
 <a name="step3"></a>
 ### "I am still out of luck"
-It probably means that the JSON string `$user` itself or one of the friends are too big and do not fit in memory.
-However, you can try this approach recursively. Parse `"/friends"` with `PassThruDecoder` getting one `$friend`
-json string at a time and then parse that using `Items::fromString()`... If even that does not help,
-there's probably no solution yet via JSON Machine. A feature is planned which will enable you to iterate
-any structure fully recursively and strings will be served as streams.
+It probably means that a single JSON scalar string itself is too big to fit in memory.
+For example very big base64-encoded file.
+In that case you will probably be still out of luck until JSON Machine supports yielding of scalar values as PHP streams.
 
 <a name="installation"></a>
 ## Installation

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laminas\Permissions\Acl\Assertion;
 
 use Laminas\Permissions\Acl\Acl;
@@ -12,8 +14,13 @@ use Laminas\Permissions\Acl\Role\RoleInterface;
  */
 class OwnershipAssertion implements AssertionInterface
 {
-    public function assert(Acl $acl, RoleInterface $role = null, ResourceInterface $resource = null, $privilege = null)
-    {
+    /** @inheritDoc */
+    public function assert(
+        Acl $acl,
+        ?RoleInterface $role = null,
+        ?ResourceInterface $resource = null,
+        $privilege = null
+    ) {
         //Assert passes if role or resource is not proprietary
         if (! $role instanceof ProprietaryInterface || ! $resource instanceof ProprietaryInterface) {
             return true;
@@ -24,6 +31,6 @@ class OwnershipAssertion implements AssertionInterface
             return true;
         }
 
-        return ($resource->getOwnerId() === $role->getOwnerId());
+        return $resource->getOwnerId() === $role->getOwnerId();
     }
 }

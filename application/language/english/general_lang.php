@@ -129,5 +129,18 @@ $lang['export_to_csv']="Export to CSV";
 $lang['translate']="Translate";
 $lang['get_reproducibility_package']="Get Reproducibility Package";
 
+
+$lang['enter_email_to_continue']="Enter your email address to continue";
+$lang['enter_your_email']="Enter your email address";
+$lang['continue']="Continue";
+$lang['login_with_social']="Login with Social Account";
+$lang['login_with']="Login with";
+$lang['login_with_email']="Login with Email";
+$lang['login_with_password']="Login with Password";
+$lang['create_account_with_email']="Create Account with Email";
+$lang['account_exists_with']="Account exists with %s";
+$lang['new_account_will_be_created']="A new account will be created for you";
+$lang['message_sent_to_your_email']="A message has been sent to your email address with instructions to reset your password.";
+
 /* End of file general_lang.php */
 /* Location: ./application/language/english/general_lang.php */

@@ -665,6 +665,8 @@ CREATE TABLE users (
   otp_expiry int DEFAULT NULL,
   forgot_request_ts INT NULL, 
   forgot_request_count INT DEFAULT 0,
+  authtype varchar(40) DEFAULT NULL,
+  authtype_id varchar(300) DEFAULT NULL,
   PRIMARY KEY (id)
 );
 

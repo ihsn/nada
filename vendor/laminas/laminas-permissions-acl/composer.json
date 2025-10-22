@@ -16,21 +16,27 @@
         "forum": "https://discourse.laminas.dev"
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "platform": {
+            "php": "7.4.99"
+        },
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     },
     "conflict": {
         "laminas/laminas-servicemanager": "<3.0",
         "zendframework/zend-permissions-acl": "*"
     },
     "require": {
-        "php": "^7.3 || ~8.0.0 || ~8.1.0"
+        "php": "^7.4 || ~8.0.0 || ~8.1.0"
     },
     "require-dev": {
-        "laminas/laminas-coding-standard": "~1.0.0",
-        "laminas/laminas-servicemanager": "^3.0.3",
+        "laminas/laminas-coding-standard": "~2.3.0",
+        "laminas/laminas-servicemanager": "^3.15.1",
         "phpunit/phpunit": "^9.5.0",
-        "psalm/plugin-phpunit": "^0.15.1",
-        "vimeo/psalm": "^4.7"
+        "psalm/plugin-phpunit": "^0.17.0",
+        "vimeo/psalm": "^4.24.0"
     },
     "suggest": {
         "laminas/laminas-servicemanager": "To support Laminas\\Permissions\\Acl\\Assertion\\AssertionManager plugin manager usage"

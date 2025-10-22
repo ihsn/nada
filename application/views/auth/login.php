@@ -6,7 +6,7 @@
 <style>
 .login-form{
     width: 100%;
-    max-width: 420px;
+    max-width: 520px;
     padding: 15px;
     margin: auto;
 }
@@ -22,8 +22,12 @@
 .image_captcha input{
     display:block;
 }
+.wb-template-blank .wb-page-body.container-fluid{
+    margin-top:150px;
+}
 </style>
-<div class="login-form">
+
+<div class="login-form border roudned p-5 shadow" >
 
 
 <?php $reason=$this->session->flashdata('reason');?>
@@ -51,33 +55,42 @@
 <h1><?php echo t('log_in');?></h1>
 <form method="post" class="form" autocomplete="off">
 
+<input type="hidden" name="<?php echo $csrf['keys']['name']; ?>" value="<?php echo $csrf['name']; ?>" />
+<input type="hidden" name="<?php echo $csrf['keys']['value']; ?>" value="<?php echo $csrf['value']; ?>" />
+
 <div style="padding:5px;">
 
-    <div class="form-group">
-        <!--<label for="email"><?php echo t('email');?>:</label>-->
+    <div class="form-group mt-3">
+        <!-- <label for="email"><?php echo t('email');?></label> -->
         <input class="form-control"  name="email" type="text" id="email"  value="" placeholder="<?php echo t('email');?>" />
     </div>
 
+    <?php /*
     <div class="form-group">
-        <!--<label for="password"><?php echo t('password');?>:</label>-->
         <input class="form-control"  name="password" type="password" id="password"  value="" placeholder="<?php echo t('password');?>"/>
     </div>
+    */?>
     
     <div class="captcha_container">
         <?php echo $captcha_question;?>
     </div>
-        
-    <div class="login-footer">
-        <input type="submit" name="submit" value="<?php echo t('login');?>" class="btn btn-primary btn-block"/>                
-        <div class="ot clearfix">
+
+    <div>
+        <input type="submit" name="submit" value="<?php echo t('login');?>" class="btn btn-primary btn-block"/>                        
+    </div>
+
+    <div class="ot clearfix mb-3">
         <?php if ($this->config->item("site_user_register")!=='no' && $this->config->item("site_password_protect")!=='yes'):?>	
             <span class="lnk first float-left"><?php echo anchor('auth/register',t('register'),'class="jx btn btn-link btn-sm"'); ?></span>
         <?php endif;?>
         <span class="lnk float-right"><?php echo anchor('auth/forgot_password',t('forgot_password'),'class="jx btn btn-link btn-sm"'); ?></span>
-        </div>
     </div>
+    
 </form>
-        
+
+
+
+
 <div class="privacy-info mt-4 text-secondary"><?php echo t('site_login_privacy_terms');?></div>
         
 </div>    
