@@ -11,11 +11,13 @@ use Email\Drivers\EmailInterface;
 use Email\Drivers\EmailFactory;
 use Email\Drivers\SmtpDriver;
 use Email\Drivers\SendgridDriver;
+use Email\Drivers\SendgridApiDriver;
 
 require_once(APPPATH . 'libraries/Email/drivers/EmailInterface.php');
 require_once(APPPATH . 'libraries/Email/drivers/EmailFactory.php');
 require_once(APPPATH . 'libraries/Email/drivers/SmtpDriver.php');
 require_once(APPPATH . 'libraries/Email/drivers/SendgridDriver.php');
+require_once(APPPATH . 'libraries/Email/drivers/SendgridApiDriver.php');
 
 class MY_Email extends CI_Email {
 

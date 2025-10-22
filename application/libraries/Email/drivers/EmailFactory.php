@@ -8,6 +8,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 require_once(__DIR__ . '/EmailInterface.php');
 require_once(__DIR__ . '/SmtpDriver.php');
 require_once(__DIR__ . '/SendgridDriver.php');
+require_once(__DIR__ . '/SendgridApiDriver.php');
 
 /**
  * Email Factory
@@ -25,6 +26,8 @@ class EmailFactory {
     private static $available_drivers = array(
         'smtp' => 'Email\\Drivers\\SmtpDriver',
         'sendgrid' => 'Email\\Drivers\\SendgridDriver',
+        'sendgrid_smtp' => 'Email\\Drivers\\SendgridDriver',
+        'sendgrid_api' => 'Email\\Drivers\\SendgridApiDriver',
         'microsoft_graph' => 'Email\\Drivers\\MicrosoftGraphDriver'
     );
     
