@@ -11,6 +11,9 @@ class Tokens implements \IteratorAggregate, PositionAware
     /** @var iterable */
     private $jsonChunks;
 
+    /** @var Generator */
+    private $generator;
+
     /**
      * @param iterable<string> $jsonChunks
      */
@@ -25,104 +28,69 @@ class Tokens implements \IteratorAggregate, PositionAware
     #[\ReturnTypeWillChange]
     public function getIterator()
     {
-        $insignificantBytes = $this->insignificantBytes();
-        $tokenBoundaries = $this->tokenBoundaries();
-        $colonCommaBracket = $this->colonCommaBracketTokenBoundaries();
+        if ( ! $this->generator) {
+            $this->generator = $this->createGenerator();
+        }
 
-        $inString = false;
-        $tokenBuffer = '';
-        $escaping = false;
+        return $this->generator;
+    }
+
+    private function createGenerator(): Generator
+    {
+        $regex = '/ [{}\[\],:] | [^\xEF\xBB\xBF\s{}\[\],:]+ /x';
+
+        $inString = 0;
+        $carry = '';
 
         foreach ($this->jsonChunks as $jsonChunk) {
-            $bytesLength = strlen($jsonChunk);
-            for ($i = 0; $i < $bytesLength; ++$i) {
-                $byte = $jsonChunk[$i];
+            $chunkBlocks = explode('"', $carry.$jsonChunk);
+            $carry = '';
 
-                if ($escaping) {
-                    $escaping = false;
-                    $tokenBuffer .= $byte;
-                    continue;
-                }
-
-                if (isset($insignificantBytes[$byte])) { // is a JSON-structure insignificant byte
-                    $tokenBuffer .= $byte;
-                    continue;
-                }
-
+            $chunkItemsLastSafeIndex = count($chunkBlocks) - 2;
+            for ($i = 0; $i <= $chunkItemsLastSafeIndex; ++$i) {
                 if ($inString) {
-                    if ($byte == '"') {
-                        $inString = false;
-                    } elseif ($byte == '\\') {
-                        $escaping = true;
+                    if ($this->stringIsEscaping($chunkBlocks[$i])) {
+                        $carry .= $chunkBlocks[$i].'"';
+                    } else {
+                        yield "\"$carry$chunkBlocks[$i]\"";
+                        $carry = '';
+                        $inString = 0;
                     }
-                    $tokenBuffer .= $byte;
-                    continue;
-                }
-
-                if (isset($tokenBoundaries[$byte])) {
-                    if ($tokenBuffer != '') {
-                        yield $tokenBuffer;
-                        $tokenBuffer = '';
+                } else {
+                    $chunkBlock = trim($chunkBlocks[$i]);
+                    if (strlen($chunkBlock) == 1) {
+                        yield $chunkBlock;
+                    } else {
+                        preg_match_all($regex, $chunkBlock, $matches);
+                        yield from $matches[0];
                     }
-                    if (isset($colonCommaBracket[$byte])) {
-                        yield $byte;
-                    }
-                } else { // else branch matches `"` but also `\` outside of a string literal which is an error anyway but strictly speaking not correctly parsed token
-                    $inString = true;
-                    $tokenBuffer .= $byte;
+                    $inString = 1;
                 }
             }
-        }
-        if ($tokenBuffer != '') {
-            yield $tokenBuffer;
-        }
-    }
 
-    private function tokenBoundaries()
-    {
-        $utf8bom1 = "\xEF";
-        $utf8bom2 = "\xBB";
-        $utf8bom3 = "\xBF";
-
-        return array_merge(
-            [
-                $utf8bom1 => true,
-                $utf8bom2 => true,
-                $utf8bom3 => true,
-                ' ' => true,
-                "\n" => true,
-                "\r" => true,
-                "\t" => true,
-            ],
-            $this->colonCommaBracketTokenBoundaries()
-        );
-    }
-
-    private function colonCommaBracketTokenBoundaries(): array
-    {
-        return [
-            '{' => true,
-            '}' => true,
-            '[' => true,
-            ']' => true,
-            ':' => true,
-            ',' => true,
-        ];
-    }
-
-    private function insignificantBytes(): array
-    {
-        $insignificantBytes = [];
-        foreach (range(0, 255) as $ord) {
-            if ( ! in_array(
-                chr($ord),
-                ['\\', '"', "\xEF", "\xBB", "\xBF", ' ', "\n", "\r", "\t", '{', '}', '[', ']', ':', ',']
-            )) {
-                $insignificantBytes[chr($ord)] = true;
+            if ($inString) {
+                $carry .= $chunkBlocks[$i];
+            } else {
+                preg_match_all($regex, $chunkBlocks[$i], $matches);
+                $carry = array_pop($matches[0]);
+                yield from $matches[0];
             }
         }
 
-        return $insignificantBytes;
+        if ($carry !== null && $carry !== '') {
+            yield ($inString ? '"' : '').$carry;
+        }
+    }
+
+    private function stringIsEscaping(string $token): bool
+    {
+        $i = strlen($token);
+        $slashes = 0;
+        while (--$i >= 0 && $token[$i] === '\\') {
+            ++$slashes;
+        }
+
+        return $slashes % 2 != 0;
     }
 
     public function getPosition(): int

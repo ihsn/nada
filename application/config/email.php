@@ -2,7 +2,7 @@
 
 //this file overwrites email settings loaded from the database
 
-$config['email_driver']     = 'smtp';                    // Email driver: 'smtp', 'sendgrid', 'microsoft_graph'
+$config['email_driver']     = 'smtp';                    // Email driver: 'smtp', 'sendgrid_api', 'sendgrid_smtp', 'microsoft_graph'
 $config['useragent']        = 'PHPMailer';              // Mail engine switcher: 'CodeIgniter' or 'PHPMailer'
 $config['protocol']         = 'smtp';                   // 'mail', 'sendmail', or 'smtp'
 $config['mailpath']         = '/usr/sbin/sendmail';
@@ -119,42 +119,58 @@ $config['smtp_email']       = 'user@gmail.com';
 $config['smtp_display_name'] = 'Your Name';
 */
 
-
-
-
 /*
-| -------------------------------------------------------------------
-| Configurations for Microsoft Graph
-| -------------------------------------------------------------------
-|
-| 
-*/
-
-// Microsoft Graph Configuration (when email_driver = 'microsoft_graph')
-/*
-$config['email_driver']                  = 'microsoft_graph';
-$config['microsoft_graph_client_id']     = '';            // Microsoft Graph Client ID
-$config['microsoft_graph_client_secret'] = '';            // Microsoft Graph Client Secret
-$config['microsoft_graph_tenant_id']     = '';            // Microsoft Graph Tenant ID
-
-
-/*
-| -------------------------------------------------------------------
-| Example configurations - using SendGrid
-| -------------------------------------------------------------------
-|
-| SendGrid API key - https://app.sendgrid.com/settings/credentials
-| 
+|| -------------------------------------------------------------------
+|| SendGrid Configuration - Option 1: SMTP
+|| -------------------------------------------------------------------
+||
+|| Uses SendGrid's SMTP interface (simple, compatible with existing code)
+|| - Compatible with standard SMTP implementations
+|| - Requires SMTP credentials
+|| - Good for basic email sending
+|| 
+|| Setup:
+|| 1. Create API Key: https://app.sendgrid.com/settings/api_keys
+|| 2. Verify sender: https://app.sendgrid.com/settings/sender_auth
+|| 
 */
 
 /*
-$config['email_driver']     = 'sendgrid'; 
-$config['smtp_host']        = 'smtp.sendgrid.net';
-$config['smtp_auth']        = true;
-$config['smtp_user']        = 'your-sendgrid-username'; //email or username
-$config['smtp_pass']        = 'your-sendgrid-api-key'; // SendGrid API key
-$config['smtp_display_name'] = 'NADA Administrator'; //display name for sender
-$config['smtp_email']       = 'your-email@your-domain.com'; //email address to send from
-$config['smtp_port']        = 587;
-$config['smtp_crypto']      = 'tls';
+$config['email_driver']      = 'sendgrid_smtp';
+$config['smtp_host']         = 'smtp.sendgrid.net';
+$config['smtp_auth']         = true;
+$config['smtp_user']         = 'apikey';
+$config['smtp_pass']         = 'SG.your-api-key-here';
+$config['smtp_port']         = 587;
+$config['smtp_crypto']       = 'tls';
+$config['smtp_email']        = 'verified@yourdomain.com';
+$config['smtp_display_name'] = 'Your Organization';
 */
+
+/*
+|| -------------------------------------------------------------------
+|| SendGrid Configuration - Option 2: REST API
+|| -------------------------------------------------------------------
+||
+|| Uses SendGrid's native REST API (faster, more features, recommended)
+|| - Direct API integration (no SMTP required)
+|| - Better performance and reliability
+|| - Advanced features support
+|| 
+|| Setup:
+|| 1. Create API Key: https://app.sendgrid.com/settings/api_keys
+|| 2. Verify sender: https://app.sendgrid.com/settings/sender_auth
+|| 
+*/
+
+/*
+$config['email_driver']      = 'sendgrid_api';
+$config['sendgrid_api_key']  = 'SG.your-api-key-here';
+$config['smtp_email']        = 'verified@yourdomain.com';
+$config['smtp_display_name'] = 'Your Organization';
+$config['mailtype']          = 'html';
+*/
+
+
+
+

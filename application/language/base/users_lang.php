@@ -95,8 +95,16 @@ $lang['reset_password']="Reset your password";
 $lang['api_keys']="API keys";
 $lang['no_api_keys_found']="No API keys found.";
 $lang['generate_api_key']="Generate API key";
+$lang['user_email_not_verified']="Your email address is not verified. Please check your inbox for the verification email we sent. To resend the verification email, click the button below.";
+$lang['complete_your_account']="Complete your account registration";
+$lang['complete_your_account_description']="You have successfully signed in with %s. Please update your information below to complete your sign-in process.";
+$lang['login_with_social']="Login with Social Account";
+$lang['login_with']="Login with";
 
-
+$lang['change_email']="Change email";
+$lang['verify_your_email']="Verify your email address";
+$lang['resend_verification_email']="Resend verification email";
+$lang['verification_email_sent']="A verification email has been sent to your email address. Please check your inbox and follow the instructions to verify your email.";
 
 /* End of file users_lang.php */
 /* Location: ./application/language/english/users_lang.php */

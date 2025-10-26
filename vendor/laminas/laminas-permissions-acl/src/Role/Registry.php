@@ -1,16 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laminas\Permissions\Acl\Role;
 
 use Laminas\Permissions\Acl\Exception;
 use Traversable;
+
+use function is_array;
+use function sprintf;
 
 class Registry
 {
     /**
      * Internal Role registry data storage
      *
-     * @var array
+     * @var array<string, RoleInterface>
      */
     protected $roles = [];
 
@@ -28,10 +33,9 @@ class Registry
      * will have the least priority, and the last parent added will have the
      * highest priority.
      *
-     * @param  RoleInterface                           $role
      * @param  RoleInterface|string|array|Traversable $parents
      * @throws Exception\InvalidArgumentException
-     * @return Registry Provides a fluent interface
+     * @return $this Provides a fluent interface
      */
     public function add(RoleInterface $role, $parents = null)
     {
@@ -64,7 +68,7 @@ class Registry
                         $roleParentId
                     ), 0, $e);
                 }
-                $roleParents[$roleParentId] = $roleParent;
+                $roleParents[$roleParentId]                      = $roleParent;
                 $this->roles[$roleParentId]['children'][$roleId] = $role;
             }
         }

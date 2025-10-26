@@ -2,7 +2,30 @@
 
 All Notable changes to `Csv` will be documented in this file
 
-## 9.7.4 - 2021-11-30
+## [9.8.0] - 2022-01-04
+
+### Added
+
+- Added PHP7.4 typed properties where applicable
+- `TabularDataReader::fetchColumnByName` to replace `TabularDataReader::fetchColumn`
+- `TabularDataReader::fetchColumnByOffset` to replace `TabularDataReader::fetchColumn`
+
+### Deprecated
+
+- `TabularDataReader::fetchColumn` use `TabularDataReader::fetchColumnByOffset` or `TabularDataReader::fetchColumnByName` instead
+
+### Fixed
+
+- `AbstractCsv` constructor is marked final via docblock.  
+ The method should never be extended or changed in child classes to avoid unexpected behaviour
+
+### Removed
+
+- PHP7.3 support
+- Remove internal `EmptyEscapeParser` Polyfill used in `Reader` class
+- Remove PHP7.4 polyfill features in `Writer` class
+
+## [9.7.4] - 2021-11-30
 
 ### Added
 
@@ -21,7 +44,7 @@ thanks to [@robertfausk](https://github.com/robertfausk) and [@Lehmub](https://g
 
 - None
 
-## 9.7.3 - 2021-11-21
+## [9.7.3] - 2021-11-21
 
 ### Added
 
@@ -41,7 +64,7 @@ thanks to [@robertfausk](https://github.com/robertfausk) and [@Lehmub](https://g
 
 - None
 
-## 9.7.2 - 2021-10-05
+## [9.7.2] - 2021-10-05
 
 ### Added
 
@@ -62,7 +85,7 @@ thanks to [@robertfausk](https://github.com/robertfausk) and [@Lehmub](https://g
 
 - None
 
-## 9.7.1 - 2021-04-17
+## [9.7.1] - 2021-04-17
 
 ### Added
 
@@ -80,7 +103,7 @@ thanks to [@robertfausk](https://github.com/robertfausk) and [@Lehmub](https://g
 
 - None
 
-## 9.7.0 - 2021-03-26
+## [9.7.0] - 2021-03-26
 
 ### Added
 
@@ -117,7 +140,7 @@ thanks to [@robertfausk](https://github.com/robertfausk) and [@Lehmub](https://g
 - PHP7.2 support
 - `League\Csv\AbstractCsv::$stream_filter_mode`
 
-## 9.6.2 - 2020-12-10
+## [9.6.2] - 2020-12-10
 
 ### Added
 
@@ -135,7 +158,7 @@ thanks to [@robertfausk](https://github.com/robertfausk) and [@Lehmub](https://g
 
 - Removing Travis and Scrutinizr as development tools
 
-## 9.6.1 - 2020-09-05
+## [9.6.1] - 2020-09-05
 
 ### Added
 
@@ -153,7 +176,7 @@ thanks to [@robertfausk](https://github.com/robertfausk) and [@Lehmub](https://g
 
 - None
 
-## 9.6.0 - 2020-03-17
+## [9.6.0] - 2020-03-17
 
 ### Added
 
@@ -178,7 +201,7 @@ thanks to [@robertfausk](https://github.com/robertfausk) and [@Lehmub](https://g
 - Internal polyfill for `is_nullable_int`
 - Support for PHP7.0 and PHP7.1
 
-## 9.5.0 - 2019-12-15
+## [9.5.0] - 2019-12-15
 
 ### Added
 
@@ -202,7 +225,7 @@ feature proposed and developed by [Darren Miller](https://github.com/dmlogic)
 
 - Nothing
 
-## 9.4.1 - 2019-10-17
+## [9.4.1] - 2019-10-17
 
 ### Added
 
@@ -220,7 +243,7 @@ feature proposed and developed by [Darren Miller](https://github.com/dmlogic)
 
 - Nothing
 
-## 9.4.0 - 2019-10-02
+## [9.4.0] - 2019-10-02
 
 ### Added
 
@@ -246,7 +269,7 @@ feature proposed and developed by [Darren Miller](https://github.com/dmlogic)
 
 - Nothing
 
-## 9.3.0 - 2019-07-30
+## [9.3.0] - 2019-07-30
 
 ### Added
 
@@ -268,7 +291,7 @@ protected methods `HTMLConverter::addHTMLAttributes` and `HTMLConverter::appendH
 
 - Nothing
 
-## 9.2.1 - 2019-06-08
+## [9.2.1] - 2019-06-08
 
 ### Added
 
@@ -287,7 +310,7 @@ protected methods `HTMLConverter::addHTMLAttributes` and `HTMLConverter::appendH
 
 - Nothing
 
-## 9.2.0 - 2019-03-08
+## [9.2.0] - 2019-03-08
 
 ### Added
 
@@ -317,7 +340,7 @@ protected methods `HTMLConverter::addHTMLAttributes` and `HTMLConverter::appendH
 
 - Nothing
 
-## 9.1.4 - 2018-05-01
+## [9.1.4] - 2018-05-01
 
 ### Added
 
@@ -336,7 +359,7 @@ protected methods `HTMLConverter::addHTMLAttributes` and `HTMLConverter::appendH
 
 - Nothing
 
-## 9.1.3 - 2018-03-12
+## [9.1.3] - 2018-03-12
 
 ### Added
 
@@ -356,7 +379,7 @@ protected methods `HTMLConverter::addHTMLAttributes` and `HTMLConverter::appendH
 
 - Nothing
 
-## 9.1.2 - 2018-02-05
+## [9.1.2] - 2018-02-05
 
 ### Added
 
@@ -375,7 +398,7 @@ protected methods `HTMLConverter::addHTMLAttributes` and `HTMLConverter::appendH
 
 - Nothing
 
-## 9.1.1 - 2017-11-28
+## [9.1.1] - 2017-11-28
 
 ### Added
 
@@ -395,7 +418,7 @@ protected methods `HTMLConverter::addHTMLAttributes` and `HTMLConverter::appendH
 
 - Nothing
 
-## 9.1.0 - 2017-10-20
+## [9.1.0] - 2017-10-20
 
 ### Added
 
@@ -419,7 +442,7 @@ protected methods `HTMLConverter::addHTMLAttributes` and `HTMLConverter::appendH
 
 - Nothing
 
-## 9.0.1 - 2017-08-21
+## [9.0.1] - 2017-08-21
 
 ### Added
 
@@ -437,7 +460,7 @@ protected methods `HTMLConverter::addHTMLAttributes` and `HTMLConverter::appendH
 
 - Nothing
 
-## 9.0.0 - 2017-08-18
+## [9.0.0] - 2017-08-18
 
 ### Added
 
@@ -1224,3 +1247,27 @@ to manage BOM character with CSV.
 ## 1.0.0 - 2013-12-03
 
 Initial Release of `Bakame\Csv`
+
+[Next]: https://github.com/thephpleague/csv/compare/9.8.0...master
+[9.8.0]: https://github.com/thephpleague/csv/compare/9.7.4...9.8.0
+[9.7.4]: https://github.com/thephpleague/csv/compare/9.7.3...9.7.4
+[9.7.3]: https://github.com/thephpleague/csv/compare/9.7.2...9.7.3
+[9.7.2]: https://github.com/thephpleague/csv/compare/9.7.1...9.7.2
+[9.7.1]: https://github.com/thephpleague/csv/compare/9.7.0...9.7.1
+[9.7.0]: https://github.com/thephpleague/csv/compare/9.6.2...9.7.0
+[9.6.2]: https://github.com/thephpleague/csv/compare/9.6.1...9.6.2
+[9.6.1]: https://github.com/thephpleague/csv/compare/9.6.0...9.6.1
+[9.6.0]: https://github.com/thephpleague/csv/compare/9.5.0...9.6.0
+[9.5.0]: https://github.com/thephpleague/csv/compare/9.4.1...9.5.0
+[9.4.1]: https://github.com/thephpleague/csv/compare/9.4.0...9.4.1
+[9.4.0]: https://github.com/thephpleague/csv/compare/9.3.0...9.4.0
+[9.3.0]: https://github.com/thephpleague/csv/compare/9.2.1...9.3.0
+[9.2.1]: https://github.com/thephpleague/csv/compare/9.2.0...9.2.1
+[9.2.0]: https://github.com/thephpleague/csv/compare/9.1.4...9.2.0
+[9.1.4]: https://github.com/thephpleague/csv/compare/9.1.3...9.1.4
+[9.1.3]: https://github.com/thephpleague/csv/compare/9.1.2...9.1.3
+[9.1.2]: https://github.com/thephpleague/csv/compare/9.1.1...9.1.2
+[9.1.1]: https://github.com/thephpleague/csv/compare/9.1.0...9.1.1
+[9.1.0]: https://github.com/thephpleague/csv/compare/9.0.1...9.1.0
+[9.0.1]: https://github.com/thephpleague/csv/compare/9.0.0...9.0.1
+[9.0.0]: https://github.com/thephpleague/csv/compare/8.2.2...9.0.0

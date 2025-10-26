@@ -675,17 +675,18 @@ CREATE TABLE `users` (
   `salt` varchar(40) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
   `activation_code` varchar(40) DEFAULT NULL,
-  `forgotten_password_code` varchar(100) DEFAULT NULL,
+  `forgotten_password_code` varchar(40) DEFAULT NULL,
   `remember_code` varchar(40) DEFAULT NULL,
   `created_on` int NOT NULL,
   `last_login` int NOT NULL,
-  `active` tinyint DEFAULT NULL,
-  `authtype` varchar(40) DEFAULT NULL,
+  `active` tinyint DEFAULT NULL,  
   `otp_code` varchar(45) DEFAULT NULL,
   `otp_expiry` int DEFAULT NULL,
   `forgotten_code_expiry` int DEFAULT NULL,
-  `forgot_request_ts` INT NULL,
-  `forgot_request_count` INT DEFAULT 0,
+  `forgot_request_ts` int DEFAULT NULL,
+  `forgot_request_count` int DEFAULT '0',
+  `authtype` varchar(40) DEFAULT NULL,
+  `authtype_id` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
