@@ -17,6 +17,7 @@
 
 namespace MongoDB\Operation;
 
+use MongoDB\Codec\DocumentCodec;
 use MongoDB\Driver\Exception\RuntimeException as DriverRuntimeException;
 use MongoDB\Driver\Server;
 use MongoDB\Exception\InvalidArgumentException;
@@ -34,13 +35,12 @@ use function MongoDB\is_pipeline;
  * @see \MongoDB\Collection::findOneAndReplace()
  * @see https://mongodb.com/docs/manual/reference/command/findAndModify/
  */
-class FindOneAndReplace implements Executable, Explainable
+final class FindOneAndReplace implements Explainable
 {
     public const RETURN_DOCUMENT_BEFORE = 1;
     public const RETURN_DOCUMENT_AFTER = 2;
 
-    /** @var FindAndModify */
-    private $findAndModify;
+    private FindAndModify $findAndModify;
 
     /**
      * Constructs a findAndModify command for replacing a document.
@@ -49,6 +49,9 @@ class FindOneAndReplace implements Executable, Explainable
      *
      *  * bypassDocumentValidation (boolean): If true, allows the write to
      *    circumvent document level validation.
+     *
+     *  * codec (MongoDB\Codec\DocumentCodec): Codec used to decode documents
+     *    from BSON to PHP objects.
      *
      *  * collation (document): Collation specification.
      *
@@ -99,27 +102,14 @@ class FindOneAndReplace implements Executable, Explainable
      * @param array        $options        Command options
      * @throws InvalidArgumentException for parameter/option parsing errors
      */
-    public function __construct(string $databaseName, string $collectionName, $filter, $replacement, array $options = [])
+    public function __construct(string $databaseName, string $collectionName, array|object $filter, array|object $replacement, array $options = [])
     {
         if (! is_document($filter)) {
             throw InvalidArgumentException::expectedDocumentType('$filter', $filter);
         }
 
-        if (! is_document($replacement)) {
-            throw InvalidArgumentException::expectedDocumentType('$replacement', $replacement);
-        }
-
-        // Treat empty arrays as replacement documents for BC
-        if ($replacement === []) {
-            $replacement = (object) $replacement;
-        }
-
-        if (is_first_key_operator($replacement)) {
-            throw new InvalidArgumentException('First key in $replacement is an update operator');
-        }
-
-        if (is_pipeline($replacement, true /* allowEmpty */)) {
-            throw new InvalidArgumentException('$replacement is an update pipeline');
+        if (isset($options['codec']) && ! $options['codec'] instanceof DocumentCodec) {
+            throw InvalidArgumentException::invalidType('"codec" option', $options['codec'], DocumentCodec::class);
         }
 
         if (isset($options['projection']) && ! is_document($options['projection'])) {
@@ -148,22 +138,22 @@ class FindOneAndReplace implements Executable, Explainable
 
         unset($options['projection'], $options['returnDocument']);
 
+        $replacement = $this->validateReplacement($replacement, $options['codec'] ?? null);
+
         $this->findAndModify = new FindAndModify(
             $databaseName,
             $collectionName,
-            ['query' => $filter, 'update' => $replacement] + $options
+            ['query' => $filter, 'update' => $replacement] + $options,
         );
     }
 
     /**
      * Execute the operation.
      *
-     * @see Executable::execute()
-     * @return array|object|null
      * @throws UnsupportedException if collation or write concern is used and unsupported
      * @throws DriverRuntimeException for other driver errors (e.g. connection errors)
      */
-    public function execute(Server $server)
+    public function execute(Server $server): array|object|null
     {
         return $this->findAndModify->execute($server);
     }
@@ -172,10 +162,35 @@ class FindOneAndReplace implements Executable, Explainable
      * Returns the command document for this operation.
      *
      * @see Explainable::getCommandDocument()
-     * @return array
      */
-    public function getCommandDocument()
+    public function getCommandDocument(): array
     {
         return $this->findAndModify->getCommandDocument();
+    }
+
+    private function validateReplacement(array|object $replacement, ?DocumentCodec $codec): array|object
+    {
+        if (isset($codec)) {
+            $replacement = $codec->encode($replacement);
+        }
+
+        if (! is_document($replacement)) {
+            throw InvalidArgumentException::expectedDocumentType('$replacement', $replacement);
+        }
+
+        // Treat empty arrays as replacement documents for BC
+        if ($replacement === []) {
+            $replacement = (object) $replacement;
+        }
+
+        if (is_first_key_operator($replacement)) {
+            throw new InvalidArgumentException('First key in $replacement is an update operator');
+        }
+
+        if (is_pipeline($replacement, true /* allowEmpty */)) {
+            throw new InvalidArgumentException('$replacement is an update pipeline');
+        }
+
+        return $replacement;
     }
 }
