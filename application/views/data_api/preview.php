@@ -82,6 +82,10 @@
       <div class="mt-5 mb-3">
         <?php $this->load->view('data_api/api_usage.php');?>
       </div>
+
+      <div class="mt-5 mb-3">
+        <?php $this->load->view('data_api/bulk_downloads.php');?>
+      </div>
       
       <div id="data_explorer">
         <div class="p-1">
@@ -102,6 +106,8 @@
   let site_url="<?php echo site_url();?>";
   let db_id="<?php echo $db_id;?>";
   let table_id="<?php echo $table_id;?>";
+  let study_idno="<?php echo isset($idno) ? $idno : '';?>";
+  let study_sid="<?php echo isset($sid) ? $sid : '';?>";
 
   new Vue({
     el: "#app",
@@ -113,6 +119,8 @@
       site_url:site_url,
       db_id: db_id,
       table_id:table_id,
+      study_idno:study_idno,
+      study_sid:study_sid,
       table_info:[],
       page:1,
       rows:[],
@@ -128,11 +136,14 @@
       pagesize_options:["15","50","100"],
       items: [],
       filters:[],
-      query_url:""
+      query_url:"",
+      bulk_downloads:[],
+      bulk_downloads_loading:false
     },
     mounted: function(){
       this.loadTableInfo();
-      this.search(true);      
+      this.search(true);
+      this.loadBulkDownloads();
     },
     computed: {
       apiDatasetInfoUrl: function () {
@@ -140,6 +151,10 @@
       },
       apiDatasetDataUrl: function () {
         return this.api_base_url + '/data/' + this.db_id + '/' + this.table_id;
+      },
+      apiBulkDownloadsUrl: function () {
+        if (!this.study_idno) return '';
+        return this.site_url + '/api/downloads/' + this.study_idno + '/files?type=data';
       },
       tableColumns: function () {
         if (this.table_info.result && this.table_info.result.metadata){
@@ -343,6 +358,80 @@
               }
           })
       },
+
+      loadBulkDownloads: function()
+      {
+        if (!this.study_idno) {
+          return;
+        }
+
+        this.bulk_downloads_loading = true;
+        let url = `${this.site_url}/api/downloads/${this.study_idno}/files?type=data`;
+        let vm = this;
+
+        $.ajax({
+          type: "GET",
+          url: url,
+          dataType: 'json',
+          success: function(data) {
+            if (data.status === 'success' && data.files) {
+              vm.bulk_downloads = data.files;
+            }
+            vm.bulk_downloads_loading = false;
+          },
+          error: function(e) {
+            vm.bulk_downloads_loading = false;
+            console.log('No bulk downloads available', e);
+          }
+        });
+      },
+
+      getFormatIcon: function(format)
+      {
+        if (!format) return 'fas fa-file';
+        
+        const formatLower = format.toLowerCase();
+        
+        if (formatLower.includes('spss')) return 'fas fa-file-alt';
+        if (formatLower.includes('stata') || formatLower.includes('dta')) return 'fas fa-file-alt';
+        if (formatLower.includes('csv')) return 'fas fa-file-csv';
+        if (formatLower.includes('zip') || formatLower.includes('compress')) return 'fas fa-file-archive';
+        if (formatLower.includes('pdf')) return 'fas fa-file-pdf';
+        if (formatLower.includes('excel') || formatLower.includes('xls')) return 'fas fa-file-excel';
+        if (formatLower.includes('word') || formatLower.includes('doc')) return 'fas fa-file-word';
+        if (formatLower.includes('sas')) return 'fas fa-file-code';
+        if (formatLower.includes('text') || formatLower.includes('txt')) return 'fas fa-file-alt';
+        
+        return 'fas fa-file';
+      },
+
+      getFormatLabel: function(format)
+      {
+        if (!format) return '';
+        
+        const formatLower = format.toLowerCase();
+        
+        if (formatLower.includes('spss')) return 'SPSS';
+        if (formatLower.includes('stata') || formatLower.includes('dta')) return 'Stata';
+        if (formatLower.includes('csv')) return 'CSV';
+        if (formatLower.includes('zip')) return 'ZIP';
+        if (formatLower.includes('pdf')) return 'PDF';
+        if (formatLower.includes('excel') || formatLower.includes('xls')) return 'Excel';
+        if (formatLower.includes('sas')) return 'SAS';
+        if (formatLower.includes('txt') || formatLower.includes('text')) return 'Text';
+        
+        return format.split('/').pop().toUpperCase();
+      },
+
+      formatDate: function(dateString)
+      {
+        if (!dateString) return '';
+        
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        
+        return date.toLocaleDateString();
+      }
 
     }
   });

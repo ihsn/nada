@@ -13,6 +13,13 @@
 <div>
     <a target="_blank" :href="apiDatasetDataUrl">{{apiDatasetDataUrl}}</a>
 </div>
+
+<div class="mt-3">
+    <strong><?php echo t('Bulk data downloads');?></strong> 
+    <div class="mt-1">
+        <a target="_blank" :href="apiBulkDownloadsUrl">{{apiBulkDownloadsUrl}}</a>
+    </div>
+</div>
     
 
 
