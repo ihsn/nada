@@ -47,7 +47,7 @@
                                target="_blank"
                                :title="'<?php echo t('External link');?>: ' + file.filename">
                                 <i class="fas fa-external-link-alt"></i> 
-                                {{ getFormatLabel(file.filename) }}                                
+                                <?php echo t('Link');?>                                
                             </a>
                         </td>
                     </tr>
