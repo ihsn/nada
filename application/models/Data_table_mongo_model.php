@@ -1030,12 +1030,13 @@ class Data_table_mongo_model extends CI_Model {
                 'csv_uploaded_at' => date('Y-m-d H:i:s'),
                 // reset import progress fields under import_progress
                 'import_progress' => array(
-                    'last_processed_row' => -1,
+                    'byte_offset_end' => 0,
                     'total_rows_processed' => 0,
                     'import_status' => 'ready',
                     'import_started_at' => null,
                     'import_completed_at' => null,
-                    'last_import_at' => null
+                    'last_import_at' => null,
+                    'progress_percent' => 0
                 )
             );
             
@@ -1079,12 +1080,13 @@ class Data_table_mongo_model extends CI_Model {
                 'csv_uploaded_at' => date('Y-m-d H:i:s'),
                 // Initialize import progress fields under import_progress
                 'import_progress' => array(
-                    'last_processed_row' => -1,
+                    'byte_offset_end' => 0,
                     'total_rows_processed' => 0,
                     'import_status' => 'ready',
                     'import_started_at' => null,
                     'import_completed_at' => null,
-                    'last_import_at' => null
+                    'last_import_at' => null,
+                    'progress_percent' => 0
                 )
             );
             
@@ -1339,19 +1341,34 @@ class Data_table_mongo_model extends CI_Model {
    } 
 
 
-   function import_csv_chunked($db_id, $table_id, $csv_path, $delimiter = ',', $start_row = 0, $max_rows = 10000, $max_time_seconds = 60)
+   /**
+    * Fast CSV import using byte offset tracking - O(1) seek time
+    * Processes maximum rows within the time limit
+    * 
+    * @param string $db_id Database ID
+    * @param string $table_id Table ID  
+    * @param string $csv_path Path to CSV file
+    * @param string $delimiter CSV delimiter
+    * @param int $byte_offset Byte position to start from (0 for beginning)
+    * @param int $max_time_seconds Maximum execution time (default: 30 seconds)
+    * @return array Import result with next byte offset
+    */
+   function import_csv_chunked($db_id, $table_id, $csv_path, $delimiter = ',', $byte_offset = 0, $max_time_seconds = 30)
    {
        $start_time = microtime(true);
        $total_processed = 0;
-       $chunk_size = 1000;
+       $chunk_size = 1000; // Batch insert every 1000 rows
        $chunked_rows = [];
-
+       
        set_time_limit(0);
-
-       // Use League CSV with header + encoding
-       $csv = Reader::createFromPath($csv_path, 'r');
-       $csv->setHeaderOffset(0);
-
+       
+       // Open file handle
+       $handle = fopen($csv_path, 'r');
+       if (!$handle) {
+           throw new Exception("Failed to open CSV file: {$csv_path}");
+       }
+       
+       // Parse delimiter
        $delimiters = [
            'comma' => ',',
            'tab' => "\t",
@@ -1359,50 +1376,92 @@ class Data_table_mongo_model extends CI_Model {
            ',' => ',',
            ';' => ';',
        ];
-       if (!empty($delimiter) && isset($delimiters[$delimiter])) {
-           $csv->setDelimiter($delimiters[$delimiter]);
+       $delimiter_char = isset($delimiters[$delimiter]) ? $delimiters[$delimiter] : ',';
+       
+       // Read header (first line)
+       $header = fgetcsv($handle, 0, $delimiter_char);
+       if (!$header) {
+           fclose($handle);
+           throw new Exception("Failed to read CSV header");
        }
-
-       $header = $csv->getHeader();
-
-       $current_row = 0;
+       
+       // Clean header names
+       $header = array_map('trim', $header);
+       
+       $header_byte_length = ftell($handle); // Store header length
+       
+       // If starting from beginning, byte_offset should be after header
+       if ($byte_offset == 0) {
+           $byte_offset = $header_byte_length;
+       }
+       
+       // Seek to the byte offset - THIS IS THE KEY OPTIMIZATION
+       // This makes seeking O(1) instead of O(n)
+       fseek($handle, $byte_offset);
+       
+       $current_byte_offset = $byte_offset;
        $has_more = false;
-
-       foreach ($csv->getRecords() as $row) {
-           // Skip rows until we reach the start row
-           if ($current_row < $start_row) {
-               $current_row++;
-               continue;
-           }
-
-           // Check if we've reached the maximum rows or time limit
-           if ($total_processed >= $max_rows || (microtime(true) - $start_time) >= $max_time_seconds) {
+       $file_size = filesize($csv_path);
+       
+       // Read rows from this position - process as many as possible within time limit
+       while (($row_data = fgetcsv($handle, 0, $delimiter_char)) !== false) {
+           
+           // Check time limit (primary constraint)
+           if ((microtime(true) - $start_time) >= $max_time_seconds) {
                $has_more = true;
                break;
            }
-
+           
+           // Skip empty rows
+           if (empty($row_data) || (count($row_data) == 1 && empty($row_data[0]))) {
+               continue;
+           }
+           
+           // Combine header with row data
+           if (count($row_data) != count($header)) {
+               // Handle rows with different column counts
+               $row_data = array_pad($row_data, count($header), '');
+           }
+           
+           $row = array_combine($header, $row_data);
+           if ($row === false) {
+               continue; // Skip malformed rows
+           }
+           
+           // Clean values
            $row = array_map(array($this, 'clean_csv_value'), $row);
            $chunked_rows[] = $row;
            $total_processed++;
-           $current_row++;
-
+           
+           // Batch insert to MongoDB
            if (count($chunked_rows) >= $chunk_size) {
                $this->table_batch_insert($db_id, $table_id, $chunked_rows);
                $chunked_rows = [];
            }
        }
-
+       
        // Insert remaining rows
        if (!empty($chunked_rows)) {
            $this->table_batch_insert($db_id, $table_id, $chunked_rows);
        }
-
+       
+       $next_byte_offset = ftell($handle);
+       
+       // Check if we've reached end of file
+       if ($next_byte_offset >= $file_size || feof($handle)) {
+           $has_more = false;
+       }
+       
+       fclose($handle);
+       
        $execution_time = microtime(true) - $start_time;
-
+       
        return [
            'rows_processed' => $total_processed,
-           'start_row' => $start_row,
-           'end_row' => $start_row + $total_processed - 1,
+           'byte_offset_start' => $byte_offset,
+           'byte_offset_end' => $next_byte_offset,
+           'file_size' => $file_size,
+           'progress_percent' => round(($next_byte_offset / $file_size) * 100, 2),
            'has_more' => $has_more,
            'execution_time_seconds' => round($execution_time, 2),
            'execution_time_formatted' => $this->format_execution_time($execution_time)
@@ -1428,8 +1487,7 @@ function format_execution_time($seconds)
            $table_id, 
            $csv_path, 
            $delimiter, 
-           0, // start row
-           999999999, //max rows
+           0, // byte offset (start from beginning)
            600 // 10 minutes timeout
        );
        
@@ -1828,22 +1886,21 @@ function format_execution_time($seconds)
 	private function validate_import_parameters($options)
 	{
 		$status_only = isset($options['status']) ? (bool)$options['status'] : false;
-		$max_rows = isset($options['max_rows']) ? (int)$options['max_rows'] : 10000;
 		$delimiter = isset($options['delimiter']) ? $options['delimiter'] : 'comma';
+		$max_time = isset($options['max_time']) ? (int)$options['max_time'] : 30;
 		
-		// Validate and normalize max_rows
-		if ($max_rows <= 0) {
-			$max_rows = 10000;
+		// Validate and normalize max_time (between 10 and 120 seconds)
+		if ($max_time < 10) {
+			$max_time = 10;
 		}
-		if ($max_rows > 50000) {
-			$max_rows = 50000;
+		if ($max_time > 120) {
+			$max_time = 120;
 		}
 		
 		return array(
 			'status_only' => $status_only,
-			'max_rows' => $max_rows,
 			'delimiter' => $delimiter,
-			'max_time' => 60 // Fixed timeout for safety
+			'max_time' => $max_time
 		);
 	}
 
@@ -1877,17 +1934,21 @@ function format_execution_time($seconds)
 	 */
 	private function get_import_status_response($table_definition)
 	{
+		$import_progress = isset($table_definition['import_progress']) ? $table_definition['import_progress'] : array();
+		
 		return array(
 			'status' => 'success',
 			'csv_info' => array(
 				'csv_file_path' => $table_definition['csv_file_path'],
-				'csv_uploaded_at' => $table_definition['csv_uploaded_at']
+				'csv_uploaded_at' => $table_definition['csv_uploaded_at'],
+				'file_size' => isset($import_progress['file_size']) ? $import_progress['file_size'] : 0
 			),
 			'progress' => array(
-				'total_rows_processed' => isset($table_definition['import_progress']['total_rows_processed']) ? $table_definition['import_progress']['total_rows_processed'] : 0,
-				'last_processed_row' => isset($table_definition['import_progress']['last_processed_row']) ? $table_definition['import_progress']['last_processed_row'] : -1,
-				'import_status' => isset($table_definition['import_progress']['import_status']) ? $table_definition['import_progress']['import_status'] : 'ready',
-				'has_more' => isset($table_definition['import_progress']['import_status']) ? $table_definition['import_progress']['import_status'] !== 'completed' : true
+				'total_rows_processed' => isset($import_progress['total_rows_processed']) ? $import_progress['total_rows_processed'] : 0,
+				'byte_offset_end' => isset($import_progress['byte_offset_end']) ? $import_progress['byte_offset_end'] : 0,
+				'progress_percent' => isset($import_progress['progress_percent']) ? $import_progress['progress_percent'] : 0,
+				'import_status' => isset($import_progress['import_status']) ? $import_progress['import_status'] : 'ready',
+				'has_more' => isset($import_progress['import_status']) ? $import_progress['import_status'] !== 'completed' : true
 			)
 		);
 	}
@@ -1897,29 +1958,30 @@ function format_execution_time($seconds)
 	 */
 	private function get_completed_import_response($table_definition, $options)
 	{
-		$start_row = isset($table_definition['import_progress']['last_processed_row']) ? 
-			$table_definition['import_progress']['last_processed_row'] + 1 : 0;
+		$import_progress = isset($table_definition['import_progress']) ? $table_definition['import_progress'] : array();
 
 		return array(
 			'status' => 'success',
 			'csv_info' => array(
 				'csv_file_path' => $table_definition['csv_file_path'],
-				'csv_uploaded_at' => $table_definition['csv_uploaded_at']
+				'csv_uploaded_at' => $table_definition['csv_uploaded_at'],
+				'file_size' => isset($import_progress['file_size']) ? $import_progress['file_size'] : 0
 			),
 			'batch' => array(
 				'rows_processed' => 0,
-				'start_row' => $start_row,
-				'end_row' => $start_row - 1,
+				'byte_offset_start' => isset($import_progress['byte_offset_end']) ? $import_progress['byte_offset_end'] : 0,
+				'byte_offset_end' => isset($import_progress['byte_offset_end']) ? $import_progress['byte_offset_end'] : 0,
 				'execution_time_seconds' => 0,
 				'execution_time_formatted' => '00h:00m:00s'
 			),
 			'progress' => array(
-				'total_rows_processed' => $table_definition['import_progress']['total_rows_processed'],
-				'last_processed_row' => $table_definition['import_progress']['last_processed_row'],
+				'total_rows_processed' => isset($import_progress['total_rows_processed']) ? $import_progress['total_rows_processed'] : 0,
+				'progress_percent' => 100,
 				'import_status' => 'completed',
 				'has_more' => false
 			),
-			'next' => null
+			'next' => null,
+			'message' => 'Import already completed'
 		);
 	}
 
@@ -1928,18 +1990,23 @@ function format_execution_time($seconds)
 	 */
 	private function execute_import_process($db_id, $table_id, $options, $table_definition)
 	{
-		$start_row = isset($table_definition['import_progress']['last_processed_row']) ? 
-			$table_definition['import_progress']['last_processed_row'] + 1 : 0;
+		// Get byte offset to resume from (0 for new import)
+		$byte_offset = isset($table_definition['import_progress']['byte_offset_end']) ? 
+			$table_definition['import_progress']['byte_offset_end'] : 0;
+
+		// Get existing row count
+		$existing_row_count = isset($table_definition['import_progress']['total_rows_processed']) ? 
+			$table_definition['import_progress']['total_rows_processed'] : 0;
 
 		// Validate import consistency
-		$this->validate_import_consistency($db_id, $table_id, $start_row, $table_definition);
+		$this->validate_import_consistency($db_id, $table_id, $byte_offset, $existing_row_count, $table_definition);
 
 		// Update progress if starting fresh
-		if ($start_row == 0) {
+		if ($byte_offset == 0) {
 			$this->update_import_progress($db_id, $table_id, array(
 				'import_status' => 'in_progress',
 				'total_rows_processed' => 0,
-				'last_processed_row' => -1,
+				'byte_offset_end' => 0,
 				'import_started_at' => date('Y-m-d H:i:s'),
 				'import_completed_at' => null
 			));
@@ -1949,25 +2016,29 @@ function format_execution_time($seconds)
 		$validated_file_path = validate_file_path($table_definition['csv_file_path'], $db_id, $table_id);
 		$full_file_path = 'datafiles/' . $validated_file_path;
 
-		// Execute import
+		// Execute import with byte offset (fast seeking)
 		$result = $this->import_csv_chunked(
 			$db_id, 
 			$table_id, 
 			$full_file_path, 
 			$options['delimiter'], 
-			$start_row, 
-			$options['max_rows'], 
+			$byte_offset,
 			$options['max_time']
 		);
 
+		// Calculate new total
+		$new_total_rows = $existing_row_count + $result['rows_processed'];
+
 		// Update progress
 		$progress_data = array(
-			'total_rows_processed' => $result['end_row'] + 1,
-			'last_processed_row' => $result['end_row'],
+			'total_rows_processed' => $new_total_rows,
+			'byte_offset_end' => $result['byte_offset_end'],
+			'file_size' => $result['file_size'],
+			'progress_percent' => $result['progress_percent'],
 			'last_batch' => array(
 				'rows_processed' => $result['rows_processed'],
-				'start_row' => $result['start_row'],
-				'end_row' => $result['end_row'],
+				'byte_offset_start' => $result['byte_offset_start'],
+				'byte_offset_end' => $result['byte_offset_end'],
 				'execution_time' => $result['execution_time_seconds']
 			)
 		);
@@ -1989,34 +2060,35 @@ function format_execution_time($seconds)
 	 */
 	private function build_import_response($table_definition, $result, $options)
 	{
-		$progress_data = array(
-			'total_rows_processed' => $result['end_row'] + 1,
-			'last_processed_row' => $result['end_row'],
-			'import_status' => $result['has_more'] ? 'in_progress' : 'completed'
-		);
+		// Get updated progress from table definition
+		$updated_definition = $this->get_table_type($table_definition['db_id'], $table_definition['table_id']);
+		$import_progress = isset($updated_definition['import_progress']) ? $updated_definition['import_progress'] : array();
 
 		return array(
 			'status' => 'success',
 			'csv_info' => array(
 				'csv_file_path' => $table_definition['csv_file_path'],
-				'csv_uploaded_at' => $table_definition['csv_uploaded_at']
+				'csv_uploaded_at' => $table_definition['csv_uploaded_at'],
+				'file_size' => $result['file_size'],
+				'file_size_mb' => round($result['file_size'] / (1024 * 1024), 2)
 			),
 			'batch' => array(
 				'rows_processed' => $result['rows_processed'],
-				'start_row' => $result['start_row'],
-				'end_row' => $result['end_row'],
+				'byte_offset_start' => $result['byte_offset_start'],
+				'byte_offset_end' => $result['byte_offset_end'],
 				'execution_time_seconds' => $result['execution_time_seconds'],
 				'execution_time_formatted' => $result['execution_time_formatted']
 			),
 			'progress' => array(
-				'total_rows_processed' => $progress_data['total_rows_processed'],
-				'last_processed_row' => $progress_data['last_processed_row'],
-				'import_status' => $progress_data['import_status'],
+				'total_rows_processed' => isset($import_progress['total_rows_processed']) ? $import_progress['total_rows_processed'] : 0,
+				'progress_percent' => $result['progress_percent'],
+				'import_status' => $result['has_more'] ? 'in_progress' : 'completed',
 				'has_more' => $result['has_more']
 			),
 			'next' => $result['has_more'] ? array(
-				'start_row' => $result['end_row'] + 1,
-				'endpoint' => base_url() . 'api/tables/import/' . $table_definition['db_id'] . '/' . $table_definition['table_id']
+				'byte_offset' => $result['byte_offset_end'],
+				'endpoint' => base_url() . 'api/tables/import/' . $table_definition['db_id'] . '/' . $table_definition['table_id'],
+				'message' => 'Call this endpoint again to continue import'
 			) : null
 		);
 	}
@@ -2024,22 +2096,19 @@ function format_execution_time($seconds)
 	/**
 	 * Validate import consistency
 	 */
-	private function validate_import_consistency($db_id, $table_id, $start_row, $table_definition)
+	private function validate_import_consistency($db_id, $table_id, $byte_offset, $expected_row_count, $table_definition)
 	{
 		$existing_rows = $this->get_table_row_count_fast($db_id, $table_id);
 		
-		if ($start_row == 0) {
+		if ($byte_offset == 0) {
 			// New import - table must be empty
 			if ($existing_rows > 0) {
 				throw new Exception("Table already contains {$existing_rows} rows. Use DELETE /api/tables/{$db_id}/{$table_id} to clear data first.");
 			}
 		} else {
 			// Resume import - check consistency
-			$expected_rows = isset($table_definition['import_progress']['total_rows_processed']) ? 
-				$table_definition['import_progress']['total_rows_processed'] : 0;
-			
-			if ($existing_rows !== $expected_rows) {
-				throw new Exception("Data inconsistency: expected {$expected_rows} rows, found {$existing_rows} rows. Use DELETE endpoint to reset.");
+			if ($existing_rows !== $expected_row_count) {
+				throw new Exception("Data inconsistency: expected {$expected_row_count} rows, found {$existing_rows} rows. Use DELETE endpoint to reset.");
 			}
 		}
 	}

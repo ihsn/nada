@@ -938,12 +938,13 @@ class Tables extends MY_REST_Controller
             $data_result = $this->Data_table_mongo_model->delete_table_data($db_id, $table_id);
             
             $this->Data_table_mongo_model->update_import_progress($db_id, $table_id, array(
-                'last_processed_row' => -1,
+                'byte_offset_end' => 0,
                 'total_rows_processed' => 0,
                 'import_status' => 'ready',
                 'import_started_at' => null,
                 'import_completed_at' => null,
-                'last_import_at' => null
+                'last_import_at' => null,
+                'progress_percent' => 0
             ));
             
             $definition_result = 0;

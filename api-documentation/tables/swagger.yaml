@@ -224,7 +224,7 @@ paths:
         tags:
           - Tables
         summary: Import CSV data
-        description: Import CSV data in chunks for large files. Requires that a file has been uploaded using the `/upload` endpoint first. Automatically resumes from last processed row. Use `status=true` to check import progress without processing data.
+        description: Import CSV data in chunks for large files. Requires that a file has been uploaded using the `/upload` endpoint first. Automatically resumes from last byte position. Use `status=true` to check import progress without processing data.
         operationId: importCsv
         consumes:
           - application/json
@@ -252,16 +252,16 @@ paths:
                   type: boolean
                   description: "If true, returns only import status without processing data (default: false)"
                   default: false
-                max_rows:
+                max_time:
                   type: integer
-                  description: "Maximum rows to process in this batch (default: 10000, max: 50000)"
-                  minimum: 1
-                  maximum: 50000
-                  default: 10000
+                  description: "Maximum execution time in seconds (default: 30, min: 10, max: 120). Processes as many rows as possible within this time."
+                  minimum: 10
+                  maximum: 120
+                  default: 30
                 delimiter:
                   type: string
                   description: "CSV delimiter - comma, tab, semicolon (default: comma)"
-                  enum: ["comma", "tab", "semicolon", ","]
+                  enum: ["comma", "tab", "semicolon", ",", ";"]
                   default: "comma"
         responses:
           '200':
@@ -278,9 +278,11 @@ paths:
                   example: "failed"
                 message:
                   type: string
+                  example: "Table already contains 1000 rows. Use DELETE /api/tables/{dbId}/{tableId} to clear data first."
                 action_required:
                   type: string
                   enum: ["delete_data_first", "reset_import"]
+                  description: "Action to take to resolve the error"
         security:
           - ApiKeyAuth: []
 
@@ -788,43 +790,81 @@ definitions:
           csv_file_path:
             type: string
             description: "Path to the CSV file being imported"
+            example: "mydb/mytable/data.csv"
           csv_uploaded_at:
             type: string
             format: date-time
             description: "When the CSV file was uploaded"
+          file_size:
+            type: integer
+            description: "Total file size in bytes"
+            example: 524288000
+          file_size_mb:
+            type: number
+            format: float
+            description: "Total file size in megabytes"
+            example: 500.0
       batch:
         type: object
+        description: "Information about the current batch processed"
         properties:
           rows_processed:
             type: integer
-          start_row:
+            description: "Number of rows processed in this batch"
+            example: 45000
+          byte_offset_start:
             type: integer
-          end_row:
+            description: "File byte position where this batch started"
+            example: 12500000
+          byte_offset_end:
             type: integer
+            description: "File byte position where this batch ended (resume point for next batch)"
+            example: 15750000
           execution_time_seconds:
             type: number
+            format: float
+            description: "Execution time for this batch in seconds"
+            example: 29.8
           execution_time_formatted:
             type: string
+            description: "Human-readable execution time"
+            example: "00h:00m:29s"
       progress:
         type: object
+        description: "Overall import progress information"
         properties:
           total_rows_processed:
             type: integer
-          last_processed_row:
-            type: integer
+            description: "Total cumulative rows imported so far"
+            example: 135000
+          progress_percent:
+            type: number
+            format: float
+            description: "Import completion percentage (based on file size)"
+            example: 25.5
           import_status:
             type: string
             enum: ["ready", "in_progress", "completed"]
+            description: "Current import status"
           has_more:
             type: boolean
+            description: "Whether there are more batches to process"
+            example: true
       next:
         type: object
         properties:
-          start_row:
+          byte_offset:
             type: integer
+            description: "Byte offset for next batch (resume point)"
+            example: 15750000
           endpoint:
             type: string
-        description: "Only present if has_more is true"
+            description: "API endpoint to call for next batch"
+            example: "http://example.com/api/tables/import/mydb/mytable"
+          message:
+            type: string
+            example: "Call this endpoint again to continue import"
+        description: "Only present if has_more is true. Contains information for resuming import."
 
   DeleteResponse:
     type: object
