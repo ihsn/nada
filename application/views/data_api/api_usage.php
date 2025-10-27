@@ -14,7 +14,7 @@
     <a target="_blank" :href="apiDatasetDataUrl">{{apiDatasetDataUrl}}</a>
 </div>
 
-<div class="mt-3">
+<div class="mt-3" v-if="bulk_downloads.length > 0">
     <strong><?php echo t('Bulk data downloads');?></strong> 
     <div class="mt-1">
         <a target="_blank" :href="apiBulkDownloadsUrl">{{apiBulkDownloadsUrl}}</a>

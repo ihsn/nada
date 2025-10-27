@@ -360,12 +360,16 @@ class Study extends MY_Controller {
 			show_404();
 		}
 
+		$study=$this->Dataset_model->get_row($sid);
+
 		$options=array(
             'db_id'=>$api_dataset[0]['db_id'],
             'table_id'=>$api_dataset[0]['table_id'],
+			'idno'=>$study['idno'],
+			'sid'=>$sid
         );
 
-        $content=$this->load->view('data_api/preview', $options,true);
+        $content=$this->load->view('data_api/preview', $options,true); 
 		$this->render_page($sid, $content,'data_api');
 	}
 	
