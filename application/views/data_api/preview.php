@@ -405,22 +405,14 @@
         return 'fas fa-file';
       },
 
-      getFormatLabel: function(format)
+      getFormatLabel: function(filename)
       {
-        if (!format) return '';
+        if (!filename) return '';
         
-        const formatLower = format.toLowerCase();
+        // Extract file extension
+        const ext = filename.split('.').pop().toLowerCase();
         
-        if (formatLower.includes('spss')) return 'SPSS';
-        if (formatLower.includes('stata') || formatLower.includes('dta')) return 'Stata';
-        if (formatLower.includes('csv')) return 'CSV';
-        if (formatLower.includes('zip')) return 'ZIP';
-        if (formatLower.includes('pdf')) return 'PDF';
-        if (formatLower.includes('excel') || formatLower.includes('xls')) return 'Excel';
-        if (formatLower.includes('sas')) return 'SAS';
-        if (formatLower.includes('txt') || formatLower.includes('text')) return 'Text';
-        
-        return format.split('/').pop().toUpperCase();
+        return ext.toUpperCase();
       },
 
       formatDate: function(dateString)

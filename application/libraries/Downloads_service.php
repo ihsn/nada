@@ -223,7 +223,6 @@ class Downloads_service{
         
         foreach ($results as $row) {
             $is_url= is_url($row['filename']);
-            $resource_identifier= isset($row['resource_idno']) ? $row['resource_idno'] : $row['resource_id'];
             
             $file_size_formatted = $this->_format_file_size($row['filesize']);
             
@@ -311,7 +310,7 @@ class Downloads_service{
      */
     function list_downloads($sid, $type=null)
     {
-        $this->ci->db->select('resources.resource_id, resources.resource_idno, resources.title, 
+        $this->ci->db->select('resources.resource_id, resources.title, 
                               resources.dctype, resources.dcformat, resources.filename, 
                               resources.author, resources.dcdate, resources.description, 
                               resources.filesize, resources.changed,
@@ -336,7 +335,7 @@ class Downloads_service{
             }
         }
         
-        $this->ci->db->order_by('resources.title', 'asc');
+        $this->ci->db->order_by('resources.changed', 'desc');
         
         $result = $this->ci->db->get()->result_array();
         
@@ -354,7 +353,7 @@ class Downloads_service{
      */
     function download_file($sid, $file_id)
     {
-        $this->ci->db->select('resources.resource_id, resources.resource_idno, resources.title, 
+        $this->ci->db->select('resources.resource_id, resources.title, 
                               resources.dctype, resources.dcformat, resources.filename, 
                               resources.author, resources.dcdate, resources.description, 
                               resources.filesize, resources.changed,
@@ -390,7 +389,7 @@ class Downloads_service{
     function get_resource_info($sid, $resource_id, $formatted=false)
     {
 
-        $this->ci->db->select('resources.resource_id, resources.resource_idno, resources.title, 
+        $this->ci->db->select('resources.resource_id, resources.title, 
                               resources.dctype, resources.dcformat, resources.filename, 
                               resources.author, resources.dcdate, resources.description, 
                               resources.filesize, resources.changed,

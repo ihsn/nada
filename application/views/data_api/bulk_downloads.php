@@ -13,7 +13,6 @@
                 <thead class="thead-light">
                     <tr>
                         <th><?php echo t('File');?></th>
-                        <th><?php echo t('Size');?></th>
                         <th><?php echo t('Date');?></th>
                         <th><?php echo t('Actions');?></th>
                     </tr>
@@ -29,10 +28,6 @@
                             </div>
                         </td>
                         <td class="text-nowrap small">
-                            <span v-if="file.file_size">{{ file.file_size }}</span>
-                            <span v-else class="text-muted">-</span>
-                        </td>
-                        <td class="text-nowrap small">
                             {{ formatDate(file.changed) }}
                         </td>
                         <td class="text-nowrap">
@@ -43,7 +38,7 @@
                                target="_blank"
                                :title="'<?php echo t('Download');?>: ' + file.filename">
                                 <i class="fas fa-download"></i> 
-                                {{ getFormatLabel(file.dcformat) }}                                
+                                {{ getFormatLabel(file.filename) }}                                
                             </a>
                             <a v-else
                                :href="file.filename" 
@@ -52,7 +47,7 @@
                                target="_blank"
                                :title="'<?php echo t('External link');?>: ' + file.filename">
                                 <i class="fas fa-external-link-alt"></i> 
-                                {{ getFormatLabel(file.dcformat) }}                                
+                                {{ getFormatLabel(file.filename) }}                                
                             </a>
                         </td>
                     </tr>
