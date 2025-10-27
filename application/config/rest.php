@@ -196,6 +196,9 @@ $config['auth_override_class_method']['tables']['collection_tables'] = 'none';
 $config['auth_override_class_method']['tables']['aggregate'] = 'none';
 $config['auth_override_class_method']['tables']['databases'] = 'none';
 
+$config['auth_override_class_method']['downloads']['*'] = 'none';
+
+
 
 // ---Uncomment list line for the wildard unit test
 // $config['auth_override_class_method']['wildcard_test_cases']['*'] = 'basic';
