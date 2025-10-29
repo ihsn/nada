@@ -142,11 +142,18 @@ $menu[]=array(
 		array(
 			'type'	=>'divider'
 		),*/
-		array(
-			'title'	=>'Facets',
-			'url'	=>'admin/facets'
-		),
-	)
+	array(
+		'title'	=>'Facets',
+		'url'	=>'admin/facets'
+	),
+	array(
+		'type'	=>'divider'
+	),
+	array(
+		'title'	=>'Database migration',
+		'url'	=>'admin/database_migration'
+	),
+)
 );
 
 $config['site_menu']=$menu;

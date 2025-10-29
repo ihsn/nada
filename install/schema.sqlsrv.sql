@@ -589,29 +589,43 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_survey_alias on [dbo].[survey_aliases](
 -- Table structure for table resources
 --
 
-CREATE TABLE resources (
-  resource_id int NOT NULL IDENTITY(1,1),
-  survey_id int NOT NULL,
-  dctype varchar(255) DEFAULT NULL,
-  title varchar(255) NOT NULL,
-  subtitle varchar(255) DEFAULT NULL,
-  author varchar(255) DEFAULT NULL,
-  dcdate varchar(45) DEFAULT NULL,
-  country varchar(45) DEFAULT NULL,
-  language varchar(255) DEFAULT NULL,
-  id_number varchar(255) DEFAULT NULL,
-  contributor varchar(255) DEFAULT NULL,
-  publisher varchar(255) DEFAULT NULL,
-  rights varchar(255) DEFAULT NULL,
-  description varchar(max),
-  abstract varchar(max),
-  toc varchar(max),
-  subjects varchar(45) DEFAULT NULL,
-  filename varchar(255) DEFAULT NULL,
-  dcformat varchar(255) DEFAULT NULL,
-  changed int DEFAULT NULL,
-  PRIMARY KEY (resource_id)
+CREATE TABLE [resources] (
+  [resource_id] int NOT NULL IDENTITY(1,1),
+  [resource_idno] nvarchar(100) DEFAULT NULL,
+  [survey_id] int NOT NULL,
+  [dctype] nvarchar(255) DEFAULT NULL,
+  [resource_type] nvarchar(50) DEFAULT NULL,
+  [filename] nvarchar(500) DEFAULT NULL,
+  [is_url] tinyint DEFAULT 0,
+  [checksum] nvarchar(64) DEFAULT NULL,
+  [filesize] bigint DEFAULT NULL,
+  [dcformat] nvarchar(255) DEFAULT NULL,
+  [metadata] nvarchar(max) DEFAULT NULL,
+  [title] nvarchar(500) NOT NULL,
+  [subtitle] nvarchar(500) DEFAULT NULL,
+  [author] nvarchar(500) DEFAULT NULL,
+  [dcdate] nvarchar(45) DEFAULT NULL,
+  [country] nvarchar(100) DEFAULT NULL,
+  [language] nvarchar(255) DEFAULT NULL,
+  [contributor] nvarchar(500) DEFAULT NULL,
+  [publisher] nvarchar(500) DEFAULT NULL,
+  [rights] nvarchar(max) DEFAULT NULL,
+  [description] nvarchar(max) DEFAULT NULL,
+  [abstract] nvarchar(max) DEFAULT NULL,
+  [toc] nvarchar(max) DEFAULT NULL,
+  [subjects] nvarchar(max) DEFAULT NULL,
+  [data_file_id] int DEFAULT NULL,
+  [sort_order] int DEFAULT 0,
+  [status] nvarchar(20) DEFAULT NULL,
+  [created] int DEFAULT NULL,
+  [created_by] int DEFAULT NULL,
+  [changed] int DEFAULT NULL,
+  [changed_by] int DEFAULT NULL,
+  PRIMARY KEY ([resource_id])
 );
+
+CREATE NONCLUSTERED INDEX [idx_res_survey_id] ON [resources] ([survey_id] ASC);
+CREATE NONCLUSTERED INDEX [idx_res_resource_type] ON [resources] ([resource_type] ASC);
 
 
 --
