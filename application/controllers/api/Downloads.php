@@ -23,7 +23,7 @@ class Downloads extends MY_REST_Controller
 	 * GET params:
 	 *  - limit: Number of results per page (default: 15)
 	 *  - offset: Starting position (default: 0)
-	 *  - type: Resource type filter (microdata, documentation) - returns all by default
+	 *  - type: Resource type filter - Category (microdata, data, documentation, doc) or specific code (doc/qst, dat/micro, tbl, aud, vid, etc.)
 	 *  - countries: Country filter (array or single value)
 	 *  - years: Year filter (array or single value)
 	 *  - data_access_type: Access type filter
@@ -91,7 +91,7 @@ class Downloads extends MY_REST_Controller
 	 * Get a list of downloadable files by study IDNO
 	 * 
 	 * GET params:
-	 *  - type: Resource type filter (microdata, documentation) - returns all by default
+	 *  - type: Resource type filter - Category (microdata, data, documentation, doc) or specific code (doc/qst, dat/micro, tbl, etc.)
 	 * 
 	 */
 	function files_get($idno=null)

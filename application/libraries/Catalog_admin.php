@@ -443,7 +443,7 @@ class Catalog_Admin
 
 	/**
 	*
-	* Fix file paths for external resources
+	* Fix file paths for external resources and sync all resource metadata
 	**/
 	function fix_resource_links($surveyid)
 	{
@@ -504,6 +504,20 @@ class Catalog_Admin
 
 			//add path for the resources
 			$broken_links[$key]['match']=$match;
+		}
+
+		// After fixing broken links, sync all resource metadata
+		try {
+			$sync_result = $this->ci->Survey_resource_model->sync_all_resources($surveyid);
+			
+			log_message('info', sprintf(
+				"Resource sync after fixlinks: %d synced, %d not found, %d errors",
+				$sync_result['synced'],
+				$sync_result['not_found'],
+				$sync_result['errors']
+			));
+		} catch (Exception $e) {
+			log_message('error', "Resource sync failed after fixlinks: " . $e->getMessage());
 		}
 
 		return $fixed_count;

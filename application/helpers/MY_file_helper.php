@@ -419,6 +419,82 @@ if ( ! function_exists('validate_file_path'))
 	}
 }
 
+
+/**
+ * get_file_mime_type
+ *
+ * Get mime type of a file using multiple detection methods
+ *
+ * @access	public
+ * @param	string	file path
+ * @return	string|false - mime type or false
+ */
+if ( ! function_exists('get_file_mime_type'))
+{
+	function get_file_mime_type($file_path)
+	{
+		if (!file_exists($file_path)) {
+			return false;
+		}
+
+		// Try using finfo (preferred method)
+		if (function_exists('finfo_open')) {
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
+			if ($finfo) {
+				$mime_type = finfo_file($finfo, $file_path);
+				finfo_close($finfo);
+				if ($mime_type) {
+					return $mime_type;
+				}
+			}
+		}
+
+		// Fallback to mime_content_type
+		if (function_exists('mime_content_type')) {
+			$mime_type = @mime_content_type($file_path);
+			if ($mime_type) {
+				return $mime_type;
+			}
+		}
+
+		// Fallback to extension-based detection
+		return get_mime_type_from_extension($file_path);
+	}
+}
+
+
+/**
+ * get_mime_type_from_extension
+ *
+ * Get mime type from file extension using CodeIgniter's mimes configuration
+ *
+ * @access	public
+ * @param	string	file path or filename
+ * @return	string - mime type
+ */
+if ( ! function_exists('get_mime_type_from_extension'))
+{
+	function get_mime_type_from_extension($file_path)
+	{
+		$extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+		
+		// Load CodeIgniter mimes configuration using the standard get_mimes() function
+		$mime_types = get_mimes();
+		
+		// Check if extension exists in mimes config
+		if (isset($mime_types[$extension])) {
+			// If it's an array, return the first MIME type
+			if (is_array($mime_types[$extension])) {
+				return $mime_types[$extension][0];
+			}
+			// If it's a string, return it directly
+			return $mime_types[$extension];
+		}
+
+		return 'application/octet-stream';
+	}
+}
+
 // ------------------------------------------------------------------------
 /* End of file MY_file_helper.php */
 /* Location: ./system/helpers/MY_file_helper.php */

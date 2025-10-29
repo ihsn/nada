@@ -168,6 +168,7 @@ class Managefiles extends MY_Controller {
 		
 		//validation rules
 		$this->form_validation->set_rules('title', t('title'), 'trim|required|max_length[255]');
+		$this->form_validation->set_rules('resource_idno', t('resource_identifier'), 'trim|max_length[100]|callback__validate_resource_idno');
 		
 		//process form				
 		if ($this->form_validation->run() == TRUE)
@@ -184,15 +185,26 @@ class Managefiles extends MY_Controller {
 			}
 			
 			$options['survey_id']=$this->uri->segment(3);
+			
+			// Set user information for audit trail
+			$user_id = $this->session->userdata('user_id');
+			if ($user_id) {
+				$options['changed_by'] = $user_id;
+			}
 
-			if (!is_numeric($resource_id))
+			if (empty($resource_id) || !is_numeric($resource_id) || $resource_id <= 0)
 			{
-				//insert
+				//insert new resource
+				if ($user_id) {
+					$options['created_by'] = $user_id;
+				}
+				unset($options['resource_id']); // Remove empty resource_id before insert
 				$db_result=$this->Survey_resource_model->insert($options);
 			}
 			else
 			{
-				//update db
+				//update existing resource
+				unset($options['resource_id']); // Remove resource_id from options, it's passed as parameter
 				$db_result=$this->Survey_resource_model->update($resource_id,$options);
 			}
 
@@ -213,14 +225,40 @@ class Managefiles extends MY_Controller {
 		else //loading form the first time
 		{
 			//if resource found, show edit form
-			if ($resource)
+			if ($resource && is_array($resource) && count($resource) > 0)
 			{
-				$data=array_merge($data,$resource[0]);			
+				$data=array_merge($data,$resource[0]);
+				
+				// Ensure resource_id is set for proper update handling
+				if (!isset($data['resource_id']) && isset($resource[0]['resource_id'])) {
+					$data['resource_id'] = $resource[0]['resource_id'];
+				}
 			}
 		}
 		
-		//resource form
-		$content=$this->load->view('managefiles/edit_resource',$data,TRUE);		
+		/* DISABLED: Data file dropdown
+		//get data files for dropdown
+		$this->load->model('Data_file_model');
+		$data_files = $this->Data_file_model->get_all_by_survey($surveyid);
+		
+		$data['data_files'] = array();
+		
+		if ($data_files) {
+			$data['data_files'][''] = t('__select__'); // empty option
+			foreach ($data_files as $file_id => $file) {
+				$data['data_files'][$file['id']] = $file['file_name'] . ' (' . $file_id . ')';
+			}
+		}
+		*/
+		
+		//use the unified resource form with simple mode
+		$data['simple_mode'] = true; // Use simple text field instead of URL/File picker
+		$data['back_link'] = 'admin/catalog/edit/'.$surveyid;
+		$data['back_text'] = t('link_resource_home');
+		$data['form_title'] = $data['page_title'];
+		
+		//resource form - using consolidated resources/edit view
+		$content=$this->load->view('resources/edit',$data,TRUE);		
 			
 		//render page
 		$this->template->write('content', $content,true);
@@ -237,6 +275,45 @@ class Managefiles extends MY_Controller {
 			$str=substr($str,1,strlen($str));
 		}
 		return $str;
+	}
+	
+	/**
+	 * Validate resource_idno format and uniqueness
+	 * 
+	 * @param string $str - the resource_idno value
+	 * @return bool
+	 */
+	function _validate_resource_idno($str)
+	{
+		// If empty, it's valid (will be auto-generated)
+		if (trim($str) == "")
+		{
+			return TRUE;
+		}
+		
+		// Validate format: only alphanumeric, hyphens, and underscores
+		if (!preg_match('/^[a-zA-Z0-9_-]+$/', $str))
+		{
+			$this->form_validation->set_message('_validate_resource_idno', 
+				t('resource_idno_invalid_format'));
+			return FALSE;
+		}
+		
+		// Get survey id and resource id
+		$survey_id = $this->uri->segment(3);
+		$resource_id = $this->input->post('resource_id');
+		
+		// Check uniqueness
+		$exclude_id = (is_numeric($resource_id)) ? $resource_id : null;
+		
+		if ($this->Survey_resource_model->resource_idno_exists($survey_id, $str, $exclude_id))
+		{
+			$this->form_validation->set_message('_validate_resource_idno', 
+				t('resource_idno_already_exists'));
+			return FALSE;
+		}
+		
+		return TRUE;
 	}
 	
 	function add()

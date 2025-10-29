@@ -294,7 +294,10 @@ class Resources extends MY_Controller {
 		$data[]=NULL;
 		
 		//atleast one rule require for validation class to work
-		$this->form_validation->set_rules('title', t('title'), 'required|trim');		
+		$this->form_validation->set_rules('title', t('title'), 'required|trim');
+		
+		//validation for resource_idno if provided
+		$this->form_validation->set_rules('resource_idno', t('resource_identifier'), 'trim|max_length[100]|callback__validate_resource_idno');
 				
 		if ($this->form_validation->run() == TRUE)
 		{
@@ -320,6 +323,15 @@ class Resources extends MY_Controller {
 							
 			//map form names with db names
 			$options['filename']=$options['url'];
+			
+			// Set user information for audit trail
+			$user_id = $this->session->userdata('user_id');
+			if ($user_id) {
+				$options['changed_by'] = $user_id;
+				if ($id=='add') {
+					$options['created_by'] = $user_id;
+				}
+			}
 						
 			if ($id=='add')
 			{
@@ -374,6 +386,21 @@ class Resources extends MY_Controller {
 		{
 			$data['form_title']=t('add_external_resource');
 		}
+
+		/* DISABLED: Data file dropdown
+		//get data files for dropdown
+		$this->load->model('Data_file_model');
+		$data_files = $this->Data_file_model->get_all_by_survey($survey_id);		
+		
+		$data['data_files'] = array();
+		
+		if ($data_files) {
+			$data['data_files'][''] = t('__select__'); // empty option
+			foreach ($data_files as $file_id => $file) {
+				$data['data_files'][$file['id']] = $file['file_name'] . ' (' . $file_id . ')';
+			}
+		}
+		*/
 		
 		//load form
 		$content=$this->load->view('resources/edit', $data,true);
@@ -425,6 +452,45 @@ class Resources extends MY_Controller {
 		}
 		
 		return TRUE;				
+	}
+	
+	/**
+	 * Validate resource_idno format and uniqueness
+	 * 
+	 * @param string $str - the resource_idno value
+	 * @return bool
+	 */
+	function _validate_resource_idno($str)
+	{
+		// If empty, it's valid (will be auto-generated)
+		if (trim($str) == "")
+		{
+			return TRUE;
+		}
+		
+		// Validate format: only alphanumeric, hyphens, and underscores
+		if (!preg_match('/^[a-zA-Z0-9_-]+$/', $str))
+		{
+			$this->form_validation->set_message('_validate_resource_idno', 
+				t('resource_idno_invalid_format'));
+			return FALSE;
+		}
+		
+		// Get survey id and resource id
+		$survey_id = $this->uri->segment(5);
+		$resource_id = $this->uri->segment(4); // 'add' or numeric id
+		
+		// Check uniqueness
+		$exclude_id = ($resource_id !== 'add' && is_numeric($resource_id)) ? $resource_id : null;
+		
+		if ($this->Survey_resource_model->resource_idno_exists($survey_id, $str, $exclude_id))
+		{
+			$this->form_validation->set_message('_validate_resource_idno', 
+				t('resource_idno_already_exists'));
+			return FALSE;
+		}
+		
+		return TRUE;
 	}
 	
 	/**
@@ -716,7 +782,11 @@ class Resources extends MY_Controller {
 		$this->load->library('catalog_admin');		
 		$fixed_count=$this->catalog_admin->fix_resource_links($surveyid);		
 		
-		$this->session->set_flashdata('message', sprintf (t('n_resources_fixed'),$fixed_count));
+		// Build message - fixlinks now also syncs all resource metadata
+		$message = sprintf(t('n_resources_fixed'), $fixed_count);
+		$message .= ' ' . t('resource_metadata_synced');
+		
+		$this->session->set_flashdata('message', $message);
 		redirect('admin/catalog/edit/'.$surveyid.'/resources',"refresh");
 	}
 	
@@ -824,6 +894,9 @@ class Resources extends MY_Controller {
 				}	
     		}
 		}
+		
+		// Sync resources for uploaded files only
+		$this->_sync_uploaded_files($sid, $files);
 		
 		redirect('admin/catalog/edit/'.$sid);
 	}
@@ -985,10 +1058,65 @@ class Resources extends MY_Controller {
 				die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "id"}');
 		}
 		
+		// Sync resources for uploaded file only (only on final chunk)
+		if ($chunk == $chunks - 1) {
+			$this->_sync_uploaded_file($surveyid, $fileName);
+		}
+		
 		// Return JSON-RPC response
 		die('{"jsonrpc" : "2.0", "result" : null, "id" : "id"}');	
 	}
+	/**
+	 * Sync resources for uploaded files (standard upload)
+	 */
+	private function _sync_uploaded_files($survey_id, $files)
+	{
+		if (!$files || !isset($files["file"]["name"])) {
+			return;
+		}
+		
+		foreach ($files["file"]["name"] as $key => $filename) {
+			if ($files["file"]["error"][$key] == UPLOAD_ERR_OK) {
+				$this->_sync_uploaded_file($survey_id, $filename);
+			}
+		}
+	}
 	
+	/**
+	 * Sync resources for a single uploaded file
+	 */
+	private function _sync_uploaded_file($survey_id, $filename)
+	{
+		try {
+			// Find all resources matching this filename
+			$resources = $this->Survey_resource_model->get_survey_resources_by_filepath($survey_id, $filename);
+			
+			if (empty($resources)) {
+				log_message('debug', "No resources found for uploaded file: {$filename}");
+				return;
+			}
+			
+			$synced_count = 0;
+			
+			// Sync each matching resource
+			foreach ($resources as $resource) {
+				$result = $this->Survey_resource_model->sync_resource($resource['resource_id']);
+				
+				if ($result['status'] == 'synced') {
+					$synced_count++;
+					log_message('info', "Synced resource #{$resource['resource_id']} for file: {$filename}");
+				} else {
+					log_message('debug', "Resource #{$resource['resource_id']} unchanged for file: {$filename}");
+				}
+			}
+			
+			log_message('info', "Synced {$synced_count} resource(s) for uploaded file: {$filename}");
+			
+		} catch (Exception $e) {
+			log_message('error', "Failed to sync resources for file {$filename}: " . $e->getMessage());
+		}
+	}
+
 }
 /* End of file resources.php */
 /* Location: ./controllers/admin/resources.php */

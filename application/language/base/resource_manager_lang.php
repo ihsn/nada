@@ -48,9 +48,10 @@ $lang['title_import_rdf']="Import External Resources";
 $lang['select_rdf_file']="Select file (.RDF)";
 $lang['create_folder_structure']="Create folder structure";
 $lang['title_fix_broken']="Link Resources";
-$lang['instruction_fix_broken']="This tool will correct the file paths for external resources so they match those on this server. First upload all the files referenced in your external resources and then click on Fix It to update the links to these files.";
+$lang['instruction_fix_broken']="This tool will correct the file paths for external resources so they match those on this server and sync all resource metadata (filesize, format, etc.) with actual files. First upload all the files referenced in your external resources and then click on Fix It to update the links and sync metadata.";
 $lang['fix_it']="Fix it!";
 $lang['n_resources_fixed']="%d resource(s) have been updated.";
+$lang['resource_metadata_synced']="All resource metadata has been synced with files.";
 $lang['legend_not_fixed']="NOT FIXED";
 $lang['legend_fixed']="FIXED";
 $lang['indicator_database']="Indicator database";
@@ -116,6 +117,17 @@ $lang['additional_info']="Additional Information";
 $lang['remote_data_access_url']="Provide URL to external repository";
 $lang['upload_external_resources']="Upload External Resources";
 $lang['return_to_study_edit_page']="Return to study edit page";
+$lang['resource_identifier']="Resource Identifier";
+$lang['resource_idno_help']="Optional. Provide a unique identifier using only letters, numbers, hyphens and underscores.";
+$lang['resource_idno_invalid_format']="The Resource Identifier can only contain letters, numbers, hyphens, and underscores.";
+$lang['resource_idno_already_exists']="This Resource Identifier already exists for this study. Please use a different identifier.";
+$lang['url']="URL";
+$lang['file']="File";
+$lang['enter_external_url']="Enter the full URL to an external resource";
+$lang['select_or_type_filename']="Type to search or select from list";
+$lang['select_file_from_survey_folder']="Select a file from the survey folder";
+$lang['data_file']="Data file";
+$lang['data_file_help']="Optional. Link this resource to a specific data file from the study.";
 
 /* End of file resource_manager_lang.php */
-/* Location: ./application/language/english/resource_manager_lang.php */
+/* Location: ./application/language/base/resource_manager_lang.php */

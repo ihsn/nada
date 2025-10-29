@@ -76,7 +76,12 @@
         <?php $resource_class=($resource_exists===TRUE) ? 'resource-found' : 'resource-notfound';?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->resource_id; ?>" class="chk"/></td>
-            <td><a href="<?php echo site_url();?>/admin/resources/edit/<?php echo $row->resource_id;?>/<?php echo $row->survey_id;?>"><?php echo $row->title; ?></a></td>
+            <td>
+                <a href="<?php echo site_url();?>/admin/resources/edit/<?php echo $row->resource_id;?>/<?php echo $row->survey_id;?>"><?php echo $row->title; ?></a>
+                <?php if (!empty($row->resource_idno)): ?>
+                    <br/><small class="text-muted"><?php echo htmlspecialchars($row->resource_idno); ?></small>
+                <?php endif; ?>
+            </td>
             <td>
                 <?php if ($resource_exists):?>
                   <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>

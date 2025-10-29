@@ -28,7 +28,12 @@ foreach($option_formats as $key=>$value)
 
 <div class="container-fluid page-resources-edit">
 <div class="page-links">
-	<?php echo anchor('admin/catalog/edit/'.$this->uri->segment(5).'/resources',t('link_resource_home'),array('class'=>'button') );	?>	
+	<?php 
+	// Flexible back link - works for both Resources and Managefiles controllers
+	$back_url = isset($back_link) ? $back_link : 'admin/catalog/edit/'.$this->uri->segment(5).'/resources';
+	$back_text = isset($back_text) ? $back_text : t('link_resource_home');
+	echo anchor($back_url, $back_text, array('class'=>'button'));
+	?>	
 </div>
 
 <?php if (validation_errors() ) : ?>
@@ -47,9 +52,10 @@ foreach($option_formats as $key=>$value)
 
 <?php echo form_open_multipart(current_url(), array('class'=>'form') ); ?>
 <input name="survey_id" type="hidden" id="survey_id" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id: ''); ?>"/>
+<input name="resource_id" type="hidden" id="resource_id" value="<?php echo get_form_value('resource_id',isset($resource_id) ? $resource_id: ''); ?>"/>
 <div class="form-group">
 	<label for="dctype"><?php echo t('type');?></label> 
-    <?php echo form_dropdown('dctype', $option_types, get_form_value("dctype",isset($dctype) ? $dctype : ''),'class="form-control"'); ?>
+    <?php echo form_dropdown('dctype', $option_types, get_form_value("dctype",isset($dctype) ? $dctype : ''),'class="form-control" id="dctype"'); ?>
 </div>
 
 <div class="form-group">
@@ -67,13 +73,70 @@ foreach($option_formats as $key=>$value)
 	<?php echo form_dropdown('dcformat', $option_formats, get_form_value("dcformat",isset($dcformat) ? $dcformat : ''),'class="form-control"'); ?>
 </div>
 
+<?php if (!isset($simple_mode) || !$simple_mode): ?>
 <div class="form-group">
-	<label for="url"><?php echo t('resource_url_filepath');?></label>
-	<input name="url" type="text" id="url" size="50" class="form-control"  value="<?php echo get_form_value('url',isset($filename) ? $filename : ''); ?>"/>
+	<label><?php echo t('resource_url_filepath');?></label>
+	
+	<div style="margin-bottom:10px;">
+		<label class="radio-inline" style="margin-right:20px;">
+			<input type="radio" name="resource_type" value="url" id="radio_url" checked onclick="toggle_file_url('url_field','file_field')"> 
+			<?php echo t('url');?>
+		</label>
+		<label class="radio-inline">
+			<input type="radio" name="resource_type" value="file" id="radio_file" onclick="toggle_file_url('file_field','url_field')"> 
+			<?php echo t('file');?>
+		</label>
+	</div>
+	
+	<div id="url_field">
+		<input name="url" type="text" id="url" class="form-control" placeholder="https://example.com/document.pdf" value="<?php echo get_form_value('url',isset($filename) ? $filename : ''); ?>"/>		
+	</div>
+	
+	<div id="file_field" style="display:none;">
+		<input name="url_file" type="text" id="url_file" class="form-control" list="file_list" placeholder="<?php echo t('select_or_type_filename');?>" value="<?php echo get_form_value('url',isset($filename) ? $filename : ''); ?>"/>
+		<datalist id="file_list">
+			<?php if(isset($this->js_files) && !empty($this->js_files)): ?>
+				<?php 
+				$files = explode(' ', $this->js_files);
+				foreach($files as $file): 
+					$file = trim($file);
+					if(!empty($file)):
+				?>
+					<option value="<?php echo htmlspecialchars($file); ?>">
+				<?php 
+					endif;
+				endforeach; 
+				?>
+			<?php endif; ?>
+		</datalist>		
+	</div>
 </div>
+<?php else: ?>
+<div class="form-group">
+	<label for="filename"><?php echo t('resource_url_filepath');?></label>
+	<input name="filename" type="text" id="filename" class="form-control" value="<?php echo get_form_value('filename',isset($filename) ? $filename : ''); ?>"/>
+</div>
+<?php endif; ?>
 
 <fieldset class="field-expanded">
 <legend><?php echo t('additional_info');?></legend>
+
+<div class="form-group">
+	<label for="resource_idno"><?php echo t('resource_identifier');?></label>
+	<input name="resource_idno" type="text" id="resource_idno" class="form-control" maxlength="100" pattern="[a-zA-Z0-9_\-]+" value="<?php echo get_form_value('resource_idno',isset($resource_idno) ? $resource_idno : ''); ?>"/>
+	<small class="form-text text-muted"><?php echo t('resource_idno_help');?></small>
+</div>
+
+<?php /* DISABLED: Data file selection field
+<div class="form-group data-file-field" style="display:none;">
+	<label for="data_file_id"><?php echo t('data_file');?></label>
+	<?php 
+		$data_files_list = isset($data_files) && is_array($data_files) ? $data_files : array('' => t('__select__'));
+	?>
+	<?php echo form_dropdown('data_file_id', $data_files_list, get_form_value("data_file_id",isset($data_file_id) ? $data_file_id : ''),'class="form-control" id="data_file_id"'); ?>
+	<small class="form-text text-muted"><?php echo t('data_file_help');?></small>
+</div>
+*/ ?>
 
 <div class="form-group">
 <label for="author"><?php echo t('authors');?></label>
@@ -121,7 +184,10 @@ foreach($option_formats as $key=>$value)
 
 <div class="form-group">
 	<input type="submit" name="submit" id="submit" value="<?php echo t('submit'); ?>" class="btn btn-primary" />
-	<a href="<?php echo site_url('admin/catalog/edit/'.$this->uri->segment(5).'/resources');?>" class="btn btn-link"><?php echo t('cancel');?></a>
+	<?php 
+	$cancel_url = isset($back_link) ? $back_link : 'admin/catalog/edit/'.$this->uri->segment(5).'/resources';
+	?>
+	<a href="<?php echo site_url($cancel_url);?>" class="btn btn-link"><?php echo t('cancel');?></a>
 </div>
 <?php echo form_close();?>
 </div>
@@ -132,20 +198,60 @@ function toggle_file_url(field_show,field_hide){
 	$('#'+field_hide).hide();
 }
 
-//auto complete
-/*$(document).ready(function(){
-    var data = "<?php echo $this->js_files;?>".split(" ");
-	$("#url").autocomplete(data);
-});*/
+/* DISABLED: Data file field toggle
+// Function to check if dctype is microdata and show/hide data file field
+function toggle_data_file_field() {
+	var dctype = $('#dctype').val();
+	if (dctype && (dctype.indexOf('[dat/micro]') !== -1 || dctype.indexOf('[dat]') !== -1)) {
+		$('.data-file-field').show();
+	} else {
+		$('.data-file-field').hide();
+	}
+}
+*/
 
-//expand/collapse
-$(document).ready(function() {
+$(document).ready(function(){
+	//sync the two fields on form submit
+	$('form').on('submit', function() {
+		if ($('#radio_file').is(':checked')) {
+			$('#url').val($('#url_file').val());
+		}
+	});
+	
+	//detect if editing existing resource and set appropriate radio button
+	var existingValue = $('#url').val();
+	if (existingValue) {
+		//check if it's a URL or file path
+		if (existingValue.indexOf('http://') === 0 || existingValue.indexOf('https://') === 0 || existingValue.indexOf('ftp://') === 0) {
+			$('#radio_url').prop('checked', true);
+			$('#url_field').show();
+			$('#file_field').hide();
+		} else {
+			//it's a file path
+			$('#radio_file').prop('checked', true);
+			$('#url_file').val(existingValue);
+			$('#url_field').hide();
+			$('#file_field').show();
+		}
+	}
+	
+	/* DISABLED: Data file field toggle
+	//show/hide data file field based on resource type
+	toggle_data_file_field();
+	
+	//listen for changes to dctype dropdown
+	$('#dctype').on('change', function() {
+		toggle_data_file_field();
+	});
+	*/
+	
+	//expand/collapse additional info
 	$('.field-expanded > legend').parent('fieldset').toggleClass('field-collapsed');
 	
 	$('.field-expanded > legend').click(function(e) {
-			e.preventDefault();
-			$(this).parent('fieldset').toggleClass("field-collapsed");
-			return false;
+		e.preventDefault();
+		$(this).parent('fieldset').toggleClass("field-collapsed");
+		return false;
 	});
 });
 </script>

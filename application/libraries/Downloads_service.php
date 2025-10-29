@@ -40,7 +40,7 @@ class Downloads_service{
      * @return array
      * 
      * Filters:
-     *  - type - string (microdata, data, documentation, doc) - returns all by default
+     *  - type - string: Category (microdata, data, documentation, doc) or specific code (doc/qst, dat/micro, tbl, aud, etc.)
      *  - countries - array of country codes
      *  - years - array of years or year range [start, end]
      *  - data_access_type - string (e.g. 'public', 'licensed', 'data_na', etc.)
@@ -158,12 +158,19 @@ class Downloads_service{
         
         if (isset($filters['type']) && !empty($filters['type'])) {
             $type = strtolower($filters['type']);
+            
+            // Handle category filters
             if ($type === 'microdata' || $type === 'data') {
-                $this->ci->db->where("(resources.dctype LIKE '%dat/micro]%' OR resources.dctype LIKE '%dat]%' OR resources.dctype LIKE '%[dat/%')", NULL, FALSE);
+                // Match all known data type codes
+                $data_types = array('dat', 'dat/micro');
+                $this->ci->db->where_in('resources.resource_type', $data_types);
             } elseif ($type === 'documentation' || $type === 'doc') {
-                $this->ci->db->where("resources.dctype NOT LIKE '%dat/micro]%'", NULL, FALSE);
-                $this->ci->db->where("resources.dctype NOT LIKE '%dat]%'", NULL, FALSE);
-                $this->ci->db->where("resources.dctype NOT LIKE '%[dat/%'", NULL, FALSE);
+                // Match all types EXCEPT microdata (includes documents, tables, audio, video, etc.)
+                $data_types = array('dat', 'dat/micro');
+                $this->ci->db->where_not_in('resources.resource_type', $data_types);
+            } else {
+                // Direct resource_type code match (e.g., 'doc/qst', 'tbl', 'aud', etc.)
+                $this->ci->db->where('resources.resource_type', $type);
             }
         }
         
@@ -304,7 +311,7 @@ class Downloads_service{
      * List all downloadable files for a specific study
      * 
      * @param int $sid - Survey ID
-     * @param string $type - Resource type (microdata, documentation) - returns all by default
+     * @param string $type - Resource type: Category (microdata, data, documentation, doc) or specific code (doc/qst, dat/micro, tbl, etc.)
      * @return array
      * 
      */
@@ -326,12 +333,19 @@ class Downloads_service{
         
         if ($type) {
             $type = strtolower($type);
+            
+            // Handle category filters
             if ($type === 'microdata' || $type === 'data') {
-                $this->ci->db->where("(resources.dctype LIKE '%dat/micro]%' OR resources.dctype LIKE '%dat]%' OR resources.dctype LIKE '%[dat/%')", NULL, FALSE);
+                // Match all known data type codes
+                $data_types = array('dat', 'dat/micro');
+                $this->ci->db->where_in('resources.resource_type', $data_types);
             } elseif ($type === 'documentation' || $type === 'doc') {
-                $this->ci->db->where("resources.dctype NOT LIKE '%dat/micro]%'", NULL, FALSE);
-                $this->ci->db->where("resources.dctype NOT LIKE '%dat]%'", NULL, FALSE);
-                $this->ci->db->where("resources.dctype NOT LIKE '%[dat/%'", NULL, FALSE);
+                // Match all types EXCEPT microdata (includes documents, tables, audio, video, etc.)
+                $data_types = array('dat', 'dat/micro');
+                $this->ci->db->where_not_in('resources.resource_type', $data_types);
+            } else {
+                // Direct resource_type code match (e.g., 'doc/qst', 'tbl', 'aud', etc.)
+                $this->ci->db->where('resources.resource_type', $type);
             }
         }
         

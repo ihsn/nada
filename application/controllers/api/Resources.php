@@ -137,37 +137,72 @@ class Resources extends MY_REST_Controller
 
 				$upload_result=null;
 
-				if(!empty($_FILES)){
-					//upload file?
-					$upload_result=$this->Survey_resource_model->upload_file($sid,$file_field_name='file', $remove_spaces=false);
-					$uploaded_file_name=$upload_result['file_name'];
-				
-					//set filename to uploaded file
-					$options['filename']=$uploaded_file_name;
-				}
+			if(!empty($_FILES)){
+				//upload file?
+				$upload_result=$this->Survey_resource_model->upload_file($sid,$file_field_name='file', $remove_spaces=false);
+				$uploaded_file_name=$upload_result['file_name'];
+			
+				//set filename to uploaded file
+				$options['filename']=$uploaded_file_name;
+			}
 
-				if(!isset($options['filename'])){
-					$options['filename']=null;
-				}
+		if(!isset($options['filename'])){
+			$options['filename']=null;
+		}
+		
+			// Set user information for audit trail (for authenticated API requests)
+			$user_id = $this->session->userdata('user_id');
+			if ($user_id) {
+				$options['changed_by'] = $user_id;
+			}
+			
+			$resource_exists = false;
+			// Default to true for overwrite, but normalize to 'yes' string for consistent comparison
+			$overwrite = isset($options["overwrite"]) ? $options["overwrite"] : 'yes';
+			
+			// First priority: Check if resource_idno is provided and matches existing resource
+			if(isset($options['resource_idno']) && !empty($options['resource_idno'])) {
+				$existing_by_idno = $this->Survey_resource_model->get_resource_by_idno($sid, $options['resource_idno']);
 				
-				//check if resource already exists
-				$resource_exists=$this->Survey_resource_model->check_duplicate($sid,$options['filename'], $options['title'],$options['dctype']);
-				$overwrite=isset($options["overwrite"]) ? $options["overwrite"] : false;
-
-				if($resource_exists){
-					if ($overwrite == 'yes'){
-						//update existing
-						$resource_id=$resource_exists[0]['resource_id'];
-						$resource_id=$this->Survey_resource_model->update($resource_id,$options);
+				if($existing_by_idno) {
+					// Resource with this resource_idno exists
+					if ($overwrite == 'yes' || $overwrite === true){
+						//update existing resource identified by resource_idno
+						$resource_id = $existing_by_idno['resource_id'];
+						$this->Survey_resource_model->update($resource_id, $options);
+					}
+					else{
+						throw new Exception("Resource with identifier '".$options['resource_idno']."' already exists. To overwrite, set overwrite to 'yes'");
+					}
+					$resource_exists = true;
+				}
+			}
+			
+			// Second priority: If no resource_idno match, check for duplicate by filename/title/dctype
+			if(!$resource_exists) {
+				$duplicate = $this->Survey_resource_model->check_duplicate($sid, $options['filename'], $options['title'], $options['dctype']);
+				
+				if($duplicate){
+					if ($overwrite == 'yes' || $overwrite === true){
+						//update existing resource
+						$resource_id = $duplicate[0]['resource_id'];
+						$this->Survey_resource_model->update($resource_id, $options);
 					}
 					else{
 						throw new Exception("Resource already exists. To overwrite, set overwrite to 'yes'");
 					}
+					$resource_exists = true;
 				}
-				else{
-					//insert new resource
-					$resource_id=$this->Survey_resource_model->insert($options);
+			}
+			
+			// If no existing resource found, insert new
+			if(!$resource_exists){
+				// Set created_by for new resources
+				if ($user_id) {
+					$options['created_by'] = $user_id;
 				}
+				$resource_id = $this->Survey_resource_model->insert($options);
+			}
 
 				$resource=$this->Survey_resource_model->select_single($resource_id);
 				

@@ -7,19 +7,35 @@ class Survey_resource_model extends CI_Model {
 	
 	//database allowed column names
 	var $allowed_fields=array(
+		'survey_id',
 		'dctype',
 		'title',
+		'subtitle',
 		'author', 
 		'dcdate',
 		'country', 
 		'language', 
 		'contributor',
 		'publisher',
+		'rights',
 		'toc', 
 		'abstract', 
+		'description',
+		'subjects',
 		'filename',
 		'dcformat',
-		'description'
+		'changed',
+		'resource_idno',
+		'resource_type',
+		'is_url',
+		'filesize',
+		'created',
+		'created_by',
+		'changed_by',
+		'data_file_id',
+		'sort_order',
+		'status',
+		'metadata'
 	);
 
 	private $dctype_groups=array();
@@ -31,11 +47,103 @@ class Survey_resource_model extends CI_Model {
 		$this->load->model("Dataset_model");
 		$this->load->model("Catalog_model");
 		$this->load->config("external_resources");
+		$this->load->helper('hash');
 
 		$this->dctype_groups=$this->config->item("dctype_groups","external_resources");
 		//$this->output->enable_profiler(TRUE);
     }
 	
+
+	/**
+	 * Prepare and validate resource data for insert or update
+	 * 
+	 * @param array $options - raw input data
+	 * @param bool $is_insert - true for insert, false for update
+	 * @param int $resource_id - resource ID (for update operations only)
+	 * @return array - filtered and prepared data
+	 */
+	private function prepare_resource_data($options, $is_insert = true, $resource_id = null)
+	{
+		// For updates, get survey_id from existing resource if not provided
+		if (!$is_insert && $resource_id && !isset($options['survey_id'])) {
+			$existing = $this->select_single($resource_id);
+			if ($existing) {
+				$options['survey_id'] = $existing['survey_id'];
+			}
+		}
+
+		// Handle legacy field mappings
+		if (isset($options['type'])){
+			$options['dctype'] = $options['type'];
+		}
+		if (isset($options['format'])){
+			$options['dcformat'] = $options['format'];
+		}
+
+		// Always recompute resource_type from dctype
+		if (!empty($options['dctype'])) {
+			$options['resource_type'] = $this->get_resource_type_from_dctype($options['dctype']);
+		}
+
+		// Set timestamps
+		$options['changed'] = date("U");
+		if ($is_insert) {
+			$options['created'] = date("U");
+		}
+
+		// Process filename
+		if (isset($options['filename'])) {
+			// Normalize filename
+			$options['filename'] = $this->normalize_filename($options['filename']);
+			
+			// Auto-detect if URL or file
+			$options['is_url'] = $this->form_validation->valid_url($options['filename']) ? 1 : 0;
+
+			// Get file metadata for actual files (not URLs)
+			if ($options['is_url'] == 0 && isset($options['survey_id'])) {
+				$file_metadata = $this->get_file_metadata($options['survey_id'], $options['filename']);
+				
+				if ($file_metadata) {
+					// Always read and set filesize from actual file
+					if (!empty($file_metadata['filesize'])) {
+						$options['filesize'] = $file_metadata['filesize'];
+					}
+					
+					// Always read and set dcformat from actual file
+					if (!empty($file_metadata['mime_type'])) {
+						$options['dcformat'] = $file_metadata['mime_type'];
+					}
+				}
+			}
+		}
+
+		// Clean up resource_idno: treat empty string as null
+		if (isset($options['resource_idno']) && trim($options['resource_idno']) === '') {
+			$options['resource_idno'] = null;
+		}
+
+		// Validate resource_idno uniqueness if provided
+		if (!empty($options['resource_idno']) && isset($options['survey_id'])) {
+			// Check if resource_idno already exists (excluding current resource for updates)
+			$exclude_id = $is_insert ? null : $resource_id;
+			
+			if ($this->resource_idno_exists($options['survey_id'], $options['resource_idno'], $exclude_id)) {
+				throw new ValidationException("VALIDATION_ERROR: The resource identifier '{$options['resource_idno']}' already exists for this study. Please use a different identifier.", 
+					array('resource_idno' => "The resource identifier already exists for this study."));
+			}
+		}
+
+		// Filter to only allowed fields
+		$data = array();
+		foreach($options as $key => $value) {
+			if (in_array($key, $this->allowed_fields)) {
+				$data[$key] = $value;
+			}
+		}
+
+		return $data;
+	}
+
 
 	/**
 	* update external resource
@@ -45,49 +153,11 @@ class Survey_resource_model extends CI_Model {
 	**/
 	function update($resource_id,$options)
 	{
-		//allowed fields
-		$valid_fields=array(
-			'survey_id',
-			'dctype',
-			'title',
-			'subtitle',
-			'author',
-			'dcdate',
-			'country',
-			'language',
-			//'id_number',
-			'contributor',
-			'publisher',
-			'rights',
-			'description',
-			'abstract',
-			'toc',
-			'subjects',
-			'filename',
-			'dcformat',
-			'changed');
-
-		//add date modified
-		$options['changed']=date("U");
-					
-		if (isset($options['filename'])){
-			$options['filename']=$this->normalize_filename($options['filename']);
-		}
-		
-		$update_arr=array();
-
-		//build update statement
-		foreach($options as $key=>$value)
-		{
-			if (in_array($key,$valid_fields) )
-			{
-				$update_arr[$key]=$value;
-			}
-		}
+		$data = $this->prepare_resource_data($options, false, $resource_id);
 		
 		//update db
 		$this->db->where('resource_id', $resource_id);
-		$result=$this->db->update('resources', $update_arr); 
+		$result=$this->db->update('resources', $data); 
 		
 		return $result;		
 	}
@@ -100,57 +170,7 @@ class Survey_resource_model extends CI_Model {
 	**/
 	function insert($options)
 	{
-		//allowed fields
-		$valid_fields=array(
-			//'resource_id',
-			'survey_id',
-			'dctype',
-			'title',
-			'subtitle',
-			'author',
-			'dcdate',
-			'country',
-			'language',
-			//'id_number',
-			'contributor',
-			'publisher',
-			'rights',
-			'description',
-			'abstract',
-			'toc',
-			'subjects',
-			'filename',
-			'dcformat',
-			'changed');
-
-		$options['changed']=date("U");
-
-		//remove slash before the file path otherwise can't link the path to the file
-		if (isset($options['filename'])){
-			if (substr($options['filename'],0,1)=='/'){
-				$options['filename']=substr($options['filename'],1,255);
-			}
-		}
-		
-		if (isset($options['type'])){
-			$options['dctype']=$options['type'];
-		}
-		if (isset($options['format'])){
-			$options['dcformat']=$options['format'];
-		}
-		
-		if (isset($options['filename'])){
-			$options['filename']=$this->normalize_filename($options['filename']);
-		}
-
-		$data=array();
-
-		//build update statement
-		foreach($options as $key=>$value){
-			if (in_array($key,$valid_fields)){
-				$data[$key]=$value;
-			}
-		}
+		$data = $this->prepare_resource_data($options, true);
 
 		$this->db->insert('resources', $data); 		
 		return $this->db->insert_id();
@@ -211,6 +231,25 @@ class Survey_resource_model extends CI_Model {
 			$this->form_validation->set_rules('title', 'Title', 'xss_clean|trim|max_length[255]|required');
 			$this->form_validation->set_rules('url', 'URL', 'xss_clean|trim|max_length[255]');	
 		}
+		
+		//resource_idno validation rule - if provided
+		if(isset($options['resource_idno']) && !empty($options['resource_idno'])) {
+			// Build validation rules
+			$idno_rules = array(
+				'trim',
+				'max_length[100]',
+				'alpha_dash',
+				array('validate_resource_idno_format',array($this, 'validate_resource_idno_format')),
+				array('validate_resource_idno_unique',array($this, 'validate_resource_idno_unique'))
+			);
+			
+			$this->form_validation->set_rules(
+				'resource_idno', 
+				'Resource Identifier',
+				$idno_rules
+			);
+		}
+		
 		//survey_id validation rule
 		$this->form_validation->set_rules(
 			'survey_id', 
@@ -496,11 +535,11 @@ class Survey_resource_model extends CI_Model {
 		$filepath=$this->normalize_filename($filepath);
 
 		$this->db->where('survey_id', $surveyid); 
-		$this->db->where('filename', $filepath);
-		$this->db->where('title', $title);
+		$this->db->where('filename', $filepath);		
+		$this->db->where('LOWER(title)', strtolower(trim($title)));		
 		$resources=$this->db->get('resources')->result_array();
-
 		$dctype=$this->get_dctype_code_from_string($dctype);
+
 		if ($resources){
 			foreach($resources as $idx=>$resource){
 				$res_dctype=$this->get_dctype_code_from_string($resource['dctype']);
@@ -1138,6 +1177,52 @@ class Survey_resource_model extends CI_Model {
 
 
 	/**
+	 * Get file metadata (mime type and file size)
+	 * 
+	 * @param int $survey_id
+	 * @param string $filename
+	 * @return array|false - array with mime_type and filesize, or false if file not found
+	 */
+	function get_file_metadata($survey_id, $filename)
+	{
+		if (empty($survey_id) || empty($filename)) {
+			return false;
+		}
+
+		// Get survey folder path
+		$survey_folder = $this->Catalog_model->get_survey_path_full($survey_id);
+		
+		if (!$survey_folder) {
+			return false;
+		}
+
+		// Build full file path
+		$file_path = unix_path($survey_folder . '/' . $filename);
+		
+		// Check if file exists
+		if (!file_exists($file_path) || !is_file($file_path)) {
+			return false;
+		}
+
+		$metadata = array();
+
+		// Get mime type using helper function
+		$mime_type = get_file_mime_type($file_path);
+		if ($mime_type) {
+			$metadata['mime_type'] = $mime_type;
+		}
+
+		// Get file size in bytes
+		$filesize = @filesize($file_path);
+		if ($filesize !== false) {
+			$metadata['filesize'] = $filesize;
+		}
+
+		return !empty($metadata) ? $metadata : false;
+	}
+
+
+	/**
 	 * 
 	 * Upload an RDF file and import resources
 	 * 
@@ -1370,7 +1455,7 @@ class Survey_resource_model extends CI_Model {
 
 	/**
 	*
-	* Fix file paths for external resources 
+	* Fix file paths for external resources and sync all resource metadata
 	**/
 	function fix_resource_links($surveyid)
 	{		
@@ -1421,6 +1506,20 @@ class Survey_resource_model extends CI_Model {
 			}			
 			//add path for the resources
 			$broken_links[$key]['match']=$match;
+		}
+		
+		// After fixing broken links, sync all resource metadata
+		try {
+			$sync_result = $this->sync_all_resources($surveyid);
+			
+			log_message('info', sprintf(
+				"Resource sync after fixlinks: %d synced, %d not found, %d errors",
+				$sync_result['synced'],
+				$sync_result['not_found'],
+				$sync_result['errors']
+			));
+		} catch (Exception $e) {
+			log_message('error', "Resource sync failed after fixlinks: " . $e->getMessage());
 		}
 		
 		return $fixed_count;
@@ -1485,6 +1584,30 @@ class Survey_resource_model extends CI_Model {
 		return str_replace($survey_path,"",$file_path);
 	}
 
+
+
+	/**
+	 * 
+	 * Extract resource_type code from dctype
+	 * 
+	 * Extracts the code from dctype string (the part in brackets)
+	 * e.g., "Document, Questionnaire [doc/qst]" -> "doc/qst"
+	 * 
+	 * @param string $dctype - full dctype string or code
+	 * @return string - dctype code
+	 */
+	function get_resource_type_from_dctype($dctype)
+	{
+		if (empty($dctype)) {
+			return null;
+		}
+
+		// Extract code from string if in format "Label [code]"
+		$code = $this->get_dctype_code_from_string($dctype);
+		
+		// Return the extracted code (empty string if no brackets found)
+		return !empty($code) ? $code : null;
+	}
 
 
 	/**
@@ -1791,7 +1914,6 @@ class Survey_resource_model extends CI_Model {
 
 
 
-
 	/**
 	* searche database
 	* 
@@ -1952,6 +2074,535 @@ class Survey_resource_model extends CI_Model {
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Get resources by resource type
+	 * 
+	 * @param int $survey_id
+	 * @param string $resource_type
+	 * @return array
+	 */
+	function get_resources_by_resource_type($survey_id, $resource_type)
+	{
+		$this->db->select('*');
+		$this->db->where('survey_id', $survey_id);
+		$this->db->where('resource_type', $resource_type);
+		$this->db->order_by('sort_order', 'ASC');
+		$this->db->order_by('title', 'ASC');
+		return $this->db->get('resources')->result_array();
+	}
+
+
+	/**
+	 * Check if resource_idno exists for survey
+	 * 
+	 * @param int $survey_id
+	 * @param string $resource_idno
+	 * @param int $exclude_resource_id (optional)
+	 * @return bool
+	 */
+	function resource_idno_exists($survey_id, $resource_idno, $exclude_resource_id = null)
+	{
+		$this->db->select('resource_id');
+		$this->db->where('survey_id', $survey_id);
+		$this->db->where('resource_idno', $resource_idno);
+		
+		if ($exclude_resource_id) {
+			$this->db->where('resource_id !=', $exclude_resource_id);
+		}
+		
+		$result = $this->db->get('resources')->row_array();
+		return !empty($result);
+	}
+
+	/**
+	 * 
+	 * Get resource by resource_idno
+	 * 
+	 * @param int $survey_id
+	 * @param string $resource_idno
+	 * @return array|false Resource data or false if not found
+	 */
+	function get_resource_by_idno($survey_id, $resource_idno)
+	{
+		$this->db->where('survey_id', $survey_id);
+		$this->db->where('resource_idno', $resource_idno);
+		
+		$result = $this->db->get('resources')->row_array();
+		return $result ? $result : false;
+	}
+
+	/**
+	 * Generate unique resource_idno from filename
+	 * 
+	 * @param int $survey_id
+	 * @param string $filename
+	 * @return string
+	 */
+	function generate_resource_idno($survey_id, $filename=null)
+	{
+		$resource_idno = null;
+		if (!empty($filename) && !$this->form_validation->valid_url($filename)){
+			// Get just the filename (remove path)
+			$base_name = basename($filename);
+			
+			// Convert to lowercase
+			$base_name = strtolower($base_name);
+			
+			// Replace underscores, dots, and spaces with hyphens
+			$base_name = str_replace(array('_', '.', ' '), '-', $base_name);
+			
+			// Replace any other non-alphanumeric characters (except hyphens) with hyphens
+			$base_name = preg_replace('/[^a-z0-9-]/', '-', $base_name);
+			
+			// Clean up multiple consecutive hyphens
+			$base_name = preg_replace('/-+/', '-', $base_name);
+			
+			// Trim hyphens from start and end
+			$base_name = trim($base_name, '-');
+			
+			// Limit length
+			$base_name = substr($base_name, 0, 100);
+			
+			$resource_idno = $base_name;
+			$counter = 1;
+			
+			// Ensure uniqueness
+			while ($this->resource_idno_exists($survey_id, $resource_idno)) {
+				$resource_idno = $base_name . '-' . $counter;
+				$counter++;
+			}
+		}
+
+		if (!$this->validate_idno_format($resource_idno)){
+			//generate a random UUID-style slug
+			$resource_idno = nada_random_slug(6, 4); // e.g., "a3f8b2-9d4e1c-7b2a5f-3e9d1b"
+		}
+		
+		return $resource_idno;
+	}
+
+
+	/**
+	 * 
+	 *  Validate IDNO format
+	 * 
+	 *  - MUST be URL friendly format
+	 *	- Alphanumeric
+	 *	- Underscore or hyphen
+	 *	- Less than 100 characters
+	 *	- No special characters allowed
+	 * 
+	 */
+	function validate_idno_format($idno)
+	{
+		if (strlen($idno) > 100) {
+			return false;
+		}
+
+		if (!preg_match('/^[a-zA-Z0-9_-]+$/', $idno)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 
+	 * Validation callback for resource_idno format (for form_validation library)
+	 * 
+	 */
+	public function validate_resource_idno_format($resource_idno)
+	{
+		if (!$this->validate_idno_format($resource_idno)) {
+			$this->form_validation->set_message(__FUNCTION__, 'The {field} can only contain letters, numbers, hyphens, and underscores.');
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 
+	 * Validation callback for resource_idno uniqueness (for form_validation library)
+	 * 
+	 */
+	public function validate_resource_idno_unique($resource_idno)
+	{
+		// Get survey_id and resource_id from validation data
+		$survey_id = null;
+		$resource_id = null;
+		
+		if (array_key_exists('survey_id', $this->form_validation->validation_data)) {
+			$survey_id = $this->form_validation->validation_data['survey_id'];
+		}
+		
+		if (array_key_exists('resource_id', $this->form_validation->validation_data)) {
+			$resource_id = $this->form_validation->validation_data['resource_id'];
+		}
+		
+		// Check uniqueness
+		$exclude_id = is_numeric($resource_id) ? $resource_id : null;
+		
+		if ($this->resource_idno_exists($survey_id, $resource_idno, $exclude_id)) {
+			$this->form_validation->set_message(__FUNCTION__, 'The {field} already exists for this study. Please use a different identifier.');
+			return false;
+		}
+		
+		return true;
+	}
+
+
+	/**
+	 * 
+	 * Sync all resources metadata for a survey with actual files on disk
+	 * 
+	 * This method:
+	 * - Gets all resources for the survey
+	 * - Always rechecks and updates is_url field (URL vs local file)
+	 * - For file resources (not URLs), checks if file exists
+	 * - Always updates filesize, dcformat from actual file
+	 * - Always recomputes resource_type from dctype
+	 * - Optionally calculates checksum (can be slow for large files)
+	 * - Returns summary of sync operations
+	 * 
+	 * @param int $survey_id - Survey ID
+	 * @param bool $calculate_checksum - Calculate SHA256 checksums (default: false, can be slow)
+	 * @return array - Summary of sync operations
+	 */
+	public function sync_all_resources($survey_id, $calculate_checksum = false)
+	{
+		if (!is_numeric($survey_id)) {
+			throw new Exception('Invalid survey ID');
+		}
+
+		// Get all resources for this survey
+		$resources = $this->get_survey_resources($survey_id);
+		
+		// Get survey folder path
+		$survey_folder = $this->Catalog_model->get_survey_path_full($survey_id);
+		
+		if (!$survey_folder || !file_exists($survey_folder)) {
+			throw new Exception('Survey folder not found: ' . $survey_folder);
+		}
+
+		// Summary counters
+		$summary = array(
+			'total' => count($resources),
+			'urls' => 0,
+			'synced' => 0,
+			'not_found' => 0,
+			'errors' => 0,
+			'skipped' => 0,
+			'details' => array()
+		);
+
+		foreach ($resources as $resource) {
+			$resource_id = $resource['resource_id'];
+			$filename = $resource['filename'];
+
+			try {
+				// Always check if filename is URL and update is_url field
+				$is_url = $this->form_validation->valid_url($filename) ? 1 : 0;
+				
+				// Update is_url if it changed
+				if ($resource['is_url'] != $is_url) {
+					$this->db->where('resource_id', $resource_id);
+					$this->db->update('resources', array(
+						'is_url' => $is_url,
+						'changed' => time()
+					));
+					log_message('info', "Resource #{$resource_id}: is_url updated to {$is_url}");
+				}
+				
+				// Skip URLs - nothing to sync with disk
+				if ($is_url == 1) {
+					$summary['urls']++;
+					$summary['details'][] = array(
+						'resource_id' => $resource_id,
+						'filename' => $filename,
+						'status' => 'skipped',
+						'reason' => 'URL resource'
+					);
+					continue;
+				}
+
+				// Check if file exists
+				$file_path = unix_path($survey_folder . '/' . $filename);
+				
+				if (!file_exists($file_path) || !is_file($file_path)) {
+					$summary['not_found']++;
+					$summary['details'][] = array(
+						'resource_id' => $resource_id,
+						'filename' => $filename,
+						'status' => 'not_found',
+						'reason' => 'File not found on disk'
+					);
+					
+					log_message('warning', "Resource #{$resource_id}: File not found: {$filename}");
+					continue;
+				}
+
+				// Get fresh file metadata
+				$file_metadata = $this->get_file_metadata($survey_id, $filename);
+				
+				if (!$file_metadata) {
+					$summary['errors']++;
+					$summary['details'][] = array(
+						'resource_id' => $resource_id,
+						'filename' => $filename,
+						'status' => 'error',
+						'reason' => 'Could not read file metadata'
+					);
+					continue;
+				}
+
+				// Build update data
+				$update_data = array(
+					'changed' => time()
+				);
+				$changes = array();
+
+				// Ensure is_url is set correctly for local files
+				if ($is_url != 0 && $resource['is_url'] != 0) {
+					$update_data['is_url'] = 0;
+					$changes[] = 'is_url: 1 → 0';
+				}
+
+				// Always read and update filesize from actual file
+				if ($resource['filesize'] != $file_metadata['filesize']) {
+					$changes[] = 'filesize: ' . format_bytes($resource['filesize']) . ' → ' . format_bytes($file_metadata['filesize']);
+				}
+				$update_data['filesize'] = $file_metadata['filesize'];
+
+				// Always read and update dcformat from actual file
+				if ($resource['dcformat'] != $file_metadata['mime_type']) {
+					$changes[] = 'dcformat: ' . ($resource['dcformat'] ?: 'NULL') . ' → ' . $file_metadata['mime_type'];
+				}
+				$update_data['dcformat'] = $file_metadata['mime_type'];
+
+				// Calculate checksum if requested
+				if ($calculate_checksum) {
+					$checksum = @hash_file('sha256', $file_path);
+					if ($checksum && $resource['checksum'] != $checksum) {
+						$update_data['checksum'] = $checksum;
+						$changes[] = 'checksum: ' . ($resource['checksum'] ? 'updated' : 'calculated');
+					}
+				}
+
+				// Always update resource_type from dctype
+				if (!empty($resource['dctype'])) {
+					$new_resource_type = $this->get_resource_type_from_dctype($resource['dctype']);
+					if ($resource['resource_type'] != $new_resource_type) {
+						$update_data['resource_type'] = $new_resource_type;
+						$changes[] = 'resource_type: ' . ($resource['resource_type'] ?: 'NULL') . ' → ' . $new_resource_type;
+					}
+				}
+
+				// Only update if there are changes (besides 'changed' timestamp)
+				if (count($update_data) > 1) {
+					// Direct update to avoid full validation
+					$this->db->where('resource_id', $resource_id);
+					$result = $this->db->update('resources', $update_data);
+
+					if ($result) {
+						$summary['synced']++;
+						$summary['details'][] = array(
+							'resource_id' => $resource_id,
+							'filename' => $filename,
+							'status' => 'synced',
+							'changes' => $changes
+						);
+						
+						log_message('info', "Resource #{$resource_id} synced: " . implode(', ', $changes));
+					} else {
+						$summary['errors']++;
+						$summary['details'][] = array(
+							'resource_id' => $resource_id,
+							'filename' => $filename,
+							'status' => 'error',
+							'reason' => 'Database update failed'
+						);
+					}
+				} else {
+					$summary['skipped']++;
+					$summary['details'][] = array(
+						'resource_id' => $resource_id,
+						'filename' => $filename,
+						'status' => 'no_changes',
+						'reason' => 'Metadata already up to date'
+					);
+				}
+
+			} catch (Exception $e) {
+				$summary['errors']++;
+				$summary['details'][] = array(
+					'resource_id' => $resource_id,
+					'filename' => $filename,
+					'status' => 'error',
+					'reason' => $e->getMessage()
+				);
+				
+				log_message('error', "Resource #{$resource_id} sync error: " . $e->getMessage());
+			}
+		}
+
+		// Log summary
+		log_message('info', sprintf(
+			"Survey #%d resource sync complete: %d total, %d synced, %d not found, %d errors, %d URLs, %d skipped",
+			$survey_id,
+			$summary['total'],
+			$summary['synced'],
+			$summary['not_found'],
+			$summary['errors'],
+			$summary['urls'],
+			$summary['skipped']
+		));
+
+		return $summary;
+	}
+
+
+	/**
+	 * 
+	 * Sync metadata for a single resource
+	 * 
+	 * Useful for refreshing metadata after a file is uploaded or replaced
+	 * Always rechecks and updates is_url, filesize, dcformat, and resource_type
+	 * 
+	 * @param int $resource_id - Resource ID
+	 * @param bool $calculate_checksum - Calculate SHA256 checksum (default: false, can be slow)
+	 * @return array - Sync result
+	 */
+	public function sync_resource($resource_id, $calculate_checksum = false)
+	{
+		if (!is_numeric($resource_id)) {
+			throw new Exception('Invalid resource ID');
+		}
+
+		$resource = $this->select_single($resource_id);
+		
+		if (!$resource) {
+			throw new Exception('Resource not found');
+		}
+
+		$result = array(
+			'resource_id' => $resource_id,
+			'filename' => $resource['filename'],
+			'status' => 'unknown',
+			'changes' => array()
+		);
+
+		try {
+			// Always check if filename is URL and update is_url field
+			$is_url = $this->form_validation->valid_url($resource['filename']) ? 1 : 0;
+			
+			// Update is_url if it changed
+			if ($resource['is_url'] != $is_url) {
+				$this->db->where('resource_id', $resource_id);
+				$this->db->update('resources', array(
+					'is_url' => $is_url,
+					'changed' => time()
+				));
+				$result['changes'][] = 'is_url: ' . $resource['is_url'] . ' → ' . $is_url;
+				log_message('info', "Resource #{$resource_id}: is_url updated to {$is_url}");
+			}
+			
+			// Skip URLs - nothing to sync with disk
+			if ($is_url == 1) {
+				$result['status'] = 'skipped';
+				$result['reason'] = 'URL resource - nothing to sync';
+				return $result;
+			}
+
+			// Get survey folder
+			$survey_folder = $this->Catalog_model->get_survey_path_full($resource['survey_id']);
+			
+			if (!$survey_folder) {
+				$result['status'] = 'error';
+				$result['reason'] = 'Survey folder not found';
+				return $result;
+			}
+
+			// Check if file exists
+			$file_path = unix_path($survey_folder . '/' . $resource['filename']);
+			
+			if (!file_exists($file_path) || !is_file($file_path)) {
+				$result['status'] = 'not_found';
+				$result['reason'] = 'File not found on disk';
+				return $result;
+			}
+
+			// Get file metadata
+			$file_metadata = $this->get_file_metadata($resource['survey_id'], $resource['filename']);
+			
+			if (!$file_metadata) {
+				$result['status'] = 'error';
+				$result['reason'] = 'Could not read file metadata';
+				return $result;
+			}
+
+			// Build update
+			$update_data = array('changed' => time());
+			$changes = array();
+
+			// Ensure is_url is set correctly for local files
+			if ($is_url != 0 && $resource['is_url'] != 0) {
+				$update_data['is_url'] = 0;
+				$changes[] = 'is_url: 1 → 0';
+			}
+
+			// Always read and update filesize from actual file
+			if ($resource['filesize'] != $file_metadata['filesize']) {
+				$changes[] = 'filesize: ' . format_bytes($resource['filesize']) . ' → ' . format_bytes($file_metadata['filesize']);
+			}
+			$update_data['filesize'] = $file_metadata['filesize'];
+
+			// Always read and update dcformat from actual file
+			if ($resource['dcformat'] != $file_metadata['mime_type']) {
+				$changes[] = 'dcformat: ' . ($resource['dcformat'] ?: 'NULL') . ' → ' . $file_metadata['mime_type'];
+			}
+			$update_data['dcformat'] = $file_metadata['mime_type'];
+
+			// Calculate checksum if requested
+			if ($calculate_checksum) {
+				$checksum = @hash_file('sha256', $file_path);
+				if ($checksum && $resource['checksum'] != $checksum) {
+					$update_data['checksum'] = $checksum;
+					$changes[] = 'checksum: ' . ($resource['checksum'] ? 'updated' : 'calculated');
+				}
+			}
+
+			// Always update resource_type
+			if (!empty($resource['dctype'])) {
+				$new_resource_type = $this->get_resource_type_from_dctype($resource['dctype']);
+				if ($resource['resource_type'] != $new_resource_type) {
+					$update_data['resource_type'] = $new_resource_type;
+					$changes[] = 'resource_type: ' . ($resource['resource_type'] ?: 'NULL') . ' → ' . $new_resource_type;
+				}
+			}
+
+			// Update if changes
+			if (count($update_data) > 1) {
+				$this->db->where('resource_id', $resource_id);
+				$this->db->update('resources', $update_data);
+				
+				$result['status'] = 'synced';
+				$result['changes'] = $changes;
+				
+				log_message('info', "Resource #{$resource_id} synced: " . implode(', ', $changes));
+			} else {
+				$result['status'] = 'no_changes';
+				$result['reason'] = 'Metadata already up to date';
+			}
+
+		} catch (Exception $e) {
+			$result['status'] = 'error';
+			$result['reason'] = $e->getMessage();
+			log_message('error', "Resource #{$resource_id} sync error: " . $e->getMessage());
+		}
+
+		return $result;
 	}
 
 }

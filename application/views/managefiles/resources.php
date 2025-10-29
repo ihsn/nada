@@ -91,7 +91,12 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->resource_id; ?>" class="chk"/></td>
-            <td><a href="<?php echo current_url();?>/edit/<?php echo $row->resource_id;?>"><?php echo $row->title; ?></a></td>
+            <td>
+                <a href="<?php echo current_url();?>/edit/<?php echo $row->resource_id;?>"><?php echo $row->title; ?></a>
+                <?php if (!empty($row->resource_idno)): ?>
+                    <br/><small class="text-muted">ID: <?php echo htmlspecialchars($row->resource_idno); ?></small>
+                <?php endif; ?>
+            </td>
             <td><?php echo substr($row->description,0,60); ?>&nbsp;</td>
             <td><?php echo $row->dctype; ?>&nbsp;</td>
 			<td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->changed); ?></td>
