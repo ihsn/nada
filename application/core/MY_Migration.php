@@ -83,6 +83,7 @@ class MY_Migration extends CI_Migration {
         echo "\n" . str_repeat('=', 80) . "\n";
         echo "Migration Report: " . basename($filename) . "\n";
         echo str_repeat('=', 80) . "\n\n";
+        flush();
         
         foreach ($lines as $line_num => $line) {
             if (substr(trim($line), 0, 2) == '--' || substr(trim($line), 0, 1) == '#' || trim($line) == '') {
@@ -102,6 +103,7 @@ class MY_Migration extends CI_Migration {
                     // Show statement being executed
                     echo "Statement #{$statement_num} (line {$line_num}):\n";
                     echo $this->format_sql_for_display($templine) . "\n";
+                    flush();
                     
                     // Execute with error suppression
                     $start_time = microtime(true);
@@ -112,10 +114,12 @@ class MY_Migration extends CI_Migration {
                         $error = $this->db->error();
                         $error_code = $error['code'];
                         
+                        // Check if error is safe to skip (handles "42S21/2705" format internally)
                         if ($this->is_safe_to_skip_error($error_code, $this->db->dbdriver)) {
                             $skipped++;
                             echo "✓ SKIPPED (already applied) - Error {$error_code}: {$error['message']}\n";
                             echo "  Time: {$execution_time}ms\n\n";
+                            flush();
                             
                             log_message('info', "Skipped (error {$error_code}): " . substr($templine, 0, 100) . '...');
                             
@@ -132,6 +136,7 @@ class MY_Migration extends CI_Migration {
                             $failed++;
                             echo "✗ FAILED - Error {$error_code}: {$error['message']}\n";
                             echo "  Time: {$execution_time}ms\n\n";
+                            flush();
                             
                             $error_msg = "Migration failed at line {$line_num}\n";
                             $error_msg .= "Error {$error_code}: {$error['message']}\n";
@@ -159,6 +164,7 @@ class MY_Migration extends CI_Migration {
                             echo " - {$affected_rows} row(s) affected";
                         }
                         echo "\n  Time: {$execution_time}ms\n\n";
+                        flush();
                         
                         log_message('info', 'Migration statement succeeded: ' . substr($templine, 0, 100) . '...');
                         
@@ -200,6 +206,7 @@ class MY_Migration extends CI_Migration {
         echo "⊘ SKIPPED: {$skipped} statement(s) (already applied)\n";
         echo "✗ FAILED:  {$failed} statement(s)\n";
         echo str_repeat('=', 80) . "\n\n";
+        flush();
     }
     
     public function get_migration_report()
@@ -207,30 +214,110 @@ class MY_Migration extends CI_Migration {
         return $this->migration_report;
     }
     
+    /**
+     * Extract native error code from database error
+     * 
+     * SQL Server ODBC returns errors in format: "SQLSTATE/NativeCode" (e.g., "42S11/1913")
+     * This extracts the native code for consistent checking
+     * 
+     * @param mixed $error_code Error code from database
+     * @return int Native error code
+     */
+    protected function extract_native_error_code($error_code)
+    {
+        // SQL Server ODBC format: "42S11/1913" -> extract 1913
+        if (is_string($error_code) && strpos($error_code, '/') !== false) {
+            $parts = explode('/', $error_code);
+            return (int)$parts[1];
+        }
+        
+        // Already numeric or standard format
+        return (int)$error_code;
+    }
+    
     protected function is_safe_to_skip_error($error_code, $db_driver)
     {
         if (in_array($db_driver, array('mysql', 'mysqli'))) {
             $safe_errors = array(
-                1060,
-                1061,
-                1091,
-                1050,
-                1068,
-                1146,
+                1060,  // Duplicate column name
+                1061,  // Duplicate key name
+                1091,  // Can't DROP - doesn't exist
+                1050,  // Table already exists
+                1068,  // Multiple primary keys
+                1146,  // Table doesn't exist
             );
+            
+            // MySQL SQLSTATE codes (fallback)
+            $safe_sqlstates = array('42S01', '42S02', '42S21', '42S22');
+            
         } elseif ($db_driver == 'sqlsrv') {
             $safe_errors = array(
                 1712,  // Cannot ALTER TABLE because clustered index is being rebuilt
-                1913,  // The constraint already exists
+                1913,  // The operation failed because an index or statistics already exists
                 2705,  // Column already exists
                 2714,  // Object already exists (table/view)
                 3728,  // Could not drop constraint (does not exist)
+                15723, // Object already exists (SQL Server)
             );
+            
+            // SQL Server SQLSTATE codes (fallback)
+            $safe_sqlstates = array(
+                '42S01',  // Base table or view already exists
+                '42S02',  // Base table or view not found
+                '42S11',  // Index already exists
+                '42S21',  // Column already exists
+                '42S22',  // Column not found
+            );
+            
         } else {
             $safe_errors = array();
+            $safe_sqlstates = array();
         }
         
-        return in_array($error_code, $safe_errors);
+        // Extract native error code from compound format (e.g., "42S21/2705" -> 2705)
+        $native_code = $this->extract_native_error_code($error_code);
+        
+        // Extract SQLSTATE from compound format (e.g., "42S21/2705" -> "42S21")
+        $sqlstate = $this->extract_sqlstate_code($error_code);
+        
+        // Check native error code
+        if (in_array($native_code, $safe_errors)) {
+            return true;
+        }
+        
+        // Check SQLSTATE code
+        if (isset($safe_sqlstates) && in_array($sqlstate, $safe_sqlstates)) {
+            return true;
+        }
+        
+        // Check original error code (in case it's already numeric or plain SQLSTATE)
+        if (in_array($error_code, $safe_errors)) {
+            return true;
+        }
+        
+        if (isset($safe_sqlstates) && in_array($error_code, $safe_sqlstates)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Extract SQLSTATE code from compound format
+     * 
+     * @param mixed $error_code Error code from database
+     * @return string SQLSTATE code or original if not compound
+     */
+    protected function extract_sqlstate_code($error_code)
+    {
+        // SQL Server ODBC format: "42S21/2705" -> extract "42S21"
+        if (is_string($error_code) && strpos($error_code, '/') !== false) {
+            $parts = explode('/', $error_code);
+            return trim($parts[0]);
+        }
+        
+        // Return as-is if it's already a string (might be SQLSTATE)
+        return (string)$error_code;
     }
     
     protected function get_sql_file_path($filename)
