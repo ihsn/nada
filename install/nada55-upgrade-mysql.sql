@@ -12,11 +12,14 @@ ALTER TABLE `resources` ADD COLUMN `created_by` int(11) DEFAULT NULL AFTER `crea
 ALTER TABLE `resources` ADD COLUMN `changed_by` int(11) DEFAULT NULL;
 
 
-# update resource_type column values - extract code from dctype
-UPDATE `resources` SET 
-  `resource_type` = TRIM(BOTH ']' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(dctype, '[', -1), ']', 1))
-  WHERE dctype IS NOT NULL 
-    AND dctype LIKE '%[%]%';
+# Note: resource_type column values are updated via PHP migration
+# See Migration_Upgrade_resources_table::update_resource_types_from_dctype()
+
+# UPDATE `resources` SET 
+#   `resource_type` = TRIM(BOTH ']' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(dctype, '[', -1), ']', 1))
+#   WHERE dctype IS NOT NULL 
+#     AND dctype LIKE '%[%]%';
+
 
 
 UPDATE `resources` 

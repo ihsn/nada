@@ -11,6 +11,9 @@ class Migrate extends CI_Controller {
             show_error('This script can only be accessed via the command line');
         }
         
+        // Prevent timeouts for long-running migrations
+        $this->configure_for_long_migrations();
+        
         $this->load->database();
         $this->load->config('migration');
         
@@ -25,6 +28,72 @@ class Migrate extends CI_Controller {
         $this->ensure_db_debug_disabled();
         
         $this->load->library('migration');
+    }
+    
+    /**
+     * Configure PHP and database settings for long-running migrations
+     * 
+     * This prevents timeouts during:
+     * - Large data imports
+     * - Complex schema changes
+     * - Index creation on large tables
+     * - Batch updates
+     */
+    private function configure_for_long_migrations()
+    {
+        echo "\n" . str_repeat('=', 80) . "\n";
+        echo "Configuring for Long-Running Migrations\n";
+        echo str_repeat('=', 80) . "\n";
+        
+        // Remove PHP execution time limit
+        set_time_limit(0);
+        ini_set('max_execution_time', '0');
+        echo "✓ PHP execution time limit: unlimited\n";
+        
+        // Increase memory limit if needed
+        $current_memory = ini_get('memory_limit');
+        $current_bytes = $this->parse_memory_limit($current_memory);
+        $recommended_bytes = 512 * 1024 * 1024; // 512MB
+        
+        if ($current_memory == '-1') {
+            echo "✓ Memory limit: unlimited\n";
+        } elseif ($current_bytes < $recommended_bytes) {
+            ini_set('memory_limit', '512M');
+            echo "✓ Memory limit: increased to 512M (was {$current_memory})\n";
+        } else {
+            echo "✓ Memory limit: {$current_memory}\n";
+        }
+        
+        // Display current PHP settings
+        $max_input_time = ini_get('max_input_time');
+        echo "✓ Max input time: " . ($max_input_time == '-1' ? 'unlimited' : $max_input_time . 's') . "\n";
+        
+        echo str_repeat('=', 80) . "\n\n";
+    }
+    
+    /**
+     * Parse memory limit string to bytes
+     */
+    private function parse_memory_limit($limit)
+    {
+        if ($limit == -1 || $limit == '-1') {
+            return PHP_INT_MAX;
+        }
+        
+        $limit = trim($limit);
+        $last = strtolower($limit[strlen($limit)-1]);
+        $value = (int)$limit;
+        
+        switch($last) {
+            case 'g':
+                $value *= 1024;
+            case 'm':
+                $value *= 1024;
+            case 'k':
+                $value *= 1024;
+        }
+        
+        return $value;
     }
 
     public function index()

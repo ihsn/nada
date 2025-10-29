@@ -3,11 +3,86 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class MY_Migration extends CI_Migration {
 
+    protected $migration_report = array();
+    
+    public function __construct()
+    {
+        parent::__construct();
+        $this->prevent_timeouts();
+    }
+    
+    /**
+     * Prevent timeouts during long-running migrations
+     * 
+     * Sets appropriate limits for:
+     * - PHP execution time
+     * - Memory usage
+     * - Database timeouts
+     */
+    protected function prevent_timeouts()
+    {
+        // Remove PHP execution time limit for CLI migrations
+        if (php_sapi_name() === 'cli') {
+            set_time_limit(0);
+            ini_set('max_execution_time', '0');
+            
+            echo "⚙ Timeout prevention configured:\n";
+            echo "  • PHP execution time: unlimited\n";
+            
+            // Increase memory limit if needed
+            $current_memory = ini_get('memory_limit');
+            $current_bytes = $this->parse_memory_limit($current_memory);
+            $recommended_bytes = 512 * 1024 * 1024; // 512MB
+            
+            if ($current_bytes < $recommended_bytes) {
+                ini_set('memory_limit', '512M');
+                echo "  • Memory limit: increased to 512M (was {$current_memory})\n";
+            } else {
+                echo "  • Memory limit: {$current_memory} (sufficient)\n";
+            }
+            
+            echo "\n";
+        }
+    }
+    
+    /**
+     * Parse memory limit string to bytes
+     * Handles formats like: 128M, 1G, 512K
+     */
+    protected function parse_memory_limit($limit)
+    {
+        if ($limit == -1) {
+            return PHP_INT_MAX;
+        }
+        
+        $limit = trim($limit);
+        $last = strtolower($limit[strlen($limit)-1]);
+        $value = (int)$limit;
+        
+        switch($last) {
+            case 'g':
+                $value *= 1024;
+            case 'm':
+                $value *= 1024;
+            case 'k':
+                $value *= 1024;
+        }
+        
+        return $value;
+    }
+    
     protected function execute_sql_file($filename)
     {
         $templine = '';
         $lines = file($filename);
+        $statement_num = 0;
+        $succeeded = 0;
         $skipped = 0;
+        $failed = 0;
+        
+        echo "\n" . str_repeat('=', 80) . "\n";
+        echo "Migration Report: " . basename($filename) . "\n";
+        echo str_repeat('=', 80) . "\n\n";
         
         foreach ($lines as $line_num => $line) {
             if (substr(trim($line), 0, 2) == '--' || substr(trim($line), 0, 1) == '#' || trim($line) == '') {
@@ -22,8 +97,16 @@ class MY_Migration extends CI_Migration {
                 $templine = trim($templine);
                 
                 if (!empty($templine)) {
+                    $statement_num++;
+                    
+                    // Show statement being executed
+                    echo "Statement #{$statement_num} (line {$line_num}):\n";
+                    echo $this->format_sql_for_display($templine) . "\n";
+                    
                     // Execute with error suppression
+                    $start_time = microtime(true);
                     $result = @$this->db->query($templine);
+                    $execution_time = round((microtime(true) - $start_time) * 1000, 2);
                     
                     if ($result === FALSE) {
                         $error = $this->db->error();
@@ -31,16 +114,62 @@ class MY_Migration extends CI_Migration {
                         
                         if ($this->is_safe_to_skip_error($error_code, $this->db->dbdriver)) {
                             $skipped++;
+                            echo "✓ SKIPPED (already applied) - Error {$error_code}: {$error['message']}\n";
+                            echo "  Time: {$execution_time}ms\n\n";
+                            
                             log_message('info', "Skipped (error {$error_code}): " . substr($templine, 0, 100) . '...');
+                            
+                            $this->migration_report[] = array(
+                                'statement' => $statement_num,
+                                'line' => $line_num,
+                                'sql' => $templine,
+                                'status' => 'SKIPPED',
+                                'error_code' => $error_code,
+                                'message' => $error['message'],
+                                'time_ms' => $execution_time
+                            );
                         } else {
+                            $failed++;
+                            echo "✗ FAILED - Error {$error_code}: {$error['message']}\n";
+                            echo "  Time: {$execution_time}ms\n\n";
+                            
                             $error_msg = "Migration failed at line {$line_num}\n";
                             $error_msg .= "Error {$error_code}: {$error['message']}\n";
                             $error_msg .= "SQL: {$templine}";
                             log_message('error', $error_msg);
+                            
+                            $this->migration_report[] = array(
+                                'statement' => $statement_num,
+                                'line' => $line_num,
+                                'sql' => $templine,
+                                'status' => 'FAILED',
+                                'error_code' => $error_code,
+                                'message' => $error['message'],
+                                'time_ms' => $execution_time
+                            );
+                            
+                            $this->print_migration_summary($succeeded, $skipped, $failed);
                             throw new Exception($error_msg);
                         }
                     } else {
+                        $succeeded++;
+                        $affected_rows = $this->db->affected_rows();
+                        echo "✓ SUCCESS";
+                        if ($affected_rows >= 0) {
+                            echo " - {$affected_rows} row(s) affected";
+                        }
+                        echo "\n  Time: {$execution_time}ms\n\n";
+                        
                         log_message('info', 'Migration statement succeeded: ' . substr($templine, 0, 100) . '...');
+                        
+                        $this->migration_report[] = array(
+                            'statement' => $statement_num,
+                            'line' => $line_num,
+                            'sql' => $templine,
+                            'status' => 'SUCCESS',
+                            'affected_rows' => $affected_rows,
+                            'time_ms' => $execution_time
+                        );
                     }
                 }
                 
@@ -48,11 +177,34 @@ class MY_Migration extends CI_Migration {
             }
         }
         
-        if ($skipped > 0) {
-            log_message('info', "Migration completed with {$skipped} statements skipped (already applied)");
-        }
+        $this->print_migration_summary($succeeded, $skipped, $failed);
         
-        log_message('info', "SQL file execution completed: {$filename}");
+        log_message('info', "SQL file execution completed: {$filename} (Success: {$succeeded}, Skipped: {$skipped}, Failed: {$failed})");
+    }
+    
+    protected function format_sql_for_display($sql, $max_length = 200)
+    {
+        $sql = preg_replace('/\s+/', ' ', $sql);
+        if (strlen($sql) > $max_length) {
+            return substr($sql, 0, $max_length) . '...';
+        }
+        return $sql;
+    }
+    
+    protected function print_migration_summary($succeeded, $skipped, $failed)
+    {
+        echo str_repeat('=', 80) . "\n";
+        echo "Migration Summary\n";
+        echo str_repeat('=', 80) . "\n";
+        echo "✓ SUCCESS: {$succeeded} statement(s)\n";
+        echo "⊘ SKIPPED: {$skipped} statement(s) (already applied)\n";
+        echo "✗ FAILED:  {$failed} statement(s)\n";
+        echo str_repeat('=', 80) . "\n\n";
+    }
+    
+    public function get_migration_report()
+    {
+        return $this->migration_report;
     }
     
     protected function is_safe_to_skip_error($error_code, $db_driver)
@@ -68,10 +220,11 @@ class MY_Migration extends CI_Migration {
             );
         } elseif ($db_driver == 'sqlsrv') {
             $safe_errors = array(
-                1712,
-                1913,
-                2714,
-                3728,
+                1712,  // Cannot ALTER TABLE because clustered index is being rebuilt
+                1913,  // The constraint already exists
+                2705,  // Column already exists
+                2714,  // Object already exists (table/view)
+                3728,  // Could not drop constraint (does not exist)
             );
         } else {
             $safe_errors = array();

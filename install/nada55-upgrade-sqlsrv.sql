@@ -11,13 +11,19 @@ ALTER TABLE [resources] ADD [created] int DEFAULT NULL;
 ALTER TABLE [resources] ADD [created_by] int DEFAULT NULL;
 ALTER TABLE [resources] ADD [changed_by] int DEFAULT NULL;
 
+-- Note: resource_type column values are updated via PHP migration
+-- See Migration_Upgrade_resources_table::update_resource_types_from_dctype()
+
 -- update resource_type column values - extract code from dctype
-UPDATE [resources] SET 
-  [resource_type] = LTRIM(RTRIM(SUBSTRING([dctype], 
-    CHARINDEX('[', [dctype]) + 1, 
-    CHARINDEX(']', [dctype]) - CHARINDEX('[', [dctype]) - 1)))
-  WHERE [dctype] IS NOT NULL 
-    AND [dctype] LIKE '%[%]%';
+-- UPDATE [resources] SET 
+--   [resource_type] = LTRIM(RTRIM(SUBSTRING([dctype], 
+--     CHARINDEX('[', [dctype]) + 1, 
+--     CHARINDEX(']', [dctype]) - CHARINDEX('[', [dctype]) - 1)))
+--   WHERE [dctype] IS NOT NULL 
+--     AND [dctype] LIKE '%[%]%';
+
+
+
 
 UPDATE [resources] 
   SET [is_url] = 1 
