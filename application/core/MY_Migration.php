@@ -28,6 +28,10 @@ class MY_Migration extends CI_Migration {
             
             echo "⚙ Timeout prevention configured:\n";
             echo "  • PHP execution time: unlimited\n";
+        } else {
+            // For web context, still set timeout but don't echo (already in <pre> from controller)
+            set_time_limit(0);
+            ini_set('max_execution_time', '0');
             
             // Increase memory limit if needed
             $current_memory = ini_get('memory_limit');

@@ -41,6 +41,11 @@ class Migrate extends CI_Controller {
      */
     private function configure_for_long_migrations()
     {
+        // Detect web context and add <pre> for proper formatting
+        if (php_sapi_name() !== 'cli') {
+            echo "<pre style='background:#000;color:#0f0;padding:20px;font-family:monospace;white-space:pre-wrap;'>";
+        }
+        
         echo "\n" . str_repeat('=', 80) . "\n";
         echo "Configuring for Long-Running Migrations\n";
         echo str_repeat('=', 80) . "\n";
