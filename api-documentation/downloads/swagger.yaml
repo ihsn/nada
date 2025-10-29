@@ -1,0 +1,322 @@
+swagger: "2.0"
+info:
+  description: >-
+    The Downloads API allows browsing and downloading study resources and files. 
+    The API provides endpoints to search for downloadable files across all studies, 
+    list files for specific studies, and download resources with appropriate access control.
+    
+
+    Find out more about NADA at
+    [http://github.com/ihsn/nada](http://github.com/ihsn/nada).  
+
+    
+  version: 1.0.0
+  title: Downloads API
+  x-logo:
+    url: ""
+    backgroundColor: "#FFFFFF"
+    altText: ""
+# Note: host and schemes are automatically injected by swagger.php
+# based on the current server configuration
+basePath: /index.php/api/
+tags:
+  - name: Downloads
+    description: API for browsing and downloading study resources
+
+x-tagGroups:
+  - name: Downloads
+    tags:
+      - Downloads
+paths:
+
+  /downloads:
+    get:
+      tags:
+        - Downloads
+      summary: Search downloadable files
+      description: >-
+        Search downloadable files across all studies with optional filters for 
+        countries, years, data access types, resource types, and specific studies.
+      operationId: searchDownloads
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: limit
+          in: query
+          description: Number of results per page (default is 15)
+          type: integer
+          default: 15
+        - name: offset
+          in: query
+          description: Starting position for pagination (default is 0)
+          type: integer
+          default: 0
+        - name: type
+          in: query
+          description: >-
+            Resource type filter. Can be a category (microdata, data, documentation, doc) 
+            or a specific code (doc/qst, dat/micro, tbl, aud, vid, etc.)
+          type: string
+          enum:
+            - microdata
+            - data
+            - documentation
+            - doc
+            - doc/qst
+            - dat/micro
+            - tbl
+            - aud
+            - vid
+        - name: countries
+          in: query
+          description: Country filter (can be array or single value)
+          type: string
+        - name: years
+          in: query
+          description: Year filter (can be array or single value)
+          type: string
+        - name: data_access_type
+          in: query
+          description: Filter by data access type
+          type: string
+          enum:
+            - open
+            - direct
+            - public
+            - licensed
+            - enclave
+            - remote
+            - other
+        - name: idno
+          in: query
+          description: Filter by study IDNO
+          type: string
+        - name: sort_by
+          in: query
+          description: Field to sort results by
+          type: string
+        - name: sort_order
+          in: query
+          description: Sort order (ascending or descending)
+          type: string
+          enum:
+            - asc
+            - desc
+          default: asc
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: Total number of results
+                  limit:
+                    type: integer
+                    description: Results per page
+                  offset:
+                    type: integer
+                    description: Starting position
+                  files:
+                    type: array
+                    items:
+                      $ref: "#/definitions/DownloadableFile"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /downloads/files/{idno}:
+    get:
+      tags:
+        - Downloads
+      summary: List downloadable files by study
+      description: Get a list of all downloadable files for a specific study by its IDNO
+      operationId: listFilesByStudy
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: idno
+          in: path
+          description: Study unique ID number (IDNO)
+          type: string
+          required: true
+        - name: type
+          in: query
+          description: >-
+            Resource type filter. Can be a category (microdata, data, documentation, doc) 
+            or a specific code (doc/qst, dat/micro, tbl, etc.)
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              files:
+                type: array
+                items:
+                  $ref: "#/definitions/DownloadableFile"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /downloads/info/{idno}/{resource_id}:
+    get:
+      tags:
+        - Downloads
+      summary: Get downloadable file information
+      description: Get detailed information for a single downloadable file
+      operationId: getFileInfo
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: idno
+          in: path
+          description: Study unique ID number (IDNO)
+          type: string
+          required: true
+        - name: resource_id
+          in: path
+          description: Resource ID
+          type: integer
+          required: true
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              resource:
+                $ref: "#/definitions/DownloadableFile"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /downloads/download/{idno}/{resource_id}:
+    get:
+      tags:
+        - Downloads
+      summary: Download a file
+      description: >-
+        Download a file by study IDNO and resource ID. 
+        Authentication is required for public and licensed data access types.
+        User must have appropriate permissions to download the file.
+      operationId: downloadFile
+      produces:
+        - application/octet-stream
+        - application/json
+      parameters:
+        - name: idno
+          in: path
+          description: Study unique ID number (IDNO)
+          type: string
+          required: true
+        - name: resource_id
+          in: path
+          description: Resource ID
+          type: integer
+          required: true
+      responses:
+        "200":
+          description: File download successful
+          schema:
+            type: file
+        "400":
+          description: Bad request or insufficient permissions
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: Login required
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  DownloadableFile:
+    type: object
+    properties:
+      resource_id:
+        type: integer
+        description: Unique resource ID
+      survey_id:
+        type: integer
+        description: Study/survey ID
+      idno:
+        type: string
+        description: Study IDNO
+      title:
+        type: string
+        description: Study title
+      dctype:
+        type: string
+        description: Resource type code (e.g., doc/qst, dat/micro, tbl)
+      dcformat:
+        type: string
+        description: File format (e.g., application/pdf, application/x-stata)
+      filename:
+        type: string
+        description: File name
+      file_size:
+        type: integer
+        description: File size in bytes
+      data_access_type:
+        type: string
+        description: Data access type
+        enum:
+          - open
+          - direct
+          - public
+          - licensed
+          - enclave
+          - remote
+          - other
+      countries:
+        type: array
+        items:
+          type: string
+        description: Countries covered by the study
+      year_start:
+        type: integer
+        description: Start year of data collection
+      year_end:
+        type: integer
+        description: End year of data collection
+      download_url:
+        type: string
+        description: URL to download the file
+    xml:
+      name: DownloadableFile
+  
+  ErrorResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        example: failed
+      errors:
+        type: string
+        description: Error message
+    xml:
+      name: ErrorResponse
+
