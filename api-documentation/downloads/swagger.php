@@ -9,7 +9,7 @@
 // ==================== CONFIGURATION ====================
 // Force HTTPS for the API documentation URLs
 // Set to true to always use https, false to auto-detect
-$force_https = false;
+$force_https = true;
 // =======================================================
 
 // Auto-detect the host and protocol
