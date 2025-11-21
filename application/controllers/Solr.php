@@ -1,77 +1,55 @@
-<?php
-/**
- *
- * SOLR indexing -  CLI mode
- * 
- *
- **/
+<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Solr extends MY_Controller {
+class Solr extends CI_Controller {
 
-    //solr configrations
-    var $solr_config;
+	function __construct()
+	{
+		parent::__construct();
+		$this->load->library("Solr_manager");
+		$this->is_admin_or_die();
+	}
 
-    public function __construct()
-    {
-		parent::__construct($skip_auth=false, $isadmin=true);
-	
-		/*if(!$this->input->is_cli_request()){
-			die("ERROR_NOT-CLI");
-		}*/
-
-		$this->load->library('solr_manager');		
-		error_reporting(E_ALL);
-		//$this->output->enable_profiler(TRUE);
-    }
-
-
-    function index()
-    {
-			echo "SOLR";
-			echo '<ul>';
-			echo '<li><a href="'.site_url('solr/ping_test').'">Ping test</a></li>';
-			echo '<li><a href="'.site_url('solr/get_total_documents_count').'">Documents count in SOLR index</a></li>';		
-			echo '<li><a href="'.site_url('solr/clean_index').'">clear index</a></li>';
-			echo '<li><a href="'.site_url('solr/full_import_surveys/0/50').'">Index all datasets</a></li>';
-			echo '<li><a href="'.site_url('solr/full_import_variables').'">Index variables</a></li>';
-			echo '<li><a href="'.site_url('solr/ping_test').'">Ping test</a></li>';
-			echo '</ul>';
-    }
-
-    public function ping_test()
-    {
-      	var_dump($this->solr_manager->ping_test());
-    }
-
+	function index()
+	{
+		echo '<h2>Solr Management</h2>';
+		echo '<ul>';
+		echo '<li><a href="'.site_url('solr/import_surveys_batch/0/50').'">Index all datasets</a></li>';
+		echo '<li><a href="'.site_url('solr/import_variables_batch').'">Index variables</a></li>';
+		echo '<li><a href="'.site_url('solr/clear_index').'">clear index</a></li>';
+		echo '<li><a href="'.site_url('solr/commit').'">commit</a></li>';
+		echo '<li><a href="'.site_url('solr/get_total_documents_count').'">get total documents count</a></li>';
+		echo '<li><a href="'.site_url('solr/sync_solr_with_db').'">sync solr with db</a></li>';
+		echo '</ul>';
+	}
 
 	/**
 	 *
-	 * recursive function to import all surveys
+	 * Import surveys in batches
 	 *
 	 * @start_row start importing from a row number or NULL to start from first id
 	 * @limit number of records to read at a time
 	 * @loop whether to recursively call the function till the end of rows
 	 *
 	 * */
-	public function full_import_surveys($start_row=NULL, $limit=10, $loop=FALSE)
+	public function import_surveys_batch($start_row=NULL, $limit=10, $loop=FALSE)
 	{		
-        $result=$this->solr_manager->full_import_surveys($start_row, $limit, false);
+        $result=$this->solr_manager->import_surveys_batch($start_row, $limit, false);
         
         var_dump($result);
 
         if($loop ==true && isset($result['last_row_id']) && $result['last_row_id'] > 0){
-            $this->full_import_surveys($result['last_row_id'], $limit, $loop);
+            $this->import_surveys_batch($result['last_row_id'], $limit, $loop);
         }
 	}
 
-	function dataset_to_json($start_row=NULL, $limit=10, $loop=FALSE)
+	function export_surveys_to_json($start_row=NULL, $limit=10, $loop=FALSE)
 	{
-		$result=$this->solr_manager->dataset_to_json($start_row, $limit, $loop_=FALSE);
+		$result=$this->solr_manager->export_surveys_to_json($start_row, $limit, $loop_=FALSE);
 
 		var_dump($result);
 		
 		if($loop ==true && $result['last_row_id'] > 0){
-            $this->dataset_to_json($result['last_row_id'], $limit, $loop);
+            $this->export_surveys_to_json($result['last_row_id'], $limit, $loop);
         }
 	}
 
@@ -81,14 +59,14 @@ class Solr extends MY_Controller {
 	 * remove all documents from index
 	 *
 	 **/
-	function clean_index(){
-		$this->solr_manager->clean_index();
+	function clear_index(){
+		$this->solr_manager->clear_index();
 	}
 
 
 	function get_total_documents_count()
 	{
-		echo $this->solr_manager->get_total_documents_count();
+		echo $this->solr_manager->count_documents_by_type();
 	}
 
 
@@ -96,21 +74,42 @@ class Solr extends MY_Controller {
 
 	/**
 	 *
-	 * recursive function to import all variables
+	 * Import all variables for a single survey with survey metadata loaded once
+	 *
+	 * @survey_id Survey ID to import variables for
+	 * @start_row start importing from a row number or NULL to start from first id
+	 * @limit number of records to read at a time
+	 * @loop whether to recursively call the function till the end of rows
+	 *
+	 * */
+	public function import_variables_by_survey_batch($survey_id, $start_row=0, $limit=200, $loop=TRUE)
+	{
+		$result = $this->solr_manager->import_variables_by_survey_batch($survey_id, $start_row, $limit, $loop);
+
+        var_dump($result);
+
+        if($loop == true && isset($result['last_row_id']) && $result['last_row_id'] > 0){
+            $this->import_variables_by_survey_batch($survey_id, $result['last_row_id'], $limit, $loop);
+        }
+	}
+
+	/**
+	 *
+	 * Import variables in batches
 	 *
 	 * @start_row start importing from a row number or NULL to start from first id
 	 * @limit number of records to read at a time
 	 * @loop whether to recursively call the function till the end of rows
 	 *
 	 * */
-	public function full_import_variables($start_row=NULL, $limit=100, $loop=FALSE)
+	public function import_variables_batch($start_row=NULL, $limit=100, $loop=FALSE)
 	{
-		$result=$this->solr_manager->full_import_variables($start_row, $limit, false);
+		$result=$this->solr_manager->import_variables_batch($start_row, $limit, false);
 
         var_dump($result);
 
         if($loop ==true && $result['last_row_id'] > 0){
-            $this->full_import_variables($result['last_row_id'], $limit, $loop);
+            $this->import_variables_batch($result['last_row_id'], $limit, $loop);
         }
 	}
 
@@ -118,16 +117,16 @@ class Solr extends MY_Controller {
 
 	/**
 	 *
-	 * recursive function to import all citations
+	 * Import citations in batches
 	 *
 	 * @start_row start importing from a row number or NULL to start from first id
 	 * @limit number of records to read at a time
 	 * @loop whether to recursively call the function till the end of rows
 	 *
 	 * */
-	public function full_import_citations($start_row=NULL, $limit=100, $loop=TRUE)
+	public function import_citations_batch($start_row=NULL, $limit=100, $loop=TRUE)
 	{
-		$this->solr_manager->full_import_citations($start_row, $limit, $loop);
+		$this->solr_manager->import_citations_batch($start_row, $limit, $loop);
 	}
 
 
@@ -138,16 +137,15 @@ class Solr extends MY_Controller {
 		$this->solr_manager->delete_document($query);
 	}
 
-	function sync_solr_with_db()
+	function synchronize_index()
 	{
-		$this->solr_manager->sync_solr_with_db($dryrun=false);
+		$this->solr_manager->synchronize_index($dryrun=false);
 	}
 
 
 	function commit()
 	{
-		$this->solr_manager->commit();
+		$this->solr_manager->commit_index_changes();
 	}
 
-
-}//end-class
+}

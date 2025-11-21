@@ -83,10 +83,36 @@
 
 <div class="active-filters-container">
     <?php $active_filters=$this->load->view("search/active_filter_tokens",null,true);?>    
-    <?php if (!empty(trim($active_filters))):?>
+    <?php if (!empty(trim($active_filters)) || true):?>
         <div class="active-filters">
             <?php echo $active_filters;?>
+            
+            <span class="badge badge-default badge-secondary wb-badge-close remove-filter variable-view" 
+                  data-type="view" 
+                  data-value="v" 
+                  title="<?php echo t('Switch to Study view');?>">
+                <i class="fa fa-database mr-1"></i>
+                <?php echo t('Variable view');?>
+                <i class="fas fa-times"></i>
+            </span>
+            
             <a href="<?php echo site_url('catalog');?>?tab_type=<?php echo $search_options->tab_type; ?>" class="btn-reset-search btn btn-outline-danger btn-sm"><?php echo t('reset_search');?></a>
         </div>        
     <?php endif;?>
-</div>    
+</div>
+
+<script>
+$(document).ready(function() {
+    // Handle variable view badge click
+    $(document.body).on("click", ".remove-filter.variable-view", function() {
+        // Get current URL parameters
+        let currentUrl = new URL(window.location);
+        
+        // Remove the view parameter to switch back to study view
+        currentUrl.searchParams.delete('view');
+        
+        // Navigate to study view
+        window.location.href = currentUrl.toString();
+    });
+});
+</script>    

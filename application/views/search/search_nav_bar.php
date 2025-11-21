@@ -112,10 +112,31 @@
 </div>
 
 <div class="active-filters-container">
+
+
+    
     <?php $active_filters=$this->load->view("search/active_filter_tokens",null,true);?>    
-    <?php if (!empty(trim($active_filters))):?>
+    <?php if (!empty(trim($active_filters)) || (isset($_GET['view']) && $_GET['view'] == 'v')):?>
         <div class="active-filters">
             <?php echo $active_filters;?>
+            
+            <?php 
+            // Get current view from URL parameter
+            $current_view = isset($_GET['view']) ? $_GET['view'] : '';
+            
+            if ($current_view == 'v'):?>
+                <!-- Variable view cancel badge -->
+                <span class="badge badge-info mr-2">
+                    <i class="fa fa-database mr-1"></i>
+                    <?php echo t('Variable view');?>
+                    <a href="<?php echo site_url('catalog/'.@$active_repo['repositoryid'].'?'.http_build_query(array_merge($qs_params, ['view' => 's'])));?>" 
+                       class="text-white ml-1" 
+                       title="<?php echo t('Switch to Study view');?>">
+                        <i class="fa fa-times"></i>
+                    </a>
+                </span>
+            <?php endif;?>
+            
             <a href="<?php echo site_url('catalog');?>?tab_type=<?php echo $search_options->tab_type; ?>" class="btn-reset-search btn btn-outline-danger btn-sm"><?php echo t('reset_search');?></a>
         </div>        
     <?php endif;?>

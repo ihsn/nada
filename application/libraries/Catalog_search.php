@@ -17,20 +17,32 @@ class Catalog_search{
 
     function __construct($params=array()){
 
-        //which db driver to use
         $ci =& get_instance();
-        $driver = $ci->db->dbdriver;
+        $valid_search_providers=array('solr','db');
 
-        //default/base search class
-        require_once dirname(__FILE__) . '/Catalog_search_mysql.php';
-
- 
-        $search_provider=$ci->config->item('search_provider');
-
-        //SOLR
-        if ($search_provider=='solr'){
-            $driver='solr';
+        $search_provider = null;
+        
+        // Check if search provider is explicitly specified in params
+        if (isset($params['search_provider'])) {
+            if (in_array($params['search_provider'], $valid_search_providers)){
+                $search_provider = $params['search_provider'];
+            }
+        } else {
+            // Use configuration-based search provider
+            $search_provider = $ci->config->item('search_provider');
         }
+
+        $driver = null;
+        
+        if ($search_provider === 'db') {
+            $driver = $ci->db->dbdriver;
+        } elseif ($search_provider === 'solr') {
+            $driver = 'solr';
+        } else {
+            $driver = $ci->db->dbdriver;
+        }
+
+        require_once dirname(__FILE__) . '/Catalog_search_mysql.php';
 
         switch ($driver) {
             case 'sqlsrv';
