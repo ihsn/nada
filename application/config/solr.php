@@ -10,6 +10,10 @@ $config['solr_host'] = "localhost";
 $config['solr_port'] = "8983";
 $config['solr_collection'] = "nada";
 
+// Timeout settings (in seconds)
+$config['solr_timeout'] = 300; // 5 minutes for large variable batches
+$config['solr_connect_timeout'] = 10; // 10 seconds connection timeout
+
 // Debug mode
 $config['solr_debug'] = false;
 

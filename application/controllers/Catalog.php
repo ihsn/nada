@@ -322,7 +322,6 @@ class Catalog extends MY_Controller {
 			$output['search_output']=$this->load->view('search/variables', $output,true);
 		}
 		else{
-			// Extract surveys data for the view
 			$view_data = $output;
 			$view_data['surveys'] = $output['surveys'];
 			$output['search_output']=$this->load->view($dataset_view, $view_data,true);
@@ -342,11 +341,11 @@ class Catalog extends MY_Controller {
 			$tabs['search_counts_by_type']=array();
 			$tabs['active_tab']="survey";
 		}else{
-			// Ensure search_counts_by_type is always available
+			//get search counts by type
 			if (isset($output['surveys']['search_counts_by_type']) && !empty($output['surveys']['search_counts_by_type'])) {
 				$tabs['search_counts_by_type'] = $output['surveys']['search_counts_by_type'];
 			} else {
-				// Fallback: ensure we always have at least survey data
+				//fallback - get survey counts
 				$tabs['search_counts_by_type'] = array('survey' => isset($output['surveys']['found']) ? $output['surveys']['found'] : 0);
 			}
 			$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
@@ -354,7 +353,6 @@ class Catalog extends MY_Controller {
 
 		$output['tabs']=$tabs;		
 
-		//load js
 		$this->template->add_js('javascript/jquery.history.min.js');		
 
 		$content=$this->load->view('search/layout',$output,true);

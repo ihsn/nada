@@ -10,6 +10,7 @@
  */
 
 use Solarium\Core\Client\Adapter\Curl;
+use Solarium\Core\Client\Adapter\ConnectionTimeoutAwareInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class Solr_manager {
@@ -67,6 +68,19 @@ class Solr_manager {
     function get_solarium_client()
     {
         $adapter = new Curl();
+        
+        // Set timeout for large batches of rows
+        $timeout = $this->ci->config->item('solr_timeout');
+        if ($timeout) {
+            $adapter->setTimeout((int)$timeout);
+        }
+        
+        // Set connection timeout
+        $connect_timeout = $this->ci->config->item('solr_connect_timeout');
+        if ($connect_timeout && $adapter instanceof ConnectionTimeoutAwareInterface) {
+            $adapter->setConnectionTimeout((int)$connect_timeout);
+        }
+        
         $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
         return new Solarium\Client($adapter, $eventDispatcher, $this->solr_config);
     }
@@ -762,7 +776,7 @@ class Solr_manager {
                     return $this->survey_facets_update($obj_id);
                 }*/
                 else if($delta_op=='delete'){
-                    return $this->delete_document("survey_uid:$obj_id OR sid:$obj_id");
+                    return $this->delete_document("survey_uid:$obj_id OR var_survey_id:$obj_id");
                 }
             break;
 
@@ -931,7 +945,7 @@ class Solr_manager {
         $this->index_documents($documents,$id_prefix='',$commit=false);
 
         //delete variables if exist
-        $this->delete_document('sid:'.$id);
+        $this->delete_document('var_survey_id:'.$id);
         //import survey variables
         $this->import_survey_variables($id);
     }
@@ -1285,14 +1299,26 @@ class Solr_manager {
 		// Add survey metadata if enabled
 		$include_metadata = $this->ci->config->item('solr_variable_include_survey_metadata');
 		if ($include_metadata) {
-			foreach ($transformed_rows as &$row) {
+			// Collect unique survey IDs from the batch
+			$survey_ids = array();
+			foreach ($transformed_rows as $row) {
 				$survey_id = $row['var_survey_id'];
-				                $survey_metadata = $this->load_survey_metadata($survey_id);
-				if (!empty($survey_metadata)) {
-					$row = array_merge($row, $survey_metadata);
+				if ($survey_id && !in_array($survey_id, $survey_ids)) {
+					$survey_ids[] = $survey_id;
 				}
 			}
-			log_message('debug', 'Added survey metadata to ' . count($transformed_rows) . ' variables');
+			
+			// Batch load all survey metadata at once
+			$batch_survey_metadata = $this->batch_load_survey_metadata($survey_ids);
+			
+			// Map metadata back to each variable row
+			foreach ($transformed_rows as &$row) {
+				$survey_id = $row['var_survey_id'];
+				if (isset($batch_survey_metadata[$survey_id])) {
+					$row = array_merge($row, $batch_survey_metadata[$survey_id]);
+				}
+			}
+			log_message('debug', 'Added survey metadata to ' . count($transformed_rows) . ' variables from ' . count($survey_ids) . ' unique surveys');
 		}
 
 		//echo "DB results loaded= ".date("H:i:s")."\r\n";
@@ -2309,20 +2335,31 @@ class Solr_manager {
     }
 
     /**
-     * Load survey metadata for variable indexing
-     * @param int $survey_id Survey ID
-     * @return array Survey metadata
+     * Batch load survey metadata for multiple surveys
+     * @param array $survey_ids Array of survey IDs
+     * @return array Survey metadata indexed by survey ID
      */
-    private function load_survey_metadata($survey_id) {
-        $survey_data = array();
+    private function batch_load_survey_metadata($survey_ids) {
+        $result = array();
+        
+        if (empty($survey_ids)) {
+            return $result;
+        }
         
         // Check if survey metadata should be included
         $include_metadata = $this->ci->config->item('solr_variable_include_survey_metadata');
         if (!$include_metadata) {
-            return $survey_data;
+            return $result;
         }
         
-        // Get survey basic info (similar to full_import_surveys query)
+        // Get allowed metadata fields
+        $metadata_fields = $this->ci->config->item('solr_survey_metadata_fields');
+        if (empty($metadata_fields)) {
+            log_message('warning', 'No survey metadata fields configured');
+            return $result;
+        }
+        
+        // Batch load all surveys
         $this->ci->db->select("
             surveys.id,
             surveys.thumbnail as thumbnail,
@@ -2349,72 +2386,119 @@ class Solr_manager {
             surveys.total_downloads", FALSE);
         $this->ci->db->join("forms", "surveys.formid=forms.formid", "left");
         $this->ci->db->join('repositories', 'surveys.repositoryid= repositories.repositoryid', 'left');
-        $this->ci->db->where('surveys.id', $survey_id);
-        $survey = $this->ci->db->get("surveys")->row_array();
+        $this->ci->db->where_in('surveys.id', $survey_ids);
+        $surveys = $this->ci->db->get("surveys")->result_array();
         
-        if (!$survey) {
-            log_message('warning', 'Survey not found for metadata: ' . $survey_id);
-            return $survey_data;
+        // Index surveys by ID
+        $surveys_by_id = array();
+        foreach ($surveys as $survey) {
+            $surveys_by_id[$survey['id']] = $survey;
         }
         
-        // Get allowed metadata fields
-        $metadata_fields = $this->ci->config->item('solr_survey_metadata_fields');
-        if (empty($metadata_fields)) {
-            log_message('warning', 'No survey metadata fields configured');
-            return $survey_data;
-        }
+        // Batch load all related data
+        $batch_countries = $this->batch_load_survey_countries($survey_ids);
+        $batch_repositories = $this->batch_load_survey_repositories($survey_ids);
+        $batch_years = $this->batch_load_survey_years($survey_ids);
+        $batch_user_facets = $this->batch_load_user_facets($survey_ids);
         
-        // Add basic survey fields (direct table fields)
-        foreach ($metadata_fields as $field) {
-            if (isset($survey[$field])) {
-                $survey_data[$field] = $survey[$field];
+        // Collect all country IDs for region lookup
+        $all_country_ids = array();
+        foreach ($batch_countries as $countries) {
+            $all_country_ids = array_merge($all_country_ids, $countries);
+        }
+        $all_country_ids = array_unique($all_country_ids);
+        
+        // Batch load regions for all countries
+        $regions_by_country = array();
+        if (!empty($all_country_ids) && in_array('regions', $metadata_fields)) {
+            $this->ci->db->select("country_id, region_id");
+            $this->ci->db->where_in('country_id', $all_country_ids);
+            $region_rows = $this->ci->db->get("region_countries")->result_array();
+            foreach ($region_rows as $region_row) {
+                if (!isset($regions_by_country[$region_row['country_id']])) {
+                    $regions_by_country[$region_row['country_id']] = array();
+                }
+                if (!in_array($region_row['region_id'], $regions_by_country[$region_row['country_id']])) {
+                    $regions_by_country[$region_row['country_id']][] = $region_row['region_id'];
+                }
             }
         }
         
-        // Batch load related data for this survey (similar to full_import_surveys)
-        $batch_countries = $this->batch_load_survey_countries(array($survey_id));
-        $batch_repositories = $this->batch_load_survey_repositories(array($survey_id));
-        $batch_years = $this->batch_load_survey_years(array($survey_id));
-        $batch_user_facets = $this->batch_load_user_facets(array($survey_id));
-        
-        // Add countries
-        if (in_array('countries', $metadata_fields) && isset($batch_countries[$survey_id])) {
-            $survey_data['countries'] = $batch_countries[$survey_id];
-        }
-        
-        // Add repositories
-        if (in_array('repositories', $metadata_fields) && isset($batch_repositories[$survey_id])) {
-            $survey_data['repositories'] = $batch_repositories[$survey_id];
-        }
-        
-        // Add years
-        if (in_array('years', $metadata_fields) && isset($batch_years[$survey_id])) {
-            $survey_data['years'] = $batch_years[$survey_id];
-        }
-        
-        // Add regions (derived from countries)
-        if (in_array('regions', $metadata_fields) && isset($batch_countries[$survey_id])) {
-            $survey_data['regions'] = $this->derive_regions_from_countries($batch_countries[$survey_id]);
-        }
-        
-        // Add custom user-defined facets (fq_ prefixed fields with term IDs)
-        if (isset($batch_user_facets[$survey_id])) {
-            foreach ($batch_user_facets[$survey_id] as $facet_name => $facet_terms) {
-                $survey_data['fq_' . $facet_name] = $facet_terms; // term IDs array
+        // Build metadata for each survey
+        foreach ($survey_ids as $survey_id) {
+            $survey_data = array();
+            
+            if (!isset($surveys_by_id[$survey_id])) {
+                log_message('warning', 'Survey not found for metadata: ' . $survey_id);
+                continue;
             }
+            
+            $survey = $surveys_by_id[$survey_id];
+            
+            // Add basic survey fields (direct table fields)
+            foreach ($metadata_fields as $field) {
+                if (isset($survey[$field])) {
+                    $survey_data[$field] = $survey[$field];
+                }
+            }
+            
+            // Add countries
+            if (in_array('countries', $metadata_fields) && isset($batch_countries[$survey_id])) {
+                $survey_data['countries'] = $batch_countries[$survey_id];
+            }
+            
+            // Add repositories
+            if (in_array('repositories', $metadata_fields) && isset($batch_repositories[$survey_id])) {
+                $survey_data['repositories'] = $batch_repositories[$survey_id];
+            }
+            
+            // Add years
+            if (in_array('years', $metadata_fields) && isset($batch_years[$survey_id])) {
+                $survey_data['years'] = $batch_years[$survey_id];
+            }
+            
+            // Add regions (derived from countries)
+            if (in_array('regions', $metadata_fields) && isset($batch_countries[$survey_id])) {
+                $region_ids = array();
+                foreach ($batch_countries[$survey_id] as $country_id) {
+                    if (isset($regions_by_country[$country_id])) {
+                        $region_ids = array_merge($region_ids, $regions_by_country[$country_id]);
+                    }
+                }
+                $survey_data['regions'] = array_unique($region_ids);
+            }
+            
+            // Add custom user-defined facets (fq_ prefixed fields with term IDs)
+            if (isset($batch_user_facets[$survey_id])) {
+                foreach ($batch_user_facets[$survey_id] as $facet_name => $facet_terms) {
+                    $survey_data['fq_' . $facet_name] = $facet_terms;
+                }
+            }
+            
+            // Add title_sort for sorting (string field with docValues)
+            if (isset($survey_data['title'])) {
+                $survey_data['title_sort'] = $survey_data['title'];
+            }
+            
+            // Add nation_sort for sorting (string field with docValues)
+            if (isset($survey_data['nation'])) {
+                $survey_data['nation_sort'] = $survey_data['nation'];
+            }
+            
+            $result[$survey_id] = $survey_data;
         }
         
-        // Add title_sort for sorting (string field with docValues)
-        if (isset($survey_data['title'])) {
-            $survey_data['title_sort'] = $survey_data['title'];
-        }
-        
-        // Add nation_sort for sorting (string field with docValues)
-        if (isset($survey_data['nation'])) {
-            $survey_data['nation_sort'] = $survey_data['nation'];
-        }
-        
-        return $survey_data;
+        return $result;
+    }
+    
+    /**
+     * Load survey metadata for variable indexing (single survey - kept for backward compatibility)
+     * @param int $survey_id Survey ID
+     * @return array Survey metadata
+     */
+    private function load_survey_metadata($survey_id) {
+        $batch_result = $this->batch_load_survey_metadata(array($survey_id));
+        return isset($batch_result[$survey_id]) ? $batch_result[$survey_id] : array();
     }
 
     /**

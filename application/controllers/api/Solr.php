@@ -83,19 +83,73 @@ class Solr extends MY_REST_Controller
 	 * */
 	public function import_variables_batch_get($start_row=0, $limit=100)
 	{
+        $debug = $this->get('debug') === 'true' || $this->get('debug') === true;
+        
+        if ($debug) {
+            $this->db->save_queries = TRUE;
+        }
+        
         try{
 			$output=$this->solr_manager->import_variables_batch($start_row, $limit, $loop=false);
-			$output=array(
+			$response=array(
                 'status'=>'success',
                 'result'=>$output
 			);
-			$this->set_response($output, REST_Controller::HTTP_OK);			
+			
+			if ($debug) {
+				$profiler_data = array(
+					'query_count' => $this->db->query_count,
+					'queries' => array(),
+					'total_time' => 0
+				);
+				
+				if (isset($this->db->queries) && is_array($this->db->queries)) {
+					$total_time = 0;
+					foreach ($this->db->queries as $key => $query) {
+						$time = isset($this->db->query_times[$key]) ? $this->db->query_times[$key] : 0;
+						$total_time += $time;
+						$profiler_data['queries'][] = array(
+							'query' => $query,
+							'time' => $time
+						);
+					}
+					$profiler_data['total_time'] = $total_time;
+				}
+				
+				$response['debug'] = $profiler_data;
+			}
+			
+			$this->set_response($response, REST_Controller::HTTP_OK);			
 		}
 		catch(Exception $e){
             $error_output=array(
 				'status'=>'failed',
 				'message'=>$e->getMessage()
 			);
+			
+			if ($debug) {
+				$profiler_data = array(
+					'query_count' => isset($this->db->query_count) ? $this->db->query_count : 0,
+					'queries' => array(),
+					'total_time' => 0
+				);
+				
+				if (isset($this->db->queries) && is_array($this->db->queries)) {
+					$total_time = 0;
+					foreach ($this->db->queries as $key => $query) {
+						$time = isset($this->db->query_times[$key]) ? $this->db->query_times[$key] : 0;
+						$total_time += $time;
+						$profiler_data['queries'][] = array(
+							'query' => $query,
+							'time' => $time
+						);
+					}
+					$profiler_data['total_time'] = $total_time;
+				}
+				
+				$error_output['debug'] = $profiler_data;
+			}
+			
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);			
 		}
 		
