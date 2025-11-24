@@ -194,6 +194,10 @@ $route['forms/(.*)'] = "forms";
 
 //admin paths
 $route['admin'] = "admin/admin";
+$route['admin/logs/cleanup'] = "admin/logs/cleanup";
+
+// DB Logs API
+$route['api/db_logs/cleanup/chunk'] = "api/db_logs/cleanup_chunk";
 
 //catalog/resources
 $route['admin/clear_cache'] = "admin/admin/clear_cache";
@@ -257,6 +261,7 @@ $route['admin/catalog/attach_related_data/(:num)'] = "admin/attach_related_data/
 //Downloads API
 $route['api/downloads/(:any)/files'] = "api/downloads/files/$1";
 $route['api/downloads/(:any)/info/(:any)'] = "api/downloads/info/$1/$2";
+
 
 
 /* End of file routes.php */

@@ -1,0 +1,6 @@
+# Deny direct access to CSV files
+<FilesMatch "\.csv$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+

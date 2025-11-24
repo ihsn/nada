@@ -12,7 +12,12 @@
 <?php echo ($error!="") ? '<div class="alert alert-danger">'.$error.'</div>' : '';?>
 
 
-<h1 class="page-title"><?php echo t('site_logs');?></h1>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h1 class="page-title" style="margin: 0;"><?php echo t('site_logs');?></h1>
+    <a href="<?php echo site_url('admin/logs/cleanup'); ?>" class="btn btn-sm btn-outline-primary">
+        Manage Logs
+    </a>
+</div>
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="user-search">
   <input type="text" size="40" name="keywords" id="keywords" value="<?php echo form_prep($this->input->get('keywords')); ?>"/>
   <select name="field" id="field">
