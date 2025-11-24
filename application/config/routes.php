@@ -262,6 +262,18 @@ $route['admin/catalog/attach_related_data/(:num)'] = "admin/attach_related_data/
 $route['api/downloads/(:any)/files'] = "api/downloads/files/$1";
 $route['api/downloads/(:any)/info/(:any)'] = "api/downloads/info/$1/$2";
 
+//Analytics API
+$route['api/analytics/pageview'] = "api/analytics/pageview";
+$route['api/analytics/download'] = "api/analytics/download";
+$route['api/analytics/recent/pageviews'] = "api/analytics/recent_pageviews";
+$route['api/analytics/recent/downloads'] = "api/analytics/recent_downloads";
+$route['api/analytics/stats/study/(:any)'] = "api/analytics/stats_study_get/$1";
+$route['api/analytics/stats/file/(:any)'] = "api/analytics/stats_file_get/$1";
+$route['api/analytics/totals/study/(:any)'] = "api/analytics/totals_study_get/$1";
+$route['api/analytics/totals/file/(:any)'] = "api/analytics/totals_file_get/$1";
+$route['api/analytics/aggregate/daily'] = "api/analytics/aggregate_daily";
+$route['api/analytics/aggregate/monthly'] = "api/analytics/aggregate_monthly";
+$route['api/analytics/aggregate/totals'] = "api/analytics/aggregate_totals";
 
 
 /* End of file routes.php */
