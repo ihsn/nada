@@ -78,19 +78,89 @@ class Solr extends MY_REST_Controller
 	 * Import variables in batches
 	 *
 	 * @start_row start importing from a row number or NULL to start from first id
-	 * @limit number of records to read at a time
+	 * @limit total number of records to process (not batch size)
+	 * @max_time_seconds maximum execution time in seconds (default: 25)
+	 * @internal_batch_size number of rows to fetch per database query (default: 100)
 	 *
 	 * */
 	public function import_variables_batch_get($start_row=0, $limit=100)
 	{
         $debug = $this->get('debug') === 'true' || $this->get('debug') === true;
+        $max_time_seconds = (int)$this->get('max_time_seconds');
+        if ($max_time_seconds <= 0) {
+            $max_time_seconds = 25;
+        }
+        
+        $internal_batch_size = (int)$this->get('internal_batch_size');
+        if ($internal_batch_size <= 0) {
+            $internal_batch_size = 100;
+        }
         
         if ($debug) {
             $this->db->save_queries = TRUE;
         }
         
         try{
-			$output=$this->solr_manager->import_variables_batch($start_row, $limit, $loop=false);
+            $start_time = microtime(true);
+            $current_start_row = $start_row;
+            $total_processed = 0;
+            $batches_processed = 0;
+            $last_row_id = null;
+            $limit_reached = false;
+            $time_limit_reached = false;
+            $no_more_rows = false;
+            
+            set_time_limit($max_time_seconds + 5);
+            
+            while (true) {
+                $elapsed_time = microtime(true) - $start_time;
+                
+                if ($elapsed_time >= $max_time_seconds) {
+                    $time_limit_reached = true;
+                    break;
+                }
+                
+                if ($total_processed >= $limit) {
+                    $limit_reached = true;
+                    break;
+                }
+                
+                $remaining_needed = $limit - $total_processed;
+                $batch_size = min($internal_batch_size, $remaining_needed);
+                
+                $batch_result = $this->solr_manager->import_variables_batch($current_start_row, $batch_size, $loop=false);
+                
+                if ($batch_result === false || !isset($batch_result['rows_processed']) || $batch_result['rows_processed'] == 0) {
+                    $no_more_rows = true;
+                    break;
+                }
+                
+                $rows_in_batch = $batch_result['rows_processed'];
+                $total_processed += $rows_in_batch;
+                $batches_processed++;
+                $last_row_id = $batch_result['last_row_id'];
+                $current_start_row = $last_row_id;
+                
+                if ($rows_in_batch < $batch_size) {
+                    $no_more_rows = true;
+                    break;
+                }
+            }
+            
+            $elapsed_time = microtime(true) - $start_time;
+            
+            $output = array(
+                'total_processed' => $total_processed,
+                'target_limit' => $limit,
+                'remaining' => max(0, $limit - $total_processed),
+                'batches_processed' => $batches_processed,
+                'last_row_id' => $last_row_id,
+                'elapsed_time' => round($elapsed_time, 2),
+                'limit_reached' => $limit_reached,
+                'time_limit_reached' => $time_limit_reached,
+                'has_more' => !$limit_reached && !$time_limit_reached && !$no_more_rows && $last_row_id !== null
+            );
+            
 			$response=array(
                 'status'=>'success',
                 'result'=>$output
