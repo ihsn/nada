@@ -583,5 +583,35 @@ class Facet_model extends CI_Model {
 		return $output;
 	}
 
+	/**
+	 * Batch load facet terms for multiple studies (optimized for SQL Server)
+	 * @param array $survey_ids Array of survey IDs
+	 * @return array Facet terms indexed by survey ID, then by facet name
+	 */
+	function facet_terms_by_studies($survey_ids)
+	{
+		if (empty($survey_ids) || !is_array($survey_ids)) {
+			return array();
+		}
+
+		$this->db->select("survey_facets.sid, facets.name, survey_facets.term_id");
+		$this->db->join('facets', 'survey_facets.facet_id = facets.id', 'inner');
+		$this->db->where_in('survey_facets.sid', $survey_ids);
+		$result = $this->db->get('survey_facets')->result_array();
+		
+		$output = array();
+		foreach($result as $row){
+			$sid = $row['sid'];
+			if (!isset($output[$sid])) {
+				$output[$sid] = array();
+			}
+			if (!isset($output[$sid][$row['name']])) {
+				$output[$sid][$row['name']] = array();
+			}
+			$output[$sid][$row['name']][] = $row['term_id'];
+		}
+
+		return $output;
+	}
   
 }

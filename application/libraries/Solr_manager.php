@@ -388,6 +388,17 @@ class Solr_manager {
         $batch_repositories = $this->batch_load_survey_repositories($survey_ids);
         $batch_years = $this->batch_load_survey_years($survey_ids);
         $batch_user_facets = $this->batch_load_user_facets($survey_ids);
+        
+        // Batch load regions for all unique countries across all surveys
+        $all_country_ids = array();
+        foreach ($batch_countries as $countries) {
+            $all_country_ids = array_merge($all_country_ids, $countries);
+        }
+        $all_country_ids = array_unique($all_country_ids);
+        $regions_by_country = $this->batch_load_regions_by_countries($all_country_ids);
+        
+        // Batch load variable keywords for all surveys (with per-survey limit to prevent memory issues)
+        $batch_var_keywords = $this->batch_load_survey_variable_keywords($survey_ids);
 
         foreach($rows as $key=>$row)
         {
@@ -400,7 +411,8 @@ class Solr_manager {
             //survey years - use batch loaded data
             $rows[$key]['years'] = isset($batch_years[$row['survey_uid']]) ? $batch_years[$row['survey_uid']] : array();
 
-            $rows[$key]['regions']=$this->derive_regions_from_countries($rows[$key]['countries']);
+            //regions - use batch loaded data
+            $rows[$key]['regions'] = $this->derive_regions_from_countries_batch($rows[$key]['countries'], $regions_by_country);
 
             //custom user defined facets - use batch loaded data
             $user_facets_by_study = isset($batch_user_facets[$row['survey_uid']]) ? $batch_user_facets[$row['survey_uid']] : array();
@@ -419,8 +431,8 @@ class Solr_manager {
             //extract methodology from metadata
             $rows[$key]['methodology']=$this->parse_methodology($metadata);
             
-            //array of variable keywords
-            $rows[$key]['var_keywords']=$this->load_survey_variable_keywords($row['survey_uid']);
+            //array of variable keywords - use batch loaded data
+            $rows[$key]['var_keywords'] = isset($batch_var_keywords[$row['survey_uid']]) ? $batch_var_keywords[$row['survey_uid']] : '';
             
             // Add title_sort for sorting (string field with docValues)
             if (isset($rows[$key]['title'])) {
@@ -1527,7 +1539,57 @@ class Solr_manager {
     }
 
     /**
-     * Derive regions from country IDs
+     * Batch load regions for multiple countries (optimized for SQL Server)
+     * @param array $country_ids Array of country IDs
+     * @return array Regions indexed by country ID
+     */
+    private function batch_load_regions_by_countries($country_ids)
+    {
+        if (empty($country_ids)) {
+            return array();
+        }
+        
+        $this->ci->db->select("country_id, region_id");
+        $this->ci->db->where_in('country_id', $country_ids);
+        $result = $this->ci->db->get("region_countries")->result_array();
+        
+        $regions_by_country = array();
+        foreach ($result as $row) {
+            if (!isset($regions_by_country[$row['country_id']])) {
+                $regions_by_country[$row['country_id']] = array();
+            }
+            if (!in_array($row['region_id'], $regions_by_country[$row['country_id']])) {
+                $regions_by_country[$row['country_id']][] = $row['region_id'];
+            }
+        }
+        
+        return $regions_by_country;
+    }
+    
+    /**
+     * Derive regions from country IDs using pre-loaded batch data
+     * @param array $countries_ids Array of country IDs
+     * @param array $regions_by_country Pre-loaded regions indexed by country ID
+     * @return array Array of unique region IDs
+     */
+    private function derive_regions_from_countries_batch($countries_ids, $regions_by_country)
+    {
+        if (!$countries_ids){
+            return array();
+        }
+
+        $output = array();
+        foreach($countries_ids as $country_id) {
+            if (isset($regions_by_country[$country_id])) {
+                $output = array_merge($output, $regions_by_country[$country_id]);
+            }
+        }
+        
+        return array_unique($output);
+    }
+    
+    /**
+     * Derive regions from country IDs (legacy method - makes individual query)
      * @param array $countries_ids Array of country IDs
      * @return array Array of region IDs
      */
@@ -1542,6 +1604,7 @@ class Solr_manager {
         $this->ci->db->group_by('region_id');
         $result=$this->ci->db->get("region_countries")->result_array();
 
+        $output = array();
         foreach($result as $row){
             $output[]=$row['region_id'];
         }
@@ -1707,7 +1770,65 @@ class Solr_manager {
     }
     
     /**
-     * Batch load survey variables for multiple surveys
+     * Batch load variable keywords for multiple surveys (optimized for SQL Server)
+     * @param array $survey_ids Array of survey IDs
+     * @param int $max_vars_per_survey Maximum variables per survey (default: 15000)
+     * @return array Variable keywords indexed by survey ID
+     */
+    private function batch_load_survey_variable_keywords($survey_ids, $max_vars_per_survey = 15000)
+    {
+        if (empty($survey_ids)) {
+            return array();
+        }
+        
+        $variables_by_survey = array();
+        
+        // Initialize empty arrays for all surveys
+        foreach ($survey_ids as $survey_id) {
+            $variables_by_survey[$survey_id] = '';
+        }
+        
+        // Load variables in batches per survey to respect per-survey limits
+        // Using SQL Server's ROW_NUMBER() or OFFSET/FETCH for efficient pagination
+        foreach ($survey_ids as $survey_id) {
+            $keywords = array();
+            $last_uid = 0;
+            $chunk_size = 500;
+            $total_loaded = 0;
+            
+            while ($total_loaded < $max_vars_per_survey) {
+                $this->ci->db->select('uid, name, labl, qstn');
+                $this->ci->db->where('sid', $survey_id);
+                $this->ci->db->where('uid >', $last_uid, false);
+                $this->ci->db->order_by('uid ASC');
+                $this->ci->db->limit($chunk_size);
+                
+                $chunk = $this->ci->db->get('variables')->result_array();
+                
+                if (empty($chunk)) {
+                    break;
+                }
+                
+                foreach ($chunk as $row) {
+                    $keywords[] = implode(' ', array_filter(array($row['name'], $row['labl'], $row['qstn'])));
+                    $last_uid = $row['uid'];
+                }
+                
+                $total_loaded += count($chunk);
+                
+                if (count($chunk) < $chunk_size) {
+                    break; // No more variables for this survey
+                }
+            }
+            
+            $variables_by_survey[$survey_id] = implode(' ', $keywords);
+        }
+        
+        return $variables_by_survey;
+    }
+    
+    /**
+     * Batch load survey variables for multiple surveys (legacy method)
      * @param array $survey_ids Array of survey IDs
      * @return array Variable keywords indexed by survey ID
      */
