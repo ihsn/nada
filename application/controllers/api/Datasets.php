@@ -14,6 +14,7 @@ class Datasets extends MY_REST_Controller
 		$this->load->model('Dataset_model');//remove with Datasets library
 		$this->load->library("Dataset_manager");
 		$this->is_authenticated_or_die();
+		
 	}
 
 	//override authentication to support both session authentication + api keys
@@ -190,19 +191,21 @@ class Datasets extends MY_REST_Controller
 
 			$this->has_dataset_access('edit',$sid);
 
-			$options=array(
-				'idno'=>$new_idno
-			);
-			
-			$this->Dataset_model->update_options($sid,$options);
+		$options=array(
+			'idno'=>$new_idno
+		);
+		
+		$this->Dataset_model->update_options($sid,$options);
 
-			$response=array(
-				'status'=>'success',
-				'new_idno'=>$new_idno,
-				'id'=>$sid
-			);
+		$this->events->emit('db.after.update', 'surveys', $sid,'refresh');
 
-			$this->set_response($response, REST_Controller::HTTP_OK);
+		$response=array(
+			'status'=>'success',
+			'new_idno'=>$new_idno,
+			'id'=>$sid
+		);
+
+		$this->set_response($response, REST_Controller::HTTP_OK);
 			
 		}
 		catch(Exception $e){
@@ -231,19 +234,21 @@ class Datasets extends MY_REST_Controller
 
 			$this->has_dataset_access('edit',$sid);
 
-			if (empty($doi)){
-				throw new Exception("DOI not set");
-			}
-			
-			$this->Dataset_model->assign_doi($sid,$doi);
+		if (empty($doi)){
+			throw new Exception("DOI not set");
+		}
+		
+		$this->Dataset_model->assign_doi($sid,$doi);
 
-			$response=array(
-				'status'=>'success',
-				'doi'=>$doi,
-				'id'=>$sid
-			);
+		$this->events->emit('db.after.update', 'surveys', $sid,'atomic');
 
-			$this->set_response($response, REST_Controller::HTTP_OK);
+		$response=array(
+			'status'=>'success',
+			'doi'=>$doi,
+			'id'=>$sid
+		);
+
+		$this->set_response($response, REST_Controller::HTTP_OK);
 			
 		}
 		catch(Exception $e){
@@ -330,18 +335,20 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("NO_PARAMS_PROVIDED");
 			}
 
-			//validate
-			$this->dataset_manager->validate_options($options);
-			
-			//update
-			$this->dataset_manager->update_options($sid,$options);
+		//validate
+		$this->dataset_manager->validate_options($options);
+		
+		//update
+		$this->dataset_manager->update_options($sid,$options);
 
-			$response=array(
-				'status'=>'success'				
-			);
+		$this->events->emit('db.after.update', 'surveys', $sid,'atomic');
+
+		$response=array(
+			'status'=>'success'				
+		);
 
 
-			$this->set_response($response, REST_Controller::HTTP_OK);
+		$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(ValidationException $e){
 			$error_output=array(
@@ -643,18 +650,20 @@ class Datasets extends MY_REST_Controller
 				$dataset_id=$this->dataset_manager->create_dataset($type,$options);
 			}
 
-			//load updated dataset
-			$dataset=$this->dataset_manager->get_row($dataset_id);
+		//load updated dataset
+		$dataset=$this->dataset_manager->get_row($dataset_id);
 
-			$response=array(
-				'status'=>'success',
-				'dataset'=>$dataset,
-				'_links'=>array(
-					'view'=>site_url('catalog/'.$dataset['id'])				
-				)
-			);
+		$this->events->emit('db.after.update', 'surveys', $dataset_id,'refresh');
 
-			$this->set_response($response, REST_Controller::HTTP_OK);
+		$response=array(
+			'status'=>'success',
+			'dataset'=>$dataset,
+			'_links'=>array(
+				'view'=>site_url('catalog/'.$dataset['id'])				
+			)
+		);
+
+		$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(ValidationException $e){
 			$error_output=array(
@@ -1101,6 +1110,8 @@ class Datasets extends MY_REST_Controller
 				//update ID
 				$result=$this->dataset_manager->update_sid($old_sid,$new_id);
 
+				$this->events->emit('db.after.update', 'surveys', $new_id,'refresh');
+
 				$response=array(
 					'status'=>'success',
 					'message'=>'updated',
@@ -1273,6 +1284,10 @@ class Datasets extends MY_REST_Controller
 				'survey'=>$result,
 				'rdf'=>$rdf_result
 			);
+
+			if(!empty($result['sid'])){
+				$this->events->emit('db.after.update', 'surveys', $result['sid'],'import');
+			}
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
@@ -1603,18 +1618,20 @@ class Datasets extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($idno);
 			$this->has_dataset_access('edit',$sid);
 
-			$options=array(				
-				'thumbnail'	=> null,
-			);
+		$options=array(				
+			'thumbnail'	=> null,
+		);
 
-			//update
-			$this->dataset_manager->update_options($sid,$options);
+		//update
+		$this->dataset_manager->update_options($sid,$options);
 
-			$response=array(
-				'status'=>'success'				
-			);
+		$this->events->emit('db.after.update', 'surveys', $sid,'atomic');
 
-			$this->set_response($response, REST_Controller::HTTP_OK);
+		$response=array(
+			'status'=>'success'				
+		);
+
+		$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
 			$error_output=array(
@@ -1896,13 +1913,15 @@ class Datasets extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($idno);
 			$this->has_dataset_access('edit',$sid);
 
-			$result=$this->dataset_manager->repopulate_index($sid);
-			
-			$output=array(
-				'status'=>'success',
-				'result'=>$result				
-			);
-			$this->set_response($output, REST_Controller::HTTP_OK);
+		$result=$this->dataset_manager->repopulate_index($sid);
+		
+		$this->events->emit('db.after.update', 'surveys', $sid,'refresh');
+		
+		$output=array(
+			'status'=>'success',
+			'result'=>$result				
+		);
+		$this->set_response($output, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
 			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
@@ -1968,16 +1987,20 @@ class Datasets extends MY_REST_Controller
 			$options['overwrite']=$overwrite;
 			$options['repositoryid']=$repositoryid;
 		
-			$this->load->library('Geospatial_import');
-			$result=$this->geospatial_import->import($uploaded_file_path, $options);
-			unlink($uploaded_file_path);
-			
-			$response=array(
-				'status'=>'success',
-				'dataset'=>$result
-			);
+		$this->load->library('Geospatial_import');
+		$result=$this->geospatial_import->import($uploaded_file_path, $options);
+		unlink($uploaded_file_path);
+		
+		if(!empty($result['sid'])){
+			$this->events->emit('db.after.update', 'surveys', $result['sid'],'import');
+		}
 
-			$this->set_response($response, REST_Controller::HTTP_OK);
+		$response=array(
+			'status'=>'success',
+			'dataset'=>$result
+		);
+
+		$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(ValidationException $e){
 			$error_output=array(

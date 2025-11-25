@@ -386,6 +386,25 @@ class Catalog_model extends CI_Model {
 		return $this->db->get('surveys')->row_array();
 	}
 
+	/**
+	* Get all survey IDs from database
+	*
+	**/
+	function get_all_survey_ids()
+	{
+		$this->db->select('id');
+		$this->db->order_by('id', 'ASC');
+		$result = $this->db->get('surveys')->result_array();
+		
+		// Extract just the IDs
+		$survey_ids = array();
+		foreach ($result as $row) {
+			$survey_ids[] = $row['id'];
+		}
+		
+		return $survey_ids;
+	}
+
 
 	function get_survey_title($sid)
 	{

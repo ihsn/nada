@@ -53,10 +53,10 @@ class Events extends Emitter {
             try{                
                 if(is_array($object_id)){
                     foreach($object_id as $single_id){
-                        $this->ci->solr_manager->run_delta_update($table=$object_type, $delta_op=$action, $obj_id=$single_id);
+                        $this->ci->solr_manager->process_delta_update($table=$object_type, $delta_op=$action, $obj_id=$single_id);
                     }
                 }else{
-                    $this->ci->solr_manager->run_delta_update($table=$object_type, $delta_op=$action, $obj_id=$object_id);
+                    $this->ci->solr_manager->process_delta_update($table=$object_type, $delta_op=$action, $obj_id=$object_id);
                 }
             } catch (Exception $e) {
                 throw new exception($e->getMessage());
@@ -72,10 +72,10 @@ class Events extends Emitter {
             try{
                 if(is_array($object_id)){
                     foreach($object_id as $single_id){
-                        $this->ci->solr_manager->run_delta_update($table=$object_type, $delta_op=$action, $obj_id=$single_id);
+                        $this->ci->solr_manager->process_delta_update($table=$object_type, $delta_op=$action, $obj_id=$single_id);
                     }
                 }else{
-                    $this->ci->solr_manager->run_delta_update($table=$object_type, $delta_op=$action, $obj_id=$object_id);
+                    $this->ci->solr_manager->process_delta_update($table=$object_type, $delta_op=$action, $obj_id=$object_id);
                 }
             } catch (Exception $e) {
                 throw new exception($e->getMessage());

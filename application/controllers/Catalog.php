@@ -322,7 +322,9 @@ class Catalog extends MY_Controller {
 			$output['search_output']=$this->load->view('search/variables', $output,true);
 		}
 		else{
-			$output['search_output']=$this->load->view($dataset_view, $output,true);
+			$view_data = $output;
+			$view_data['surveys'] = $output['surveys'];
+			$output['search_output']=$this->load->view($dataset_view, $view_data,true);
 		}
 		
 
@@ -339,13 +341,18 @@ class Catalog extends MY_Controller {
 			$tabs['search_counts_by_type']=array();
 			$tabs['active_tab']="survey";
 		}else{
-			$tabs['search_counts_by_type']=$output['surveys']['search_counts_by_type'];
+			//get search counts by type
+			if (isset($output['surveys']['search_counts_by_type']) && !empty($output['surveys']['search_counts_by_type'])) {
+				$tabs['search_counts_by_type'] = $output['surveys']['search_counts_by_type'];
+			} else {
+				//fallback - get survey counts
+				$tabs['search_counts_by_type'] = array('survey' => isset($output['surveys']['found']) ? $output['surveys']['found'] : 0);
+			}
 			$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
 		}
 
 		$output['tabs']=$tabs;		
 
-		//load js
 		$this->template->add_js('javascript/jquery.history.min.js');		
 
 		$content=$this->load->view('search/layout',$output,true);
@@ -434,7 +441,7 @@ class Catalog extends MY_Controller {
 		}
 
 		//allowed fields for sort_by and sort_order
-		$allowed_fields = array('year','title','nation','country','popularity','rank');
+		$allowed_fields = array('year','title','nation','country','popularity','rank', 'relevance');
 		$allowed_order=array('asc','desc');
 
 		//load default sort options from config if not set
