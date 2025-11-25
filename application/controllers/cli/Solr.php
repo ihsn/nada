@@ -265,6 +265,9 @@ class Solr extends CI_Controller {
         echo "  php index.php cli/solr/clean_index\n";
         echo "  php index.php cli/solr/commit_index\n";
         echo "  php index.php cli/solr/status\n";
+        echo "Run in the background (nohup):\n";
+        echo "  nohup php index.php cli/solr/index_studies > /dev/null 2>&1 &\n";
+        echo "  nohup php index.php cli/solr/index_variables > /dev/null 2>&1 &\n";
     }
     
     /**
