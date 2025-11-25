@@ -655,6 +655,72 @@
                                                     <strong class="ml-1">{{(system_info.data.data.result.system.processCpuLoad * 100).toFixed(1)}}%</strong>
                                                 </div>
                                             </div>
+                                            
+                                            <div v-if="system_info.data.data.result.jvm_memory && getJvmMetrics()" class="mt-3 pt-2 border-top">
+                                                <h6 class="mb-2"><i class="fas fa-memory"></i> JVM Memory Metrics</h6>
+                                                
+                                                <div v-if="getJvmMetric('memory.heap.used')" class="mb-2">
+                                                    <div class="d-flex justify-content-between mb-1">
+                                                        <small class="text-muted">Heap Used:</small>
+                                                        <strong>{{formatBytes(getJvmMetric('memory.heap.used'))}}</strong>
+                                                    </div>
+                                                    <div class="progress progress-sm" v-if="getJvmMetric('memory.heap.max')">
+                                                        <div class="progress-bar" role="progressbar" 
+                                                             :style="{width: getHeapUsagePercentage() + '%'}"
+                                                             :class="getMemoryUsageClass(getJvmMetric('memory.heap.used'), getJvmMetric('memory.heap.max'))">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-1" v-if="getJvmMetric('memory.heap.committed')">
+                                                        <small class="text-muted">Heap Committed:</small>
+                                                        <strong class="ml-1">{{formatBytes(getJvmMetric('memory.heap.committed'))}}</strong>
+                                                    </div>
+                                                    <div class="col-md-6 mb-1" v-if="getJvmMetric('memory.heap.max')">
+                                                        <small class="text-muted">Heap Max:</small>
+                                                        <strong class="ml-1">{{formatBytes(getJvmMetric('memory.heap.max'))}}</strong>
+                                                    </div>
+                                                    <div class="col-md-6 mb-1" v-if="getJvmMetric('memory.heap.init')">
+                                                        <small class="text-muted">Heap Init:</small>
+                                                        <strong class="ml-1">{{formatBytes(getJvmMetric('memory.heap.init'))}}</strong>
+                                                    </div>
+                                                    <div class="col-md-6 mb-1" v-if="getJvmMetric('memory.heap.usage') !== null">
+                                                        <small class="text-muted">Heap Usage:</small>
+                                                        <strong class="ml-1">{{(getJvmMetric('memory.heap.usage') * 100).toFixed(1)}}%</strong>
+                                                    </div>
+                                                    <div class="col-md-6 mb-1" v-if="getJvmMetric('memory.non-heap.used')">
+                                                        <small class="text-muted">Non-Heap Used:</small>
+                                                        <strong class="ml-1">{{formatBytes(getJvmMetric('memory.non-heap.used'))}}</strong>
+                                                    </div>
+                                                    <div class="col-md-6 mb-1" v-if="getJvmMetric('memory.non-heap.committed')">
+                                                        <small class="text-muted">Non-Heap Committed:</small>
+                                                        <strong class="ml-1">{{formatBytes(getJvmMetric('memory.non-heap.committed'))}}</strong>
+                                                    </div>
+                                                    <div class="col-md-6 mb-1" v-if="getJvmMetric('memory.non-heap.max') && getJvmMetric('memory.non-heap.max') > 0">
+                                                        <small class="text-muted">Non-Heap Max:</small>
+                                                        <strong class="ml-1">{{formatBytes(getJvmMetric('memory.non-heap.max'))}}</strong>
+                                                    </div>
+                                                    <div class="col-md-6 mb-1" v-if="getJvmMetric('memory.non-heap.usage') !== null">
+                                                        <small class="text-muted">Non-Heap Usage:</small>
+                                                        <strong class="ml-1">{{(getJvmMetric('memory.non-heap.usage') * 100).toFixed(1)}}%</strong>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div v-if="getJvmMetric('memory.total.used')" class="mt-2 pt-2 border-top">
+                                                    <h6 class="mb-2 small"><i class="fas fa-chart-bar"></i> Total Memory</h6>
+                                                    <div class="row">
+                                                        <div class="col-md-6 mb-1" v-if="getJvmMetric('memory.total.used')">
+                                                            <small class="text-muted">Total Used:</small>
+                                                            <strong class="ml-1">{{formatBytes(getJvmMetric('memory.total.used'))}}</strong>
+                                                        </div>
+                                                        <div class="col-md-6 mb-1" v-if="getJvmMetric('memory.total.committed')">
+                                                            <small class="text-muted">Total Committed:</small>
+                                                            <strong class="ml-1">{{formatBytes(getJvmMetric('memory.total.committed'))}}</strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -2967,6 +3033,46 @@
                     const i = Math.floor(Math.log(bytes) / Math.log(k));
                     
                     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+                },
+                getMemoryUsageClass: function(used, max) {
+                    if (!used || !max) return 'bg-secondary';
+                    const percentage = (used / max) * 100;
+                    if (percentage >= 90) return 'bg-danger';
+                    if (percentage >= 75) return 'bg-warning';
+                    return 'bg-success';
+                },
+                getMetricValue: function(metrics, key) {
+                    if (!metrics || !key) return null;
+                    const metric = metrics[key];
+                    if (!metric) return null;
+                    return metric.value !== undefined ? metric.value : (metric.mean !== undefined ? metric.mean : null);
+                },
+                getJvmMetrics: function() {
+                    if (!this.system_info.data || !this.system_info.data.data || !this.system_info.data.data.result || !this.system_info.data.data.result.jvm_memory) {
+                        return null;
+                    }
+                    const jvmMemory = this.system_info.data.data.result.jvm_memory;
+                    return jvmMemory['solr.jvm'] || jvmMemory['jvm'] || jvmMemory;
+                },
+                getJvmMetric: function(key) {
+                    const metrics = this.getJvmMetrics();
+                    if (!metrics || !key) return null;
+                    const value = metrics[key];
+                    return value !== undefined && value !== null ? value : null;
+                },
+                getHeapUsagePercentage: function() {
+                    const metrics = this.getJvmMetrics();
+                    if (!metrics) return 0;
+                    const used = this.getJvmMetric('memory.heap.used');
+                    const max = this.getJvmMetric('memory.heap.max');
+                    if (!used || !max || max <= 0) {
+                        const usage = this.getJvmMetric('memory.heap.usage');
+                        if (usage !== null && usage !== undefined) {
+                            return Math.round(usage * 100);
+                        }
+                        return 0;
+                    }
+                    return Math.min(100, Math.round((used / max) * 100));
                 }
             }
 

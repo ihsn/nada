@@ -108,7 +108,7 @@ class Solr_manager {
     }
     
     /**
-     * Get Solr system information including version
+     * Get Solr system information including version and JVM memory metrics
      * @return array System information
      */
     public function get_solr_system_info()
@@ -117,6 +117,9 @@ class Solr_manager {
             $solr_host = $this->ci->config->item('solr_host');
             $solr_port = $this->ci->config->item('solr_port');
             $solr_collection = $this->ci->config->item('solr_collection');
+            
+            $system_info = array();
+            $jvm_memory_metrics = null;
             
             //try admin endpoint without collection first (works for Solr 8+)
             $urls = array();
@@ -143,23 +146,62 @@ class Solr_manager {
                 if ($http_code === 200) {
                     $data = json_decode($response, true);
                     if (isset($data['lucene'])) {
-                        return array(
+                        $system_info = array(
                             'solr_version' => isset($data['lucene']['solr-spec-version']) ? $data['lucene']['solr-spec-version'] : (isset($data['lucene']['solr-impl-version']) ? $data['lucene']['solr-impl-version'] : 'N/A'),
                             'lucene_version' => isset($data['lucene']['lucene-spec-version']) ? $data['lucene']['lucene-spec-version'] : 'N/A',
                             'jvm_version' => isset($data['jvm']['version']) ? $data['jvm']['version'] : 'N/A',
                             'jvm_name' => isset($data['jvm']['name']) ? $data['jvm']['name'] : 'N/A',
                             'system' => isset($data['system']) ? $data['system'] : array()
                         );
+                        break;
+                    } else {
+                        $system_info = $data;
+                        break;
                     }
-                    return $data;
                 } else {
                     $last_error = "HTTP $http_code";
                 }
             }
             
+            if (empty($system_info) && $last_error) {
             return array(
                 'error' => $last_error . ": Failed to get system info from any endpoint"
             );
+            }
+            
+            // Fetch JVM memory metrics
+            $metrics_urls = array();
+            $metrics_urls[] = "http://{$solr_host}:{$solr_port}/solr/admin/metrics?group=jvm&prefix=memory";
+            if (!empty($solr_collection)) {
+                $metrics_urls[] = "http://{$solr_host}:{$solr_port}/solr/{$solr_collection}/admin/metrics?group=jvm&prefix=memory";
+            }
+            
+            foreach ($metrics_urls as $metrics_url) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $metrics_url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+                
+                $metrics_response = curl_exec($ch);
+                $metrics_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                
+                if ($metrics_http_code === 200) {
+                    $metrics_data = json_decode($metrics_response, true);
+                    if (isset($metrics_data['metrics'])) {
+                        $jvm_memory_metrics = $metrics_data['metrics'];
+                        break;
+                    }
+                }
+            }
+            
+            // Merge system info with JVM memory metrics
+            if ($jvm_memory_metrics !== null) {
+                $system_info['jvm_memory'] = $jvm_memory_metrics;
+            }
+            
+            return $system_info;
+            
         } catch (Exception $e) {
             log_message('error', 'Failed to get Solr system info: ' . $e->getMessage());
             return array(
