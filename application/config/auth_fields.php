@@ -15,7 +15,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 $config['auth_fields'] = array(
     'company' => array(
-        'enabled' => true,
+        'enabled' => false,
         'required' => false,
         'validation' => 'required|trim|disable_html_tags|xss_clean|max_length[100]',
         'enum' => array(
