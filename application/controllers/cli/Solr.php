@@ -257,6 +257,8 @@ class Solr extends CI_Controller {
         echo "  commit_index                            - Commit changes to SOLR index\n";
         echo "  status                                  - Get index status (JSON output)\n";
         echo "  help                                    - Show this help\n\n";
+        echo "Note: Indexing commands (index_studies, index_variables) do NOT automatically commit.\n";
+        echo "      You must manually run 'commit_index' after indexing to make changes visible.\n\n";
         echo "Examples:\n";
         echo "  php index.php cli/solr/index_studies\n";
         echo "  php index.php cli/solr/index_studies 100\n";
@@ -264,7 +266,10 @@ class Solr extends CI_Controller {
         echo "  php index.php cli/solr/index_variables 0 10000 100\n";
         echo "  php index.php cli/solr/clean_index\n";
         echo "  php index.php cli/solr/commit_index\n";
-        echo "  php index.php cli/solr/status\n";
+        echo "  php index.php cli/solr/status\n\n";
+        echo "Indexing with commit:\n";
+        echo "  php index.php cli/solr/index_studies && php index.php cli/solr/commit_index\n";
+        echo "  php index.php cli/solr/index_variables && php index.php cli/solr/commit_index\n\n";
         echo "Run in the background (nohup):\n";
         echo "  nohup php index.php cli/solr/index_studies > /dev/null 2>&1 &\n";
         echo "  nohup php index.php cli/solr/index_variables > /dev/null 2>&1 &\n";
