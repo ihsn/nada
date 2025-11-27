@@ -1115,7 +1115,7 @@ DROP TABLE IF EXISTS `sitelogs`;
 CREATE TABLE `sitelogs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `sessionid` varchar(255) NOT NULL DEFAULT '',
-  `logtime` varchar(45) NOT NULL DEFAULT '0',
+  `logtime` int(11) NOT NULL DEFAULT 0,
   `ip` varchar(45) NOT NULL,
   `url` varchar(255) NOT NULL DEFAULT '',
   `logtype` varchar(45) NOT NULL,
@@ -1123,8 +1123,16 @@ CREATE TABLE `sitelogs` (
   `section` varchar(255) DEFAULT NULL,
   `keyword` text,
   `username` varchar(100) DEFAULT NULL,
-   `useragent` varchar(300) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `useragent` varchar(300) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_logtime` (`logtime`),
+  KEY `idx_logtype` (`logtype`),
+  KEY `idx_surveyid` (`surveyid`),
+  KEY `idx_username` (`username`),
+  KEY `idx_ip` (`ip`),
+  KEY `idx_section` (`section`),
+  KEY `idx_logtime_logtype` (`logtime`, `logtype`),
+  KEY `idx_surveyid_logtime` (`surveyid`, `logtime`)
 ) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1310,7 +1318,17 @@ CREATE TABLE `api_logs` (
   `rtime` float DEFAULT NULL,
   `authorized` varchar(1) NOT NULL,
   `response_code` smallint(3) DEFAULT '0',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_api_logs_time` (`time`),
+  KEY `idx_api_logs_method` (`method`),
+  KEY `idx_api_logs_response_code` (`response_code`),
+  KEY `idx_api_logs_authorized` (`authorized`),
+  KEY `idx_api_logs_user_id` (`user_id`),
+  KEY `idx_api_logs_uri_prefix` (`uri`(100)),
+  KEY `idx_api_logs_api_key_prefix` (`api_key`(20)),
+  KEY `idx_api_logs_ip_address` (`ip_address`),
+  KEY `idx_api_logs_time_method` (`time`, `method`),
+  KEY `idx_api_logs_time_response_code` (`time`, `response_code`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 

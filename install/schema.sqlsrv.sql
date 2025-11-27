@@ -1189,7 +1189,7 @@ CREATE TABLE public_requests (
 CREATE TABLE sitelogs (
   id int NOT NULL IDENTITY(1,1),
   sessionid varchar(255) NOT NULL DEFAULT '',
-  logtime varchar(45) NOT NULL DEFAULT '0',
+  logtime int NOT NULL DEFAULT 0,
   ip varchar(45) NOT NULL,
   url varchar(255) NOT NULL DEFAULT '',
   logtype varchar(45) NOT NULL,
@@ -1200,6 +1200,16 @@ CREATE TABLE sitelogs (
   useragent varchar(300) DEFAULT NULL,
   PRIMARY KEY (id)
 ) ;
+
+-- Performance indexes for sitelogs table
+CREATE NONCLUSTERED INDEX idx_logtime ON sitelogs(logtime);
+CREATE NONCLUSTERED INDEX idx_logtype ON sitelogs(logtype);
+CREATE NONCLUSTERED INDEX idx_surveyid ON sitelogs(surveyid);
+CREATE NONCLUSTERED INDEX idx_username ON sitelogs(username);
+CREATE NONCLUSTERED INDEX idx_ip ON sitelogs(ip);
+CREATE NONCLUSTERED INDEX idx_section ON sitelogs(section);
+CREATE NONCLUSTERED INDEX idx_logtime_logtype ON sitelogs(logtime, logtype);
+CREATE NONCLUSTERED INDEX idx_surveyid_logtime ON sitelogs(surveyid, logtime);
 
 
 
@@ -1442,6 +1452,18 @@ CREATE TABLE api_logs (
   response_code smallint DEFAULT '0',
   PRIMARY KEY (id)
 );
+
+-- Performance indexes for api_logs table
+CREATE NONCLUSTERED INDEX idx_api_logs_time ON api_logs(time);
+CREATE NONCLUSTERED INDEX idx_api_logs_method ON api_logs(method);
+CREATE NONCLUSTERED INDEX idx_api_logs_response_code ON api_logs(response_code);
+CREATE NONCLUSTERED INDEX idx_api_logs_authorized ON api_logs(authorized);
+CREATE NONCLUSTERED INDEX idx_api_logs_user_id ON api_logs(user_id);
+CREATE NONCLUSTERED INDEX idx_api_logs_uri ON api_logs(uri);
+CREATE NONCLUSTERED INDEX idx_api_logs_api_key ON api_logs(api_key);
+CREATE NONCLUSTERED INDEX idx_api_logs_ip_address ON api_logs(ip_address);
+CREATE NONCLUSTERED INDEX idx_api_logs_time_method ON api_logs(time, method);
+CREATE NONCLUSTERED INDEX idx_api_logs_time_response_code ON api_logs(time, response_code);
 
 
 
