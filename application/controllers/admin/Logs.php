@@ -80,4 +80,19 @@ class Logs extends MY_Controller {
         $this->template->write('title', $data['title'], true);
         $this->template->render();
     }
+
+    /**
+     * API logs page
+     */
+    function api_logs()
+    {
+        $this->acl_manager->has_access_or_die('user', 'view');
+        
+        $data['title'] = 'API Logs';
+        
+        $content = $this->load->view('admin/api_logs/index', $data, true);
+        $this->template->write('content', $content, true);
+        $this->template->write('title', $data['title'], true);
+        $this->template->render();
+    }
 }

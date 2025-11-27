@@ -199,6 +199,9 @@ $route['admin/logs/cleanup'] = "admin/logs/cleanup";
 // DB Logs API
 $route['api/db_logs/cleanup/chunk'] = "api/db_logs/cleanup_chunk";
 
+// API Logs Admin Page
+$route['admin/api_logs'] = "admin/logs/api_logs";
+
 //catalog/resources
 $route['admin/clear_cache'] = "admin/admin/clear_cache";
 $route['admin/catalog/(:num)/resources'] = "admin/resources";

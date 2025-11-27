@@ -1183,6 +1183,31 @@ abstract class REST_Controller extends CI_Controller {
      */
     protected function _log_request($authorized = FALSE)
     {        
+        // Check if this controller is excluded from logging
+        $excluded_controllers = $this->config->item('rest_logging_exclude_controllers');
+        if ($excluded_controllers && is_array($excluded_controllers)) {
+            $controller = strtolower($this->router->class);
+            if (in_array($controller, array_map('strtolower', $excluded_controllers))) {
+                return false;
+            }
+        }
+        
+        // Get user_id from multiple sources
+        $user_id = null;
+        
+        // First, try to get from API key (if using API key authentication)
+        if (isset($this->rest->user_id) && $this->rest->user_id) {
+            $user_id = $this->rest->user_id;
+        }
+        // Otherwise, try to get from session (if using session authentication)
+        else if ($this->session && $this->session->userdata('user_id')) {
+            $user_id = $this->session->userdata('user_id');
+        }
+        // Also check _apiuser if set (from MY_REST_Controller)
+        else if (isset($this->_apiuser) && isset($this->_apiuser->user_id)) {
+            $user_id = $this->_apiuser->user_id;
+        }
+        
         // Insert the request into the log table
         $is_inserted = $this->rest->db
             ->insert(
@@ -1192,7 +1217,7 @@ abstract class REST_Controller extends CI_Controller {
                 //'params' => $this->_args ? ($this->config->item('rest_logs_json_params') === TRUE ? json_encode($this->_args) : serialize($this->_args)) : NULL,
                 'params' =>$this->input->server('QUERY_STRING'),
                 'api_key' => isset($this->rest->key) ? substr($this->rest->key,1,10) : '',
-                'user_id'=> isset($this->rest->user_id) ? $this->rest->user_id : null,
+                'user_id'=> $user_id,
                 'ip_address' => $this->input->ip_address(),
                 'time' => time(),
                 'authorized' => $authorized

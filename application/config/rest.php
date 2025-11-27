@@ -197,6 +197,7 @@ $config['auth_override_class_method']['tables']['aggregate'] = 'none';
 $config['auth_override_class_method']['tables']['databases'] = 'none';
 
 $config['auth_override_class_method']['downloads']['*'] = 'none';
+$config['auth_override_class_method']['analytics']['*'] = 'none';
 
 
 
@@ -432,6 +433,19 @@ $config['rest_enable_logging'] = FALSE;
 |
 */
 $config['rest_logs_table'] = 'api_logs';
+
+/*
+|--------------------------------------------------------------------------
+| REST Logging Exclude Controllers
+|--------------------------------------------------------------------------
+|
+| Array of controller names to exclude from API logging. Useful for excluding
+| monitoring/admin UI endpoints to avoid recursive logging.
+|
+| Example: $config['rest_logging_exclude_controllers'] = array('api_logs', 'db_logs');
+|
+*/
+$config['rest_logging_exclude_controllers'] = array('api_logs');
 
 /*
 |--------------------------------------------------------------------------
