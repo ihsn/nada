@@ -1420,11 +1420,18 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_data_files on [dbo].[data_files](
 --
 CREATE TABLE api_keys (
   id int NOT NULL identity(1,1),
-  api_key varchar(40) NOT NULL,
+  api_key varchar(40) NULL,
+  key_hash varchar(255) NULL,
+  key_prefix varchar(12) NULL,
   level int NOT NULL,
   ignore_limits tinyint NOT NULL DEFAULT '0',
   ip_addresses varchar(max),
   date_created int NOT NULL,
+  expires_at int NULL,
+  last_used_at int NULL,
+  name varchar(255) NULL,
+  revoked_at int NULL,
+  created_by int NULL,
   user_id int DEFAULT NULL,
   is_private_key int NOT NULL DEFAULT '0',
   PRIMARY KEY (id),
@@ -1433,6 +1440,11 @@ CREATE TABLE api_keys (
 CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys on [dbo].[api_keys](
 	[api_key] ASC
 );
+
+CREATE NONCLUSTERED INDEX idx_key_prefix ON api_keys(key_prefix);
+CREATE NONCLUSTERED INDEX idx_key_hash ON api_keys(key_hash);
+CREATE NONCLUSTERED INDEX idx_expires_at ON api_keys(expires_at);
+CREATE NONCLUSTERED INDEX idx_user_revoked ON api_keys(user_id, revoked_at);
 
 
 --

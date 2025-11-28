@@ -1292,15 +1292,26 @@ CREATE TABLE `data_files` (
 --
 CREATE TABLE `api_keys` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `api_key` varchar(40) NOT NULL,
+  `api_key` varchar(40) NULL,
+  `key_hash` varchar(255) NULL,
+  `key_prefix` varchar(12) NULL,
   `level` int(2) NOT NULL,
   `ignore_limits` tinyint(1) NOT NULL DEFAULT '0',
   `ip_addresses` text,
   `date_created` int(11) NOT NULL,
+  `expires_at` int(11) NULL,
+  `last_used_at` int(11) NULL,
+  `name` varchar(255) NULL,
+  `revoked_at` int(11) NULL,
+  `created_by` int(11) NULL,
   `user_id` int(11) DEFAULT NULL,
   `is_private_key` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `key_UNIQUE` (`api_key`)
+  UNIQUE KEY `key_UNIQUE` (`api_key`),
+  KEY `idx_key_prefix` (`key_prefix`),
+  KEY `idx_key_hash` (`key_hash`),
+  KEY `idx_expires_at` (`expires_at`),
+  KEY `idx_user_revoked` (`user_id`, `revoked_at`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 --

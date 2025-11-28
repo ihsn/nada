@@ -491,7 +491,7 @@ class Ion_auth_model extends CI_Model
 		$this->db->where('email',$email);
 		$this->db->update($this->tables['users'], array('forgotten_password_code' => null));
 
-		//enable user account + complete email verification
+		//complete email verification (only reactivates if disabled due to email verification, not admin-disabled)
 		$this->email_verification_complete($email);
 
 		return true;
@@ -502,7 +502,8 @@ class Ion_auth_model extends CI_Model
 	 * 
 	 * Email verification complete
 	 * 
-	 * - removes verification code + sets user to active
+	 * - removes verification code + sets user to active (only if disabled due to email verification)
+	 * - preserves admin-disabled accounts (active=0 with no activation_code)
 	 * 
 	 */
 	public function email_verification_complete($email)
@@ -511,14 +512,24 @@ class Ion_auth_model extends CI_Model
 	    {
 	        return FALSE;
 	    }
-		   
-		$this->db->where('email', $email);
 		
-		$result=$this->db->update($this->tables['users'], 
-			array(
-				'activation_code' => null,
-				'active' => 1
-			));
+		$this->db->where('email', $email);
+		$user = $this->db->get($this->tables['users'])->row();
+		
+		if (!$user) {
+			return FALSE;
+		}
+		
+		$update_data = array(
+			'activation_code' => null
+		);
+		
+		if (!empty($user->activation_code)) {
+			$update_data['active'] = 1;
+		}
+		
+		$this->db->where('email', $email);
+		$result = $this->db->update($this->tables['users'], $update_data);
 
 		return $result;
 
@@ -1565,22 +1576,45 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * 
 	 * 
-	 * Return user's API keys
+	 * Return user's API keys (metadata only, no full keys)
 	 * 
-	 * 
+	 * @param int $user_id User ID
+	 * @return array|false Array of key objects with metadata, or FALSE if none found
 	 */
 	function get_api_keys($user_id)
 	{
-		$this->db->where("user_id",$user_id);
-		$result=$this->db->get("api_keys")->result_array();
+		$this->db->where("user_id", $user_id);
+		$this->db->where("revoked_at", NULL);
+		$result = $this->db->get("api_keys")->result();
 
 		if(!$result){
 			return false;
 		}
 
-		$output=array();
+		$this->load->library('api_key_manager');
+		$output = array();
+		
 		foreach($result as $row){
-			$output[]=$row['api_key'];
+			// Skip legacy keys (no key_prefix) - they won't work with new system
+			if(empty($row->key_prefix)){
+				continue;
+			}
+			
+			$key_data = array(
+				'id' => $row->id,
+				'prefix' => $this->api_key_manager->mask_key($row->key_prefix),
+				'name' => $row->name,
+				'date_created' => $row->date_created,
+				'expires_at' => $row->expires_at,
+				'last_used_at' => $row->last_used_at,
+				'is_expired' => $this->api_key_manager->is_key_expired($row->expires_at)
+			);
+			$output[] = $key_data;
+		}
+
+		// Return false if no keys found (maintain backward compatibility)
+		if(empty($output)){
+			return false;
 		}
 
 		return $output;
@@ -1592,32 +1626,186 @@ class Ion_auth_model extends CI_Model
 	 * 
 	 * Create a new API token for user
 	 * 
-	 * @user id - User ID
-	 * @token (optional) If null, generate a random token
+	 * @param int $user_id User ID
+	 * @param string $key Optional - if provided, must be at least 10 chars. If NULL, generates secure key
+	 * @param string $name Optional - user-friendly name for the key
+	 * @param int $expires_in_days Optional - expiration in days (default: 365 days / 1 year)
+	 * @return array Array with 'key' (full key shown once), 'prefix', 'id'
 	 */
-	function set_api_key($user_id,$key=NULL)
+	function set_api_key($user_id, $key=NULL, $name=NULL, $expires_in_days=NULL)
 	{
-		if(!$key || strlen(trim($key))<10 ){
-			$key=md5(uniqid(rand(),true));
+		$this->load->library('api_key_manager');
+		
+		// Generate key if not provided or invalid
+		if(!$key || strlen(trim($key)) < 10){
+			$key_data = $this->api_key_manager->generate_secure_key();
+			$key = $key_data['key'];
+		} else {
+			// If key provided, generate hash and prefix
+			$key_data = array(
+				'key' => $key,
+				'prefix' => $this->api_key_manager->extract_prefix($key),
+				'hash' => $this->api_key_manager->hash_key($key)
+			);
 		}
-
-		$options=array(
-			'user_id'=>$user_id,
-			'api_key'=>$key,
-			'date_created'=>date("U"),
-			'level'=>0,
-			'ignore_limits'=>1
+		
+		// Calculate expiration (default: 1 year from now)
+		$expires_in_days = $expires_in_days !== NULL ? (int)$expires_in_days : 365;
+		$expires_at = time() + ($expires_in_days * 24 * 60 * 60);
+		
+		$options = array(
+			'user_id' => $user_id,
+			'api_key' => NULL, //legacy key, not used for new keys
+			'key_hash' => $key_data['hash'],
+			'key_prefix' => $key_data['prefix'],
+			'date_created' => time(),
+			'expires_at' => $expires_at,
+			'name' => $name,
+			'level' => 0,
+			'ignore_limits' => 1,
+			'revoked_at' => NULL,
+			'created_by' => $user_id
 		);
 
-		$this->db->insert("api_keys",$options);
+		$this->db->insert("api_keys", $options);
+		$key_id = $this->db->insert_id();
+		
+		// Return full key ONCE (shown to user, then never stored)
+		return array(
+			'key' => $key_data['key'],
+			'prefix' => $key_data['prefix'],
+			'id' => $key_id
+		);
 	}
 
-	//remove api key
-	function delete_api_key($user_id,$api_key)
+	/**
+	 * 
+	 * Remove API key (soft delete - sets revoked_at)
+	 * 
+	 * @param int $user_id User ID
+	 * @param string|int $key_prefix_or_id Key prefix (12 chars) or key ID
+	 * @return bool TRUE on success, FALSE on failure
+	 */
+	function delete_api_key($user_id, $key_prefix_or_id)
 	{
-		$this->db->where("user_id",$user_id);
-		$this->db->where("api_key",$api_key);
-		$this->db->delete("api_keys");
+		$this->db->where("user_id", $user_id);
+		
+		// Support both prefix and ID lookup
+		if(is_numeric($key_prefix_or_id)){
+			$this->db->where("id", $key_prefix_or_id);
+		} else {
+			$this->db->where("key_prefix", $key_prefix_or_id);
+		}
+		
+		// Soft delete - set revoked_at timestamp
+		$result = $this->db->update("api_keys", array(
+			'revoked_at' => time()
+		));
+		
+		return $result !== FALSE;
+	}
+	
+	/**
+	 * 
+	 * Validate API key (supports both new secure keys and legacy keys)
+	 * 
+	 * @param string $key The API key to validate
+	 * @return object|false Key record on success, FALSE on failure
+	 */
+	function validate_api_key($key)
+	{
+		$this->load->library('api_key_manager');
+		
+		// Try prefix lookup for secure keys
+		$prefix = $this->api_key_manager->extract_prefix($key);
+		$this->db->select('api_keys.*');
+		$this->db->from('api_keys');
+		$this->db->join($this->tables['users'], 'api_keys.user_id = ' . $this->tables['users'] . '.id', 'inner');
+		$this->db->where("api_keys.key_prefix", $prefix);
+		$this->db->where("api_keys.revoked_at", NULL); // Not revoked
+		$this->db->where($this->tables['users'] . '.active', 1); // User account must be active
+		$row = $this->db->get()->row();
+		
+		if($row){
+			// New key found - validate with hash
+			$provided_hash = $this->api_key_manager->hash_key($key);
+			
+			// Compare hash using constant-time comparison
+			if($this->api_key_manager->constant_time_compare($row->key_hash, $provided_hash)){
+				// Expired?
+				if($this->api_key_manager->is_key_expired($row->expires_at)){
+					return FALSE;
+				}
+				
+				// Update last_used_at on successful validation
+				$this->db->where("id", $row->id);
+				$this->db->update("api_keys", array(
+					'last_used_at' => time()
+				));
+				return $row;
+			}
+			// Hash mismatch
+			return FALSE;
+		}
+		
+		// Fallback: Try legacy method (direct api_key lookup)
+		// Check if legacy support is enabled
+		$legacy_support = $this->config->item('api_key_enable_legacy_support');
+		if($legacy_support === NULL){
+			$legacy_support = TRUE; // enabled by default
+		}
+		
+		if($legacy_support){
+			// Only look for keys that haven't been migrated yet
+			$this->db->select('api_keys.*');
+			$this->db->from('api_keys');
+			$this->db->join($this->tables['users'], 'api_keys.user_id = ' . $this->tables['users'] . '.id', 'inner');
+			$this->db->where("api_keys.api_key", $key);
+			$this->db->where("api_keys.key_hash", NULL); // Only unmigrated legacy keys
+			$this->db->where($this->tables['users'] . '.active', 1); // User account must be active
+			$row = $this->db->get()->row();
+			
+			if($row){
+				// Legacy key found, migrate on-the-fly
+				$key_hash = $this->api_key_manager->hash_key($key);
+				$key_prefix = $this->api_key_manager->extract_prefix($key);
+				
+				// Set expiration: 1 year from NOW (migration date), not creation date
+				// This ensures legacy keys get a fresh expiration period when migrated
+				$expires_at = time() + (365 * 24 * 60 * 60); // 1 year from now
+				
+				// Migrate the key: add hash, prefix, expiration, and clear api_key
+				$this->db->where("id", $row->id);
+				$this->db->update("api_keys", array(
+					'key_hash' => $key_hash,
+					'key_prefix' => $key_prefix,
+					'expires_at' => $expires_at,
+					'last_used_at' => time(),
+					'api_key' => NULL // Clear the plain text key
+				));
+				
+				// Reload the row with new data
+				$this->db->where("id", $row->id);
+				$migrated_row = $this->db->get("api_keys")->row();
+				
+				if($migrated_row){
+					// Ensure user_id is preserved
+					if(!isset($migrated_row->user_id) && isset($row->user_id)){
+						$migrated_row->user_id = $row->user_id;
+					}
+					
+					log_message('info', 'Legacy API key migrated: ID ' . $migrated_row->id . ', User ID ' . (isset($migrated_row->user_id) ? $migrated_row->user_id : 'NULL') . ', Prefix: ' . $migrated_row->key_prefix);					
+					return $migrated_row;
+				}
+				
+				// Fallback: return original row if reload failed
+				log_message('error', 'Failed to reload migrated API key: ID ' . $row->id);
+				return $row;
+			}
+		}
+		
+		// API key not found in either method
+		return FALSE;
 	}
 
 	/**

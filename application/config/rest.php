@@ -356,6 +356,20 @@ $config['rest_key_column'] = 'api_key';
 
 /*
 |--------------------------------------------------------------------------
+| API Key Legacy Support
+|--------------------------------------------------------------------------
+|
+| Enable support for legacy API keys (keys without key_hash/key_prefix)
+| When enabled, legacy keys will be automatically migrated on first use
+| to the secure format (with hash and prefix).
+|
+| Set to FALSE to disable legacy key support (all legacy keys will be rejected)
+|
+*/
+$config['api_key_enable_legacy_support'] = TRUE;
+
+/*
+|--------------------------------------------------------------------------
 | REST API Limits method
 |--------------------------------------------------------------------------
 |

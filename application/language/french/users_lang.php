@@ -90,6 +90,19 @@ $lang['manage_permissions']="Gestion des droits d'accès";
 $lang['permissions_per_collection']="Droits d'accès par collection";
 $lang['reset_password']="Réinitialisez votre mot de passe";
 $lang['api_keys']="clés d'API";
+$lang['api_key']="clé d'API";
+$lang['no_api_keys_found']="Aucune clé API trouvée.";
+$lang['generate_api_key']="Générer une clé API";
+$lang['new_api_key_generated']="Nouvelle clé API générée";
+$lang['save_this_key']="Veuillez enregistrer cette clé maintenant";
+$lang['key_will_not_be_shown_again']="Elle ne sera plus affichée.";
+$lang['api_key_copied']="Clé API copiée dans le presse-papiers";
+$lang['confirm_delete_api_key']="Êtes-vous sûr de vouloir supprimer cette clé API ?";
+$lang['expires']="Expire";
+$lang['last_used']="Dernière utilisation";
+$lang['never']="Jamais";
+$lang['expired']="Expiré";
+$lang['active']="Actif";
 
 
 /* End of file users */

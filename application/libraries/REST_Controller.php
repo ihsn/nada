@@ -1088,12 +1088,18 @@ abstract class REST_Controller extends CI_Controller {
         // Find the key from server or arguments
         if (($key = isset($this->_args[$api_key_variable]) ? $this->_args[$api_key_variable] : $this->input->server($key_name)))
         {
-            if ( ! ($row = $this->rest->db->where($this->config->item('rest_key_column'), $key)->get($this->config->item('rest_keys_table'))->row()))
+            $this->load->model('ion_auth_model');
+            
+            // Validate the key using prefix lookup + hash comparison
+            $row = $this->ion_auth_model->validate_api_key($key);
+            
+            if (!$row)
             {
+                // Key not found, expired, revoked, or invalid
                 return FALSE;
             }
 
-            $this->rest->key = $row->{$this->config->item('rest_key_column')};
+            $this->rest->key = $key;
 
             isset($row->user_id) && $this->rest->user_id = $row->user_id;
             isset($row->level) && $this->rest->level = $row->level;
@@ -1216,7 +1222,7 @@ abstract class REST_Controller extends CI_Controller {
                 'method' => $this->request->method,
                 //'params' => $this->_args ? ($this->config->item('rest_logs_json_params') === TRUE ? json_encode($this->_args) : serialize($this->_args)) : NULL,
                 'params' =>$this->input->server('QUERY_STRING'),
-                'api_key' => isset($this->rest->key) ? substr($this->rest->key,1,10) : '',
+                'api_key' => isset($this->rest->key) ? substr($this->rest->key, 0, 12) : '', // Log prefix only (first 12 chars)
                 'user_id'=> $user_id,
                 'ip_address' => $this->input->ip_address(),
                 'time' => time(),

@@ -106,16 +106,17 @@ class Auth extends REST_Controller
 					throw new Exception("ERROR_LOADING_USER_DATA");
 				}
 
-				//generate/assign key
-				$this->ion_auth->set_api_key($user->id,$key);
+				//generate/assign key - returns array with 'key', 'prefix', 'id'
+				$key_result = $this->ion_auth->set_api_key($user->id, $key);
 				
-				//get user API token
+				//get user API keys (metadata only)
 				$api_keys=$this->ion_auth->get_api_keys($user->id);
 
 				$options=array(
 					'user_id'=>$user->id,
 					'user_name'=>$user->username,
-					'api_keys'=>$api_keys
+					'api_keys'=>$api_keys,
+					'new_api_key'=>$key_result['key'] // Show full key once
 				);
 
 				$response=array(

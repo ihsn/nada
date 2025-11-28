@@ -60,7 +60,15 @@ class DefaultAuth implements AuthInterface
 			show_error(t('Maximum number of API keys reached. You can only have 5 API keys at a time.'), 403, "Error");
 		}
 
-		$this->ci->ion_auth->set_api_key($this->ci->session->userdata('user_id'));
+		// Generate new key - returns array with 'key', 'prefix', 'id'
+		$key_result = $this->ci->ion_auth->set_api_key($this->ci->session->userdata('user_id'));
+		
+		// Store key in session temporarily to show it once
+		if ($key_result && isset($key_result['key'])) {
+			$this->ci->session->set_flashdata('new_api_key', $key_result['key']);
+			$this->ci->session->set_flashdata('new_api_key_prefix', $key_result['prefix']);
+		}
+		
 		redirect("auth/profile", 'refresh');
 	}
 
@@ -68,7 +76,17 @@ class DefaultAuth implements AuthInterface
 	function delete_api_key()
 	{
 		$this->_is_logged_in();
-		$this->ci->ion_auth->delete_api_key($this->ci->session->userdata('user_id'),$this->ci->input->get("api_key"));
+		
+		// Support both key_id (new) and api_key (legacy) for backward compatibility
+		$key_identifier = $this->ci->input->get("key_id");
+		if (!$key_identifier) {
+			$key_identifier = $this->ci->input->get("api_key"); // Legacy support
+		}
+		
+		if ($key_identifier) {
+			$this->ci->ion_auth->delete_api_key($this->ci->session->userdata('user_id'), $key_identifier);
+		}
+		
 		redirect("auth/profile", 'refresh');
 	}
 

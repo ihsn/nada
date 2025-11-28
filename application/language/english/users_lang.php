@@ -93,8 +93,19 @@ $lang['reset_password']="Reset your password";
 
 
 $lang['api_keys']="API keys";
+$lang['api_key']="API key";
 $lang['no_api_keys_found']="No API keys found.";
 $lang['generate_api_key']="Generate API key";
+$lang['new_api_key_generated']="New API Key Generated";
+$lang['save_this_key']="Please save this key now";
+$lang['key_will_not_be_shown_again']="It will not be shown again.";
+$lang['api_key_copied']="API key copied to clipboard";
+$lang['confirm_delete_api_key']="Are you sure you want to delete this API key?";
+$lang['expires']="Expires";
+$lang['last_used']="Last Used";
+$lang['never']="Never";
+$lang['expired']="Expired";
+$lang['active']="Active";
 $lang['user_email_not_verified']="Your email address is not verified. Please check your inbox for the verification email we sent. To resend the verification email, click the button below.";
 $lang['complete_your_account']="Complete your account registration";
 $lang['complete_your_account_description']="You have successfully signed in with %s. Please update your information below to complete your sign-in process.";
