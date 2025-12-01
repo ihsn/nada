@@ -104,6 +104,36 @@ $lang['last_used']="Último uso";
 $lang['never']="Nunca";
 $lang['expired']="Expirado";
 $lang['active']="Activo";
+$lang['revoke']="Revocar";
+$lang['created']="Creado";
+$lang['name']="Nombre";
+$lang['maximum_api_keys_reached']="Se alcanzó el número máximo de claves API. El usuario solo puede tener 5 claves API a la vez.";
+$lang['api_keys_management']="Gestión de claves API";
+$lang['all_users']="Todos los usuarios";
+$lang['all']="Todos";
+$lang['revoked']="Revocado";
+$lang['manage_api_keys']="Gestionar claves API";
+$lang['manage']="Gestionar";
+$lang['manage_api_key']="Gestionar clave API";
+$lang['back_to_api_keys']="Volver a claves API";
+$lang['api_key_details']="Detalles de la clave API";
+$lang['extend_expiry']="Extender expiración";
+$lang['extend_by']="Extender por";
+$lang['month']="mes";
+$lang['months']="meses";
+$lang['days']="días";
+$lang['in']="en";
+$lang['extend_expiry_description']="Extender la fecha de expiración de esta clave API. La nueva fecha de expiración se calculará a partir de la fecha de expiración actual (o la fecha actual si está expirada).";
+$lang['danger_zone']="Zona de peligro";
+$lang['revoke_api_key']="Revocar clave API";
+$lang['revoke_api_key_description']="Revocar esta clave API la invalidará inmediatamente. Esta acción no se puede deshacer.";
+$lang['api_key_revoked_successfully']="Clave API revocada exitosamente.";
+$lang['failed_to_revoke_api_key']="Error al revocar la clave API.";
+$lang['api_key_expiry_extended']="La expiración de la clave API se extendió por %s meses.";
+$lang['invalid_expiry_extension']="Período de extensión de expiración inválido.";
+$lang['api_key_name_updated']="Nombre de la clave API actualizado exitosamente.";
+$lang['optional_name']="Nombre opcional";
+$lang['api_key_already_revoked']="Esta clave API ya ha sido revocada.";
 
 
 /* End of file users */
