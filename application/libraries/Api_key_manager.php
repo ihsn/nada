@@ -69,6 +69,19 @@ class Api_key_manager {
     }
     
     /**
+     * Mask a legacy API key for display (show first 12 chars + "...")
+     * 
+     * @param string $api_key The full legacy API key (40 chars)
+     * @return string Masked key (e.g., "4d7f9a2b8c1e...")
+     */
+    public function mask_legacy_key($api_key) {
+        if (empty($api_key) || strlen($api_key) < 12) {
+            return $api_key;
+        }
+        return substr($api_key, 0, 12) . '...';
+    }
+    
+    /**
      * Check if a key is expired
      * 
      * @param int|null $expires_at Unix timestamp of expiration, or NULL if no expiration

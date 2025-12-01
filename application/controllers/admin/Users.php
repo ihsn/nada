@@ -455,7 +455,7 @@ class Users extends MY_Controller {
 		$api_keys = $this->ion_auth->get_api_keys($user_id);
 		if (is_array($api_keys) && count($api_keys) >= 5) {
 			$this->session->set_flashdata('error', t('maximum_api_keys_reached'));
-			redirect('admin/users/edit/' . $user_id);
+			redirect('admin/users/edit/' . $user_id . '?tab=api_keys');
 			return;
 		}
 		
@@ -468,16 +468,11 @@ class Users extends MY_Controller {
 			$this->session->set_flashdata('admin_new_api_key_user_id', $user_id);
 			$this->session->set_flashdata('message', 'API key generated successfully. The key will be shown once.');
 			
-			// Get username for search
-			$user = $this->ion_auth->get_user($user_id);
-			if ($user) {
-				redirect('admin/users/api_keys?user_search=' . urlencode($user->username));
-			} else {
-				redirect('admin/users/api_keys');
-			}
+			// Redirect back to user edit page on API keys tab
+			redirect('admin/users/edit/' . $user_id . '?tab=api_keys');
 		} else {
 			$this->session->set_flashdata('error', 'Failed to generate API key.');
-			redirect('admin/users/api_keys');
+			redirect('admin/users/edit/' . $user_id . '?tab=api_keys');
 		}
 	}
 	
@@ -536,22 +531,37 @@ class Users extends MY_Controller {
 				} else {
 					$this->session->set_flashdata('error', t('invalid_expiry_extension'));
 				}
-			} elseif ($action == 'update_name') {
-				$name = $this->input->post('name');
+			} elseif ($action == 'delete') {
+				// Permanently delete the API key from database
 				$this->db->where('id', $key_id);
-				$this->db->update('api_keys', array('name' => $name));
-				$this->session->set_flashdata('message', t('api_key_name_updated'));
-				redirect('admin/users/manage_api_key/' . $key_id);
+				$result = $this->db->delete('api_keys');
+				
+				if ($result) {
+					$this->session->set_flashdata('message', t('api_key_deleted_successfully'));
+					redirect('admin/users/api_keys');
+				} else {
+					$this->session->set_flashdata('error', t('failed_to_delete_api_key'));
+				}
 			}
 		}
+		
+		// Check if this is a legacy key
+		$key_data['is_legacy'] = empty($key_data['key_prefix']);
 		
 		// Calculate status
 		$current_time = time();
 		$key_data['is_expired'] = false;
 		$key_data['is_revoked'] = !empty($key_data['revoked_at']);
 		
-		if (!$key_data['is_revoked'] && $key_data['expires_at'] && $key_data['expires_at'] <= $current_time) {
-			$key_data['is_expired'] = true;
+		if ($key_data['is_legacy']) {
+			// Legacy key: mask the api_key column
+			$this->load->library('api_key_manager');
+			$key_data['key_prefix'] = $this->api_key_manager->mask_legacy_key($key_data['api_key']);
+		} else {
+			// New secure key: check expiration
+			if (!$key_data['is_revoked'] && $key_data['expires_at'] && $key_data['expires_at'] <= $current_time) {
+				$key_data['is_expired'] = true;
+			}
 		}
 		
 		// Format user display name
@@ -623,6 +633,7 @@ class Users extends MY_Controller {
 		$tables = $this->config->item('tables');
 		
 		// Build query - join with users and meta tables to get user details
+		// Include api_key column for legacy keys
 		$this->db->select('api_keys.*, users.username, users.email, meta.first_name, meta.last_name');
 		$this->db->from('api_keys');
 		$this->db->join('users', 'api_keys.user_id = users.id', 'left');
@@ -658,7 +669,10 @@ class Users extends MY_Controller {
 		}
 		
 		if ($search_keyword) {
+			$this->db->group_start();
 			$this->db->like('api_keys.key_prefix', $search_keyword);
+			$this->db->or_like('api_keys.api_key', $search_keyword);
+			$this->db->group_end();
 		}
 		
 		// Get total count before pagination
@@ -683,13 +697,26 @@ class Users extends MY_Controller {
 		
 		// Process rows to add status information
 		$current_time = time();
+		$this->load->library('api_key_manager');
+		
 		foreach ($rows as &$row) {
-			$row['is_expired'] = false;
-			$row['is_revoked'] = !empty($row['revoked_at']);
+			// Check if this is a legacy key (no key_prefix)
+			$row['is_legacy'] = empty($row['key_prefix']);
 			
-			if (!$row['is_revoked'] && $row['expires_at'] && $row['expires_at'] <= $current_time) {
-				$row['is_expired'] = true;
+			if ($row['is_legacy']) {
+				// Legacy key: mask the api_key column
+				$row['key_prefix'] = $this->api_key_manager->mask_legacy_key($row['api_key']);
+				$row['is_expired'] = false; // Legacy keys don't expire
+			} else {
+				// New secure key: mask the prefix
+				$row['key_prefix'] = $this->api_key_manager->mask_key($row['key_prefix']);
+				$row['is_expired'] = false;
+				if ($row['expires_at'] && $row['expires_at'] <= $current_time) {
+					$row['is_expired'] = true;
+				}
 			}
+			
+			$row['is_revoked'] = !empty($row['revoked_at']);
 			
 			// Format user name
 			$row['user_display_name'] = trim($row['first_name'] . ' ' . $row['last_name']);

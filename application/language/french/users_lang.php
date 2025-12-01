@@ -133,6 +133,14 @@ $lang['invalid_expiry_extension']="Période de prolongation d'expiration invalid
 $lang['api_key_name_updated']="Nom de la clé API mis à jour avec succès.";
 $lang['optional_name']="Nom optionnel";
 $lang['api_key_already_revoked']="Cette clé API a déjà été révoquée.";
+$lang['delete_api_key']="Supprimer la clé API";
+$lang['delete_api_key_description']="Supprimer définitivement cette clé API de la base de données. Cette action ne peut pas être annulée et supprimera tous les enregistrements de cette clé.";
+$lang['confirm_permanent_delete_api_key']="Êtes-vous sûr de vouloir supprimer définitivement cette clé API ? Cette action ne peut pas être annulée.";
+$lang['api_key_deleted_successfully']="Clé API supprimée avec succès.";
+$lang['failed_to_delete_api_key']="Échec de la suppression de la clé API.";
+$lang['legacy']="Ancienne";
+$lang['n_a']="N/D";
+$lang['api_logs']="Journaux API";
 
 
 /* End of file users */

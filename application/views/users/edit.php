@@ -11,9 +11,6 @@ label{font-weight:bold;}
 </style>
 <div class='container-fluid users-edit-page'>
 
-<div class="row">
-<div class="col-md-6">
-    
     <h3 class="page title mt-4 mb-3"><?php echo $page_title; ?></h3>
     <?php if (validation_errors()): ?>
         <div class="alert alert-danger">
@@ -29,14 +26,54 @@ label{font-weight:bold;}
 
     <?php
       $form_action_url = site_url() . '/admin/users';
+      $current_user_id = $this->uri->segment(4); // Get user ID from URI
       if ($this->uri->segment(3) == 'add') {
           $form_action_url .= '/add';
       } else {
-          $form_action_url .= '/edit/' . $this->uri->segment(4);
+          $form_action_url .= '/edit/' . $current_user_id;
       }
+      
+      // Get active tab from URL or default to 'edit'
+      $active_tab = $this->input->get('tab') ? $this->input->get('tab') : 'edit';
     ?>
 
-    <?php echo form_open($form_action_url, array('class' => 'form register', 'autocomplete' => 'off')); ?>
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link <?php echo ($active_tab == 'edit') ? 'active' : ''; ?>" 
+               id="edit-tab" 
+               data-toggle="tab" 
+               href="#edit" 
+               role="tab" 
+               aria-controls="edit" 
+               aria-selected="<?php echo ($active_tab == 'edit') ? 'true' : 'false'; ?>">
+                <?php echo t('edit_user_account'); ?>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?php echo ($active_tab == 'api_keys') ? 'active' : ''; ?>" 
+               id="api-keys-tab" 
+               data-toggle="tab" 
+               href="#api-keys" 
+               role="tab" 
+               aria-controls="api-keys" 
+               aria-selected="<?php echo ($active_tab == 'api_keys') ? 'true' : 'false'; ?>">
+                <?php echo t('api_keys'); ?>
+            </a>
+        </li>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <!-- Edit User Tab -->
+        <div class="tab-pane fade <?php echo ($active_tab == 'edit') ? 'show active' : ''; ?>" 
+             id="edit" 
+             role="tabpanel" 
+             aria-labelledby="edit-tab">
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <?php echo form_open($form_action_url, array('class' => 'form register', 'autocomplete' => 'off')); ?>
 
       <?php echo form_input($id); ?>
       <div class="col form-group">
@@ -119,12 +156,125 @@ label{font-weight:bold;}
         </div>        
     </div>
 
-      <div class="col form-group">
-            <span class="custom-fields"><?php echo form_submit('submit', t('update'), array('class' => 'btn btn-primary btn-sm')); ?></span>
-            <?php echo anchor('admin/users', t('cancel'), array('class' => 'btn btn-secondary btn-sm')); ?>
-      </div>
-    <?php echo form_close(); ?>
-
-    </div>
+                    <div class="col form-group">
+                        <span class="custom-fields"><?php echo form_submit('submit', t('update'), array('class' => 'btn btn-primary btn-sm')); ?></span>
+                        <?php echo anchor('admin/users', t('cancel'), array('class' => 'btn btn-secondary btn-sm')); ?>
+                    </div>
+                    <?php echo form_close(); ?>
+                </div>
+            </div>
+        </div>
+        
+        <!-- API Keys Tab -->
+        <div class="tab-pane fade <?php echo ($active_tab == 'api_keys') ? 'show active' : ''; ?>" 
+             id="api-keys" 
+             role="tabpanel" 
+             aria-labelledby="api-keys-tab">
+            
+            <div class="row">
+                <div class="col-md-12">
+                    
+                    <?php if ($this->session->flashdata('admin_new_api_key') && $this->session->flashdata('admin_new_api_key_user_id') == $current_user_id): ?>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                                <h5><?php echo t('new_api_key_generated'); ?></h5>
+                                <p><strong><?php echo t('save_this_key'); ?></strong> <?php echo t('key_will_not_be_shown_again'); ?></p>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control font-monospace bg-light" id="admin_new_api_key" 
+                                           value="<?php echo html_escape($this->session->flashdata('admin_new_api_key')); ?>" readonly>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="copyAdminApiKey()">
+                                            <i class="fas fa-copy"></i>                            
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        function copyAdminApiKey() {
+                            var copyText = document.getElementById("admin_new_api_key");
+                            copyText.select();
+                            copyText.setSelectionRange(0, 99999);
+                            document.execCommand("copy");
+                            alert("<?php echo t('api_key_copied'); ?>");
+                        }
+                    </script>
+                    <?php endif; ?>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <?php if (is_array($api_keys) && count($api_keys) < 5 || !is_array($api_keys)) : ?>
+                            <a href="<?php echo site_url('admin/users/generate_api_key/' . $current_user_id); ?>" class="btn btn-primary btn-sm float-right mb-3"><?php echo t('generate_api_key'); ?></a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <?php if (is_array($api_keys) && count($api_keys) > 0) : ?>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th><?php echo t('api_key'); ?></th>
+                                            <th><?php echo t('name'); ?></th>
+                                            <th><?php echo t('created'); ?></th>
+                                            <th><?php echo t('expires'); ?></th>
+                                            <th><?php echo t('last_used'); ?></th>
+                                            <th><?php echo t('status'); ?></th>
+                                            <th><?php echo t('actions'); ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($api_keys as $key_data) : ?>
+                                            <tr>
+                                                <td><code><?php echo html_escape($key_data['prefix']); ?></code></td>
+                                                <td><?php echo html_escape($key_data['name'] ? $key_data['name'] : '-'); ?></td>
+                                                <td><?php echo $key_data['date_created'] ? date('Y-m-d H:i', $key_data['date_created']) : '-'; ?></td>
+                                                <td>
+                                                    <?php if (isset($key_data['is_legacy']) && $key_data['is_legacy']): ?>
+                                                        <?php echo t('legacy'); ?>
+                                                    <?php else: ?>
+                                                        <?php echo $key_data['expires_at'] ? date('Y-m-d H:i', $key_data['expires_at']) : t('never'); ?>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <?php if (isset($key_data['is_legacy']) && $key_data['is_legacy']): ?>
+                                                        <?php echo t('n_a'); ?>
+                                                    <?php else: ?>
+                                                        <?php echo $key_data['last_used_at'] ? date('Y-m-d H:i', $key_data['last_used_at']) : t('never'); ?>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <?php if (isset($key_data['is_legacy']) && $key_data['is_legacy']): ?>
+                                                        <span class="badge badge-info"><?php echo t('legacy'); ?></span>
+                                                    <?php elseif ($key_data['is_expired']) : ?>
+                                                        <span class="badge badge-warning"><?php echo t('expired'); ?></span>
+                                                    <?php else : ?>
+                                                        <span class="badge badge-success"><?php echo t('active'); ?></span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <a href="<?php echo site_url('admin/users/manage_api_key/' . $key_data['id']); ?>" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <?php echo t('manage'); ?>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            <?php else : ?>
+                                <div class="py-3"><?php echo t('no_api_keys_found'); ?></div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

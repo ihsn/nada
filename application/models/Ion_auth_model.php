@@ -1595,20 +1595,35 @@ class Ion_auth_model extends CI_Model
 		$output = array();
 		
 		foreach($result as $row){
-			// Skip legacy keys (no key_prefix) - they won't work with new system
-			if(empty($row->key_prefix)){
-				continue;
+			// Check if this is a legacy key (no key_prefix)
+			$is_legacy = empty($row->key_prefix);
+			
+			if ($is_legacy) {
+				// Legacy key: use api_key column (masked)
+				$key_data = array(
+					'id' => $row->id,
+					'prefix' => $this->api_key_manager->mask_legacy_key($row->api_key),
+					'name' => NULL, // Legacy keys don't have name
+					'date_created' => $row->date_created,
+					'expires_at' => NULL, // Legacy keys don't have expiration
+					'last_used_at' => NULL, // Legacy keys don't track last used
+					'is_expired' => false, // Legacy keys don't expire
+					'is_legacy' => true
+				);
+			} else {
+				// New secure key
+				$key_data = array(
+					'id' => $row->id,
+					'prefix' => $this->api_key_manager->mask_key($row->key_prefix),
+					'name' => $row->name,
+					'date_created' => $row->date_created,
+					'expires_at' => $row->expires_at,
+					'last_used_at' => $row->last_used_at,
+					'is_expired' => $this->api_key_manager->is_key_expired($row->expires_at),
+					'is_legacy' => false
+				);
 			}
 			
-			$key_data = array(
-				'id' => $row->id,
-				'prefix' => $this->api_key_manager->mask_key($row->key_prefix),
-				'name' => $row->name,
-				'date_created' => $row->date_created,
-				'expires_at' => $row->expires_at,
-				'last_used_at' => $row->last_used_at,
-				'is_expired' => $this->api_key_manager->is_key_expired($row->expires_at)
-			);
 			$output[] = $key_data;
 		}
 
