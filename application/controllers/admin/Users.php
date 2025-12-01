@@ -47,11 +47,40 @@ class Users extends MY_Controller {
 				
 		//get user groups 
 		$result['user_groups']=$this->User_model->get_user_roles($user_id_arr);
+		
+		//get API key counts for users
+		$result['api_key_counts'] = $this->_get_api_key_counts($user_id_arr);
 
 		$content=$this->load->view('users/index', $result,true);
 		$this->template->write('content', $content,true);
 		$this->template->write('title', t('title_user_management'),true);
 	  	$this->template->render();	
+	}
+	
+	/**
+	 * Get API key counts for multiple users
+	 */
+	private function _get_api_key_counts($user_ids)
+	{
+		if (empty($user_ids)) {
+			return array();
+		}
+		
+		$this->db->select('user_id, COUNT(*) as key_count');
+		$this->db->from('api_keys');
+		$this->db->where_in('user_id', $user_ids);
+		$this->db->where('revoked_at', NULL);
+		$this->db->group_by('user_id');
+		$query = $this->db->get();
+		
+		$counts = array();
+		if ($query) {
+			foreach ($query->result() as $row) {
+				$counts[$row->user_id] = (int)$row->key_count;
+			}
+		}
+		
+		return $counts;
 	}
 	
 	/**
@@ -393,13 +422,307 @@ class Users extends MY_Controller {
 
 			$this->data['roles']= $this->acl_manager->get_roles();//full list of roles
 			$this->data['options_country']= $this->ion_auth_model->get_all_countries();
+			
+			// Load user's API keys for admin management
+			$this->data['api_keys'] = $this->ion_auth->get_api_keys($id);
+			$this->data['user_id'] = $id;
 
 			$content=$this->load->view('users/edit', $this->data,TRUE);						
 			$this->template->write('content', $content,true);
 			$this->template->write('title', $this->data['page_title'],true);
 			$this->template->render();	
 		}
-    }	
+    }
+	
+	/**
+	 * Generate API key for a user (admin function)
+	 */
+	function generate_api_key($user_id)
+	{
+		$this->acl_manager->has_access_or_die('user', 'edit');
+		
+		if (!is_numeric($user_id)) {
+			show_404();
+		}
+		
+		// Verify user exists
+		$user = $this->ion_auth->get_user($user_id);
+		if (!$user) {
+			show_404();
+		}
+		
+		// Check if user already has 5 keys
+		$api_keys = $this->ion_auth->get_api_keys($user_id);
+		if (is_array($api_keys) && count($api_keys) >= 5) {
+			$this->session->set_flashdata('error', t('maximum_api_keys_reached'));
+			redirect('admin/users/edit/' . $user_id);
+			return;
+		}
+		
+		// Generate new key
+		$key_result = $this->ion_auth->set_api_key($user_id);
+		
+		if ($key_result && isset($key_result['key'])) {
+			// Store key in session to show it once
+			$this->session->set_flashdata('admin_new_api_key', $key_result['key']);
+			$this->session->set_flashdata('admin_new_api_key_user_id', $user_id);
+			$this->session->set_flashdata('message', 'API key generated successfully. The key will be shown once.');
+			
+			// Get username for search
+			$user = $this->ion_auth->get_user($user_id);
+			if ($user) {
+				redirect('admin/users/api_keys?user_search=' . urlencode($user->username));
+			} else {
+				redirect('admin/users/api_keys');
+			}
+		} else {
+			$this->session->set_flashdata('error', 'Failed to generate API key.');
+			redirect('admin/users/api_keys');
+		}
+	}
+	
+	/**
+	 * Manage API key - view/edit page
+	 */
+	function manage_api_key($key_id)
+	{
+		$this->acl_manager->has_access_or_die('user', 'edit');
+		
+		if (!is_numeric($key_id)) {
+			show_404();
+		}
+		
+		// Load ion_auth config to get table names
+		$this->load->config('ion_auth');
+		$tables = $this->config->item('tables');
+		
+		// Get API key details with user info
+		$this->db->select('api_keys.*, users.username, users.email, users.id as user_id, meta.first_name, meta.last_name');
+		$this->db->from('api_keys');
+		$this->db->join('users', 'api_keys.user_id = users.id', 'left');
+		$this->db->join($tables['meta'] . ' meta', 'users.id = meta.user_id', 'left');
+		$this->db->where('api_keys.id', $key_id);
+		$query = $this->db->get();
+		
+		if (!$query || $query->num_rows() == 0) {
+			show_404();
+		}
+		
+		$key_data = $query->row_array();
+		
+		// Process form submission
+		if ($this->input->post('action')) {
+			$action = $this->input->post('action');
+			
+			if ($action == 'revoke') {
+				$result = $this->ion_auth->delete_api_key($key_data['user_id'], $key_id);
+				if ($result) {
+					$this->session->set_flashdata('message', t('api_key_revoked_successfully'));
+					redirect('admin/users/api_keys');
+				} else {
+					$this->session->set_flashdata('error', t('failed_to_revoke_api_key'));
+				}
+			} elseif ($action == 'extend_expiry') {
+				$months = (int)$this->input->post('extend_months');
+				if ($months > 0 && $months <= 60) {
+					$current_expires = $key_data['expires_at'] ? $key_data['expires_at'] : time();
+					$new_expires = $current_expires + ($months * 30 * 24 * 60 * 60); // Approximate months
+					
+					$this->db->where('id', $key_id);
+					$this->db->update('api_keys', array('expires_at' => $new_expires));
+					
+					$this->session->set_flashdata('message', sprintf(t('api_key_expiry_extended'), $months));
+					redirect('admin/users/manage_api_key/' . $key_id);
+				} else {
+					$this->session->set_flashdata('error', t('invalid_expiry_extension'));
+				}
+			} elseif ($action == 'update_name') {
+				$name = $this->input->post('name');
+				$this->db->where('id', $key_id);
+				$this->db->update('api_keys', array('name' => $name));
+				$this->session->set_flashdata('message', t('api_key_name_updated'));
+				redirect('admin/users/manage_api_key/' . $key_id);
+			}
+		}
+		
+		// Calculate status
+		$current_time = time();
+		$key_data['is_expired'] = false;
+		$key_data['is_revoked'] = !empty($key_data['revoked_at']);
+		
+		if (!$key_data['is_revoked'] && $key_data['expires_at'] && $key_data['expires_at'] <= $current_time) {
+			$key_data['is_expired'] = true;
+		}
+		
+		// Format user display name
+		$key_data['user_display_name'] = trim($key_data['first_name'] . ' ' . $key_data['last_name']);
+		if (empty($key_data['user_display_name'])) {
+			$key_data['user_display_name'] = $key_data['username'];
+		}
+		
+		$content = $this->load->view('users/manage_api_key', $key_data, true);
+		$this->template->write('content', $content, true);
+		$this->template->write('title', t('manage_api_key'), true);
+		$this->template->render();
+	}
+	
+	/**
+	 * Revoke (delete) API key for a user (admin function)
+	 * Kept for backward compatibility, but redirects to manage page
+	 */
+	function revoke_api_key($user_id, $key_id)
+	{
+		$this->acl_manager->has_access_or_die('user', 'edit');
+		
+		if (!is_numeric($user_id) || !is_numeric($key_id)) {
+			show_404();
+		}
+		
+		// Redirect to manage page
+		redirect('admin/users/manage_api_key/' . $key_id);
+	}
+	
+	/**
+	 * API Keys Management Page
+	 */
+	function api_keys()
+	{
+		$this->acl_manager->has_access_or_die('user', 'view');
+		
+		// Get API keys with pagination and filtering
+		$result = $this->_search_api_keys();
+		
+		$content = $this->load->view('users/api_keys', $result, true);
+		$this->template->write('content', $content, true);
+		$this->template->write('title', t('api_keys_management'), true);
+		$this->template->render();
+	}
+	
+	/**
+	 * Search API keys - internal method, supports pagination, sorting, filtering
+	 */
+	private function _search_api_keys()
+	{
+		// Records to show per page
+		$per_page = 25;
+		
+		// Current page
+		$offset = $this->input->get('offset');
+		
+		// Sort order
+		$sort_order = $this->input->get('sort_order') ? $this->input->get('sort_order') : 'desc';
+		$sort_by = $this->input->get('sort_by') ? $this->input->get('sort_by') : 'date_created';
+		
+		// Filters
+		$user_search = $this->input->get('user_search'); // Username or email search
+		$status_filter = $this->input->get('status'); // 'active', 'expired', 'revoked', 'all'
+		$search_keyword = $this->input->get('keywords'); // Key prefix search
+		
+		// Load ion_auth config to get table names
+		$this->load->config('ion_auth');
+		$tables = $this->config->item('tables');
+		
+		// Build query - join with users and meta tables to get user details
+		$this->db->select('api_keys.*, users.username, users.email, meta.first_name, meta.last_name');
+		$this->db->from('api_keys');
+		$this->db->join('users', 'api_keys.user_id = users.id', 'left');
+		$this->db->join($tables['meta'] . ' meta', 'users.id = meta.user_id', 'left');
+		
+		// Apply filters
+		if ($user_search) {
+			$this->db->group_start();
+			$this->db->like('users.username', $user_search);
+			$this->db->or_like('users.email', $user_search);
+			$this->db->group_end();
+		}
+		
+		if ($status_filter && $status_filter != 'all') {
+			$current_time = time();
+			switch ($status_filter) {
+				case 'active':
+					$this->db->where('api_keys.revoked_at', NULL);
+					$this->db->where("(api_keys.expires_at IS NULL OR api_keys.expires_at > $current_time)", NULL, FALSE);
+					break;
+				case 'expired':
+					$this->db->where('api_keys.revoked_at', NULL);
+					$this->db->where('api_keys.expires_at IS NOT NULL', NULL, FALSE);
+					$this->db->where("api_keys.expires_at <= $current_time", NULL, FALSE);
+					break;
+				case 'revoked':
+					$this->db->where('api_keys.revoked_at IS NOT NULL', NULL, FALSE);
+					break;
+			}
+		} else {
+			// Default: show non-revoked keys only
+			$this->db->where('api_keys.revoked_at', NULL);
+		}
+		
+		if ($search_keyword) {
+			$this->db->like('api_keys.key_prefix', $search_keyword);
+		}
+		
+		// Get total count before pagination
+		$total_query = clone $this->db;
+		$total = $total_query->count_all_results('', FALSE);
+		
+		// Apply sorting
+		$allowed_sort_fields = array('date_created', 'expires_at', 'last_used_at', 'username', 'key_prefix');
+		if (in_array($sort_by, $allowed_sort_fields)) {
+			if ($sort_by == 'username') {
+				$this->db->order_by('users.username', $sort_order);
+			} else {
+				$this->db->order_by('api_keys.' . $sort_by, $sort_order);
+			}
+		}
+		
+		// Apply pagination
+		$this->db->limit($per_page, $offset);
+		
+		$query = $this->db->get();
+		$rows = $query->result_array();
+		
+		// Process rows to add status information
+		$current_time = time();
+		foreach ($rows as &$row) {
+			$row['is_expired'] = false;
+			$row['is_revoked'] = !empty($row['revoked_at']);
+			
+			if (!$row['is_revoked'] && $row['expires_at'] && $row['expires_at'] <= $current_time) {
+				$row['is_expired'] = true;
+			}
+			
+			// Format user name
+			$row['user_display_name'] = trim($row['first_name'] . ' ' . $row['last_name']);
+			if (empty($row['user_display_name'])) {
+				$row['user_display_name'] = $row['username'];
+			}
+		}
+		
+		// Set pagination options
+		$base_url = site_url('admin/users/api_keys');
+		$config['base_url'] = $base_url;
+		$config['total_rows'] = $total;
+		$config['per_page'] = $per_page;
+		$config['query_string_segment'] = "offset";
+		$config['page_query_string'] = TRUE;
+		$config['additional_querystring'] = get_querystring(array('keywords', 'user_id', 'status', 'sort_by', 'sort_order'));
+		$config['num_links'] = 1;
+		$config['full_tag_open'] = '<span class="page-nums">';
+		$config['full_tag_close'] = '</span>';
+		
+		// Initialize pagination
+		$this->pagination->initialize($config);
+		
+		return array(
+			'rows' => $rows,
+			'user_search' => $user_search,
+			'status_filter' => $status_filter ? $status_filter : 'active',
+			'search_keyword' => $search_keyword,
+			'sort_by' => $sort_by,
+			'sort_order' => $sort_order
+		);
+	}
+	
 	
 	//check if the email address exists in db
 	function email_exists($email)
