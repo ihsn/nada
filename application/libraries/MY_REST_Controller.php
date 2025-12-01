@@ -94,8 +94,14 @@ abstract class MY_REST_Controller extends REST_Controller {
 			return $this->session->userdata('user_id');
 		}
 
+		// Check _apiuser (set by REST_Controller::_detect_api_key())
 		if(isset($this->_apiuser) && isset($this->_apiuser->user_id)){
 			return $this->_apiuser->user_id;
+		}
+		
+		// Fallback: Check rest->user_id (also set by _detect_api_key())
+		if(isset($this->rest->user_id) && $this->rest->user_id){
+			return $this->rest->user_id;
 		}
 
 		return false;
