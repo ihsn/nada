@@ -31,15 +31,15 @@
                     </div>
 
                     <div class="col-md-1">
-                        <v-btn @click="removeFilter(filter_idx)" icon color="black">
-                            <v-icon dark center small>fas fa-trash</v-icon>
-                        </v-btn>
+                        <button class="btn btn-sm btn-danger" @click="removeFilter(filter_idx)" type="button" :title="'<?php echo t('Remove filter');?>'">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
 
                 </div>
             </template>
 
-            <button v-if="filters.length>0" class="btn btn-primary btn-sm mt-3" @click="addFilter"> <v-icon dark left x-small>fas fa-filter</v-icon> Add filter</button>
+            <button v-if="filters.length>0" class="btn btn-primary btn-sm mt-3" @click="addFilter"> <i class="fas fa-filter"></i> <?php echo t('Add filter');?></button>
 
             <div v-if="filters.length == 0" class="mt-3">
                 <button class="btn btn-outline-primary btn-sm" @click="addFilter"><?php echo t('Add filter');?></button>

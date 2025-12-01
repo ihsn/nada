@@ -187,14 +187,7 @@ $config['auth_library_function'] = '';
 //no authentication required
 $config['auth_override_class_method']['catalog']['*'] = 'none';
 $config['auth_override_class_method']['auth']['*'] = 'none';
-$config['auth_override_class_method']['tables']['list'] = 'none';
-$config['auth_override_class_method']['tables']['index'] = 'none';
-$config['auth_override_class_method']['tables']['info'] = 'none';
-$config['auth_override_class_method']['tables']['data'] = 'none';
-$config['auth_override_class_method']['tables']['export'] = 'none';
-$config['auth_override_class_method']['tables']['collection_tables'] = 'none';
-$config['auth_override_class_method']['tables']['aggregate'] = 'none';
-$config['auth_override_class_method']['tables']['databases'] = 'none';
+$config['auth_override_class_method']['tables']['*'] = 'none';
 
 $config['auth_override_class_method']['downloads']['*'] = 'none';
 $config['auth_override_class_method']['analytics']['*'] = 'none';

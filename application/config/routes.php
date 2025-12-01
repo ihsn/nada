@@ -109,6 +109,22 @@ $route['api/catalog/(:any)/variable/(.*)'] = "api/catalog/variable/$1/$2";
 //Collections
 $route['api/collections/(:any)/datasets'] = "api/collections/datasets/$1";
 
+//Tables API - fields endpoints (new format: /api/tables/fields/{db_id}/{table_id})
+$route['api/tables/fields/(:any)/(:any)/sync'] = "api/tables/fields_sync/$1/$2";
+$route['api/tables/fields/(:any)/(:any)/populate'] = "api/tables/fields_populate/$1/$2";
+$route['api/tables/fields/(:any)/(:any)/reorder'] = "api/tables/fields_reorder/$1/$2";
+$route['api/tables/fields/(:any)/(:any)/(:any)/delete'] = "api/tables/fields_delete/$1/$2/$3";
+$route['api/tables/fields/(:any)/(:any)/(:any)'] = "api/tables/field/$1/$2/$3";
+$route['api/tables/fields/(:any)/(:any)'] = "api/tables/fields/$1/$2";
+
+//Tables API - export definition endpoint
+$route['api/tables/export_definition/(:any)/(:any)'] = "api/tables/export_definition/$1/$2";
+
+//Tables API - indexes endpoints
+$route['api/tables/indexes/(:any)/(:any)/all'] = "api/tables/indexes_delete_all/$1/$2";
+
+//Tables API - studies endpoints
+$route['api/tables/(:any)/(:any)/studies'] = "api/tables/studies/$1/$2";
 
 /*
 $route['api/datasets/(:num)/resources/delete_all'] = "api/datadeposits/resources/delete_all/$1";
@@ -280,4 +296,6 @@ $route['api/analytics/aggregate/totals'] = "api/analytics/aggregate_totals";
 
 
 /* End of file routes.php */
+/* Location: ./system/application/config/routes.php */
+
 /* Location: ./system/application/config/routes.php */

@@ -10,12 +10,35 @@ info:
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 basePath: /index.php/api/
 tags:
-  - name: Tables
-    description: Data Tables
+  - name: Table Management
+    description: Create, read, update, delete, and export table definitions
+  - name: Data Dictionary
+    description: Manage field definitions and metadata
+  - name: Data Operations
+    description: Query and insert table data
+  - name: Data Import
+    description: Upload and import CSV data files
+  - name: Indexes
+    description: Manage database indexes for performance
+  - name: Study Integration
+    description: Attach and manage tables within studies
 x-tagGroups:
-  - name: Tables 
+  - name: Table Management
     tags:
-      - Tables
+      - Table Management
+  - name: Data Dictionary
+    tags:
+      - Data Dictionary
+  - name: Data Operations
+    tags:
+      - Data Operations
+      - Data Import
+  - name: Performance
+    tags:
+      - Indexes
+  - name: Integration
+    tags:
+      - Study Integration
 schemes:
   - http
   - https
@@ -23,23 +46,95 @@ paths:
   /tables:
       get:
         tags:
-          - Tables
+          - Table Management
         summary: List all tables
-        description: Returns a list of all tables
+        description: Returns a paginated list of all tables. Only returns tables that have both db_id and table_id fields.
         operationId: listTables
         consumes:
           - application/json
         produces:
           - application/json
+        parameters:
+          - in: "query"
+            name: "limit"
+            type: integer
+            description: "Number of tables to return (default: 15, max: 100)"
+            minimum: 1
+            maximum: 100
+            default: 15
+            required: false
+          - in: "query"
+            name: "offset"
+            type: integer
+            description: "Number of tables to skip for pagination (default: 0)"
+            minimum: 0
+            default: 0
+            required: false
         responses:
           '200':
-            description: successful operation            
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                tables:
+                  type: object
+                  description: "Object with table_id as keys"
+                  additionalProperties:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        description: "Table identifier"
+                      db_id:
+                        type: string
+                        description: "Database ID"
+                      table_id:
+                        type: string
+                        description: "Table ID"
+                      title:
+                        type: string
+                        description: "Table title"
+                      description:
+                        type: string
+                        description: "Table description"
+                      rows_count:
+                        type: integer
+                        description: "Number of rows in the table"
+                      storage_size:
+                        type: string
+                        description: "Storage size (e.g., '86M')"
+                      nindexes:
+                        type: integer
+                        description: "Number of indexes"
+                      created_at:
+                        type: string
+                        format: date-time
+                        description: "Creation timestamp"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        description: "Last update timestamp"
+                total:
+                  type: integer
+                  description: "Total number of tables (before pagination)"
+                limit:
+                  type: integer
+                  description: "Limit used"
+                offset:
+                  type: integer
+                  description: "Offset used"
+                count:
+                  type: integer
+                  description: "Number of tables in current page"
         security:
           - ApiKeyAuth: []
   /tables/info/{dbId}/{tableId}:
       get:
         tags:
-          - Tables
+          - Table Management
         summary: Get table info
         description: Returns table definition
         operationId: tableInfo
@@ -53,11 +148,15 @@ paths:
             type: string
             format: string
             required: true
+            description: "Database ID "
+            
           - in: "path"
             name: "tableId"
             type: string
             format: string
             required: true
+            description: "Table ID "
+            
         responses:
           '200':
             description: successful operation
@@ -68,7 +167,7 @@ paths:
   /tables/data/{dbId}/{tableId}:
       get:
         tags:
-          - Tables
+          - Data Operations
         summary: Get table data
         description: Get table data
         operationId: getTableData
@@ -82,36 +181,58 @@ paths:
             type: string
             format: string
             required: true
+            description: "Database ID "
+            
           - in: "path"
             name: "tableId"
             type: string
             format: string
             required: true
-          - in: "path"
+            description: "Table ID "
+            
+          - in: "query"
             name: "limit"
             type: integer
-            required: true
-          - in: "path"
-            name: "offset"
-            type: integer
+            description: "Number of rows to return (default: 100, max: 10000)"
+            minimum: 1
+            maximum: 10000
+            default: 100
             required: false
           - in: "query"
-            name: "indicator"
+            name: "offset"
             type: integer
-            required: false      
+            description: "Number of rows to skip for pagination (default: 0)"
+            minimum: 0
+            default: 0
+            required: false
           - in: "query"
-            name: "<name of feature>"
+            name: "c[field_name]"
             type: string
-            required: false 
+            description: |
+              Filter by field value(s). Use c[field_name] format to avoid conflicts with reserved parameters.
+              Supported formats:
+              - Range: c[age]=1-12 (values between 1 and 12)
+              - Multiple values: c[sex]=1,2,3 (any of these values)
+              - Combined: c[age]=1-12,24-30,7,9 (range and individual values)
+              - Greater than: c[age]=>10 (values >= 10)
+              - Less than: c[age]=<10 (values <= 10)
+              - Exclusion: c[sex]=!5 (exclude value 5)
+              - Quoted strings: c[name]="John Doe" (exact string match)
+            required: false
           - in: "query"
             name: "fields"
             type: string
-            description: A comma seperated list of fields to output
+            description: A comma separated list of fields to output. If not specified, all fields are returned.
             required: false                      
           - in: "query"
             name: "format"
             type: string
-            description: Output format - json, csv
+            description: Output format - json (default) or csv
+            required: false
+          - in: "query"
+            name: "debug"
+            type: boolean
+            description: Include debug information (options, features, filters) in response
             required: false
 
         responses:
@@ -120,35 +241,140 @@ paths:
         security:
           - ApiKeyAuth: []       
   
-  /tables/create_table:
+  /tables/create_table/{dbId}/{tableId}:
       post:
         tags:
-          - Tables
+          - Table Management
         summary: Create new table
-        description: Create new table type
+        description: Create new table with metadata and optionally field definitions. 
         operationId: createTableType
         consumes:
           - application/json
         produces:
           - application/json
         parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID "
+            
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID "
+            
           - in: "body"
             name: "body"
-            required: true
+            required: false
             schema:
-              $ref: 'table_type-schema.json'
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Table title
+                description:
+                  type: string
+                  description: Table description
+                data_dictionary:
+                  type: array
+                  description: Array of field definitions
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Field name
+                      label:
+                        type: string
+                        description: Field label
+                      description:
+                        type: string
+                        description: Field description
+                      data_type:
+                        type: string
+                        description: Data type (string, integer, float, double, date, boolean, datetime, array, object, null)
+                      column_type:
+                        type: string
+                        description: Column type (dimension, time_period, measure, attribute, indicator_id, indicator_name, geography, observation_value, periodicity)
+                      time_period_format:
+                        type: string
+                        description: Time period format (e.g., YYYY, YYYY-MM)
+                      code_list:
+                        type: array
+                        description: Inline code list
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              oneOf:
+                                - type: string
+                                - type: number
+                              description: Code value
+                            label:
+                              type: string
+                              description: Code label
+                            description:
+                              type: string
+                              description: Code description
+                      code_list_reference:
+                        type: object
+                        description: External code list reference
+                        properties:
+                          id:
+                            type: string
+                            description: Code list ID
+                          name:
+                            type: string
+                            description: Code list name
+                          version:
+                            type: string
+                            description: Code list version
+                          uri:
+                            type: string
+                            description: Code list URI
+                          note:
+                            type: string
+                            description: Additional notes
         responses:
           '200':
             description: successful operation
             schema:
-              $ref: 'table_type-schema.json'
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                result:
+                  type: integer
+                  description: "Number of documents inserted (should be 1)"
+                fields_created:
+                  type: integer
+                  description: "Number of field definitions created"
+                message:
+                  type: string
+                  example: "Table created with 5 field(s)"
+          '400':
+            description: "Validation error"
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "failed"
+                message:
+                  type: string
+                  examples:
+                    invalid_db_id: "Invalid db_id: Only alphanumeric characters and underscores are allowed"
+                    invalid_table_id: "Invalid table_id: Only alphanumeric characters and underscores are allowed"
         security:
           - ApiKeyAuth: [] 
                    
   /tables/upload/{dbId}/{tableId}:
       post:
         tags:
-          - Tables
+          - Data Import
         summary: Upload CSV file
         description: Upload CSV or ZIP file and create/update table definition. This is the first step in the import workflow, it only uploads the file and prepares the table structure. Use the `/import` endpoint to actually process and import the data into the database. For ZIP files, the CSV file must match the ZIP filename (e.g., `data.zip` must contain `data.csv`).
         operationId: uploadCsv
@@ -159,14 +385,16 @@ paths:
         parameters:
           - in: "path"
             name: "dbId"
-            description: Database ID
+            description: "Database ID "
             type: string
             required: true
+            
           - in: "path"
             name: "tableId"
-            description: Table ID
+            description: "Table ID "
             type: string
-            required: true  
+            required: true
+              
           - in: "formData"
             name: "file"
             type: file
@@ -181,21 +409,6 @@ paths:
             name: "description"
             type: string
             description: "Table description"
-            required: false
-          - in: "formData"
-            name: "indicators"
-            type: string
-            description: "JSON string of indicators"
-            required: false
-          - in: "formData"
-            name: "feature_1"
-            type: string
-            description: "Feature 1 (JSON string)"
-            required: false
-          - in: "formData"
-            name: "feature_2"
-            type: string
-            description: "Feature 2 (JSON string)"
             required: false
         responses:
           '200':
@@ -222,7 +435,7 @@ paths:
   /tables/import/{dbId}/{tableId}:
       post:
         tags:
-          - Tables
+          - Data Import
         summary: Import CSV data
         description: Import CSV data in chunks for large files. Requires that a file has been uploaded using the `/upload` endpoint first. Automatically resumes from last byte position. Use `status=true` to check import progress without processing data.
         operationId: importCsv
@@ -233,14 +446,16 @@ paths:
         parameters:
           - in: "path"
             name: "dbId"
-            description: Database ID
+            description: "Database ID "
             type: string
             required: true
+            
           - in: "path"
             name: "tableId"
-            description: Table ID
+            description: "Table ID "
             type: string
             required: true
+            
           - in: "body"
             name: "body"
             description: "Import parameters"
@@ -286,10 +501,64 @@ paths:
         security:
           - ApiKeyAuth: []
 
+  /tables/update_table/{dbId}/{tableId}:
+      put:
+        tags:
+          - Table Management
+        summary: Update table metadata
+        description: Update table metadata (title, description). 
+        operationId: updateTable
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID "
+            
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID "
+            
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: "Table title"
+                description:
+                  type: string
+                  description: "Table description"
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                message:
+                  type: string
+                  example: "Table information updated successfully"
+                modified_count:
+                  type: integer
+                  description: "Number of documents modified"
+        security:
+          - ApiKeyAuth: []
+
   /tables/{dbId}/{tableId}:
       delete:
         tags:
-          - Tables
+          - Table Management
         summary: Delete table data
         description: Delete table data and optionally table definition.
         operationId: deleteTable
@@ -303,11 +572,13 @@ paths:
             description: Database ID
             type: string
             required: true
+            
           - in: "path"
             name: "tableId"
             description: Table ID
             type: string
             required: true
+            
           - in: "body"
             name: "body"
             description: "Delete options"
@@ -317,7 +588,7 @@ paths:
               properties:
                 delete_definition:
                   type: boolean
-                  description: "Delete table definition as well (default: false)"
+                  description: "Delete table definition, fields, and data (default: false)"
                   default: false
         responses:
           '200':
@@ -326,11 +597,11 @@ paths:
               $ref: "#/definitions/DeleteResponse"
         security:
           - ApiKeyAuth: []
-  
+      
   /tables/insert/{dbId}/{tableId}:      
         post:
           tags:
-            - Tables
+            - Data Operations
           summary: Insert table data
           description: Insert rows of data as JSON object
           operationId: postTable
@@ -344,11 +615,15 @@ paths:
               type: string
               format: string
               required: true
+              description: "Database ID "
+              
             - in: "path"
               name: "tableId"
               type: string
               format: string
               required: true
+              description: "Table ID "
+              
             - in: "body"
               name: "body"
               description: "Table rows as JSON object"
@@ -365,7 +640,7 @@ paths:
   /tables/indexes/{dbId}/{tableId}:
       get:
         tags:
-          - Tables
+          - Indexes
         summary: Get table indexes
         description: Returns a list of table indexes
         operationId: tableIndexes
@@ -379,11 +654,15 @@ paths:
             type: string
             format: string
             required: true
+            description: "Database ID "
+            
           - in: "path"
             name: "tableId"
             type: string
             format: string
             required: true
+            description: "Table ID "
+            
         responses:
           '200':
             description: successful operation
@@ -391,7 +670,7 @@ paths:
           - ApiKeyAuth: []   
       post:
         tags:
-          - Tables
+          - Indexes
         summary: Create table index
         description: Create a new index
         operationId: tableIndex
@@ -405,11 +684,15 @@ paths:
             type: string
             format: string
             required: true
+            description: "Database ID "
+            
           - in: "path"
             name: "tableId"
             type: string
             format: string
             required: true
+            description: "Table ID "
+            
           - in: body
             name: index_fields
             description: A comma seperated list of fields for creating new index e.g. `state, district, urbrur`
@@ -427,7 +710,7 @@ paths:
           - ApiKeyAuth: []
       delete:
         tags:
-          - Tables
+          - Indexes
         summary: Delete table index
         description: Delete a table index - `tables/indexes/{dbId}/{tableId}/{indexName}`
         operationId: tableIndexesDelete
@@ -441,11 +724,15 @@ paths:
             type: string
             format: string
             required: true
+            description: "Database ID "
+            
           - in: "path"
             name: "tableId"
             type: string
             format: string
             required: true
+            description: "Table ID "
+            
           - in: "path"
             name: "indexName"
             type: string
@@ -459,7 +746,7 @@ paths:
   /tables/text_index/{dbId}/{tableId}:
       post:
         tags:
-          - Tables
+          - Indexes
         summary: Create fulltext index
         description: Create a fulltext index for table. Only one text index can be created per table.
         operationId: tableTextIndex
@@ -473,11 +760,15 @@ paths:
             type: string
             format: string
             required: true
+            description: "Database ID "
+            
           - in: "path"
             name: "tableId"
             type: string
             format: string
             required: true
+            description: "Table ID "
+            
           - in: body
             name: index_fields
             description: A comma seperated list of fields for creating new index e.g. `state, district, urbrur`
@@ -497,9 +788,9 @@ paths:
   /tables/attach_to_study:
       post:
         tags:
-          - Tables
+          - Study Integration
         summary: Attach table to a study
-        description: Attach table to a study
+        description: Attach a table to a study. Accepts either 'idno' (study IDNO) or 'sid' (study ID). 
         operationId: tableAttachToStudy
         consumes:
           - application/json
@@ -512,31 +803,451 @@ paths:
               required:
                 - db_id
                 - table_id
-                - sid
-                - title
               properties:
                 db_id:
-                  type: string                
+                  type: string
+                  description: "Database ID (alphanumeric, underscores only, lowercase)"
+                  pattern: "^[a-z0-9_]+$"
                 table_id:
                   type: string
+                  description: "Table ID (alphanumeric, underscores only, lowercase)"
+                  pattern: "^[a-z0-9_]+$"
+                idno:
+                  type: string
+                  description: "Study IDNO (unique identifier). Either 'idno' or 'sid' must be provided."
+                  example: "ZMB_2001_DHS_v01_M_v02_A_IPUMS"
                 sid:
-                  type: string
-                  description: Study ID
-                title:
-                  type: string
-                  description: Dataset title
+                  type: integer
+                  description: "Study ID (internal ID). Either 'idno' or 'sid' must be provided."
+                  example: 452
         responses:
           '200':
             description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                result:
+                  type: boolean
+                  description: "True if attachment was successful or already exists"
+          '400':
+            description: Bad request
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "failed"
+                error:
+                  type: string
+                  example: "Missing Param:: idno or sid"
         security:
-          - ApiKeyAuth: []  
+          - ApiKeyAuth: []
+
+  /tables/fields/{dbId}/{tableId}:
+      get:
+        tags:
+          - Data Dictionary
+        summary: Get all fields for a table
+        description: Returns all field definitions (data dictionary) for a table. Fields are sorted by field_order.
+        operationId: getTableFields
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID "
+            
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID "
+            
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                db_id:
+                  type: string
+                table_id:
+                  type: string
+                total_fields:
+                  type: integer
+                  description: "Total number of fields"
+                fields:
+                  type: array
+                  description: "Array of field definitions"
+                  items:
+                    $ref: "#/definitions/FieldDefinition"
+        security:
+          - ApiKeyAuth: []
+      post:
+        tags:
+          - Data Dictionary
+        summary: Create or update field (upsert)
+        description: Create a new field or update an existing field. If field exists, it will be updated. If not, it will be created. 
+        operationId: upsertField
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID "
+            
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID "
+            
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: "#/definitions/FieldDefinition"
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                field:
+                  $ref: "#/definitions/FieldDefinition"
+                action:
+                  type: string
+                  enum: ["created", "updated"]
+                  description: "Whether field was created or updated"
+        security:
+          - ApiKeyAuth: []
+
+  /tables/fields/{dbId}/{tableId}/{fieldName}:
+      get:
+        tags:
+          - Data Dictionary
+        summary: Get single field definition
+        description: Returns a single field definition by field name.
+        operationId: getField
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID "
+            
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID "
+            
+          - in: "path"
+            name: "fieldName"
+            type: string
+            required: true
+            description: "Field name"
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                field:
+                  $ref: "#/definitions/FieldDefinition"
+        security:
+          - ApiKeyAuth: []
+
+  /tables/fields/{dbId}/{tableId}/{fieldName}/delete:
+      post:
+        tags:
+          - Data Dictionary
+        summary: Delete field definition
+        description: Delete a field definition from the data dictionary. POST alias for DELETE method.
+        operationId: deleteField
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID "
+            
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID "
+            
+          - in: "path"
+            name: "fieldName"
+            type: string
+            required: true
+            description: "Field name to delete"
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                message:
+                  type: string
+                  example: "Field deleted successfully"
+                deleted_count:
+                  type: integer
+                  description: "Number of fields deleted (should be 1)"
+        security:
+          - ApiKeyAuth: []
+
+  /tables/fields/{dbId}/{tableId}/populate:
+      post:
+        tags:
+          - Data Dictionary
+        summary: Populate fields from data
+        description: Automatically create field definitions by analyzing actual data in the table. Creates default metadata for each field found in the data.
+        operationId: populateFields
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID "
+            
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID "
+            
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                db_id:
+                  type: string
+                table_id:
+                  type: string
+                total_fields:
+                  type: integer
+                  description: "Total number of fields created/updated"
+                message:
+                  type: string
+                  example: "Table schema populated successfully"
+        security:
+          - ApiKeyAuth: []
+
+  /tables/fields/{dbId}/{tableId}/reorder:
+      post:
+        tags:
+          - Data Dictionary
+        summary: Reorder fields
+        description: Update the display order of fields in the data dictionary.
+        operationId: reorderFields
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID "
+            
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID "
+            
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              type: object
+              description: "Object with field names as keys and order numbers as values"
+              additionalProperties:
+                type: integer
+                description: "Field order number"
+              example:
+                ISO3: 1
+                country: 2
+                value: 3
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                updated:
+                  type: integer
+                  description: "Number of fields updated"
+        security:
+          - ApiKeyAuth: []
+
+  /tables/fields/{dbId}/{tableId}/sync:
+      post:
+        tags:
+          - Data Dictionary
+        summary: Sync fields with data
+        description: Synchronize field definitions with actual data. Removes fields that don't exist in the data and adds new fields found in the data.
+        operationId: syncFields
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID "
+            
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID "
+            
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                fields_removed:
+                  type: integer
+                  description: "Number of fields removed (not in data)"
+                fields_added:
+                  type: integer
+                  description: "Number of new fields added (found in data)"
+                message:
+                  type: string
+                  example: "Fields synced: 2 removed, 3 added"
+        security:
+          - ApiKeyAuth: []
+
+  /tables/export_definition/{dbId}/{tableId}:
+      get:
+        tags:
+          - Table Management
+        summary: Export table definition
+        description: Export complete table definition including metadata and all field definitions as JSON. Downloads as a file.
+        operationId: exportTableDefinition
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID "
+            
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID "
+            
+        responses:
+          '200':
+            description: successful operation - JSON file download
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                definition:
+                  type: object
+                  properties:
+                    version:
+                      type: string
+                      example: "1.0"
+                    exported_at:
+                      type: string
+                      format: date-time
+                    table_metadata:
+                      type: object
+                      properties:
+                        db_id:
+                          type: string
+                        table_id:
+                          type: string
+                        title:
+                          type: string
+                        description:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                        updated_at:
+                          type: string
+                          format: date-time
+                    fields:
+                      type: array
+                      items:
+                        $ref: "#/definitions/FieldDefinition"
+                    indexes:
+                      type: object
+                      description: "Collection indexes"
+        security:
+          - ApiKeyAuth: []
+
   /tables/detach_from_study:
       post:
         tags:
-          - Tables
-        summary: Remove table from study
-        description: Dettach table from study
-        operationId: tableDettachFromStudy
+          - Study Integration
+        summary: Detach table from study
+        description: Remove the link between a table and a study. The table and study data are not deleted, only the relationship is removed.
+        operationId: tableDetachFromStudy
         consumes:
           - application/json
         produces:
@@ -549,27 +1260,133 @@ paths:
                 - db_id
                 - table_id
                 - sid
-                - title
               properties:
                 db_id:
-                  type: string                
+                  type: string
+                  description: "Database ID (alphanumeric, underscores only, lowercase)"
+                  pattern: "^[a-z0-9_]+$"
                 table_id:
                   type: string
+                  description: "Table ID (alphanumeric, underscores only, lowercase)"
+                  pattern: "^[a-z0-9_]+$"
                 sid:
-                  type: string
-                  description: Study ID
-                title:
-                  type: string
-                  description: Dataset title
+                  type: integer
+                  description: "Study ID (internal ID)"
+                  example: 452
         responses:
           '200':
             description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                result:
+                  type: boolean
+                  description: "True if detachment was successful"
+          '400':
+            description: Bad request
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "failed"
+                error:
+                  type: string
+                  example: "Missing Param:: sid"
         security:
           - ApiKeyAuth: []
-  /tables/list_by_study/{sid}:
-      post:
+  /tables/{dbId}/{tableId}/studies:
+      get:
         tags:
-          - Tables
+          - Study Integration
+        summary: Get studies attached to a table
+        description: Returns a list of all studies that are linked to the specified table. 
+        operationId: getTableStudies
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+            description: "Database ID (alphanumeric, underscores only, lowercase)"
+            pattern: "^[a-z0-9_]+$"
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+            description: "Table ID (alphanumeric, underscores only, lowercase)"
+            pattern: "^[a-z0-9_]+$"
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                studies:
+                  type: array
+                  description: "Array of studies attached to the table"
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: "Internal record ID"
+                      sid:
+                        type: integer
+                        description: "Study ID"
+                      idno:
+                        type: string
+                        description: "Study IDNO (unique identifier)"
+                        example: "ZMB_2001_DHS_v01_M_v02_A_IPUMS"
+                      title:
+                        type: string
+                        description: "Study title"
+                        example: "World Health Survey 2003"
+                      nation:
+                        type: string
+                        description: "Country/nation"
+                        example: "South Africa"
+                      year_start:
+                        type: string
+                        description: "Start year"
+                        example: "2003"
+                      db_id:
+                        type: string
+                        description: "Database ID"
+                      table_id:
+                        type: string
+                        description: "Table ID"
+                total:
+                  type: integer
+                  description: "Total number of studies attached"
+                  example: 1
+          '400':
+            description: Bad request
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "failed"
+                error:
+                  type: string
+                  example: "Missing Param:: tableId"
+        security:
+          - ApiKeyAuth: []
+
+  /tables/list_by_study/{sid}:
+      get:
+        tags:
+          - Study Integration
         summary: List tables by study
         description: Get a list of tables attached to a study
         operationId: tableListByStudy
@@ -578,14 +1395,42 @@ paths:
         produces:
           - application/json
         parameters:
-          - in: url
-            name: sid
-            type: string
-            description: Study ID
+          - in: "path"
+            name: "sid"
+            type: integer
+            description: "Study ID (internal ID)"
             required: true
+            example: 452
         responses:
           '200':
             description: successful operation
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "success"
+                result:
+                  type: array
+                  description: "Array of tables attached to the study"
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: "Internal record ID"
+                      sid:
+                        type: integer
+                        description: "Study ID"
+                      db_id:
+                        type: string
+                        description: "Database ID"
+                      table_id:
+                        type: string
+                        description: "Table ID"
+                      title:
+                        type: string
+                        description: "Dataset title"
         security:
           - ApiKeyAuth: []    
   
@@ -883,3 +1728,83 @@ definitions:
         example: true
       message:
         type: string
+
+  FieldDefinition:
+    type: object
+    description: "Field metadata definition"
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        description: "Field name (required)"
+      label:
+        type: string
+        description: "Field label/display name"
+      description:
+        type: string
+        description: "Field description"
+      data_type:
+        type: string
+        description: "Data type (string, integer, float, double, date, boolean, datetime, array, object, null)"
+        enum: ["string", "integer", "float", "double", "date", "boolean", "datetime", "array", "object", "null"]
+      column_type:
+        type: string
+        description: "Semantic column type"
+        enum: ["dimension", "time_period", "measure", "attribute", "indicator_id", "indicator_name", "geography", "observation_value", "periodicity"]
+      field_order:
+        type: integer
+        description: "Display order of the field"
+      unit_of_measurement:
+        type: string
+        description: "Unit of measurement"
+      format:
+        type: string
+        description: "Format specification"
+      time_period_format:
+        type: string
+        description: "Time period format (e.g., YYYY, YYYY-MM)"
+      code_list:
+        type: array
+        description: "Inline code list values"
+        items:
+          type: object
+          properties:
+            code:
+              oneOf:
+                - type: string
+                - type: number
+              description: "Code value"
+            label:
+              type: string
+              description: "Code label"
+            description:
+              type: string
+              description: "Code description"
+      code_list_reference:
+        type: object
+        description: "External code list reference"
+        properties:
+          id:
+            type: string
+            description: "Code list ID"
+          name:
+            type: string
+            description: "Code list name"
+          version:
+            type: string
+            description: "Code list version"
+          uri:
+            type: string
+            description: "Code list URI"
+          note:
+            type: string
+            description: "Additional notes"
+      created_at:
+        type: string
+        format: date-time
+        description: "Creation timestamp"
+      updated_at:
+        type: string
+        format: date-time
+        description: "Last update timestamp"

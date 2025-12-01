@@ -7,7 +7,7 @@
 
       <div class="col-2">
         <button class="btn btn-default btn-sm float-right" type="button" data-toggle="collapse" data-target="#queryOptions" aria-expanded="false" aria-controls="queryOptions">
-        <?php echo t('API options');?> <v-icon small>fas fa-cog</v-icon>
+        <?php echo t('API options');?> <i class="fas fa-cog"></i>
         </button>
       </div>
 
@@ -28,14 +28,16 @@
         </div>
       <div v-if="is_searching">
         <span class="badge badge-info"><?php echo t('Loading data ...');?></span>
-        <v-skeleton-loader
-            type="table-tbody, table-tfoot"
-            ></v-skeleton-loader>
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only"><?php echo t('Loading...');?></span>
+          </div>
+        </div>
       </div>
             
-      <div v-if="rows.data" class="mh-100 overflow-auto py-2">
-            <div class="table-data-container table-responsive" style="max-height:600px;">
-                <table class="table table-striped table-bordered table-sm sticky-table-header">
+      <div v-if="rows.data" class="mh-100 py-2">
+            <div class="table-data-container" style="max-height:600px;">
+                <table class="table table-striped table-bordered table-sm sticky-table-header mb-0">
                     <thead>
                     <tr>
                         <th>#</th>
@@ -68,14 +70,29 @@
                 </select>                
             </div>
             <div v-if="rows.total" class="col-md-8">
-                <div class="text-align-right">
-                    <v-pagination
-                        v-model="page"
-                        class=""
-                        :length="Math.ceil(rows.found/rows.limit)"
-                        :total-visible="10"
-                    ></v-pagination>
-                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm justify-content-end mb-0">
+                        <li class="page-item" :class="{disabled: page === 1}">
+                            <a class="page-link" href="#" @click.prevent="page = 1" :title="'<?php echo t('First page');?>'">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item" :class="{disabled: page === 1}">
+                            <a class="page-link" href="#" @click.prevent="page = Math.max(1, page - 1)"><?php echo t('Previous');?></a>
+                        </li>
+                        <li class="page-item" v-for="n in Math.min(10, Math.ceil(rows.found/rows.limit))" :key="n" :class="{active: page === n}">
+                            <a class="page-link" href="#" @click.prevent="page = n">{{n}}</a>
+                        </li>
+                        <li class="page-item" :class="{disabled: page >= Math.ceil(rows.found/rows.limit)}">
+                            <a class="page-link" href="#" @click.prevent="page = Math.min(Math.ceil(rows.found/rows.limit), page + 1)"><?php echo t('Next');?></a>
+                        </li>
+                        <li class="page-item" :class="{disabled: page >= Math.ceil(rows.found/rows.limit)}">
+                            <a class="page-link" href="#" @click.prevent="page = Math.ceil(rows.found/rows.limit)" :title="'<?php echo t('Last page');?>'">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
           </div>
         </template>

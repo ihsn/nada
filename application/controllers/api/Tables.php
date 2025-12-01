@@ -10,9 +10,9 @@ class Tables extends MY_REST_Controller
 		$this->load->helper("date");
 		$this->load->helper("file_helper");
 		$this->load->model("Data_table_mongo_model");
-		$this->load->model("Data_table_model");
 		$this->load->model("Survey_data_api_model");
 	}
+
 
 	//list all tables with count
 	function index_get($db_id=null)
@@ -26,8 +26,27 @@ class Tables extends MY_REST_Controller
 				$options[$param]=$this->input->get($param,true);
 			}
 
+			// Pagination parameters
+			$limit = 15; // Default limit
+			$offset = 0; // Default offset
+			
+			if ($this->input->get("limit") && is_numeric($this->input->get("limit")) && $this->input->get("limit") > 0){
+				$limit = (int)$this->input->get("limit");
+				// Set max limit
+				if ($limit > 100) {
+					$limit = 100;
+				}
+			}
+
+			if ($this->input->get("offset") && is_numeric($this->input->get("offset")) && $this->input->get("offset") >= 0){
+				$offset = (int)$this->input->get("offset");
+			}
+
 			$table_types=(array)$this->Data_table_mongo_model->get_table_types_list($db_id);
 			$table_storage_info=(array)$this->Data_table_mongo_model->get_tables_list();
+
+			// Check if user is authenticated
+			$is_authenticated = $this->get_api_user_id() !== false;
 
 			$output=array();
 
@@ -35,7 +54,12 @@ class Tables extends MY_REST_Controller
 			{
 				if (array_key_exists($table_id,$table_storage_info)){
 					$table_types[$table_id]['rows_count']=$table_storage_info[$table_id]['count'];
-					$table_types[$table_id]['storage_size']=$table_storage_info[$table_id]['storageSize'].'M';
+					// Only include storage_size and index info if user is authenticated
+					if ($is_authenticated) {
+						$table_types[$table_id]['storage_size']=$table_storage_info[$table_id]['storageSize'].'M';
+						$table_types[$table_id]['nindexes']=$table_storage_info[$table_id]['nindexes'];
+						$table_types[$table_id]['indexNames']=$table_storage_info[$table_id]['indexNames'];
+					}
 				}
 
 				if(isset($table['table_id']) && isset($table['db_id'])){
@@ -56,10 +80,27 @@ class Tables extends MY_REST_Controller
 				}
 			}
 			
+			// Filter out entries that don't have both db_id and table_id
+			$filtered_tables = array();
+			foreach($table_types as $table_id=>$table){
+				if(isset($table['db_id']) && isset($table['table_id'])){
+					$filtered_tables[$table_id] = $table;
+				}
+			}
+			
+			// Get total count before pagination
+			$total = count($filtered_tables);
+			
+			// Apply pagination
+			$paginated_tables = array_slice($filtered_tables, $offset, $limit, true);
+			
 			$response=array(
                 'status'=>'success',
-				'tables'=>$table_types,
-				//'tables_storage'=>$table_storage_info
+				'tables'=>$paginated_tables,
+				'total'=>$total,
+				'limit'=>$limit,
+				'offset'=>$offset,
+				'count'=>count($paginated_tables)
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -71,6 +112,11 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	function list_get($db_id=null)
+	{
+		$this->index_get($db_id);
 	}
 
 	/**
@@ -117,12 +163,7 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
-	}
-
-	function list_get($db_id=null)
-	{
-		$this->index_get($db_id);
-	}
+	}	
 
 
 	/**
@@ -135,15 +176,10 @@ class Tables extends MY_REST_Controller
 	{
 		try{
 			$options=$this->raw_json_input();
-			$user_id=$this->get_api_user_id();			
 			
-			if(!$db_id){
-				throw new Exception("MISSING_PARAM:: db_id");
-			}
-
-			if(!$table_id){
-				throw new Exception("MISSING_PARAM:: table_id");
-			}
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
 			$result=$this->Data_table_mongo_model->get_table_info($db_id,$table_id);
 
@@ -153,14 +189,19 @@ class Tables extends MY_REST_Controller
 				unset($metadata['import_progress']);
 			}
 
+			// Include data_dictionary if requested via query parameter
+			$include_data_dictionary = $this->input->get('data_dictionary');
+			if ($include_data_dictionary === 'true' || $include_data_dictionary === true) {
+				$fields = $this->Data_table_mongo_model->get_table_fields($db_id, $table_id);
+				if ($fields && is_array($fields) && count($fields) > 0) {
+					$metadata['data_dictionary'] = $fields;
+				} else {
+					$metadata['data_dictionary'] = array();
+				}
+			}
+
 			$result=array(
-				//'storageUnit'=>'M',
-				//'size'=>$result['size'],
 				'count'=>$result['count'],
-				//'storageSize'=>$result['storageSize'],
-				//'nindexes'=>$result['nindexes'],
-				//'indexes'=>$result['indexDetails'],
-				//'indexNames'=>array_keys((array)$result['indexDetails']),
 				'metadata'=>$metadata
 			);
 			
@@ -224,13 +265,8 @@ class Tables extends MY_REST_Controller
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 
-			if(!$db_id){
-				throw new Exception("MISSING_PARAM:: db_id");
-			}
-
-			if(!$table_id){
-				throw new Exception("MISSING_PARAM:: table_id");
-			}
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 			
 			$output=$this->Data_table_mongo_model->get_collection_indexes($db_id,$table_id);
 			
@@ -263,15 +299,9 @@ class Tables extends MY_REST_Controller
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 
-			$index_fields=isset($options['index_fields']) ? $options['index_fields'] : '';
-
-			if(!$db_id){
-				throw new Exception("MISSING_PARAM:: db_id");
-			}
-
-			if(!$table_id){
-				throw new Exception("MISSING_PARAM:: table_id");
-			}
+			$index_fields=isset($options['index_fields']) ? $options['index_fields'] : '';			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
 			if(!$index_fields){
 				throw new Exception("MISSING_PARAM:: index_fields");
@@ -310,14 +340,8 @@ class Tables extends MY_REST_Controller
 			$user_id=$this->get_api_user_id();
 
 			$index_fields=isset($options['index_fields']) ? $options['index_fields'] : '';
-
-			if(!$db_id){
-				throw new Exception("MISSING_PARAM:: db_id");
-			}
-
-			if(!$table_id){
-				throw new Exception("MISSING_PARAM:: table_id");
-			}
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
 			if(!$index_fields){
 				throw new Exception("MISSING_PARAM:: index_fields");
@@ -354,14 +378,9 @@ class Tables extends MY_REST_Controller
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
-
-			if(!$db_id){
-				throw new Exception("MISSING_PARAM:: db_id");
-			}
-
-			if(!$table_id){
-				throw new Exception("MISSING_PARAM:: table_id");
-			}
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
 			if(!$index_name){
 				throw new Exception("MISSING_PARAM:: index_name");
@@ -372,6 +391,40 @@ class Tables extends MY_REST_Controller
 			$response=array(
 				'status'=>'success',
                 'result'=>$output
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Delete all indexes in a collection (except _id_)
+	 * 
+	 * 
+	 */
+	function indexes_delete_all_post($db_id=null,$table_id=null)
+	{
+		$this->is_admin_or_die();
+		
+		try{
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			
+			$output=$this->Data_table_mongo_model->delete_all_collection_indexes($db_id,$table_id);
+			
+			$response=array(
+				'status'=>'success',
+                'result'=>$output,
+				'message'=>"Deleted {$output['indexes_dropped']} index(es). {$output['indexes_remaining']} index(es) remaining (_id_ is preserved)."
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -414,16 +467,9 @@ class Tables extends MY_REST_Controller
 				$limit=(int)$this->input->get("limit");
 			}
 
-			//$options=$this->raw_json_input();
-			$user_id=$this->get_api_user_id();
-
-			if(!$db_id){
-				throw new Exception("MISSING_PARAM:: db_id");
-			}
-
-			if(!$table_id){
-				throw new Exception("MISSING_PARAM:: table_id");
-			}
+			$user_id=$this->get_api_user_id();			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
 			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$offset,$options);
 			
@@ -443,8 +489,7 @@ class Tables extends MY_REST_Controller
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
-				'message'=>$e->getMessage(),
-				'error'=>$this->Data_table_model->get_db_error()
+				'message'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
@@ -454,13 +499,15 @@ class Tables extends MY_REST_Controller
 	/**
 	 * 
 	 * 
-	 * Export data to CSV and JSON
+	 * Bulk export data to CSV and JSON
 	 * 
 	 * 
 	 */
 	function export_get($db_id=null,$table_id=null)
 	{
 		try{
+			$this->is_admin_or_die();
+
 			$get_params=array();
 			parse_str($_SERVER['QUERY_STRING'], $get_params);
 			
@@ -471,13 +518,9 @@ class Tables extends MY_REST_Controller
 
 			$user_id=$this->get_api_user_id();
 
-			if(!$db_id){
-				throw new Exception("MISSING_PARAM:: db_id");
-			}
-
-			if(!$table_id){
-				throw new Exception("MISSING_PARAM:: table_id");
-			}
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
 			$data_format=isset($options['format']) ? $options['format'] : 'json';
 
@@ -518,16 +561,9 @@ class Tables extends MY_REST_Controller
 				$limit=(int)$this->input->get("limit");
 			}
 
-			//$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
-
-			if(!$db_id){
-				throw new Exception("MISSING_PARAM:: db_id");
-			}
-
-			if(!$table_id){
-				throw new Exception("MISSING_PARAM:: table_id");
-			}
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
 			$response=$this->Data_table_mongo_model->get_table_aggregate($db_id,$table_id,$limit,$offset,$options);
 			
@@ -547,8 +583,7 @@ class Tables extends MY_REST_Controller
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
-				'message'=>$e->getMessage(),
-				'error'=>$this->Data_table_model->get_db_error()
+				'message'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
@@ -594,13 +629,9 @@ class Tables extends MY_REST_Controller
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 
-			if (!$db_id){
-				throw new exception("Missing Param:: dbId");
-			}
-
-			if (!$table_id){
-				throw new exception("Missing Param:: tableId");
-			}
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
 			//check if a single row input is provided or a list of rows
 			$key=key($options);
@@ -673,14 +704,10 @@ class Tables extends MY_REST_Controller
 	{
 		$this->is_admin_or_die();
 		
-		try{			
-			if (!$db_id){
-				throw new exception("Missing Param:: dbId");
-			}
-
-			if (!$table_id){
-				throw new exception("Missing Param:: tableId");
-			}
+		try{
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
 			$uploaded_file=$this->upload_file('datafiles/'.$db_id);
 			$uploaded_file_path=$uploaded_file['full_path'];
@@ -703,8 +730,13 @@ class Tables extends MY_REST_Controller
 				$uploaded_file_path = $table_dir.'/'.basename($uploaded_file_path);
 			}
 
-			$partial_file_path = str_replace('datafiles/', '', $uploaded_file_path);			
-			$form_data = $this->collect_form_data();
+			$partial_file_path = str_replace('datafiles/', '', $uploaded_file_path);
+			
+			// Collect form data (title and description only)
+			$form_data = array(
+				'title' => $this->input->post('title', true),
+				'description' => $this->input->post('description', true)
+			);
 
 			//delete original uploaded zip file, keep csv
 			if($is_zip && file_exists($uploaded_file['full_path'])){
@@ -742,21 +774,10 @@ class Tables extends MY_REST_Controller
 
 
 	/**
-	 * Validate import consistency before processing
-	 * 
-	 * @param string $db_id Database ID
-	 * @param string $table_id Table ID
-	 * @param int $start_row Starting row for import
-	 * @param array $table_definition Table definition data
-	 * @throws Exception if validation fails
-	 */
-
-	/**
 	 * Import CSV data into table using chunked processing
 	 * 
 	 * @param string $db_id Database ID
 	 * @param string $table_id Table ID
-	 * @param int $max_rows Maximum rows per batch (default: 10000, max: 50000)
 	 */
 	function import_post($db_id=null, $table_id=null)
 	{
@@ -764,19 +785,20 @@ class Tables extends MY_REST_Controller
 
 		try {
 			$options = $this->raw_json_input();
+			if (!is_array($options)) {
+				$options = array();
+			}
 
-			// Get db_id and table_id from options if not provided
+			// Get db_id and table_id from options if not provided as URL parameters
 			if (!$db_id) {
 				$db_id = $options['db_id'] ?? null;
 				$table_id = $options['table_id'] ?? null;
 			}
 
-			// Validate required parameters
-			if (!$db_id || !$table_id) {
-				throw new Exception("Missing required parameters: dbId and tableId");
-			}
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
-			// Process the import request through the model
+			// Process import
 			$result = $this->Data_table_mongo_model->process_import_request($db_id, $table_id, $options);
 
 			$this->set_response($result, REST_Controller::HTTP_OK);
@@ -784,25 +806,10 @@ class Tables extends MY_REST_Controller
 		} catch (Exception $e) {
 			$error_output = array(
 				'status' => 'failed',
-				'message' => $e->getMessage(),
-				'action_required' => $this->determine_action_required($e->getMessage())
+				'message' => $e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
-	}
-
-	/**
-	 * Determine action required based on error message
-	 */
-	private function determine_action_required($message)
-	{
-		if (strpos($message, 'already contains') !== false) {
-			return 'delete_data_first';
-		}
-		if (strpos($message, 'inconsistency') !== false) {
-			return 'reset_import';
-		}
-		return null;
 	}
 
 	
@@ -836,7 +843,6 @@ class Tables extends MY_REST_Controller
 				}
 
 				$result[]=$this->Data_table_mongo_model->rename_collection($rename_collection['old'], $rename_collection['new']);
-				//$result[]=$rename_collection;
 			}
 			
 			$response=array(
@@ -877,19 +883,52 @@ class Tables extends MY_REST_Controller
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 			
-			if (!$db_id){
-				throw new exception("Missing Param:: dbId");
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			// Extract fields/data_dictionary if provided
+			$fields = null;
+			if (isset($options['fields']) && is_array($options['fields'])) {
+				$fields = $options['fields'];
+				unset($options['fields']); // Remove from table metadata
+			} elseif (isset($options['data_dictionary']) && is_array($options['data_dictionary'])) {
+				$fields = $options['data_dictionary'];
+				unset($options['data_dictionary']); // Remove from table metadata
 			}
 
-			if (!$table_id){
-				throw new exception("Missing Param:: tableId");
+            // Create table metadata
+			$result = $this->Data_table_mongo_model->create_table($db_id, $table_id, $options);
+			
+			// Create field definitions if provided
+			$fields_created = 0;
+			if ($fields && !empty($fields)) {
+				foreach ($fields as $field_metadata) {
+					try {
+						// Ensure field_metadata has required fields
+						if (!isset($field_metadata['name'])) {
+							continue; // Skip fields without name
+						}
+						
+						// Create field metadata
+						$field_result = $this->Data_table_mongo_model->create_field_metadata($db_id, $table_id, $field_metadata);
+						if ($field_result > 0) {
+							$fields_created++;
+						}
+					} catch (Exception $e) {
+						// Log error but continue with other fields
+						log_message('error', "Failed to create field {$field_metadata['name']}: " . $e->getMessage());
+					}
+				}
 			}
 
-            $result=$this->Data_table_mongo_model->create_table($db_id,$table_id,$options);			
-
-			$response=array(
-                'status'=>'success',
-				'result'=>$result
+			$response = array(
+                'status' => 'success',
+				'result' => $result,
+				'fields_created' => $fields_created,
+				'message' => $fields_created > 0 ? 
+					"Table created with {$fields_created} field(s)" : 
+					"Table created successfully"
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -911,6 +950,149 @@ class Tables extends MY_REST_Controller
 		}
 	}
 
+	/**
+	 * Update table metadata
+	 * 
+	 * PUT /api/tables/update_table/{db_id}/{table_id}
+	 * 
+	 * @db_id - database id
+	 * @table_id - table id
+	 * 
+	 * @options - metadata to update (title, description, etc.)
+	 * 
+	 */
+	function update_table_put($db_id=NULL, $table_id=NULL)
+	{
+		$this->is_admin_or_die();
+
+		try{
+			$options=$this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			if (!$db_id){
+				throw new exception("Missing Param:: dbId");
+			}
+
+			if (!$table_id){
+				throw new exception("Missing Param:: tableId");
+			}
+
+			// Prepare update data - only include metadata fields
+			$update_data = array();
+			if (isset($options['title'])) {
+				$update_data['title'] = $options['title'];
+			}
+			if (isset($options['description'])) {
+				$update_data['description'] = $options['description'];
+			}
+			
+			// Update metadata in table_types collection
+			$result = $this->Data_table_mongo_model->update_table_type($db_id, $table_id, $update_data);
+
+			$response=array(
+                'status'=>'success',
+				'message' => 'Table information updated successfully',
+				'modified_count' => $result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Export table definition (metadata and field definitions)
+	 * 
+	 * GET /api/tables/{db_id}/{table_id}/export_definition
+	 * 
+	 * @db_id - database id
+	 * @table_id - table id
+	 * 
+	 * Returns JSON with table metadata and all field definitions
+	 */
+	function export_definition_get($db_id=null, $table_id=null)
+	{
+		$this->is_admin_or_die();
+		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			
+			// Get table metadata
+			$table_type = $this->Data_table_mongo_model->get_table_type($db_id, $table_id);
+			if (!$table_type) {
+				throw new Exception("Table not found: {$db_id}/{$table_id}");
+			}
+			
+			// Get all field definitions
+			$fields = $this->Data_table_mongo_model->get_table_fields($db_id, $table_id);
+			
+			// Get indexes
+			$indexes = $this->Data_table_mongo_model->get_collection_indexes($db_id, $table_id);
+			
+			// Build export structure
+			$export = array(
+				'version' => '1.0',
+				'exported_at' => date('Y-m-d H:i:s'),
+				'table_metadata' => array(
+					'db_id' => $table_type['db_id'] ?? $db_id,
+					'table_id' => $table_type['table_id'] ?? $table_id,
+					'title' => $table_type['title'] ?? null,
+					'description' => $table_type['description'] ?? null,
+					'created_at' => $table_type['created_at'] ?? null,
+					'updated_at' => $table_type['updated_at'] ?? null,
+				),
+				'fields' => $fields ?: array(),
+				'indexes' => $indexes ?: array()
+			);
+			
+			// Remove import_progress and other internal fields from metadata if present
+			if (isset($table_type['import_progress'])) {
+				unset($table_type['import_progress']);
+			}
+			
+			// Add any additional metadata fields (indicators, features, etc.)
+			$additional_metadata = array();
+			$exclude_fields = array('_id', 'db_id', 'table_id', 'title', 'description', 'created_at', 'updated_at', 'csv_file_path', 'csv_uploaded_at', 'import_progress');
+			foreach ($table_type as $key => $value) {
+				if (!in_array($key, $exclude_fields)) {
+					$additional_metadata[$key] = $value;
+				}
+			}
+			if (!empty($additional_metadata)) {
+				$export['table_metadata']['additional'] = $additional_metadata;
+			}
+			
+			// JSON download headers
+			$filename = "table_definition_{$db_id}_{$table_id}_" . date('Y-m-d') . ".json";
+			header('Content-Type: application/json');
+			header('Content-Disposition: attachment; filename="' . $filename . '"');
+			
+			$response = array(
+				'status' => 'success',
+				'definition' => $export
+			);
+			
+			echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+			exit;
+			
+		} catch(Exception $e){
+			$error_output = array(
+				'status' => 'failed',
+				'message' => $e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 
 	function delete_delete($db_id=null,$table_id=null)
 	{
@@ -978,6 +1160,8 @@ class Tables extends MY_REST_Controller
 	 * 
 	 * Attach data table to a study
 	 * 
+	 * Accepts either 'idno' or 'sid' parameter
+	 * 
 	 */
 	function attach_to_study_post()
 	{
@@ -995,8 +1179,19 @@ class Tables extends MY_REST_Controller
 				throw new exception("Missing Param:: tableId");
 			}
 
-			if (!isset($options['sid'])){
-				throw new exception("Missing Param:: sid");
+			// Accept either idno or sid
+			if (!isset($options['idno']) && !isset($options['sid'])){
+				throw new exception("Missing Param:: idno or sid");
+			}
+
+			// If sid is provided, get idno from it
+			if (isset($options['sid']) && !isset($options['idno'])){
+				$this->load->model('Dataset_model');
+				$idno = $this->Dataset_model->get_idno($options['sid']);
+				if (!$idno){
+					throw new exception("Study ID not found: " . $options['sid']);
+				}
+				$options['idno'] = $idno;
 			}
 
 			$result=$this->Survey_data_api_model->insert($options);
@@ -1059,6 +1254,50 @@ class Tables extends MY_REST_Controller
 				'errors'=>$e->GetValidationErrors()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'error'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Get list of studies attached to a table
+	 * 
+	 * GET /api/tables/{db_id}/{table_id}/studies
+	 * 
+	 */
+	function studies_get($db_id=null, $table_id=null)
+	{
+		$this->is_admin_or_die();
+		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			if (!$db_id){
+				throw new exception("Missing Param:: dbId");
+			}
+
+			if (!$table_id){
+				throw new exception("Missing Param:: tableId");
+			}
+
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			$result = $this->Survey_data_api_model->get_by_table($db_id, $table_id);
+
+			$response=array(
+				'status'=>'success',
+				'studies'=>$result,
+				'total'=>count($result)
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
 			$error_output=array(
@@ -1188,25 +1427,6 @@ class Tables extends MY_REST_Controller
 		}
 	}
 
-	/**
-	 * Collect form data for table definition
-	 */
-	private function collect_form_data()
-	{
-		$form_data = array(
-			'title' => $this->input->post('title'),
-			'description' => $this->input->post('description'),
-			'indicators' => $this->input->post('indicators')
-		);
-		
-		// Add features if provided
-		for ($i = 1; $i <= 9; $i++) {
-			$feature_key = 'feature_' . $i;
-			$form_data[$feature_key] = $this->input->post($feature_key);
-		}
-		
-		return $form_data;
-	}
 
 	private function get_file_from_zip($zip_file, $output_path)
 	{
@@ -1231,19 +1451,207 @@ class Tables extends MY_REST_Controller
 	}
 
 	/**
+	 * Get all fields for a table
 	 * 
-	 * 
-	 * Get table schema (fields and data types)
+	 * GET /api/tables/{db_id}/{table_id}/fields
 	 * 
 	 * @db_id - database id
 	 * @table_id - table id
 	 * 
 	 */
-	function schema_get($db_id=null,$table_id=null)
+	function fields_get($db_id=null,$table_id=null)
 	{
 		try{
 			$options=$this->raw_json_input();
-			$user_id=$this->get_api_user_id();			
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			// Get field metadata from table_dictionary collection
+			$fields = $this->Data_table_mongo_model->get_table_fields($db_id, $table_id);
+			
+			// Return empty array if no fields found (instead of throwing error)
+			if (!$fields) {
+				$fields = [];
+			}
+			
+			$response=array(
+				'status'=>'success',
+				'db_id' => $db_id,
+				'table_id' => $table_id,
+				'total_fields' => count($fields),
+				'fields' => $fields
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Get single field metadata
+	 * 
+	 * GET /api/tables/{db_id}/{table_id}/fields/{field_name}
+	 */
+	function field_get($db_id=null, $table_id=null, $field_name=null)
+	{
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			if(!$field_name){
+				throw new Exception("MISSING_PARAM:: field_name");
+			}
+			
+			$field = $this->Data_table_mongo_model->get_field_metadata($db_id, $table_id, $field_name);
+			
+			if (!$field) {
+				throw new Exception("Field not found");
+			}
+			
+			$response=array(
+				'status'=>'success',
+				'field' => $field
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Create or update field metadata (upsert)
+	 * 
+	 * POST /api/tables/{db_id}/{table_id}/fields
+	 * 
+	 * Body must include 'name' field.
+	 * If field exists, it will be updated. If not, it will be created.
+	 */
+	function fields_post($db_id=null, $table_id=null)
+	{
+		$this->is_admin_or_die();
+		
+		try{
+			$field_data = $this->raw_json_input();
+			$user_id=$this->get_api_user_id();
+			
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			if(!isset($field_data['name'])){
+				throw new Exception("MISSING_PARAM:: name");
+			}
+			
+			// Check if field exists to determine if this is create or update
+			$existing_field = $this->Data_table_mongo_model->get_field_metadata($db_id, $table_id, $field_data['name']);
+			$is_update = ($existing_field !== null);
+			
+			// Set defaults for new fields only
+			if (!$is_update) {
+				$field_data['label'] = $field_data['label'] ?? $field_data['name'];
+				$field_data['data_type'] = $field_data['data_type'] ?? 'string';
+				$field_data['column_type'] = $field_data['column_type'] ?? 'dimension';
+			}
+			
+			// Use create_field_metadata which does upsert
+			$result = $this->Data_table_mongo_model->create_field_metadata($db_id, $table_id, $field_data);
+			
+			$response=array(
+				'status'=>'success',
+				'action' => $is_update ? 'updated' : 'created',
+				'result' => $result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * Delete field metadata
+	 * 
+	 * DELETE /api/tables/{db_id}/{table_id}/fields/{field_name}
+	 */
+	function field_delete($db_id=null, $table_id=null, $field_name=null)
+	{
+		$this->is_admin_or_die();
+		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			if(!$field_name){
+				throw new Exception("MISSING_PARAM:: field_name");
+			}
+			
+			$result = $this->Data_table_mongo_model->delete_field_metadata($db_id, $table_id, $field_name);
+			
+			$response=array(
+				'status'=>'success',
+				'result' => $result
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Delete field metadata (POST alias)
+	 * 
+	 * POST /api/tables/{db_id}/{table_id}/fields/{field_name}/delete
+	 */
+	function fields_delete_post($db_id=null, $table_id=null, $field_name=null)
+	{
+		// Call the same logic as field_delete
+		return $this->field_delete($db_id, $table_id, $field_name);
+	}
+
+	/**
+	 * Reorder fields for a table
+	 * 
+	 * POST /api/tables/{db_id}/{table_id}/fields/reorder
+	 * Body: { "field_orders": {"field1": 1, "field2": 2, ...} }
+	 */
+	function fields_reorder_post($db_id=null, $table_id=null)
+	{
+		$this->is_admin_or_die();
+		
+		try{
+			$options = $this->raw_json_input();
+			$user_id=$this->get_api_user_id();
 			
 			if(!$db_id){
 				throw new Exception("MISSING_PARAM:: db_id");
@@ -1253,19 +1661,15 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-			// Get field metadata from the separate data dictionary table
-			$field_metadata = $this->Data_table_mongo_model->get_field_metadata($db_id, $table_id);
-			
-			if (!$field_metadata) {
-				throw new Exception("No field metadata found for this table");
+			if(!isset($options['field_orders']) || !is_array($options['field_orders'])){
+				throw new Exception("MISSING_PARAM:: field_orders (must be an object)");
 			}
-
+			
+			$result = $this->Data_table_mongo_model->reorder_fields($db_id, $table_id, $options['field_orders']);
+			
 			$response=array(
 				'status'=>'success',
-				'db_id' => $db_id,
-				'table_id' => $table_id,
-				'total_fields' => count($field_metadata),
-				'schema' => $field_metadata
+				'result' => $result
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -1281,14 +1685,92 @@ class Tables extends MY_REST_Controller
 
 	/**
 	 * 
-	 * Populate table schema by reading one row from the actual data collection
-	 * and storing field information in the table_types collection
+	 * Create indexes on table_dictionary collection
+	 * This is a one-time setup operation
+	 * 
+	 * POST /api/tables/create_dictionary_indexes
+	 * 
+	 */
+	function create_dictionary_indexes_post()
+	{
+		$this->is_admin_or_die();
+		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			$results = $this->Data_table_mongo_model->create_dictionary_indexes();
+			
+			$response=array(
+				'status'=>'success',
+				'message' => 'Indexes created successfully',
+				'results' => $results
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Populate table fields by reading one row from the actual data collection
+	 * and storing field information in the table_dictionary collection
+	 * 
+	 * POST /api/tables/{db_id}/{table_id}/fields/populate
 	 * 
 	 * @db_id - database id
 	 * @table_id - table id
 	 * 
 	 */
-	function populate_schema_post($db_id=null,$table_id=null)
+	/**
+	 * Sync field metadata with actual data fields
+	 * Deletes fields that don't exist in data and adds new fields from data
+	 * 
+	 * POST /api/tables/fields/{db_id}/{table_id}/sync
+	 * 
+	 * @db_id - database id
+	 * @table_id - table id
+	 * 
+	 */
+	function fields_sync_post($db_id=null, $table_id=null)
+	{
+		$this->is_admin_or_die();
+		
+		try{
+			$user_id=$this->get_api_user_id();
+			
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			
+			$result = $this->Data_table_mongo_model->sync_table_fields($db_id, $table_id);
+			
+			$response=array(
+				'status'=>'success',
+				'message' => 'Fields synced successfully',
+				'fields_removed' => $result['fields_removed'],
+				'fields_added' => $result['fields_added'],
+				'total_fields' => $result['total_fields']
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	function fields_populate_post($db_id=null,$table_id=null)
 	{
 		$this->is_admin_or_die();
 		
@@ -1304,41 +1786,15 @@ class Tables extends MY_REST_Controller
 				throw new Exception("MISSING_PARAM:: table_id");
 			}
 
-			// Get field names from actual data collection
-			$field_names = $this->Data_table_mongo_model->get_data_field_names($db_id, $table_id);
+			// Populate schema from actual data using new method
+			$fields_created = $this->Data_table_mongo_model->populate_table_schema($db_id, $table_id);
 			
-			if (empty($field_names)) {
-				throw new Exception("No data found in the collection to extract schema from");
-			}
-
-			// Create basic field metadata with just names
-			$fields_metadata = array();
-			foreach ($field_names as $field_name) {
-				$fields_metadata[] = array(
-					'name' => $field_name,
-					'title' => $field_name, // Use field name as default title
-					'dataType' => 'string', // Default data type
-					'required' => false,    // Default to not required
-					'description' => '',    // Empty description by default
-					'created_at' => date('Y-m-d H:i:s'),
-					'updated_at' => date('Y-m-d H:i:s')
-				);
-			}
-
-			// Store the schema in table_types collection
-			$result = $this->Data_table_mongo_model->update_table_schema($db_id, $table_id, $fields_metadata);
-			
-			if ($result === false) {
-				throw new Exception("Failed to update table schema");
-			}
-
 			$response=array(
 				'status'=>'success',
 				'db_id' => $db_id,
 				'table_id' => $table_id,
-				'total_fields' => count($fields_metadata),
-				'message' => 'Table schema populated successfully',
-				'schema' => $fields_metadata
+				'total_fields' => $fields_created,
+				'message' => 'Table schema populated successfully'
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -1351,5 +1807,13 @@ class Tables extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+	public function _auth_override_check()
+    {
+        if ($this->session->userdata('user_id')){
+            return true;
+        }
+        return parent::_auth_override_check();
+    }
 
 }	

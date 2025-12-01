@@ -3,7 +3,9 @@
     <h3><?php echo t('Bulk data downloads');?></h3>
     
     <div v-if="bulk_downloads_loading" class="text-center py-4">
-        <v-skeleton-loader type="table-row-divider@3"></v-skeleton-loader>
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only"><?php echo t('Loading...');?></span>
+        </div>
     </div>
 
     <div v-else>

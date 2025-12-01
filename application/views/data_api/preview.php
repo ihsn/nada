@@ -1,41 +1,6 @@
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-<script src="https://unpkg.com/vuex@3.4.0/dist/vuex.js"></script>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    
-<link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
 
 <style>
-  .v-pagination{
-    display: -ms-flexbox;
-    display: flex;
-    padding-left: 0;
-    list-style: none;
-    border-radius: 0.25rem;
-  }
-
-  .v-pagination li button{
-    position: relative;
-    display: block;
-    margin-left: -1px;
-    line-height: 1.25;
-    color: #007bff;
-    background-color: #fff;
-    border: 1px solid #dee2e6;
-    padding: 0.25rem 0.5rem;
-    font-size: .875rem;
-  }
-
-  .theme--light.v-pagination .v-pagination__item--active{
-    z-index: 1;
-    color: #fff;
-    background-color: #007bff;
-    border-color: #007bff;
-  }
-
-  .v-pagination__more{
-    padding:6px;
-  }
 
   .table-sm td,
   .table-sm th {
@@ -61,6 +26,64 @@
 
   table.sticky-table-header:focus {
     border: #f00 solid 2px !important;
+  }
+
+
+  .pagination-sm .page-link {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+
+  .pagination-sm .page-item {
+    margin: 0 0.1rem;
+  }
+
+  .pagination-sm .page-link i {
+    font-size: 0.7rem;
+  }
+
+  /* Table elevation and scrollbars */
+  .table-data-container {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    overflow-x: scroll;
+    overflow-y: scroll;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.15);
+  }
+  
+  .table-data-container .table {
+    margin-bottom: 0;
+    min-width: 100%;
+  }
+
+  .table-data-container::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+    -webkit-appearance: none;
+    display: block;
+  }
+
+  .table-data-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+  }
+
+  .table-data-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.2);
+  }
+
+  .table-data-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .table-data-container::-webkit-scrollbar-corner {
+    background: rgba(0, 0, 0, 0.15);
   }
 
 </style>
@@ -111,7 +134,6 @@
 
   new Vue({
     el: "#app",
-    vuetify: new Vuetify(),
     data: {      
       input: "",
       message:"",
@@ -138,7 +160,9 @@
       filters:[],
       query_url:"",
       bulk_downloads:[],
-      bulk_downloads_loading:false
+      bulk_downloads_loading:false,
+      table_fields:[],
+      fields_loading:false
     },
     mounted: function(){
       this.loadTableInfo();
@@ -147,7 +171,7 @@
     },
     computed: {
       apiDatasetInfoUrl: function () {
-        return this.api_base_url + '/info/' + this.db_id + '/' + this.table_id;
+        return this.api_base_url + '/info/' + this.db_id + '/' + this.table_id + '?data_dictionary=true';
       },
       apiDatasetDataUrl: function () {
         return this.api_base_url + '/data/' + this.db_id + '/' + this.table_id;
@@ -157,33 +181,39 @@
         return this.site_url + '/api/downloads/' + this.study_idno + '/files?type=data';
       },
       tableColumns: function () {
-        if (this.table_info.result && this.table_info.result.metadata){
-          return this.table_info.result.metadata.data_dictionary.map(function (item) {
+        // Use data_dictionary from metadata (backward compatibility) or table_fields
+        const dataDict = this.getDataDictionary();
+        if (dataDict && Array.isArray(dataDict)){
+          return dataDict.map(function (item) {
             return item.name;
           });
         }
-
+        return [];
       },
       tableColumnsDictionary: function () {
-        if (this.table_info.result && this.table_info.result.metadata){
+        // Use data_dictionary from metadata (backward compatibility) or table_fields
+        const dataDict = this.getDataDictionary();
+        if (dataDict && Array.isArray(dataDict)){
           let dict={};
-          this.table_info.result.metadata.data_dictionary.forEach(function (item) {
+          dataDict.forEach(function (item) {
             dict[item.name]=item;
           });
-
           return dict;
         }
+        return {};
       },
       tableColumnsDictionaryWithSelected: function () {
         if (this.selected_columns.length>0){
           let dict={};
           let vm=this;
-          this.table_info.result.metadata.data_dictionary.forEach(function (item) {
-            if(vm.selected_columns.includes(item.name)){
-              dict[item.name]=item;
-            }
-          });
-
+          const dataDict = this.getDataDictionary();
+          if (dataDict && Array.isArray(dataDict)){
+            dataDict.forEach(function (item) {
+              if(vm.selected_columns.includes(item.name)){
+                dict[item.name]=item;
+              }
+            });
+          }
           return dict;
         }
         else{
@@ -194,12 +224,14 @@
         if(this.table_columns_search!=""){
           let dict={};
           let vm=this;
-          this.table_info.result.metadata.data_dictionary.forEach(function (item) {
-            if(item.name.toLowerCase().match(vm.table_columns_search.toLowerCase())){
-              dict[item.name]=item;
-            }
-          });
-
+          const dataDict = this.getDataDictionary();
+          if (dataDict && Array.isArray(dataDict)){
+            dataDict.forEach(function (item) {
+              if(item.name.toLowerCase().match(vm.table_columns_search.toLowerCase())){
+                dict[item.name]=item;
+              }
+            });
+          }
           return dict;
         }
         else{
@@ -239,6 +271,23 @@
         }
     },    
     methods: {
+      // Get data dictionary from metadata (backward compatibility) or from separate fields
+      getDataDictionary: function() {
+        // First try backward compatibility: data_dictionary in metadata
+        if (this.table_info.result && 
+            this.table_info.result.metadata && 
+            this.table_info.result.metadata.data_dictionary &&
+            Array.isArray(this.table_info.result.metadata.data_dictionary) &&
+            this.table_info.result.metadata.data_dictionary.length > 0) {
+          return this.table_info.result.metadata.data_dictionary;
+        }
+        // Fallback to separate fields array
+        if (this.table_fields && Array.isArray(this.table_fields) && this.table_fields.length > 0) {
+          return this.table_fields;
+        }
+        // Return empty array if neither exists
+        return [];
+      },
       CopyQueryUrlToClipboard: function()
       {
         var $temp = $("<input>");
@@ -350,6 +399,15 @@
               success: function (data) {
                 vm.table_info=data;
                 vm.$refs.app_is_loading.style.display="none";
+                
+                // If data_dictionary is not in metadata, load fields separately
+                if (!data.result || 
+                    !data.result.metadata || 
+                    !data.result.metadata.data_dictionary ||
+                    !Array.isArray(data.result.metadata.data_dictionary) ||
+                    data.result.metadata.data_dictionary.length === 0) {
+                  vm.loadTableFields();
+                }
               },
               error: function(e){
                   console.log(e);
@@ -357,6 +415,38 @@
                   alert("failed to load table info" + e);
               }
           })
+      },
+      loadTableFields: function () 
+      {
+        // Only load if fields haven't been loaded yet
+        if (this.fields_loading || (this.table_fields && this.table_fields.length > 0)) {
+          return;
+        }
+
+        this.fields_loading = true;
+        let url = `${this.api_base_url}/fields/${this.db_id}/${this.table_id}`;
+        let vm=this;
+
+        $.ajax
+        ({
+            type: "GET",
+            url:  url,
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function (data) {
+              if (data.status === 'success' && data.fields && Array.isArray(data.fields)) {
+                vm.table_fields = data.fields;
+              } else {
+                vm.table_fields = [];
+              }
+              vm.fields_loading = false;
+            },
+            error: function(e){
+                console.log('Failed to load table fields:', e);
+                vm.table_fields = [];
+                vm.fields_loading = false;
+            }
+        })
       },
 
       loadBulkDownloads: function()

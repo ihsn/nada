@@ -54,34 +54,6 @@ class Data_table_mongo_model extends CI_Model {
 
     }
 
-    function get_mongo_manager()
-    {
-        $username=$this->config->item("mongodb_username");
-        $password=$this->config->item("mongodb_password");
-        $host=$this->config->item("mongodb_host");
-        $port=$this->config->item("mongodb_port");
-
-        $user_pass_str='';
-
-        if(!empty($username) && !empty($password)){
-            $user_pass_str=$username.':'.$password.'@';
-        }
-
-        $manager = new MongoDB\Driver\Manager("mongodb://${user_pass_str}${host}:${port}", 
-            array("db" => $this->get_db_name()));
-    
-        return $manager;
-    }
-
-    /**
-     * 
-     * Set database for the application
-     * 
-     */
-    function set_database($database_name)
-    {
-        $this->db_name=$database_name;
-    }
 
 
 
@@ -184,60 +156,6 @@ class Data_table_mongo_model extends CI_Model {
     }
 
 
-    /**
-    * 
-    * 
-    * Return features for a table
-    * 
-    */
-   function get_table_features_list($db_id,$table_id,$features=array())
-   {
-       $table_id=strtolower($table_id);       
-       $table=$this->get_table_type($db_id,$table_id);
-
-       if(empty($table)){
-           return array();
-       }
-       
-       if(empty($features)){
-        return $table['features'];
-       }
-
-       $output=array();
-
-       foreach($table['features'] as $key=>$feature){
-           if(in_array($feature['feature_name'],$features)){               
-               $output[]=$feature;
-           }
-       }
-
-       return $output;
-   }
-
-   /**
-    * 
-    * 
-    * Return indicator codelist
-    * 
-    */
-    function get_table_indicator_codelist($db_id,$table_id)
-    {
-        $table_id=strtolower($table_id);       
-        $table=$this->get_table_type($db_id,$table_id);
-        
-        return isset($table['indicator']) ? $table['indicator']  : array();
-
-        $output=array();
-        
-        foreach($table['indicator'] as $key=>$indicator){
-            /*if(in_array($feature['feature_name'],$features)){               
-                $output[]=$feature;
-            }*/
-        }
- 
-        return $output;
-    }
-   
 
    /**
     * 
@@ -288,6 +206,33 @@ class Data_table_mongo_model extends CI_Model {
    }
 
 
+   /**
+    * Validate and normalize db_id and table_id
+    * - Only allows alphanumeric characters and underscores
+    * - Converts to lowercase
+    * 
+    * @param string $id The id to validate and normalize
+    * @param string $type Either 'db_id' or 'table_id' for error messages
+    * @return string Normalized id
+    * @throws Exception If validation fails
+    */
+   function validate_and_normalize_id($id, $type = 'id')
+   {
+       if (empty($id)) {
+           throw new Exception("Missing Param:: {$type}");
+       }
+
+       // Convert to string and trim
+       $id = trim((string)$id);
+       
+       // Check if it contains only alphanumeric characters and underscores
+       if (!preg_match('/^[a-zA-Z0-9_]+$/', $id)) {
+           throw new Exception("Invalid {$type}: Only alphanumeric characters and underscores are allowed");
+       }
+
+       return strtolower($id);
+   }
+
    function get_table_types_list($db_id)
    {
       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
@@ -296,7 +241,9 @@ class Data_table_mongo_model extends CI_Model {
             'db_id'=>1,
             'table_id'=>1,
             'title'=>1, 
-            'description'=>1
+            'description'=>1,
+            'created_at'=>1,
+            'updated_at'=>1
        ];
 
        $filter_options=array();
@@ -340,7 +287,6 @@ class Data_table_mongo_model extends CI_Model {
             $indexes[$index->getName()]=$index->getKey();
         }
 
-       // var_dump($indexes);
         return $indexes;
    }
 
@@ -362,12 +308,51 @@ class Data_table_mongo_model extends CI_Model {
             return false;
         }
 
+        // Trim whitespace from field names
+        $index_options = array_map('trim', $index_options);
+        
+        // Validate that all field names exist in the actual data (case-sensitive)
+        $actual_fields = $this->get_table_field_names($db_id,$table_id);
+        $invalid_fields = array();
+        foreach($index_options as $field){
+            if(!isset($actual_fields[$field])){
+                $invalid_fields[] = $field;
+            }
+        }
+        
+        if(!empty($invalid_fields)){
+            throw new Exception("Field(s) not found in data: " . implode(", ", $invalid_fields) . ". Field names are case-sensitive (e.g., 'ISO3' is different from 'iso3').");
+        }
+        
+        // Build index definition
         $indexes=array();
         foreach($index_options as $index){
             $indexes[$index]=1;
         }
 
-        $result= $collection->createIndex($indexes);
+        // Generate a clean index name (no spaces or special characters)
+        // Format: field1_field2_field3_1
+        $index_name_parts = array();
+        foreach($index_options as $field){
+            // Remove spaces and special characters, keep only alphanumeric and underscores
+            $clean_field = preg_replace('/[^a-zA-Z0-9_]/', '_', $field);
+            // Remove multiple consecutive underscores
+            $clean_field = preg_replace('/_+/', '_', $clean_field);
+            // Remove leading/trailing underscores
+            $clean_field = trim($clean_field, '_');
+            if (!empty($clean_field)) {
+                $index_name_parts[] = $clean_field;
+            }
+        }
+        
+        $index_name = implode('_', $index_name_parts) . '_1';
+        
+        // If index name is empty or too long, use a hash
+        if (empty($index_name) || strlen($index_name) > 120) {
+            $index_name = 'idx_' . substr(md5(implode(',', $index_options)), 0, 16) . '_1';
+        }
+
+        $result= $collection->createIndex($indexes, array('name' => $index_name));
         return $result;
    }
 
@@ -389,12 +374,51 @@ class Data_table_mongo_model extends CI_Model {
              return false;
          }
  
+         // Trim whitespace from field names
+         $index_options = array_map('trim', $index_options);
+         
+         // Validate that all field names exist in the actual data (case-sensitive)
+         $actual_fields = $this->get_table_field_names($db_id,$table_id);
+         $invalid_fields = array();
+         foreach($index_options as $field){
+             if(!isset($actual_fields[$field])){
+                 $invalid_fields[] = $field;
+             }
+         }
+         
+         if(!empty($invalid_fields)){
+             throw new Exception("Field(s) not found in data: " . implode(", ", $invalid_fields) . ". Field names are case-sensitive (e.g., 'ISO3' is different from 'iso3').");
+         }
+         
+         // Build index definition
          $indexes=array();
          foreach($index_options as $index){
              $indexes[$index]='text';
          }
  
-         $result= $collection->createIndex($indexes);
+         // Generate a clean index name for text index
+         // Format: text_field1_field2_field3
+         $index_name_parts = array('text');
+         foreach($index_options as $field){
+             // Remove spaces and special characters, keep only alphanumeric and underscores
+             $clean_field = preg_replace('/[^a-zA-Z0-9_]/', '_', $field);
+             // Remove multiple consecutive underscores
+             $clean_field = preg_replace('/_+/', '_', $clean_field);
+             // Remove leading/trailing underscores
+             $clean_field = trim($clean_field, '_');
+             if (!empty($clean_field)) {
+                 $index_name_parts[] = $clean_field;
+             }
+         }
+         
+         $index_name = implode('_', $index_name_parts);
+         
+         // If index name is empty or too long, use a hash
+         if (empty($index_name) || strlen($index_name) > 120) {
+             $index_name = 'text_idx_' . substr(md5(implode(',', $index_options)), 0, 16);
+         }
+
+         $result= $collection->createIndex($indexes, array('name' => $index_name));
          return $result;
     }
 
@@ -406,12 +430,44 @@ class Data_table_mongo_model extends CI_Model {
     * @index_name - name of index
     *
     */
-    function delete_collection_index($db_id,$table_id,$index_name)
-    {
+   function delete_collection_index($db_id,$table_id,$index_name)
+   {
         $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};          
         $result= $collection->dropIndex($index_name);
         return $result;
-    }
+   }
+
+   /**
+    * 
+    * Delete all indexes in a collection (except _id_)
+    *
+    * @param string $db_id Database ID
+    * @param string $table_id Table ID
+    * @return array Result with number of indexes dropped
+    */
+   function delete_all_collection_indexes($db_id,$table_id)
+   {
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
+        
+        // Get count of indexes before deletion (excluding _id_)
+        $indexes_before = $this->get_collection_indexes($db_id, $table_id);
+        $count_before = count($indexes_before);
+        if (isset($indexes_before['_id_'])) {
+            $count_before--; // Exclude _id_ from count
+        }
+        
+        // Drop all indexes (this will drop all except _id_)
+        $collection->dropIndexes();
+        
+        // Get count after deletion
+        $indexes_after = $this->get_collection_indexes($db_id, $table_id);
+        $count_after = count($indexes_after);
+        
+        return array(
+            'indexes_dropped' => $count_before,
+            'indexes_remaining' => $count_after // Should be 1 (_id_)
+        );
+   }
 
 
    /**
@@ -455,11 +511,31 @@ class Data_table_mongo_model extends CI_Model {
         $feature_filters=array();
         $filter_options=array();
 
-        //see if any key matches with the feature name
-        foreach($options as $key=>$value)
-        {
-            if(array_key_exists($key,$features)){
-                 $filter_options[$key]=$value; //age=something
+        // Reserved parameters that should never be treated as field filters
+        $reserved_params = ['limit', 'offset', 'fields', 'ft_query', 'debug', 'format', 'disposition', 'indicator'];
+
+        // NEW FORMAT: Check for c['field'] format first
+        if (isset($options['c']) && is_array($options['c'])) {
+            foreach($options['c'] as $key => $value) {
+                if(array_key_exists($key, $features)){
+                    $filter_options[$key] = $value;
+                }
+            }
+        }
+
+        // LEGACY FORMAT: Check for direct field names (backward compatibility)
+        foreach($options as $key => $value) {
+            // Skip reserved parameters
+            if (in_array($key, $reserved_params)) {
+                continue;
+            }
+            // Skip if already processed from 'c' array
+            if (isset($options['c']) && is_array($options['c']) && isset($options['c'][$key])) {
+                continue;
+            }
+            // Check if key matches a field name
+            if(array_key_exists($key, $features)){
+                $filter_options[$key] = $value;
             }
         }
         
@@ -584,10 +660,31 @@ class Data_table_mongo_model extends CI_Model {
         $feature_filters = array();
         $filter_options = array();
     
-        // See if any key matches with the feature name
-        foreach ($options as $key => $value) {
-            if (array_key_exists($key, $features)) {
-                $filter_options[$key] = $value; // age = something
+        // Reserved parameters that should never be treated as field filters
+        $reserved_params = ['limit', 'offset', 'fields', 'ft_query', 'debug', 'format', 'disposition', 'indicator'];
+
+        // NEW FORMAT: Check for c['field'] format first
+        if (isset($options['c']) && is_array($options['c'])) {
+            foreach($options['c'] as $key => $value) {
+                if(array_key_exists($key, $features)){
+                    $filter_options[$key] = $value;
+                }
+            }
+        }
+
+        // LEGACY FORMAT: Check for direct field names (backward compatibility)
+        foreach($options as $key => $value) {
+            // Skip reserved parameters
+            if (in_array($key, $reserved_params)) {
+                continue;
+            }
+            // Skip if already processed from 'c' array
+            if (isset($options['c']) && is_array($options['c']) && isset($options['c'][$key])) {
+                continue;
+            }
+            // Check if key matches a field name
+            if(array_key_exists($key, $features)){
+                $filter_options[$key] = $value;
             }
         }
     
@@ -824,11 +921,6 @@ class Data_table_mongo_model extends CI_Model {
    }
 
 
-   function regex_search($keywords)
-   {
-        return new \MongoDB\BSON\Regex('^'.$keywords, 'i');
-   }
-
    function apply_feature_filter($feature_name,$value)
    {
         $parsed_val=$this->parse_filter_value($value);
@@ -1048,19 +1140,6 @@ class Data_table_mongo_model extends CI_Model {
                 $update_data['description'] = $description;
             }
             
-            if (isset($form_data['indicators']) && $form_data['indicators']) {
-                $update_data['indicators'] = is_string($form_data['indicators']) ? 
-                    json_decode($form_data['indicators'], true) : $form_data['indicators'];
-            }
-            
-            for ($i = 1; $i <= 9; $i++) {
-                $feature_key = 'feature_' . $i;
-                if (isset($form_data[$feature_key]) && $form_data[$feature_key]) {
-                    $update_data[$feature_key] = is_string($form_data[$feature_key]) ? 
-                        json_decode($form_data[$feature_key], true) : $form_data[$feature_key];
-                }
-            }
-            
             $result = $this->update_table_type($db_id, $table_id, $update_data);
 
             return array(
@@ -1090,19 +1169,6 @@ class Data_table_mongo_model extends CI_Model {
                 )
             );
             
-            if (isset($form_data['indicators']) && $form_data['indicators']) {
-                $table_metadata['indicators'] = is_string($form_data['indicators']) ? 
-                    json_decode($form_data['indicators'], true) : $form_data['indicators'];
-            }
-            
-            for ($i = 1; $i <= 9; $i++) {
-                $feature_key = 'feature_' . $i;
-                if (isset($form_data[$feature_key]) && $form_data[$feature_key]) {
-                    $table_metadata[$feature_key] = is_string($form_data[$feature_key]) ? 
-                        json_decode($form_data[$feature_key], true) : $form_data[$feature_key];
-                }
-            }
-            
             $result = $this->create_table($db_id, $table_id, $table_metadata);
             return array(
                 'action' => 'created',
@@ -1110,24 +1176,6 @@ class Data_table_mongo_model extends CI_Model {
                 'was_existing' => false
             );
         }
-   }
-
-
-   function update_many($db_id,$table_id,$update_filter,$update_options)
-   {
-        $table_id=strtolower($table_id);
-        $db_id=strtolower($db_id);
-    
-        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
-        
-        $result = $collection->updateMany(
-            $update_filter,
-            [ '$set' => $update_options]
-        );
-
-        //$result = $collection->updateMany($update_filter,$update_options);
-        $updated_count=$result->getModifiedCount();        
-        return $updated_count;
    }
 
 
@@ -1167,26 +1215,6 @@ class Data_table_mongo_model extends CI_Model {
      * Get features array - id, name 
      * 
      */
-    function get_features_by_table($db_id,$table_id)
-    {       
-        if($this->table_type_obj==null){
-            $this->table_type_obj=$this->get_table_type($db_id,$table_id);
-        }
-
-        if(!$this->table_type_obj['features']){
-            return array();
-        }
-
-        //features
-        $features_list=array();
-
-        foreach($this->table_type_obj['features'] as $feature){
-            $features_list[$feature['feature_name']]=$feature['feature_name'];
-        }
-
-        return $features_list;        
-    }
-
     /**
      * 
      * 
@@ -1223,122 +1251,15 @@ class Data_table_mongo_model extends CI_Model {
 
     function delete_table_type($db_id,$table_id)
     {
-        $collection=$this->mongo_client->{$this->get_db_name()}->{'table_types'};
-        $result = $collection->deleteOne(['_id' => $this->get_table_name($db_id,$table_id) ]);
+        // Delete field metadata from table_dictionary
+        $this->delete_table_fields($db_id, $table_id);
+        
+        // Delete table definition from table_types
+        $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+        $result = $collection->deleteOne(['_id' => $this->get_table_name($db_id, $table_id)]);
         return $result->getDeletedCount();
     }
 
-
-
-    function get_db_error()
-    {
-        $error=$this->db->error();
-        if(is_array($error)){
-            return implode(", ",$error);
-        }		
-    }
-
-
-    function geo_search($db_id,$options,$fields='')
-   {
-        /*return array(
-            'options'=>$options,
-            'fields'=>$fields
-        );*/
-
-        $limit=250;
-
-        //geo fields + others
-        $features=array(
-            'level'=>'level',
-            'state'=> 'state',
-            'district'=> 'district',
-            'subdistrict'=> 'subdistrict',
-            'town_village'=>'town_village',
-            'ward'=> 'ward',
-        );
-
-        $fields=explode(",",$fields);
-
-        $projection=[
-            '_id'=>0
-        ];
-
-        //set projection fields
-        foreach($fields as $field){
-            if (array_key_exists($field,$features)){
-                $projection[$field]=1;
-            }
-            if ($field=='areaname'){
-                $projection[$field]=1;
-            }
-        }
-
-
-        $text_search_field='areaname';
-
-        $feature_filters=array();
-
-        //see if any key matches with the feature name
-        foreach($options as $key=>$value)
-        {
-            if(array_key_exists($key,$features)){
-                 $feature_filters[$key]=$value; //age=something
-            }
-        }
-        
-        $tmp_feature_filters=array();
-
-        //filter by features - uses feature_1, feature_2,... for searching
-        foreach($feature_filters as $feature_key=>$value){
-            $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
-        }
-
-
-        if(isset($options[$text_search_field])){            
-            //$tmp_feature_filters[$text_search_field][][$text_search_field]=$this->regex_search($options[$text_search_field]);
-            $tmp_feature_filters[$text_search_field][]['$text']=$this->text_search($options[$text_search_field]);
-        }
-
-
-        $feature_filters=array(
-            //'$and'=> array()
-        );
-
-        foreach($tmp_feature_filters as $feature_key=>$filter){
-            $feature_filters['$and'][]['$or']=$filter;
-        }
-
-        //return $feature_filters;
-
-        //$feature_filters=$tmp_feature_filters;
-
-        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,"geo_codes")};
-        
-        $cursor = $collection->find(
-            $feature_filters,
-            [
-                /*'projection'=>[
-                    '_id'=>0
-                ],*/
-                'projection'=>$projection,
-                'limit' => $limit
-            ]
-        );
-
-        $output=array();
-        $output['features']=$features;        
-        $output['feature_filters']=$feature_filters;
-        $output['found']=$collection->count($feature_filters);
-        $output['total']=$collection->count();
-        $output['data']=array();
-
-        foreach ($cursor as $document) {
-            $output['data'][]= $document;
-        }
-        
-        return $output;
-   } 
 
 
    /**
@@ -1480,21 +1401,6 @@ function format_execution_time($seconds)
 }
 
 
-   function import_csv($db_id, $table_id, $csv_path, $delimiter = '')
-   {
-       $result = $this->import_csv_chunked(
-           $db_id, 
-           $table_id, 
-           $csv_path, 
-           $delimiter, 
-           0, // byte offset (start from beginning)
-           600 // 10 minutes timeout
-       );
-       
-        return $result;
-   }
-
-
    function get_table_aggregate($db_id,$table_id,$limit=100,$offset=0,$options)
    {    
         $limit=intval($limit);
@@ -1600,11 +1506,31 @@ function format_execution_time($seconds)
         $feature_filters=array();
         $filter_options=array();
 
-        //see if any key matches with the feature name
-        foreach($options as $key=>$value)
-        {
-            if(array_key_exists($key,$features)){
-                $filter_options[$key]=$value; //age=something
+        // Reserved parameters that should never be treated as field filters
+        $reserved_params = ['limit', 'offset', 'fields', 'ft_query', 'debug', 'format', 'disposition', 'indicator'];
+
+        // NEW FORMAT: Check for c['field'] format first
+        if (isset($options['c']) && is_array($options['c'])) {
+            foreach($options['c'] as $key => $value) {
+                if(array_key_exists($key, $features)){
+                    $filter_options[$key] = $value;
+                }
+            }
+        }
+
+        // LEGACY FORMAT: Check for direct field names (backward compatibility)
+        foreach($options as $key => $value) {
+            // Skip reserved parameters
+            if (in_array($key, $reserved_params)) {
+                continue;
+            }
+            // Skip if already processed from 'c' array
+            if (isset($options['c']) && is_array($options['c']) && isset($options['c'][$key])) {
+                continue;
+            }
+            // Check if key matches a field name
+            if(array_key_exists($key, $features)){
+                $filter_options[$key] = $value;
             }
         }
         
@@ -1637,108 +1563,212 @@ function format_execution_time($seconds)
    }
 	
    /**
+    * Get field metadata for a table (from table_dictionary collection)
     * 
-    * Get field metadata for a table
-    * 
+    * @param string $db_id Database ID
+    * @param string $table_id Table ID
+    * @param string|null $field_name Field name (optional - if provided, returns single field)
+    * @return array|null Field metadata or array of fields
     */
    function get_field_metadata($db_id, $table_id, $field_name = null)
    {
-       $table_type = $this->get_table_type($db_id, $table_id);
+       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
        
-       if (!$table_type || !isset($table_type['fields'])) {
-           return null;
-       }
+       $filter = [
+           'db_id' => strtolower($db_id),
+           'table_id' => strtolower($table_id)
+       ];
        
        if ($field_name) {
-           foreach ($table_type['fields'] as $field) {
-               if ($field['name'] === $field_name) {
-                   return $field;
-               }
-           }
-           return null;
+           // Get single field
+           $field_id = $this->get_field_dictionary_id($db_id, $table_id, $field_name);
+           $result = $collection->findOne(['_id' => $field_id]);
+           return $result ? (array)$result : null;
        }
        
-       // Return all fields
-       return $table_type['fields'];
+       // Get all fields, sorted by field_order
+       $cursor = $collection->find(
+           $filter,
+           ['sort' => ['field_order' => 1]]
+       );
+       
+       $fields = [];
+       foreach ($cursor as $doc) {
+           $fields[] = (array)$doc;
+       }
+       
+       return $fields;
    }
 
    /**
+    * Create field metadata in table_dictionary collection
     * 
-    * Create or update field metadata
-    * 
+    * @param string $db_id Database ID
+    * @param string $table_id Table ID
+    * @param array $field_metadata Field metadata array
+    * @return int Number of documents inserted
     */
    function create_field_metadata($db_id, $table_id, $field_metadata)
    {
-       $this->ensure_fields_array_exists($db_id, $table_id);
+       // Validate required parameters
+       if (empty($db_id)) {
+           throw new Exception("Database ID is required");
+       }
        
-       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+       if (empty($table_id)) {
+           throw new Exception("Table ID is required");
+       }
        
+       // Validate required fields
+       if (!isset($field_metadata['name']) || empty($field_metadata['name'])) {
+           throw new Exception("Field name is required");
+       }
+       
+       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
+       
+       // Set required fields
+       $field_metadata['db_id'] = strtolower($db_id);
+       $field_metadata['table_id'] = strtolower($table_id);
+       $field_metadata['_id'] = $this->get_field_dictionary_id($db_id, $table_id, $field_metadata['name']);
+       
+       // Set timestamps
+       $now = date('Y-m-d H:i:s');
+       $field_metadata['created_at'] = $now;
+       $field_metadata['updated_at'] = $now;
+       
+       // Set default field_order if not provided
+       if (!isset($field_metadata['field_order'])) {
+           $max_order = $this->get_max_field_order($db_id, $table_id);
+           $field_metadata['field_order'] = $max_order + 1;
+       }
+       
+       // Set defaults for optional fields
+       $field_metadata['time_period_format'] = $field_metadata['time_period_format'] ?? null;
+       $field_metadata['unit_of_measurement'] = $field_metadata['unit_of_measurement'] ?? null;
+       $field_metadata['format'] = $field_metadata['format'] ?? null;
+       $field_metadata['code_list'] = $field_metadata['code_list'] ?? [];
+       $field_metadata['code_list_reference'] = $field_metadata['code_list_reference'] ?? null;
+       
+       // Use updateOne with upsert to handle duplicates gracefully
        $result = $collection->updateOne(
-           ['_id' => $this->get_table_name($db_id, $table_id)],
-           ['$push' => ['fields' => $field_metadata]]
+           ['_id' => $field_metadata['_id']],
+           ['$set' => $field_metadata],
+           ['upsert' => true]
        );
        
-       return $result->getModifiedCount();
+       return $result->getUpsertedCount() > 0 ? 1 : $result->getModifiedCount();
    }
 
    /**
+    * Update field metadata in table_dictionary collection
     * 
-    * Update field metadata
-    * 
+    * @param string $db_id Database ID
+    * @param string $table_id Table ID
+    * @param string $field_name Field name
+    * @param array $update_data Fields to update
+    * @return int Number of documents modified
     */
-   function update_field_metadata($db_id, $table_id, $field_name, $field_metadata)
+   function update_field_metadata($db_id, $table_id, $field_name, $update_data)
    {
-       $this->ensure_fields_array_exists($db_id, $table_id);
+       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
        
-       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+       $field_id = $this->get_field_dictionary_id($db_id, $table_id, $field_name);
+       
+       // Don't allow updating name (would require changing _id)
+       if (isset($update_data['name'])) {
+           unset($update_data['name']);
+       }
+       
+       // Always update updated_at
+       $update_data['updated_at'] = date('Y-m-d H:i:s');
        
        $result = $collection->updateOne(
-           [
-               '_id' => $this->get_table_name($db_id, $table_id),
-               'fields.name' => $field_name
-           ],
-           ['$set' => ['fields.$' => $field_metadata]]
+           ['_id' => $field_id],
+           ['$set' => $update_data]
        );
        
        return $result->getModifiedCount();
    }
 
    /**
+    * Delete field metadata from table_dictionary collection
     * 
-    * Delete field metadata
-    * 
+    * @param string $db_id Database ID
+    * @param string $table_id Table ID
+    * @param string $field_name Field name
+    * @return int Number of documents deleted
     */
    function delete_field_metadata($db_id, $table_id, $field_name)
    {
-       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
        
-       // Remove field from the fields array
-       $result = $collection->updateOne(
-           ['_id' => $this->get_table_name($db_id, $table_id)],
-           ['$pull' => ['fields' => ['name' => $field_name]]]
-       );
+       $field_id = $this->get_field_dictionary_id($db_id, $table_id, $field_name);
+       $result = $collection->deleteOne(['_id' => $field_id]);
        
-       return $result->getModifiedCount();
+       return $result->getDeletedCount();
+   }
+
+   /**
+    * Get all fields for a table (alias for get_field_metadata without field_name)
+    * 
+    * @param string $db_id Database ID
+    * @param string $table_id Table ID
+    * @param bool $sort_by_order Sort by field_order (default: true)
+    * @return array Array of field metadata
+    */
+   function get_table_fields($db_id, $table_id, $sort_by_order = true)
+   {
+       return $this->get_field_metadata($db_id, $table_id);
+   }
+
+   /**
+    * Delete all fields for a table (cascade delete)
+    * 
+    * @param string $db_id Database ID
+    * @param string $table_id Table ID
+    * @return int Number of documents deleted
+    */
+   function delete_table_fields($db_id, $table_id)
+   {
+       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
+       
+       $result = $collection->deleteMany([
+           'db_id' => strtolower($db_id),
+           'table_id' => strtolower($table_id)
+       ]);
+       
+       return $result->getDeletedCount();
    }
 	
    /**
+    * Reorder fields for a table
     * 
-    * Ensure fields array exists in table type
-    * 
+    * @param string $db_id Database ID
+    * @param string $table_id Table ID
+    * @param array $field_orders Associative array: ['field_name' => order_number]
+    * @return int Number of documents updated
     */
-   function ensure_fields_array_exists($db_id, $table_id)
+   function reorder_fields($db_id, $table_id, $field_orders)
    {
-       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+       $collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
+       $updated = 0;
+       $now = date('Y-m-d H:i:s');
        
+       foreach ($field_orders as $field_name => $order) {
+           $field_id = $this->get_field_dictionary_id($db_id, $table_id, $field_name);
        $result = $collection->updateOne(
-           [
-               '_id' => $this->get_table_name($db_id, $table_id),
-               'fields' => ['$exists' => false]
-           ],
-           ['$set' => ['fields' => []]]
+               ['_id' => $field_id],
+               [
+                   '$set' => [
+                       'field_order' => (int)$order,
+                       'updated_at' => $now
+                   ]
+               ]
        );
+           $updated += $result->getModifiedCount();
+       }
        
-       return $result->getModifiedCount();
+       return $updated;
    }
 	
    /**
@@ -1768,28 +1798,128 @@ function format_execution_time($seconds)
    }
 
 	/**
+	 * Populate table schema from actual data collection
+	 * Creates field metadata in table_dictionary for each field found in data
 	 * 
-	 * Update table schema in table_types collection
-	 * 
+	 * @param string $db_id Database ID
+	 * @param string $table_id Table ID
+	 * @return int Number of fields created
 	 */
-	function update_table_schema($db_id, $table_id, $fields_metadata)
+	function populate_table_schema($db_id, $table_id)
 	{
-		try {
-			$collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
+		$field_names = $this->get_data_field_names($db_id, $table_id);
+		
+		if (empty($field_names)) {
+			throw new Exception("No data found in the collection to extract schema from");
+		}
+		
+		$collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
+		$fields_created = 0;
+		
+		foreach ($field_names as $index => $field_name) {
+			// Generate field ID
+			$field_id = $this->get_field_dictionary_id($db_id, $table_id, $field_name);
 			
-			$this->ensure_fields_array_exists($db_id, $table_id);
+			// Check if field already exists
+			$existing = $collection->findOne(['_id' => $field_id]);
 			
-			// Replace the entire fields array with new metadata
+			if (!$existing) {
+				// Create default field metadata
+				$field_metadata = $this->get_default_field_metadata($field_name, $db_id, $table_id);
+				$field_metadata['_id'] = $field_id;
+				$field_metadata['field_order'] = $index + 1;
+				
+				// Use upsert to prevent race condition (only insert if doesn't exist)
+				// $setOnInsert ensures we only set these fields on insert, not on update
 			$result = $collection->updateOne(
-				['_id' => $this->get_table_name($db_id, $table_id)],
-				['$set' => ['fields' => $fields_metadata]]
+					['_id' => $field_id],
+					['$setOnInsert' => $field_metadata],
+					['upsert' => true]
 			);
 			
-			return $result->getModifiedCount() > 0 || $result->getMatchedCount() > 0;
-		} catch (Exception $e) {
-			log_message('error', 'Failed to update table schema: ' . $e->getMessage());
-			return false;
+				// Only count as created if it was actually inserted (not updated)
+				if ($result->getUpsertedCount() > 0) {
+					$fields_created++;
+				}
+			} else {
+				// Field exists - check if it's missing db_id or table_id and fix it
+				$existing_array = (array)$existing;
+				$needs_update = false;
+				$update_data = [];
+				
+				if (!isset($existing_array['db_id']) || $existing_array['db_id'] !== strtolower($db_id)) {
+					$update_data['db_id'] = strtolower($db_id);
+					$needs_update = true;
+				}
+				
+				if (!isset($existing_array['table_id']) || $existing_array['table_id'] !== strtolower($table_id)) {
+					$update_data['table_id'] = strtolower($table_id);
+					$needs_update = true;
+				}
+				
+				// Update field_order if it's missing or incorrect
+				if (!isset($existing_array['field_order']) || $existing_array['field_order'] != ($index + 1)) {
+					$update_data['field_order'] = $index + 1;
+					$needs_update = true;
+				}
+				
+				if ($needs_update) {
+					$update_data['updated_at'] = date('Y-m-d H:i:s');
+					$collection->updateOne(
+						['_id' => $field_id],
+						['$set' => $update_data]
+					);
+					$fields_created++; // Count as "fixed"
+				}
+			}
 		}
+		
+		return $fields_created;
+	}
+
+	/**
+	 * Sync field metadata with actual data fields
+	 * Deletes fields that don't exist in data and adds new fields from data
+	 * 
+	 * @param string $db_id Database ID
+	 * @param string $table_id Table ID
+	 * @return array Array with fields_removed and fields_added counts
+	 */
+	function sync_table_fields($db_id, $table_id)
+	{
+		// Get actual fields from data
+		$actual_fields = $this->get_data_field_names($db_id, $table_id);
+		
+		if (empty($actual_fields)) {
+			throw new Exception("No data found in the collection to extract fields from");
+		}
+		
+		// Get all field definitions from dictionary
+		$dict_fields = $this->get_table_fields($db_id, $table_id);
+		$dict_field_names = array();
+		foreach ($dict_fields as $field) {
+			$dict_field_names[$field['name']] = $field;
+		}
+		
+		$fields_removed = 0;
+		$fields_added = 0;
+		
+		// Delete fields that don't exist in actual data
+		foreach ($dict_field_names as $field_name => $field_data) {
+			if (!in_array($field_name, $actual_fields)) {
+				$this->delete_field_metadata($db_id, $table_id, $field_name);
+				$fields_removed++;
+			}
+		}
+		
+		// Populate schema for new fields (only creates missing ones)
+		$fields_added = $this->populate_table_schema($db_id, $table_id);
+		
+		return array(
+			'fields_removed' => $fields_removed,
+			'fields_added' => $fields_added,
+			'total_fields' => count($actual_fields)
+		);
 	}
 
 	/**
@@ -2111,6 +2241,137 @@ function format_execution_time($seconds)
 				throw new Exception("Data inconsistency: expected {$expected_row_count} rows, found {$existing_rows} rows. Use DELETE endpoint to reset.");
 			}
 		}
+	}
+
+	/**
+	 * Generate field dictionary document ID
+	 */
+	private function get_field_dictionary_id($db_id, $table_id, $field_name)
+	{
+		return 'dict_' . strtolower($db_id) . '_' . strtolower($table_id) . '_' . strtolower($field_name);
+	}
+
+	/**
+	 * Get maximum field_order for a table
+	 */
+	private function get_max_field_order($db_id, $table_id)
+	{
+		$collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
+		
+		$result = $collection->findOne(
+			[
+				'db_id' => strtolower($db_id),
+				'table_id' => strtolower($table_id)
+			],
+			[
+				'sort' => ['field_order' => -1],
+				'projection' => ['field_order' => 1]
+			]
+		);
+		
+		return $result && isset($result['field_order']) ? (int)$result['field_order'] : 0;
+	}
+
+	/**
+	 * Get default field metadata structure
+	 */
+	private function get_default_field_metadata($field_name, $db_id, $table_id)
+	{
+		$max_order = $this->get_max_field_order($db_id, $table_id);
+		$now = date('Y-m-d H:i:s');
+		
+		return [
+			'name' => $field_name,
+			'label' => $field_name,
+			'description' => '',
+			'data_type' => 'string',
+			'column_type' => 'dimension',
+			'time_period_format' => null,
+			'unit_of_measurement' => null,
+			'format' => null,
+			'field_order' => $max_order + 1,
+			'code_list' => [],
+			'code_list_reference' => null,
+			'db_id' => strtolower($db_id),
+			'table_id' => strtolower($table_id),
+			'created_at' => $now,
+			'updated_at' => $now
+		];
+	}
+
+	/**
+	 * Create indexes on table_dictionary collection
+	 * Call this method once to set up indexes for optimal query performance
+	 * 
+	 * @return array Array of index creation results
+	 */
+	function create_dictionary_indexes()
+	{
+		$collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
+		$results = [];
+		
+		try {
+			// Primary lookup: Get all fields for a table (sorted by field_order)
+			$results['idx_table_fields'] = $collection->createIndex(
+				[
+					'db_id' => 1,
+					'table_id' => 1,
+					'field_order' => 1
+				],
+				['name' => 'idx_table_fields']
+			);
+		} catch (Exception $e) {
+			$results['idx_table_fields'] = ['error' => $e->getMessage()];
+		}
+		
+		try {
+			// Field lookup: Get specific field (unique constraint)
+			$results['idx_table_field_name'] = $collection->createIndex(
+				[
+					'db_id' => 1,
+					'table_id' => 1,
+					'name' => 1
+				],
+				['name' => 'idx_table_field_name', 'unique' => true]
+			);
+		} catch (Exception $e) {
+			$results['idx_table_field_name'] = ['error' => $e->getMessage()];
+		}
+		
+		try {
+			// Cross-table queries: Find fields by name across tables
+			$results['idx_field_name'] = $collection->createIndex(
+				['name' => 1],
+				['name' => 'idx_field_name']
+			);
+		} catch (Exception $e) {
+			$results['idx_field_name'] = ['error' => $e->getMessage()];
+		}
+		
+		try {
+			// Column type queries: Find all measures, dimensions, etc.
+			$results['idx_column_type'] = $collection->createIndex(
+				['column_type' => 1],
+				['name' => 'idx_column_type']
+			);
+		} catch (Exception $e) {
+			$results['idx_column_type'] = ['error' => $e->getMessage()];
+		}
+		
+		try {
+			// Text search on labels and descriptions
+			$results['idx_text_search'] = $collection->createIndex(
+				[
+					'label' => 'text',
+					'description' => 'text'
+				],
+				['name' => 'idx_text_search']
+			);
+		} catch (Exception $e) {
+			$results['idx_text_search'] = ['error' => $e->getMessage()];
+		}
+		
+		return $results;
 	}
 	
 }    

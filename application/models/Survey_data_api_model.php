@@ -45,6 +45,22 @@ class survey_data_api_model extends CI_Model {
 		}		
 	}
 
+	function get_by_table($db_id, $table_id)
+	{
+		$this->db->select('survey_data_api.*, surveys.idno, surveys.title, surveys.nation, surveys.year_start');
+		$this->db->from('survey_data_api');
+		$this->db->join('surveys', 'survey_data_api.sid = surveys.id', 'inner');
+		$this->db->where('survey_data_api.db_id', $db_id);
+		$this->db->where('survey_data_api.table_id', $table_id);
+		$result = $this->db->get()->result_array();
+
+		if($result){
+			return $result;
+		}
+		
+		return array();
+	}
+
 	function delete($id)
 	{
 		$this->db->where('id', $id);
