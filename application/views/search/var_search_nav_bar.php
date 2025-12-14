@@ -95,8 +95,7 @@
                 <?php echo t('Variable view');?>
                 <i class="fas fa-times"></i>
             </span>
-            
-            <a href="<?php echo site_url('catalog');?>?tab_type=<?php echo $search_options->tab_type; ?>" class="btn-reset-search btn btn-outline-danger btn-sm"><?php echo t('reset_search');?></a>
+            <a href="<?php echo site_url('catalog');?>?tab_type=<?php echo html_escape($search_options->tab_type); ?>" class="btn-reset-search btn btn-outline-danger btn-sm"><?php echo t('reset_search');?></a>
         </div>        
     <?php endif;?>
 </div>

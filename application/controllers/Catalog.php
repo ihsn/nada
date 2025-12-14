@@ -69,6 +69,29 @@ class Catalog extends MY_Controller {
 		}
 	}
 
+	
+	private function validate_tab_type($tab_type)
+	{
+		if (empty($tab_type)) {
+			return '';
+		}
+
+		$allowed_types = $this->Search_helper_model->get_dataset_types($this->active_repo_id);
+		$allowed_type_codes = array_keys($allowed_types);
+		
+		// Include 'all'
+		$allowed_type_codes[] = 'all';
+		
+		$tab_type_lower = strtolower(trim($tab_type));
+		$allowed_type_codes = array_map('strtolower', $allowed_type_codes);
+		
+		if (in_array($tab_type_lower, $allowed_type_codes)) {
+			return $tab_type_lower;
+		}
+		
+		return '';
+	}
+
 
 	private function set_enabled_filters($active_tab=null)
 	{
@@ -307,7 +330,7 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
     {
-		$this->active_tab=xss_clean((string)$this->input->get("tab_type"));
+		$this->active_tab = $this->validate_tab_type((string)$this->input->get("tab_type"));
 		$dataset_view=$this->get_type_pageview($this->active_tab);
 		
 		$output= $this->_search();
@@ -348,7 +371,7 @@ class Catalog extends MY_Controller {
 				//fallback - get survey counts
 				$tabs['search_counts_by_type'] = array('survey' => isset($output['surveys']['found']) ? $output['surveys']['found'] : 0);
 			}
-			$tabs['active_tab']=xss_clean($this->input->get("tab_type"));
+			$tabs['active_tab'] = $this->validate_tab_type(xss_clean((string)$this->input->get("tab_type")));
 		}
 
 		$output['tabs']=$tabs;		
@@ -370,7 +393,7 @@ class Catalog extends MY_Controller {
 	 */
 	function search()
 	{
-		$this->active_tab=xss_clean($this->input->get("tab_type"));		
+		$this->active_tab = $this->validate_tab_type($this->input->get("tab_type"));
 		$dataset_view=$this->get_type_pageview($this->active_tab);
 		//$this->load_facets_data();
 
@@ -424,7 +447,7 @@ class Catalog extends MY_Controller {
 		$search_options->sid			=$this->is_numeric_array(xss_clean($this->input->get("sid")));
 		$search_options->type			=xss_clean($this->input->get("type"));
 		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
-		$search_options->tab_type		=xss_clean($this->input->get("tab_type"));
+		$search_options->tab_type		= $this->validate_tab_type(xss_clean($this->input->get("tab_type")));
 		$search_options->repo			=xss_clean($this->active_repo_id);
 		$search_options->ps				=$limit;
 		$offset=						($search_options->page-1)*$limit;
