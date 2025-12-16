@@ -15,9 +15,9 @@
 <form method="get" id="catalog-search-form">    
     <input type="hidden" name="tab_type" id="tab_type" value="<?php echo form_prep($search_options->tab_type);?>"/>
     <?php //if($search_options->page>1):?>
-    <input type="hidden" name="page" id="page" value="<?php echo $search_options->page;?>"/>
+    <input type="hidden" name="page" id="page" value="<?php echo form_prep($search_options->page);?>"/>
     <?php //endif;?>
-    <input type="hidden" name="view" id="view" value="<?php echo $search_options->view;?>"/>
+    <input type="hidden" name="view" id="view" value="<?php echo form_prep($search_options->view);?>"/>
     <input type="hidden" name="image_view" id="image_view" value="<?php echo form_prep($search_options->image_view);?>"/>
 
     <?php if($search_box_orientation!=='inline'):?>
