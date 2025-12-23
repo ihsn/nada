@@ -612,7 +612,7 @@ class Analytics extends MY_REST_Controller
 				$this->set_response($response, REST_Controller::HTTP_OK);
 			} else {
 				$response = array(
-					'status' => true					
+					'status' => $result					
 				);
 				$this->set_response($response, REST_Controller::HTTP_OK);
 			}

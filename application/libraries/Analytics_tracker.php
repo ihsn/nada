@@ -15,6 +15,8 @@ class Analytics_tracker {
 	public function __construct()
 	{
 		$this->CI =& get_instance();
+		//load config
+		$this->CI->config->load('analytics');
 		$this->CI->load->model('Analytics_event_tracker_model');
 		$this->CI->load->model('Analytics_model');
 		$this->event_tracker = $this->CI->Analytics_event_tracker_model;
