@@ -8,7 +8,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 
 // Enable/disable analytics tracking
-$config['analytics_enabled'] = true;
+$config['analytics_enabled'] = false;
 
 // Tracking source: 'builtin' or 'google_analytics'
 // When 'builtin', uses client-side JS tracker
@@ -17,7 +17,7 @@ $config['analytics_tracking_source'] = 'builtin';
 
 // Session timeout for client-side tracking (minutes)
 // If a user is inactive for this period, a new session ID will be generated.
-$config['analytics_session_timeout_minutes'] = 10;
+$config['analytics_session_timeout_minutes'] = 5;
 
 // Deduplication window (minutes)
 // Pageviews for the same study within this window will be ignored.
