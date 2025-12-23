@@ -15,7 +15,7 @@ class Filestore extends MY_REST_Controller
 
     /**
 	 * 
-	 * list files
+	 * list files with search, pagination, filtering, and sorting
 	 * 
 	 **/
 	function index_get($file_name=null)
@@ -26,16 +26,43 @@ class Filestore extends MY_REST_Controller
 				return $this->single_file($file_name);
 			}
 
-			$files_count=$this->Filestore_model->get_file_counts();
+			// Get query parameters
+			$per_page = (int)$this->input->get('limit') ?: 15;
+			$offset = (int)$this->input->get('offset') ?: 0;
+			$sort_by = $this->input->get('sort_by') ?: 'changed';
+			$sort_order = $this->input->get('sort_order') ?: 'desc';
+			
+			// Build filter array
+			$filter = array();
+			if ($this->input->get('search')) {
+				$filter['keywords'] = $this->input->get('search');
+				$filter['field'] = $this->input->get('field') ?: 'file_name';
+			}
+			if ($this->input->get('filter_type')) {
+				$filter['filter_type'] = $this->input->get('filter_type');
+			}
+			if ($this->input->get('filter_images') === 'true' || $this->input->get('filter_images') === '1') {
+				$filter['filter_images'] = true;
+			}
+
+			// Get files with search/pagination
+			$files = $this->Filestore_model->search($per_page, $offset, $filter, $sort_by, $sort_order);
+			$total = $this->Filestore_model->search_count($filter);
+
 			$response=array(
-				'total'=>$files_count,
-				'files'=>$this->Filestore_model->select_all() //top 1000 only
+				'status' => 'success',
+				'total'=>$total,
+				'files'=>$files
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+			$output=array(
+				'status'=>'error',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}	
 	}
 	
@@ -48,20 +75,25 @@ class Filestore extends MY_REST_Controller
 	private function single_file($file_name=null)
 	{
 		try{
-			$file=$this->Filestore_model->find($file_name);
+			$file=$this->Filestore_model->get_file_with_size($file_name);
 
 			if (!$file){
 				throw new Exception("file_not_found");
 			}
 
 			$response=array(
+				'status' => 'success',
 				'file'=>$file				
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+			$output=array(
+				'status'=>'error',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}	
     }
     
@@ -151,6 +183,15 @@ class Filestore extends MY_REST_Controller
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+
+	public function _auth_override_check()
+    {
+        if ($this->session->userdata('user_id')){
+            return true;
+        }
+        return parent::_auth_override_check();
+    }
 
 
 
