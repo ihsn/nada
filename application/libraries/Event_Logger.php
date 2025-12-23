@@ -173,6 +173,11 @@ class Event_Logger {
 	 */
 	private function validate_analytics_request($type = 'pageview', $data = array())
 	{
+		// Check if analytics tracking is enabled
+		if (!$this->ci->config->item('analytics_enabled')) {
+			return false;
+		}
+		
 		// Filter HEAD requests - these are just probes, not actual requests
 		if (isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) === 'HEAD') {
 			return false;

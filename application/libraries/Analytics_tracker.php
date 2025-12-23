@@ -31,6 +31,9 @@ class Analytics_tracker {
 	 */
 	public function track_pageview($study_id, $session_id = null, $data = array())
 	{
+		if (!$this->CI->config->item('analytics_enabled')) {
+			return false;
+		}
 		return $this->event_tracker->track_pageview($study_id, $session_id, $data);
 	}
 	
@@ -44,6 +47,9 @@ class Analytics_tracker {
 	 */
 	public function track_download($study_id, $file_name, $data = array())
 	{
+		if (!$this->CI->config->item('analytics_enabled')) {
+			return false;
+		}
 		return $this->event_tracker->track_download($study_id, $file_name, $data);
 	}
 	
