@@ -208,6 +208,28 @@ $config['acl_permissions'] = [
             ]
         ]
     ],
+    "filestore"=>[ 
+        "title" => "Filestore",
+        "description"=> "Manage filestore files",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "View and browse filestore files"
+            ],
+            [
+                "permission" => "upload",
+                "description" => "Upload files to filestore"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete files from filestore"
+            ],
+            [
+                "permission" => "download",
+                "description" => "Download files from filestore"
+            ]
+        ]
+    ],
 
 ];
 

@@ -15,7 +15,6 @@
     <style>
         body {
             background-color: #f8f9fa;
-            padding: 20px 0;
         }
         .card {
             margin-bottom: 30px;

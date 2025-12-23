@@ -19,6 +19,15 @@
 .show-scroll{height:200px;overflow:auto;}
 </style>
 
+<?php if (isset($survey) && isset($survey['owner_repo'])):?>
+<span 
+	id="dataset-metadata-info" 
+	data-repositoryid="<?php echo $survey['owner_repo']['repositoryid'];?>"
+	data-id="<?php echo $survey['id'];?>"
+	data-idno="<?php echo $survey['idno'];?>"
+></span>
+<?php endif;?>
+
 <div style="text-align:right;">
 <a <?php echo ($this->input->get("ajax") ? 'target="_blank"' : '') ;?> href="<?php echo site_url();?>/auth/profile" class="button-light"><?php echo t('view_all_requests');?></a>
 </div>

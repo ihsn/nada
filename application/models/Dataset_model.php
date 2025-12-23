@@ -1928,7 +1928,7 @@ class Dataset_model extends CI_Model {
 		}
 	}
 
-	function download_metadata_json($sid)
+	function download_metadata_json($sid, $download = false)
 	{
 		$dataset=$this->Dataset_model->get_row($sid);
 
@@ -1958,12 +1958,19 @@ class Dataset_model extends CI_Model {
 		}
 
 		if(file_exists($json_path)){
-			header("Content-type: application/json; charset=utf-8");
-			$stdout = fopen('php://output', 'w');			
-			$fh = fopen($json_path, 'r');
-			stream_copy_to_stream($fh, $stdout);
-			fclose($fh);
-			fclose($stdout);
+			if($download){
+				// Force download of the JSON file
+				$this->load->helper("download");
+				force_download2($json_path);
+			} else {
+				// Display JSON inline in browser
+				header("Content-type: application/json; charset=utf-8");
+				$stdout = fopen('php://output', 'w');			
+				$fh = fopen($json_path, 'r');
+				stream_copy_to_stream($fh, $stdout);
+				fclose($fh);
+				fclose($stdout);
+			}
 		}
 	}
 

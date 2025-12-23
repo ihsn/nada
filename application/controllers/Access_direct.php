@@ -172,12 +172,11 @@ class Access_direct extends MY_Controller {
 		}
 		
 		$this->load->helper('download');
-
-		//log		
 		log_message('info','Downloading file <em>'.$file_path.'</em>');
-		$this->db_logger->write_log('survey',$file_id,'direct-download',$sid);
+		$this->analytics_tracker->track_download($sid, basename($file_path), array(
+			'file_type' => 'direct'
+		));
 
-		//start download
 		force_download2($file_path);
 	}
 

@@ -268,8 +268,9 @@ class Access_public extends MY_Controller {
 		
 		//log
 		log_message('info','Downloading file <em>'.$file_path.'</em>');
-		$this->db_logger->write_log('survey',$file_id,'public-download',$sid);
-		
+		$this->analytics_tracker->track_download($sid, basename($file_path), array(
+			'file_type' => 'public'
+		));
 		//start download
 		force_download2($file_path);
 	}

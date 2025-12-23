@@ -52,7 +52,17 @@ class Database_migration extends MY_Controller {
         // Check and disable database debug mode for security
         $db_debug_was_enabled = $this->ensure_db_debug_disabled();
         
+        $migration_output = '';
+        $migration_success = false;
+        $error_message = '';
+        $before_version = '';
+        $after_version = '';
+        
         try {
+            // Start output buffering to capture migration output
+            // Use nested output buffering to handle any existing buffers
+            ob_start();
+            
             $this->load->library('migration');
             
             // Check if migrations table exists, create if not
@@ -82,20 +92,43 @@ class Database_migration extends MY_Controller {
             
             $after_version = $this->get_current_version();
             
+            // Get captured output (clean the buffer and get contents)
+            if (ob_get_level() > 0) {
+                $migration_output = ob_get_clean();
+            }
+            
             if ($result === FALSE) {
-                $this->session->set_flashdata('error', 'Migration failed: ' . $this->migration->error_string());
+                $error_message = 'Migration failed: ' . $this->migration->error_string();
+                $migration_success = false;
             } else {
-                $message = 'Migration completed successfully. Version: ' . $before_version . ' → ' . $after_version;
-                if ($db_debug_was_enabled) {
-                    $message .= ' (Database debug mode was temporarily disabled during migration)';
-                }
-                $this->session->set_flashdata('message', $message);
+                $migration_success = true;
             }
         } catch (Exception $e) {
-            $this->session->set_flashdata('error', 'Migration error: ' . $e->getMessage());
+            // Get any output before exception
+            if (ob_get_level() > 0) {
+                $migration_output = ob_get_clean();
+            }
+            $error_message = 'Migration error: ' . $e->getMessage();
+            $migration_success = false;
         }
         
-        redirect('admin/database_migration');
+        // Prepare data for view
+        $data = array();
+        $data['page_title'] = 'Migration Output';
+        $data['version'] = $version;
+        $data['migration_output'] = $migration_output;
+        $data['migration_success'] = $migration_success;
+        $data['error_message'] = $error_message;
+        $data['before_version'] = $before_version;
+        $data['after_version'] = $after_version;
+        $data['db_debug_was_enabled'] = $db_debug_was_enabled;
+        
+        // Load view instead of redirecting
+        $content = $this->load->view('admin/database_migration/run_output', $data, TRUE);
+        
+        $this->template->write('title', $data['page_title'], TRUE);
+        $this->template->write('content', $content, TRUE);
+        $this->template->render();
     }
     
     function set_version($version = null)
