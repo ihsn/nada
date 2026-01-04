@@ -39,6 +39,9 @@ class Migration_Create_analytics_tables extends MY_Migration {
                 $this->db->query("CREATE INDEX `idx_study_file` ON `analytics_download_events` (`study_id`, `file_name`)");
                 $this->db->query("CREATE INDEX `idx_ts_study_file` ON `analytics_download_events` (`ts`, `study_id`, `file_name`)");
                 
+                $this->db->query("DROP INDEX IF EXISTS `idx_dedupe` ON `analytics_download_events`");
+                $this->db->query("CREATE INDEX `idx_dedupe` ON `analytics_download_events` (`study_id`, `file_name`, `hashed_ip`, `user_agent`, `ts`)");
+                
                 $this->db->query("DROP INDEX IF EXISTS `idx_file` ON `analytics_daily_files`");
                 $this->db->query("CREATE INDEX `idx_file` ON `analytics_daily_files` (`file_name`)");
                 
@@ -59,6 +62,9 @@ class Migration_Create_analytics_tables extends MY_Migration {
                 $this->db->query("DROP INDEX IF EXISTS idx_ts_study_file ON analytics_download_events");
                 $this->db->query("CREATE INDEX idx_study_file ON analytics_download_events (study_id, file_name)");
                 $this->db->query("CREATE INDEX idx_ts_study_file ON analytics_download_events (ts, study_id, file_name)");
+                
+                $this->db->query("DROP INDEX IF EXISTS idx_dedupe ON analytics_download_events");
+                $this->db->query("CREATE INDEX idx_dedupe ON analytics_download_events (study_id, file_name, hashed_ip, user_agent, ts)");
                 
                 $this->db->query("DROP INDEX IF EXISTS idx_file ON analytics_daily_files");
                 $this->db->query("CREATE INDEX idx_file ON analytics_daily_files (file_name)");
