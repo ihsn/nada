@@ -10,6 +10,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 // Enable/disable analytics tracking
 $config['analytics_enabled'] = false;
 
+// Enable/disable debug mode for analytics tracking
+$config['analytics_debug_js'] = false;
+
 // Tracking source: 'builtin' or 'google_analytics'
 // When 'builtin', uses client-side JS tracker
 // When 'google_analytics', uses GA4 API (future implementation)
