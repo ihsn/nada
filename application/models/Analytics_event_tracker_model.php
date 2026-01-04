@@ -57,14 +57,24 @@ class Analytics_event_tracker_model extends CI_Model {
 	 */
 	public function validate_request($type = 'pageview', $data = array())
 	{
-		// Filter HEAD requests - these are just probes, not actual requests
-		if (isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) === 'HEAD') {
-			return false;
+		// For downloads, only track GET requests. Filter out HEAD, POST, PUT, DELETE, OPTIONS, etc.
+		if ($type === 'download') {
+			$request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper($_SERVER['REQUEST_METHOD']) : 'GET';
+			if ($request_method !== 'GET') {
+				return false;
+			}
+			
+			// Filter Range requests - partial downloads or scrapers checking file size
+			if (isset($_SERVER['HTTP_RANGE']) && !empty($_SERVER['HTTP_RANGE'])) {
+				return false;
+			}
 		}
 		
-		// Filter Range requests - only for downloads (partial downloads or scrapers checking file size)
-		if ($type === 'download' && isset($_SERVER['HTTP_RANGE']) && !empty($_SERVER['HTTP_RANGE'])) {
-			return false;
+		// Filter HEAD requests for pageviews - these are just probes, not actual requests
+		if ($type === 'pageview') {
+			if (isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) === 'HEAD') {
+				return false;
+			}
 		}
 		
 		// Get user agent if not provided
@@ -129,6 +139,12 @@ class Analytics_event_tracker_model extends CI_Model {
 		$ip = $this->input->ip_address();
 		$hashed_ip = $this->hash_ip($ip);
 		
+		// Check for duplicate within deduplication window
+		if ($this->is_recent_duplicate($study_id, $file_name, $hashed_ip, $data['user_agent'])) {
+			log_message('debug', "Download dedupe: Duplicate prevented for {$study_id}/{$file_name}");
+			return false;
+		}
+		
 		$event = array(
 			'ts' => date('Y-m-d H:i:s'),
 			'study_id' => $study_id,
@@ -139,6 +155,47 @@ class Analytics_event_tracker_model extends CI_Model {
 		);
 		
 		return $this->db->insert('analytics_download_events', $event);
+	}
+	
+	/**
+	 * Check if a download was recently tracked (within deduplication window)
+	 * 
+	 * Prevents duplicate tracking of:
+	 * - Browser retries after failed downloads
+	 * - Accidental double-clicks
+	 * - Rapid consecutive download attempts
+	 * 
+	 * @param string $study_id Study identifier
+	 * @param string $file_name File name
+	 * @param string $hashed_ip Hashed IP address
+	 * @param string $user_agent User agent string
+	 * @return bool True if duplicate found within dedup window, false otherwise
+	 */
+	private function is_recent_duplicate($study_id, $file_name, $hashed_ip, $user_agent)
+	{
+		// Get deduplication window from config (in minutes, default 5)
+		$dedupe_window = $this->config->item('analytics_dedupe_window_minutes');
+		if (!$dedupe_window || $dedupe_window <= 0) {
+			return false; // Deduplication disabled
+		}
+		
+		// Calculate cutoff time
+		$cutoff_time = date('Y-m-d H:i:s', strtotime("-{$dedupe_window} minutes"));
+		
+		// Truncate user_agent to match what's stored in DB
+		$user_agent_truncated = substr($user_agent, 0, 200);
+		
+		// Query for recent duplicate
+		$this->db->where('study_id', $study_id);
+		$this->db->where('file_name', $file_name);
+		$this->db->where('hashed_ip', $hashed_ip);
+		$this->db->where('user_agent', $user_agent_truncated);
+		$this->db->where('ts >=', $cutoff_time);
+		$this->db->limit(1);
+		
+		$result = $this->db->get('analytics_download_events')->row_array();
+		
+		return !empty($result);
 	}
 	
 	/**

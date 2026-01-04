@@ -15,15 +15,9 @@
 (function(window, document) {
     'use strict';
 
-    // =========================================================
-    //  NAMESPACE
-    // =========================================================
     window.NADA = window.NADA || {};
     NADA.Analytics = {};
 
-    // =========================================================
-    //  CONFIGURATION
-    // =========================================================
     // Default configuration
     const DEFAULT_CONFIG = {
         baseUrl: '', // Must be provided via init() or NADA.Analytics.config
@@ -54,18 +48,12 @@
     // Merged configuration (will be set during init)
     let CONFIG = {};
 
-    // =========================================================
-    //  LOGGER
-    // =========================================================
     function log(msg, level = 'info') {
         if (!CONFIG.debug) return;
         const prefix = '[NADA Analytics]';
         console[level === 'error' ? 'error' : 'log'](prefix, msg);
     }
 
-    // =========================================================
-    //  STORAGE UTILITIES
-    // =========================================================
     function getStorage(key) {
         try {
             return JSON.parse(localStorage.getItem(CONFIG.storagePrefix + key));
@@ -78,9 +66,6 @@
         } catch (_) { /* ignore */ }
     }
 
-    // =========================================================
-    //  SESSION MANAGEMENT
-    // =========================================================
     function generateUUID() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
             const r = Math.random()*16|0;
@@ -111,9 +96,6 @@
         return session;
     }
 
-    // =========================================================
-    //  BOT FILTERING
-    // =========================================================
     function isBot() {
         const ua = navigator.userAgent || "";
 
@@ -122,16 +104,10 @@
         return CONFIG.userAgentBotPatterns.some(pattern => pattern.test(ua));
     }
 
-    // =========================================================
-    //  GA FALLBACK DETECTION
-    // =========================================================
     function isGAAvailable() {
         return typeof window.gtag === 'function' || typeof window.ga === 'function';
     }
 
-    // =========================================================
-    //  DE-DUPE LOGIC
-    // =========================================================
     // Use full page URL (pathname + hash) as deduplication key
     // This allows different tabs/pages of the same study to be tracked separately
     function getPageKey() {
@@ -152,9 +128,6 @@
         setStorage('session', session);
     }
 
-    // =========================================================
-    //  STUDY ID EXTRACTION
-    // =========================================================
     function getStudyId() {
         const el = document.querySelector('[data-study-id]');
         if (el) return el.getAttribute('data-study-id');
@@ -165,9 +138,6 @@
         return match ? match[1] : null;
     }
 
-    // =========================================================
-    //  API REQUEST WRAPPER (with error recovery)
-    // =========================================================
     async function sendPageview(data) {
         try {
             // Build API URL from baseUrl (ensure proper path construction)
@@ -198,10 +168,7 @@
             return false;
         }
     }
-
-    // =========================================================
-    //  MAIN TRACK FUNCTION
-    // =========================================================
+    
     async function trackPageview() {
         if (!CONFIG.enabled || !CONFIG.builtinEnabled) {
             log('Tracking disabled or built-in disabled', 'error');
@@ -262,9 +229,145 @@
         }
     }
 
-    // =========================================================
-    //  HASH CHANGE ROUTER
-    // =========================================================
+    
+    // EXTRACT SECTION FROM AJAX URL    
+    function extractSectionFromUrl(url) {
+        // Parse AJAX request URL to extract section/tab name
+        // Examples:
+        //   /catalog/452/variable/F3/V120?ajax=true -> 'variable'
+        //   /study/data_dictionary?ajax=true -> 'data_dictionary'
+        //   /study/related_materials?ajax=true -> 'related_materials'
+        
+        try {
+            // Pattern 1: /catalog/{id}/variable/{...} -> extract 'variable'
+            let match = url.match(/\/catalog\/\d+\/([a-z_]+)\//);
+            if (match && match[1]) {
+                return match[1];
+            }
+            
+            // Pattern 2: /study/{section}?ajax -> extract {section}
+            match = url.match(/\/study\/([a-z_]+)\/?[\?#]/);
+            if (match && match[1]) {
+                const segment = match[1];
+                // Filter out framework segments
+                if (!['api', 'admin', 'view', 'edit', 'create'].includes(segment)) {
+                    return segment;
+                }
+            }
+        } catch (e) {
+            console.log('[NADA Analytics] Error extracting section from URL: ' + url, e);
+        }
+        return null;
+    }
+
+    
+    // AJAX CONTENT TRACKING    
+    function trackAjaxPageview(section, ajaxUrl) {
+        console.log('[NADA Analytics] trackAjaxPageview called with section:', section, 'URL:', ajaxUrl);
+        
+        if (!CONFIG.enabled || !CONFIG.builtinEnabled) {
+            console.log('[NADA Analytics] Tracking disabled or built-in disabled');
+            return;
+        }
+        
+        if (isBot()) {
+            log('Bot detected in AJAX request, skipping.');
+            return;
+        }
+
+        const studyId = getStudyId();
+        console.log('[NADA Analytics] Study ID for AJAX:', studyId);
+        if (!studyId) {
+            console.log('[NADA Analytics] No study ID found for AJAX tracking');
+            return;
+        }
+
+        let session = initSession();
+        
+        // Create a unique page key combining study_id + section
+        // This allows deduplication per section, not just per URL
+        const ajaxPageKey = studyId + '::' + section;
+        console.log('[NADA Analytics] AJAX page key:', ajaxPageKey);
+
+        // Check if this section was recently tracked
+        if (isRecentlyTracked(session, ajaxPageKey)) {
+            console.log('[NADA Analytics] Dedupe: AJAX section suppressed:', ajaxPageKey);
+            return;
+        }
+
+        const payload = {
+            study_id: studyId,
+            session_id: session.id,
+            page_url: ajaxUrl,  // Use the AJAX request URL
+            section: section,
+            referrer: document.referrer || null,
+            source: 'ajax'
+        };
+
+        console.log('[NADA Analytics] Sending AJAX pageview for section:', section);
+        console.log('[NADA Analytics] AJAX Payload:', JSON.stringify(payload));
+
+        sendPageview(payload).then(ok => {
+            if (ok) {
+                markTracked(session, ajaxPageKey);
+                console.log('[NADA Analytics] AJAX pageview tracked successfully:', section);
+            } else {
+                console.log('[NADA Analytics] AJAX pageview tracking failed:', section);
+            }
+        }).catch(err => {
+            console.log('[NADA Analytics] AJAX tracking promise error:', err);
+        });
+    }
+
+    function setupJQueryAjaxTracking() {
+        // Only setup if jQuery is available
+        if (typeof window.jQuery === 'undefined') {
+            log('jQuery not available, AJAX tracking skipped');
+            return;
+        }
+
+        log('Setting up jQuery AJAX tracking...');
+
+        // Hook into jQuery's ajaxComplete event
+        // This fires after any AJAX request completes successfully
+        window.jQuery(document).on('ajaxComplete', function(event, xhr, settings) {
+            try {
+                // Extract URL and check if it's an AJAX request from study pages
+                const url = settings.url || '';
+                console.log('[NADA Analytics] AJAX Complete fired. Full URL:', url);
+                
+                // Only track AJAX requests from catalog/study pages
+                if (!url.includes('catalog/')) {
+                    console.log('[NADA Analytics] Skipping - not a catalog request');
+                    return;
+                }
+
+                // Only track explicit AJAX requests (with ?ajax=true parameter)
+                if (!url.includes('ajax=true') && !url.includes('ajax=1')) {
+                    console.log('[NADA Analytics] Skipping - no ajax parameter');
+                    return;
+                }
+
+                // Extract section name from URL
+                const section = extractSectionFromUrl(url);
+                console.log('[NADA Analytics] Extracted section from URL:', section, 'from URL:', url);
+                if (!section) {
+                    console.log('[NADA Analytics] Could not extract section from AJAX URL: ' + url);
+                    return;
+                }
+
+                console.log('[NADA Analytics] AJAX request matched. Section:', section, 'URL:', url);
+
+                // Track this AJAX content as a pageview
+                trackAjaxPageview(section, url);
+            } catch (err) {
+                console.log('[NADA Analytics] Error in AJAX tracking:', err.message || err);
+            }
+        });
+
+        log('jQuery AJAX tracking initialized');
+    }
+
     function setupHashTracking() {
         // Use hashchange event if available (more efficient)
         if ('onhashchange' in window) {
@@ -283,9 +386,6 @@
         }
     }
 
-    // =========================================================
-    //  INITIALIZATION
-    // =========================================================
     function init(userConfig) {
         log('Analytics tracker script loaded');
         
@@ -326,12 +426,14 @@
                 log('DOMContentLoaded fired, starting tracking...');
                 trackPageview();
                 setupHashTracking();
+                setupJQueryAjaxTracking();
             });
         } else {
             // DOM already ready, execute immediately
             log('DOM already ready, starting tracking immediately...');
             trackPageview();
             setupHashTracking();
+            setupJQueryAjaxTracking();
         }
     }
 

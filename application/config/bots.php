@@ -11,7 +11,7 @@
 */
 
 //enable/disable logging for search engines, by default everything is logged
-$config['ignore_bot_logging'] = FALSE;
+$config['ignore_bot_logging'] = TRUE;
 
 //user-agents used by search engines and bots
 $config['bot_ignore'][] = 'google';

@@ -1578,6 +1578,7 @@ CREATE TABLE `analytics_pageview_events` (
     INDEX `idx_ts_study` (`ts`, `study_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
 CREATE TABLE `analytics_download_events` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `ts` DATETIME NOT NULL,
@@ -1590,7 +1591,8 @@ CREATE TABLE `analytics_download_events` (
     INDEX `idx_ts` (`ts`),
     INDEX `idx_study` (`study_id`),
     INDEX `idx_study_file` (`study_id`, `file_name`),
-    INDEX `idx_ts_study_file` (`ts`, `study_id`, `file_name`)
+    INDEX `idx_ts_study_file` (`ts`, `study_id`, `file_name`),
+    INDEX `idx_dedupe` (`study_id`, `file_name`, `hashed_ip`, `user_agent`, `ts`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `analytics_daily_studies` (
