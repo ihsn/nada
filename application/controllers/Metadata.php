@@ -16,7 +16,7 @@ class Metadata extends MY_Controller {
      * 
      * Export metadata
      * 
-     * @format - JSON, DDI
+     * @format - json, jsonl, ddi
      * 
      */	
     function export($sid=null,$format='json')
@@ -27,16 +27,21 @@ class Metadata extends MY_Controller {
             show_404();
         }
 
-        if($format=='json'){
-            if (!$this->input->get("detailed")){
-                $metadata=$this->dataset_manager->get_metadata($sid,$dataset['type']);
-                $this->output
-                    ->set_content_type('application/json')
-                    ->set_output(json_encode($metadata));
-                return;
-            }
-            //download JSON file
-            $this->Dataset_model->download_metadata_json($sid);
+        if($format=='json' || $format=='jsonl'){
+            try{
+                $this->load->library('JSON_Writer');
+                
+                $pretty = $this->input->get('pretty') === 'true' || $this->input->get('pretty') === '1';
+                
+                if ($format == 'jsonl') {
+                    $this->json_writer->download($sid, 'jsonl', false);
+                } else {
+                    $this->json_writer->download($sid, 'json', $pretty);
+                }
+            }		
+            catch(Exception $e){
+                show_error($e->getMessage());
+            }	
         }
         else if($format=='ddi' && $dataset['type']=='survey'){
             $this->Dataset_model->download_metadata_ddi($sid);
