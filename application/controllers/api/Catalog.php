@@ -1136,21 +1136,38 @@ class Catalog extends MY_REST_Controller
 
 	/**
 	 * 
-	 * Get JSON
+	 * Get JSON or JSON Lines
+	 * 
+	 * Query parameters:
+	 *   format - 'json' (default) or 'jsonl' for JSON Lines format
+	 *   pretty - 'true' to pretty print JSON (only for JSON format)
+	 *   download - 'true' to download the file instead of streaming
 	 * 
 	 */
 	function json_get($idno=null)
 	{
 		try{			
 			$sid=$this->get_sid_from_idno($idno);
-			$dataset=$this->Dataset_model->get_row($sid);
 			
-			if (!$dataset){
+			if (!$sid){
 				throw new Exception("IDNO_NOT_FOUND");
 			}
 
-			$this->Dataset_model->download_metadata_json($sid);
-			die();
+			$this->load->library('JSON_Writer');
+			
+			$format = strtolower($this->input->get('format'));
+			if (!in_array($format, array('json', 'jsonl'))) {
+				$format = 'json';
+			}
+
+			$pretty = $this->input->get('pretty') === 'true' || $this->input->get('pretty') === '1';
+			$download = $this->input->get('download') === 'true' || $this->input->get('download') === '1';
+
+			if ($download) {
+				$this->json_writer->download($sid, $format, $pretty);
+			} else {
+				$this->json_writer->stream($sid, $format, $pretty);
+			}
         }		
 		catch(Exception $e){
 			$error_output=array(

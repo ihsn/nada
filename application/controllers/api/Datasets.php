@@ -2245,18 +2245,41 @@ class Datasets extends MY_REST_Controller
 	public function generate_json_get($idno=null)
 	{
 		try{
-
-			header("Content-Type: application/json");
-			header('Content-Encoding: UTF-8');
-
 			$sid=$this->get_sid_from_idno($idno);
 			$this->has_dataset_access('edit',$sid);
-			$result=$this->Dataset_model->write_json($sid,$overwrite=true);
+			
+			$this->load->library('JSON_Writer');
+			
+			$format = strtolower($this->input->get('format'));
+			if (!in_array($format, array('json', 'jsonl'))) {
+				$format = 'json';
+			}
+
+			$pretty = $this->input->get('pretty') === 'true' || $this->input->get('pretty') === '1';
+			
+			$dataset = $this->Dataset_model->get_row($sid);
+			$study_path = $this->Dataset_model->get_storage_fullpath($sid);
+			if (!$study_path) {
+				throw new Exception("STUDY_FOLDER_NOT_SET");
+			}
+
+			$extension = ($format == 'jsonl') ? 'jsonl' : 'json';
+			$json_path = $study_path . '/' . $dataset['idno'] . '.' . $extension;
+
+			if (!file_exists($study_path)) {
+				mkdir($study_path, 0755, true);
+			}
+
+			if ($format == 'jsonl') {
+				$result = $this->json_writer->write_jsonl($sid, $json_path, true);
+			} else {
+				$result = $this->json_writer->write_json($sid, $json_path, true, $pretty);
+			}
 
 			$response=array(
 				'status'=>  'success',
-				//'memory_usage'=>memory_get_usage()/1024,
-				//'memory_peak'=>memory_get_peak_usage()/1024
+				'path' => $result,
+				'format' => $format
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -2270,6 +2293,49 @@ class Datasets extends MY_REST_Controller
 		}	
 	}	
 
+
+	/**
+	 * 
+	 * Export study package as ZIP file
+	 * 
+	 * @idno - study IDNO
+	 * 
+	 **/
+	public function package_get($idno=null)
+	{
+		try{
+			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view',$sid);
+			
+			$this->load->library('Package_Exporter');
+			
+			$temp_zip = $this->package_exporter->export($sid);
+			
+			if (!file_exists($temp_zip)) {
+				throw new Exception("FAILED_TO_CREATE_PACKAGE");
+			}
+			
+			$dataset = $this->Dataset_model->get_row($sid);
+			$filename = $dataset['idno'] . '-package.zip';
+			
+			header("Content-Type: application/zip");
+			header("Content-Disposition: attachment; filename=\"" . $filename . "\"");
+			header("Content-Length: " . filesize($temp_zip));
+			header("Cache-Control: no-cache, must-revalidate");
+			header("Expires: 0");
+			
+			readfile($temp_zip);
+			@unlink($temp_zip);
+			exit;
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 
 	/**
 	 * 

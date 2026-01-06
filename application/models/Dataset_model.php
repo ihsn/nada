@@ -1805,94 +1805,25 @@ class Dataset_model extends CI_Model {
         }
 
         $this->ddi_writer->generate_ddi($sid,$ddi_path);
+        
+        $ddi_filename = basename($ddi_path);
+        if (empty($ddi_filename)) {
+            $ddi_filename = $dataset['idno'] . '.xml';
+        }
+        
+        if (empty($dataset['metafile']) || $dataset['metafile'] !== $ddi_filename) {
+            $this->db->where('id', $sid);
+            $this->db->update('surveys', array('metafile' => $ddi_filename));
+        }
+        
         return $ddi_path;
     }
 
-	function write_json($sid,$overwrite=false)
-	{
-		$this->load->library("DDI_Writer");
-		$this->load->model('Data_file_model');
-		$this->load->model('Variable_model');
-		$this->load->model('Variable_group_model');
-        $dataset=$this->get_row($sid);
-
-        $study_path=$this->get_storage_fullpath($sid);
-
-		if(!$study_path){
-			throw new Exception("STUDY_FOLDER_NOT_SET");
-		}
-
-		$json_path=$study_path.'/'.$dataset['idno'].'.json';
-
-		//create project folder if not exists
-		if(!file_exists($study_path)){
-			mkdir($study_path);
-		}
-
-		//data has changed, overwrite file
-		if (file_exists($json_path) && filemtime($json_path) < $dataset['changed']){
-			$overwrite=true;
-		}
-
-        if(file_exists($json_path) && $overwrite==false){
-            throw new Exception("JSON_FILE_EXISTS");
-        }
-
-		//$fp = fopen('php://output', 'w');
-		$fp = fopen($json_path, 'w');
-
-		$metadata=$this->get_metadata($sid);
-		$basic_info=array(
-			'type'=>$dataset['type']
-		);
-		
-		$output=array_merge($basic_info, $metadata );
-
-		if($dataset['type']=='survey'){
-			$this->load->model("Data_file_model");
-			$output['data_files'] = function () use ($sid) {
-				$files=$this->Data_file_model->get_all_by_survey($sid);
-				if ($files){
-					foreach($files as $file){
-						unset($file['id']);
-						unset($file['sid']);
-						yield $file;
-					}
-				}
-			};
-
-			$output['variables'] = function () use ($sid) {
-				foreach($this->Variable_model->chunk_reader_generator($sid) as $variable){
-					yield $variable['metadata'];
-				}
-			};
-
-			$output['variable_groups'] = function () use ($sid) {
-				$var_groups=$this->Variable_group_model->select_all($sid);
-				foreach($var_groups as $var_group){
-					yield $var_group;
-				}			
-			};
-		}
-		
-		$encoder = new \Violet\StreamingJsonEncoder\StreamJsonEncoder(
-			$output,
-			function ($json) use ($fp) {
-				fwrite($fp, $json);
-			}
-		);
-		//$encoder->setOptions(JSON_PRETTY_PRINT);
-		$encoder->encode();
-		fclose($fp);
-
-		return $json_path;
-	}
-
-
 	function download_metadata($sid,$format='json')
 	{
-		if ($format=='json'){
-			return $this->download_metadata_json($sid);
+		if ($format=='json' || $format=='jsonl'){
+			$this->load->library('JSON_Writer');
+			$this->json_writer->download($sid, $format, false);
 		}
 		else if ($format=='ddi'){
 			return $this->download_metadata_ddi($sid);
@@ -1901,17 +1832,8 @@ class Dataset_model extends CI_Model {
 
 	function download_metadata_ddi($sid)
 	{
-		$dataset=$this->Dataset_model->get_row($sid); 
+		$dataset=$this->get_row($sid); 
 		$ddi_path=$this->get_metadata_file_path($sid);
-
-		/*$generate_file=false;
-		if (file_exists($ddi_path) && filemtime($ddi_path) < $dataset['changed']){
-			$generate_file=true;
-		}
-		
-		if(!file_exists($ddi_path)){
-			$generate_file=true;
-		}*/
 
 		if(!file_exists($ddi_path)){
 			try{
@@ -1925,45 +1847,6 @@ class Dataset_model extends CI_Model {
 		if(file_exists($ddi_path)){
 			$this->load->helper("download");
 			force_download2($ddi_path);
-		}
-	}
-
-	function download_metadata_json($sid)
-	{
-		$dataset=$this->Dataset_model->get_row($sid);
-
-		if (!$dataset){
-			throw new Exception("STUDY_NOT_FOUND");
-		}
-
-		$study_path=$this->get_storage_fullpath($sid);
-		$json_path=$study_path.'/'.$dataset['idno'].'.json';
-
-		$generate_file=false;
-		if (file_exists($json_path) && filemtime($json_path) < $dataset['changed']){
-			$generate_file=true;
-		}
-		
-		if(!file_exists($json_path)){
-			$generate_file=true;
-		}
-
-		if($generate_file){
-			try{
-				$result=$this->write_json($sid,$overwrite=true);
-			}
-			catch(Exception $e){                    
-				show_error($e->getMessage());
-			}	
-		}
-
-		if(file_exists($json_path)){
-			header("Content-type: application/json; charset=utf-8");
-			$stdout = fopen('php://output', 'w');			
-			$fh = fopen($json_path, 'r');
-			stream_copy_to_stream($fh, $stdout);
-			fclose($fh);
-			fclose($stdout);
 		}
 	}
 
