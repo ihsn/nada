@@ -188,7 +188,41 @@ class DDIReader implements ReaderInterface {
     
     
     public function get_id(){
-        return $this->array_to_string($this->get_key('stdy_id'),$type='text');
+        // Check multiple locations in priority order:
+        // 1. codeBook/stdyDscr/citation/titlStmt/IDNo (mixed case)
+        // 2. codeBook/@ID (root codeBook attribute)
+        // 3. codeBook/stdyDscr/citation/titlStmt/IDNO (all uppercase)
+        
+        // Priority 1: Check stdy_id (maps to codeBook/stdyDscr/citation/titlStmt/IDNo)
+        $idno = $this->array_to_string($this->get_key('stdy_id'), $type='text');
+        if (!empty(trim($idno))) {
+            return $idno;
+        }
+        
+        // Priority 2: Check codeBook/@ID (root codeBook attribute)
+        // Note: codeBook metadata is not merged into $this->metadata, so we need to extract it separately
+        $codebook_metadata = $this->ddi2reader->extract_codebook_meta_array();
+        if (isset($codebook_metadata['ID']) && !empty(trim($codebook_metadata['ID']))) {
+            return trim($codebook_metadata['ID']);
+        }
+        
+        // Priority 3: Check for IDNO (all uppercase) - need to check metadata directly
+        // The metadata_short_names doesn't have a mapping for uppercase IDNO,
+        // so we check the metadata array directly
+        $idno_uppercase_xpath = 'codeBook/stdyDscr/citation/titlStmt/IDNO';
+        if (isset($this->metadata[$idno_uppercase_xpath])) {
+            $idno_value = $this->metadata[$idno_uppercase_xpath];
+            if (is_array($idno_value) && count($idno_value) > 0) {
+                $idno = trim($idno_value[0]);
+                if (!empty($idno)) {
+                    return $idno;
+                }
+            } else if (!empty(trim($idno_value))) {
+                return trim($idno_value);
+            }
+        }
+        
+        return '';
     }
     
     public function get_title(){    

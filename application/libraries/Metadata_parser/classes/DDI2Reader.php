@@ -163,7 +163,7 @@ class DDI2Reader
             )
         );
 
-        /*$xpath_group["codeBook/stdyDscr/citation/titlStmt/IDNo"] = array(
+        /*$xpath_group["codeBook/stdyDscr/studyDevelopment/developmentActivity/participant"] = array(
             'label' => 'participant',
             'type' => 'table',
             'cols' => array(
@@ -552,16 +552,41 @@ class DDI2Reader
 
 
     //returns the study IDNO from the stdyDscr
+    // Checks multiple locations in priority order:
+    // 1. codeBook/stdyDscr/citation/titlStmt/IDNo (mixed case)
+    // 2. codeBook/@ID (root codeBook attribute)
+    // 3. codeBook/stdyDscr/citation/titlStmt/IDNO (all uppercase)
     public function get_study_IDNO()
     {
         $study_metadata_arr = $this->get_ddi_part_array('stdyDscr');
-        //$idno=$study_metadata_arr['codeBook/stdyDscr/citation/titlStmt/IDNo'];
-
+        
+        // Priority 1: Check codeBook/stdyDscr/citation/titlStmt/IDNo (mixed case)
         if (isset($study_metadata_arr['codeBook/stdyDscr/citation/titlStmt/IDNo']) &&
             count($study_metadata_arr['codeBook/stdyDscr/citation/titlStmt/IDNo']) > 0
         ) {
-            return trim($study_metadata_arr['codeBook/stdyDscr/citation/titlStmt/IDNo'][0]);
+            $idno = trim($study_metadata_arr['codeBook/stdyDscr/citation/titlStmt/IDNo'][0]);
+            if (!empty($idno)) {
+                return $idno;
+            }
         }
+        
+        // Priority 2: Check codeBook/@ID (root codeBook attribute)
+        $codebook_metadata = $this->get_ddi_part_array('codeBook');
+        if (isset($codebook_metadata['ID']) && !empty(trim($codebook_metadata['ID']))) {
+            return trim($codebook_metadata['ID']);
+        }
+        
+        // Priority 3: Check codeBook/stdyDscr/citation/titlStmt/IDNO (all uppercase)
+        if (isset($study_metadata_arr['codeBook/stdyDscr/citation/titlStmt/IDNO']) &&
+            count($study_metadata_arr['codeBook/stdyDscr/citation/titlStmt/IDNO']) > 0
+        ) {
+            $idno = trim($study_metadata_arr['codeBook/stdyDscr/citation/titlStmt/IDNO'][0]);
+            if (!empty($idno)) {
+                return $idno;
+            }
+        }
+        
+        return null;
     }
 
 
@@ -623,7 +648,11 @@ class DDI2Reader
                 $key_values = $this->get_child_elements_array($xml_obj, $parent_path, $key_values);
                 continue;
             } else if ($xml_reader->nodeType == XMLReader::ELEMENT && $xml_reader->localName === 'dataDscr') {
-                break;
+                // fix for fileDscr coming after dataDscr
+                if ($section !== 'fileDscr') {
+                    break;
+                }                
+                continue;
             }
         }
 
@@ -666,6 +695,35 @@ class DDI2Reader
 				$key_values[$access_place_key]='';
 			}
 		}
+
+        // For stdyDscr section, ensure idno is populated from any of the three locations
+        // This ensures the metadata array has the idno at the expected xpath for mapping
+        if ($section == 'stdyDscr') {
+            $idno_xpath = 'codeBook/stdyDscr/citation/titlStmt/IDNo';
+            $idno_uppercase_xpath = 'codeBook/stdyDscr/citation/titlStmt/IDNO';
+            
+            // Check if IDNo (mixed case) exists and has a value
+            $has_idno = isset($key_values[$idno_xpath]) && 
+                       is_array($key_values[$idno_xpath]) && 
+                       count($key_values[$idno_xpath]) > 0 && 
+                       !empty(trim($key_values[$idno_xpath][0]));
+            
+            // If IDNo is not found or empty, check other locations
+            if (!$has_idno) {
+                // Priority 2: Check codeBook/@ID
+                $codebook_metadata = $this->get_ddi_part_array('codeBook');
+                if (isset($codebook_metadata['ID']) && !empty(trim($codebook_metadata['ID']))) {
+                    $key_values[$idno_xpath] = array(trim($codebook_metadata['ID']));
+                }
+                // Priority 3: Check IDNO (all uppercase)
+                else if (isset($key_values[$idno_uppercase_xpath]) && 
+                         is_array($key_values[$idno_uppercase_xpath]) && 
+                         count($key_values[$idno_uppercase_xpath]) > 0 && 
+                         !empty(trim($key_values[$idno_uppercase_xpath][0]))) {
+                    $key_values[$idno_xpath] = array(trim($key_values[$idno_uppercase_xpath][0]));
+                }
+            }
+        }
 
         return $key_values;
     }
