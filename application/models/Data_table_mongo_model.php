@@ -1340,7 +1340,8 @@ class Data_table_mongo_model extends CI_Model {
 
     function get_field_metadata_map($db_id, $table_id)
     {
-        $fields_metadata = $this->get_table_fields($db_id, $table_id);
+        $projection = array('name' => 1, 'data_type' => 1);
+        $fields_metadata = $this->get_table_fields($db_id, $table_id, true, $projection);
         $metadata_map = array();
         
         foreach ($fields_metadata as $field) {
@@ -1710,7 +1711,7 @@ function format_execution_time($seconds)
     * @param string|null $field_name Field name (optional - if provided, returns single field)
     * @return array|null Field metadata or array of fields
     */
-   function get_field_metadata($db_id, $table_id, $field_name = null)
+   function get_field_metadata($db_id, $table_id, $field_name = null, $projection = null)
    {
        $collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
        
@@ -1722,15 +1723,20 @@ function format_execution_time($seconds)
        if ($field_name) {
            // Get single field
            $field_id = $this->get_field_dictionary_id($db_id, $table_id, $field_name);
-           $result = $collection->findOne(['_id' => $field_id]);
+           $options = array();
+           if ($projection) {
+               $options['projection'] = $projection;
+           }
+           $result = $collection->findOne(['_id' => $field_id], $options);
            return $result ? (array)$result : null;
        }
        
        // Get all fields, sorted by field_order
-       $cursor = $collection->find(
-           $filter,
-           ['sort' => ['field_order' => 1]]
-       );
+       $options = array('sort' => ['field_order' => 1]);
+       if ($projection) {
+           $options['projection'] = $projection;
+       }
+       $cursor = $collection->find($filter, $options);
        
        $fields = [];
        foreach ($cursor as $doc) {
@@ -1856,9 +1862,9 @@ function format_execution_time($seconds)
     * @param bool $sort_by_order Sort by field_order (default: true)
     * @return array Array of field metadata
     */
-   function get_table_fields($db_id, $table_id, $sort_by_order = true)
+   function get_table_fields($db_id, $table_id, $sort_by_order = true, $projection = null)
    {
-       return $this->get_field_metadata($db_id, $table_id);
+       return $this->get_field_metadata($db_id, $table_id, null, $projection);
    }
 
    /**
