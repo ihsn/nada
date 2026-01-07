@@ -202,6 +202,10 @@ class Tables extends MY_REST_Controller
 				}
 			}
 
+			//add links to data dictionary and data
+			$metadata['_links']['data_dictionary_url'] = site_url('api/tables/data_dictionary/'.$db_id.'/'.$table_id);
+			$metadata['_links']['data_url'] = site_url('api/tables/data/'.$db_id.'/'.$table_id);
+
 			$result=array(
 				'count'=>$result['count'],
 				'metadata'=>$metadata
