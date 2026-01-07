@@ -17,6 +17,10 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
     <script src="https://unpkg.com/vue-router@3/dist/vue-router.js"></script>
+    <!-- Vue Data Explorer Component -->
+    <script>
+        <?php $this->load->view('admin/tables/vue-data-explorer.js'); ?>
+    </script>
     
     <style>
         .v-application {
@@ -371,6 +375,9 @@
 
         // Edit Table Component
         const EditTable = {
+            components: {
+                'vue-data-explorer': VueDataExplorer
+            },
             template: `
                 <div>
                     <div class="mb-3">
@@ -382,14 +389,6 @@
                     </div>
                     <v-main>
                         <v-container fluid>
-                            <v-alert v-if="error" type="error" dismissible @input="error = ''" class="mb-4">
-                                {{ error }}
-                            </v-alert>
-
-                            <v-alert v-if="success" type="success" dismissible @input="success = ''" class="mb-4">
-                                {{ success }}
-                            </v-alert>
-
                             <v-card v-if="loading" class="mb-4">
                                 <v-card-text class="text-center py-12">
                                     <v-progress-circular indeterminate color="primary" size="64" class="mb-4"></v-progress-circular>
@@ -467,277 +466,12 @@
 
                                         <!-- Tab 2: Data Management -->
                                         <v-tab-item>
-                                            <v-card flat>
-                                                <v-card-title>
-                                                    <span>Data Management</span>
-                                                    <v-spacer></v-spacer>
-                                                    <v-btn
-                                                        color="primary"
-                                                        @click="showUploadDialog = true"
-                                                        class="mr-2"
-                                                    >
-                                                        <v-icon left>mdi-upload</v-icon>
-                                                        Upload Data
-                                                    </v-btn>
-                                                    <v-btn
-                                                        v-if="tableStats && tableStats.count > 0"
-                                                        color="error"
-                                                        @click="showDeleteDialog = true"
-                                                    >
-                                                        <v-icon left>mdi-delete</v-icon>
-                                                        Delete Data
-                                                    </v-btn>
-                                                </v-card-title>
-                                                <v-card-text>
-                                                    <div v-if="tableStats && tableStats.count !== undefined" class="mb-3">
-                                                        <v-chip small class="mr-2">
-                                                            <v-icon left small>mdi-database</v-icon>
-                                                            Total Rows: {{ tableStats.count.toLocaleString() }}
-                                                        </v-chip>
-                                                        <v-btn
-                                                            small
-                                                            color="primary"
-                                                            @click="loadPreviewData"
-                                                            :loading="previewLoading"
-                                                            class="mr-2"
-                                                        >
-                                                            <v-icon left small>mdi-refresh</v-icon>
-                                                            Refresh
-                                                        </v-btn>
-                                                        <v-btn
-                                                            small
-                                                            color="success"
-                                                            @click="exportToCSV"
-                                                            :disabled="!previewData || previewData.length === 0"
-                                                        >
-                                                            <v-icon left small>mdi-download</v-icon>
-                                                            Export CSV
-                                                        </v-btn>
-                                                    </div>
-                                                    <div v-if="previewLoading" class="text-center py-4">
-                                                        <v-progress-circular indeterminate color="primary"></v-progress-circular>
-                                                        <div class="mt-2">Loading data...</div>
-                                                    </div>
-                                                    <div v-else-if="previewError" class="text-center py-4">
-                                                        <v-alert type="error" dense outlined>
-                                                            {{ previewError }}
-                                                        </v-alert>
-                                                    </div>
-                                                    <div v-else-if="previewData && previewData.length > 0">
-                                                        <v-data-table
-                                                            :headers="previewHeaders"
-                                                            :items="truncatedPreviewData"
-                                                            :items-per-page="previewLimit"
-                                                            :page="previewPage"
-                                                            hide-default-footer
-                                                            dense
-                                                            class="elevation-1"
-                                                        ></v-data-table>
-                                                        <div class="d-flex justify-space-between align-center mt-3">
-                                                            <div class="text-caption">
-                                                                Showing {{ ((previewPage - 1) * previewLimit) + 1 }} to {{ Math.min(previewPage * previewLimit, previewTotal) }} of {{ previewTotal }} rows
-                                                            </div>
-                                                            <div>
-                                                                <v-btn
-                                                                    small
-                                                                    @click="previewPage = Math.max(1, previewPage - 1)"
-                                                                    :disabled="previewPage === 1"
-                                                                    class="mr-2"
-                                                                >
-                                                                    <v-icon small>mdi-chevron-left</v-icon>
-                                                                </v-btn>
-                                                                <span class="mx-2">Page {{ previewPage }}</span>
-                                                                <v-btn
-                                                                    small
-                                                                    @click="previewPage = previewPage + 1"
-                                                                    :disabled="previewPage * previewLimit >= previewTotal"
-                                                                >
-                                                                    <v-icon small>mdi-chevron-right</v-icon>
-                                                                </v-btn>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div v-else class="text-center py-8 text--secondary">
-                                                        <v-icon large color="grey lighten-1" class="mb-2">mdi-database-off</v-icon>
-                                                        <div>No data available. Click "Upload Data" to upload and import a CSV or ZIP file.</div>
-                                                    </div>
-                                                </v-card-text>
-                                            </v-card>
-
-                                            <!-- Upload Dialog -->
-                                            <v-dialog v-model="showUploadDialog" max-width="600" :persistent="uploading || deleting || importing">
-                                                <v-card>
-                                                    <v-card-title>
-                                                        <span>Upload CSV or ZIP File</span>
-                                                        <v-spacer></v-spacer>
-                                                        <v-btn icon @click="showUploadDialog = false">
-                                                            <v-icon>mdi-close</v-icon>
-                                                        </v-btn>
-                                                    </v-card-title>
-                                                    <v-card-text>
-                                                        <v-alert type="warning" dense outlined class="mb-4">
-                                                            <strong>Warning:</strong> Uploading data will delete all existing data in this table and replace it with the new data. This action cannot be undone.
-                                                        </v-alert>
-                                                        <v-file-input
-                                                            v-model="uploadFile"
-                                                            label="Select CSV or ZIP file"
-                                                            accept=".csv,.zip"
-                                                            outlined
-                                                            dense
-                                                            prepend-icon="mdi-file-upload"
-                                                            show-size
-                                                            :disabled="uploading || deleting || importing"
-                                                        ></v-file-input>
-                                                        <v-switch
-                                                            v-model="syncFields"
-                                                            label="Sync fields after import (remove fields not in data)"
-                                                            dense
-                                                            class="mt-3"
-                                                            :disabled="uploading || deleting || importing"
-                                                        ></v-switch>
-                                                        <div v-if="uploadStatus" class="mt-4">
-                                                            <v-alert
-                                                                :type="uploadStatus.status === 'success' ? 'success' : uploadStatus.status === 'error' ? 'error' : 'info'"
-                                                                dense
-                                                                outlined
-                                                            >
-                                                                <div class="font-weight-medium mb-1">{{ uploadStatus.message }}</div>
-                                                                <div v-if="uploadStatus.file_path" class="text-caption">
-                                                                    File: {{ uploadStatus.file_path }}
-                                                                </div>
-                                                                <div v-if="uploadStatus.csv_uploaded_at" class="text-caption">
-                                                                    Uploaded: {{ uploadStatus.csv_uploaded_at }}
-                                                                </div>
-                                                                <div v-if="uploadStatus.import_status" class="text-caption mt-1">
-                                                                    Status: {{ uploadStatus.import_status }}
-                                                                </div>
-                                                            </v-alert>
-                                                        </div>
-                                                        <div v-if="deleting" class="mt-4">
-                                                            <v-alert type="info" dense outlined>
-                                                                <div class="font-weight-medium mb-1">Deleting existing data...</div>
-                                                            </v-alert>
-                                                        </div>
-                                                        <div v-if="importStatus" class="mt-4">
-                                                            <v-alert
-                                                                :type="importStatus.status === 'success' ? 'success' : importStatus.status === 'error' ? 'error' : importStatus.status === 'warning' ? 'warning' : 'info'"
-                                                                dense
-                                                                outlined
-                                                            >
-                                                                <div class="font-weight-medium mb-2">{{ importStatus.message }}</div>
-                                                                <div v-if="importStatus.progress_percent !== undefined && importing" class="mb-2">
-                                                                    <v-progress-linear
-                                                                        :value="importStatus.progress_percent"
-                                                                        :color="importStatus.status === 'error' ? 'error' : 'primary'"
-                                                                        height="20"
-                                                                        rounded
-                                                                    >
-                                                                        <template v-slot:default="{ value }">
-                                                                            <strong class="white--text">{{ Math.ceil(value) }}%</strong>
-                                                                        </template>
-                                                                    </v-progress-linear>
-                                                                </div>
-                                                                <div v-if="importStatus.total_rows_processed !== undefined" class="text-caption">
-                                                                    Total rows processed: {{ importStatus.total_rows_processed.toLocaleString() }}
-                                                                </div>
-                                                                <div v-if="importStatus.rows_processed" class="text-caption">
-                                                                    This batch: {{ importStatus.rows_processed.toLocaleString() }} rows
-                                                                </div>
-                                                                <div v-if="importStatus.import_status === 'in_progress'" class="text-caption mt-1">
-                                                                    <v-icon small>mdi-loading mdi-spin</v-icon>
-                                                                    Import in progress...
-                                                                </div>
-                                                            </v-alert>
-                                                        </div>
-                                                    </v-card-text>
-                                                    <v-card-actions>
-                                                        <v-spacer></v-spacer>
-                                                        <v-btn
-                                                            v-if="importing"
-                                                            text
-                                                            color="error"
-                                                            @click="cancelImport"
-                                                            :disabled="!importing"
-                                                        >
-                                                            <v-icon left>mdi-cancel</v-icon>
-                                                            Cancel Import
-                                                        </v-btn>
-                                                        <v-btn
-                                                            text
-                                                            @click="showUploadDialog = false"
-                                                            :disabled="uploading || deleting || importing"
-                                                        >
-                                                            Close
-                                                        </v-btn>
-                                                        <v-btn
-                                                            color="primary"
-                                                            @click="uploadData"
-                                                            :loading="uploading || deleting || importing"
-                                                            :disabled="!uploadFile || uploading || deleting || importing"
-                                                        >
-                                                            <v-icon left>mdi-upload</v-icon>
-                                                            Upload & Import
-                                                        </v-btn>
-                                                    </v-card-actions>
-                                                </v-card>
-                                            </v-dialog>
-
-                                            <!-- Delete Dialog -->
-                                            <v-dialog v-model="showDeleteDialog" max-width="500" persistent>
-                                                <v-card>
-                                                    <v-card-title class="error white--text">
-                                                        <v-icon left color="white">mdi-alert</v-icon>
-                                                        Delete Data
-                                                    </v-card-title>
-                                                    <v-card-text class="pt-4">
-                                                        <v-alert type="warning" dense outlined class="mb-4">
-                                                            <strong>Warning:</strong> This action will permanently delete all data in this table. This cannot be undone.
-                                                        </v-alert>
-                                                        <div v-if="tableStats && tableStats.count !== undefined" class="mb-3">
-                                                            <div class="text-body-1">
-                                                                Current row count: <strong>{{ tableStats.count.toLocaleString() }}</strong>
-                                                            </div>
-                                                        </div>
-                                                        <v-checkbox
-                                                            v-model="deleteDefinition"
-                                                            label="Also delete table definition"
-                                                            dense
-                                                            class="mt-0"
-                                                        ></v-checkbox>
-                                                        <div v-if="deleteStatus" class="mt-4">
-                                                            <v-alert
-                                                                :type="deleteStatus.status === 'success' ? 'success' : 'error'"
-                                                                dense
-                                                                outlined
-                                                            >
-                                                                <div class="font-weight-medium mb-1">{{ deleteStatus.message }}</div>
-                                                                <div v-if="deleteStatus.data_deleted !== undefined" class="text-caption">
-                                                                    Rows deleted: {{ deleteStatus.data_deleted }}
-                                                                </div>
-                                                            </v-alert>
-                                                        </div>
-                                                    </v-card-text>
-                                                    <v-card-actions>
-                                                        <v-spacer></v-spacer>
-                                                        <v-btn
-                                                            text
-                                                            @click="showDeleteDialog = false"
-                                                            :disabled="deleting"
-                                                        >
-                                                            Cancel
-                                                        </v-btn>
-                                                        <v-btn
-                                                            color="error"
-                                                            @click="deleteTableData"
-                                                            :loading="deleting"
-                                                            :disabled="deleting"
-                                                        >
-                                                            <v-icon left>mdi-delete</v-icon>
-                                                            Delete All Data
-                                                        </v-btn>
-                                                    </v-card-actions>
-                                                </v-card>
-                                            </v-dialog>
+                                            <vue-data-explorer
+                                                :db-id="dbId"
+                                                :table-id="tableId"
+                                                :api-base="apiBase"
+                                                @fields-changed="loadSchema"
+                                            ></vue-data-explorer>
                                         </v-tab-item>
 
                                         <!-- Tab 3: Data Dictionary -->
@@ -753,6 +487,10 @@
                                                     <v-btn color="primary" small @click="populateSchema" :loading="populatingSchema" class="ml-2">
                                                         <v-icon left small>mdi-database-refresh</v-icon>
                                                         Populate from Data
+                                                    </v-btn>
+                                                    <v-btn color="info" small @click="showConvertTypesDialog = true" class="ml-2">
+                                                        <v-icon left small>mdi-database-sync</v-icon>
+                                                        Convert Data Types
                                                     </v-btn>
                                                     <v-btn color="success" small @click="showAddFieldDialog = true" class="ml-2">
                                                         <v-icon left small>mdi-plus</v-icon>
@@ -1558,15 +1296,152 @@
                             </v-card-actions>
                         </v-card>
                     </v-dialog>
+
+                    <!-- Convert Field Types Dialog -->
+                    <v-dialog v-model="showConvertTypesDialog" max-width="800" persistent>
+                        <v-card>
+                            <v-card-title>
+                                <span>Convert Field Data Types</span>
+                                <v-spacer></v-spacer>
+                                <v-btn icon @click="showConvertTypesDialog = false" :disabled="convertingTypes">
+                                    <v-icon>mdi-close</v-icon>
+                                </v-btn>
+                            </v-card-title>
+                            <v-card-text>
+                                <v-alert type="info" dense outlined class="mb-4">
+                                    Select specific fields to convert, or leave all unchecked to convert all fields based on metadata. Date and datetime fields are excluded.
+                                </v-alert>
+
+                                <!-- On Error Option -->
+                                <div class="mb-4">
+                                    <v-label class="mb-2">Error Handling</v-label>
+                                    <v-radio-group v-model="convertTypesOptions.on_error" row dense>
+                                        <v-radio label="Ignore (keep original value)" value="ignore"></v-radio>
+                                        <v-radio label="Replace with null" value="replace"></v-radio>
+                                        <v-radio label="Stop on error" value="stop"></v-radio>
+                                    </v-radio-group>
+                                </div>
+
+                                <v-divider class="my-4"></v-divider>
+
+                                <!-- Field Selection -->
+                                <div class="mb-4">
+                                    <v-label class="mb-2">Add Fields to Convert (leave empty to convert all fields)</v-label>
+                                    <v-autocomplete
+                                        v-model="selectedFieldToAdd"
+                                        :items="availableFieldsForConversion"
+                                        item-text="name"
+                                        item-value="name"
+                                        label="Search and select field"
+                                        outlined
+                                        dense
+                                        clearable
+                                        return-object
+                                        @change="addFieldToConversion"
+                                    >
+                                        <template v-slot:item="{ item }">
+                                            <div>
+                                                <div class="font-weight-medium">{{ item.name }}</div>
+                                                <div class="text-caption text--secondary">
+                                                    Current: {{ item.current_type || 'N/A' }}
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </v-autocomplete>
+                                </div>
+
+                                <!-- Selected Fields List -->
+                                <div v-if="selectedFieldsForConversion.length > 0" class="mb-4">
+                                    <v-label class="mb-2">Selected Fields ({{ selectedFieldsForConversion.length }})</v-label>
+                                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; padding: 8px;">
+                                        <div 
+                                            v-for="field in selectedFieldsForConversion" 
+                                            :key="field.name"
+                                            class="mb-2"
+                                            style="border-bottom: 1px solid #f0f0f0; padding-bottom: 8px;"
+                                        >
+                                            <div class="d-flex align-center">
+                                                <div class="flex-grow-1">
+                                                    <div class="font-weight-medium">{{ field.name }}</div>
+                                                    <div class="text-caption text--secondary">
+                                                        Current: <v-chip x-small>{{ field.current_type || 'N/A' }}</v-chip>
+                                                    </div>
+                                                </div>
+                                                <v-select
+                                                    v-model="field.target_type"
+                                                    :items="dataTypes"
+                                                    label="Target Type"
+                                                    dense
+                                                    outlined
+                                                    hide-details
+                                                    style="max-width: 150px; margin-right: 8px;"
+                                                ></v-select>
+                                                <v-btn
+                                                    icon
+                                                    small
+                                                    color="error"
+                                                    @click="removeFieldFromConversion(field.name)"
+                                                >
+                                                    <v-icon small>mdi-close</v-icon>
+                                                </v-btn>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-else class="text-center py-4 text--secondary">
+                                    <div>No fields selected. Click "Convert All Fields" to convert all fields based on metadata.</div>
+                                </div>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn text @click="showConvertTypesDialog = false" :disabled="convertingTypes">
+                                    Cancel
+                                </v-btn>
+                                <v-btn 
+                                    color="primary" 
+                                    @click="executeConvertTypes" 
+                                    :loading="convertingTypes"
+                                    :disabled="convertingTypes"
+                                >
+                                    <v-icon left>mdi-database-sync</v-icon>
+                                    Convert {{ hasSelectedFields ? 'Selected Fields' : 'All Fields' }}
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
+
+                    <!-- Toast Snackbar -->
+                    <v-snackbar
+                        :value="snackbar"
+                        @input="snackbar = $event"
+                        :color="snackbarColor"
+                        :timeout="2000"
+                        top
+                    >
+                        {{ snackbarText }}
+                        <template v-slot:action="{ attrs }">
+                            <v-btn
+                                text
+                                v-bind="attrs"
+                                @click="snackbar = false"
+                            >
+                                Close
+                            </v-btn>
+                        </template>
+                    </v-snackbar>
                 </div>
             `,
             data() {
                 return {
                     adminDashboardUrl: adminDashboardUrl,
                     studyEditBaseUrl: studyEditBaseUrl,
+                    apiBase: apiBase,
                     loading: true,
                     error: '',
                     success: '',
+                    snackbar: false,
+                    snackbarText: '',
+                    snackbarColor: 'success',
                     dbId: '',
                     tableId: '',
                     tableInfo: {
@@ -1582,30 +1457,18 @@
                     savingTableInfo: false,
                     populatingSchema: false,
                     syncingFields: false,
+                    convertingTypes: false,
+                    showConvertTypesDialog: false,
+                    selectedFieldToAdd: null,
+                    convertTypesOptions: {
+                        on_error: 'ignore'
+                    },
+                    fieldsForConversion: [],
+                    selectedFieldsForConversion: [],
                     fieldSearch: '',
                     fieldSortBy: 'order',
                     codeListRefExpanded: [],
                     activeTab: 0,
-                    uploadFile: null,
-                    uploading: false,
-                    importing: false,
-                    importCancelled: false,
-                    uploadStatus: null,
-                    importStatus: null,
-                    showUploadDialog: false,
-                    showDeleteDialog: false,
-                    syncFields: true,
-                    deleteDefinition: false,
-                    deleting: false,
-                    deleteStatus: null,
-                    tableStats: null,
-                    previewData: [],
-                    previewHeaders: [],
-                    previewLoading: false,
-                    previewError: null,
-                    previewLimit: 50,
-                    previewPage: 1,
-                    previewTotal: 0,
                     indexes: [],
                     loadingIndexes: false,
                     indexError: '',
@@ -1706,6 +1569,17 @@
                                (field.column_type && field.column_type.toLowerCase().includes(search));
                     });
                 },
+                hasSelectedFields() {
+                    return this.selectedFieldsForConversion && this.selectedFieldsForConversion.length > 0;
+                },
+                availableFieldsForConversion() {
+                    if (!this.fieldsForConversion || !Array.isArray(this.fieldsForConversion)) {
+                        return [];
+                    }
+                    // Return fields that are not already selected
+                    const selectedNames = this.selectedFieldsForConversion.map(f => f.name);
+                    return this.fieldsForConversion.filter(field => !selectedNames.includes(field.name));
+                },
                 filteredAndSortedFields() {
                     let fields = [...this.filteredFields];
                     
@@ -1749,54 +1623,18 @@
                     
                     return fields;
                 },
-                truncatedPreviewData() {
-                    if (!this.previewData || this.previewData.length === 0) {
-                        return [];
-                    }
-                    return this.previewData.map(row => {
-                        const truncatedRow = {};
-                        for (const key in row) {
-                            const value = row[key];
-                            if (typeof value === 'string' && value.length > 50) {
-                                truncatedRow[key] = value.substring(0, 50) + '...';
-                            } else {
-                                truncatedRow[key] = value;
-                            }
-                        }
-                        return truncatedRow;
-                    });
-                }
             },
             async mounted() {
                 await this.loadTableData();
             },
             watch: {
                 activeTab(newVal) {
-                    if (newVal === 1) {
-                        // Data Management tab
-                        this.loadTableStats();
-                        this.loadPreviewData();
-                    } else if (newVal === 3) {
+                    if (newVal === 3) {
                         // Indexes tab
                         this.loadIndexes();
                     } else if (newVal === 4) {
                         // Study Links tab
                         this.loadStudyLinks();
-                    }
-                },
-                previewPage() {
-                    this.loadPreviewData();
-                },
-                showUploadDialog(newVal) {
-                    if (newVal) {
-                        // Reset upload state when dialog opens
-                        this.uploadFile = null;
-                        this.uploadStatus = null;
-                        this.importStatus = null;
-                        this.uploading = false;
-                        this.importing = false;
-                        this.importCancelled = false;
-                        this.deleting = false;
                     }
                 },
                 selectedField: {
@@ -1840,9 +1678,20 @@
                     if (to.name === 'edit') {
                         this.loadTableData();
                     }
+                },
+                showConvertTypesDialog(newVal) {
+                    if (newVal) {
+                        // Prepare fields for conversion when dialog opens
+                        this.prepareFieldsForConversion();
+                    }
                 }
             },
             methods: {
+                showToast(message, color = 'success') {
+                    this.snackbarText = message;
+                    this.snackbarColor = color;
+                    this.snackbar = true;
+                },
                 async loadTableData() {
                     this.loading = true;
                     this.error = '';
@@ -2006,7 +1855,7 @@
                             updateData
                         );
                         if (response.data.status === 'success') {
-                            this.success = `Field ${response.data.action === 'created' ? 'created' : 'updated'} successfully`;
+                            this.showToast(`Field ${response.data.action === 'created' ? 'created' : 'updated'} successfully`, 'success');
                             
                             // Fetch the updated field from server to get all current values
                             try {
@@ -2017,8 +1866,8 @@
                                     const updatedFieldFromServer = fieldResponse.data.field;
                                     
                                     // Update the field in the local fields array with server data
-                                    const fieldIndex = this.fields.findIndex(f => f.name === this.selectedField.name);
-                                    if (fieldIndex >= 0) {
+                            const fieldIndex = this.fields.findIndex(f => f.name === this.selectedField.name);
+                            if (fieldIndex >= 0) {
                                         // Ensure code_list_reference is always an object
                                         let codeListRef = updatedFieldFromServer.code_list_reference;
                                         if (!codeListRef || typeof codeListRef !== 'object') {
@@ -2031,17 +1880,17 @@
                                             };
                                         }
                                         
-                                        this.fields[fieldIndex] = {
+                                this.fields[fieldIndex] = {
                                             ...updatedFieldFromServer,
                                             code_list: updatedFieldFromServer.code_list || [],
                                             code_list_reference: codeListRef
-                                        };
+                                };
                                         
                                         // Only re-select if this is still the currently selected field
                                         if (this.selectedField && this.selectedField.name === updatedFieldFromServer.name) {
                                             this.selectField(this.fields[fieldIndex]);
                                         }
-                                    } else {
+                            } else {
                                         // New field - add to array
                                         let codeListRef = updatedFieldFromServer.code_list_reference;
                                         if (!codeListRef || typeof codeListRef !== 'object') {
@@ -2095,10 +1944,10 @@
                                 }
                             }
                         } else {
-                            this.error = response.data.message || 'Failed to update field';
+                            this.showToast(response.data.message || 'Failed to update field', 'error');
                         }
                     } catch (error) {
-                        this.error = 'Error updating field: ' + (error.response?.data?.message || error.message);
+                        this.showToast('Error updating field: ' + (error.response?.data?.message || error.message), 'error');
                     } finally {
                         this.savingField = false;
                     }
@@ -2134,19 +1983,115 @@
                 },
                 async populateSchema() {
                     this.populatingSchema = true;
-                    this.error = '';
                     try {
                         const response = await axios.post(`${apiBase}/fields/${this.dbId}/${this.tableId}/populate`);
                         if (response.data.status === 'success') {
-                            this.success = `Successfully populated ${response.data.total_fields || 0} fields`;
+                            this.showToast(`Successfully populated ${response.data.total_fields || 0} fields`, 'success');
                             await this.loadSchema();
                         } else {
-                            this.error = response.data.message || 'Failed to populate schema';
+                            this.showToast(response.data.message || 'Failed to populate schema', 'error');
                         }
                     } catch (error) {
-                        this.error = 'Error populating schema: ' + (error.response?.data?.message || error.message);
+                        this.showToast('Error populating schema: ' + (error.response?.data?.message || error.message), 'error');
                     } finally {
                         this.populatingSchema = false;
+                    }
+                },
+                prepareFieldsForConversion() {
+                    // Filter out date/datetime fields and prepare for conversion dialog
+                    if (!this.fields || !Array.isArray(this.fields)) {
+                        this.fieldsForConversion = [];
+                        this.selectedFieldsForConversion = [];
+                        return;
+                    }
+                    this.fieldsForConversion = this.fields
+                        .filter(field => {
+                            const dataType = field.data_type || '';
+                            return dataType !== 'date' && dataType !== 'datetime' && dataType !== 'null' && dataType !== '';
+                        })
+                        .map(field => ({
+                            name: field.name,
+                            current_type: field.data_type || 'string',
+                            target_type: field.data_type || 'string'
+                        }));
+                    // Reset selected fields when dialog opens
+                    this.selectedFieldsForConversion = [];
+                    this.selectedFieldToAdd = null;
+                },
+                addFieldToConversion(field) {
+                    if (!field) return;
+                    
+                    // Check if field is already selected
+                    const exists = this.selectedFieldsForConversion.some(f => f.name === field.name);
+                    if (exists) {
+                        return;
+                    }
+                    
+                    // Add to selected fields
+                    this.selectedFieldsForConversion.push({
+                        name: field.name,
+                        current_type: field.current_type || 'string',
+                        target_type: field.target_type || 'string'
+                    });
+                    
+                    // Clear the autocomplete
+                    this.selectedFieldToAdd = null;
+                },
+                removeFieldFromConversion(fieldName) {
+                    this.selectedFieldsForConversion = this.selectedFieldsForConversion.filter(
+                        f => f.name !== fieldName
+                    );
+                },
+                async executeConvertTypes() {
+                    // Build fields object from selected fields
+                    // If no fields selected, fields object will be empty (convert all from metadata)
+                    const fieldsToConvert = {};
+                    this.selectedFieldsForConversion.forEach(field => {
+                        fieldsToConvert[field.name] = field.target_type;
+                    });
+
+                    // Build request payload
+                    // If fieldsToConvert is empty, backend will use metadata for all fields
+                    const payload = {
+                        on_error: this.convertTypesOptions.on_error
+                    };
+                    
+                    // Only include fields if some are selected
+                    if (Object.keys(fieldsToConvert).length > 0) {
+                        payload.fields = fieldsToConvert;
+                    }
+
+                    this.convertingTypes = true;
+                    try {
+                        const response = await axios.post(
+                            `${apiBase}/convert_field_types/${this.dbId}/${this.tableId}`,
+                            payload
+                        );
+                        if (response.data.status === 'success' || response.data.status === 'partial') {
+                            const result = response.data;
+                            let message = `Converted ${result.fields_converted || 0} field(s). `;
+                            if (result.fields_skipped > 0) {
+                                message += `${result.fields_skipped} field(s) skipped. `;
+                            }
+                            if (result.fields_failed > 0) {
+                                message += `${result.fields_failed} field(s) failed. `;
+                            }
+                            if (result.stopped_at_field) {
+                                message += `Stopped at field: ${result.stopped_at_field}. `;
+                            }
+                            message += `${result.documents_modified || 0} document(s) modified.`;
+                            this.showToast(message, response.data.status === 'partial' ? 'warning' : 'success');
+                            this.showConvertTypesDialog = false;
+                            // Reset dialog state
+                            this.selectedFieldsForConversion = [];
+                            this.selectedFieldToAdd = null;
+                        } else {
+                            this.showToast(response.data.message || 'Failed to convert data types', 'error');
+                        }
+                    } catch (error) {
+                        this.showToast('Error converting data types: ' + (error.response?.data?.message || error.message), 'error');
+                    } finally {
+                        this.convertingTypes = false;
                     }
                 },
                 async loadIndexes() {
@@ -2290,8 +2235,6 @@
                     }
                     
                     this.syncingFields = true;
-                    this.error = '';
-                    this.success = '';
                     
                     try {
                         const response = await axios.post(`${apiBase}/fields/${this.dbId}/${this.tableId}/sync`);
@@ -2306,20 +2249,20 @@
                             }
                             message += `Total fields: ${total}`;
                             
-                            this.success = message;
+                            this.showToast(message, 'success');
                             await this.loadSchema();
                         } else {
-                            this.error = response.data.message || 'Failed to sync data dictionary';
+                            this.showToast(response.data.message || 'Failed to sync data dictionary', 'error');
                         }
                     } catch (error) {
-                        this.error = 'Error syncing data dictionary: ' + (error.response?.data?.message || error.message);
+                        this.showToast('Error syncing data dictionary: ' + (error.response?.data?.message || error.message), 'error');
                     } finally {
                         this.syncingFields = false;
                     }
                 },
                 async addField() {
                     if (!this.newField.name || !this.newField.data_type) {
-                        this.error = 'Field name and data type are required';
+                        this.showToast('Field name and data type are required', 'error');
                         return;
                     }
                     try {
@@ -2335,15 +2278,15 @@
                             fieldData
                         );
                         if (response.data.status === 'success') {
-                            this.success = `Field ${this.newField.name} added successfully`;
+                            this.showToast(`Field ${this.newField.name} added successfully`, 'success');
                             this.showAddFieldDialog = false;
                             this.newField = { name: '', label: '', data_type: 'string', column_type: '' };
                             await this.loadSchema();
                         } else {
-                            this.error = response.data.message || 'Failed to add field';
+                            this.showToast(response.data.message || 'Failed to add field', 'error');
                         }
                     } catch (error) {
-                        this.error = 'Error adding field: ' + (error.response?.data?.message || error.message);
+                        this.showToast('Error adding field: ' + (error.response?.data?.message || error.message), 'error');
                     }
                 },
                 async deleteField(field) {
@@ -2353,14 +2296,14 @@
                             `${apiBase}/fields/${this.dbId}/${this.tableId}/${field.name}/delete`
                         );
                         if (response.data.status === 'success') {
-                            this.success = `Field ${field.name} deleted successfully`;
+                            this.showToast(`Field ${field.name} deleted successfully`, 'success');
                             this.selectedField = null;
                             await this.loadSchema();
                         } else {
-                            this.error = response.data.message || 'Failed to delete field';
+                            this.showToast(response.data.message || 'Failed to delete field', 'error');
                         }
                     } catch (error) {
-                        this.error = 'Error deleting field: ' + (error.response?.data?.message || error.message);
+                        this.showToast('Error deleting field: ' + (error.response?.data?.message || error.message), 'error');
                     }
                 },
                 getColumnTypeColor(columnType) {
@@ -2408,317 +2351,6 @@
                             note: ''
                         };
                         this.updateField();
-                    }
-                },
-                async uploadData() {
-                    if (!this.uploadFile) {
-                        alert('Please select a file to upload');
-                        return;
-                    }
-
-                    this.uploading = true;
-                    this.uploadStatus = null;
-                    this.importStatus = null;
-
-                    try {
-                        // Step 1: Upload file
-                        const formData = new FormData();
-                        formData.append('file', this.uploadFile);
-
-                        const uploadResponse = await fetch(`${apiBase}/upload/${this.dbId}/${this.tableId}`, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
-                        });
-
-                        const uploadResult = await uploadResponse.json();
-
-                        if (uploadResult.status === 'success') {
-                            this.uploadStatus = {
-                                status: 'success',
-                                message: uploadResult.message,
-                                file_path: uploadResult.file_path,
-                                csv_uploaded_at: uploadResult.csv_uploaded_at,
-                                import_status: uploadResult.import_status
-                            };
-                            this.uploadFile = null;
-
-                            // Step 2: Delete existing data
-                            this.deleting = true;
-                            try {
-                                const deleteResponse = await fetch(`${apiBase}/delete/${this.dbId}/${this.tableId}`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-Requested-With': 'XMLHttpRequest'
-                                    },
-                                    body: JSON.stringify({
-                                        delete_definition: false
-                                    })
-                                });
-
-                                const deleteResult = await deleteResponse.json();
-                                
-                                if (deleteResult.status === 'success') {
-                                    // Step 3: Start import
-                                    this.deleting = false;
-                                    await this.importData();
-                                } else {
-                                    this.deleting = false;
-                                    this.uploadStatus = {
-                                        status: 'error',
-                                        message: 'Failed to delete existing data: ' + (deleteResult.message || 'Unknown error')
-                                    };
-                                    await this.loadTableStats();
-                                    await this.loadPreviewData();
-                                }
-                            } catch (deleteError) {
-                                this.deleting = false;
-                                this.uploadStatus = {
-                                    status: 'error',
-                                    message: 'Error deleting existing data: ' + deleteError.message
-                                };
-                                await this.loadTableStats();
-                                await this.loadPreviewData();
-                            }
-                        } else {
-                            this.uploadStatus = {
-                                status: 'error',
-                                message: uploadResult.message || 'Upload failed'
-                            };
-                            await this.loadTableStats();
-                            await this.loadPreviewData();
-                        }
-                    } catch (error) {
-                        this.uploadStatus = {
-                            status: 'error',
-                            message: 'Upload failed: ' + error.message
-                        };
-                        await this.loadTableStats();
-                        await this.loadPreviewData();
-                    } finally {
-                        this.uploading = false;
-                    }
-                },
-                async importData() {
-                    this.importing = true;
-                    this.importStatus = null;
-                    this.importCancelled = false;
-
-                    try {
-                        let hasMore = true;
-                        let importResult = null;
-
-                        // Loop until import is complete
-                        while (hasMore && !this.importCancelled) {
-                            const response = await fetch(`${apiBase}/import/${this.dbId}/${this.tableId}`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                },
-                                body: JSON.stringify({
-                                    db_id: this.dbId,
-                                    table_id: this.tableId
-                                })
-                            });
-
-                            importResult = await response.json();
-
-                            if (importResult.status === 'success') {
-                                // Update progress display
-                                const progress = importResult.progress || {};
-                                const batch = importResult.batch || {};
-                                
-                                this.importStatus = {
-                                    status: progress.import_status === 'completed' ? 'success' : 'in_progress',
-                                    message: progress.import_status === 'completed' 
-                                        ? 'Import completed successfully' 
-                                        : `Importing... ${progress.progress_percent || 0}%`,
-                                    rows_processed: batch.rows_processed || 0,
-                                    total_rows_processed: progress.total_rows_processed || 0,
-                                    progress_percent: progress.progress_percent || 0,
-                                    import_status: progress.import_status || 'in_progress'
-                                };
-
-                                // Check if more data needs to be imported
-                                hasMore = progress.has_more === true && 
-                                          progress.import_status !== 'completed';
-
-                                // Small delay between chunks to prevent overwhelming the server
-                                if (hasMore && !this.importCancelled) {
-                                    await new Promise(resolve => setTimeout(resolve, 500));
-                                }
-                            } else {
-                                // Import failed
-                                this.importStatus = {
-                                    status: 'error',
-                                    message: importResult.message || 'Import failed'
-                                };
-                                hasMore = false;
-                            }
-                        }
-
-                        // Handle cancellation
-                        if (this.importCancelled) {
-                            this.importStatus = {
-                                status: 'warning',
-                                message: 'Import cancelled by user'
-                            };
-                            await this.loadTableStats();
-                            await this.loadPreviewData();
-                            return;
-                        }
-
-                        // Import completed successfully
-                        if (importResult && importResult.status === 'success') {
-                            // Sync fields if enabled
-                            if (this.syncFields) {
-                                await this.syncFieldsAfterImport();
-                            }
-                            
-                            this.showUploadDialog = false;
-                            await this.loadTableStats();
-                            await this.loadPreviewData();
-                            await this.loadSchema();
-                        } else {
-                            // Final error state
-                            await this.loadTableStats();
-                            await this.loadPreviewData();
-                        }
-                    } catch (error) {
-                        this.importStatus = {
-                            status: 'error',
-                            message: 'Import failed: ' + error.message
-                        };
-                        await this.loadTableStats();
-                        await this.loadPreviewData();
-                    } finally {
-                        this.importing = false;
-                        this.importCancelled = false;
-                    }
-                },
-                cancelImport() {
-                    if (confirm('Are you sure you want to cancel the import? The data imported so far will remain.')) {
-                        this.importCancelled = true;
-                    }
-                },
-                async loadTableStats() {
-                    try {
-                        const response = await axios.get(`${apiBase}/info/${this.dbId}/${this.tableId}`);
-                        if (response.data.status === 'success' && response.data.result) {
-                            this.tableStats = {
-                                count: response.data.result.count || 0
-                            };
-                        }
-                    } catch (error) {
-                        console.error('Error loading table stats:', error);
-                    }
-                },
-                async loadPreviewData() {
-                    this.previewLoading = true;
-                    this.previewError = null;
-
-                    try {
-                        const offset = (this.previewPage - 1) * this.previewLimit;
-                        const response = await axios.get(`${apiBase}/data/${this.dbId}/${this.tableId}`, {
-                            params: {
-                                limit: this.previewLimit,
-                                offset: offset
-                            }
-                        });
-
-                        // API returns data directly: { rows_count, limit, offset, found, total, data }
-                        const data = response.data.data || [];
-                        this.previewData = data;
-                        this.previewTotal = response.data.total || response.data.found || data.length;
-
-                        if (data.length > 0) {
-                            this.previewHeaders = Object.keys(data[0]).map(key => ({
-                                text: key,
-                                value: key,
-                                sortable: true
-                            }));
-                        } else {
-                            this.previewHeaders = [];
-                        }
-                    } catch (error) {
-                        this.previewError = 'Error loading preview data: ' + (error.response?.data?.message || error.message);
-                        this.previewData = [];
-                        this.previewHeaders = [];
-                    } finally {
-                        this.previewLoading = false;
-                    }
-                },
-                async deleteTableData() {
-                    this.deleting = true;
-                    this.deleteStatus = null;
-
-                    try {
-                        const response = await fetch(`${apiBase}/delete/${this.dbId}/${this.tableId}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            body: JSON.stringify({
-                                delete_definition: this.deleteDefinition
-                            })
-                        });
-
-                        const result = await response.json();
-
-                        if (result.status === 'success') {
-                            this.deleteStatus = {
-                                status: 'success',
-                                message: result.message,
-                                data_deleted: result.data_deleted
-                            };
-                            this.deleteDefinition = false;
-                            await this.loadTableStats();
-                            await this.loadPreviewData();
-                            setTimeout(() => {
-                                this.showDeleteDialog = false;
-                                this.deleteStatus = null;
-                            }, 2000);
-                        } else {
-                            this.deleteStatus = {
-                                status: 'error',
-                                message: result.message || 'Delete failed'
-                            };
-                        }
-                    } catch (error) {
-                        this.deleteStatus = {
-                            status: 'error',
-                            message: 'Delete failed: ' + error.message
-                        };
-                    } finally {
-                        this.deleting = false;
-                    }
-                },
-                exportToCSV() {
-                    const offset = (this.previewPage - 1) * this.previewLimit;
-                    const url = `${apiBase}/data/${this.dbId}/${this.tableId}?format=csv&limit=${this.previewLimit}&offset=${offset}`;
-                    window.open(url, '_blank');
-                },
-                async syncFieldsAfterImport() {
-                    try {
-                        const response = await axios.post(`${apiBase}/fields/${this.dbId}/${this.tableId}/sync`);
-                        if (response.data.status === 'success') {
-                            // Show success message in import status
-                            if (this.importStatus) {
-                                const removed = response.data.fields_removed || 0;
-                                const added = response.data.fields_added || 0;
-                                if (removed > 0 || added > 0) {
-                                    this.importStatus.message += ` Fields synced: ${removed} removed, ${added} added.`;
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error syncing fields:', error);
-                        // Don't fail the import if sync fails, just log it
                     }
                 },
                 async loadStudyLinks() {

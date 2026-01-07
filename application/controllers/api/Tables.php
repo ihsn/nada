@@ -1487,7 +1487,7 @@ class Tables extends MY_REST_Controller
 	 * @table_id - table id
 	 * 
 	 */
-	function fields_get($db_id=null,$table_id=null)
+	function data_dictionary_get($db_id=null,$table_id=null)
 	{
 		try{
 			$options=$this->raw_json_input();
@@ -1520,6 +1520,12 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+
+	function fields_get($db_id=null, $table_id=null)
+	{
+		return $this->data_dictionary_get($db_id, $table_id);
 	}
 
 	/**
@@ -1835,6 +1841,53 @@ class Tables extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+	/**
+	 * Convert field data types in MongoDB based on field metadata
+	 * 
+	 * POST /api/tables/convert_type/{db_id}/{table_id}
+	 * 
+	 * Uses field metadata to convert all field values to their specified data types
+	 * using MongoDB's $convert operator. Date and datetime fields are excluded.
+	 * 
+	 * @param string $db_id Database ID
+	 * @param string $table_id Table ID
+	 */
+	function convert_field_types_post($db_id=null, $table_id=null)
+	{
+		$this->is_admin_or_die();
+		
+		try {
+			$user_id = $this->get_api_user_id();
+			
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			
+			// Convert field types
+			$result = $this->Data_table_mongo_model->convert_table_field_types($db_id, $table_id);
+			
+			$response = array(
+				'status' => 'success',
+				'message' => 'Field types converted successfully',
+				'total_fields' => $result['total_fields'],
+				'fields_converted' => $result['fields_converted'],
+				'fields_skipped' => $result['fields_skipped'],
+				'total_documents' => $result['total_documents'],
+				'documents_modified' => $result['documents_modified'],
+				'field_results' => $result['field_results']
+			);
+			
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$error_output = array(
+				'status' => 'failed',
+				'message' => $e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	
 
 	public function _auth_override_check()
     {

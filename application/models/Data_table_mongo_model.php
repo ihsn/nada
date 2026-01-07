@@ -506,6 +506,7 @@ class Data_table_mongo_model extends CI_Model {
         $this->table_type_obj= $this->get_table_type($db_id,$table_id);
 
         $fields=$this->get_table_field_names($db_id,$table_id);
+        $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
 
         $features=$fields;
         $feature_filters=array();
@@ -517,8 +518,9 @@ class Data_table_mongo_model extends CI_Model {
         // NEW FORMAT: Check for c['field'] format first
         if (isset($options['c']) && is_array($options['c'])) {
             foreach($options['c'] as $key => $value) {
-                if(array_key_exists($key, $features)){
-                    $filter_options[$key] = $value;
+                $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
+                if($field_info !== null){
+                    $filter_options[$field_info['name']] = $value;
                 }
             }
         }
@@ -533,9 +535,10 @@ class Data_table_mongo_model extends CI_Model {
             if (isset($options['c']) && is_array($options['c']) && isset($options['c'][$key])) {
                 continue;
             }
-            // Check if key matches a field name
-            if(array_key_exists($key, $features)){
-                $filter_options[$key] = $value;
+            // Check if key matches a field name (case-insensitive)
+            $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
+            if($field_info !== null){
+                $filter_options[$field_info['name']] = $value;
             }
         }
         
@@ -543,7 +546,7 @@ class Data_table_mongo_model extends CI_Model {
 
         //filter by features
         foreach($filter_options as $feature_key=>$value){
-            $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
+            $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value,$field_metadata_map);
         }
 
         //fulltext query
@@ -655,6 +658,7 @@ class Data_table_mongo_model extends CI_Model {
     
         $this->table_type_obj = $this->get_table_type($db_id, $table_id);    
         $fields = $this->get_table_field_names($db_id, $table_id);
+        $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
     
         $features = $fields;
         $feature_filters = array();
@@ -666,8 +670,9 @@ class Data_table_mongo_model extends CI_Model {
         // NEW FORMAT: Check for c['field'] format first
         if (isset($options['c']) && is_array($options['c'])) {
             foreach($options['c'] as $key => $value) {
-                if(array_key_exists($key, $features)){
-                    $filter_options[$key] = $value;
+                $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
+                if($field_info !== null){
+                    $filter_options[$field_info['name']] = $value;
                 }
             }
         }
@@ -682,9 +687,10 @@ class Data_table_mongo_model extends CI_Model {
             if (isset($options['c']) && is_array($options['c']) && isset($options['c'][$key])) {
                 continue;
             }
-            // Check if key matches a field name
-            if(array_key_exists($key, $features)){
-                $filter_options[$key] = $value;
+            // Check if key matches a field name (case-insensitive)
+            $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
+            if($field_info !== null){
+                $filter_options[$field_info['name']] = $value;
             }
         }
     
@@ -692,7 +698,7 @@ class Data_table_mongo_model extends CI_Model {
     
         // Filter by features
         foreach ($filter_options as $feature_key => $value) {
-            $tmp_feature_filters[$feature_key] = $this->apply_feature_filter($feature_key, $value);
+            $tmp_feature_filters[$feature_key] = $this->apply_feature_filter($feature_key, $value, $field_metadata_map);
         }
     
         // Full-text query
@@ -948,23 +954,25 @@ class Data_table_mongo_model extends CI_Model {
    }
 
 
-   function apply_feature_filter($feature_name,$value)
+   function apply_feature_filter($feature_name,$value,$field_metadata_map=null)
    {
         $parsed_val=$this->parse_filter_value($value);
 
         $output=array();
         $values=array();
 
-        /*
-        //output format
-        array( 
-            'sex' => array( '$in' => array(1) ), 
-            'age'=> array(
-                '$gte' => 10,
-                '$lte' => 15                    
-            )
-        ) 
-        */
+        $field_type = null;
+        if ($field_metadata_map && isset($field_metadata_map[$feature_name])) {
+            $data_type = $field_metadata_map[$feature_name]['data_type'];
+            $data_type_lower = strtolower($data_type);
+            if ($data_type_lower === 'string') {
+                $field_type = 'string';
+            } elseif (in_array($data_type_lower, array('integer', 'int'))) {
+                $field_type = 'int';
+            } elseif (in_array($data_type_lower, array('float', 'double', 'decimal'))) {
+                $field_type = 'float';
+            }
+        }
 
         foreach($parsed_val as $val){
             if($val['type']=='range')
@@ -977,17 +985,55 @@ class Data_table_mongo_model extends CI_Model {
                         '$lte' => $end
                 );
             }else if($val['type']=='value'){
-                //$wheres[]=$feature_name." = ".$this->db->escape($val['value']);
-                $values[]=is_numeric($val['value']) ? (int)$val['value']: $val['value'];
+                $val_value = $val['value'];
+                if (is_numeric($val_value)) {
+                    if ($field_type === 'string') {
+                        $values[] = (string)$val_value;
+                    } elseif ($field_type === 'int') {
+                        $values[] = (int)$val_value;
+                    } elseif ($field_type === 'float') {
+                        $values[] = (float)$val_value;
+                    } else {
+                        $values[] = (int)$val_value;
+                    }
+                } else {
+                    $values[] = $val_value;
+                }
             }
-			else if($val['type']=='gte'){                
+			else if($val['type']=='gte'){
+                $val_value = $val['value'];
+                $gte_value = $val_value;
+                if (is_numeric($val_value)) {
+                    if ($field_type === 'string') {
+                        $gte_value = (string)$val_value;
+                    } elseif ($field_type === 'int') {
+                        $gte_value = (int)$val_value;
+                    } elseif ($field_type === 'float') {
+                        $gte_value = (float)$val_value;
+                    } else {
+                        $gte_value = (int)$val_value;
+                    }
+                }
 				$output[][$feature_name]= array(
-                        '$gte' => is_numeric($val['value']) ? (int)$val['value']: $val['value']                        
+                        '$gte' => $gte_value                        
                 );
             }
 			else if($val['type']=='lte'){
+                $val_value = $val['value'];
+                $lte_value = $val_value;
+                if (is_numeric($val_value)) {
+                    if ($field_type === 'string') {
+                        $lte_value = (string)$val_value;
+                    } elseif ($field_type === 'int') {
+                        $lte_value = (int)$val_value;
+                    } elseif ($field_type === 'float') {
+                        $lte_value = (float)$val_value;
+                    } else {
+                        $lte_value = (int)$val_value;
+                    }
+                }
 				$output[][$feature_name]= array(
-                        '$lte' => is_numeric($val['value']) ? (int)$val['value']: $val['value']                        
+                        '$lte' => $lte_value                        
                 );
             }
         }
@@ -1001,8 +1047,16 @@ class Data_table_mongo_model extends CI_Model {
 
                 if (substr($value,0,1)=='!'){
                     $nin_=substr($value,1,strlen($value));
-                    if (is_numeric($nin_)){
-                        $nin_=$nin_+0;
+                    if (is_numeric($nin_)) {
+                        if ($field_type === 'string') {
+                            $nin_ = (string)$nin_;
+                        } elseif ($field_type === 'int') {
+                            $nin_ = (int)$nin_;
+                        } elseif ($field_type === 'float') {
+                            $nin_ = (float)$nin_;
+                        } else {
+                            $nin_ = $nin_ + 0;
+                        }
                     }
                     $values_nin[]=$nin_;
 
@@ -1263,6 +1317,62 @@ class Data_table_mongo_model extends CI_Model {
         }
 
         return $output;
+    }
+
+    function get_correct_field_name($user_field_name, $available_fields)
+    {
+        if (empty($user_field_name) || empty($available_fields)) {
+            return null;
+        }
+
+        if (array_key_exists($user_field_name, $available_fields)) {
+            return $user_field_name;
+        }
+
+        foreach ($available_fields as $field_name => $value) {
+            if (strcasecmp($user_field_name, $field_name) === 0) {
+                return $field_name;
+            }
+        }
+
+        return null;
+    }
+
+    function get_field_metadata_map($db_id, $table_id)
+    {
+        $fields_metadata = $this->get_table_fields($db_id, $table_id);
+        $metadata_map = array();
+        
+        foreach ($fields_metadata as $field) {
+            $field_name = isset($field['name']) ? $field['name'] : null;
+            if ($field_name) {
+                $metadata_map[$field_name] = array(
+                    'name' => $field_name,
+                    'data_type' => isset($field['data_type']) ? $field['data_type'] : 'string'
+                );
+            }
+        }
+        
+        return $metadata_map;
+    }
+
+    function get_field_info_from_metadata($user_field_name, $metadata_map)
+    {
+        if (empty($user_field_name) || empty($metadata_map)) {
+            return null;
+        }
+
+        if (isset($metadata_map[$user_field_name])) {
+            return $metadata_map[$user_field_name];
+        }
+
+        foreach ($metadata_map as $field_name => $field_info) {
+            if (strcasecmp($user_field_name, $field_name) === 0) {
+                return $field_info;
+            }
+        }
+
+        return null;
     }
 
 
@@ -1528,6 +1638,7 @@ function format_execution_time($seconds)
    function get_filters($db_id, $table_id,$options)
    {
         $fields=$this->get_table_field_names($db_id,$table_id);
+        $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
 
         $features=$fields;
         $feature_filters=array();
@@ -1539,8 +1650,9 @@ function format_execution_time($seconds)
         // NEW FORMAT: Check for c['field'] format first
         if (isset($options['c']) && is_array($options['c'])) {
             foreach($options['c'] as $key => $value) {
-                if(array_key_exists($key, $features)){
-                    $filter_options[$key] = $value;
+                $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
+                if($field_info !== null){
+                    $filter_options[$field_info['name']] = $value;
                 }
             }
         }
@@ -1555,9 +1667,10 @@ function format_execution_time($seconds)
             if (isset($options['c']) && is_array($options['c']) && isset($options['c'][$key])) {
                 continue;
             }
-            // Check if key matches a field name
-            if(array_key_exists($key, $features)){
-                $filter_options[$key] = $value;
+            // Check if key matches a field name (case-insensitive)
+            $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
+            if($field_info !== null){
+                $filter_options[$field_info['name']] = $value;
             }
         }
         
@@ -1565,7 +1678,7 @@ function format_execution_time($seconds)
 
         //filter by features
         foreach($filter_options as $feature_key=>$value){
-            $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value);
+            $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value,$field_metadata_map);
         }
 
         //fulltext query
@@ -2361,6 +2474,146 @@ function format_execution_time($seconds)
 			'created_at' => $now,
 			'updated_at' => $now
 		];
+	}
+
+	/**
+	 * Convert field data types in MongoDB collection based on field metadata
+	 * Uses MongoDB's $convert operator to convert values to their target types
+	 * 
+	 * @param string $db_id Database ID
+	 * @param string $table_id Table ID
+	 * @return array Conversion statistics
+	 */
+	public function convert_table_field_types($db_id, $table_id)
+	{
+		$db_id = strtolower($db_id);
+		$table_id = strtolower($table_id);
+		
+		// Get all field metadata for this table
+		$fields = $this->get_field_metadata($db_id, $table_id);
+		
+		if (empty($fields)) {
+			throw new Exception("No field metadata found for table");
+		}
+		
+		// Get the data collection
+		$collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
+		
+		// Get total document count
+		$total_documents = $collection->countDocuments([]);
+		
+		$field_results = [];
+		$fields_converted = 0;
+		$fields_skipped = 0;
+		$total_modified = 0;
+		
+		// Types to exclude from conversion (keep as strings)
+		$excluded_types = ['date', 'datetime'];
+		
+		foreach ($fields as $field) {
+			$field_name = $field['name'];
+			$data_type = isset($field['data_type']) ? $field['data_type'] : null;
+			
+			// Skip fields without data_type or excluded types
+			if (empty($data_type) || in_array($data_type, $excluded_types)) {
+				$fields_skipped++;
+				$field_results[] = [
+					'field_name' => $field_name,
+					'data_type' => $data_type,
+					'status' => 'skipped',
+					'reason' => empty($data_type) ? 'no_data_type' : 'excluded_type'
+				];
+				continue;
+			}
+			
+			// Map metadata data_type to MongoDB BSON type
+			$mongo_type = $this->map_data_type_to_mongo_type($data_type);
+			
+			if (!$mongo_type) {
+				$fields_skipped++;
+				$field_results[] = [
+					'field_name' => $field_name,
+					'data_type' => $data_type,
+					'status' => 'skipped',
+					'reason' => 'unsupported_type'
+				];
+				continue;
+			}
+			
+			try {
+				// Build update pipeline with $convert
+				$pipeline = [
+					[
+						'$set' => [
+							$field_name => [
+								'$convert' => [
+									'input' => '$' . $field_name,
+									'to' => $mongo_type,
+									'onError' => '$' . $field_name,  // Keep original value on error
+									'onNull' => '$' . $field_name    // Keep original value if null
+								]
+							]
+						]
+					]
+				];
+				
+				// Execute updateMany with pipeline
+				$result = $collection->updateMany([], $pipeline);
+				$modified_count = $result->getModifiedCount();
+				
+				$fields_converted++;
+				$total_modified += $modified_count;
+				
+				$field_results[] = [
+					'field_name' => $field_name,
+					'data_type' => $data_type,
+					'mongo_type' => $mongo_type,
+					'status' => 'success',
+					'documents_modified' => $modified_count
+				];
+			} catch (Exception $e) {
+				$field_results[] = [
+					'field_name' => $field_name,
+					'data_type' => $data_type,
+					'status' => 'error',
+					'error' => $e->getMessage()
+				];
+			}
+		}
+		
+		return [
+			'total_fields' => count($fields),
+			'fields_converted' => $fields_converted,
+			'fields_skipped' => $fields_skipped,
+			'total_documents' => $total_documents,
+			'documents_modified' => $total_modified,
+			'field_results' => $field_results
+		];
+	}
+	
+	/**
+	 * Map metadata data_type to MongoDB BSON type for $convert operator
+	 * 
+	 * @param string $data_type Metadata data type
+	 * @return string|null MongoDB BSON type or null if unsupported
+	 */
+	private function map_data_type_to_mongo_type($data_type)
+	{
+		$type_map = [
+			'string' => 'string',
+			'integer' => 'int',
+			'int' => 'int',
+			'float' => 'double',
+			'double' => 'double',
+			'boolean' => 'bool',
+			'bool' => 'bool',
+			'array' => 'array',
+			'object' => 'object',
+			'null' => 'null'
+		];
+		
+		$normalized_type = strtolower($data_type);
+		return isset($type_map[$normalized_type]) ? $type_map[$normalized_type] : null;
 	}
 
 	/**
