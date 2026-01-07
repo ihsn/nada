@@ -479,7 +479,7 @@ class Tables extends MY_REST_Controller
 
 			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$offset,$options);
 			
-			if(isset($options['format']) && $options['format']=='csv'){
+			if(isset($options['format']) && strtolower($options['format'])=='csv'){
 
 				if ($this->input->get("disposition")=='inline'){
 					$this->export_data_to_csv($response['data']);
