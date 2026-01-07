@@ -792,6 +792,33 @@ class Data_table_mongo_model extends CI_Model {
     }
     
 
+    /**
+	 * 
+     * Download CSV file associated with a table
+     * 
+	 */
+	public function download_csv_file($db_id, $table_id)
+	{
+		$table_definition = $this->get_table_type($db_id, $table_id);
+		
+		if (!$table_definition) {
+			throw new Exception("Table definition not found - please upload a file first");
+		}
+
+		if (!isset($table_definition['csv_file_path']) || empty($table_definition['csv_file_path'])) {
+			throw new Exception("No CSV file path found in table definition - please upload a file first");
+		}
+
+		$validated_file_path = validate_file_path($table_definition['csv_file_path'], $db_id, $table_id);
+		$full_file_path = 'datafiles/' . $validated_file_path;
+
+		if (!file_exists($full_file_path)) {
+			throw new Exception("CSV file not found: " . $validated_file_path);
+		}
+
+        $this->download_file($full_file_path, 'csv', $db_id . '_' . $table_id . '.csv');		
+	}
+
 
     function download_file($file_path, $output_format = 'json', $download_file_name=null)
     {
@@ -1969,16 +1996,53 @@ function format_execution_time($seconds)
 
 	/**
 	 * Clean and convert CSV values to appropriate data types
+	 * Simplified logic: preserves leading zeros, handles floats and scientific notation
 	 * 
 	 * @param mixed $value The value to clean
 	 * @return mixed Cleaned value with proper data type
 	 */
 	private function clean_csv_value($value)
 	{
-		if (is_numeric($value)) {
-			return $value + 0;
+		// Convert encoding first
+		$value = mb_convert_encoding($value, 'UTF-8', 'auto');
+		
+		// If empty value, return as-is
+		if ($value === '' || $value === null) {
+			return $value;
 		}
-		return mb_convert_encoding($value, 'UTF-8', 'auto');
+		
+		// Trim whitespace
+		$trimmed = trim($value);
+		if ($trimmed === '') {
+			return $value;
+		}
+		
+		// Check if value starts with "0" and has length > 1
+		if (strlen($trimmed) > 1 && $trimmed[0] === '0') {
+			// Value has leading zero and length > 1
+			if (strpos($trimmed, '.') !== false) {
+				// Contains period - return as float
+				return (float)($trimmed + 0);
+			} else {
+				// No period - return as string (preserves leading zeros)
+				return $trimmed;
+			}
+		}
+		
+		// For values without leading zeros or single digit, check if numeric
+		if (is_numeric($trimmed)) {
+			// Check if it's a float (contains decimal point or scientific notation)
+			if (strpos($trimmed, '.') !== false || 
+			    strpos($trimmed, 'e') !== false || 
+			    strpos($trimmed, 'E') !== false) {
+				return (float)($trimmed + 0);
+			} else {
+				return (int)($trimmed + 0);
+			}
+		}
+		
+		// Default: preserve as string
+		return $trimmed;
 	}
 
 	/**
@@ -2285,7 +2349,7 @@ function format_execution_time($seconds)
 			'label' => $field_name,
 			'description' => '',
 			'data_type' => 'string',
-			'column_type' => 'dimension',
+			'column_type' => null,
 			'time_period_format' => null,
 			'unit_of_measurement' => null,
 			'format' => null,

@@ -175,18 +175,20 @@ class Tables extends MY_REST_Controller
 	function info_get($db_id=null,$table_id=null)
 	{
 		try{
-			$options=$this->raw_json_input();
-			
-			
+			$options=$this->raw_json_input();						
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
-
 			$result=$this->Data_table_mongo_model->get_table_info($db_id,$table_id);
 
-			//remove import_progress
 			$metadata = $result['table_type'];
-			if (isset($metadata['import_progress'])) {
-				unset($metadata['import_progress']);
+
+			// Remove fields
+			$remove_fields = array('import_progress', 'last_imported_at', 'csv_file_path', 'csv_uploaded_at');
+
+			foreach($remove_fields as $field){
+				if (isset($metadata[$field])){
+					unset($metadata[$field]);
+				}
 			}
 
 			// Include data_dictionary if requested via query parameter
@@ -490,6 +492,32 @@ class Tables extends MY_REST_Controller
 			$error_output=array(
 				'status'=>'failed',
 				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * 
+	 * 
+	 * Download table data as CSV, if exists
+	 * 
+	 * 
+	 */
+	function download_get($db_id=null, $table_id=null)
+	{
+		try{
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->Data_table_mongo_model->download_csv_file($db_id, $table_id);
+			die();
+		}
+		catch(Exception $e){
+			log_message('error', 'Tables::download_get error: '.$e->getMessage());
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>'File is not available'
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
@@ -1566,7 +1594,7 @@ class Tables extends MY_REST_Controller
 			if (!$is_update) {
 				$field_data['label'] = $field_data['label'] ?? $field_data['name'];
 				$field_data['data_type'] = $field_data['data_type'] ?? 'string';
-				$field_data['column_type'] = $field_data['column_type'] ?? 'dimension';
+				$field_data['column_type'] = $field_data['column_type'] ?? null;
 			}
 			
 			// Use create_field_metadata which does upsert
@@ -1811,9 +1839,9 @@ class Tables extends MY_REST_Controller
 	public function _auth_override_check()
     {
         if ($this->session->userdata('user_id')){
-            return true;
+            return TRUE;
         }
-        return parent::_auth_override_check();
+        parent::_auth_override_check();
     }
 
 }	

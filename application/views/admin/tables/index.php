@@ -401,8 +401,8 @@
                                 <v-card>
                                     <v-tabs v-model="activeTab">
                                         <v-tab>Table Information</v-tab>
-                                        <v-tab>Data Dictionary</v-tab>
                                         <v-tab>Data Management</v-tab>
+                                        <v-tab>Data Dictionary</v-tab>
                                         <v-tab>Indexes</v-tab>
                                         <v-tab>Study Links</v-tab>
                                     </v-tabs>
@@ -465,343 +465,7 @@
                                             </v-card>
                                         </v-tab-item>
 
-                                        <!-- Tab 2: Data Dictionary -->
-                                        <v-tab-item>
-                                            <v-card flat>
-                                                <v-card-title>
-                                                    <span>Data Dictionary Fields</span>
-                                                    <v-spacer></v-spacer>
-                                                    <v-btn color="warning" small @click="syncDataDictionary" :loading="syncingFields" class="mr-2">
-                                                        <v-icon left small>mdi-sync</v-icon>
-                                                        Sync Fields
-                                                    </v-btn>
-                                                    <v-btn color="primary" small @click="populateSchema" :loading="populatingSchema" class="ml-2">
-                                                        <v-icon left small>mdi-database-refresh</v-icon>
-                                                        Populate from Data
-                                                    </v-btn>
-                                                    <v-btn color="success" small @click="showAddFieldDialog = true" class="ml-2">
-                                                        <v-icon left small>mdi-plus</v-icon>
-                                                        Add Field
-                                                    </v-btn>
-                                                </v-card-title>
-                                    <v-card-text class="pa-0" style="height: calc(100vh - 200px); min-height: 500px;">
-                                        <v-row no-gutters style="height: 100%;">
-                                            <!-- Left Column - Field List (40%) -->
-                                            <v-col cols="12" md="5" style="border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; height: 100%;">
-                                                <!-- Search and Controls -->
-                                                <div style="padding: 12px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0;">
-                                                    <div class="d-flex align-center justify-space-between" style="gap: 8px;">
-                                                        <div class="d-flex align-center" style="gap: 8px; flex: 1;">
-                                                            <v-text-field
-                                                                v-model="fieldSearch"
-                                                                placeholder="Search fields..."
-                                                                prepend-inner-icon="mdi-magnify"
-                                                                outlined
-                                                                dense
-                                                                hide-details
-                                                                clearable
-                                                                style="max-width: 200px;"
-                                                                class="search-field-compact"
-                                                            ></v-text-field>
-                                                            <span class="text-caption text--secondary">
-                                                                {{ filteredFields.length }}/{{ fields.length }}
-                                                            </span>
-                                                        </div>
-                                                        <v-menu offset-y>
-                                                            <template v-slot:activator="{ on, attrs }">
-                                                                <v-btn
-                                                                    small
-                                                                    outlined
-                                                                    v-bind="attrs"
-                                                                    v-on="on"
-                                                                >
-                                                                    <v-icon left small>mdi-sort</v-icon>
-                                                                    {{ getSortLabel(fieldSortBy) }}
-                                                                    <v-icon right small>mdi-menu-down</v-icon>
-                                                                </v-btn>
-                                                            </template>
-                                                            <v-list dense>
-                                                                <v-list-item
-                                                                    v-for="option in sortOptions"
-                                                                    :key="option.value"
-                                                                    @click="fieldSortBy = option.value"
-                                                                    :class="{ 'v-list-item--active': fieldSortBy === option.value }"
-                                                                >
-                                                                    <v-list-item-content>
-                                                                        <v-list-item-title>{{ option.text }}</v-list-item-title>
-                                                                    </v-list-item-content>
-                                                                </v-list-item>
-                                                            </v-list>
-                                                        </v-menu>
-                                                    </div>
-                                                </div>
-                                                
-                                                <!-- Field List -->
-                                                <div style="flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0;">
-                                                    <div
-                                                        v-for="field in filteredAndSortedFields"
-                                                        :key="field.name"
-                                                        class="field-list-item"
-                                                        :class="{ active: selectedField && selectedField.name === field.name }"
-                                                        @click="selectField(field)"
-                                                    >
-                                                        <div class="d-flex align-center">
-                                                            <v-icon small class="mr-2">mdi-table-column</v-icon>                                                            
-                                                            <div class="flex-grow-1">
-                                                                <div class="font-weight-medium">{{ field.name }}</div>
-                                                                <div class="text-caption text--secondary">
-                                                                    {{ field.label || 'N/A' }} • {{ field.data_type }}
-                                                                </div>
-                                                            </div>
-                                                            <v-btn
-                                                                icon                                                                
-                                                                color="error"
-                                                                class="ml-2"
-                                                                @click.stop="deleteField(field)"
-                                                            >
-                                                                <v-icon small>mdi-delete</v-icon>
-                                                            </v-btn>
-                                                        </div>
-                                                    </div>
-                                                    <div v-if="fields.length === 0" class="text-center py-8 text--secondary">
-                                                        <v-icon size="48" color="grey lighten-1" class="mb-2">mdi-table-off</v-icon>
-                                                        <div>No fields defined</div>
-                                                        <div class="text-caption mt-2">Click "Populate from Data" to auto-generate</div>
-                                                    </div>
-                                                    <div v-else-if="filteredFields.length === 0" class="text-center py-8 text--secondary">
-                                                        <v-icon size="48" color="grey lighten-1" class="mb-2">mdi-magnify</v-icon>
-                                                        <div>No fields match your search</div>
-                                                    </div>
-                                                </div>
-                                            </v-col>
-
-                                            <!-- Right Column - Field Editor (60%) -->
-                                            <v-col cols="12" md="7" style="display: flex; flex-direction: column; height: 100%;">
-                                                <div v-if="selectedField" style="padding: 24px; overflow-y: auto; overflow-x: hidden; height: 100%;">
-                                                    <h3 class="mb-4">{{ selectedField.name }}</h3>
-                                                    
-                                                    <v-text-field
-                                                        v-model="selectedField.label"
-                                                        label="Label"
-                                                        outlined
-                                                        dense
-                                                        class="mb-3"
-                                                        @blur="updateField"
-                                                    ></v-text-field>
-
-                                                    <v-select
-                                                        v-model="selectedField.data_type"
-                                                        :items="dataTypes"
-                                                        label="Data Type"
-                                                        outlined
-                                                        dense
-                                                        class="mb-3"
-                                                        @change="updateField"
-                                                    ></v-select>
-
-                                                    <v-select
-                                                        v-model="selectedField.column_type"
-                                                        :items="columnTypes"
-                                                        label="Column Type"
-                                                        outlined
-                                                        dense
-                                                        class="mb-3"
-                                                        @change="updateField"
-                                                    ></v-select>
-
-                                                    <v-textarea
-                                                        v-model="selectedField.description"
-                                                        label="Description"
-                                                        outlined
-                                                        rows="3"
-                                                        class="mb-3"
-                                                        @blur="updateField"
-                                                    ></v-textarea>
-
-                                                    <v-text-field
-                                                        v-model="selectedField.unit_of_measurement"
-                                                        label="Unit of Measurement"
-                                                        outlined
-                                                        dense
-                                                        class="mb-3"
-                                                        @blur="updateField"
-                                                    ></v-text-field>
-
-                                                    <v-text-field
-                                                        v-model="selectedField.format"
-                                                        label="Format"
-                                                        outlined
-                                                        dense
-                                                        class="mb-3"
-                                                        @blur="updateField"
-                                                    ></v-text-field>
-
-                                                    <v-text-field
-                                                        v-model="selectedField.time_period_format"
-                                                        label="Time Period Format"
-                                                        outlined
-                                                        dense
-                                                        class="mb-3"
-                                                        @blur="updateField"
-                                                    ></v-text-field>
-
-                                                    <v-divider class="my-4"></v-divider>
-
-                                                    <!-- Code List Section -->
-                                                    <h4 class="mb-3">Code List</h4>
-                                                    <v-card outlined class="mb-3">
-                                                        <v-card-text>
-                                                            <div class="mb-3">
-                                                                <span class="text--secondary">
-                                                                    {{ selectedField.code_list ? selectedField.code_list.length : 0 }} item(s)
-                                                                </span>
-                                                            </div>
-                                                            <v-simple-table v-if="selectedField.code_list && selectedField.code_list.length > 0" dense>
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th style="width: 200px; border: 1px solid #e0e0e0;">Code</th>
-                                                                        <th style="border: 1px solid #e0e0e0;">Label</th>
-                                                                        <th style="border: 1px solid #e0e0e0;">Description</th>
-                                                                        <th style="width: 80px; border: 1px solid #e0e0e0;">Actions</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <tr v-for="(codeItem, index) in selectedField.code_list" :key="index">
-                                                                        <td style="border: 1px solid #e0e0e0; padding: 4px;">
-                                                                            <input
-                                                                                type="text"
-                                                                                v-model="codeItem.code"
-                                                                                @blur="updateField"
-                                                                                placeholder="Code value"
-                                                                                style="width: 100%; padding: 4px 8px; font-size: 13px; border: none; outline: none; box-sizing: border-box;"
-                                                                            />
-                                                                        </td>
-                                                                        <td style="border: 1px solid #e0e0e0; padding: 4px;">
-                                                                            <input
-                                                                                type="text"
-                                                                                v-model="codeItem.label"
-                                                                                @blur="updateField"
-                                                                                placeholder="Label"
-                                                                                style="width: 100%; padding: 4px 8px; font-size: 13px; border: none; outline: none; box-sizing: border-box;"
-                                                                            />
-                                                                        </td>
-                                                                        <td style="border: 1px solid #e0e0e0; padding: 4px;">
-                                                                            <input
-                                                                                type="text"
-                                                                                v-model="codeItem.description"
-                                                                                @blur="updateField"
-                                                                                placeholder="Description"
-                                                                                style="width: 100%; padding: 4px 8px; font-size: 13px; border: none; outline: none; box-sizing: border-box;"
-                                                                            />
-                                                                        </td>
-                                                                        <td style="border: 1px solid #e0e0e0; padding: 4px; text-align: center;">
-                                                                            <v-btn
-                                                                                icon
-                                                                                small
-                                                                                color="error"
-                                                                                @click="removeCodeListItem(index)"
-                                                                            >
-                                                                                <v-icon small>mdi-delete</v-icon>
-                                                                            </v-btn>
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </v-simple-table>
-                                                            <div v-else class="text-center text--secondary py-8">
-                                                                <v-icon size="48" color="grey lighten-1" class="mb-2">mdi-code-braces</v-icon>
-                                                                <div>No code list items</div>
-                                                                <div class="text-caption mt-2">Click "Add Code" to add one</div>
-                                                            </div>
-                                                            <div class="text-center mt-3">
-                                                                <v-btn
-                                                                    color="primary"
-                                                                    small
-                                                                    @click="addCodeListItem"
-                                                                >
-                                                                    <v-icon left small>mdi-plus</v-icon>
-                                                                    Add Code
-                                                                </v-btn>
-                                                            </div>
-                                                        </v-card-text>
-                                                    </v-card>
-
-                                                    <!-- Code List Reference Section -->
-                                                    <v-expansion-panels v-model="codeListRefExpanded" class="mb-3">
-                                                        <v-expansion-panel>
-                                                            <v-expansion-panel-header>
-                                                                <span class="font-weight-medium">Code List Reference</span>
-                                                            </v-expansion-panel-header>
-                                                            <v-expansion-panel-content>
-                                                                <v-text-field
-                                                                    v-model="selectedField.code_list_reference.id"
-                                                                    label="ID"
-                                                                    outlined
-                                                                    dense
-                                                                    class="mb-3"
-                                                                    @blur="updateField"
-                                                                ></v-text-field>
-                                                                <v-text-field
-                                                                    v-model="selectedField.code_list_reference.name"
-                                                                    label="Name"
-                                                                    outlined
-                                                                    dense
-                                                                    class="mb-3"
-                                                                    @blur="updateField"
-                                                                ></v-text-field>
-                                                                <v-text-field
-                                                                    v-model="selectedField.code_list_reference.version"
-                                                                    label="Version"
-                                                                    outlined
-                                                                    dense
-                                                                    class="mb-3"
-                                                                    @blur="updateField"
-                                                                ></v-text-field>
-                                                                <v-text-field
-                                                                    v-model="selectedField.code_list_reference.uri"
-                                                                    label="URI"
-                                                                    outlined
-                                                                    dense
-                                                                    class="mb-3"
-                                                                    @blur="updateField"
-                                                                ></v-text-field>
-                                                                <v-textarea
-                                                                    v-model="selectedField.code_list_reference.note"
-                                                                    label="Note"
-                                                                    outlined
-                                                                    rows="2"
-                                                                    dense
-                                                                    @blur="updateField"
-                                                                ></v-textarea>
-                                                            </v-expansion-panel-content>
-                                                        </v-expansion-panel>
-                                                    </v-expansion-panels>
-
-                                                    <v-divider class="my-4"></v-divider>
-
-                                                    <div class="d-flex justify-space-between">
-                                                        <v-btn color="error" small @click="deleteField(selectedField)">
-                                                            <v-icon left small>mdi-delete</v-icon>
-                                                            Delete Field
-                                                        </v-btn>
-                                                        <v-btn color="primary" small @click="saveField" :loading="savingField">
-                                                            <v-icon left small>mdi-content-save</v-icon>
-                                                            Save Changes
-                                                        </v-btn>
-                                                    </div>
-                                                </div>
-                                                <div v-else class="text-center py-12 text--secondary" style="display: flex; align-items: center; justify-content: center; height: 100%;">
-                                                    <div>
-                                                        <v-icon size="64" color="grey lighten-1" class="mb-4">mdi-cursor-pointer</v-icon>
-                                                        <div>Select a field from the list to edit</div>
-                                                    </div>
-                                                </div>
-                                            </v-col>
-                                        </v-row>
-                                    </v-card-text>
-                                            </v-card>
-                                        </v-tab-item>
-
-                                        <!-- Tab 3: Data Management -->
+                                        <!-- Tab 2: Data Management -->
                                         <v-tab-item>
                                             <v-card flat>
                                                 <v-card-title>
@@ -1074,6 +738,343 @@
                                                     </v-card-actions>
                                                 </v-card>
                                             </v-dialog>
+                                        </v-tab-item>
+
+                                        <!-- Tab 3: Data Dictionary -->
+                                        <v-tab-item>
+                                            <v-card flat>
+                                                <v-card-title>
+                                                    <span>Data Dictionary Fields</span>
+                                                    <v-spacer></v-spacer>
+                                                    <v-btn color="warning" small @click="syncDataDictionary" :loading="syncingFields" class="mr-2">
+                                                        <v-icon left small>mdi-sync</v-icon>
+                                                        Sync Fields
+                                                    </v-btn>
+                                                    <v-btn color="primary" small @click="populateSchema" :loading="populatingSchema" class="ml-2">
+                                                        <v-icon left small>mdi-database-refresh</v-icon>
+                                                        Populate from Data
+                                                    </v-btn>
+                                                    <v-btn color="success" small @click="showAddFieldDialog = true" class="ml-2">
+                                                        <v-icon left small>mdi-plus</v-icon>
+                                                        Add Field
+                                                    </v-btn>
+                                                </v-card-title>
+                                    <v-card-text class="pa-0" style="height: calc(100vh - 200px); min-height: 500px;">
+                                        <v-row no-gutters style="height: 100%;">
+                                            <!-- Left Column - Field List (40%) -->
+                                            <v-col cols="12" md="5" style="border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; height: 100%;">
+                                                <!-- Search and Controls -->
+                                                <div style="padding: 12px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0;">
+                                                    <div class="d-flex align-center justify-space-between" style="gap: 8px;">
+                                                        <div class="d-flex align-center" style="gap: 8px; flex: 1;">
+                                                            <v-text-field
+                                                                v-model="fieldSearch"
+                                                                placeholder="Search fields..."
+                                                                prepend-inner-icon="mdi-magnify"
+                                                                outlined
+                                                                dense
+                                                                hide-details
+                                                                clearable
+                                                                style="max-width: 200px;"
+                                                                class="search-field-compact"
+                                                            ></v-text-field>
+                                                            <span class="text-caption text--secondary">
+                                                                {{ filteredFields.length }}/{{ fields.length }}
+                                                            </span>
+                                                        </div>
+                                                        <v-menu offset-y>
+                                                            <template v-slot:activator="{ on, attrs }">
+                                                                <v-btn
+                                                                    small
+                                                                    outlined
+                                                                    v-bind="attrs"
+                                                                    v-on="on"
+                                                                >
+                                                                    <v-icon left small>mdi-sort</v-icon>
+                                                                    {{ getSortLabel(fieldSortBy) }}
+                                                                    <v-icon right small>mdi-menu-down</v-icon>
+                                                                </v-btn>
+                                                            </template>
+                                                            <v-list dense>
+                                                                <v-list-item
+                                                                    v-for="option in sortOptions"
+                                                                    :key="option.value"
+                                                                    @click="fieldSortBy = option.value"
+                                                                    :class="{ 'v-list-item--active': fieldSortBy === option.value }"
+                                                                >
+                                                                    <v-list-item-content>
+                                                                        <v-list-item-title>{{ option.text }}</v-list-item-title>
+                                                                    </v-list-item-content>
+                                                                </v-list-item>
+                                                            </v-list>
+                                                        </v-menu>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Field List -->
+                                                <div style="flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0;">
+                                                    <div
+                                                        v-for="field in filteredAndSortedFields"
+                                                        :key="field.name"
+                                                        class="field-list-item"
+                                                        :class="{ active: selectedField && selectedField.name === field.name }"
+                                                        @click="selectField(field)"
+                                                    >
+                                                        <div class="d-flex align-center">
+                                                            <v-icon small class="mr-2">mdi-table-column</v-icon>                                                            
+                                                            <div class="flex-grow-1">
+                                                                <div class="font-weight-medium">{{ field.name }}</div>
+                                                                <div class="text-caption text--secondary">
+                                                                    {{ field.label || 'N/A' }} • {{ field.data_type }}{{ field.column_type ? ' • ' + field.column_type : '' }}
+                                                                </div>
+                                                            </div>
+                                                            <v-btn
+                                                                icon                                                                
+                                                                color="error"
+                                                                class="ml-2"
+                                                                @click.stop="deleteField(field)"
+                                                            >
+                                                                <v-icon small>mdi-delete</v-icon>
+                                                            </v-btn>
+                                                        </div>
+                                                    </div>
+                                                    <div v-if="fields.length === 0" class="text-center py-8 text--secondary">
+                                                        <v-icon size="48" color="grey lighten-1" class="mb-2">mdi-table-off</v-icon>
+                                                        <div>No fields defined</div>
+                                                        <div class="text-caption mt-2">Click "Populate from Data" to auto-generate</div>
+                                                    </div>
+                                                    <div v-else-if="filteredFields.length === 0" class="text-center py-8 text--secondary">
+                                                        <v-icon size="48" color="grey lighten-1" class="mb-2">mdi-magnify</v-icon>
+                                                        <div>No fields match your search</div>
+                                                    </div>
+                                                </div>
+                                            </v-col>
+
+                                            <!-- Right Column - Field Editor (60%) -->
+                                            <v-col cols="12" md="7" style="display: flex; flex-direction: column; height: 100%;">
+                                                <div v-if="selectedField" style="padding: 24px; overflow-y: auto; overflow-x: hidden; height: 100%;">
+                                                    <h3 class="mb-4">{{ selectedField.name }}</h3>
+                                                    
+                                                    <v-text-field
+                                                        v-model="selectedField.label"
+                                                        label="Label"
+                                                        outlined
+                                                        dense
+                                                        class="mb-3"
+                                                        @blur="updateField"
+                                                    ></v-text-field>
+
+                                                    <v-select
+                                                        v-model="selectedField.data_type"
+                                                        :items="dataTypes"
+                                                        label="Data Type"
+                                                        outlined
+                                                        dense
+                                                        class="mb-3"
+                                                        @change="updateField"
+                                                    ></v-select>
+
+                                                    <v-select
+                                                        v-model="selectedField.column_type"
+                                                        :items="columnTypes"
+                                                        label="Column Type"
+                                                        outlined
+                                                        dense
+                                                        class="mb-3"
+                                                        @change="updateField"
+                                                    ></v-select>
+
+                                                    <v-textarea
+                                                        v-model="selectedField.description"
+                                                        label="Description"
+                                                        outlined
+                                                        rows="3"
+                                                        class="mb-3"
+                                                        @blur="updateField"
+                                                    ></v-textarea>
+
+                                                    <v-text-field
+                                                        v-model="selectedField.unit_of_measurement"
+                                                        label="Unit of Measurement"
+                                                        outlined
+                                                        dense
+                                                        class="mb-3"
+                                                        @blur="updateField"
+                                                    ></v-text-field>
+
+                                                    <v-text-field
+                                                        v-model="selectedField.format"
+                                                        label="Format"
+                                                        outlined
+                                                        dense
+                                                        class="mb-3"
+                                                        @blur="updateField"
+                                                    ></v-text-field>
+
+                                                    <v-text-field
+                                                        v-model="selectedField.time_period_format"
+                                                        label="Time Period Format"
+                                                        outlined
+                                                        dense
+                                                        class="mb-3"
+                                                        :disabled="selectedField.column_type !== 'time_period'"
+                                                        @blur="updateField"
+                                                    ></v-text-field>
+
+                                                    <v-divider class="my-4"></v-divider>
+
+                                                    <!-- Code List Section -->
+                                                    <h4 class="mb-3">Code List</h4>
+                                                    <v-card outlined class="mb-3">
+                                                        <v-card-text>
+                                                            <div class="mb-3">
+                                                                <span class="text--secondary">
+                                                                    {{ selectedField.code_list ? selectedField.code_list.length : 0 }} item(s)
+                                                                </span>
+                                                            </div>
+                                                            <v-simple-table v-if="selectedField.code_list && selectedField.code_list.length > 0" dense>
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style="width: 200px; border: 1px solid #e0e0e0;">Code</th>
+                                                                        <th style="border: 1px solid #e0e0e0;">Label</th>
+                                                                        <th style="border: 1px solid #e0e0e0;">Description</th>
+                                                                        <th style="width: 80px; border: 1px solid #e0e0e0;">Actions</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr v-for="(codeItem, index) in selectedField.code_list" :key="index">
+                                                                        <td style="border: 1px solid #e0e0e0; padding: 4px;">
+                                                                            <input
+                                                                                type="text"
+                                                                                v-model="codeItem.code"
+                                                                                @blur="updateField"
+                                                                                placeholder="Code value"
+                                                                                style="width: 100%; padding: 4px 8px; font-size: 13px; border: none; outline: none; box-sizing: border-box;"
+                                                                            />
+                                                                        </td>
+                                                                        <td style="border: 1px solid #e0e0e0; padding: 4px;">
+                                                                            <input
+                                                                                type="text"
+                                                                                v-model="codeItem.label"
+                                                                                @blur="updateField"
+                                                                                placeholder="Label"
+                                                                                style="width: 100%; padding: 4px 8px; font-size: 13px; border: none; outline: none; box-sizing: border-box;"
+                                                                            />
+                                                                        </td>
+                                                                        <td style="border: 1px solid #e0e0e0; padding: 4px;">
+                                                                            <input
+                                                                                type="text"
+                                                                                v-model="codeItem.description"
+                                                                                @blur="updateField"
+                                                                                placeholder="Description"
+                                                                                style="width: 100%; padding: 4px 8px; font-size: 13px; border: none; outline: none; box-sizing: border-box;"
+                                                                            />
+                                                                        </td>
+                                                                        <td style="border: 1px solid #e0e0e0; padding: 4px; text-align: center;">
+                                                                            <v-btn
+                                                                                icon
+                                                                                small
+                                                                                color="error"
+                                                                                @click="removeCodeListItem(index)"
+                                                                            >
+                                                                                <v-icon small>mdi-delete</v-icon>
+                                                                            </v-btn>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </v-simple-table>
+                                                            <div v-else class="text-center text--secondary py-8">
+                                                                <v-icon size="48" color="grey lighten-1" class="mb-2">mdi-code-braces</v-icon>
+                                                                <div>No code list items</div>
+                                                                <div class="text-caption mt-2">Click "Add Code" to add one</div>
+                                                            </div>
+                                                            <div class="text-center mt-3">
+                                                                <v-btn
+                                                                    color="primary"
+                                                                    small
+                                                                    @click="addCodeListItem"
+                                                                >
+                                                                    <v-icon left small>mdi-plus</v-icon>
+                                                                    Add Code
+                                                                </v-btn>
+                                                            </div>
+                                                        </v-card-text>
+                                                    </v-card>
+
+                                                    <!-- Code List Reference Section -->
+                                                    <v-expansion-panels v-model="codeListRefExpanded" class="mb-3">
+                                                        <v-expansion-panel>
+                                                            <v-expansion-panel-header>
+                                                                <span class="font-weight-medium">Code List Reference</span>
+                                                            </v-expansion-panel-header>
+                                                            <v-expansion-panel-content>
+                                                                <v-text-field
+                                                                    v-model="selectedField.code_list_reference.id"
+                                                                    label="ID"
+                                                                    outlined
+                                                                    dense
+                                                                    class="mb-3"
+                                                                    @blur="updateField"
+                                                                ></v-text-field>
+                                                                <v-text-field
+                                                                    v-model="selectedField.code_list_reference.name"
+                                                                    label="Name"
+                                                                    outlined
+                                                                    dense
+                                                                    class="mb-3"
+                                                                    @blur="updateField"
+                                                                ></v-text-field>
+                                                                <v-text-field
+                                                                    v-model="selectedField.code_list_reference.version"
+                                                                    label="Version"
+                                                                    outlined
+                                                                    dense
+                                                                    class="mb-3"
+                                                                    @blur="updateField"
+                                                                ></v-text-field>
+                                                                <v-text-field
+                                                                    v-model="selectedField.code_list_reference.uri"
+                                                                    label="URI"
+                                                                    outlined
+                                                                    dense
+                                                                    class="mb-3"
+                                                                    @blur="updateField"
+                                                                ></v-text-field>
+                                                                <v-textarea
+                                                                    v-model="selectedField.code_list_reference.note"
+                                                                    label="Note"
+                                                                    outlined
+                                                                    rows="2"
+                                                                    dense
+                                                                    @blur="updateField"
+                                                                ></v-textarea>
+                                                            </v-expansion-panel-content>
+                                                        </v-expansion-panel>
+                                                    </v-expansion-panels>
+
+                                                    <v-divider class="my-4"></v-divider>
+
+                                                    <div class="d-flex justify-space-between">
+                                                        <v-btn color="error" small @click="deleteField(selectedField)">
+                                                            <v-icon left small>mdi-delete</v-icon>
+                                                            Delete Field
+                                                        </v-btn>
+                                                        <v-btn color="primary" small @click="saveField" :loading="savingField">
+                                                            <v-icon left small>mdi-content-save</v-icon>
+                                                            Save Changes
+                                                        </v-btn>
+                                                    </div>
+                                                </div>
+                                                <div v-else class="text-center py-12 text--secondary" style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                                                    <div>
+                                                        <v-icon size="64" color="grey lighten-1" class="mb-4">mdi-cursor-pointer</v-icon>
+                                                        <div>Select a field from the list to edit</div>
+                                                    </div>
+                                                </div>
+                                            </v-col>
+                                        </v-row>
+                                    </v-card-text>
+                                            </v-card>
                                         </v-tab-item>
 
                                         <!-- Tab 4: Indexes -->
@@ -1771,7 +1772,7 @@
             },
             watch: {
                 activeTab(newVal) {
-                    if (newVal === 2) {
+                    if (newVal === 1) {
                         // Data Management tab
                         this.loadTableStats();
                         this.loadPreviewData();
@@ -1797,6 +1798,43 @@
                         this.importCancelled = false;
                         this.deleting = false;
                     }
+                },
+                selectedField: {
+                    handler(newVal, oldVal) {
+                        // Sync selectedField changes to fields array in real-time for sidebar updates
+                        if (newVal && newVal.name) {
+                            const fieldIndex = this.fields.findIndex(f => f.name === newVal.name);
+                            if (fieldIndex >= 0) {
+                                // Only update if values actually changed to avoid unnecessary updates
+                                const currentField = this.fields[fieldIndex];
+                                const hasChanges = 
+                                    currentField.label !== newVal.label ||
+                                    currentField.data_type !== newVal.data_type ||
+                                    currentField.column_type !== newVal.column_type ||
+                                    currentField.description !== newVal.description ||
+                                    currentField.unit_of_measurement !== newVal.unit_of_measurement ||
+                                    currentField.format !== newVal.format ||
+                                    currentField.time_period_format !== newVal.time_period_format;
+                                
+                                if (hasChanges) {
+                                    // Update the field in the array with current selectedField values
+                                    // Preserve field_order and other properties
+                                    this.$set(this.fields, fieldIndex, {
+                                        ...currentField,
+                                        label: newVal.label,
+                                        data_type: newVal.data_type,
+                                        column_type: newVal.column_type,
+                                        description: newVal.description,
+                                        unit_of_measurement: newVal.unit_of_measurement,
+                                        format: newVal.format,
+                                        time_period_format: newVal.time_period_format
+                                    });
+                                }
+                            }
+                        }
+                    },
+                    deep: true,
+                    immediate: false
                 },
                 '$route'(to) {
                     if (to.name === 'edit') {
@@ -1885,6 +1923,26 @@
                     }
                 },
                 selectField(field) {
+                    // If we have unsaved changes in selectedField, save them to the fields array first
+                    if (this.selectedField && this.selectedField.name) {
+                        const fieldIndex = this.fields.findIndex(f => f.name === this.selectedField.name);
+                        if (fieldIndex >= 0) {
+                            // Update the field in the array with current selectedField values
+                            this.fields[fieldIndex] = {
+                                ...this.fields[fieldIndex],
+                                ...this.selectedField,
+                                code_list: this.selectedField.code_list ? [...this.selectedField.code_list.map(item => ({ ...item }))] : [],
+                                code_list_reference: this.selectedField.code_list_reference ? {
+                                    id: this.selectedField.code_list_reference.id || '',
+                                    name: this.selectedField.code_list_reference.name || '',
+                                    version: this.selectedField.code_list_reference.version || '',
+                                    uri: this.selectedField.code_list_reference.uri || '',
+                                    note: this.selectedField.code_list_reference.note || ''
+                                } : null
+                            };
+                        }
+                    }
+                    
                     // Deep clone to avoid reference issues
                     const codeListRef = field.code_list_reference || null;
                     this.selectedField = {
@@ -1907,12 +1965,19 @@
                 },
                 async updateField() {
                     if (!this.selectedField || !this.selectedField.name) return;
+                    
+                    // The watcher will handle updating the fields array in real-time
+                    // Here we just need to save to server
                     await this.saveField();
                 },
                 async saveField() {
                     if (!this.selectedField || !this.selectedField.name) return;
                     this.savingField = true;
                     try {
+                        // Find the existing field to preserve field_order
+                        const existingField = this.fields.find(f => f.name === this.selectedField.name);
+                        const preserveFieldOrder = existingField ? existingField.field_order : null;
+                        
                         const updateData = {
                             name: this.selectedField.name,
                             label: (this.selectedField.label !== undefined && this.selectedField.label !== null) ? this.selectedField.label : this.selectedField.name,
@@ -1929,6 +1994,12 @@
                                  this.selectedField.code_list_reference.uri) 
                                 ? this.selectedField.code_list_reference : null
                         };
+                        
+                        // Preserve field_order for existing fields to prevent them from moving to bottom
+                        if (preserveFieldOrder !== null && preserveFieldOrder !== undefined) {
+                            updateData.field_order = preserveFieldOrder;
+                        }
+                        
                         // Use unified POST endpoint for upsert
                         const response = await axios.post(
                             `${apiBase}/fields/${this.dbId}/${this.tableId}`,
@@ -1937,28 +2008,91 @@
                         if (response.data.status === 'success') {
                             this.success = `Field ${response.data.action === 'created' ? 'created' : 'updated'} successfully`;
                             
-                            // Update the field in the local fields array
-                            const fieldIndex = this.fields.findIndex(f => f.name === this.selectedField.name);
-                            if (fieldIndex >= 0) {
-                                // Update existing field in array
-                                this.fields[fieldIndex] = {
-                                    ...this.fields[fieldIndex],
-                                    ...this.selectedField
-                                };
-                            } else {
-                                // New field - reload to get server-generated values (field_order, timestamps, etc.)
-                                await this.loadSchema();
-                                const newField = this.fields.find(f => f.name === this.selectedField.name);
-                                if (newField) {
-                                    this.selectField(newField);
+                            // Fetch the updated field from server to get all current values
+                            try {
+                                const fieldResponse = await axios.get(
+                                    `${apiBase}/field/${this.dbId}/${this.tableId}/${this.selectedField.name}`
+                                );
+                                if (fieldResponse.data.status === 'success' && fieldResponse.data.field) {
+                                    const updatedFieldFromServer = fieldResponse.data.field;
+                                    
+                                    // Update the field in the local fields array with server data
+                                    const fieldIndex = this.fields.findIndex(f => f.name === this.selectedField.name);
+                                    if (fieldIndex >= 0) {
+                                        // Ensure code_list_reference is always an object
+                                        let codeListRef = updatedFieldFromServer.code_list_reference;
+                                        if (!codeListRef || typeof codeListRef !== 'object') {
+                                            codeListRef = {
+                                                id: '',
+                                                name: '',
+                                                version: '',
+                                                uri: '',
+                                                note: ''
+                                            };
+                                        }
+                                        
+                                        this.fields[fieldIndex] = {
+                                            ...updatedFieldFromServer,
+                                            code_list: updatedFieldFromServer.code_list || [],
+                                            code_list_reference: codeListRef
+                                        };
+                                        
+                                        // Only re-select if this is still the currently selected field
+                                        if (this.selectedField && this.selectedField.name === updatedFieldFromServer.name) {
+                                            this.selectField(this.fields[fieldIndex]);
+                                        }
+                                    } else {
+                                        // New field - add to array
+                                        let codeListRef = updatedFieldFromServer.code_list_reference;
+                                        if (!codeListRef || typeof codeListRef !== 'object') {
+                                            codeListRef = {
+                                                id: '',
+                                                name: '',
+                                                version: '',
+                                                uri: '',
+                                                note: ''
+                                            };
+                                        }
+                                        this.fields.push({
+                                            ...updatedFieldFromServer,
+                                            code_list: updatedFieldFromServer.code_list || [],
+                                            code_list_reference: codeListRef
+                                        });
+                                        
+                                        // Only re-select if this is still the currently selected field
+                                        if (this.selectedField && this.selectedField.name === updatedFieldFromServer.name) {
+                                            this.selectField(this.fields[this.fields.length - 1]);
+                                        }
+                                    }
+                                } else {
+                                    // Fallback: update from selectedField if fetch fails
+                                    const fieldIndex = this.fields.findIndex(f => f.name === this.selectedField.name);
+                                    if (fieldIndex >= 0) {
+                                        this.fields[fieldIndex] = {
+                                            ...this.fields[fieldIndex],
+                                            ...this.selectedField,
+                                            field_order: preserveFieldOrder !== null ? preserveFieldOrder : this.fields[fieldIndex].field_order
+                                        };
+                                        // Only re-select if this is still the currently selected field
+                                        if (this.selectedField && this.selectedField.name === this.fields[fieldIndex].name) {
+                                            this.selectField(this.fields[fieldIndex]);
+                                        }
+                                    }
                                 }
-                                return;
-                            }
-                            
-                            // Re-select to ensure UI is in sync
-                            const updatedField = this.fields.find(f => f.name === this.selectedField.name);
-                            if (updatedField) {
-                                this.selectField(updatedField);
+                            } catch (fetchError) {
+                                // Fallback: update from selectedField if fetch fails
+                                const fieldIndex = this.fields.findIndex(f => f.name === this.selectedField.name);
+                                if (fieldIndex >= 0) {
+                                    this.fields[fieldIndex] = {
+                                        ...this.fields[fieldIndex],
+                                        ...this.selectedField,
+                                        field_order: preserveFieldOrder !== null ? preserveFieldOrder : this.fields[fieldIndex].field_order
+                                    };
+                                    // Only re-select if this is still the currently selected field
+                                    if (this.selectedField && this.selectedField.name === this.fields[fieldIndex].name) {
+                                        this.selectField(this.fields[fieldIndex]);
+                                    }
+                                }
                             }
                         } else {
                             this.error = response.data.message || 'Failed to update field';
