@@ -169,6 +169,10 @@ class Repository_model extends CI_Model {
 
 		//add date modified
 		$options['changed']=date("U");
+
+		if(isset($options['repositoryid'])){
+			$options['repositoryid']=$this->normalize_repositoryid($options['repositoryid']);
+		}
 					
 		//pk field name
 		$key_field='id';
@@ -220,6 +224,10 @@ class Repository_model extends CI_Model {
 
 		//add date modified
 		$options['changed']=date("U");
+
+		if(isset($options['repositoryid'])){
+			$options['repositoryid']=$this->normalize_repositoryid($options['repositoryid']);
+		}
 							
 		$data=array();
 		
@@ -743,6 +751,14 @@ class Repository_model extends CI_Model {
 	private function remove_orphan_entries()
 	{
 		$this->db->query('delete from survey_repos where sid not in(select id from surveys);');
+	}
+
+	/**
+	 * Normalize repository id (trim + lowercase)
+	 */
+	private function normalize_repositoryid($repositoryid)
+	{
+		return strtolower(trim($repositoryid));
 	}
 
 	/**

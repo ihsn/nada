@@ -201,12 +201,17 @@ abstract class MY_REST_Controller extends REST_Controller {
     function has_dataset_access($privilege, $sid=null,$repositoryid=null)
     {
         $user=$this->api_user();
-        $resource='study';
+        $resource='study';        
 
         //get repositoryid
         if ($sid && !$repositoryid){            
             $repositoryid=$this->get_dataset_repositoryid($sid);
         }
+        
+        if (!$repositoryid){        
+            $repositoryid='central';
+        }
+
         try{
             return $this->acl_manager->has_access('study', $privilege,$user,$repositoryid);
         }

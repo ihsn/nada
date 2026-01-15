@@ -44,10 +44,11 @@ class Acl_manager
 		$collection_permissions=[];
 		foreach($collection_rules as $resource_id){
 			foreach($repositories as $repository){
+				$repo_id=strtolower($repository['repositoryid']);
 				$repo_permissions=$acl_permissions[$resource_id];
 				$repo_permissions['title']=$repository['title'] .' ['. $repository['repositoryid'].']'. ' -  '.$repo_permissions['title']  ;
 				//$acl_permissions[$repository['repositoryid'].'.'.$resource_id]=$repo_permissions;
-				$collection_permissions[$repository['repositoryid'].'-'.$resource_id]=$repo_permissions;
+				$collection_permissions[$repo_id.'-'.$resource_id]=$repo_permissions;
 			}
 		}
 
@@ -324,6 +325,10 @@ class Acl_manager
 	{
 		if(empty($user)){
 			$user=$this->current_user();
+		}
+
+		if(!empty($repositoryid)){
+			$repositoryid=strtolower(trim($repositoryid));
 		}
 
 		if(!$user){
