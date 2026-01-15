@@ -8,6 +8,7 @@
   <?php if (!isset($hide_form)): ?>
     <div class="page-links text-right m-3 pb-3">
       <a href="<?php echo site_url('admin/users/add'); ?>" class="btn btn-outline-primary btn-sm"><i class="fa fa-plus-circle" aria-hidden="true">&nbsp;</i> <?php echo t('create_user_account'); ?></a>
+      <a href="<?php echo site_url('admin/users/api_keys'); ?>" class="btn btn-outline-primary btn-sm"><i class="fa fa-key" aria-hidden="true">&nbsp;</i> <?php echo t('api_keys_management'); ?></a>
       <a href="<?php echo site_url('admin/permissions'); ?>" class="btn btn-outline-primary btn-sm"><i class="fa fa-users" aria-hidden="true">&nbsp;</i> <?php echo t('User roles'); ?></a>
     </div>
     
@@ -76,6 +77,7 @@
       <th><?php echo create_sort_link($sort_by, $sort_order, 'email', t('email'), $page_url); ?></th>
       <th><?php echo create_sort_link($sort_by, $sort_order, 'group_name', t('group'), $page_url); ?></th>
       <th><?php echo create_sort_link($sort_by, $sort_order, 'active', t('status'), $page_url); ?></th>
+      <th><?php echo t('api_keys'); ?></th>
       <th><?php echo create_sort_link($sort_by, $sort_order, 'country', t('country'), $page_url); ?></th>
       <th><?php echo create_sort_link($sort_by, $sort_order, 'created_on', t('join_date'), $page_url); ?></th>
       <th><?php echo create_sort_link($sort_by, $sort_order, 'last_login', t('last_login'), $page_url); ?></th>
@@ -104,6 +106,16 @@
         </div>
       </td>
       <td><?php echo ((int) $row->active) == 1 ? t('ACTIVE') : t('DISABLED'); ?></td>
+      <td>
+        <?php 
+          $key_count = isset($api_key_counts[$row->id]) ? $api_key_counts[$row->id] : 0;
+          if ($key_count > 0) {
+            echo '<a href="' . site_url('admin/users/api_keys?user_search=' . urlencode($row->username)) . '">' . $key_count . '</a>';
+          } else {
+            echo '0';
+          }
+        ?>
+      </td>
       <td><?php echo form_prep($row->country); ?></td>
       <td><?php echo date("m-d-Y", $row->created_on); ?></td>
       
