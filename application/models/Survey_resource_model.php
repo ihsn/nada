@@ -1332,7 +1332,8 @@ class Survey_resource_model extends CI_Model {
 		$upload_result=$this->upload->do_upload($file_field_name);
 
 		if (!$upload_result){
-			throw new Exception($this->upload->display_errors());
+			$error = $this->upload->display_errors('', ''); // remove <p> tags
+			throw new Exception($error);
 		}
 
 		return $this->upload->data();		

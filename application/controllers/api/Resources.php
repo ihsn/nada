@@ -223,7 +223,11 @@ class Resources extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
 	}
 

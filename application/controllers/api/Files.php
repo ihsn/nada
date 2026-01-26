@@ -10,7 +10,7 @@ class Files extends MY_REST_Controller
 		$this->load->helper("date");
 		$this->load->model('Dataset_model');
 		$this->load->model("Survey_resource_model");
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
 	}
 	
 
@@ -23,6 +23,7 @@ class Files extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($dataset_idno);
+			$this->has_dataset_access('edit',$sid);
 
 			$this->load->model('Survey_resource_model');
 			$files=$this->Survey_resource_model->get_files_array($sid);
@@ -51,9 +52,9 @@ class Files extends MY_REST_Controller
 	 */
 	function download_get($dataset_idno=null,$base64_filename=null)
 	{
-
 		try{
 			$sid=$this->get_sid_from_idno($dataset_idno);
+			$this->has_dataset_access('edit',$sid);
 
 			if(!$base64_filename || trim($base64_filename)==""){
 				throw new Exception("PARAM_NOT_SET: base64_name");
@@ -82,6 +83,7 @@ class Files extends MY_REST_Controller
 	{		
 		try{
 			$sid=$this->get_sid_from_idno($dataset_idno);
+			$this->has_dataset_access('edit',$sid);
 
 			$result=$this->Survey_resource_model->upload_file($sid,$file_field_name='file', $remove_spaces=false);
 
@@ -105,7 +107,11 @@ class Files extends MY_REST_Controller
 			$this->set_response($output, REST_Controller::HTTP_OK);			
 		}
 		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
+			$eror_result=array(
+				'status'=>'error',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($eror_result, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
 	
@@ -121,7 +127,8 @@ class Files extends MY_REST_Controller
 
 		try{
 			$sid=$this->get_sid_from_idno($dataset_idno);
-
+			$this->has_dataset_access('edit',$sid);
+			
 			if(!$base64_filename || trim($base64_filename)==""){
 				throw new Exception("PARAM_NOT_SET: base64_name");
 			}
