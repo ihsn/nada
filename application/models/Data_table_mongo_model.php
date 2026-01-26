@@ -225,9 +225,9 @@ class Data_table_mongo_model extends CI_Model {
        // Convert to string and trim
        $id = trim((string)$id);
        
-       // Check if it contains only alphanumeric characters and underscores
-       if (!preg_match('/^[a-zA-Z0-9_]+$/', $id)) {
-           throw new Exception("Invalid {$type}: Only alphanumeric characters and underscores are allowed");
+       // Check if it contains only alphanumeric characters, underscores and hyphens
+       if (!preg_match('/^[a-zA-Z0-9_-]+$/', $id)) {
+           throw new Exception("Invalid {$type}: Only alphanumeric characters, underscores and hyphens are allowed");
        }
 
        return strtolower($id);
