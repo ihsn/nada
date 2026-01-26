@@ -10,7 +10,7 @@ $selected_page=$this->uri->segment(5);
 		<table class="table table-striped" cellspacing="0">
         <tr>
             <td nowrap="nowrap" style="width:150px;"><?php echo t('ref_no');?></td>
-            <td><?php echo $idno; ?></td>
+            <td><?php echo html_escape($idno); ?></td>
         </tr>
 
 		<?php if(isset($survey_alias_array) && count($survey_alias_array)>0):?>
@@ -19,7 +19,7 @@ $selected_page=$this->uri->segment(5);
             <td>
             	<span class="survey-alias">
 				<?php foreach($survey_alias_array as $alias):?>
-					<span class="label label-default"><?php echo $alias['alternate_id'];?></span>
+					<span class="label label-default"><?php echo html_escape($alias['alternate_id']);?></span>
                 <?php endforeach;?>
                 </span>
             </td>
@@ -41,11 +41,11 @@ $selected_page=$this->uri->segment(5);
 				<?php foreach($countries as $country):?>
                 	<?php if((int)$country['cid']<1):?>
                         <span class="country label-tag label-tag-error" id="country-<?php echo $country['id'];?>" title="<?php echo t('Fix country code');?>">
-                            <a href="<?php echo site_url('admin/countries/mappings');?>"><?php echo $country['country_name'];?></a>
+                            <a href="<?php echo site_url('admin/countries/mappings');?>"><?php echo html_escape($country['country_name']);?></a>
                         </span>
                     <?php else:?>
                     	<span class="label label-tag country" id="country-<?php echo $country['id'];?>">
-                            <?php echo $country['country_name'];?>
+                            <?php echo html_escape($country['country_name']);?>
                         </span>
                     <?php endif;?>
             	<?php endforeach;?>
@@ -54,7 +54,7 @@ $selected_page=$this->uri->segment(5);
         </tr>
         <tr>
             <td><?php echo t('folder');?></td>
-            <td><?php echo $dirpath;?></td>
+            <td><?php echo html_escape($dirpath);?></td>
         </tr>
 				
         <tr>
@@ -62,7 +62,7 @@ $selected_page=$this->uri->segment(5);
             <td>
             	<?php if ($repo):?>
 								<?php foreach($repo as $r):?>
-                	<span class="label <?php echo ($r['isadmin']==1) ? 'label-primary' : 'label-info'; ?>"><?php echo strtoupper($r['repositoryid']);?></span>
+                	<span class="label <?php echo ($r['isadmin']==1) ? 'label-primary' : 'label-info'; ?>"><?php echo html_escape(strtoupper($r['repositoryid']));?></span>
                 <?php endforeach;?>
                 <?php else:?>
                 	N/A
@@ -119,7 +119,7 @@ $selected_page=$this->uri->segment(5);
                   <div class="box-caption">
 										<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                       <?php if ($link_indicator):?>
-                          <?php echo $link_indicator;?>
+                          <?php echo html_escape($link_indicator);?>
                       <?php else:?>
                           ...
                       <?php endif;?>
@@ -169,7 +169,7 @@ $selected_page=$this->uri->segment(5);
 										<div class="box-caption">
 											<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
 												<?php if ($link_study):?>
-															<?php echo $link_study;?>
+															<?php echo html_escape($link_study);?>
 												<?php else:?>
 															...
 												<?php endif;?>

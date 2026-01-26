@@ -16,14 +16,14 @@ $item_limit=0;
             <?php if($types):?>
                 <?php $k=0;foreach($types as $type):$k++; ?>
                     <div class="form-check type dataset-type <?php echo $k;?> item inactive">
-                        <label class="form-check-label" for="type-<?php echo form_prep($type['code']); ?>" <?php echo form_prep($type['title']); ?>>
+                        <label class="form-check-label" for="type-<?php echo form_prep($type['code']); ?>">
                             <input class="form-check-input chk chk-type" type="checkbox" name="type[]"
                                    value="<?php echo form_prep($type['code']); ?>"
                                    id="type-<?php echo form_prep($type['code']); ?>"
                                 <?php if($search_options->type!='' && in_array($type['code'],$search_options->type)):?>
                                     checked="checked"
                                 <?php endif;?>>
-                            <span><?php echo $type['title']; ?> <span class="count">(<?php echo $type['found']; ?>)</span></span>
+                            <span><?php echo html_escape($type['title']); ?> <span class="count">(<?php echo $type['found']; ?>)</span></span>
                         </label>
                     </div>
                 <?php endforeach;?>

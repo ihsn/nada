@@ -20,7 +20,7 @@
 <h1 class="page-title">
 	<?php echo t('catalog_maintenance');?>
     <?php if ( isset($this->active_repo->id)):?>
-    	<span class=""> \ <?php echo $this->active_repo->title;?></span><span class="link-change"><?php echo anchor('admin/repositories/select',t('change_repo'));?></span>
+    	<span class=""> \ <?php echo html_escape($this->active_repo->title);?></span><span class="link-change"><?php echo anchor('admin/repositories/select',t('change_repo'));?></span>
     <?php endif;?>
 </h1>
 

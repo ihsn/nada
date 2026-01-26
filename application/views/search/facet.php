@@ -83,7 +83,7 @@ $facet_groups=(array)array_unique(array_filter(array_column($items,'group_name')
                 <?php $k=0;foreach($items as $item_key=>$item):$k++; ?>
                     <?php if (!isset($item['group_name']) || (isset($item['group_name']) && empty($item['group_name'])) ):?>
                     <div class="form-check item-<?php echo $filter_id;?> <?php echo $k;?> item inactive">
-                        <label class="form-check-label" for="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>" <?php echo form_prep($item_key); ?>>
+                        <label class="form-check-label" for="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>">
                             <input class="form-check-input chk chk-<?php echo $filter_id;?>" type="checkbox" name="<?php echo $filter_id;?>[]"
                                 value="<?php echo form_prep($item_key); ?>"
                                 data-title="<?php echo form_prep($item['title']);?>"
@@ -93,9 +93,9 @@ $facet_groups=(array)array_unique(array_filter(array_column($items,'group_name')
                                 <?php endif;?>>
                                 
                                 <?php if (isset($item['translated_title'])):?>
-                                    <?php echo $item['translated_title']; ?>
+                                    <?php echo html_escape($item['translated_title']); ?>
                                 <?php else:?>
-                                    <?php echo t($item['title']);?>
+                                    <?php echo html_escape(t($item['title']));?>
                                 <?php endif;?>
                                 
                                 <?php if(isset($item['found'])):?>
@@ -108,11 +108,11 @@ $facet_groups=(array)array_unique(array_filter(array_column($items,'group_name')
 
                 <?php //filter by groups/sections ?>
                 <?php foreach($facet_groups as $facet_group):?>
-                    <div class="facet-group-title"><?php echo $facet_group;?></div>
+                    <div class="facet-group-title"><?php echo html_escape($facet_group);?></div>
                     <?php $k=0;foreach($items as $item_key=>$item):$k++; ?>
                         <?php if (isset($item['group_name']) && $facet_group==$item['group_name'] ):?>
                         <div class="form-check item-<?php echo $filter_id;?> <?php echo $k;?> item inactive">
-                            <label class="form-check-label" for="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>" <?php echo form_prep($item_key); ?>>
+                            <label class="form-check-label" for="<?php echo $filter_id;?>-<?php echo form_prep($item_key); ?>">
                                 <input class="form-check-input chk chk-<?php echo $filter_id;?>" type="checkbox" name="<?php echo $filter_id;?>[]"
                                     value="<?php echo form_prep($item_key); ?>"
                                     data-title="<?php echo form_prep($item['title']);?>"
@@ -122,9 +122,9 @@ $facet_groups=(array)array_unique(array_filter(array_column($items,'group_name')
                                     <?php endif;?>>
                                     
                                     <?php if (isset($item['translated_title'])):?>
-                                        <?php echo $item['translated_title']; ?>
+                                        <?php echo html_escape($item['translated_title']); ?>
                                     <?php else:?>
-                                        <?php echo t($item['title']);?>
+                                        <?php echo html_escape(t($item['title']));?>
                                     <?php endif;?>
                                     
                                     <?php if(isset($item['found'])):?>

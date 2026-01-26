@@ -324,7 +324,7 @@ class Widget_model extends CI_Model {
 			return false;
 		}
 
-		if (!strpos($project_folder_name, $this->storage_path) === 0 ) {
+		if (strpos($project_folder_name, $this->storage_path) !== 0) {
 			return false;
 		}
 		

@@ -19,14 +19,14 @@ $item_limit=0;
             <?php if($repositories):?>
                 <?php $k=0;foreach($repositories as $repo):$k++; ?>
                     <div class="form-check collection <?php echo $k;?> item inactive">
-                        <label class="form-check-label" for="repo-<?php echo form_prep($repo['id']); ?>" <?php echo form_prep($repo['id']); ?>>
+                        <label class="form-check-label" for="repo-<?php echo form_prep($repo['id']); ?>">
                             <input class="form-check-input chk chk-collection" type="checkbox" name="collection[]"
                                    value="<?php echo form_prep($repo['repositoryid']); ?>"
                                    id="repo-<?php echo form_prep($repo['id']); ?>"
                                 <?php if($search_options->collection!='' && in_array($repo['repositoryid'],$search_options->collection)):?>
                                     checked="checked"
                                 <?php endif;?>>
-                            <?php echo $repo['title']; ?> <span> <span class="count">(<?php echo $repo['surveys_found']; ?>)</span></span>
+                            <?php echo html_escape($repo['title']); ?> <span> <span class="count">(<?php echo $repo['surveys_found']; ?>)</span></span>
                         </label>
                     </div>
                 <?php endforeach;?>

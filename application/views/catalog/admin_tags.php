@@ -2,14 +2,14 @@
 $tag_array=array();
 foreach($tag_list as $t)
 {
-	$tag_array[]='&quot;'.$t['tag'].'&quot;';
+	$tag_array[]=$t['tag'];
 }
-$tag_str=implode(',',$tag_array);
+$tag_str=json_encode($tag_array);
 ?>
 <div class="form-inline survey-tags">
 <div class="field form-group">
     <input id="tag" type="text" name="admin_tag" class="form-control"
-				data-provide="typeahead" data-items="4" data-source="[<?php echo $tag_str;?>]"
+				data-provide="typeahead" data-items="4" data-source="<?php echo html_escape($tag_str);?>"
 				placeholder="Type a tag ...">
     <input id="admin_tag_submit" type="button" value="+" name="admin_tag_submit" class="btn btn-default" />
 </div>

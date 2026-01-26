@@ -23,7 +23,7 @@
                                 <?php if($search_options->country!='' && in_array($country['cid'],$search_options->country)):?>
                                     checked="checked"
                                 <?php endif;?>>
-                            <small><?php echo $country['nation']; ?><span class="count">(<?php echo $country['surveys_found']; ?>)
+                            <small><?php echo html_escape($country['nation']); ?><span class="count">(<?php echo $country['surveys_found']; ?>)
                                 </span></small>
                         </label>
                     </div>

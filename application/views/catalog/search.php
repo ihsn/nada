@@ -52,7 +52,7 @@
 	<div class="filter-container-x" style="padding-15px;margin-bottom:20px;">
         <div class="filter-infox"><strong><?php echo t('search_results_for');?></strong>
         <?php foreach($filters as $f):?>            
-        	<span class="label label-info filter"><?php echo $f;?></span>
+        	<span class="label label-info filter"><?php echo html_escape($f);?></span>
         <?php endforeach;?>
         <a class="btn btn-default btn-xs clear-filter" href="<?php echo site_url('admin/catalog/');?>/?reset=reset"><?php echo t('clear_filter');?></a>
         </div>
@@ -116,23 +116,23 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
             <td>
                     <div class="survey-row">
                         <div class="data-access-icon">
-                            <i class="icon-da icon-da-<?php echo $row['form_model'];?>" title="<?php echo $row['form_model'];?>"></i>
+                            <i class="icon-da icon-da-<?php echo html_escape($row['form_model']);?>" title="<?php echo html_escape($row['form_model']);?>"></i>
                         </div>
                         <h3>
-                            <a href="<?php echo site_url().'/admin/catalog/edit/'.$row['id'];?>"><?php echo $row['title'];?></a>
+                            <a href="<?php echo site_url().'/admin/catalog/edit/'.$row['id'];?>"><?php echo html_escape($row['title']);?></a>
                         </h3>
                         <?php 
 							$study_years=array_unique(array($row['year_start'],$row['year_end']));
 							$study_years=implode(" - ",$study_years);
 						?>
                         <div class="sub-title">
-							<?php echo $row['nation'];?>
+							<?php echo html_escape($row['nation']);?>
 							 <?php if ($study_years==0):?>
                             <?php else:?>
-	                            <?php echo $study_years;?>
+	                            <?php echo html_escape($study_years);?>
                             <?php endif;?>
                             - 
-                            <span class="dataset-idno"><?php echo $row['idno'];?></span>
+                            <span class="dataset-idno"><?php echo html_escape($row['idno']);?></span>
                         </div>
 
                         <div class="table-row">
@@ -140,7 +140,7 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                             <span class="subgroup">                        	
                             <span>
                                 
-                                	<span class="badge badge-info"><?php echo strtoupper($row['type']);?></span>                              
+                                	<span class="badge badge-info"><?php echo html_escape(strtoupper($row['type']));?></span>                              
                             </span>
                             </span>
 
@@ -151,13 +151,13 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                                 <?php if ($row['repositories']):?>
                                     <?php foreach($row['repositories'] as $repo):?>
                                     	<?php if ($repo['isadmin']==1):?>
-											<span class="label label-primary" title="<?php echo t('Owner');?>" ><?php echo strtoupper($repo['repositoryid']);?></span>
+											<span class="label label-primary" title="<?php echo t('Owner');?>" ><?php echo html_escape(strtoupper($repo['repositoryid']));?></span>
                                         <?php else:?>
-                                            <span class="label label-default" title="<?php echo t('Linked');?>" ><?php echo strtoupper($repo['repositoryid']);?></span>
+                                            <span class="label label-default" title="<?php echo t('Linked');?>" ><?php echo html_escape(strtoupper($repo['repositoryid']));?></span>
                                         <?php endif;?>
                                     <?php endforeach;?>
                                 <?php else:?>
-                                	<span class="label label-primary"><?php echo strtoupper($row['repositoryid']);?></span>
+                                	<span class="label label-primary"><?php echo html_escape(strtoupper($row['repositoryid']));?></span>
                               <?php endif;?>  
                             </span>
                             </span>
@@ -167,7 +167,7 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
                                 <span><?php echo t('tags');?>:</span>
                                 <span>
                                     <?php foreach($row['tags'] as $tag):?>
-                                        <span class="label label-warning"><?php echo $tag;?></span>
+                                        <span class="label label-warning"><?php echo html_escape($tag);?></span>
                                     <?php endforeach;?>
                                 </span>                                                       
                             </span>
@@ -186,7 +186,7 @@ $qs_sort=array('ps','title','idno','published','nation','tag','no_question','no_
 
                             <span class="date-changed pl-2">
                                 <?php echo t('Created by')?>:    
-                                <?php echo ucwords($row['created_by_user']); ?>
+                                <?php echo html_escape(ucwords($row['created_by_user'])); ?>
                             </span>
                         </span>
 

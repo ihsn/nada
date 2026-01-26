@@ -94,8 +94,8 @@
 		<?php foreach($this->catalog_countries as $country): $c++?>
 			<div>
 			<label for="nation-<?php echo $c;?>">
-			<input type="checkbox" id="nation-<?php echo $c;?>" name="nation[]" value="<?php echo $country['country_name'];?>" <?php echo my_set_checkbox('nation', $country['country_name']);?>/>			
-			<?php echo $country['country_name'];?> <span class="result-count">(<?php echo $country['total'];?>)</span>
+			<input type="checkbox" id="nation-<?php echo $c;?>" name="nation[]" value="<?php echo html_escape($country['country_name']);?>" <?php echo my_set_checkbox('nation', $country['country_name']);?>/>			
+			<?php echo html_escape($country['country_name']);?> <span class="result-count">(<?php echo $country['total'];?>)</span>
 			</label>
 			</div>
 		<?php endforeach;?>
@@ -117,8 +117,8 @@
 			<?php foreach($this->catalog_tags as $tag): $c++?>
 				<div>
 					<label for="tag-<?php echo $c;?>">
-					<input type="checkbox" id="tag-<?php echo $c;?>" name="tag[]" value="<?php echo $tag['tag'];?>" <?php echo my_set_checkbox('tag', $tag['tag']);?>/>
-					<?php echo $tag['tag'];?> <span class="result-count">(<?php echo $tag['total'];?>)</span>
+					<input type="checkbox" id="tag-<?php echo $c;?>" name="tag[]" value="<?php echo html_escape($tag['tag']);?>" <?php echo my_set_checkbox('tag', $tag['tag']);?>/>
+					<?php echo html_escape($tag['tag']);?> <span class="result-count">(<?php echo $tag['total'];?>)</span>
 					</label>
 				</div>
 			<?php endforeach;?>
@@ -155,8 +155,8 @@
 			<?php foreach($this->catalog_data_types as $type): $c++?>
 				<div>
 					<label for="type-<?php echo $c;?>">
-					<input type="checkbox" id="type-<?php echo $c;?>" name="type[]" value="<?php echo $type['code'];?>" <?php echo my_set_checkbox('type', $type['code']);?>/>
-					<?php echo $type['title'];?> <span class="result-count">(<?php echo $type['found'];?>)</span>
+					<input type="checkbox" id="type-<?php echo $c;?>" name="type[]" value="<?php echo html_escape($type['code']);?>" <?php echo my_set_checkbox('type', $type['code']);?>/>
+					<?php echo html_escape($type['title']);?> <span class="result-count">(<?php echo $type['found'];?>)</span>
 					</label>
 				</div>
 			<?php endforeach;?>

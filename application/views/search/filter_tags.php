@@ -26,7 +26,7 @@ $item_limit=0;
                                 <?php if($search_options->tag!='' && in_array($tag['tag'],$search_options->tag)):?>
                                     checked="checked"
                                 <?php endif;?>>
-                            <span><?php echo $tag['tag']; ?> <span>(<?php echo $tag['total']; ?>)</span></span>
+                            <span><?php echo html_escape($tag['tag']); ?> <span>(<?php echo $tag['total']; ?>)</span></span>
                         </label>
                     </div>
                 <?php endforeach;?>

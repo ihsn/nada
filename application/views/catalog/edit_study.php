@@ -653,7 +653,7 @@ background: white;
 <div class="col-md-12 edit-page-header">
 		
 	<div class="col-md-11">
-		<h1 class="study-title"><?php echo $title; ?></h1>
+		<h1 class="study-title"><?php echo html_escape($title); ?></h1>
 	</div>
 </div>
 

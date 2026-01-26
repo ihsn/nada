@@ -28,9 +28,9 @@
                         <small>
                             <?php $brac_pos=strpos($topic['title'],'[',0);?>
                             <?php if ($brac_pos):?>
-                                <?php echo substr($topic['title'],0,strpos($topic['title'],'[',0)); ?>
+                                <?php echo html_escape(substr($topic['title'],0,strpos($topic['title'],'[',0))); ?>
                             <?php else:?>
-                                <?php echo $topic['title']; ?>
+                                <?php echo html_escape($topic['title']); ?>
                             <?php endif;?>
                             <span class="count">(<?php echo $topic['surveys_found']; ?>)</span>
                         </small>

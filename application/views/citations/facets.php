@@ -44,9 +44,9 @@
             <?php foreach($ctypes as $ctype=>$count):?>
             <?php $is_checked=in_array($ctype,$search['ctype']) ? 'checked="checked"' : '';?>
             <div class="form-check item inactive">
-                <label class="form-check-label" for="ctype-<?php echo $ctype;?>" >
-                    <input <?php echo $is_checked;?> class="form-check-input chk chk-ctype" type="checkbox" name="ctype[]" value="<?php echo $ctype;?>" id="ctype-<?php echo $ctype;?>">
-                    <?php echo t($ctype);?> <span>(<?php echo $count;?>)</span>
+                <label class="form-check-label" for="ctype-<?php echo form_prep($ctype);?>" >
+                    <input <?php echo $is_checked;?> class="form-check-input chk chk-ctype" type="checkbox" name="ctype[]" value="<?php echo form_prep($ctype);?>" id="ctype-<?php echo form_prep($ctype);?>">
+                    <?php echo html_escape(t($ctype));?> <span>(<?php echo $count;?>)</span>
                 </label>
             </div>
             <?php endforeach;?>
