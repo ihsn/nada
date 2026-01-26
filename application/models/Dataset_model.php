@@ -1245,12 +1245,19 @@ class Dataset_model extends CI_Model {
             return;
         }
         
+		// Remove duplicates and nulls
+		$tags = array_values(array_unique(array_filter($tags)));
+        
 		foreach ($tags as $tag){
-            $options=array(
-					'sid'	=>$sid,
-					'tag'	=>$tag
-				);
-            $this->db->insert('survey_tags',$options);
+			if (empty($tag)) {
+				continue;
+			}
+			
+			$options=array(
+				'sid'	=>$sid,
+				'tag'	=>$tag
+			);
+			$this->Catalog_tags_model->insert($options);
 		}
 	}
 
@@ -1263,18 +1270,15 @@ class Dataset_model extends CI_Model {
             return;
         }
 
-		$existing_tags = $this->Catalog_tags_model->survey_tags_list($sid);
-
 		//remove duplicates and nulls
 		$tags = array_values(array_unique(array_filter($tags)));
-		$tags = array_diff($tags, $existing_tags);
         
 		foreach ($tags as $tag){
-            $options=array(
-					'sid'	=>$sid,
-					'tag'	=>$tag
-				);
-            $this->db->insert('survey_tags',$options);
+			if (empty($tag)) {
+				continue;
+			}
+			
+			$this->Catalog_tags_model->upsert($sid, $tag);
 		}
 	}
 

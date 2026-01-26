@@ -12,12 +12,22 @@ class Catalog_tags_model extends CI_Model {
 	
 	public function insert($data) 
 	{
+		if (isset($data['tag'])) {
+			$data['tag'] = xss_clean($data['tag']);
+		}
+		
 		$result = $this->db->insert('survey_tags', $data);
 		return $result;
 	}
 
 	public function upsert($sid,$tag) 
 	{
+		$tag = xss_clean($tag);
+		
+		if (empty($tag)) {
+			return false;
+		}
+		
 		$tag_exists=$this->tag_exists($sid, $tag);
 		
 		if (!$tag_exists){
@@ -29,6 +39,8 @@ class Catalog_tags_model extends CI_Model {
 			
 			return $this->insert($options);
 		}
+		
+		return false;
 	}
 	
 	public function tag_exists($sid,$tag)

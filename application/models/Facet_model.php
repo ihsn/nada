@@ -295,6 +295,8 @@ class Facet_model extends CI_Model {
 	 */
 	function upsert_facet_term($facet_id,$value)
 	{
+		$value = xss_clean($value);
+		
 		$options=array(
 			'facet_id'=>$facet_id,
 			'value'=>substr($value,0,299)
