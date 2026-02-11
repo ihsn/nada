@@ -79,6 +79,17 @@
 ?>
 
 
+<?php
+    // Support data_structure in either metadata.data_structure or metadata.series_description.data_structure
+    $data_structure_value = get_field_value('metadata.data_structure', $metadata) ?: get_field_value('metadata.series_description.data_structure', $metadata);
+    if (!empty($data_structure_value)) {
+        $data_structure_html = render_field('data_structure', 'metadata.series_description.data_structure', $data_structure_value, array());
+        $output['data_structure'] = '<div class="section-data_structure"><h2 id="metadata-data_structure" class="xsl-subtitle">' . t('data_structure') . '</h2>' . $data_structure_html . '</div>';
+    } else {
+        $output['data_structure'] = '';
+    }
+?>
+
 <?php $output['geographic_units']= render_group('geographic_units',
     $fields=array(
         "metadata.series_description.geographic_units"=>"array",

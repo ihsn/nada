@@ -171,3 +171,15 @@ $lang['metadata.series_description.series_groups.name']='Name';
 $lang['metadata.series_description.series_groups.version']='Version';
 $lang['metadata.series_description.series_groups.uri']='URI';
 $lang['metadata.additional']='Additional custom metadata';
+
+$lang['data_structure']='Data structure';
+$lang['metadata.series_description.data_structure']='Data structure';
+$lang['metadata.series_description.data_structure.description']='Description';
+$lang['metadata.series_description.data_structure.data_type']='Data type';
+$lang['metadata.series_description.data_structure.column_type']='Column type';
+$lang['metadata.series_description.data_structure.time_period_format']='Time period format';
+$lang['metadata.series_description.data_structure.code_list']='Code list';
+$lang['metadata.series_description.data_structure.code_list_reference']='Code list reference';
+$lang['metadata.series_description.data_structure.code_list.code']='Code';
+$lang['metadata.series_description.data_structure.code_list.label']='Label';
+$lang['metadata.series_description.data_structure.code_list.description']='Description';
