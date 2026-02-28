@@ -629,7 +629,7 @@ CREATE TABLE `resources` (
   `changed_by` int(11) DEFAULT NULL,
   PRIMARY KEY (`resource_id`),
   KEY `idx_survey_id` (`survey_id`),
-  KEY `idx_resource_type` (`resource_type`),
+  KEY `idx_resource_type` (`resource_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
