@@ -18,7 +18,7 @@ class Analytics_event_tracker_model extends CI_Model {
 	/**
 	 * Track a pageview event
 	 * 
-	 * @param string $study_id Study identifier
+	 * @param int $study_id Study identifier
 	 * @param string $session_id Client-generated session token
 	 * @param array $data Additional data (referrer, user_agent, etc.)
 	 * @return bool Success status
@@ -121,7 +121,7 @@ class Analytics_event_tracker_model extends CI_Model {
 	/**
 	 * Track a download event
 	 * 
-	 * @param string $study_id Study identifier
+	 * @param int $study_id Study identifier
 	 * @param string $file_name File name 
 	 * @param array $data Additional data (file_type, user_agent, etc.)
 	 * @return bool Success status
@@ -165,7 +165,7 @@ class Analytics_event_tracker_model extends CI_Model {
 	 * - Accidental double-clicks
 	 * - Rapid consecutive download attempts
 	 * 
-	 * @param string $study_id Study identifier
+	 * @param int $study_id Study identifier
 	 * @param string $file_name File name
 	 * @param string $hashed_ip Hashed IP address
 	 * @param string $user_agent User agent string

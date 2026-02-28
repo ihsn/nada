@@ -58,6 +58,27 @@ class Analytics_status_model extends CI_Model {
 	}
 	
 	/**
+	 * Get the most recent completed aggregation run (for "last run" display).
+	 *
+	 * @return array|null Array with 'completed_at', 'started_at'; or null if no completed run
+	 */
+	public function get_last_completed_run()
+	{
+		$this->db->select('completed_at, started_at');
+		$this->db->from('analytics_aggregation_status');
+		$this->db->where('status', self::STATUS_COMPLETED);
+		$this->db->where('completed_at IS NOT NULL', null, false);
+		$this->db->order_by('id', 'DESC');
+		$this->db->limit(1);
+		$query = $this->db->get();
+		
+		if ($query && $query->num_rows() > 0) {
+			return $query->row_array();
+		}
+		return null;
+	}
+	
+	/**
 	 * Initialize aggregation status for a new run
 	 * 
 	 * @param string $context 'cli' or 'web'

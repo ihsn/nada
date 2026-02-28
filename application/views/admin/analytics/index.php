@@ -96,6 +96,18 @@
                             </v-list-item>
                             
                             <v-list-item
+                                @click="activeView = 'daily'"
+                                :class="{'v-list-item--active': activeView === 'daily'}"
+                            >
+                                <v-list-item-icon>
+                                    <v-icon>mdi-calendar-today</v-icon>
+                                </v-list-item-icon>
+                                <v-list-item-content>
+                                    <v-list-item-title>Daily Data</v-list-item-title>
+                                </v-list-item-content>
+                            </v-list-item>
+                            
+                            <v-list-item
                                 @click="activeView = 'monthly'"
                                 :class="{'v-list-item--active': activeView === 'monthly'}"
                             >
@@ -135,19 +147,27 @@
                             </v-card-title>
                             <v-card-text>
                                 <v-row>
-                                    <v-col cols="12" md="4">
+                                    <v-col cols="12" md="6">
                                         <v-card>
-                                            <v-card-title class="subtitle-1">Today's Statistics</v-card-title>
                                             <v-card-text>
                                                 <div class="text-h4 mb-2">{{ todayStats.pageviews || 0 }}</div>
-                                                <div class="text-caption text--secondary">Pageviews</div>
-                                                <v-divider class="my-3"></v-divider>
-                                                <div class="text-h4 mb-2">{{ todayStats.downloads || 0 }}</div>
-                                                <div class="text-caption text--secondary">Downloads</div>
+                                                <div class="text-caption text--secondary">Pageviews today</div>
                                             </v-card-text>
                                         </v-card>
                                     </v-col>
-                                    <v-col cols="12" md="4">
+                                    <v-col cols="12" md="6">
+                                        <v-card>
+                                            <v-card-text>
+                                                <div class="text-h4 mb-2">{{ todayStats.downloads || 0 }}</div>
+                                                <div class="text-caption text--secondary">Downloads today</div>
+                                            </v-card-text>
+                                        </v-card>
+                                    </v-col>
+                                    <!-- break -->
+                                    <v-col cols="12" md="12">
+                                        <v-divider class="my-3"></v-divider>
+                                    </v-col>
+                                    <v-col cols="12" md="6">
                                         <v-card>
                                             <v-card-title class="subtitle-1">Recent Pageviews</v-card-title>
                                             <v-card-text>
@@ -156,13 +176,13 @@
                                                         <thead>
                                                             <tr>
                                                                 <th>Time</th>
-                                                                <th>Study ID</th>
+                                                                <th>Study</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <tr v-for="item in recentPageviews.slice(0, 5)" :key="item.id">
-                                                                <td>{{ formatDateTime(item.ts) }}</td>
-                                                                <td>{{ item.study_id }}</td>
+                                                                <td>{{ formatDateTime(item.ts) }}</td>                                                                
+                                                                <td><a target="_blank" :href="site_url + '/catalog/' + item.study_id">{{ item.study_title }}</a></td>
                                                             </tr>
                                                         </tbody>
                                                     </template>
@@ -173,7 +193,7 @@
                                             </v-card-text>
                                         </v-card>
                                     </v-col>
-                                    <v-col cols="12" md="4">
+                                    <v-col cols="12" md="6">
                                         <v-card>
                                             <v-card-title class="subtitle-1">Recent Downloads</v-card-title>
                                             <v-card-text>
@@ -182,14 +202,14 @@
                                                         <thead>
                                                             <tr>
                                                                 <th>Time</th>
-                                                                <th>Study ID</th>
+                                                                <th>Study</th>
                                                                 <th>File</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <tr v-for="item in recentDownloads.slice(0, 5)" :key="item.id">
                                                                 <td>{{ formatDateTime(item.ts) }}</td>
-                                                                <td>{{ item.study_id }}</td>
+                                                                <td><a target="_blank" :href="site_url + '/catalog/' + item.study_id">{{ item.study_title }}</a></td>
                                                                 <td class="text-truncate" style="max-width: 150px;">{{ item.file_name }}</td>
                                                             </tr>
                                                         </tbody>
@@ -207,89 +227,24 @@
                 </div>
                 
                 <div v-show="activeView === 'pageviews'">
-                        <v-card class="mt-4">
-                            <v-card-title>
-                                <v-icon left color="primary">mdi-eye</v-icon>
-                                Raw Data - Pageviews
-                            </v-card-title>
-                            <v-card-text>
-                                <!-- Filters -->
-                                <v-row class="mb-4">
-                                    <v-col cols="12" md="4">
-                                        <v-text-field
-                                            v-model="pageviewFilters.date_from"
-                                            label="Date From"
-                                            type="date"
-                                            outlined
-                                            dense
-                                            clearable
-                                        ></v-text-field>
-                                    </v-col>
-                                    <v-col cols="12" md="4">
-                                        <v-text-field
-                                            v-model="pageviewFilters.date_to"
-                                            label="Date To"
-                                            type="date"
-                                            outlined
-                                            dense
-                                            clearable
-                                        ></v-text-field>
-                                    </v-col>
-                                    <v-col cols="12" md="4" class="d-flex align-center">
-                                        <v-btn color="primary" @click="loadPageviews" :loading="loadingPageviews" class="mr-2">
-                                            <v-icon left>mdi-magnify</v-icon>
-                                            Filter
-                                        </v-btn>
-                                        <v-btn @click="clearPageviewFilters" outlined>
-                                            Clear
-                                        </v-btn>
-                                    </v-col>
-                                </v-row>
-                                
-                                <!-- Data Table -->
-                                <v-data-table
-                                    :headers="pageviewHeaders"
-                                    :items="pageviewData"
-                                    :loading="loadingPageviews"
-                                    :items-per-page="pageviewPagination.limit"
-                                    :server-items-length="pageviewPagination.total"
-                                    :page="pageviewPagination.page"
-                                    @update:page="onPageviewPageChange"
-                                    class="elevation-1"
-                                    no-data-text="No pageview data found"
-                                >
-                                    <template v-slot:item.ts="{ item }">
-                                        {{ formatDateTime(item.ts) }}
-                                    </template>
-                                    <template v-slot:item.session_id="{ item }">
-                                        <span v-if="item.session_id" class="font-monospace" style="font-size: 0.85em;">
-                                            {{ item.session_id.substring(0, 16) }}...
-                                        </span>
-                                        <span v-else class="text--secondary">-</span>
-                                    </template>
-                                    <template v-slot:item.user_agent="{ item }">
-                                        <span v-if="item.user_agent" :title="item.user_agent" style="max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                            {{ item.user_agent }}
-                                        </span>
-                                        <span v-else class="text--secondary">-</span>
-                                    </template>
-                                </v-data-table>
-                            </v-card-text>
-                        </v-card>
+                    <raw-pageviews></raw-pageviews>
                 </div>
                 
                 <div v-show="activeView === 'downloads'">
+                    <raw-downloads></raw-downloads>
+                </div>
+                
+                <div v-show="activeView === 'daily'">
                         <v-card class="mt-4">
                             <v-card-title>
-                                <v-icon left color="primary">mdi-download</v-icon>
-                                Raw Data - Downloads
+                                <v-icon left color="primary">mdi-calendar-today</v-icon>
+                                Daily Data
                             </v-card-title>
                             <v-card-text>
-                                <!-- Filters -->
                                 <v-row class="mb-4">
                                     <v-col cols="12" md="3">
                                         <v-text-field
-                                            v-model="downloadFilters.date_from"
+                                            v-model="dailyFilters.date_from"
                                             label="Date From"
                                             type="date"
                                             outlined
@@ -299,7 +254,7 @@
                                     </v-col>
                                     <v-col cols="12" md="3">
                                         <v-text-field
-                                            v-model="downloadFilters.date_to"
+                                            v-model="dailyFilters.date_to"
                                             label="Date To"
                                             type="date"
                                             outlined
@@ -307,47 +262,93 @@
                                             clearable
                                         ></v-text-field>
                                     </v-col>
-                                    <v-col cols="12" md="3">
+                                    <v-col cols="12" md="2">
                                         <v-text-field
-                                            v-model="downloadFilters.file_type"
-                                            label="File Type"
+                                            v-model="dailyFilters.study_id"
+                                            label="Study ID"
+                                            type="number"
                                             outlined
                                             dense
                                             clearable
+                                            placeholder="Optional"
                                         ></v-text-field>
                                     </v-col>
-                                    <v-col cols="12" md="3" class="d-flex align-center">
-                                        <v-btn color="primary" @click="loadDownloads" :loading="loadingDownloads" class="mr-2">
+                                    <v-col cols="12" md="2">
+                                        <v-select
+                                            v-model="dailyDataView"
+                                            :items="[{text: 'Studies', value: 'studies'}, {text: 'Files', value: 'files'}]"
+                                            label="View"
+                                            outlined
+                                            dense
+                                        ></v-select>
+                                    </v-col>
+                                    <v-col cols="12" md="2" class="d-flex">
+                                        <v-btn color="primary" @click="loadDailyData" :loading="loadingDaily" class="mr-2">
                                             <v-icon left>mdi-magnify</v-icon>
                                             Filter
                                         </v-btn>
-                                        <v-btn @click="clearDownloadFilters" outlined>
-                                            Clear
-                                        </v-btn>
+                                        <v-btn @click="clearDailyFilters" outlined>Clear</v-btn>
                                     </v-col>
                                 </v-row>
-                                
-                                <!-- Data Table -->
                                 <v-data-table
-                                    :headers="downloadHeaders"
-                                    :items="downloadData"
-                                    :loading="loadingDownloads"
-                                    :items-per-page="downloadPagination.limit"
-                                    :server-items-length="downloadPagination.total"
-                                    :page="downloadPagination.page"
-                                    @update:page="onDownloadPageChange"
+                                    v-if="dailyDataView === 'studies'"
+                                    :headers="dailyStudiesHeaders"
+                                    :items="dailyStudiesData"
+                                    :loading="loadingDaily"
+                                    :items-per-page="dailyPagination.limit"
+                                    :server-items-length="dailyPagination.total"
+                                    :page="dailyPagination.page"
+                                    @update:page="onDailyPageChange"
+                                    hide-default-footer
                                     class="elevation-1"
-                                    no-data-text="No download data found"
+                                    no-data-text="No daily data found. Use filters and click Filter."
                                 >
-                                    <template v-slot:item.ts="{ item }">
-                                        {{ formatDateTime(item.ts) }}
-                                    </template>
-                                    <template v-slot:item.file_name="{ item }">
-                                        <span :title="item.file_name" style="max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                            {{ item.file_name }}
-                                        </span>
+                                    <template v-slot:item.title="{ item }">
+                                        <div>
+                                            <div class="font-weight-medium">{{ item.title || 'Untitled' }}</div>
+                                            <div class="text-caption text--secondary">
+                                                <span v-if="item.nation">{{ item.nation }}, </span>{{ item.study_year || 'N/A' }}
+                                            </div>
+                                        </div>
                                     </template>
                                 </v-data-table>
+                                <v-data-table
+                                    v-else
+                                    :headers="dailyFilesHeaders"
+                                    :items="dailyFilesData"
+                                    :loading="loadingDaily"
+                                    :items-per-page="dailyPagination.limit"
+                                    :server-items-length="dailyPagination.total"
+                                    :page="dailyPagination.page"
+                                    @update:page="onDailyPageChange"
+                                    hide-default-footer
+                                    class="elevation-1"
+                                    no-data-text="No daily file data found. Use filters and click Filter."
+                                >
+                                    <template v-slot:item.title="{ item }">
+                                        <div>
+                                            <div class="font-weight-medium">{{ item.title || 'Untitled' }}</div>
+                                            <div class="text-caption text--secondary">
+                                                <span v-if="item.nation">{{ item.nation }}, </span>{{ item.study_year || 'N/A' }}
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template v-slot:item.file_name="{ item }">
+                                        <span :title="item.file_name" style="max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.file_name }}</span>
+                                    </template>
+                                </v-data-table>
+                                <div class="text-center mt-3">
+                                    <v-pagination
+                                        v-model="dailyPagination.page"
+                                        :length="Math.max(1, Math.ceil(dailyPagination.total / dailyPagination.limit))"
+                                        :total-visible="7"
+                                        @input="onDailyPageChange"
+                                        color="primary"
+                                    ></v-pagination>
+                                    <div class="text-caption text--secondary mt-2">
+                                        Showing {{ ((dailyPagination.page - 1) * dailyPagination.limit) + 1 }}-{{ Math.min(dailyPagination.page * dailyPagination.limit, dailyPagination.total) }} of {{ dailyPagination.total }} items
+                                    </div>
+                                </div>
                             </v-card-text>
                         </v-card>
                 </div>
@@ -379,7 +380,7 @@
                                                     class="mr-2"
                                                     @change="loadMonthlyTrafficChart"
                                                 ></v-select>
-                                                <v-btn small color="primary" :loading="monthlyChartLoading" @click="loadMonthlyTrafficChart">
+                                                <v-btn color="primary" :loading="monthlyChartLoading" @click="loadMonthlyTrafficChart">
                                                     <v-icon left>mdi-refresh</v-icon>
                                                     Refresh
                                                 </v-btn>
@@ -392,7 +393,7 @@
                                 </v-row>
                                 <!-- Filters -->
                                 <v-row class="mb-4">
-                                    <v-col cols="12" md="3">
+                                    <v-col cols="12" md="2">
                                         <v-text-field
                                             v-model.number="monthlyFilters.year"
                                             label="Year"
@@ -402,7 +403,7 @@
                                             clearable
                                         ></v-text-field>
                                     </v-col>
-                                    <v-col cols="12" md="3">
+                                    <v-col cols="12" md="2">
                                         <v-select
                                             v-model.number="monthlyFilters.month"
                                             :items="monthOptions"
@@ -411,6 +412,16 @@
                                             dense
                                             clearable
                                         ></v-select>
+                                    </v-col>
+                                    <v-col cols="12" md="2">
+                                        <v-text-field
+                                            v-model.number="monthlyFilters.study_id"
+                                            label="Study ID"
+                                            type="number"
+                                            outlined
+                                            dense
+                                            clearable
+                                        ></v-text-field>
                                     </v-col>
                                     <v-col cols="12" md="3">
                                         <v-select
@@ -421,7 +432,7 @@
                                             dense
                                         ></v-select>
                                     </v-col>
-                                    <v-col cols="12" md="3" >
+                                    <v-col cols="12" md="3">
                                         <v-btn color="primary" @click="loadMonthlyData" :loading="loadingMonthly" class="mr-2">
                                             <v-icon left>mdi-magnify</v-icon>
                                             Filter
@@ -527,9 +538,23 @@
                             </v-card-title>
                             <v-card-text>
                                 <v-alert type="info" class="mb-4">
-                                    Run aggregations to process raw event data into daily, monthly, and all-time totals.
-                                    Processing is done in batches to avoid database timeouts.
+                                    <strong>How aggregation works</strong>
+                                    <ul class="mt-2 mb-0 pl-4" style="line-height: 1.6;">
+                                        <li><strong>Daily:</strong> Fills missing daily aggregates from raw events (pageviews and downloads), up to yesterday. Dates in already-finalized months are skipped.</li>
+                                        <li><strong>Monthly:</strong> Rolls daily data into monthly totals for every month that has daily data but no monthly rows yet (oldest first). Handles backlogs (e.g. years of data).</li>
+                                        <li><strong>Month-end:</strong> Finalizes past months (marks them complete) and removes their daily rows to save space. Past months are processed oldest first.</li>
+                                        <li><strong>Cleanup:</strong> Deletes raw events older than 60 days.</li>
+                                        <li><strong>Sync:</strong> Updates study view/download counters on the catalog.</li>
+                                    </ul>
+                                    <div class="mt-2 text-caption">Processing runs one step per click; keep the page open and wait for each step to finish. You can stop at any time.</div>
                                 </v-alert>
+                                
+                                <div class="mb-4 text-body-2">
+                                    <v-icon small class="mr-1">mdi-clock-outline</v-icon>
+                                    <strong>Last successful run:</strong>
+                                    <span v-if="lastCompletedAt">{{ formatDateTime(lastCompletedAt) }}</span>
+                                    <span v-else class="text--secondary">Never</span>
+                                </div>
                                 
                                 <!-- Aggregation Controls -->
                                 <v-card class="mb-4">
@@ -608,6 +633,27 @@
                                         </v-alert>
                                     </v-card-text>
                                 </v-card>
+
+                                <!-- Cron job instructions -->
+                                <v-card class="mt-4" outlined>
+                                    <v-card-title class="subtitle-1">
+                                        <v-icon left>mdi-clock-outline</v-icon>
+                                        Run aggregation via cron
+                                    </v-card-title>
+                                    <v-card-text>
+                                        <p class="text-body-2 mb-2">
+                                            To run the full aggregation pipeline on a schedule (e.g. daily), use the CLI from the server. From your NADA project root:
+                                        </p>
+                                        <pre class="pa-3 rounded" style="background:#f5f5f5; font-size: 0.9em; overflow-x: auto;">php index.php cli/analytics run_aggregates</pre>
+                                        <p class="text-body-2 mt-3 mb-2">
+                                            Example: run every day at 2:00 AM. Edit crontab with <code>crontab -e</code> and add:
+                                        </p>
+                                        <pre class="pa-3 rounded" style="background:#f5f5f5; font-size: 0.9em; overflow-x: auto;">0 2 * * * cd <?php echo isset($nada_base_path) ? htmlspecialchars($nada_base_path) : '/path/to/nada'; ?> &amp;&amp; php index.php cli/analytics run_aggregates</pre>
+                                        <p class="text-caption text--secondary mt-2 mb-0">
+                                            Replace <code>/path/to/nada</code> with your actual NADA installation path. The CLI runs the same pipeline as "Run Full Aggregation" (daily → monthly → month-end → cleanup → sync) and exits when done.
+                                        </p>
+                                    </v-card-text>
+                                </v-card>
                             </v-card-text>
                         </v-card>
                     </div>
@@ -620,7 +666,13 @@
     <script>
         const apiBase = '<?php echo site_url("api/analytics"); ?>';
         const baseUrl = '<?php echo base_url(); ?>';
-        
+        const siteUrl = '<?php echo site_url(); ?>';
+    </script>
+    <script>
+    <?php echo $this->load->view('admin/analytics/raw_pageviews_component.js', null, true); ?>
+    <?php echo $this->load->view('admin/analytics/raw_downloads_component.js', null, true); ?>
+    </script>
+    <script>
         new Vue({
             el: '#app',
             vuetify: new Vuetify({
@@ -647,42 +699,32 @@
                 recentPageviews: [],
                 recentDownloads: [],
                 
-                // Pageviews
-                pageviewHeaders: [
-                    { text: 'Time', value: 'ts', sortable: true },
-                    { text: 'Study ID', value: 'study_id', sortable: true },
-                    { text: 'Session ID', value: 'session_id', sortable: false },
-                    { text: 'User Agent', value: 'user_agent', sortable: false },
-                    { text: 'Referrer', value: 'referrer', sortable: false }
+                // Daily Data
+                dailyDataView: 'studies',
+                dailyStudiesHeaders: [
+                    { text: 'Date', value: 'date', sortable: true },
+                    { text: 'ID', value: 'study_id', sortable: false },
+                    { text: 'Title', value: 'title', sortable: false },
+                    { text: 'Pageviews', value: 'pageviews', sortable: true },
+                    { text: 'Unique Visitors', value: 'unique_visitors', sortable: true },
+                    { text: 'Downloads', value: 'downloads', sortable: true }
                 ],
-                pageviewData: [],
-                loadingPageviews: false,
-                pageviewFilters: {
-                    date_from: null,
-                    date_to: null
-                },
-                pageviewPagination: {
-                    page: 1,
-                    limit: 50,
-                    total: 0
-                },
-                
-                // Downloads
-                downloadHeaders: [
-                    { text: 'Time', value: 'ts', sortable: true },
+                dailyFilesHeaders: [
+                    { text: 'Date', value: 'date', sortable: true },
                     { text: 'Study ID', value: 'study_id', sortable: true },
+                    { text: 'Title', value: 'title', sortable: false },
                     { text: 'File Name', value: 'file_name', sortable: true },
-                    { text: 'File Type', value: 'file_type', sortable: true },
-                    { text: 'User Agent', value: 'user_agent', sortable: false }
+                    { text: 'Downloads', value: 'downloads', sortable: true }
                 ],
-                downloadData: [],
-                loadingDownloads: false,
-                downloadFilters: {
+                dailyStudiesData: [],
+                dailyFilesData: [],
+                loadingDaily: false,
+                dailyFilters: {
                     date_from: null,
                     date_to: null,
-                    file_type: null
+                    study_id: null
                 },
-                downloadPagination: {
+                dailyPagination: {
                     page: 1,
                     limit: 50,
                     total: 0
@@ -714,7 +756,8 @@
                 loadingMonthly: false,
                 monthlyFilters: {
                     year: null,
-                    month: null
+                    month: null,
+                    study_id: null
                 },
                 monthlyPagination: {
                     page: 1,
@@ -741,6 +784,8 @@
                 // Aggregations
                 aggregationRunning: false,
                 aggregationStatus: null,
+                lastCompletedAt: null,
+                lastCompletedStartedAt: null,
                 aggregationYear: new Date().getFullYear(),
                 aggregationMonth: new Date().getMonth() + 1,
                 aggregationStopRequested: false,
@@ -767,10 +812,10 @@
             },
             watch: {
                 activeView(newView) {
-                    if (newView === 'pageviews' && this.pageviewData.length === 0) {
-                        this.loadPageviews();
-                    } else if (newView === 'downloads' && this.downloadData.length === 0) {
-                        this.loadDownloads();
+                    if (newView === 'daily') {
+                        if (this.dailyStudiesData.length === 0 && this.dailyFilesData.length === 0) {
+                            this.loadDailyData();
+                        }
                     } else if (newView === 'monthly') {
                         if (this.monthlyStudiesData.length === 0) {
                             this.loadMonthlyData();
@@ -781,12 +826,18 @@
                     }
                 }
             },
+            computed: {
+                site_url() {
+                    return siteUrl;
+                }
+            },
             methods: {
                 async loadOverview() {
-                    // Load recent pageviews
+                    const today = this.getTodayDateString();
+                    // Load today's pageviews (count + recent list)
                     try {
                         const pvResponse = await axios.get(apiBase + '/raw/pageviews', {
-                            params: { limit: 10, offset: 0 }
+                            params: { limit: 10, offset: 0, date_from: today, date_to: today }
                         });
                         if (pvResponse.data.status === 'success') {
                             this.recentPageviews = pvResponse.data.data || [];
@@ -796,10 +847,10 @@
                         console.error('Error loading pageviews:', error);
                     }
                     
-                    // Load recent downloads
+                    // Load today's downloads (count + recent list)
                     try {
                         const dlResponse = await axios.get(apiBase + '/raw/downloads', {
-                            params: { limit: 10, offset: 0 }
+                            params: { limit: 10, offset: 0, date_from: today, date_to: today }
                         });
                         if (dlResponse.data.status === 'success') {
                             this.recentDownloads = dlResponse.data.data || [];
@@ -809,86 +860,12 @@
                         console.error('Error loading downloads:', error);
                     }
                 },
-                
-                async loadPageviews() {
-                    this.loadingPageviews = true;
-                    try {
-                        const params = {
-                            limit: this.pageviewPagination.limit,
-                            offset: (this.pageviewPagination.page - 1) * this.pageviewPagination.limit,
-                            sort_by: 'ts',
-                            sort_order: 'desc'
-                        };
-                        
-                        if (this.pageviewFilters.date_from) params.date_from = this.pageviewFilters.date_from;
-                        if (this.pageviewFilters.date_to) params.date_to = this.pageviewFilters.date_to;
-                        
-                        const response = await axios.get(apiBase + '/raw/pageviews', { params });
-                        
-                        if (response.data.status === 'success') {
-                            this.pageviewData = response.data.data || [];
-                            this.pageviewPagination.total = response.data.total || 0;
-                        } else {
-                            alert('Error loading pageviews: ' + (response.data.message || 'Unknown error'));
-                        }
-                    } catch (error) {
-                        console.error('Error loading pageviews:', error);
-                        alert('Error loading pageviews: ' + (error.response?.data?.message || error.message));
-                    } finally {
-                        this.loadingPageviews = false;
-                    }
-                },
-                
-                onPageviewPageChange(page) {
-                    this.pageviewPagination.page = page;
-                    this.loadPageviews();
-                },
-                
-                clearPageviewFilters() {
-                    this.pageviewFilters = { date_from: null, date_to: null };
-                    this.pageviewPagination.page = 1;
-                    this.loadPageviews();
-                },
-                
-                async loadDownloads() {
-                    this.loadingDownloads = true;
-                    try {
-                        const params = {
-                            limit: this.downloadPagination.limit,
-                            offset: (this.downloadPagination.page - 1) * this.downloadPagination.limit,
-                            sort_by: 'ts',
-                            sort_order: 'desc'
-                        };
-                        
-                        if (this.downloadFilters.date_from) params.date_from = this.downloadFilters.date_from;
-                        if (this.downloadFilters.date_to) params.date_to = this.downloadFilters.date_to;
-                        if (this.downloadFilters.file_type) params.file_type = this.downloadFilters.file_type;
-                        
-                        const response = await axios.get(apiBase + '/raw/downloads', { params });
-                        
-                        if (response.data.status === 'success') {
-                            this.downloadData = response.data.data || [];
-                            this.downloadPagination.total = response.data.total || 0;
-                        } else {
-                            alert('Error loading downloads: ' + (response.data.message || 'Unknown error'));
-                        }
-                    } catch (error) {
-                        console.error('Error loading downloads:', error);
-                        alert('Error loading downloads: ' + (error.response?.data?.message || error.message));
-                    } finally {
-                        this.loadingDownloads = false;
-                    }
-                },
-                
-                onDownloadPageChange(page) {
-                    this.downloadPagination.page = page;
-                    this.loadDownloads();
-                },
-                
-                clearDownloadFilters() {
-                    this.downloadFilters = { date_from: null, date_to: null, file_type: null };
-                    this.downloadPagination.page = 1;
-                    this.loadDownloads();
+                getTodayDateString() {
+                    const d = new Date();
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return y + '-' + m + '-' + day;
                 },
                 
                 async loadMonthlyData() {
@@ -901,6 +878,7 @@
                         
                         if (this.monthlyFilters.year) params.year = this.monthlyFilters.year;
                         if (this.monthlyFilters.month) params.month = this.monthlyFilters.month;
+                        if (this.monthlyFilters.study_id) params.study_id = this.monthlyFilters.study_id;
                         
                         const endpoint = this.monthlyDataView === 'studies' ? '/monthly/studies' : '/monthly/files';
                         const response = await axios.get(apiBase + endpoint, { params });
@@ -929,9 +907,52 @@
                 },
                 
                 clearMonthlyFilters() {
-                    this.monthlyFilters = { year: null, month: null };
+                    this.monthlyFilters = { year: null, month: null, study_id: null };
                     this.monthlyPagination.page = 1;
                     this.loadMonthlyData();
+                },
+                
+                async loadDailyData() {
+                    this.loadingDaily = true;
+                    try {
+                        const params = {
+                            limit: this.dailyPagination.limit,
+                            offset: (this.dailyPagination.page - 1) * this.dailyPagination.limit
+                        };
+                        if (this.dailyFilters.date_from) params.date_from = this.dailyFilters.date_from;
+                        if (this.dailyFilters.date_to) params.date_to = this.dailyFilters.date_to;
+                        if (this.dailyFilters.study_id) params.study_id = this.dailyFilters.study_id;
+                        
+                        const endpoint = this.dailyDataView === 'studies' ? '/daily/studies' : '/daily/files';
+                        const response = await axios.get(apiBase + endpoint, { params });
+                        
+                        if (response.data.status === 'success') {
+                            if (this.dailyDataView === 'studies') {
+                                this.dailyStudiesData = response.data.data || [];
+                            } else {
+                                this.dailyFilesData = response.data.data || [];
+                            }
+                            this.dailyPagination.total = response.data.total || 0;
+                        } else {
+                            alert('Error loading daily data: ' + (response.data.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error loading daily data:', error);
+                        alert('Error loading daily data: ' + (error.response?.data?.message || error.message));
+                    } finally {
+                        this.loadingDaily = false;
+                    }
+                },
+                
+                onDailyPageChange(page) {
+                    this.dailyPagination.page = page;
+                    this.loadDailyData();
+                },
+                
+                clearDailyFilters() {
+                    this.dailyFilters = { date_from: null, date_to: null, study_id: null };
+                    this.dailyPagination.page = 1;
+                    this.loadDailyData();
                 },
 
                 // Fetch totals for last N months and render line chart
@@ -1087,6 +1108,7 @@
                                 };
                                 this.aggregationRunning = false;
                                 this.loadOverview();
+                                this.loadAggregationStatus(); // refresh last completed time
                                 return;
                             }
                             
@@ -1121,6 +1143,8 @@
                         const response = await axios.get(apiBase + '/aggregate/status');
                         if (response.data.status === 'success') {
                             const status = response.data.data;
+                            this.lastCompletedAt = status.last_completed_at || null;
+                            this.lastCompletedStartedAt = status.last_completed_started_at || null;
                             if (status.status === 'running') {
                                 this.aggregationRunning = true;
                                 this.aggregationStatus = {
@@ -1137,6 +1161,7 @@
                                     message: status.message || 'Completed',
                                     progress: 100
                                 };
+                                this.lastCompletedAt = status.completed_at || this.lastCompletedAt;
                             } else if (status.status === 'failed') {
                                 this.aggregationStatus = {
                                     type: 'error',

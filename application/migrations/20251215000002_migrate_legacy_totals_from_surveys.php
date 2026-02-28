@@ -28,22 +28,50 @@ class Migration_Migrate_legacy_totals_from_surveys extends MY_Migration {
         }
 
 
-        //make a backup of survey table total columns
-        $this->db->query("CREATE TABLE surveys_backup_totals AS SELECT id, total_views, total_downloads FROM surveys");
-        log_message('info', 'Created backup of surveys table total columns');
-        echo "Created backup of surveys table total columns to surveys_backup_totals table\n";
+        // Backup legacy totals into analytics_legacy_counts (schema table used by the
+        // analytics model for migration detection). Only insert rows not already present.
+        if ($this->db->table_exists('analytics_legacy_counts')) {
+            if ($is_mysqli) {
+                $this->db->query("
+                    INSERT INTO analytics_legacy_counts (survey_id, total_views, total_downloads)
+                    SELECT id, total_views, total_downloads
+                    FROM surveys
+                    WHERE (total_views > 0 OR total_downloads > 0)
+                    AND id NOT IN (SELECT survey_id FROM analytics_legacy_counts)
+                ");
+            } else {
+                $this->db->query("
+                    INSERT INTO analytics_legacy_counts (survey_id, total_views, total_downloads)
+                    SELECT id, total_views, total_downloads
+                    FROM surveys
+                    WHERE (total_views > 0 OR total_downloads > 0)
+                    AND id NOT IN (SELECT survey_id FROM analytics_legacy_counts)
+                ");
+            }
+            log_message('info', 'Backed up legacy survey totals into analytics_legacy_counts');
+            echo "Backed up legacy survey totals into analytics_legacy_counts\n";
+        }
 
         
         // Check if migration has already been completed
-        // Look for any existing all-time totals (year=0, month=0) that match surveys data
-        $check_migrated = $this->db->query("
-            SELECT COUNT(*) as cnt
-            FROM analytics_monthly_studies ams
-            INNER JOIN surveys s ON ams.study_id = s.id
-            WHERE ams.year = 0 AND ams.month = 0
-            AND (ams.pageviews = s.total_views OR ams.downloads = s.total_downloads)
-            LIMIT 1
-        ");
+        // analytics_legacy_counts is populated during backup above; if year=0,month=0 rows
+        // already exist in analytics_monthly_studies for those studies, migration is done.
+        if ($this->db->table_exists('analytics_legacy_counts')) {
+            $check_migrated = $this->db->query("
+                SELECT COUNT(*) as cnt
+                FROM analytics_legacy_counts lc
+                INNER JOIN analytics_monthly_studies ams
+                    ON ams.study_id = lc.survey_id AND ams.year = 0 AND ams.month = 0
+            ");
+        } else {
+            $check_migrated = $this->db->query("
+                SELECT COUNT(*) as cnt
+                FROM analytics_monthly_studies ams
+                INNER JOIN surveys s ON ams.study_id = s.id
+                WHERE ams.year = 0 AND ams.month = 0
+                AND (ams.pageviews = s.total_views OR ams.downloads = s.total_downloads)
+            ");
+        }
         
         if ($check_migrated && $check_migrated->num_rows() > 0) {
             $row = $check_migrated->row();

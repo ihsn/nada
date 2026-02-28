@@ -130,6 +130,102 @@ class Analytics extends MY_REST_Controller
 	}
 	
 	/**
+	 * Get daily study aggregates with pagination and filtering
+	 *
+	 * GET /api/analytics/daily/studies
+	 *
+	 * Query params:
+	 *   - date_from: filter from date (Y-m-d)
+	 *   - date_to: filter to date (Y-m-d)
+	 *   - study_id: filter by study ID
+	 *   - limit: number of records (default: 50)
+	 *   - offset: pagination offset (default: 0)
+	 */
+	function daily_studies_get()
+	{
+		try {
+			$this->is_admin_or_die();
+			
+			$filters = array(
+				'date_from' => $this->input->get('date_from'),
+				'date_to' => $this->input->get('date_to'),
+				'study_id' => $this->input->get('study_id')
+			);
+			
+			$limit = (int)$this->input->get('limit') ?: 50;
+			$offset = (int)$this->input->get('offset') ?: 0;
+			
+			$result = $this->Analytics_model->get_daily_studies($filters, $limit, $offset);
+			
+			$response = array(
+				'status' => 'success',
+				'data' => $result['data'],
+				'total' => $result['total'],
+				'limit' => $result['limit'],
+				'offset' => $result['offset'],
+				'has_more' => $result['has_more']
+			);
+			
+			$this->set_response($response, REST_Controller::HTTP_OK);
+			
+		} catch (Exception $e) {
+			$output = array(
+				'status' => 'error',
+				'message' => $e->getMessage()
+			);
+			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+	
+	/**
+	 * Get daily file aggregates with pagination and filtering
+	 *
+	 * GET /api/analytics/daily/files
+	 *
+	 * Query params:
+	 *   - date_from: filter from date (Y-m-d)
+	 *   - date_to: filter to date (Y-m-d)
+	 *   - study_id: filter by study ID
+	 *   - limit: number of records (default: 50)
+	 *   - offset: pagination offset (default: 0)
+	 */
+	function daily_files_get()
+	{
+		try {
+			$this->is_admin_or_die();
+			
+			$filters = array(
+				'date_from' => $this->input->get('date_from'),
+				'date_to' => $this->input->get('date_to'),
+				'study_id' => $this->input->get('study_id')
+			);
+			
+			$limit = (int)$this->input->get('limit') ?: 50;
+			$offset = (int)$this->input->get('offset') ?: 0;
+			
+			$result = $this->Analytics_model->get_daily_files($filters, $limit, $offset);
+			
+			$response = array(
+				'status' => 'success',
+				'data' => $result['data'],
+				'total' => $result['total'],
+				'limit' => $result['limit'],
+				'offset' => $result['offset'],
+				'has_more' => $result['has_more']
+			);
+			
+			$this->set_response($response, REST_Controller::HTTP_OK);
+			
+		} catch (Exception $e) {
+			$output = array(
+				'status' => 'error',
+				'message' => $e->getMessage()
+			);
+			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+	
+	/**
 	 * Get monthly study aggregates
 	 * 
 	 * GET /api/analytics/monthly/studies
@@ -502,6 +598,7 @@ class Analytics extends MY_REST_Controller
 		try {
 			$this->is_admin_or_die();
 			$status = $this->Analytics_model->get_aggregation_status();
+			$last_completed = $this->Analytics_model->get_last_completed_aggregation();
 			
 			$response = array(
 				'status' => 'success',
@@ -517,7 +614,9 @@ class Analytics extends MY_REST_Controller
 					'completed_at' => $status['completed_at'],
 					'last_updated_at' => $status['last_updated_at'],
 					'error_message' => $status['error_message'],
-					'context' => $status['context']
+					'context' => $status['context'],
+					'last_completed_at' => $last_completed ? $last_completed['completed_at'] : null,
+					'last_completed_started_at' => $last_completed ? $last_completed['started_at'] : null
 				)
 			);
 			

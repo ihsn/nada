@@ -26,7 +26,7 @@ class Analytics_tracker {
 	/**
 	 * Track a pageview event
 	 * 
-	 * @param string $study_id Study identifier
+	 * @param int $study_id Study identifier
 	 * @param string $session_id Optional session ID (from client-side)
 	 * @param array $data Optional additional data (referrer, user_agent, etc.)
 	 * @return bool Success status
@@ -42,7 +42,7 @@ class Analytics_tracker {
 	/**
 	 * Track a download event
 	 * 
-	 * @param string $study_id Study identifier
+	 * @param int $study_id Study identifier
 	 * @param string $file_name File name (not file_id, since files can be deleted)
 	 * @param array $data Optional additional data (file_type, user_agent, etc.)
 	 * @return bool Success status
@@ -58,7 +58,7 @@ class Analytics_tracker {
 	/**
 	 * Get study statistics
 	 * 
-	 * @param string $study_id Study identifier
+	 * @param int $study_id Study identifier
 	 * @param string $start_date Start date (Y-m-d format)
 	 * @param string $end_date End date (Y-m-d format)
 	 * @return array Daily statistics
@@ -71,7 +71,7 @@ class Analytics_tracker {
 	/**
 	 * Get study monthly statistics
 	 * 
-	 * @param string $study_id Study identifier
+	 * @param int $study_id Study identifier
 	 * @param int $year Year
 	 * @param int $month Month (optional)
 	 * @return array Monthly statistics

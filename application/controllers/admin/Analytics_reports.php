@@ -18,7 +18,8 @@ class Analytics_reports extends MY_Controller {
 		$this->acl_manager->has_access_or_die('reports', 'view');
 
 		$this->template->set_template('admin5');
-		$content = $this->load->view('admin/analytics/index', null, true);
+		$data = array('nada_base_path' => rtrim(FCPATH, '/'));
+		$content = $this->load->view('admin/analytics/index', $data, true);
         $this->template->write('title', t('Analytics'), true);
         $this->template->write('content', $content, true);
         $this->template->render();

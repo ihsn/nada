@@ -561,6 +561,8 @@ class Analytics_aggregator_model extends CI_Model {
 
 	/**
 	 * Clean up raw events older than retention period.
+	 * Only deletes raw events for months that are already monthly-aggregated and marked as finalized,
+	 * so we never delete data that might still be needed for aggregation.
 	 */
 	public function cleanup_raw_events($retention_days = 60)
 	{
@@ -570,11 +572,26 @@ class Analytics_aggregator_model extends CI_Model {
 			'errors' => array()
 		);
 
+		$db_driver = $this->db->dbdriver;
+		$is_sqlsrv = ($db_driver === 'sqlsrv' || $db_driver === 'mssql');
+		$date_func = $is_sqlsrv ? 'CAST(ts AS DATE)' : 'DATE(ts)';
+
 		try {
 			$cutoff_date = date('Y-m-d', strtotime("-{$retention_days} days"));
 
-			$this->db->where('DATE(ts) <', $cutoff_date);
-			$delete_pageviews = $this->db->delete('analytics_pageview_events');
+			// Delete pageview events only where date < cutoff AND (year, month) is finalized
+			$sql_pv = "
+				DELETE FROM analytics_pageview_events
+				WHERE {$date_func} < ?
+				AND EXISTS (
+					SELECT 1 FROM analytics_monthly_studies m
+					WHERE m.year = YEAR(analytics_pageview_events.ts)
+					AND m.month = MONTH(analytics_pageview_events.ts)
+					AND m.finalized = 1
+					AND (m.year != 0 OR m.month != 0)
+				)
+			";
+			$delete_pageviews = $this->db->query($sql_pv, array($cutoff_date));
 
 			if ($delete_pageviews !== false) {
 				$result['deleted_pageviews'] = $this->db->affected_rows();
@@ -584,8 +601,19 @@ class Analytics_aggregator_model extends CI_Model {
 				$result['errors'][] = "Failed to delete pageview events: " . $error_msg;
 			}
 
-			$this->db->where('DATE(ts) <', $cutoff_date);
-			$delete_downloads = $this->db->delete('analytics_download_events');
+			// Delete download events only where date < cutoff AND (year, month) is finalized
+			$sql_dl = "
+				DELETE FROM analytics_download_events
+				WHERE {$date_func} < ?
+				AND EXISTS (
+					SELECT 1 FROM analytics_monthly_studies m
+					WHERE m.year = YEAR(analytics_download_events.ts)
+					AND m.month = MONTH(analytics_download_events.ts)
+					AND m.finalized = 1
+					AND (m.year != 0 OR m.month != 0)
+				)
+			";
+			$delete_downloads = $this->db->query($sql_dl, array($cutoff_date));
 
 			if ($delete_downloads !== false) {
 				$result['deleted_downloads'] = $this->db->affected_rows();
@@ -604,6 +632,7 @@ class Analytics_aggregator_model extends CI_Model {
 
 	/**
 	 * Clean up daily aggregates for finalized months.
+	 * Daily tables use a 'date' column (Y-m-d), so we delete by date range for the given year/month.
 	 */
 	public function cleanup_daily_aggregates($year = null, $month = null)
 	{
@@ -629,20 +658,27 @@ class Analytics_aggregator_model extends CI_Model {
 			$this->db->where('year', $year);
 			$this->db->where('month', $month);
 			$this->db->limit(1);
-
-			$is_finalized = $this->db->get()->row()->finalized === 1;
-			if (!$is_finalized) {
+			$row = $this->db->get()->row();
+			if (!$row) {
+				$result['errors'][] = "Month {$year}-{$month} has no monthly data. Cannot delete daily aggregates.";
+				return $result;
+			}
+			if ((int)$row->finalized !== 1) {
 				$result['errors'][] = "Month {$year}-{$month} is not finalized. Cannot delete daily aggregates.";
 				return $result;
 			}
 
-			$this->db->where('year', $year);
-			$this->db->where('month', $month);
+			// Daily tables have 'date' (DATE), not year/month. Use first and last day of month.
+			$first_day = sprintf('%04d-%02d-01', $year, $month);
+			$last_day = date('Y-m-t', strtotime($first_day));
+
+			$this->db->where('date >=', $first_day);
+			$this->db->where('date <=', $last_day);
 			$this->db->delete('analytics_daily_studies');
 			$result['deleted_daily_studies'] = $this->db->affected_rows();
 
-			$this->db->where('year', $year);
-			$this->db->where('month', $month);
+			$this->db->where('date >=', $first_day);
+			$this->db->where('date <=', $last_day);
 			$this->db->delete('analytics_daily_files');
 			$result['deleted_daily_files'] = $this->db->affected_rows();
 
@@ -722,10 +758,10 @@ class Analytics_aggregator_model extends CI_Model {
 			);
 		}
 
+		// Use raw WHERE so YEAR(date)/MONTH(date) are expressions, not escaped column names
 		$this->db->select('DISTINCT study_id');
 		$this->db->from('analytics_daily_studies');
-		$this->db->where($year_func, $year);
-		$this->db->where($month_func, $month);
+		$this->db->where('YEAR(date) = ' . (int)$year . ' AND MONTH(date) = ' . (int)$month, null, false);
 		$this->db->order_by('study_id');
 		$this->db->limit($limit);
 		$this->db->offset($offset);
@@ -1140,7 +1176,31 @@ class Analytics_aggregator_model extends CI_Model {
 		$missing_dates = array_diff($raw_dates, $aggregate_dates);
 		sort($missing_dates);
 
-		return array_values($missing_dates);
+		// Exclude dates that fall in finalized months (no need to run daily for those)
+		$this->db->select('year, month');
+		$this->db->distinct();
+		$this->db->from('analytics_monthly_studies');
+		$this->db->where('finalized', 1);
+		$this->db->where('(year != 0 OR month != 0)', null, false);
+		$finalized_query = $this->db->get();
+		$finalized_keys = array();
+		if ($finalized_query) {
+			foreach ($finalized_query->result_array() as $row) {
+				$finalized_keys[(int)$row['year'] . '-' . (int)$row['month']] = true;
+			}
+		}
+
+		$filtered = array();
+		foreach ($missing_dates as $d) {
+			$y = (int)date('Y', strtotime($d));
+			$m = (int)date('n', strtotime($d));
+			if (isset($finalized_keys[$y . '-' . $m])) {
+				continue;
+			}
+			$filtered[] = $d;
+		}
+
+		return array_values($filtered);
 	}
 }
 

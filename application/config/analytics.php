@@ -8,7 +8,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 
 // Enable/disable analytics tracking
-$config['analytics_enabled'] = false;
+$config['analytics_enabled'] = true;
 
 // Enable/disable debug mode for analytics tracking
 $config['analytics_debug_js'] = false;

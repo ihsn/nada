@@ -498,11 +498,18 @@ class Analytics_model extends CI_Model {
 			// Start transaction for better performance
 			$this->db->trans_start();
 			
-			// Calculate totals on-the-fly: legacy (year=0, month=0) + current monthly aggregates
-			// Note: year=0, month=0 records remain static from legacy migration and are NOT updated
-			
-			// Use a single efficient SQL query to combine legacy and current totals
+			// Calculate totals: legacy (year=0, month=0) + finalized/past monthly aggregates
+			// (excluding the current month) + current month from daily.
+			//
+			// Why exclude current month from monthly:
+			// Daily rows for a non-finalized month are NOT deleted after the monthly rollup,
+			// so both the monthly row and the daily rows exist simultaneously. To avoid
+			// double-counting we use one source per month: monthly for all past months,
+			// daily for the in-progress current month (which always has the freshest data
+			// including today's events that haven't been rolled to monthly yet).
 			$db_driver = $this->db->dbdriver;
+			$current_year  = (int)date('Y');
+			$current_month = (int)date('n');
 			
 			if ($db_driver === 'mysqli') {
 				// MySQL: Use COALESCE and LEFT JOIN
@@ -528,6 +535,7 @@ class Analytics_model extends CI_Model {
 							SUM(downloads) as downloads
 						FROM analytics_monthly_studies
 						WHERE year != 0 AND month != 0
+							AND NOT (year = {$current_year} AND month = {$current_month})
 				";
 				if ($study_id !== null) {
 					$sql .= " AND study_id = " . $this->db->escape($study_id);
@@ -549,6 +557,7 @@ class Analytics_model extends CI_Model {
 							SUM(downloads) as downloads
 						FROM analytics_monthly_studies
 						WHERE year != 0 AND month != 0
+							AND NOT (year = {$current_year} AND month = {$current_month})
 				";
 				if ($study_id !== null) {
 					$sql .= " AND study_id = " . $this->db->escape($study_id);
@@ -592,6 +601,7 @@ class Analytics_model extends CI_Model {
 							SUM(downloads) as downloads
 						FROM analytics_monthly_studies
 						WHERE year != 0 AND month != 0
+							AND NOT (year = {$current_year} AND month = {$current_month})
 				";
 				if ($study_id !== null) {
 					$sql .= " AND study_id = " . $this->db->escape($study_id);
@@ -612,29 +622,65 @@ class Analytics_model extends CI_Model {
 				return $result;
 			}
 			
-			if ($query->num_rows() === 0) {
+			$totals_map = array();
+			if ($query->num_rows() > 0) {
+				foreach ($query->result_array() as $row) {
+					$sid = (int)$row['study_id'];  // use $sid to avoid overwriting the $study_id filter parameter
+					$totals_map[$sid] = array(
+						'pageviews' => (int)$row['pageviews'],
+						'downloads' => (int)$row['downloads']
+					);
+				}
+			}
+
+			// Add current-month daily aggregates. Daily rows for non-finalized months are NOT
+			// deleted after the monthly rollup, so they always reflect the latest data including
+			// today's in-progress events. The monthly query above excludes the current month
+			// entirely to prevent double-counting.
+			// Finalized months are intentionally excluded — once a month is finalized, any
+			// late events tracked for that period are ignored by design.
+			$daily_sql = "
+				SELECT study_id, SUM(pageviews) as pageviews, SUM(downloads) as downloads
+				FROM analytics_daily_studies
+				WHERE YEAR(date) = ? AND MONTH(date) = ?
+			";
+			$params = array($current_year, $current_month);
+			if ($study_id !== null) {  // $study_id is still the original filter parameter here
+				$daily_sql .= " AND study_id = ?";
+				$params[] = $study_id;
+			}
+			$daily_sql .= " GROUP BY study_id";
+			$daily_query = $this->db->query($daily_sql, $params);
+			if ($daily_query && $daily_query->num_rows() > 0) {
+				foreach ($daily_query->result_array() as $row) {
+					$sid = (int)$row['study_id'];
+					$pv = (int)$row['pageviews'];
+					$dl = (int)$row['downloads'];
+					if (!isset($totals_map[$sid])) {
+						$totals_map[$sid] = array('pageviews' => 0, 'downloads' => 0);
+					}
+					$totals_map[$sid]['pageviews'] += $pv;
+					$totals_map[$sid]['downloads'] += $dl;
+				}
+			}
+
+			if (empty($totals_map)) {
 				$this->db->trans_complete();
 				$result['success'] = true;
 				return $result;
 			}
-			
+
 			$all_rows = array();
-			foreach ($query->result_array() as $row) {
+			foreach ($totals_map as $study_id => $totals) {
 				$all_rows[] = array(
-					'study_id' => $row['study_id'],
-					'pageviews' => (int)$row['pageviews'],
-					'downloads' => (int)$row['downloads']
+					'study_id' => $study_id,
+					'pageviews' => $totals['pageviews'],
+					'downloads' => $totals['downloads']
 				);
 			}
 			
 			$total_rows = count($all_rows);
 			$updated = 0;
-			
-			if ($total_rows === 0) {
-				$this->db->trans_complete();
-				$result['success'] = true;
-				return $result;
-			}
 			
 			// Process in batches to limit memory and improve performance
 			for ($offset = 0; $offset < $total_rows; $offset += $batch_size) {
@@ -708,6 +754,131 @@ class Analytics_model extends CI_Model {
 	
 	
 	/**
+	 * Check if legacy migration is needed.
+	 *
+	 * Returns true if analytics_monthly_studies has no year=0, month=0 rows,
+	 * meaning legacy counts from the surveys table have not yet been seeded into
+	 * the analytics system.
+	 *
+	 * @return bool
+	 */
+	public function needs_legacy_migration()
+	{
+		// Backup needed: analytics_legacy_counts is still empty
+		$backup_query = $this->db->query("SELECT COUNT(*) as cnt FROM analytics_legacy_counts");
+		if ($backup_query) {
+			$backup_count = (int)$backup_query->row()->cnt;
+			if ($backup_count === 0) {
+				// Check if surveys table has any non-zero legacy counts worth backing up
+				$survey_query = $this->db->query(
+					"SELECT COUNT(*) as cnt FROM surveys WHERE COALESCE(total_views, 0) > 0 OR COALESCE(total_downloads, 0) > 0"
+				);
+				if ($survey_query && (int)$survey_query->row()->cnt > 0) {
+					return true;
+				}
+			}
+		}
+
+		// Seed needed: analytics_monthly_studies has no year=0, month=0 rows
+		// but analytics_legacy_counts has data waiting to be seeded
+		$legacy_query = $this->db->query("SELECT COUNT(*) as cnt FROM analytics_legacy_counts");
+		$legacy_count = $legacy_query ? (int)$legacy_query->row()->cnt : 0;
+		if ($legacy_count > 0) {
+			$seeded_query = $this->db->query("SELECT COUNT(*) as cnt FROM analytics_monthly_studies WHERE year = 0 AND month = 0");
+			$seeded_count = $seeded_query ? (int)$seeded_query->row()->cnt : 0;
+			if ($seeded_count < $legacy_count) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Migrate legacy counts from surveys table into the analytics system.
+	 *
+	 * Step 1 – Backup: if analytics_legacy_counts is empty, copy total_views and
+	 *          total_downloads from the surveys table into analytics_legacy_counts.
+	 * Step 2 – Seed: insert a year=0, month=0 row into analytics_monthly_studies
+	 *          for every survey that is present in analytics_legacy_counts but
+	 *          does not already have a legacy-total row there.
+	 *
+	 * Both operations are bulk SQL, safe for catalogs with tens-of-thousands of
+	 * surveys, and idempotent – repeated calls will not double-count.
+	 *
+	 * @return array Result with 'success' (bool), 'backed_up' (int rows),
+	 *               'migrated' (int rows), 'skipped' (int rows already present)
+	 */
+	public function migrate_legacy_counts()
+	{
+		$result = array(
+			'success'  => false,
+			'backed_up' => 0,
+			'migrated' => 0,
+			'skipped'  => 0,
+			'errors'   => array()
+		);
+
+		try {
+			$db_driver = $this->db->dbdriver;
+
+			// ----------------------------------------------------------------
+			// Step 1: Backup legacy totals if not already done
+			// ----------------------------------------------------------------
+			$count_query = $this->db->query("SELECT COUNT(*) as cnt FROM analytics_legacy_counts");
+			$legacy_count = $count_query ? (int)$count_query->row()->cnt : 0;
+
+			if ($legacy_count === 0) {
+				// Bulk-insert all surveys that have non-zero legacy counts
+				$sql = "INSERT INTO analytics_legacy_counts (survey_id, total_views, total_downloads)
+				        SELECT id,
+				               COALESCE(total_views, 0),
+				               COALESCE(total_downloads, 0)
+				        FROM surveys
+				        WHERE COALESCE(total_views, 0) > 0 OR COALESCE(total_downloads, 0) > 0";
+				$this->db->query($sql);
+				$result['backed_up'] = $this->db->affected_rows();
+			} else {
+				$result['skipped'] = $legacy_count;
+			}
+
+			// ----------------------------------------------------------------
+			// Step 2: Seed year=0, month=0 rows in analytics_monthly_studies
+			// for any survey missing a legacy-total entry (idempotent)
+			// ----------------------------------------------------------------
+			if ($db_driver === 'mysqli') {
+				$sql = "INSERT INTO analytics_monthly_studies
+				            (year, month, study_id, pageviews, unique_visitors, downloads, finalized)
+				        SELECT 0, 0, lc.survey_id, lc.total_views, 0, lc.total_downloads, 1
+				        FROM analytics_legacy_counts lc
+				        WHERE NOT EXISTS (
+				            SELECT 1 FROM analytics_monthly_studies ams
+				            WHERE ams.year = 0 AND ams.month = 0 AND ams.study_id = lc.survey_id
+				        )";
+			} else {
+				// SQL Server
+				$sql = "INSERT INTO analytics_monthly_studies
+				            (year, month, study_id, pageviews, unique_visitors, downloads, finalized)
+				        SELECT 0, 0, lc.survey_id, lc.total_views, 0, lc.total_downloads, 1
+				        FROM analytics_legacy_counts lc
+				        WHERE NOT EXISTS (
+				            SELECT 1 FROM analytics_monthly_studies ams
+				            WHERE ams.year = 0 AND ams.month = 0 AND ams.study_id = lc.survey_id
+				        )";
+			}
+			$this->db->query($sql);
+			$result['migrated'] = $this->db->affected_rows();
+
+			$result['success'] = true;
+
+		} catch (Exception $e) {
+			$result['errors'][] = $e->getMessage();
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Find dates that have raw events but no daily aggregates
 	 * 
 	 * Returns an array of dates (Y-m-d format) that need daily aggregation.
@@ -736,8 +907,10 @@ class Analytics_model extends CI_Model {
 		$months = max(1, min(24, (int)$months)); // clamp 1-24
 		$result = array();
 		
-		// Build list of year-month pairs for last N months
+		// Build list of year-month pairs for last N months (use first day of month to avoid day overflow, e.g. Jan 31 - 2 months -> Dec 1)
 		$now = new DateTime();
+		$now->setDate((int)$now->format('Y'), (int)$now->format('n'), 1);
+		$now->setTime(0, 0, 0);
 		for ($i = $months - 1; $i >= 0; $i--) {
 			$d = clone $now;
 			$d->modify("-{$i} month");
@@ -958,6 +1131,141 @@ class Analytics_model extends CI_Model {
 	}
 	
 	/**
+	 * Get daily study aggregates with pagination and filtering
+	 *
+	 * @param array $filters Filter parameters (date_from, date_to, study_id)
+	 * @param int $limit Number of records per page
+	 * @param int $offset Pagination offset
+	 * @return array Result with data, total, and pagination info
+	 */
+	public function get_daily_studies($filters = array(), $limit = 50, $offset = 0)
+	{
+		$date_from = isset($filters['date_from']) ? $filters['date_from'] : null;
+		$date_to = isset($filters['date_to']) ? $filters['date_to'] : null;
+		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
+		
+		$limit = max(1, min(500, (int)$limit));
+		
+		$count_sql = "SELECT COUNT(*) as total FROM analytics_daily_studies WHERE 1=1";
+		$count_params = array();
+		if ($date_from) {
+			$count_sql .= " AND date >= ?";
+			$count_params[] = $date_from;
+		}
+		if ($date_to) {
+			$count_sql .= " AND date <= ?";
+			$count_params[] = $date_to;
+		}
+		if ($study_id) {
+			$count_sql .= " AND study_id = ?";
+			$count_params[] = $study_id;
+		}
+		$count_query = $this->db->query($count_sql, $count_params);
+		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
+		
+		$this->db->reset_query();
+		$this->db->select('analytics_daily_studies.date, analytics_daily_studies.study_id, analytics_daily_studies.pageviews, analytics_daily_studies.unique_visitors, analytics_daily_studies.downloads, surveys.title, surveys.nation, surveys.year_start as study_year');
+		$this->db->join('surveys', 'analytics_daily_studies.study_id = surveys.id', 'left');
+		$this->db->from('analytics_daily_studies');
+		if ($date_from) {
+			$this->db->where('analytics_daily_studies.date >=', $date_from);
+		}
+		if ($date_to) {
+			$this->db->where('analytics_daily_studies.date <=', $date_to);
+		}
+		if ($study_id) {
+			$this->db->where('analytics_daily_studies.study_id', $study_id);
+		}
+		$this->db->order_by('analytics_daily_studies.date', 'DESC');
+		$this->db->order_by('analytics_daily_studies.study_id', 'ASC');
+		$this->db->limit($limit, $offset);
+		$query = $this->db->get();
+		
+		$data = array();
+		if ($query) {
+			foreach ($query->result_array() as $row) {
+				$data[] = $row;
+			}
+		}
+		
+		return array(
+			'data' => $data,
+			'total' => $total,
+			'limit' => $limit,
+			'offset' => $offset,
+			'has_more' => ($offset + $limit) < $total
+		);
+	}
+	
+	/**
+	 * Get daily file aggregates with pagination and filtering
+	 *
+	 * @param array $filters Filter parameters (date_from, date_to, study_id)
+	 * @param int $limit Number of records per page
+	 * @param int $offset Pagination offset
+	 * @return array Result with data, total, and pagination info
+	 */
+	public function get_daily_files($filters = array(), $limit = 50, $offset = 0)
+	{
+		$date_from = isset($filters['date_from']) ? $filters['date_from'] : null;
+		$date_to = isset($filters['date_to']) ? $filters['date_to'] : null;
+		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
+		
+		$limit = max(1, min(500, (int)$limit));
+		
+		$count_sql = "SELECT COUNT(*) as total FROM analytics_daily_files WHERE 1=1";
+		$count_params = array();
+		if ($date_from) {
+			$count_sql .= " AND date >= ?";
+			$count_params[] = $date_from;
+		}
+		if ($date_to) {
+			$count_sql .= " AND date <= ?";
+			$count_params[] = $date_to;
+		}
+		if ($study_id) {
+			$count_sql .= " AND study_id = ?";
+			$count_params[] = $study_id;
+		}
+		$count_query = $this->db->query($count_sql, $count_params);
+		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
+		
+		$this->db->reset_query();
+		$this->db->select('analytics_daily_files.date, analytics_daily_files.study_id, analytics_daily_files.file_name, analytics_daily_files.downloads, surveys.title, surveys.nation, surveys.year_start as study_year');
+		$this->db->join('surveys', 'analytics_daily_files.study_id = surveys.id', 'left');
+		$this->db->from('analytics_daily_files');
+		if ($date_from) {
+			$this->db->where('analytics_daily_files.date >=', $date_from);
+		}
+		if ($date_to) {
+			$this->db->where('analytics_daily_files.date <=', $date_to);
+		}
+		if ($study_id) {
+			$this->db->where('analytics_daily_files.study_id', $study_id);
+		}
+		$this->db->order_by('analytics_daily_files.date', 'DESC');
+		$this->db->order_by('analytics_daily_files.study_id', 'ASC');
+		$this->db->order_by('analytics_daily_files.downloads', 'DESC');
+		$this->db->limit($limit, $offset);
+		$query = $this->db->get();
+		
+		$data = array();
+		if ($query) {
+			foreach ($query->result_array() as $row) {
+				$data[] = $row;
+			}
+		}
+		
+		return array(
+			'data' => $data,
+			'total' => $total,
+			'limit' => $limit,
+			'offset' => $offset,
+			'has_more' => ($offset + $limit) < $total
+		);
+	}
+	
+	/**
 	 * Get raw pageview events with pagination and filtering
 	 * 
 	 * @param array $filters Filter parameters (date_from, date_to, study_id)
@@ -1001,8 +1309,9 @@ class Analytics_model extends CI_Model {
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 		
 		// Build data query
-		$this->db->select('id, ts, study_id, session_id, user_agent, referrer, hashed_ip');
+		$this->db->select('analytics_pageview_events.id, analytics_pageview_events.ts, analytics_pageview_events.study_id, analytics_pageview_events.session_id, analytics_pageview_events.user_agent, analytics_pageview_events.referrer, hashed_ip, surveys.title as study_title');
 		$this->db->from('analytics_pageview_events');
+		$this->db->join('surveys', 'analytics_pageview_events.study_id = surveys.id', 'left');
 		
 		// Apply filters for data query
 		if ($date_from) {
@@ -1014,7 +1323,7 @@ class Analytics_model extends CI_Model {
 		if ($study_id) {
 			$this->db->where('study_id', $study_id);
 		}
-		
+
 		// Apply sorting
 		$valid_sort_fields = array('ts', 'study_id', 'session_id');
 		if (in_array($sort_by, $valid_sort_fields)) {
@@ -1093,8 +1402,9 @@ class Analytics_model extends CI_Model {
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 		
 		// Build data query
-		$this->db->select('id, ts, study_id, file_name, file_type, user_agent, hashed_ip');
+		$this->db->select('analytics_download_events.id, analytics_download_events.ts, analytics_download_events.study_id, analytics_download_events.file_name, analytics_download_events.file_type, analytics_download_events.user_agent, analytics_download_events.hashed_ip, surveys.title as study_title');
 		$this->db->from('analytics_download_events');
+		$this->db->join('surveys', 'analytics_download_events.study_id = surveys.id', 'left');
 		
 		// Apply filters for data query
 		if ($date_from) {
@@ -1150,6 +1460,16 @@ class Analytics_model extends CI_Model {
 	}
 	
 	/**
+	 * Get the most recent completed aggregation run (for "last run" display).
+	 *
+	 * @return array|null Array with 'completed_at', 'started_at'; or null if no completed run
+	 */
+	public function get_last_completed_aggregation()
+	{
+		return $this->status_manager->get_last_completed_run();
+	}
+	
+	/**
 	 * Initialize aggregation status for a new run
 	 * 
 	 * @param string $context 'cli' or 'web'
@@ -1193,49 +1513,107 @@ class Analytics_model extends CI_Model {
 	}
 	
 	/**
-	 * Find previous months that should be finalized but aren't
-	 * 
-	 * @return array Array of months that need finalization
+	 * Find months that have daily aggregates but need monthly rollup.
+	 * Used to roll up daily → monthly for backlog (e.g. after 2 years of no aggregation).
+	 * Returns months up to and including current month, ordered oldest first.
+	 * Excludes past months that already have rows in analytics_monthly_studies.
+	 * Always includes the current month when it has daily data so new daily data is picked up (re-roll each run).
+	 *
+	 * @param int|null $exclude_year If set, exclude this year/month from result (month we just rolled this run, to avoid infinite loop)
+	 * @param int|null $exclude_month
+	 * @return array Array of arrays with 'year', 'month', 'date' (Y-m)
+	 */
+	private function find_months_needing_monthly_rollup($exclude_year = null, $exclude_month = null)
+	{
+		$current_year = (int)date('Y');
+		$current_month = (int)date('n');
+		$end_of_current = date('Y-m-t', strtotime($current_year . '-' . $current_month . '-01'));
+
+		$this->db->select('YEAR(date) as year, MONTH(date) as month');
+		$this->db->distinct();
+		$this->db->from('analytics_daily_studies');
+		$this->db->where('date <=', $end_of_current);
+		$this->db->order_by('year', 'ASC');
+		$this->db->order_by('month', 'ASC');
+		$query = $this->db->get();
+		if (!$query || $query->num_rows() === 0) {
+			return array();
+		}
+
+		// Exclude past months that already have monthly data (already rolled up).
+		// Always include the current month so we re-roll it and pick up new daily data (e.g. new days aggregated since last run).
+		$this->db->select('year, month');
+		$this->db->from('analytics_monthly_studies');
+		$this->db->where('(year != 0 OR month != 0)', null, false);
+		$existing_query = $this->db->get();
+		$existing_keys = array();
+		if ($existing_query) {
+			foreach ($existing_query->result_array() as $row) {
+				$existing_keys[(int)$row['year'] . '-' . (int)$row['month']] = true;
+			}
+		}
+
+		$months = array();
+		foreach ($query->result_array() as $row) {
+			$year = (int)$row['year'];
+			$month = (int)$row['month'];
+			$is_current_month = ($year === $current_year && $month === $current_month);
+			// Skip only if month already has monthly rows AND is not the current month (current month we always re-roll)
+			if (isset($existing_keys[$year . '-' . $month]) && !$is_current_month) {
+				continue;
+			}
+			$months[] = array(
+				'year' => $year,
+				'month' => $month,
+				'date' => sprintf('%04d-%02d', $year, $month)
+			);
+		}
+
+		// Exclude the month we just rolled (same run) so we don't loop forever re-processing it
+		if ($exclude_year !== null && $exclude_month !== null) {
+			$months = array_values(array_filter($months, function ($m) use ($exclude_year, $exclude_month) {
+				return !($m['year'] === $exclude_year && $m['month'] === $exclude_month);
+			}));
+		}
+		return $months;
+	}
+
+	/**
+	 * Find past months (before current) that have monthly data but are not finalized.
+	 * Used for month-end: finalize and cleanup daily aggregates. Includes all such months, not just last 12.
+	 *
+	 * @return array Array of arrays with 'year', 'month', 'date' (Y-m), oldest first
 	 */
 	private function find_unfinalized_previous_months()
 	{
 		$current_year = (int)date('Y');
 		$current_month = (int)date('m');
-		
+
+		$this->db->select('year, month');
+		$this->db->distinct();
+		$this->db->from('analytics_monthly_studies');
+		$this->db->where('(year < ' . $current_year . ' OR (year = ' . $current_year . ' AND month < ' . $current_month . '))', null, false);
+		$this->db->where('(year != 0 OR month != 0)', null, false);
+		$this->db->group_start();
+		$this->db->where('finalized', 0);
+		$this->db->or_where('finalized IS NULL', null, false);
+		$this->db->group_end();
+		$this->db->order_by('year', 'ASC');
+		$this->db->order_by('month', 'ASC');
+		$query = $this->db->get();
+
 		$unfinalized = array();
-		
-		// Check last 12 months (excluding current month)
-		for ($i = 1; $i <= 12; $i++) {
-			$check_date = date('Y-m', strtotime("-{$i} month"));
-			list($year, $month) = explode('-', $check_date);
-			$year = (int)$year;
-			$month = (int)$month;
-			
-			// Check if this month has data but is not finalized
-			$this->db->select('COUNT(*) as count, MAX(finalized) as max_finalized');
-			$this->db->from('analytics_monthly_studies');
-			$this->db->where('year', $year);
-			$this->db->where('month', $month);
-			$query = $this->db->get();
-			
-			if ($query && $query->num_rows() > 0) {
-				$row = $query->row();
-				// If has data but not finalized (or mixed finalized states)
-				if ($row->count > 0 && (!$row->max_finalized || $row->max_finalized == 0)) {
-					$unfinalized[] = array(
-						'year' => $year,
-						'month' => $month,
-						'date' => $check_date
-					);
-				}
+		if ($query) {
+			foreach ($query->result_array() as $row) {
+				$year = (int)$row['year'];
+				$month = (int)$row['month'];
+				$unfinalized[] = array(
+					'year' => $year,
+					'month' => $month,
+					'date' => sprintf('%04d-%02d', $year, $month)
+				);
 			}
 		}
-		
-		// Sort by date (oldest first)
-		usort($unfinalized, function($a, $b) {
-			return strcmp($a['date'], $b['date']);
-		});
-		
 		return $unfinalized;
 	}
 
@@ -1248,22 +1626,19 @@ class Analytics_model extends CI_Model {
 	private function determine_next_action($status)
 	{
 		$current_step = $status['current_step'];
-		
-		// If no current step, start with daily
-		if (!$current_step || $current_step === '') {
-			$missing_dates = $this->find_missing_daily_aggregates();
-			if (!empty($missing_dates)) {
+
+		// First step: migrate legacy counts if not yet done
+		if (!$current_step || $current_step === '' || $current_step === 'migrate_legacy') {
+			if ($this->needs_legacy_migration()) {
 				return array(
-					'step' => 'daily',
-					'item' => $missing_dates[0],
-					'total' => count($missing_dates),
-					'processed' => 0
+					'step' => 'migrate_legacy',
+					'item' => 'legacy_counts'
 				);
 			}
-			// No daily missing, move to monthly
-			$current_step = 'monthly';
+			// Migration already done (or no legacy data), move to daily
+			$current_step = 'daily';
 		}
-		
+
 		// Process daily aggregates
 		if ($current_step === 'daily') {
 			$missing_dates = $this->find_missing_daily_aggregates();
@@ -1279,16 +1654,21 @@ class Analytics_model extends CI_Model {
 			$current_step = 'monthly';
 		}
 		
-		// Process monthly aggregates (current month)
+		// Process monthly aggregates: roll daily → monthly for every month that has daily data and is not finalized (backlog-safe)
 		if ($current_step === 'monthly') {
-			$current_year = (int)date('Y');
-			$current_month = (int)date('m');
-			return array(
-				'step' => 'monthly',
-				'item' => "{$current_year}-{$current_month}",
-				'year' => $current_year,
-				'month' => $current_month
-			);
+			$months_needing_rollup = $this->find_months_needing_monthly_rollup();
+			if (!empty($months_needing_rollup)) {
+				$first = $months_needing_rollup[0];
+				return array(
+					'step' => 'monthly',
+					'item' => $first['date'],
+					'year' => $first['year'],
+					'month' => $first['month'],
+					'total_months' => count($months_needing_rollup)
+				);
+			}
+			// No months need rollup, move to month_end
+			$current_step = 'month_end';
 		}
 		
 		// Check for unfinalized previous months
@@ -1383,6 +1763,36 @@ class Analytics_model extends CI_Model {
 		try {
 			// Execute the action
 			switch ($next_action['step']) {
+				case 'migrate_legacy':
+					$migrate_result = $this->migrate_legacy_counts();
+
+					if ($migrate_result['success']) {
+						$msg = 'Legacy migration complete.';
+						if ($migrate_result['backed_up'] > 0) {
+							$msg .= " Backed up {$migrate_result['backed_up']} survey(s)";
+						}
+						if ($migrate_result['migrated'] > 0) {
+							$msg .= ", seeded {$migrate_result['migrated']} legacy total(s) into analytics.";
+						} elseif ($migrate_result['skipped'] > 0) {
+							$msg .= " ({$migrate_result['skipped']} already migrated).";
+						}
+
+						$result['has_more'] = true;
+						$result['progress'] = 5;
+						$result['message'] = $msg;
+
+						$this->update_aggregation_status(array(
+							'current_step'    => 'daily',
+							'current_item'    => 'legacy_counts',
+							'progress_percent' => 5,
+							'message'         => $msg
+						));
+					} else {
+						$err = implode('; ', $migrate_result['errors']);
+						throw new Exception("Legacy migration failed: {$err}");
+					}
+					break;
+
 				case 'daily':
 					$date = $next_action['item'];
 					
@@ -1396,14 +1806,18 @@ class Analytics_model extends CI_Model {
 						$total = $next_action['total'];
 						$processed = ($status['processed_items'] ?? 0) + 1;
 						$remaining = $total - $processed;
+						$daily_done = ($remaining <= 0);
 						
-						$result['has_more'] = $remaining > 0;
-						$result['progress'] = $total > 0 ? round(($processed / $total) * 100) : 0;
-						$result['message'] = "Processed {$date}. {$remaining} date(s) remaining.";
+						// Always return has_more=true until we call complete_aggregation_status(); otherwise UI stops polling and DB stays "running"
+						$result['has_more'] = true;
+						// Cap daily-phase progress so UI doesn't think job is complete (100% only when sync done)
+						$result['progress'] = $daily_done ? 15 : ($total > 0 ? round(($processed / $total) * 15) : 0);
+						$result['message'] = $daily_done
+							? "Daily aggregation complete. Rolling up monthly next."
+							: "Processed {$date}. {$remaining} date(s) remaining.";
 						
-						// Update status
 						$this->update_aggregation_status(array(
-							'current_step' => $remaining > 0 ? 'daily' : 'monthly',
+							'current_step' => $daily_done ? 'monthly' : 'daily',
 							'current_item' => $date,
 							'total_items' => $total,
 							'processed_items' => $processed,
@@ -1422,13 +1836,13 @@ class Analytics_model extends CI_Model {
 					$result_monthly = $this->aggregate_daily_to_monthly($year, $month);
 					
 					if ($result_monthly['success']) {
-						// After monthly aggregation, check for unfinalized previous months
-						$unfinalized_months = $this->find_unfinalized_previous_months();
-						$next_step = !empty($unfinalized_months) ? 'month_end' : 'cleanup';
+						// Check if more months need daily→monthly rollup (exclude the month we just rolled so we don't loop forever)
+						$remaining_rollup = $this->find_months_needing_monthly_rollup($year, $month);
+						$next_step = !empty($remaining_rollup) ? 'monthly' : 'month_end';
 						
 						$result['has_more'] = true;
 						$result['progress'] = 20; // Approximate
-						$result['message'] = "Monthly aggregates updated for {$year}-{$month}";
+						$result['message'] = "Monthly aggregates updated for {$year}-{$month}." . (!empty($remaining_rollup) ? ' ' . count($remaining_rollup) . ' month(s) remaining to roll up.' : '');
 						
 						$this->update_aggregation_status(array(
 							'current_step' => $next_step,
