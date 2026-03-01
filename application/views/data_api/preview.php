@@ -49,8 +49,7 @@
     border-radius: 4px;
     overflow-x: scroll;
     overflow-y: scroll;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.15);
+    scrollbar-width: thin;    
   }
   
   .table-data-container .table {

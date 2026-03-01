@@ -51,6 +51,8 @@ class Sitelog_model extends CI_Model {
 		$this->db->from('sitelogs');		
         $query= $this->db->get();
 		
+		$this->db->flush_cache();
+		
 		if (!$query)
 		{	
 			echo $this->db->last_query();	
@@ -60,9 +62,38 @@ class Sitelog_model extends CI_Model {
 		return $result;
     }
   	
-    function search_count()
+    function search_count($filter = NULL)
     {
-          return $this->db->count_all_results('sitelogs');
+        $this->db->start_cache();
+        
+        //allowed_fields
+        $db_fields=array('ip','url','logtype','section','keyword','username');
+        
+        //set where
+        if ($filter)
+        {			
+            foreach($filter as $f)
+            {
+                //search only in the allowed fields
+                if (in_array($f['field'],$db_fields))
+                {
+                    $this->db->like($f['field'], $f['keywords']); 
+                }
+                else if ($f['field']=='all')
+                {
+                    foreach($db_fields as $field)
+                    {
+                        $this->db->or_like($field, $f['keywords']); 
+                    }
+                }
+            }
+        }
+        
+        $this->db->stop_cache();
+        $count = $this->db->count_all_results('sitelogs');
+        $this->db->flush_cache();
+        
+        return $count;
     }
 	
 	/**

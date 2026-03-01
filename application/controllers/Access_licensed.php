@@ -12,6 +12,7 @@ class Access_licensed extends MY_Controller {
 		$this->load->model('Datafiles_model');
 		$this->load->model('Dataset_model');
 		$this->load->model('Catalog_model');
+		$this->load->model('Repository_model');
 		$this->template->set_template('default');
 		$this->load->helper('admin_notifications');
 		
@@ -141,12 +142,23 @@ class Access_licensed extends MY_Controller {
 				show_404();
 			}
 				
-			//user can only view his requests
-			if ($data['userid']!=$user->id){
-				show_404();
-			}
+		//user can only view his requests
+		if ($data['userid']!=$user->id){
+			show_404();
+		}
+		
+		//get first survey metadata for tracking
+		if (isset($data['surveys']) && count($data['surveys']) > 0) {
+			$first_survey = reset($data['surveys']);
+			$data['survey'] = $first_survey;
+			$data['survey']['owner_repo'] = $this->Repository_model->get_survey_owner_repository($first_survey['id']);
 			
-			$contents=$this->load->view('access_licensed/request_status', $data,true);				
+			if (!$data['survey']['owner_repo']) {
+				$data['survey']['owner_repo'] = $this->Repository_model->get_central_catalog_array();
+			}
+		}
+		
+		$contents=$this->load->view('access_licensed/request_status', $data,true);
 			
 			if ($data['status']=='APPROVED'){		
 				$contents.=$this->_get_licensed_files($request_id);
@@ -341,13 +353,12 @@ class Access_licensed extends MY_Controller {
 			show_error('The file was not found.');
 		}
 		
-		//download file
 		$this->load->helper('download');
 		
-		//log
 		log_message('info','Downloading file <em>'.$file_path.'</em>');
-		$this->db_logger->write_log('download',$fileinfo['filename'],'microdata',$fileinfo['survey_id']);
-		
+		$this->analytics_tracker->track_download($fileinfo['survey_id'], basename($file_path), array(
+			'file_type' => 'microdata'
+		));
 		force_download2($file_path);
 	}
 

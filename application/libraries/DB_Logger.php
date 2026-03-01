@@ -17,11 +17,20 @@
 class DB_Logger{    	
 	
 	var $ci;
+	protected $event_logger;
+	
     //constructor
-	function __construct() 
-	{
-		$this->ci =& get_instance();
+    function __construct()
+    {
+        // Skip initialization in CLI mode
+        if (php_sapi_name() === 'cli') {
+            return;
+        }
+        
+        $this->ci =& get_instance();
 		$this->ci->config->load("bots");
+		$this->ci->load->library('Event_Logger');
+		$this->event_logger = $this->ci->event_logger;
     }
 
 	/**
@@ -31,130 +40,90 @@ class DB_Logger{
 	*	@section	ddibrowser sections (overview, sampling,datafile,download,public-form,direct-form)
 	*
 	* @return boolean
+	* 
+	* @deprecated Use Event_Logger methods directly:
+	*   - Analytics: $this->event_logger->log_pageview() or log_download()
+	*   - Search: $this->event_logger->log_search()
+	*   - Audit: $this->event_logger->log_audit() or log()
 	*/
 	function write_log($type, $message=NULL, $section=NULL,$surveyid=0)
-	{	
-		//no logging if it is a bot
-		if ($this->ci->config->item("ignore_bot_logging")===TRUE)
-		{
-			if ($this->is_bot())
-			{
-				return false;
-			}
+	{
+		// Route to Event_Logger based on event type
+		
+		// Handle search events
+		if ($type === 'search' || $type === 'api-search') {
+			return $this->event_logger->log_search($message, $section, null, array('surveyid' => $surveyid));
 		}
 		
-		$username='guest';
-		
-		//check if user is logged in
-		if ($this->ci->ion_auth->logged_in()) 
-		{
-			$user=$this->ci->ion_auth->current_user();
-			if ($user)
-			{
-				$username=$user->email;
+		// Handle analytics events (should use specific methods, but route for backward compat)
+		if ($type === 'pageview' || $type === 'survey') {
+			if ($surveyid) {
+				return $this->event_logger->log_pageview($surveyid);
 			}
-    	}
+			// If no surveyid, log as audit
+			return $this->event_logger->log_audit($type, array(
+				'keyword' => $message,
+				'section' => $section,
+				'surveyid' => $surveyid
+			));
+		}
 		
-		$log=array(
-				'url'		=> substr($this->current_page_url(),0,255),//current_url(),
-				'logtime'	=> date("U"),
-				'ip'		=> $this->ci->input->ip_address(),
-				'sessionid'	=> session_id(),
-				'logtype'	=> $type,
-				'surveyid'	=> (int)$surveyid,
-				'keyword'	=> substr((string)$message,0,250),
-				'username'	=> $username,
-				'section'	=> substr((string)$section,0,250),
-				'useragent'	=> substr(strtolower($_SERVER['HTTP_USER_AGENT']),0,300)
-				);
+		if ($type === 'download') {
+			if ($surveyid && $message) {
+				return $this->event_logger->log_download($surveyid, $message, array('file_type' => $section));
+			}
+			// If missing data, log as audit
+			return $this->event_logger->log_audit($type, array(
+				'keyword' => $message,
+				'section' => $section,
+				'surveyid' => $surveyid
+			));
+		}
 		
-		return $this->ci->db->insert("sitelogs",$log);
+		// Everything else is an audit event
+		return $this->event_logger->log_audit($type, array(
+			'keyword' => $message,
+			'section' => $section,
+			'surveyid' => $surveyid
+		));
 	}
 	
-	/*get page url with querystrings */
-	function current_page_url() 
+	
+	/**
+	 * Check if user agent is a bot
+	 * 
+	 * @deprecated Use $this->event_logger->is_bot() instead
+	 */
+	function is_bot($agent=NULL)
 	{
-		$get=$_GET;
-		$querystring=array();
-		
-		foreach($get as $key=>$value)
-		{
-			if (is_array($value))
-			{
-				$value_=implode(',',$value);
-			}
-			else
-			{
-				$value_=$value;
-			}
-			$querystring[]="$key=$value_";
-		}
-		
-		$url=uri_string().'?'.implode('&',$querystring);
-	 	return $url;
+		return $this->event_logger->is_bot($agent);
+	}
+	
+	
+	/**
+	 * Increment study view count
+	 * 
+	 * @deprecated Counters are now updated asynchronously from analytics aggregates.
+	 * This method is a no-op. Counters are synced from analytics_monthly_studies table
+	 * via background job/cron. Use Analytics_model::get_study_totals() for current counts.
+	 */
+	function increment_study_view_count($study_id)
+	{
+		// No-op: Counters updated asynchronously from analytics aggregates
+		return true;
 	}
 	
 	/**
-	*  test user-agent for BOT
-	*
-	*  returns true if it is a BOT
-	*/
-	function is_bot($agent=NULL)
-	{
-		//load ignore list
-		$ignore_array=$this->ci->config->item("bot_ignore");
-	
-		if (!$ignore_array || !is_array($ignore_array))
-		{
-			//echo "empty array";exit;
-			return FALSE;
-		}
-
-		if (!$agent)
-		{
-			//get the page user agent	 
-			$agent = strtolower($_SERVER['HTTP_USER_AGENT']);
-		}	
-	
-		//check if the page user-agent is a bot
-		foreach($ignore_array as $bot)
-		{
-			if (trim($bot)=='')
-			{
-				continue;
-			}
-			
-			if(stripos($agent,trim(strtolower($bot)))!==false)
-			{
-				//echo "found";exit;
-				return true;// bot found
-			}
-		}
-		//echo "not bot";exit;
-		return false;
-	}
-	
-	
-	function increment_study_view_count($study_id)
-	{
-		if ($this->is_bot())
-		{
-			return false;
-		}
-
-		$this->ci->load->model("catalog_model");
-		$this->ci->catalog_model->increment_study_view_count($study_id);
-	}
-	
+	 * Increment study download count
+	 * 
+	 * @deprecated Counters are now updated asynchronously from analytics aggregates.
+	 * This method is a no-op. Counters are synced from analytics_monthly_studies table
+	 * via background job/cron. Use Analytics_model::get_study_totals() for current counts.
+	 */
 	function increment_study_download_count($study_id)
 	{
-		if ($this->is_bot())
-		{
-			return false;
-		}
-
-		$this->ci->load->model("catalog_model");
-		$this->ci->catalog_model->increment_study_download_count($study_id);
+		// No-op: Counters updated asynchronously from analytics aggregates
+		return true;
 	}
 	
 	

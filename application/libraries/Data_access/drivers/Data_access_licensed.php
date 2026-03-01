@@ -302,8 +302,9 @@ class Data_access_licensed extends CI_Driver {
 
 		//log
 		log_message('info','Downloading file <em>'.$file_path.'</em>');
-		$this->CI->db_logger->write_log('survey',$file_id,'licensed-download',$survey_id);
-
+		$this->CI->analytics_tracker->track_download($survey_id, basename($file_path), array(
+			'file_type' => 'licensed'
+		));
 		force_download2($file_path);
 	}
 

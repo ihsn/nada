@@ -57,6 +57,7 @@ $autoload['libraries'] = array(
 							'session',
 							'site_configurations',
 							'DB_Logger',
+							'Analytics_tracker',
 							'MY_Exception',
 							'ion_auth',
 							'breadcrumb',

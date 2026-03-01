@@ -432,8 +432,6 @@ class Study extends MY_Controller {
 	
 	private function render_page($sid, $content, $active_tab='description')
 	{
-		$this->db_logger->increment_study_view_count($sid);
-
         if($this->input->get("print")){
             $this->template->set_template('blank');
         }
@@ -441,6 +439,12 @@ class Study extends MY_Controller {
         if($this->input->get("ajax")){
             echo $content;return;
         }
+        
+        // Add study ID to page for client-side analytics tracking
+        $this->template->add_js(
+            '<script>var STUDY_ID = ' . json_encode($sid) . ';</script>',
+            'inline'
+        );
 
 		$dataset=$this->Dataset_model->get_row($sid);
 		$dataset_type=$dataset['type'];

@@ -218,6 +218,10 @@ $route['api/db_logs/cleanup/chunk'] = "api/db_logs/cleanup_chunk";
 // API Logs Admin Page
 $route['admin/api_logs'] = "admin/logs/api_logs";
 
+// Filestore Admin Page
+$route['admin/filestore'] = "admin/filestore";
+$route['admin/filestore/upload'] = "admin/filestore";
+
 //catalog/resources
 $route['admin/clear_cache'] = "admin/admin/clear_cache";
 $route['admin/catalog/(:num)/resources'] = "admin/resources";
@@ -293,6 +297,18 @@ $route['api/analytics/totals/file/(:any)'] = "api/analytics/totals_file_get/$1";
 $route['api/analytics/aggregate/daily'] = "api/analytics/aggregate_daily";
 $route['api/analytics/aggregate/monthly'] = "api/analytics/aggregate_monthly";
 $route['api/analytics/aggregate/totals'] = "api/analytics/aggregate_totals";
+$route['api/analytics/aggregate/run'] = "api/analytics/aggregate_run";
+$route['api/analytics/aggregate/status'] = "api/analytics/aggregate_status";
+$route['api/analytics/aggregate/stop'] = "api/analytics/aggregate_stop";
+$route['api/analytics/raw/pageviews'] = "api/analytics/raw_pageviews";
+$route['api/analytics/raw/downloads'] = "api/analytics/raw_downloads";
+$route['api/analytics/daily/studies'] = "api/analytics/daily_studies";
+$route['api/analytics/daily/files'] = "api/analytics/daily_files";
+$route['api/analytics/monthly/studies'] = "api/analytics/monthly_studies";
+$route['api/analytics/monthly/files'] = "api/analytics/monthly_files";
+$route['api/analytics/monthly/totals'] = "api/analytics/monthly_totals";
+$route['api/analytics/studies'] = "api/analytics/studies";
+$route['api/analytics/aggregate/run_all'] = "api/analytics/aggregate_run_all";
 
 
 /* End of file routes.php */

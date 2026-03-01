@@ -1557,3 +1557,90 @@ CREATE TABLE `survey_data_api` (
   `table_id` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
 )AUTO_INCREMENT=1;
+
+
+--
+-- analytics
+--
+
+CREATE TABLE `analytics_pageview_events` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `ts` DATETIME NOT NULL,
+    `study_id` VARCHAR(100) NOT NULL COMMENT 'Study page referenced',
+    `session_id` VARCHAR(255) NULL COMMENT 'Client-generated session token',
+    `hashed_ip` CHAR(64) NULL COMMENT 'Hashed IP for dedupe/rate limiting',
+    `user_agent` VARCHAR(200) NULL COMMENT 'Used for bot filtering (truncated)',
+    `referrer` VARCHAR(512) NULL COMMENT 'Optional analytics',
+    PRIMARY KEY (`id`),
+    INDEX `idx_ts` (`ts`),
+    INDEX `idx_study` (`study_id`),
+    INDEX `idx_session` (`session_id`),
+    INDEX `idx_ts_study` (`ts`, `study_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE `analytics_download_events` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `ts` DATETIME NOT NULL,
+    `study_id` VARCHAR(100) NOT NULL,
+    `file_name` VARCHAR(255) NOT NULL,
+    `file_type` VARCHAR(50) NULL,
+    `hashed_ip` CHAR(64) NULL,
+    `user_agent` VARCHAR(200) NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_ts` (`ts`),
+    INDEX `idx_study` (`study_id`),
+    INDEX `idx_study_file` (`study_id`, `file_name`),
+    INDEX `idx_ts_study_file` (`ts`, `study_id`, `file_name`),
+    INDEX `idx_dedupe` (`study_id`, `file_name`, `hashed_ip`, `user_agent`, `ts`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `analytics_daily_studies` (
+    `date` DATE NOT NULL,
+    `study_id` VARCHAR(100) NOT NULL,
+    `pageviews` INT UNSIGNED NOT NULL DEFAULT 0,
+    `unique_visitors` INT UNSIGNED NOT NULL DEFAULT 0,
+    `downloads` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Sum of all file downloads for the study',
+    PRIMARY KEY (`date`, `study_id`),
+    INDEX `idx_study` (`study_id`),
+    INDEX `idx_date` (`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `analytics_monthly_studies` (
+  `year` smallint NOT NULL,
+  `month` tinyint NOT NULL,
+  `study_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pageviews` int unsigned NOT NULL DEFAULT '0',
+  `unique_visitors` int unsigned NOT NULL DEFAULT '0',
+  `downloads` int unsigned NOT NULL DEFAULT '0' COMMENT 'Sum of file-level monthly downloads',
+  `finalized` tinyint(1) NOT NULL DEFAULT '0',
+  `finalized_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`year`,`month`,`study_id`),
+  KEY `idx_study` (`study_id`),
+  KEY `idx_period` (`year`,`month`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `analytics_daily_files` (
+    `date` DATE NOT NULL,
+    `study_id` VARCHAR(100) NOT NULL,
+    `file_name` VARCHAR(255) NOT NULL,
+    `downloads` INT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (`date`, `study_id`, `file_name`),
+    INDEX `idx_study` (`study_id`),
+    INDEX `idx_file` (`file_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `analytics_monthly_files` (
+  `year` smallint NOT NULL,
+  `month` tinyint NOT NULL,
+  `study_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `downloads` int unsigned NOT NULL DEFAULT '0',
+  `finalized` tinyint(1) NOT NULL DEFAULT '0',
+  `finalized_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`year`,`month`,`study_id`,`file_name`),
+  KEY `idx_study` (`study_id`),
+  KEY `idx_period` (`year`,`month`),
+  KEY `idx_file` (`file_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

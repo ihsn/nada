@@ -20,6 +20,7 @@ class Db_logs extends MY_REST_Controller {
         
         $this->load->helper('file');
         $this->load->config('db_logs');
+        $this->load->model('Sitelog_model');
         
         $this->chunk_size = $this->config->item('db_logs_chunk_size') ?: 10000;
         $this->csv_dir = $this->config->item('db_logs_csv_dir') ?: FCPATH . 'logs/db_logs/';
@@ -29,6 +30,102 @@ class Db_logs extends MY_REST_Controller {
     }
 
     
+    /**
+     * Search, browse, filter, and paginate logs
+     * 
+     * Query parameters:
+     *  - limit: Records per page (default: 50, max: 200)
+     *  - offset: Pagination offset (default: 0)
+     *  - keywords: Search term
+     *  - field: Field to search in (logtype, section, keyword, username, ip, url)
+     *  - sort_by: Column to sort by (default: logtime)
+     *  - sort_order: Sort direction (asc/desc, default: desc)
+     * 
+     * Returns paginated log records with metadata
+     */
+    public function index_get() {
+        try {                        
+            $limit = (int)$this->input->get('limit');
+            $offset = (int)$this->input->get('offset');
+            $keywords = $this->input->get('keywords');
+            $field = $this->input->get('field');
+            $sort_by = $this->input->get('sort_by') ?: 'logtime';
+            $sort_order = $this->input->get('sort_order') ?: 'desc';
+            
+            if ($limit <= 0 || $limit > 200) {
+                $limit = 50;
+            }
+            
+            if ($offset < 0) {
+                $offset = 0;
+            }
+            
+            if ($sort_order !== 'asc' && $sort_order !== 'desc') {
+                $sort_order = 'desc';
+            }
+            
+            $filter = array();
+            if ($keywords && $field) {
+                $filter[] = array(
+                    'field' => $field,
+                    'keywords' => $keywords
+                );
+            }
+            
+            $total_rows = $this->Sitelog_model->search_count($filter);
+            
+            if ($offset > $total_rows) {
+                $offset = max(0, $total_rows - $limit);
+            }
+            
+            $rows = $this->Sitelog_model->search($limit, $offset, $filter, $sort_by, $sort_order);
+            
+            $current_page = floor($offset / $limit) + 1;
+            $total_pages = ceil($total_rows / $limit);
+            
+            $formatted_rows = array();
+            foreach ($rows as $row) {
+                $formatted_rows[] = array(
+                    'id' => (int)$row['id'],
+                    'sessionid' => $row['sessionid'],
+                    'logtime' => (int)$row['logtime'],
+                    'logtime_formatted' => date('Y-m-d H:i:s', $row['logtime']),
+                    'ip' => $row['ip'],
+                    'url' => $row['url'],
+                    'logtype' => $row['logtype'],
+                    'surveyid' => (int)$row['surveyid'],
+                    'section' => $row['section'],
+                    'keyword' => $row['keyword'],
+                    'username' => $row['username'],
+                    'useragent' => $row['useragent']
+                );
+            }
+            
+            $response = array(
+                'status' => 'success',
+                'data' => $formatted_rows,
+                'pagination' => array(
+                    'total_rows' => (int)$total_rows,
+                    'per_page' => $limit,
+                    'current_page' => $current_page,
+                    'total_pages' => $total_pages,
+                    'offset' => $offset,
+                    'has_next' => $offset + $limit < $total_rows,
+                    'has_prev' => $offset > 0
+                )
+            );
+            
+            $this->set_response($response, REST_Controller::HTTP_OK);
+            
+        } catch (Exception $e) {
+            $error_output = array(
+                'status' => 'failed',
+                'message' => $e->getMessage()
+            );
+            $this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+        }
+    }
+
     /**
      * 
      * Get statistics about logs

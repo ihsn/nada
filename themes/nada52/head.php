@@ -59,6 +59,31 @@
 <?php if (isset($_styles) ){ echo $_styles;} ?>
 <?php if (isset($_scripts) ){ echo $_scripts;} ?>
 
+<?php 
+// Load analytics tracker if enabled and using built-in tracking
+$ci = &get_instance();
+$ci->load->config('analytics');
+$analytics_enabled = $ci->config->item("analytics_enabled");
+$analytics_source = $ci->config->item("analytics_tracking_source");
+
+if ($analytics_enabled && $analytics_source === 'builtin'): ?>
+    <script src="<?php echo base_url(); ?>javascript/analytics-tracker.js"></script>
+    <script>
+        // Initialize analytics tracker with configuration
+        if (typeof NADA !== 'undefined' && NADA.Analytics) {
+            NADA.Analytics.init({
+                baseUrl: '<?php echo site_url(); ?>',
+                enabled: <?php echo $analytics_enabled ? 'true' : 'false'; ?>,
+                builtinEnabled: true,
+                gaEnabled: false,
+                debug: <?php echo $ci->config->item("analytics_debug_js") ? 'true' : 'false'; ?>,
+                sessionTimeoutMinutes: <?php echo $ci->config->item("analytics_session_timeout_minutes") ?: 30; ?>,
+                dedupeWindowMinutes: <?php echo $ci->config->item("analytics_dedupe_window_minutes") ?: 30; ?>
+            });
+        }
+    </script>
+<?php endif; ?>
+
 <?php $google_ua_code=$this->config->item("google_ua_code"); ?>
 <?php if(!empty($google_ua_code)):?>
     <?php require_once 'google_analytics.php';?>

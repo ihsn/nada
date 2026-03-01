@@ -949,8 +949,9 @@ class Survey_resource_model extends CI_Model {
 		
 		$this->load->helper('download');
 		log_message('info','Downloading file <em>'.$resource_path.'</em>');
-		$this->db_logger->write_log('download',basename($resource_path),($is_microdata ? 'microdata': 'resource'),$survey_id);
-		$this->db_logger->increment_study_download_count($survey_id);
+		$this->analytics_tracker->track_download($survey_id, basename($resource_path), array(
+			'file_type' => $is_microdata ? 'microdata' : 'doc'
+		));
 		force_download2($resource_path);
 	}
 	
@@ -1000,8 +1001,9 @@ class Survey_resource_model extends CI_Model {
 		//download file
 		$this->load->helper('download');
 		log_message('info','Downloading file <em>'.$resource_path.'</em>');
-		$this->db_logger->write_log('download',basename($resource_path),($download_req['is_microdata'] ? 'microdata': 'resource'),$survey_id);
-		$this->db_logger->increment_study_download_count($survey_id);
+		$this->analytics_tracker->track_download($survey_id, basename($resource_path), array(
+			'file_type' => $download_req['is_microdata'] ? 'microdata' : 'resource'
+		));
 		force_download2($resource_path);		
 	}
 	
@@ -1903,7 +1905,7 @@ class Survey_resource_model extends CI_Model {
 			}else{
 				if(!empty($resource['filename'])){
 					$resources[$idx]['_links']=array(
-						'download'=> site_url("api/resources/download/{$resource['survey_id']}/{$resource['resource_id']}/".rawurlencode($resource['filename']).'?id_format=id'),
+						'download'=> site_url("api/resources/download/{$resource['survey_id']}/{$resource['resource_id']}?file_name=".rawurlencode($resource['filename']).'&id_format=id'),
 						'type'=>'download'
 					);
 				}
