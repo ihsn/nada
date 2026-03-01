@@ -441,6 +441,8 @@ label, legend {
 
         if (!force && form_data.length < 30) return false;
 
+        form_data = form_data + "&<?php echo $this->security->get_csrf_token_name(); ?>=<?php echo $this->security->get_csrf_hash(); ?>";
+
         //post form
         var find_duplicates=$.post( "<?php echo site_url('admin/citations/find_duplicates')?>", form_data );
 

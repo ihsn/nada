@@ -209,10 +209,6 @@ class Citations extends MY_Controller {
 		//flash data message
 		$this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
 
-		//load list of all surveys
-		$survey_list['surveys']=$this->Citation_model->get_all_surveys(NULL);
-
-		//surveys attached to the citations
 		$selected_surveys=array();
 
 		//attached survey from the postback data
@@ -777,10 +773,6 @@ class Citations extends MY_Controller {
 
 		$data=array();
 
-		//list of all surveys
-		$survey_list['surveys']=$this->Citation_model->get_all_surveys(NULL);
-
-		//surveys attached to the citations
 		$selected_surveys=array();
 
 		//attached survey from the postback data
