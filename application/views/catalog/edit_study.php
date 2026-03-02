@@ -674,6 +674,10 @@ background: white;
 				<?php */?>
 				<li role="presentation" <?php echo $selected_page=='notes' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/notes');?>" aria-controls="settings" role="tab" ><?php echo t('tab_notes');?> <span class="badge badge-light"><?php echo is_array($study_notes) && count($study_notes) >0 ? count($study_notes) : '';?></span></a></li>
 				<li role="presentation" <?php echo $selected_page=='related-data' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/related-data');?>" aria-controls="settings" role="tab" ><?php echo t('tab_related_data');?> <span class="badge badge-light"><?php echo is_array($related_studies) ? count($related_studies) : '';?></span></a></li>
+
+				<?php if (!empty($analytics_enabled)): ?>
+				<li role="presentation" <?php echo $selected_page=='analytics' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/analytics');?>" aria-controls="analytics" role="tab"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> <?php echo t('Analytics');?></a></li>
+				<?php endif; ?>
 				
 			</ul>
 
@@ -710,6 +714,9 @@ background: white;
 				break;
 				case 'metadata':
 					echo $metadata_editor;
+				break;
+				case 'analytics':
+					$this->load->view('catalog/study_analytics');
 				break;
 				default:
 					$this->load->view('catalog/edit_study_overview');

@@ -1836,6 +1836,10 @@ class Catalog extends MY_Controller {
 
 		$survey_row['data_access_dropdown']=$this->da_by_class($survey_row['data_class_id'],$survey_row['formid'],'html',true);
 
+		// Pass analytics enabled flag so the view can conditionally show the Analytics tab
+		$this->config->load('analytics');
+		$survey_row['analytics_enabled'] = (bool)$this->config->item('analytics_enabled');
+
 		$content=$this->load->view('catalog/edit_study', $survey_row,TRUE);
 		$this->template->write('content', $content,true);
 	  	$this->template->render();
