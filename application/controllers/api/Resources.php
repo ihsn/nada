@@ -110,106 +110,140 @@ class Resources extends MY_REST_Controller
 	function index_post($idno=null)
 	{
 		//multipart/form-data
-		$options=$this->input->post(null, true);
+		$options = $this->input->post(null, true);
 
 		//raw json input
-		if (empty($options)){
-			$options=$this->raw_json_input();
+		if (empty($options)) {
+			$options = $this->raw_json_input();
 		}
-				
-		try{
-			$sid=$this->get_sid_from_idno($idno);
-			$this->has_dataset_access('edit',$sid);
 
-			$options['survey_id']=$sid;
+		try {
+			$sid = $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit', $sid);
+
+			$options['survey_id'] = $sid;
 
 			//get dctype by code
-			if(isset($options['dctype'])){ 
-				$options['dctype']=$this->Survey_resource_model->get_dctype_label_by_code($options['dctype']);
+			if (isset($options['dctype'])) {
+				$options['dctype'] = $this->Survey_resource_model->get_dctype_label_by_code($options['dctype']);
 			}
 
-			if(isset($options['dcformat'])){ 
-				$options['dcformat']=$this->Survey_resource_model->get_dcformat_label_by_code($options['dcformat']);
+			if (isset($options['dcformat'])) {
+				$options['dcformat'] = $this->Survey_resource_model->get_dcformat_label_by_code($options['dcformat']);
 			}
 
 			//validate resource
-			if ($this->Survey_resource_model->validate_resource($options)){
+			if ($this->Survey_resource_model->validate_resource($options)) {
 
-				$upload_result=null;
+				$upload_result = null;
 
-			if(!empty($_FILES)){
-				//upload file?
-				$upload_result=$this->Survey_resource_model->upload_file($sid,$file_field_name='file', $remove_spaces=false);
-				$uploaded_file_name=$upload_result['file_name'];
-			
-				//set filename to uploaded file
-				$options['filename']=$uploaded_file_name;
-			}
+				// Support for resumable upload via upload_id
+				if (isset($options['upload_id']) && !empty($options['upload_id'])) {
+					// Always load via the canonical alias used throughout the application
+					$this->load->library('Resumable_upload', null, 'uploader');
 
-		if(!isset($options['filename'])){
-			$options['filename']=null;
-		}
-		
-			// Set user information for audit trail (for authenticated API requests)
-			$user_id = $this->session->userdata('user_id');
-			if ($user_id) {
-				$options['changed_by'] = $user_id;
-			}
-			
-			$resource_exists = false;
-			// Default to true for overwrite, but normalize to 'yes' string for consistent comparison
-			$overwrite = isset($options["overwrite"]) ? $options["overwrite"] : 'yes';
-			
-			// First priority: Check if resource_idno is provided and matches existing resource
-			if(isset($options['resource_idno']) && !empty($options['resource_idno'])) {
-				$existing_by_idno = $this->Survey_resource_model->get_resource_by_idno($sid, $options['resource_idno']);
-				
-				if($existing_by_idno) {
-					// Resource with this resource_idno exists
-					if ($overwrite == 'yes' || $overwrite === true){
-						//update existing resource identified by resource_idno
-						$resource_id = $existing_by_idno['resource_id'];
-						$this->Survey_resource_model->update($resource_id, $options);
+					$upload_id = $options['upload_id'];
+
+					// Validate upload and get source file path
+					$metadata = $this->uploader->get_upload_metadata($upload_id);
+					if (!$metadata) {
+						throw new Exception("INVALID_UPLOAD_ID");
 					}
-					else{
-						throw new Exception("Resource with identifier '".$options['resource_idno']."' already exists. To overwrite, set overwrite to 'yes'");
+					if ($metadata['status'] !== 'completed') {
+						throw new Exception("UPLOAD_NOT_COMPLETED");
 					}
-					$resource_exists = true;
+					$final_file = $this->uploader->get_final_file_path($upload_id);
+					if (!$final_file || !file_exists($final_file)) {
+						throw new Exception("FILE_NOT_FOUND_FOR_UPLOAD_ID");
+					}
+
+					// Copy the uploaded file into the dataset's storage folder so it
+					// is co-located with directly-uploaded files
+					$this->load->model('Catalog_model');
+					$survey_folder = $this->Catalog_model->get_survey_path_full($sid);
+					if (!$survey_folder || !file_exists($survey_folder)) {
+						throw new Exception("SURVEY_FOLDER_NOT_FOUND");
+					}
+					$dest_file = unix_path($survey_folder . '/' . basename($final_file));
+					if (!copy($final_file, $dest_file)) {
+						throw new Exception("FILE_COPY_FAILED");
+					}
+
+					$options['filename'] = basename($final_file);
+					$upload_result = [
+						'file_name' => basename($final_file),
+						'file_path' => $dest_file,
+						'upload_id' => $upload_id,
+						'source'    => 'resumable_upload'
+					];
+				} elseif (!empty($_FILES)) {
+					// Fallback to direct (non-resumable) file upload
+					$upload_result = $this->Survey_resource_model->upload_file($sid, 'file', false);
+					$options['filename'] = $upload_result['file_name'];
 				}
-			}
-			
-			// Second priority: If no resource_idno match, check for duplicate by filename/title/dctype
-			if(!$resource_exists) {
-				$duplicate = $this->Survey_resource_model->check_duplicate($sid, $options['filename'], $options['title'], $options['dctype']);
-				
-				if($duplicate){
-					if ($overwrite == 'yes' || $overwrite === true){
-						//update existing resource
-						$resource_id = $duplicate[0]['resource_id'];
-						$this->Survey_resource_model->update($resource_id, $options);
-					}
-					else{
-						throw new Exception("Resource already exists. To overwrite, set overwrite to 'yes'");
-					}
-					$resource_exists = true;
+
+				if (!isset($options['filename'])) {
+					$options['filename'] = null;
 				}
-			}
-			
-			// If no existing resource found, insert new
-			if(!$resource_exists){
-				// Set created_by for new resources
+
+				$user_id = $this->session->userdata('user_id');
 				if ($user_id) {
-					$options['created_by'] = $user_id;
+					$options['changed_by'] = $user_id;
 				}
-				$resource_id = $this->Survey_resource_model->insert($options);
-			}
 
-				$resource=$this->Survey_resource_model->select_single($resource_id);
-				
-				$response=array(
-					'status'=>'success',
-					'resource'=>$resource,
-					'uploaded_file'=>$upload_result
+				$resource_id     = null;
+				$resource_exists = false;
+				$overwrite       = isset($options["overwrite"]) ? $options["overwrite"] : 'yes';
+
+				// First priority: match by resource_idno
+				if (isset($options['resource_idno']) && !empty($options['resource_idno'])) {
+					$existing_by_idno = $this->Survey_resource_model->get_resource_by_idno($sid, $options['resource_idno']);
+
+					if ($existing_by_idno) {
+						if ($overwrite == 'yes' || $overwrite === true) {
+							$resource_id = $existing_by_idno['resource_id'];
+							$this->Survey_resource_model->update($resource_id, $options);
+						} else {
+							throw new Exception("Resource with identifier '" . $options['resource_idno'] . "' already exists. To overwrite, set overwrite to 'yes'");
+						}
+						$resource_exists = true;
+					}
+				}
+
+				// Second priority: match by filename / title / dctype
+				// Skip when filename is null — SQL WHERE filename = NULL never matches,
+				// so only attempt this when a real filename is present.
+				if (!$resource_exists && !is_null($options['filename'])) {
+					$duplicate = $this->Survey_resource_model->check_duplicate($sid, $options['filename'], $options['title'], $options['dctype']);
+
+					if ($duplicate) {
+						if ($overwrite == 'yes' || $overwrite === true) {
+							$resource_id = $duplicate[0]['resource_id'];
+							$this->Survey_resource_model->update($resource_id, $options);
+						} else {
+							throw new Exception("Resource already exists. To overwrite, set overwrite to 'yes'");
+						}
+						$resource_exists = true;
+					}
+				}
+
+				// No existing record found — insert new
+				if (!$resource_exists) {
+					if ($user_id) {
+						$options['created_by'] = $user_id;
+					}
+					$resource_id = $this->Survey_resource_model->insert($options);
+					if (!$resource_id) {
+						throw new Exception("RESOURCE_INSERT_FAILED");
+					}
+				}
+
+				$resource = $this->Survey_resource_model->select_single($resource_id);
+
+				$response = array(
+					'status'        => 'success',
+					'resource'      => $resource,
+					'uploaded_file' => $upload_result
 				);
 
 				$this->set_response($response, REST_Controller::HTTP_OK);
@@ -223,11 +257,7 @@ class Resources extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
 		}		
 	}
 

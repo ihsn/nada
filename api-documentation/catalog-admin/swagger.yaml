@@ -22,6 +22,8 @@ tags:
     description: Datasets represent all types of data such as Microdata, Timeseries, Geospatail, Scripts, etc.
   - name: External resources
     description: External resources follow the same workflow as on the NADA site administration. To create resources, either '`import RDF`' or use '`add resource`'. To upload files, use the endpoint '`Upload file`'. You cannot create a resource and upload a file at the same time.  
+  - name: Resumable uploads
+    description: Endpoints for managing resumable file uploads, chunked uploads, upload status, and download.
   - name: Citations
     description: Citations represent the publications related to the datasets.
   - name: Filestore
@@ -51,6 +53,7 @@ x-tagGroups:
       - Filestore
       - Reports
       - Widgets
+      - Resumable uploads
 schemes:
   - http
 paths:
@@ -1499,8 +1502,8 @@ paths:
         tags:
           - Survey
           - Timeseries
-          - Document
-          - Table
+          - Documents
+          - Tables
           - Geospatial
         summary: List tags
         description: List tags in use
@@ -1519,8 +1522,8 @@ paths:
         tags:
           - Survey
           - Timeseries
-          - Document
-          - Table
+          - Documents
+          - Tables
           - Geospatial
         summary: List tags by dataset
         description: List tags used by a dataset
@@ -1546,8 +1549,8 @@ paths:
         tags:
           - Survey
           - Timeseries
-          - Document
-          - Table
+          - Documents
+          - Tables
           - Geospatial
         summary: List aliases
         description: List dataset aliases
@@ -1582,115 +1585,75 @@ paths:
         parameters:
           - name: datasetIDNo
             in: path
-            description: Dataset IDNo
-            required: true
-            type: string
-            format: string
+            # ...existing code...
         responses:
           '200':
             description: successful operation
-            schema:
-              $ref: '#/definitions/Resource'
         security:
           - ApiKeyAuth: []    
       post:
         tags:
           - External resources
         summary: Add a resource
-        description: Creates a new external resource. For uploading files, use '`upload file`' endpoint.
+        description: |
+          Creates a new external resource. You can either:
+            - Upload a file using the '`Upload file`' endpoint, then provide the `filename` or `upload_id` here.
+            - Or, provide a direct file upload in the request (multipart/form-data).
+
+          **Resumable Uploads:**
+            - Use the `/api/uploads` endpoints to upload a file in chunks and obtain an `upload_id`.
+            - Pass the `upload_id` in the request body to associate the uploaded file with the resource.
+            - If both a file and an `upload_id` are provided, `upload_id` takes precedence.
+
+          **Full File Uploads:**
+            - You may still upload a file directly as before.
+
+          **Required fields:**
+            - `title` (string)
+            - `filename` (string, if not using `upload_id`)
+            - `upload_id` (string, if using resumable upload)
+
+          For uploading files, see the '`Upload file`' endpoint. Make sure the file name matches the `filename` provided here, or use the `upload_id` from the resumable upload API.
         operationId: addDatasetResources
         consumes:
           - application/json
+          - multipart/form-data
         produces:
           - application/json
         parameters:
           - name: datasetIDNo
             in: path
-            description: Dataset IDNo
-            required: true
-            type: string
-            format: string
+            # ...existing code...
           - in: "body"
             name: "body"
-            required: true
+            description: |
+              Resource object. For resumable uploads, include `upload_id`. For direct uploads, include file in multipart/form-data.
             schema:
-              $ref: 'resource-schema.json'  
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Resource title
+                filename:
+                  type: string
+                  description: File name (required if not using upload_id)
+                upload_id:
+                  type: string
+                  description: Upload ID from resumable upload API (optional, takes precedence if provided)
+                dctype:
+                  type: string
+                  description: Resource type
+                dcformat:
+                  type: string
+                  description: Resource format
+                # ...other resource fields...
+              required:
+                - title
         responses:
           '200':
             description: successful operation
-            schema:
-              $ref: 'resource-schema.json'
-        security:
-          - ApiKeyAuth: []       
-  /datasets/{datasetIDNo}/resources/{resourceId}:
-      get:
-        tags:
-          - External resources
-        summary: Get resource by ID
-        description: Get a single dataset resource
-        operationId: getStudySingleResource
-        consumes:
-          - application/json
-        produces:
-          - application/xml
-          - application/json
-        parameters:
-          - name: datasetIDNo
-            in: path
-            description: Dataset IDNo
-            required: true
-            type: string
-            format: string
-          - name: resourceId
-            in: path
-            description: Resource ID
-            required: true
-            type: integer
-            format: int64  
-        responses:
-          '200':
-            description: successful operation
-            schema:
-              $ref: '#/definitions/Resource' 
         security:
           - ApiKeyAuth: []
-      put:
-          tags:
-            - External resources
-          summary: Update resource
-          description: Update an existing external resource
-          operationId: addStudyResources
-          consumes:
-            - application/json
-            - application/xml
-          produces:
-            - application/xml
-            - application/json
-          parameters:
-            - name: datasetIDNo
-              in: path
-              description: Dataset IDNo
-              required: true
-              type: string
-              format: string
-            - name: resourceId
-              in: path
-              description: Resource ID
-              required: true
-              type: integer
-              format: int64
-            - in: "body"
-              name: "body"
-              required: true
-              schema:
-                $ref: '#/definitions/Resource'      
-          responses:
-            '200':
-              description: successful operation
-              schema:
-                $ref: '#/definitions/Resource'
-          security:
-            - ApiKeyAuth: []
       delete:
           tags:
             - External resources
@@ -2256,7 +2219,160 @@ paths:
           '200':
             description: successful operation
         security:
-          - ApiKeyAuth: []                       
+          - ApiKeyAuth: []       
+
+
+  /uploads/limits:
+    get:
+      tags:
+        - Resumable uploads
+      summary: Get upload limits
+      description: Returns server-side upload limits for resumable uploads.
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Upload limits
+          schema:
+            type: object
+            properties:
+              max_chunk_size:
+                type: integer
+                description: Maximum allowed chunk size in bytes
+              max_file_size:
+                type: integer
+                description: Maximum allowed file size in bytes
+      security:
+        - ApiKeyAuth: []
+
+  /uploads/init:
+    post:
+      tags:
+        - Resumable uploads
+      summary: Initialize resumable upload
+      description: Start a new resumable upload session and get an upload_id.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Upload initialization parameters (filename, total_size, total_chunks, chunk_size, metadata)
+          required: true
+          schema:
+            type: object
+            properties:
+              filename:
+                type: string
+              total_size:
+                type: integer
+              total_chunks:
+                type: integer
+              chunk_size:
+                type: integer
+              metadata:
+                type: object
+      responses:
+        '200':
+          description: Upload session initialized
+      security:
+        - ApiKeyAuth: []
+
+  /uploads/chunk/{upload_id}:
+    post:
+      tags:
+        - Resumable uploads
+      summary: Upload a file chunk
+      description: Upload a chunk of a file for a resumable upload session.
+      consumes:
+        - multipart/form-data
+        - application/octet-stream
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: upload_id
+          required: true
+          type: string
+          description: Upload session ID
+        - in: formData
+          name: chunk
+          type: file
+          description: File chunk data (if multipart)
+        - in: formData
+          name: chunk_number
+          type: integer
+          description: Chunk number (starting from 0)
+        - in: formData
+          name: chunk_size
+          type: integer
+          description: Size of this chunk in bytes
+      responses:
+        '200':
+          description: Chunk uploaded
+      security:
+        - ApiKeyAuth: []
+
+  /uploads/status/{upload_id}:
+    get:
+      tags:
+        - Resumable uploads
+      summary: Get upload status
+      description: Get the status and progress of a resumable upload session.
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: upload_id
+          required: true
+          type: string
+          description: Upload session ID
+      responses:
+        '200':
+          description: Upload status
+      security:
+        - ApiKeyAuth: []
+
+  /uploads/download/{upload_id}:
+    get:
+      tags:
+        - Resumable uploads
+      summary: Download completed upload
+      description: Download the completed file from a resumable upload session.
+      produces:
+        - application/octet-stream
+      parameters:
+        - in: path
+          name: upload_id
+          required: true
+          type: string
+          description: Upload session ID
+      responses:
+        '200':
+          description: File download
+      security:
+        - ApiKeyAuth: []
+
+  /uploads/{upload_id}:
+    delete:
+      tags:
+        - Resumable uploads
+      summary: Cancel or delete upload
+      description: Cancel or delete a resumable upload session and its data.
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: upload_id
+          required: true
+          type: string
+          description: Upload session ID
+      responses:
+        '200':
+          description: Upload deleted
+      security:
+        - ApiKeyAuth: []                
 ###############################################################
 securityDefinitions:
   ApiKeyAuth:
