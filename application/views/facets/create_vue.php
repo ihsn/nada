@@ -1,254 +1,298 @@
+<!-- MDI Icons (local) -->
+<link href="<?php echo base_url('javascript/mdi/css/materialdesignicons.min.css'); ?>" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+<!-- Vuetify CSS (local) -->
+<link href="<?php echo base_url('javascript/vuetify.min.css'); ?>" rel="stylesheet">
 
-    <style type="text/css">
-      .field_selection{
-          max-width:200px;
-      }
+<!-- Vue.js, Axios, Vuetify JS (local) -->
+<script src="<?php echo base_url('javascript/vue.min.js'); ?>"></script>
+<script src="<?php echo base_url('javascript/axios.min.js'); ?>"></script>
+<script src="<?php echo base_url('javascript/vuetify.min.js'); ?>"></script>
 
-      .data-type{
-          text-transform: capitalize;
-          font-weight:bold;
-      }
-      label{
-          font-weight:bold
-      }
-    </style>
+<style>
+    /* Contain Vuetify inside admin5 template without full-page takeover */
+    #facets-app .v-application--wrap { min-height: unset; }
+    #facets-app { margin-top: 8px; }
+</style>
 
-<?php require_once 'links.php';?>
+<?php require_once 'links.php'; ?>
 
+<?php
+$is_edit = isset($facet) && !empty($facet);
+$page_title = $is_edit ? t('Edit Facet') : t('Create Facet');
 
-<div id="app" class="container-fluid">
+// Build merged options — ensures every current data type has a default entry,
+// even if the stored mappings predate some data types being added.
+$merged_options = array();
+$existing_options = array();
+if (isset($facet['mappings']) && !empty($facet['mappings'])) {
+    $existing_options = json_decode($facet['mappings'], true) ?: array();
+}
+foreach ($data_types as $type) {
+    $merged_options[$type] = isset($existing_options[$type])
+        ? $existing_options[$type]
+        : array("field" => "", "subfield" => "", "filter" => "", "filter_value" => "");
+}
+?>
 
-     <h1 class="pb-4">Create Facet</h1> 
+<div id="facets-app">
+<v-app>
+<v-main>
+<v-container fluid>
 
-    <div class="row">
-        <div class="col-md-2">
-        <div class="form-group">
-            <label for="title"><?php echo t('Name');?><span class="required">*</span></label>
-            <input class="form-control" name="title" type="text" id="title"  v-model="name" placeholder="A short name with no spaces"/>
-        </div>
-        </div>
+    <h1 class="text-h5 font-weight-bold mb-6">
+        <v-icon left color="primary">mdi-filter-variant</v-icon>
+        <?php echo $page_title; ?>
+    </h1>
 
-        <div class="col-md-4">
-        <div class="form-group">
-            <label for="weight"><?php echo t('Title');?><span class="required">*</span></label>
-            <input class="form-control" name="weight" type="text" id="weight"  v-model="title" placeholder="Title"/>
-        </div>
-        </div>
+    <!-- Save error alert -->
+    <v-alert v-if="alert.show" :type="alert.type" dense text dismissible @input="alert.show = false" class="mb-4">
+        {{ alert.message }}
+    </v-alert>
 
-        <div class="col-md-2">
-        <div class="form-group">
-            <label for="enabled"><?php echo t('Status');?><span class="required">*</span></label>        
-            <select id="enabled" class="form-control" v-model="enabled">
-                <option value="1" selected>Enabled</option>
-                <option value="0">Disabled</option>
-            </select>
-        </div>
-        </div>
+    <!-- Facet details card -->
+    <v-card outlined class="mb-4">
+        <v-card-title class="subtitle-1 font-weight-medium pb-1">
+            <v-icon left small color="grey darken-1">mdi-information-outline</v-icon>
+            <?php echo t('Facet Details'); ?>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>
+            <v-row>
+                <v-col cols="12" md="3">
+                    <v-text-field
+                        v-model="name"
+                        label="<?php echo t('Name'); ?> *"
+                        outlined dense
+                        placeholder="A short name with no spaces"
+                        hint="<?php echo t('Used as the unique identifier'); ?>"
+                        persistent-hint
+                    ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="5">
+                    <v-text-field
+                        v-model="title"
+                        label="<?php echo t('Title'); ?> *"
+                        outlined dense
+                        placeholder="<?php echo t('Display title'); ?>"
+                    ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="2">
+                    <v-select
+                        v-model="enabled"
+                        label="<?php echo t('Status'); ?> *"
+                        outlined dense
+                        :items="[{text:'<?php echo t('Enabled'); ?>',value:'1'},{text:'<?php echo t('Disabled'); ?>',value:'0'}]"
+                    ></v-select>
+                </v-col>
+            </v-row>
+        </v-card-text>
+    </v-card>
+
+    <!-- Mappings card -->
+    <v-card outlined class="mb-4">
+        <v-card-title class="subtitle-1 font-weight-medium pb-1">
+            <v-icon left small color="grey darken-1">mdi-map-marker-path</v-icon>
+            <?php echo t('Mappings'); ?>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-simple-table dense>
+            <template v-slot:default>
+                <thead>
+                    <tr>
+                        <th style="width:130px"><?php echo t('Data Type'); ?></th>
+                        <th style="min-width:200px"><?php echo t('Field'); ?></th>
+                        <th style="min-width:180px"><?php echo t('Subfield'); ?> <span class="grey--text caption">(composite types)</span></th>
+                        <th style="min-width:180px"><?php echo t('Filter'); ?></th>
+                        <th style="min-width:160px"><?php echo t('Filter Value'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in data_types" :key="item">
+
+                        <td class="text-capitalize font-weight-medium">{{ item }}</td>
+
+                        <!-- Field: typeahead + free-text via v-combobox -->
+                        <td>
+                            <v-combobox
+                                v-model="options[item].field"
+                                :items="getFieldItems(item)"
+                                item-text="text"
+                                item-value="value"
+                                :return-object="false"
+                                outlined dense hide-details clearable
+                                class="my-1"
+                                @change="fieldSelectionOnChange(item, $event)"
+                            ></v-combobox>
+                        </td>
+
+                        <!-- Subfield: enabled for array-type fields and custom values -->
+                        <td>
+                            <v-combobox
+                                v-model="options[item].subfield"
+                                :items="getSubfieldItems(item, options[item].field)"
+                                :disabled="!isSubfieldEnabled(item, options[item].field)"
+                                outlined dense hide-details clearable
+                                :placeholder="isSubfieldEnabled(item, options[item].field) && !getSubfieldItems(item, options[item].field).length ? 'Custom value…' : ''"
+                                class="my-1"
+                            ></v-combobox>
+                        </td>
+
+                        <!-- Filter field -->
+                        <td>
+                            <v-combobox
+                                v-if="isSubfieldEnabled(item, options[item].field)"
+                                v-model="options[item].filter"
+                                :items="getSubfieldItems(item, options[item].field)"
+                                outlined dense hide-details clearable
+                                :placeholder="getSubfieldItems(item, options[item].field).length ? '' : 'Custom value…'"
+                                class="my-1"
+                            ></v-combobox>
+                        </td>
+
+                        <!-- Filter value -->
+                        <td>
+                            <v-text-field
+                                v-if="isSubfieldEnabled(item, options[item].field)"
+                                v-model="options[item].filter_value"
+                                outlined dense hide-details
+                                class="my-1"
+                            ></v-text-field>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </template>
+        </v-simple-table>
+    </v-card>
+
+    <!-- Action buttons -->
+    <div class="d-flex align-center">
+        <v-btn color="primary" :loading="saving" @click="submitForm">
+            <v-icon left>mdi-content-save</v-icon>
+            <?php echo t('Save'); ?>
+        </v-btn>
+        <v-btn text class="ml-3" href="<?php echo site_url('admin/facets'); ?>">
+            <?php echo t('Cancel'); ?>
+        </v-btn>
     </div>
 
-    <label for="weight"><?php echo t('Mappings');?><span class="required">*</span></label>
-    <table class="table table-striped">
-    <tr>
-        <td></td>
-        <td>Field</td>
-        <td>Subfield (for composite types)</td>
-        <td>Filter</td>
-        <td>Filter value</td>
-    </tr>
-    <tr v-for="(item, index) in data_types">
-        <td class="data-type">{{ item }}</td>
-        <td>
-            <select @change="fieldSelectionOnChange(item,$event)" v-model="options[item].field" class="field_selection">
-                <option  value="">Select</option>
-                <template v-for="(field, field_key) in fields[item]">
-                {{field}}
-                    <template v-if="field.items">
-                    <option :value="field_key">{{field_key}}*</option>
-                    <?php /*<optgroup :label="field_key">                    
-                        <option v-for="(subfield,subfield_key) in field.items">{{field_key}}:{{subfield_key}}</option>
-                    </optgroup> */ ?>
-                    </template>
-                    <template v-else-if="field.type=='string'">
-                        <option>{{field_key}}</option>
-                    </template>
-                </template>
-            </select>
-        </td>
-        
-        <td>
-        <template v-if="getSubfields(item, options[item].field)">
-        
-            <select v-model="options[item].subfield" class="field_selection">
-                <template v-for="(subfield,subfield_key) in getSubfields(item, options[item].field)">
-                    <option>{{subfield_key}}</option>
-                </template>
-            </select>
-        
-        </template>
-        <template v-else>
-            -
-        </template>
-
-        </td>
-        <td>
-        <template v-if="getSubfields(item, options[item].field)">
-        
-            <select v-model="options[item].filter" class="field_selection">
-                    <option value="">None</option>
-                <template v-for="(subfield,subfield_key) in getSubfields(item, options[item].field)">
-                    <option>{{subfield_key}}</option>
-                </template>
-            </select>
-        
-        </template>
-        </td>        
-        <td>
-            <template v-if="getSubfields(item, options[item].field)">
-                <input type="text" value="" placeholder="" v-model="options[item].filter_value"/>
-            </template>
-        </td>
-    </tr>
-
-</table>
-
-
-
-
-
-
-
-<div class="border-top mt-3 mb-3 pt-3">
-    <button type="button" class="btn btn-primary" @click="submitForm">Save</button>
-    <a href="<?php echo site_url('admin/facets');?>">Cancel</a>
+</v-container>
+</v-main>
+</v-app>
 </div>
-
-</div>
-
-
 
 <script>
-<?php if (isset($facet['mappings']) && !empty($facet['mappings'])):?>
-    let options=<?php echo ($facet['mappings']);?>;
-<?php else:?>
-    <?php 
-        $options=array();
-        
-        foreach($data_types as $type){
-            $options[$type]=array(
-                "field"=>"",
-                "subfield"=>"",
-                "filter"=>"",
-                "filter_value"=>""    
-            );
-        }
-    ?>    
-
-    let options=<?php echo json_encode($options);?>
-<?php endif;?>
-
-var app = new Vue({
-  el: '#app',
-  data: {    
-    name:'<?php echo isset($facet['name']) ? $facet['name'] : '';?>',
-    title:'<?php echo isset($facet['title']) ? $facet['title'] : '';?>',
-    enabled:'<?php echo isset($facet['enabled']) ? $facet['enabled'] : 0;?>',
-    data_types: <?php echo json_encode($data_types);?>,
-    fields: <?php echo json_encode($fields);?>,
-    //field_selection:mappings.field,
-    //subfield_selection:mappings.subfield,
-    //filter_column:mappings.filter_column,
-    //filter_value:mappings.filter_value,
-    options: options
-  },
-  async mounted() {
-    //this.search();
-  },
-  /*mounted: function(){
-      this.search();
-      //this.renderMap();
-  },*/
-  methods:{
-    getSubfields: function(data_type,field_key){
-        if (field_key=='undefined'){
-            return false;
-        }
-
-        if (typeof(field_key)=='object'){
-            return false;
-        }
-
-        if (typeof(this.fields[data_type][field_key])=='undefined'){
-            return false;
-        }
-
-        if (this.fields[data_type][field_key]['type']!=='array'){
-            return false;
-        }
-
-        if (typeof(this.fields[data_type][field_key]["items"]["properties"])!=='undefined'){                
-            return this.fields[data_type][field_key].items.properties;
-        }
-        
-        return false;
-    },
-    fieldSelectionOnChange: function(data_type,event) {
-        console.log(data_type,event.target.value);
-        field_key=event.target.value;
-
-        if (this.fields[data_type][field_key]["type"]=='array'){
-            try{
-                let keys_=Object.keys(this.fields[data_type][field_key].items.properties);
-                if (keys_.length>0){
-                    this.options[data_type].subfield=keys_[0];
+new Vue({
+    el: '#facets-app',
+    vuetify: new Vuetify({
+        theme: {
+            themes: {
+                light: {
+                    primary: '#1976D2'
                 }
             }
-            catch(err){
-                this.options[data_type].subfield='';    
-            }
-        }else{
-            this.options[data_type].subfield='';
-        }        
-    },
-    submitForm: function () {
-        var url = '<?php echo site_url('api/facets');?>';
-
-        console.log(url);
-
-        let vm=this;
-        //form_data=JSON.parse(JSON.stringify(vm.formData))
-        let data={
-            "title":this.title,
-            "name":this.name,
-            "facet_type":"user",
-            "enabled":this.enabled,
-            "mappings":this.options,
-            '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
         }
-        console.log(data);
+    }),
+    data: {
+        name:       <?php echo json_encode(isset($facet['name'])    ? $facet['name']    : ''); ?>,
+        title:      <?php echo json_encode(isset($facet['title'])   ? $facet['title']   : ''); ?>,
+        enabled:    <?php echo json_encode(isset($facet['enabled']) ? (string)$facet['enabled'] : '1'); ?>,
+        data_types: <?php echo json_encode($data_types); ?>,
+        fields:     <?php echo json_encode($fields); ?>,
+        options:    <?php echo json_encode($merged_options); ?>,
+        saving: false,
+        alert: { show: false, type: 'error', message: '' }
+    },
+    methods: {
 
-        $.ajax
-        ({
-            type: "POST",
-            url:  url,
-            contentType: 'application/json',
-            dataType: 'json',
-            data: JSON.stringify(data),
-            //async: false,
-            success: function (data) {
-                console.log(data);
-                window.location.replace("<?php echo site_url('admin/facets');?>");
-            },
-            error: function(e){
-                console.log(e);
-                alert("failed" + e);
+        // Build {text, value} items array for the field <v-select> of a given data type
+        getFieldItems(data_type) {
+            const fields = this.fields[data_type] || {};
+            const items  = [{ text: '— Select —', value: '' }];
+            for (const [key, field] of Object.entries(fields)) {
+                if (!field) continue;
+                if (field.items) {
+                    // composite/array type — marked with *
+                    items.push({ text: key + ' *', value: key });
+                } else if (field.type === 'string') {
+                    items.push({ text: key, value: key });
+                }
             }
-        })
-    }
-}
+            return items;
+        },
 
-    
+        // Returns the subfields properties object, or false if not applicable
+        getSubfields(data_type, field_key) {
+            // v-combobox may store {text,value} object if :return-object is not false — unwrap it
+            if (field_key && typeof field_key === 'object') field_key = field_key.value;
+            if (!field_key || typeof field_key !== 'string') return false;
+            const f = (this.fields[data_type] || {})[field_key];
+            if (!f || f.type !== 'array') return false;
+            return (f.items && f.items.properties) || false;
+        },
+
+        // Returns subfield key names as a flat array for v-combobox suggestions
+        getSubfieldItems(data_type, field_key) {
+            const props = this.getSubfields(data_type, field_key);
+            return props ? Object.keys(props) : [];
+        },
+
+        // Subfield is enabled when:
+        //  - field is an array type (has schema subfields)
+        //  - field is a custom value (not found in the schema at all)
+        // Disabled when field is empty or is a known non-array schema field
+        isSubfieldEnabled(data_type, field_key) {
+            if (field_key && typeof field_key === 'object') field_key = field_key.value;
+            if (!field_key) return false;
+            const f = (this.fields[data_type] || {})[field_key];
+            if (!f) return true;        // custom value not in schema — allow subfield
+            return f.type === 'array';  // only array types support subfields
+        },
+
+        // When the field selection changes, auto-select the first subfield
+        fieldSelectionOnChange(data_type, field_key) {
+            // v-combobox may pass an object {text,value} when picking from list, or a plain string
+            if (field_key && typeof field_key === 'object') field_key = field_key.value;
+            if (!field_key) { this.options[data_type].subfield = ''; return; }
+            const f = (this.fields[data_type] || {})[field_key];
+            if (f && f.type === 'array') {
+                try {
+                    const keys = Object.keys(f.items.properties);
+                    this.options[data_type].subfield = keys.length ? keys[0] : '';
+                } catch (e) {
+                    this.options[data_type].subfield = '';
+                }
+            } else {
+                this.options[data_type].subfield = '';
+            }
+        },
+
+        submitForm() {
+            this.saving = true;
+            const url   = '<?php echo site_url('api/facets'); ?>';
+            const data  = {
+                title:      this.title,
+                name:       this.name,
+                facet_type: 'user',
+                enabled:    this.enabled,
+                mappings:   this.options,
+                '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+            };
+
+            axios.post(url, data)
+                .then(() => {
+                    window.location.replace('<?php echo site_url('admin/facets'); ?>');
+                })
+                .catch(err => {
+                    this.saving = false;
+                    const msg = err.response && err.response.data && err.response.data.message
+                        ? err.response.data.message
+                        : '<?php echo t('Save failed. Please try again.'); ?>';
+                    this.alert = { show: true, type: 'error', message: msg };
+                });
+        }
+
+    }
 });
 </script>
