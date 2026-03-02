@@ -40,7 +40,7 @@ class Dataset_script_model extends Dataset_model {
         }
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('doc_desc','project_desc','provenance','embeddings','lda_topics','tags','additional');
+        $study_metadata_sections=array('doc_desc','project_desc','provenance','datacite','tags','additional');
 
         $options['metadata']=array();
 
@@ -113,6 +113,8 @@ class Dataset_script_model extends Dataset_model {
                 return $identifier['identifier'];
             }
         }
+
+        return $this->get_datacite_doi($options);
     }
 
     /**

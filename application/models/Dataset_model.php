@@ -379,6 +379,22 @@ class Dataset_model extends CI_Model {
 	}
 
 
+	/**
+	 * 
+	 * 
+	 * Return DOI from metadata datacite element if exists
+	 * 
+	 */
+	function get_datacite_doi($options)
+	{
+		$doi=(string)$this->get_array_nested_value($options,'datacite/doi');
+
+		if(!empty($doi)){
+			return $doi;
+		}
+	}
+
+
 	function get_doi($sid)
 	{
 		$this->db->select("doi");

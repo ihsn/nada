@@ -93,7 +93,7 @@ class Dataset_microdata_model extends Dataset_model {
 
         $options['changed']=date("U");
 		
-        $study_metadata_sections=array('doc_desc','study_desc','provenance','embeddings','lda_topics','tags','additional');
+        $study_metadata_sections=array('doc_desc','study_desc','provenance','datacite','tags','additional');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -553,6 +553,8 @@ class Dataset_microdata_model extends Dataset_model {
                 return $identifier['identifier'];
             }
         }
+        
+        return $this->get_datacite_doi($options);
     }
 
     /**
