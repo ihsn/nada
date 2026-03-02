@@ -7,17 +7,17 @@
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="<?php echo base_url('javascript/mdi/css/materialdesignicons.min.css'); ?>" rel="stylesheet">
     
     <!-- Vuetify CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <link href="<?php echo base_url('javascript/vuetify.min.css'); ?>" rel="stylesheet">
     
     <!-- Vue.js and Axios -->
-    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="<?php echo base_url('javascript/vue.min.js'); ?>"></script>
+    <script src="<?php echo base_url('javascript/axios.min.js'); ?>"></script>
+    <script src="<?php echo base_url('javascript/vuetify.min.js'); ?>"></script>
     <!-- Chart.js for charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="<?php echo base_url('javascript/chart.min.js'); ?>"></script>
     
     <style>
         .v-list-item--active {
