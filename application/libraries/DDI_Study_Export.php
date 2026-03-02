@@ -206,7 +206,7 @@ class DDI_Study_Export
 			$i                       = json_decode($i);
 			$coverage_country        = '';
 			foreach ($i as $rows) {
-				$coverage_country .= "<nation abbr=\"{$rows[1]}\">{$rows[0]}</nation>" . PHP_EOL;
+				$coverage_country .= "<nation abbr=\"" . htmlspecialchars($rows[1], ENT_XML1 | ENT_QUOTES, 'UTF-8') . "\">" . htmlspecialchars($rows[0], ENT_XML1, 'UTF-8') . "</nation>" . PHP_EOL;
 			}
 			$i                       = $coverage_country;
 		}
