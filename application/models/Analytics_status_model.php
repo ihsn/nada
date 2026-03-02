@@ -15,8 +15,7 @@ class Analytics_status_model extends CI_Model {
 	const STATUS_COMPLETED = 'completed';
 	const STATUS_FAILED = 'failed';
 	
-	// Default stale timeout in minutes
-	const STALE_TIMEOUT_MINUTES = 5;
+	const STALE_TIMEOUT_MINUTES = 7;
 	
 	public function __construct()
 	{
@@ -240,6 +239,30 @@ class Analytics_status_model extends CI_Model {
 		));
 	}
 	
+	/**
+	 * Touch last_updated_at without triggering stale detection.
+	 * Call this at the START of any step that may run for several minutes
+	 * (e.g. cleanup, sync_counters) so the stale window runs from when the
+	 * step began, not from when the previous step completed.
+	 *
+	 * Uses a direct query to bypass the stale check inside get_current_status().
+	 *
+	 * @return bool Success
+	 */
+	public function touch_heartbeat()
+	{
+		if ($this->db->dbdriver === 'sqlsrv' || $this->db->dbdriver === 'mssql') {
+			return $this->db->query(
+				"UPDATE TOP(1) analytics_aggregation_status SET last_updated_at = ? WHERE [status] = ?",
+				array(date('Y-m-d H:i:s'), self::STATUS_RUNNING)
+			);
+		}
+		return $this->db->query(
+			"UPDATE analytics_aggregation_status SET last_updated_at = ? WHERE status = ? ORDER BY id DESC LIMIT 1",
+			array(date('Y-m-d H:i:s'), self::STATUS_RUNNING)
+		);
+	}
+
 	/**
 	 * Mark aggregation as failed
 	 * 

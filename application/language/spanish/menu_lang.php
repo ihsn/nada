@@ -40,7 +40,29 @@ $lang['form_update_success']="¡El formulario ha sido actualizado satisfactoriam
 $lang['form_update_fail']="La actualización de la base de datos ha fallado";
 $lang['callback_error_url_exists']="El %s ya existe. Elija una URL diferente.";
 $lang['weight']="Peso";
-
+$lang['switch_to_source']="Cambiar a Código";
+$lang['switch_to_visual']="Cambiar a Visual";
+$lang['select_or_upload_image']="Seleccionar o Subir Imagen";
+$lang['select_existing']="Seleccionar Existente";
+$lang['upload_new']="Subir Nueva";
+$lang['search_images']="Buscar imágenes...";
+$lang['loading_images']="Cargando imágenes...";
+$lang['loading']="Cargando...";
+$lang['select_image_file']="Seleccionar Archivo de Imagen";
+$lang['max_file_size']="Tamaño máximo de archivo: 100MB. Formatos soportados: JPG, PNG, GIF, BMP";
+$lang['upload_image']="Subir Imagen";
+$lang['insert_selected_image']="Insertar Imagen Seleccionada";
+$lang['enter_content_here']="Ingrese el contenido aquí...";
+$lang['error_loading_images']="Error al cargar imágenes";
+$lang['error_loading_images_prefix']="Error al cargar imágenes: ";
+$lang['no_images_found']="No se encontraron imágenes.";
+$lang['invalid_file_type']="Tipo de archivo inválido. Por favor seleccione un archivo de imagen (JPG, PNG, GIF, BMP).";
+$lang['file_size_exceeds_max']="El tamaño del archivo excede el máximo de 100MB.";
+$lang['please_select_file']="Por favor seleccione un archivo para subir.";
+$lang['upload_failed']="Error al subir";
+$lang['upload_failed_prefix']="Error al subir: ";
+$lang['network_error_upload']="Error de red durante la carga.";
+$lang['close']="Cerrar";
 
 /* End of file menu_lang.php */
 /* Location: ./application/language/spanish/menu_lang.php */

@@ -10,6 +10,7 @@ class Logs extends MY_Controller {
         $this->load->library('pagination');
         $this->load->model('Sitelog_model');
         $this->lang->load('general');
+        $this->lang->load('sitelogs');
         
         $this->template->set_template('admin5');
     }

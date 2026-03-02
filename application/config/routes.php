@@ -213,7 +213,14 @@ $route['admin'] = "admin/admin";
 $route['admin/logs/cleanup'] = "admin/logs/cleanup";
 
 // DB Logs API
-$route['api/db_logs/cleanup/chunk'] = "api/db_logs/cleanup_chunk";
+$route['api/db_logs/row_counts']              = "api/db_logs/row_counts";
+$route['api/db_logs/cleanup/chunk']           = "api/db_logs/cleanup_chunk";
+$route['api/db_logs/api_logs/stats']         = "api/db_logs/api_logs_stats";
+$route['api/db_logs/api_logs/cleanup/chunk'] = "api/db_logs/api_logs_cleanup_chunk";
+$route['api/db_logs/api_logs/files']         = "api/db_logs/api_logs_files";
+
+// Dashboard API
+$route['api/dashboard/stats'] = "api/dashboard/stats";
 
 // API Logs Admin Page
 $route['admin/api_logs'] = "admin/logs/api_logs";
@@ -302,6 +309,10 @@ $route['api/analytics/aggregate/status'] = "api/analytics/aggregate_status";
 $route['api/analytics/aggregate/stop'] = "api/analytics/aggregate_stop";
 $route['api/analytics/raw/pageviews'] = "api/analytics/raw_pageviews";
 $route['api/analytics/raw/downloads'] = "api/analytics/raw_downloads";
+$route['api/analytics/daily/studies/export'] = "api/analytics/daily_studies_export";
+$route['api/analytics/daily/files/export'] = "api/analytics/daily_files_export";
+$route['api/analytics/monthly/studies/export'] = "api/analytics/monthly_studies_export";
+$route['api/analytics/monthly/files/export'] = "api/analytics/monthly_files_export";
 $route['api/analytics/daily/studies'] = "api/analytics/daily_studies";
 $route['api/analytics/daily/files'] = "api/analytics/daily_files";
 $route['api/analytics/monthly/studies'] = "api/analytics/monthly_studies";

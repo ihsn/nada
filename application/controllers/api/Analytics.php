@@ -12,7 +12,6 @@ class Analytics extends MY_REST_Controller
 		
 	}
 	
-	//override authentication to support both session authentication + api keys
 	function _auth_override_check()
 	{
 		//session user id
@@ -20,7 +19,7 @@ class Analytics extends MY_REST_Controller
 			return true;
 		}
 
-		return parent::_auth_override_check();
+		parent::_auth_override_check();
 	}
 
 	/**
@@ -356,7 +355,212 @@ class Analytics extends MY_REST_Controller
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
-	
+
+
+	/**
+	 * 
+	 * Export daily study aggregates
+	 * 
+	 * GET /api/analytics/daily/studies/export?format=csv|json&date_from=&date_to=&study_id=
+	 */
+	function daily_studies_export_get()
+	{
+		try {
+			$this->is_admin_or_die();
+
+			$filters = array(
+				'date_from' => $this->input->get('date_from'),
+				'date_to'   => $this->input->get('date_to'),
+				'study_id'  => $this->input->get('study_id')
+			);
+
+			$format = strtolower($this->input->get('format') ?: 'csv');
+			$result = $this->Analytics_model->get_daily_studies($filters, 0, 0);
+			$rows   = $result['data'];
+
+			if ($format === 'json') {
+				header('Content-Type: application/json');
+				header('Content-Disposition: attachment; filename="daily_studies_export.json"');
+				echo json_encode($rows);
+			} else {
+				header('Content-Type: text/csv');
+				header('Content-Disposition: attachment; filename="daily_studies_export.csv"');
+				$out = fopen('php://output', 'w');
+				fputcsv($out, array('date', 'study_id', 'title', 'nation', 'study_year', 'pageviews', 'unique_visitors', 'downloads'));
+				foreach ($rows as $row) {
+					fputcsv($out, array(
+						isset($row['date'])            ? $row['date']            : '',
+						isset($row['study_id'])        ? $row['study_id']        : '',
+						isset($row['title'])           ? $row['title']           : '',
+						isset($row['nation'])          ? $row['nation']          : '',
+						isset($row['study_year'])      ? $row['study_year']      : '',
+						isset($row['pageviews'])       ? $row['pageviews']       : 0,
+						isset($row['unique_visitors']) ? $row['unique_visitors'] : 0,
+						isset($row['downloads'])       ? $row['downloads']       : 0
+					));
+				}
+				fclose($out);
+			}
+			exit;
+
+		} catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Export daily file aggregates
+	 * 
+	 * 
+	 * GET /api/analytics/daily/files/export?format=csv|json&date_from=&date_to=&study_id=
+	 */
+	function daily_files_export_get()
+	{
+		try {
+			$this->is_admin_or_die();
+
+			$filters = array(
+				'date_from' => $this->input->get('date_from'),
+				'date_to'   => $this->input->get('date_to'),
+				'study_id'  => $this->input->get('study_id')
+			);
+
+			$format = strtolower($this->input->get('format') ?: 'csv');
+			$result = $this->Analytics_model->get_daily_files($filters, 0, 0);
+			$rows   = $result['data'];
+
+			if ($format === 'json') {
+				header('Content-Type: application/json');
+				header('Content-Disposition: attachment; filename="daily_files_export.json"');
+				echo json_encode($rows);
+			} else {
+				header('Content-Type: text/csv');
+				header('Content-Disposition: attachment; filename="daily_files_export.csv"');
+				$out = fopen('php://output', 'w');
+				fputcsv($out, array('date', 'study_id', 'title', 'file_name', 'downloads'));
+				foreach ($rows as $row) {
+					fputcsv($out, array(
+						isset($row['date'])      ? $row['date']      : '',
+						isset($row['study_id'])  ? $row['study_id']  : '',
+						isset($row['title'])     ? $row['title']     : '',
+						isset($row['file_name']) ? $row['file_name'] : '',
+						isset($row['downloads']) ? $row['downloads'] : 0
+					));
+				}
+				fclose($out);
+			}
+			exit;
+
+		} catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Export monthly study aggregates
+	 * 
+	 * GET /api/analytics/monthly/studies/export?format=csv|json&year=&month=&study_id=
+	 */
+	function monthly_studies_export_get()
+	{
+		try {
+			$this->is_admin_or_die();
+
+			$filters = array(
+				'year'     => $this->input->get('year'),
+				'month'    => $this->input->get('month'),
+				'study_id' => $this->input->get('study_id')
+			);
+
+			$format = strtolower($this->input->get('format') ?: 'csv');
+			$result = $this->Analytics_model->get_monthly_studies($filters, 0, 0);
+			$rows   = $result['data'];
+
+			if ($format === 'json') {
+				header('Content-Type: application/json');
+				header('Content-Disposition: attachment; filename="monthly_studies_export.json"');
+				echo json_encode($rows);
+			} else {
+				header('Content-Type: text/csv');
+				header('Content-Disposition: attachment; filename="monthly_studies_export.csv"');
+				$out = fopen('php://output', 'w');
+				fputcsv($out, array('year', 'month', 'study_id', 'title', 'nation', 'study_year', 'pageviews', 'unique_visitors', 'downloads', 'finalized'));
+				foreach ($rows as $row) {
+					fputcsv($out, array(
+						isset($row['year'])            ? $row['year']            : '',
+						isset($row['month'])           ? $row['month']           : '',
+						isset($row['study_id'])        ? $row['study_id']        : '',
+						isset($row['title'])           ? $row['title']           : '',
+						isset($row['nation'])          ? $row['nation']          : '',
+						isset($row['study_year'])      ? $row['study_year']      : '',
+						isset($row['pageviews'])       ? $row['pageviews']       : 0,
+						isset($row['unique_visitors']) ? $row['unique_visitors'] : 0,
+						isset($row['downloads'])       ? $row['downloads']       : 0,
+						isset($row['finalized'])       ? $row['finalized']       : 0
+					));
+				}
+				fclose($out);
+			}
+			exit;
+
+		} catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * 
+	 * Export monthly file aggregates
+	 * 
+	 * GET /api/analytics/monthly/files/export?format=csv|json&year=&month=&study_id=
+	 * 
+	 */
+	function monthly_files_export_get()
+	{
+		try {
+			$this->is_admin_or_die();
+
+			$filters = array(
+				'year'     => $this->input->get('year'),
+				'month'    => $this->input->get('month'),
+				'study_id' => $this->input->get('study_id')
+			);
+
+			$format = strtolower($this->input->get('format') ?: 'csv');
+			$result = $this->Analytics_model->get_monthly_files($filters, 0, 0);
+			$rows   = $result['data'];
+
+			if ($format === 'json') {
+				header('Content-Type: application/json');
+				header('Content-Disposition: attachment; filename="monthly_files_export.json"');
+				echo json_encode($rows);
+			} else {
+				header('Content-Type: text/csv');
+				header('Content-Disposition: attachment; filename="monthly_files_export.csv"');
+				$out = fopen('php://output', 'w');
+				fputcsv($out, array('year', 'month', 'study_id', 'title', 'file_name', 'downloads', 'finalized'));
+				foreach ($rows as $row) {
+					fputcsv($out, array(
+						isset($row['year'])      ? $row['year']      : '',
+						isset($row['month'])     ? $row['month']     : '',
+						isset($row['study_id'])  ? $row['study_id']  : '',
+						isset($row['title'])     ? $row['title']     : '',
+						isset($row['file_name']) ? $row['file_name'] : '',
+						isset($row['downloads']) ? $row['downloads'] : 0,
+						isset($row['finalized']) ? $row['finalized'] : 0
+					));
+				}
+				fclose($out);
+			}
+			exit;
+
+		} catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
 	/**
 	 * Run daily aggregation
 	 * 

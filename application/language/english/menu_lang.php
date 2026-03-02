@@ -41,6 +41,29 @@ $lang['form_update_success']="Form has been updated successfully!";
 $lang['form_update_fail']="Failed to update database";
 $lang['callback_error_url_exists']="The %s already exists. Choose a different URL.";
 $lang['weight']="Weight";
+$lang['switch_to_source']="Switch to Source";
+$lang['switch_to_visual']="Switch to Visual";
+$lang['select_or_upload_image']="Select or Upload Image";
+$lang['select_existing']="Select Existing";
+$lang['upload_new']="Upload New";
+$lang['search_images']="Search images...";
+$lang['loading_images']="Loading images...";
+$lang['loading']="Loading...";
+$lang['select_image_file']="Select Image File";
+$lang['max_file_size']="Maximum file size: 100MB. Supported formats: JPG, PNG, GIF, BMP";
+$lang['upload_image']="Upload Image";
+$lang['insert_selected_image']="Insert Selected Image";
+$lang['enter_content_here']="Enter content here...";
+$lang['error_loading_images']="Error loading images";
+$lang['error_loading_images_prefix']="Error loading images: ";
+$lang['no_images_found']="No images found.";
+$lang['invalid_file_type']="Invalid file type. Please select an image file (JPG, PNG, GIF, BMP).";
+$lang['file_size_exceeds_max']="File size exceeds maximum of 100MB.";
+$lang['please_select_file']="Please select a file to upload.";
+$lang['upload_failed']="Upload failed";
+$lang['upload_failed_prefix']="Upload failed: ";
+$lang['network_error_upload']="Network error during upload.";
+$lang['close']="Close";
 
 /* End of file menu_lang.php */
 /* Location: ./application/language/english/menu_lang.php */

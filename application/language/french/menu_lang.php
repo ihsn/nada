@@ -40,7 +40,29 @@ $lang['form_update_success']="Mise à jour du formulaire réussie!";
 $lang['form_update_fail']="Echec de la mise à jour de la base de données";
 $lang['callback_error_url_exists']="%s existe déjà. Choisir un URL différent.";
 $lang['weight']="Pondération";
-
+$lang['switch_to_source']="Passer au Code";
+$lang['switch_to_visual']="Passer au Visuel";
+$lang['select_or_upload_image']="Sélectionner ou Téléverser une Image";
+$lang['select_existing']="Sélectionner Existante";
+$lang['upload_new']="Téléverser Nouvelle";
+$lang['search_images']="Rechercher des images...";
+$lang['loading_images']="Chargement des images...";
+$lang['loading']="Chargement...";
+$lang['select_image_file']="Sélectionner un Fichier Image";
+$lang['max_file_size']="Taille maximale du fichier : 100MB. Formats supportés : JPG, PNG, GIF, BMP";
+$lang['upload_image']="Téléverser l'Image";
+$lang['insert_selected_image']="Insérer l'Image Sélectionnée";
+$lang['enter_content_here']="Entrez le contenu ici...";
+$lang['error_loading_images']="Erreur lors du chargement des images";
+$lang['error_loading_images_prefix']="Erreur lors du chargement des images : ";
+$lang['no_images_found']="Aucune image trouvée.";
+$lang['invalid_file_type']="Type de fichier invalide. Veuillez sélectionner un fichier image (JPG, PNG, GIF, BMP).";
+$lang['file_size_exceeds_max']="La taille du fichier dépasse le maximum de 100MB.";
+$lang['please_select_file']="Veuillez sélectionner un fichier à téléverser.";
+$lang['upload_failed']="Échec du téléversement";
+$lang['upload_failed_prefix']="Échec du téléversement : ";
+$lang['network_error_upload']="Erreur réseau lors du téléversement.";
+$lang['close']="Fermer";
 
 /* End of file menu_lang.php */
 /* Location: ./application/language/french/menu_lang.php */

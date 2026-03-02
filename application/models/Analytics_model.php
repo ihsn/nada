@@ -916,7 +916,7 @@ class Analytics_model extends CI_Model {
 			$d->modify("-{$i} month");
 			$year = (int)$d->format('Y');
 			$month = (int)$d->format('n');
-			$label = $d->format('M y'); // e.g., "Jan 25"
+			$label = $d->format('M Y'); // e.g., "Jan 2025"
 			
 			// Sum totals for this month across all studies
 			$this->db->select('SUM(pageviews) as pageviews, SUM(unique_visitors) as unique_visitors, SUM(downloads) as downloads');
@@ -965,8 +965,9 @@ class Analytics_model extends CI_Model {
 		$month = isset($filters['month']) ? $filters['month'] : null;
 		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
 		
-		// Validate limit
-		$limit = max(1, min(500, (int)$limit));
+		// Validate limit (0 = no limit for exports)
+		$limit = (int)$limit;
+		if ($limit > 0) { $limit = min(500, $limit); }
 		
 		// Build count query using raw SQL to avoid query builder state issues
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_monthly_studies WHERE 1=1";
@@ -1020,7 +1021,7 @@ class Analytics_model extends CI_Model {
 		$this->db->order_by('study_id', 'ASC');
 		
 		// Apply pagination
-		$this->db->limit($limit, $offset);
+		if ($limit > 0) { $this->db->limit($limit, $offset); }
 		
 		$query = $this->db->get();
 		
@@ -1054,8 +1055,9 @@ class Analytics_model extends CI_Model {
 		$month = isset($filters['month']) ? $filters['month'] : null;
 		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
 		
-		// Validate limit
-		$limit = max(1, min(500, (int)$limit));
+		// Validate limit (0 = no limit for exports)
+		$limit = (int)$limit;
+		if ($limit > 0) { $limit = min(500, $limit); }
 		
 		// Build count query using raw SQL to avoid query builder state issues
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_monthly_files WHERE 1=1";
@@ -1110,7 +1112,7 @@ class Analytics_model extends CI_Model {
 		$this->db->order_by('downloads', 'DESC');
 		
 		// Apply pagination
-		$this->db->limit($limit, $offset);
+		if ($limit > 0) { $this->db->limit($limit, $offset); }
 		
 		$query = $this->db->get();
 		
@@ -1144,7 +1146,8 @@ class Analytics_model extends CI_Model {
 		$date_to = isset($filters['date_to']) ? $filters['date_to'] : null;
 		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
 		
-		$limit = max(1, min(500, (int)$limit));
+		$limit = (int)$limit;
+		if ($limit > 0) { $limit = min(500, $limit); }
 		
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_daily_studies WHERE 1=1";
 		$count_params = array();
@@ -1178,7 +1181,7 @@ class Analytics_model extends CI_Model {
 		}
 		$this->db->order_by('analytics_daily_studies.date', 'DESC');
 		$this->db->order_by('analytics_daily_studies.study_id', 'ASC');
-		$this->db->limit($limit, $offset);
+		if ($limit > 0) { $this->db->limit($limit, $offset); }
 		$query = $this->db->get();
 		
 		$data = array();
@@ -1211,7 +1214,8 @@ class Analytics_model extends CI_Model {
 		$date_to = isset($filters['date_to']) ? $filters['date_to'] : null;
 		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
 		
-		$limit = max(1, min(500, (int)$limit));
+		$limit = (int)$limit;
+		if ($limit > 0) { $limit = min(500, $limit); }
 		
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_daily_files WHERE 1=1";
 		$count_params = array();
@@ -1246,7 +1250,7 @@ class Analytics_model extends CI_Model {
 		$this->db->order_by('analytics_daily_files.date', 'DESC');
 		$this->db->order_by('analytics_daily_files.study_id', 'ASC');
 		$this->db->order_by('analytics_daily_files.downloads', 'DESC');
-		$this->db->limit($limit, $offset);
+		if ($limit > 0) { $this->db->limit($limit, $offset); }
 		$query = $this->db->get();
 		
 		$data = array();
@@ -1589,6 +1593,7 @@ class Analytics_model extends CI_Model {
 		$current_year = (int)date('Y');
 		$current_month = (int)date('m');
 
+		// 1. Months that are not yet finalized
 		$this->db->select('year, month');
 		$this->db->distinct();
 		$this->db->from('analytics_monthly_studies');
@@ -1602,11 +1607,14 @@ class Analytics_model extends CI_Model {
 		$this->db->order_by('month', 'ASC');
 		$query = $this->db->get();
 
+		$seen = array();
 		$unfinalized = array();
 		if ($query) {
 			foreach ($query->result_array() as $row) {
 				$year = (int)$row['year'];
 				$month = (int)$row['month'];
+				$key = $year . '-' . $month;
+				$seen[$key] = true;
 				$unfinalized[] = array(
 					'year' => $year,
 					'month' => $month,
@@ -1614,6 +1622,47 @@ class Analytics_model extends CI_Model {
 				);
 			}
 		}
+
+		// 2. Finalized months that still have orphaned daily rows (cleanup didn't run).
+		//    These need a cleanup pass even though they're already finalized.
+		//    Exclude the immediately previous calendar month: cleanup_daily_aggregates()
+		//    intentionally retains its rows for the 7-day chart. Queuing it here would
+		//    cause an infinite month_end loop (finalize → retain → queue → finalize...).
+		$prev_year_o  = $current_month === 1 ? $current_year - 1 : $current_year;
+		$prev_month_o = $current_month === 1 ? 12 : $current_month - 1;
+		$orphan_query = $this->db->query("
+			SELECT YEAR(date) as year, MONTH(date) as month
+			FROM analytics_daily_studies
+			WHERE date < DATE_FORMAT(NOW(), ?)
+			  AND NOT (YEAR(date) = ? AND MONTH(date) = ?)
+			GROUP BY YEAR(date), MONTH(date)
+		", array(
+			sprintf('%04d-%02d-01', $current_year, $current_month),
+			$prev_year_o,
+			$prev_month_o
+		));
+
+		if ($orphan_query) {
+			foreach ($orphan_query->result_array() as $row) {
+				$year  = (int)$row['year'];
+				$month = (int)$row['month'];
+				$key   = $year . '-' . $month;
+				if (!isset($seen[$key])) {
+					$seen[$key] = true;
+					$unfinalized[] = array(
+						'year' => $year,
+						'month' => $month,
+						'date' => sprintf('%04d-%02d', $year, $month)
+					);
+				}
+			}
+		}
+
+		// Sort oldest first so cleanup proceeds in order
+		usort($unfinalized, function ($a, $b) {
+			return $a['year'] !== $b['year'] ? $a['year'] - $b['year'] : $a['month'] - $b['month'];
+		});
+
 		return $unfinalized;
 	}
 
@@ -1803,20 +1852,24 @@ class Analytics_model extends CI_Model {
 					$result_dl = $this->aggregate_downloads_daily($date);
 					
 					if ($result_pv['success'] && $result_dl['success']) {
+						// $total = count of still-missing dates INCLUDING the one just processed.
+						// Use ($total - 1) for remaining — do NOT use cumulative processed_items from DB
+						// because find_missing_daily_aggregates() shrinks on every call while
+						// processed_items grows, causing remaining to go negative halfway through.
 						$total = $next_action['total'];
-						$processed = ($status['processed_items'] ?? 0) + 1;
-						$remaining = $total - $processed;
+						$remaining = $total - 1;
 						$daily_done = ($remaining <= 0);
+						$processed = ($status['processed_items'] ?? 0) + 1;
 						
 						// Always return has_more=true until we call complete_aggregation_status(); otherwise UI stops polling and DB stays "running"
 						$result['has_more'] = true;
 						// Cap daily-phase progress so UI doesn't think job is complete (100% only when sync done)
-						$result['progress'] = $daily_done ? 15 : ($total > 0 ? round(($processed / $total) * 15) : 0);
+						$result['progress'] = $daily_done ? 15 : ($total > 0 ? max(1, round((1 - $remaining / $total) * 15)) : 0);
 						$result['message'] = $daily_done
 							? "Daily aggregation complete. Rolling up monthly next."
 							: "Processed {$date}. {$remaining} date(s) remaining.";
 						
-						$this->update_aggregation_status(array(
+$this->update_aggregation_status(array(
 							'current_step' => $daily_done ? 'monthly' : 'daily',
 							'current_item' => $date,
 							'total_items' => $total,
@@ -1870,7 +1923,9 @@ class Analytics_model extends CI_Model {
 						$remaining_unfinalized = $this->find_unfinalized_previous_months();
 						$has_more_months = !empty($remaining_unfinalized);
 						
-						$result['has_more'] = $has_more_months;
+						// Always keep has_more=true - only the 'sync' step signals completion.
+						// Returning false here stops JS polling before cleanup/sync steps run.
+						$result['has_more'] = true;
 						$result['progress'] = $has_more_months ? 40 : 60;
 						$result['message'] = "Month-end processing completed for {$year}-{$month}";
 						
@@ -1887,6 +1942,7 @@ class Analytics_model extends CI_Model {
 					break;
 					
 				case 'cleanup':
+					$this->status_manager->touch_heartbeat();
 					$cleanup_result = $this->cleanup_raw_events(60);
 					
 					$result['has_more'] = true;
@@ -1902,6 +1958,7 @@ class Analytics_model extends CI_Model {
 					break;
 					
 				case 'sync':
+					$this->status_manager->touch_heartbeat();
 					$sync_result = $this->sync_counters(null, 500);
 					
 					if ($sync_result['success']) {

@@ -54,7 +54,19 @@
 <body>
     <div id="app" class="main-container">
         <div class="container-fluid px-4">
-            <h1 class="mb-4">API Logs</h1>
+            <div class="d-flex align-items-center mb-4">
+                <h1 class="mb-0">API Logs</h1>
+                <a href="<?php echo site_url('admin/logs/cleanup'); ?>" class="btn btn-outline-secondary btn-sm ms-3">
+                    <i class="fa fa-trash-o"></i> Cleanup &amp; Archiving
+                </a>
+            </div>
+
+            <div v-if="rowCountWarning" class="alert alert-warning">
+                <strong>&#9888; Large number of API log entries detected.</strong>
+                The api_logs table contains a high number of rows which may affect performance.
+                <a href="<?php echo site_url('admin/logs/cleanup'); ?>" class="alert-link">Run Cleanup &amp; Archiving</a> to archive old entries.
+                <span class="text-muted ms-2">(~{{ formatNumber(rowCount) }} rows, threshold: {{ formatNumber(rowCountThreshold) }})</span>
+            </div>
             
             <!-- Search and Filter Form -->
             <div class="search-form">
@@ -271,10 +283,14 @@
                 sortBy: 'time',
                 sortOrder: 'desc',
                 currentOffset: 0,
-                limit: 50
+                limit: 50,
+                rowCount: 0,
+                rowCountThreshold: 0,
+                rowCountWarning: false
             },
             mounted() {
                 this.loadLogs();
+                this.loadRowCount();
             },
             methods: {
                 async loadLogs() {
@@ -361,6 +377,16 @@
                 },
                 formatNumber(num) {
                     return new Intl.NumberFormat().format(num);
+                },
+                async loadRowCount() {
+                    try {
+                        const response = await axios.get('<?php echo site_url("api/db_logs/row_counts"); ?>');
+                        if (response.data.status === 'success') {
+                            this.rowCount          = response.data.data.api_logs;
+                            this.rowCountThreshold = response.data.data.warning_threshold;
+                            this.rowCountWarning   = response.data.data.api_logs_exceeds_threshold;
+                        }
+                    } catch (e) {}
                 },
                 clearFilters() {
                     this.searchKeywords = '';

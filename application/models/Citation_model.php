@@ -245,8 +245,12 @@ class Citation_model extends CI_Model {
 		//$remove_list=$this->get_related_surveys($citationid);
 		
 		$this->db->select('surveys.id,surveys.idno,surveys.title, surveys.nation,year_start,year_end');
-		//$this->db->where('citationid!=', $citationid); 		
-		return $this->db->get('surveys')->result_array();
+		//$this->db->where('citationid!=', $citationid);
+		$query = $this->db->get('surveys');
+		if ($query === FALSE) {
+			return array();
+		}
+		return $query->result_array();
 	}
 
 

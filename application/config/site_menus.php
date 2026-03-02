@@ -97,6 +97,27 @@ $menu[]=array(
 		array(
 			'title'	=>'All reports',
 			'url'	=>'admin/reports'
+		),
+		array(
+				'type'	=>'divider'
+			),
+		array(
+			'title'	=>'Analytics reports',
+			'url'	=>'admin/analytics_reports'
+		),
+		array(
+				'type'	=>'divider'
+			),
+		array(
+			'title'	=>'API Logs',
+			'url'	=>'admin/api_logs'
+		),
+		array(
+				'type'	=>'divider'
+			),
+		array(
+			'title'	=>'Site Logs',
+			'url'	=>'admin/logs'
 		)
 	)
 );

@@ -195,11 +195,13 @@ $site_navigation_menu=get_site_menu();
     <div class="container-fluid">
         <div>             
              <!--breadcrumbs -->
+            <?php if (empty($hide_breadcrumb)): ?>
 			      <?php $breadcrumbs_str= $this->breadcrumb->to_string();?>
             <?php if ($breadcrumbs_str!=''):?>
                 <div id="breadcrumb" class="notabs">
                 <?php echo $breadcrumbs_str;?>
                 </div>
+            <?php endif;?>
             <?php endif;?>
                 
             <div id="content">

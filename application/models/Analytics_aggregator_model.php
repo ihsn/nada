@@ -668,6 +668,22 @@ class Analytics_aggregator_model extends CI_Model {
 				return $result;
 			}
 
+			// Keep daily rows for the immediately previous calendar month.
+			// The 7-day chart reads from analytics_daily_studies, so on the first days
+			// of a new month the chart window still spans the previous month. Deleting
+			// those rows immediately would leave gaps in the chart.
+			// The orphan-cleanup pass in find_unfinalized_previous_months() will pick
+			// these rows up and delete them one month later, once they are no longer
+			// needed by the rolling window.
+			$current_year  = (int)date('Y');
+			$current_month = (int)date('n');
+			$prev_year  = $current_month === 1 ? $current_year - 1 : $current_year;
+			$prev_month_num = $current_month === 1 ? 12 : $current_month - 1;
+			if ($year === $prev_year && $month === $prev_month_num) {
+				$result['retained'] = true;
+				return $result;
+			}
+
 			// Daily tables have 'date' (DATE), not year/month. Use first and last day of month.
 			$first_day = sprintf('%04d-%02d-01', $year, $month);
 			$last_day = date('Y-m-t', strtotime($first_day));

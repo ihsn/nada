@@ -160,6 +160,11 @@ $lang['continue']="Continue";
 $lang['back_to_login']="Back to login";
 $lang['choose_social_provider']="Choose your social login provider";
 
+$lang['local_mode_login_message']="Click the button below to sign in. No password is required (local/desktop mode).";
+$lang['local_mode_no_forgot_password']="Password recovery is not available in local mode.";
+$lang['local_mode_no_registration']="User registration is not available in local mode.";
+
+
 
 /* End of file users_lang.php */
 /* Location: ./application/language/english/users_lang.php */
