@@ -503,47 +503,6 @@ class Catalog_model extends CI_Model {
 
 	/**
 	*
-	* List of resources grouped by resource-type
-	*
-	*
-	*/
-	function get_grouped_resources_by_survey($sid)
-	{
-		$output=FALSE;
-		
-		//questionnaires
-		$result=$this->get_resources_by_type($sid,'doc/qst]');
-		if ($result)
-		{
-			$output['questionnaires']=$result;
-		}	
-
-		//reports
-		$result=$this->get_resources_by_type($sid,'doc/rep]');
-		if ($result)
-		{
-			$output['reports']=$result;
-		}			
-			
-		//technical documents
-		$result=$this->get_resources_by_type($sid,'doc/tec]');
-		if ($result)
-		{
-			$output['technical']=$result;
-		}					
-		
-		//other materials
-		$result=$this->get_resources_by_type($sid,'other');
-		if ($result)
-		{
-			$output['other']=$result;
-		}			
-
-		return $output;	
-	}
-
-	/**
-	*
 	* Get a list of citations for a survey by survey id
 	*
 	*/
@@ -555,32 +514,6 @@ class Catalog_model extends CI_Model {
 		return $this->db->get('citations')->result_array();
 	}
 
-	/**
-	*
-	* Return resource by survey and resource type
-	*
-	*/
-	function get_resources_by_type($sid,$dctype)
-	{
-		$this->db->select('*');
-		$this->db->where('survey_id',$sid);
-		
-		if ($dctype=='other')
-		{
-			//other materials
-			$this->db->not_like('dctype','doc/tec]');
-			$this->db->not_like('dctype','doc/rep]');
-			$this->db->not_like('dctype','doc/qst]');
-			$this->db->not_like('dctype','dat]');
-			$this->db->not_like('dctype','dat/micro]');
-		}
-		else
-		{
-			$this->db->like('dctype',$dctype);
-		}	
-		return $this->db->get('resources')->result_array();
-	}	
-	
 	/**
 	* Get survey external resources as RDF
 	*
@@ -1168,24 +1101,6 @@ class Catalog_model extends CI_Model {
 		return FALSE;
 	}
 
-	
-	/**
-	*
-	* Return resource count by survey and resource type
-	*
-	*/
-	function has_external_resources($sid)
-	{
-		$this->db->select('count(*) as total');
-		$this->db->where('survey_id',$sid);
-		$this->db->not_like('dctype','dat]');
-		$this->db->not_like('dctype','dat/micro]');
-		$result=$this->db->get('resources')->row_array();
-		
-		return $result['total'];
-	}
-
-	
 	
 	/**
 	* returns distinct values for the study field
