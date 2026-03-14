@@ -74,39 +74,103 @@ class Configurations extends MY_Controller {
 			}	
 		}
 
-		$content=$this->load->view('site_configurations/index', $settings,true);				
+		// Language settings for the view: available folders, current mapping, ISO list
+		$this->load->library('translator');
+		$settings['available_folders'] = $this->translator->get_languages_array();
+		$settings['lang_mapping']       = $this->config->item('language_codes');
+		if (!is_array($settings['lang_mapping']))
+		{
+			$settings['lang_mapping'] = array();
+		}
+		$this->config->load('iso_languages');
+		$settings['iso_languages'] = $this->config->item('iso_languages');
+		if (!is_array($settings['iso_languages']))
+		{
+			$settings['iso_languages'] = array();
+		}
+
+		$content=$this->load->view('site_configurations/index', $settings,true);
 		$this->template->write('content', $content,true);
 		$this->template->write('title', t('Site configurations'),true);
-	  	$this->template->render();	
+	  	$this->template->render();
 	}
-	
+
+	/**
+	 * Check if a language folder exists in application or userdata.
+	 */
+	private function _language_folder_exists($folder)
+	{
+		if (empty($folder) || !is_string($folder)) return FALSE;
+		if (file_exists(APPPATH.'language/'.$folder)) return TRUE;
+		$userdata = $this->config->item('userdata_path');
+		if (!empty($userdata) && is_dir($userdata.'/language/'.$folder)) return TRUE;
+		return FALSE;
+	}
+
 	function update()
 	{
-		$post=$_POST;
-		$options=array();
-		
-		foreach($post as $key=>$value)
-		{
-			$value=$this->security->xss_clean($value);
+		$post = $_POST;
+		$options = array();
 
-			if ($key=='language')
+		// Build supported_languages from lang_enabled + lang_code
+		$lang_enabled = $this->input->post('lang_enabled');
+		$lang_code   = $this->input->post('lang_code');
+		$this->config->load('iso_languages');
+		$iso_languages = $this->config->item('iso_languages');
+		if (!is_array($iso_languages)) $iso_languages = array();
+
+		$supported_languages = array();
+		if (is_array($lang_enabled))
+		{
+			foreach ($lang_enabled as $folder => $enabled)
 			{
-				//if language folder exists
-				if (file_exists(APPPATH.'language/'.$value))
+				if (empty($enabled)) continue;
+				$folder = trim($folder);
+				if ($folder === '') continue;
+				$code = isset($lang_code[$folder]) ? trim($lang_code[$folder]) : '';
+				$display  = ucfirst($folder);
+				$direction = 'ltr';
+				if ($code !== '' && isset($iso_languages[$code]))
 				{
-					$options[$key]=$value;
-				}				
-			}
-			else
-			{
-				$options[$key]=$value;
+					$display  = $iso_languages[$code]['display'];
+					$direction = isset($iso_languages[$code]['direction']) ? $iso_languages[$code]['direction'] : 'ltr';
+				}
+				$supported_languages[] = array(
+					'folder'    => $folder,
+					'display'   => $display,
+					'code'      => $code,
+					'direction' => $direction,
+				);
 			}
 		}
-		
-		$result=$this->Configurations_model->update($options);
+		// Upsert so the key is created if missing (model update() returns after first add)
+		$this->Configurations_model->upsert('supported_languages', json_encode($supported_languages));
+
+		foreach ($post as $key => $value)
+		{
+			if ($key === 'submit' || $key === 'lang_enabled' || $key === 'lang_code')
+			{
+				continue;
+			}
+			if (is_array($value)) continue;
+
+			$value = $this->security->xss_clean($value);
+
+			if ($key === 'language')
+			{
+				if ($this->_language_folder_exists($value))
+				{
+					$options[$key] = $value;
+				}
+				continue;
+			}
+			$options[$key] = $value;
+		}
+
+		$result = $this->Configurations_model->update($options);
 		if ($result)
 		{
-			$this->message= t('form_update_success');
+			$this->message = t('form_update_success');
 		}
 		else
 		{

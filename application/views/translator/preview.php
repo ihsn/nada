@@ -13,13 +13,13 @@
 	}
 ?>
 <?php if ($lang_key_found) :?>
-$lang['<?php echo $key;?>']="<?php echo str_replace('"','&quot;',$lang_value);?>";<?php echo "\n";?>
+$lang['<?php echo $key;?>']="<?php echo addslashes($lang_value);?>";<?php echo "\n";?>
 <?php endif;?>
 <?php endforeach;?>
 
 <?php if ($fill_missing):?>
 <?php foreach($missing as $key=>$value):?>
-$lang['<?php echo $key;?>']="<?php echo str_replace('"','&quot;',$value);?>";<?php echo "\n";?>
+$lang['<?php echo $key;?>']="<?php echo addslashes($value);?>";<?php echo "\n";?>
 <?php endforeach;?>
 <?php endif;?>
 

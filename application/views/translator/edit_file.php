@@ -1,6 +1,6 @@
 <div class="content" >
-
-<?php echo form_open();?>
+<form method="post">
+<input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>" value="<?php echo $this->security->get_csrf_hash(); ?>" />
 
 <?php if ($template_file!=''):?>
 	<table class="table table-striped" cellpadding="0" cellspacing="0">
@@ -29,31 +29,21 @@
         <td class="translation-key"><?php echo $key; ?></td>
         <td>
 			<div class="master-translation">
-            	<!--<textarea readonly="readonly" class="flex-master" rows="5"><?php echo (htmlspecialchars($value)); ?></textarea>-->
                 <?php echo nl2br(htmlspecialchars($value)); ?>
             </div>
-            
             <?php 
 				$lines = count(explode("\n", $edit_value));
-				if ($lines<2)
-				{
-					$lines=2;
-				}					
+				if ($lines<2) { $lines=2; }
 			?>
-			<?php //echo form_textarea(md5($key), set_value(NULL, $slave_value),'class="flex-textarea" rows="'.$lines.'"');?>
-			<?php //echo set_value('text', htmlspecialchars_decode($edit_value)); ?>
-			<textarea name="<?php echo md5($key);?>" class="form-control flex-textarea flex" rows="<?php echo $lines;?>"><?php echo set_value(md5($key), htmlspecialchars_decode($edit_value)); ?></textarea>
+			<textarea name="<?php echo nada_hash($key);?>" class="form-control flex-textarea flex" rows="<?php echo $lines;?>"><?php echo set_value(nada_hash($key), htmlspecialchars_decode($edit_value)); ?></textarea>
         </td>
         </tr>
-        <?php //break;?>
     <?php endforeach;?>
     </table>
 	<div><input class="btn btn-primary" type="submit" value="Save" name="save"/>  </div>
     <?php else:?>
-        <h1>How to use Translation editor</h1>
-        <p>Use the left pane to select the language and the translation file to start editing</p>
+        <h1><?php echo t('translator_help_title');?></h1>
+        <p><?php echo t('translator_help_text');?></p>
     <?php endif;?>
-
-<?php echo form_close();?>
-
+</form>
 </div>
