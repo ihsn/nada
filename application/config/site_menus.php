@@ -155,7 +155,7 @@ $menu[]=array(
 		),
 		array(
 			'type'	=>'divider'
-		),
+		),		
 		/*array(
 			'title'	=>'Vocabularies',
 			'url'	=>'admin/vocabularies'
@@ -166,6 +166,17 @@ $menu[]=array(
 	array(
 		'title'	=>'Facets',
 		'url'	=>'admin/facets'
+	),
+	array(
+		'type'	=>'divider'
+	),
+	array(
+		'title'	=>'External resource types',
+		'url'	=>'admin/dctypes'
+	),
+	array(
+		'title'	=>'Codelists',
+		'url'	=>'admin/codelists'
 	),
 	array(
 		'type'	=>'divider'

@@ -381,23 +381,215 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_surveys on [dbo].[surveys](
 
 CREATE TABLE dctypes (
   id int NOT NULL IDENTITY(1,1),
+  code varchar(64) NOT NULL,
   title varchar(255) NOT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  CONSTRAINT unq_dctypes_code UNIQUE (code)
 );
 
 
 --
 -- Dumping data for table dctypes
 --
-set IDENTITY_INSERT dctypes ON;
-INSERT INTO dctypes (id,title)
-VALUES (1,'Document, Administrative [doc/adm]'),(2,'Document, Analytical [doc/anl]'),(3,'Document, Other [doc/oth]'),(4,'Document, Questionnaire [doc/qst]'),(5,'Document, Reference [doc/ref]'),(6,'Document, Report [doc/rep]'),(7,'Document, Technical [doc/tec]'),(8,'Audio [aud]'),(9,'Database [dat]'),(10,'Map [map]'),(11,'Microdata File [dat/micro]'),(12,'Photo [pic]'),(13,'Program [prg]'),(14,'Table [tbl]'),(15,'Video [vid]'),(16,'Web Site [web]');
-set IDENTITY_INSERT dctypes OFF;
+SET IDENTITY_INSERT dctypes ON;
+INSERT INTO dctypes (id, code, title) VALUES
+(1,'doc/adm','Document, Administrative'),
+(2,'doc/anl','Document, Analytical'),
+(3,'doc/oth','Document, Other'),
+(4,'doc/qst','Document, Questionnaire'),
+(5,'doc/ref','Document, Reference'),
+(6,'doc/rep','Document, Report'),
+(7,'doc/tec','Document, Technical'),
+(8,'aud','Audio'),
+(9,'dat','Database'),
+(10,'map','Map'),
+(11,'dat/micro','Microdata File'),
+(12,'pic','Photo'),
+(13,'prg','Program'),
+(14,'tbl','Table'),
+(15,'vid','Video'),
+(16,'web','Web Site'),
+(17,'dat/geo','Data, Geospatial'),
+(18,'dat/table','Data, Table'),
+(19,'dat/doc','Data, Document');
+SET IDENTITY_INSERT dctypes OFF;
 
--- additional types
-INSERT INTO dctypes (title) VALUES ('Data, Geospatial [dat/geo]');
-INSERT INTO dctypes (title) VALUES ('Data, Table [dat/table]');
-INSERT INTO dctypes (title) VALUES ('Data, Document [dat/doc]');
+--
+-- Table structure for table dctype_translations
+--
+
+CREATE TABLE dctype_translations (
+  id int NOT NULL IDENTITY(1,1),
+  dctype_id int NOT NULL,
+  lang varchar(32) NOT NULL,
+  title varchar(255) NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_dctype_lang UNIQUE (dctype_id, lang),
+  CONSTRAINT fk_dctype_translations_dctype FOREIGN KEY (dctype_id) REFERENCES dctypes (id) ON DELETE CASCADE
+);
+CREATE INDEX idx_dctype_translations_lang ON dctype_translations (lang);
+
+--
+-- Dumping data for table dctype_translations (English from dctypes.title)
+--
+SET IDENTITY_INSERT dctype_translations ON;
+INSERT INTO dctype_translations (id, dctype_id, lang, title) VALUES
+(1,1,'en','Document, Administrative'),
+(2,2,'en','Document, Analytical'),
+(3,3,'en','Document, Other'),
+(4,4,'en','Document, Questionnaire'),
+(5,5,'en','Document, Reference'),
+(6,6,'en','Document, Report'),
+(7,7,'en','Document, Technical'),
+(8,8,'en','Audio'),
+(9,9,'en','Database'),
+(10,10,'en','Map'),
+(11,11,'en','Microdata File'),
+(12,12,'en','Photo'),
+(13,13,'en','Program'),
+(14,14,'en','Table'),
+(15,15,'en','Video'),
+(16,16,'en','Web Site'),
+(17,17,'en','Data, Geospatial'),
+(18,18,'en','Data, Table'),
+(19,19,'en','Data, Document');
+SET IDENTITY_INSERT dctype_translations OFF;
+
+--
+-- Table structure for table codelists
+--
+
+CREATE TABLE codelists (
+  id int NOT NULL IDENTITY(1,1),
+  name varchar(64) NOT NULL,
+  description varchar(255) DEFAULT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_codelists_name UNIQUE (name)
+);
+
+CREATE TABLE codelist_item (
+  id int NOT NULL IDENTITY(1,1),
+  codelist_id int NOT NULL,
+  parent_id int DEFAULT NULL,
+  code varchar(64) NOT NULL,
+  title varchar(255) DEFAULT NULL,
+  sort_order int NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_codelist_item_code UNIQUE (codelist_id, code),
+  CONSTRAINT fk_codelist_item_codelist FOREIGN KEY (codelist_id) REFERENCES codelists (id) ON DELETE CASCADE,
+  CONSTRAINT fk_codelist_item_parent FOREIGN KEY (parent_id) REFERENCES codelist_item (id) ON DELETE SET NULL
+);
+CREATE INDEX idx_codelist_item_parent ON codelist_item (parent_id);
+CREATE INDEX idx_codelist_item_sort ON codelist_item (codelist_id, sort_order);
+
+CREATE TABLE codelist_item_translation (
+  id int NOT NULL IDENTITY(1,1),
+  codelist_item_id int NOT NULL,
+  lang varchar(32) NOT NULL,
+  title varchar(255) NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_codelist_item_trans UNIQUE (codelist_item_id, lang),
+  CONSTRAINT fk_codelist_item_trans_item FOREIGN KEY (codelist_item_id) REFERENCES codelist_item (id) ON DELETE CASCADE
+);
+CREATE INDEX idx_codelist_item_trans_lang ON codelist_item_translation (lang);
+
+CREATE TABLE codelist_group (
+  id int NOT NULL IDENTITY(1,1),
+  codelist_id int NOT NULL,
+  name varchar(64) NOT NULL,
+  sort_order int NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_codelist_group_name UNIQUE (codelist_id, name),
+  CONSTRAINT fk_codelist_group_codelist FOREIGN KEY (codelist_id) REFERENCES codelists (id) ON DELETE CASCADE
+);
+CREATE INDEX idx_codelist_group_sort ON codelist_group (codelist_id, sort_order);
+
+CREATE TABLE codelist_group_item (
+  id int NOT NULL IDENTITY(1,1),
+  codelist_group_id int NOT NULL,
+  codelist_item_id int NOT NULL,
+  sort_order int NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_codelist_group_item UNIQUE (codelist_group_id, codelist_item_id),
+  CONSTRAINT fk_codelist_grp_item_grp FOREIGN KEY (codelist_group_id) REFERENCES codelist_group (id) ON DELETE CASCADE,
+  CONSTRAINT fk_codelist_grp_item_item FOREIGN KEY (codelist_item_id) REFERENCES codelist_item (id) ON DELETE CASCADE
+);
+
+CREATE TABLE codelist_group_translation (
+  id int NOT NULL IDENTITY(1,1),
+  codelist_group_id int NOT NULL,
+  lang varchar(32) NOT NULL,
+  title varchar(255) NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_codelist_group_trans UNIQUE (codelist_group_id, lang),
+  CONSTRAINT fk_codelist_group_trans_grp FOREIGN KEY (codelist_group_id) REFERENCES codelist_group (id) ON DELETE CASCADE
+);
+CREATE INDEX idx_codelist_group_trans_lang ON codelist_group_translation (lang);
+
+--
+-- Dumping data for codelists (dctypes codelist + default groups)
+--
+SET IDENTITY_INSERT codelists ON;
+INSERT INTO codelists (id, name, description) VALUES (1,'dctypes','Resource types (external resources)');
+SET IDENTITY_INSERT codelists OFF;
+
+SET IDENTITY_INSERT codelist_item ON;
+INSERT INTO codelist_item (id, codelist_id, parent_id, code, title, sort_order) VALUES
+(1,1,NULL,'doc/adm','Document, Administrative',0),
+(2,1,NULL,'doc/anl','Document, Analytical',10),
+(3,1,NULL,'doc/oth','Document, Other',20),
+(4,1,NULL,'doc/qst','Document, Questionnaire',30),
+(5,1,NULL,'doc/ref','Document, Reference',40),
+(6,1,NULL,'doc/rep','Document, Report',50),
+(7,1,NULL,'doc/tec','Document, Technical',60),
+(8,1,NULL,'aud','Audio',70),
+(9,1,NULL,'dat','Database',80),
+(10,1,NULL,'map','Map',90),
+(11,1,NULL,'dat/micro','Microdata File',100),
+(12,1,NULL,'pic','Photo',110),
+(13,1,NULL,'prg','Program',120),
+(14,1,NULL,'tbl','Table',130),
+(15,1,NULL,'vid','Video',140),
+(16,1,NULL,'web','Web Site',150),
+(17,1,NULL,'dat/geo','Data, Geospatial',160),
+(18,1,NULL,'dat/table','Data, Table',170),
+(19,1,NULL,'dat/doc','Data, Document',180);
+SET IDENTITY_INSERT codelist_item OFF;
+
+INSERT INTO codelist_item_translation (codelist_item_id, lang, title) VALUES
+(1,'en','Document, Administrative'),
+(2,'en','Document, Analytical'),
+(3,'en','Document, Other'),
+(4,'en','Document, Questionnaire'),
+(5,'en','Document, Reference'),
+(6,'en','Document, Report'),
+(7,'en','Document, Technical'),
+(8,'en','Audio'),
+(9,'en','Database'),
+(10,'en','Map'),
+(11,'en','Microdata File'),
+(12,'en','Photo'),
+(13,'en','Program'),
+(14,'en','Table'),
+(15,'en','Video'),
+(16,'en','Web Site'),
+(17,'en','Data, Geospatial'),
+(18,'en','Data, Table'),
+(19,'en','Data, Document');
+
+SET IDENTITY_INSERT codelist_group ON;
+INSERT INTO codelist_group (id, codelist_id, name, sort_order) VALUES
+(1,1,'questionnaires',10),
+(2,1,'reports',20),
+(3,1,'technical',30),
+(4,1,'reproducible',40),
+(5,1,'final',50);
+SET IDENTITY_INSERT codelist_group OFF;
+
+INSERT INTO codelist_group_item (codelist_group_id, codelist_item_id, sort_order) VALUES
+(1,4,0),
+(2,6,0),
+(3,7,0);
 
 --
 -- Table structure for table da_collections

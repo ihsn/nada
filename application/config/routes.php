@@ -222,6 +222,24 @@ $route['api/db_logs/api_logs/files']         = "api/db_logs/api_logs_files";
 // Dashboard API
 $route['api/dashboard/stats'] = "api/dashboard/stats";
 
+// Admin Dctypes API (must be before generic api/admin/dctypes/(:num))
+$route['api/admin/dctypes/(:num)/translations/(:any)'] = 'api/admin/dctypes/translation/$1/$2';
+$route['api/admin/dctypes/(:num)/translations']        = 'api/admin/dctypes/translations/$1';
+$route['api/admin/dctypes/(:num)']                    = 'api/admin/dctypes/item/$1';
+
+// Admin Codelists API (nested routes first)
+$route['api/admin/codelists/item/(:num)/items']           = 'api/admin/codelists/item_items/$1';
+$route['api/admin/codelists/item/(:num)/groups']          = 'api/admin/codelists/item_groups/$1';
+$route['api/admin/codelists/items/(:num)/translations/(:any)'] = 'api/admin/codelists/items_translation/$1/$2';
+$route['api/admin/codelists/items/(:num)/translations']   = 'api/admin/codelists/items_translations/$1';
+$route['api/admin/codelists/groups/(:num)/items/(:num)']   = 'api/admin/codelists/groups_items_remove/$1/$2';
+$route['api/admin/codelists/groups/(:num)/items']         = 'api/admin/codelists/groups_items/$1';
+$route['api/admin/codelists/groups/(:num)/translations/(:any)'] = 'api/admin/codelists/groups_translation/$1/$2';
+$route['api/admin/codelists/groups/(:num)/translations'] = 'api/admin/codelists/groups_translations/$1';
+$route['api/admin/codelists/item/(:num)']                = 'api/admin/codelists/item/$1';
+$route['api/admin/codelists/items/(:num)']                = 'api/admin/codelists/items/$1';
+$route['api/admin/codelists/groups/(:num)']               = 'api/admin/codelists/groups/$1';
+
 // API Logs Admin Page
 $route['admin/api_logs'] = "admin/logs/api_logs";
 
