@@ -193,5 +193,7 @@ $lang['msg_reopen_request'] = "<p>User <b>%s</b> has requested to reopen the pro
 <p>Reason for project reopen: <b>%s</b></p>
 ";
 
+$lang['permissions_denied'] = "Permissions denied!";
+
 /* End of file projects_lang.php */
 /* Location: ./system/language/english/projects_lang.php */

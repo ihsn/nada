@@ -55,19 +55,40 @@
 		
 		//send email
 		$('#send_email').click(function() {
-			$.post( "<?php echo site_url('datadeposit/email_summary/');?>", 
-				{ 
+
+			if (! $("#share_email").val()) {
+				alert('Email address is required');
+				return false;
+			}
+
+			$.ajax({
+				dataType: "json",
+				data:{
 					'<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>',
 					email: $("#share_email").val(),
 					pid: <?php echo $project[0]->id; ?>
-			} );
-			$("#email-project").hide();
+				},
+				type:'POST',
+				url: "<?php echo site_url('datadeposit/email_summary/');?>",
+				success: function(data) {
+					if (data.success){
+						$("#email-project").hide();
+						$("#share_email").val('');
+						alert(data.success);
+					} else {
+						alert(data.error);
+					}
+				},
+				error: function(XHR, textStatus, thrownError) {
+					alert(XHR.error);
+				}
+			});
 		});
-		
+
 		<?php if ($this->input->post("submit_project")):?>
 			//select submit tab
 			$('#tabs').tabs( "option", "active", 1 );
 		<?php endif;?>
-		
+
 	});
 </script>    
