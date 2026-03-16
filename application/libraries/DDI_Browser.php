@@ -340,26 +340,17 @@ class DDI_Browser{
 		return $output;
 	}
 	
-	function get_resources_by_type($surveyid,$dctype)
+	/**
+	 * Return resources by survey and type. Delegates to Survey_resource_model (resource_type-based filtering).
+	 *
+	 * @param int    $surveyid Survey ID
+	 * @param string $dctype   Type code (e.g. 'doc/qst', 'final'), or 'other', or "Label [code]"
+	 * @return array
+	 */
+	function get_resources_by_type($surveyid, $dctype)
 	{
-		$this->ci->db->select('*');
-		$this->ci->db->where('survey_id',$surveyid);
-		
-		if ($dctype=='other')
-		{
-			//other materials
-			$this->ci->db->not_like('dctype','doc/tec]');
-			$this->ci->db->not_like('dctype','doc/rep]');
-			$this->ci->db->not_like('dctype','doc/qst]');
-			$this->ci->db->not_like('dctype','dat]');
-			$this->ci->db->not_like('dctype','dat/micro]');
-			$this->ci->db->not_like('dctype','doc/anl]');
-		}
-		else
-		{
-			$this->ci->db->like('dctype',$dctype);
-		}	
-		return $this->ci->db->get('resources')->result_array();
+		$this->ci->load->model('Survey_resource_model');
+		return $this->ci->Survey_resource_model->get_resources_by_type($surveyid, $dctype);
 	}	
 	
 	/**

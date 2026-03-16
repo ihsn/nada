@@ -1,0 +1,1 @@
+import{_ as n,o as p,k as s,l as t,B as a}from"./_plugin-vue_export-helper-Cb7nWlAb.js";const o={name:"App"};function r(l,e,u,m,_,d){return p(),s("div",null,[...e[0]||(e[0]=[t("h1",null,"Admin Test Page",-1),t("p",null,"This is a test page for Vue 3 integration.",-1)])])}const c=n(o,[["render",r]]),i=a(c);i.mount("#app");

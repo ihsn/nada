@@ -13,7 +13,7 @@ class Attach_related_data extends MY_Controller {
   {
 		parent::__construct();
 
-		$this->load->model('Catalog_admin_search_model');
+		$this->load->model('Catalog_admin_search');
 		$this->load->model("Related_study_model");
 		$this->load->model("Catalog_model");
 
@@ -77,27 +77,10 @@ class Attach_related_data extends MY_Controller {
 		}
 
 		//comma seperated list of excluded studies
-		$excluded= array();
+		$excluded = array();
 
 		//current page
 		$offset=$this->input->get('per_page');//$this->uri->segment(4);
-
-		//filter to further limit search
-		$filter=array();
-
-		//exclude studies
-		if(count($excluded)>0){
-			$filter=array(sprintf('surveys.id not in (%s)',implode(",",$excluded)));
-		}
-
-
-		if($this->input->get("show_selected_only")==1){
-			$selected_items=$this->get_items($skey,'selected');
-
-			if(count($selected_items)>0){
-				array_push($filter, sprintf('surveys.id in (%s)',implode(",", $selected_items) ));
-			}
-		}
 
 		$allowed_fields=array('title','nation','idno','year_start','authoring_entity');
 		$field=$this->input->get("field");
@@ -108,19 +91,29 @@ class Attach_related_data extends MY_Controller {
 			$search_options[$field]=$keywords;
 		}
 
-		$this->Catalog_admin_search_model->set_active_repo('');
+		if (count($excluded) > 0) {
+			$search_options['exclude_survey_ids'] = $excluded;
+		}
+		if ($this->input->get("show_selected_only") == 1) {
+			$selected_items = $this->get_items($skey, 'selected');
+			if (count($selected_items) > 0) {
+				$search_options['only_survey_ids'] = $selected_items;
+			}
+		}
+
+		$this->Catalog_admin_search->set_active_repo('');
 
 		//survey rows
-		$data['rows']=$this->Catalog_admin_search_model->search($search_options,$limit,$offset, $filter);
+		$data['rows']=$this->Catalog_admin_search->search($search_options,$limit,$offset);
 
 		//total records in the db
-		$total = $this->Catalog_admin_search_model->search_count;
+		$total = $this->Catalog_admin_search->get_search_count();
 
 		if ($offset>$total){
 			$offset=0;//$total-$limit;
 			$limit=15;
 			//search again
-			$data['rows']=$this->Catalog_admin_search_model->search($search_options,$limit, $offset,$filter);
+			$data['rows']=$this->Catalog_admin_search->search($search_options,$limit, $offset);
 		}
 
 

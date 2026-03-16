@@ -164,7 +164,7 @@
 								},
 								"value": {
 									"type": [
-										"integer",
+										"number",
 										"string"
 									],
 									"title": "Value"

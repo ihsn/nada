@@ -19,7 +19,7 @@ class Catalog extends MY_Controller {
 		$this->load->model('Repository_model');
 		$this->load->model('Citation_model');
 		$this->load->model('Search_helper_model');
-		$this->load->model('Catalog_admin_search_model');
+		$this->load->model('Catalog_admin_search');
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
@@ -65,13 +65,6 @@ class Catalog extends MY_Controller {
 	function index()
 	{
 		$this->template->set_template('admin5');
-		//css files
-		$inline_styles=$this->load->view('catalog/catalog_style',NULL, TRUE);
-		$this->template->add_css($inline_styles,'embed');
-
-		//js files
-		$this->template->add_js('var site_url="'.site_url().'";','embed');
-		$this->template->add_js('javascript/catalog_admin.js');
 
 		//set filter on active repo
 		if (isset($this->active_repo) && $this->active_repo!=null){
@@ -80,44 +73,22 @@ class Catalog extends MY_Controller {
 
 		$this->acl_manager->has_access_or_die('study', 'view',null,$this->active_repo->repositoryid);
 
-		//get surveys
-		$db_rows=$this->_search();
+		// Vue 3 admin catalog: config for the frontend (Vite/Vue 3)
+		// assets_base is the URL base for frontend/dist (from PHP base_url)
+		$this->load->helper('vite_helper');
+		$catalog_view_data = [
+			'active_repo' => isset($this->active_repo->repositoryid) ? $this->active_repo->repositoryid : '',
+			'api_base_url' => site_url('api/admin/catalog/'),
+			'site_url' => site_url(),
+			'base_url' => base_url(),
+			'csrf_token' => $this->security->get_csrf_hash(),
+			'assets_base' => base_url('frontend/dist/'),
+			'translations' => $this->lang->language //all loaded language strings
+		];
 
-		//get survey tags
-		$this->catalog_tags=$this->Catalog_model->get_all_survey_tags($this->active_repo->repositoryid);
-
-		//get country list for filter
-		$this->catalog_countries=$this->Catalog_model->get_all_survey_countries($this->active_repo->repositoryid);
-
-		//data access types
-		$this->data_access_types=$this->Form_model->get_all();
-		//data types
-		$this->catalog_data_types=$this->Search_helper_model->get_dataset_types($this->active_repo->repositoryid);
-
-		if ($db_rows['rows'])
-		{
-			$sid_list=array();
-			foreach($db_rows['rows'] as $row)
-			{
-				$sid_list[]=$row['id'];
-			}
-
-			//get citations per study
-			$citations=$this->Citation_model->get_citations_count_by_survey_list($sid_list);
-
-			foreach($db_rows['rows'] as $key=>$row)
-			{
-				if (array_key_exists($row['id'],$citations))
-				{
-					$db_rows['rows'][$key]['citations']=$citations[$row['id']];
-				}
-			}
-		}
-
-		$db_rows['active_repo_obj']=$this->active_repo;
-		$content=$this->load->view('catalog/index', $db_rows,true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
+		$content = $this->load->view('admin/catalog/index', $catalog_view_data, true);
+		$this->template->write('content', $content, true);
+		$this->template->render();
 	}
 
 
@@ -170,10 +141,10 @@ class Catalog extends MY_Controller {
 			$search_options[$key]=$this->input->get($key,TRUE);
 		}
 
-		$this->Catalog_admin_search_model->set_active_repo($this->active_repo->repositoryid);
+		$this->Catalog_admin_search->set_active_repo($this->active_repo->repositoryid);
 
 		//survey rows
-		$surveys=$this->Catalog_admin_search_model->search($search_options,$per_page,$curr_page, $filter);
+		$surveys=$this->Catalog_admin_search->search($search_options,$per_page,$curr_page);
 		$survey_id_array=array();
 
 		if(is_array($surveys))
@@ -209,14 +180,14 @@ class Catalog extends MY_Controller {
 		$data['rows']=$surveys;
 
 		//total records in the db
-		$total = $this->Catalog_admin_search_model->search_count;
+		$total = $this->Catalog_admin_search->get_search_count();
 
 		if ($curr_page>$total)
 		{
 			$curr_page=$total-$per_page;
 
 			//search again
-			$data['rows']=$this->Catalog_admin_search_model->search($search_options,$per_page,$curr_page, $filter);
+			$data['rows']=$this->Catalog_admin_search->search($search_options,$per_page,$curr_page);
 		}
 
 		//set pagination options

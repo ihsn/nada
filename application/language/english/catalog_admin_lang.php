@@ -173,6 +173,40 @@ $lang['select_study_thumbnail']='Select image file (PNG, JPG, JPEG, GIF)';
 $lang['Thumbnal']='Thumbnail';
 $lang['Upload thumbnal']='Upload thumbnail';
 
+// Admin catalog Vue app
+$lang['filter_by_idno_placeholder']='Filter by Study ID...';
+$lang['apply_filters']='Apply Filters';
+$lang['data_types']='Data Types';
+$lang['search_keywords_placeholder']='Search keywords (press Enter)';
+$lang['showing_studies_range']='Showing %s - %s of %s studies';
+$lang['batch_actions']='Batch actions';
+$lang['sort_title_asc']='Title (A-Z)';
+$lang['sort_title_desc']='Title (Z-A)';
+$lang['sort_country_asc']='Country (A-Z)';
+$lang['sort_country_desc']='Country (Z-A)';
+$lang['sort_id_asc']='ID (asc)';
+$lang['sort_id_desc']='ID (desc)';
+$lang['sort_idno_asc']='Study ID (A-Z)';
+$lang['sort_idno_desc']='Study ID (Z-A)';
+$lang['sort_modified_desc']='Recent (Modified)';
+$lang['sort_modified_asc']='Oldest (Modified)';
+$lang['sort_created_desc']='Newest (Created)';
+$lang['sort_created_asc']='Oldest (Created)';
+$lang['created']='Created';
+$lang['last_changed']='Last changed';
+$lang['changed_by']='Changed by';
+$lang['edit']='Edit';
+$lang['owner_repository']='Owner repository';
+$lang['pending']='Pending';
+$lang['no_selection']='No selection';
+$lang['select_at_least_one_study']='Please select at least one study.';
+$lang['confirm']='Confirm';
+$lang['confirm_message']='Are you sure you want to continue?';
+$lang['partially_completed']='Partially completed';
+$lang['batch_failed_count']='%s of %s failed. Check the console for details.';
+$lang['confirm_set_study_status']='Set this study to %s?';
+$lang['search_placeholder']='Search %s...';
+
 
 /* End of file catalog_admin_lang.php */
 /* Location: ./application/language/english/catalog_admin_lang.php */

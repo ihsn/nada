@@ -12,7 +12,7 @@ class Dialog_select_studies extends MY_Controller {
     public function __construct()
     {
         parent::__construct();
-       	$this->load->model('Catalog_admin_search_model');
+       	$this->load->model('Catalog_admin_search');
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
@@ -71,58 +71,51 @@ class Dialog_select_studies extends MY_Controller {
 		}
 		
 		//comma seperated list of excluded studies
-		$excluded= $this->get_items($skey,'excluded');		
-				
+		$excluded= $this->get_items($skey,'excluded');
+
 		//current page
 		$offset=$this->input->get('per_page');//$this->uri->segment(4);
 
-		//filter to further limit search
-		$filter=array();
-		
-		//exclude studies
-		if(count($excluded)>0)
-		{
-			$filter=array(	
-						sprintf('surveys.id not in (%s)',implode(",",$excluded))
-						);
-		}
-
-		
-		if($this->input->get("show_selected_only")==1)
-		{
-			$selected_items=$this->get_items($skey,'selected');
-			if(count($selected_items)>0)
-			{
-				array_push($filter, sprintf('surveys.id in (%s)',implode(",", $selected_items) ));
-			}	
-		}
-		
-		
 		$allowed_fields=array('titl','nation','surveyid','proddate','authenty');
-		
 		$field=$this->input->get("field");
 		$keywords=$this->input->get("keywords");
-		
+
 		$search_options=array();
 		if (in_array($field,$allowed_fields))
 		{
-			$search_options[$field]=$keywords;
+			if ($field === 'titl') {
+				$search_options['title'] = $keywords;
+			} elseif ($field === 'surveyid') {
+				$search_options['idno'] = $keywords;
+			} else {
+				$search_options[$field]=$keywords;
+			}
 		}
-		
-		$this->Catalog_admin_search_model->set_active_repo('');
-		
+
+		if (count($excluded) > 0) {
+			$search_options['exclude_survey_ids'] = $excluded;
+		}
+		if ($this->input->get("show_selected_only") == 1) {
+			$selected_items = $this->get_items($skey, 'selected');
+			if (count($selected_items) > 0) {
+				$search_options['only_survey_ids'] = $selected_items;
+			}
+		}
+
+		$this->Catalog_admin_search->set_active_repo('');
+
 		//survey rows
-		$data['rows']=$this->Catalog_admin_search_model->search($search_options,$limit,$offset, $filter);
+		$data['rows']=$this->Catalog_admin_search->search($search_options,$limit,$offset);
 
 		//total records in the db
-		$total = $this->Catalog_admin_search_model->search_count;
+		$total = $this->Catalog_admin_search->get_search_count();
 
 		if ($offset>$total)
 		{
 			$offset=0;//$total-$limit;
 			$limit=15;
 			//search again
-			$data['rows']=$this->Catalog_admin_search_model->search($search_options,$limit, $offset,$filter);
+			$data['rows']=$this->Catalog_admin_search->search($search_options,$limit, $offset);
 		}
 		
 		
