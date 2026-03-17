@@ -136,6 +136,13 @@ $menu[]=array(
 			'type'	=>'divider'
 		),
 		array(
+			'title'	=>'File manager',
+			'url'	=>'admin/filestore'
+		),
+		array(
+			'type'	=>'divider'
+		),
+		array(
 			'title'	=>'Regions',
 			'url'	=>'admin/Regions'
 		),
