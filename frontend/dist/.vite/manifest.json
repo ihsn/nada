@@ -1,0 +1,89 @@
+{
+  "_VMain-B4voAa0Z.js": {
+    "file": "assets/VMain-B4voAa0Z.js",
+    "name": "VMain",
+    "imports": [
+      "__plugin-vue_export-helper-Cb7nWlAb.js"
+    ],
+    "css": [
+      "assets/VMain-CIv52OBw.css"
+    ],
+    "assets": [
+      "assets/materialdesignicons-webfont-CSr8KVlo.eot",
+      "assets/materialdesignicons-webfont-Dp5v-WZN.woff2",
+      "assets/materialdesignicons-webfont-PXm3-2wK.woff",
+      "assets/materialdesignicons-webfont-B7mPwVP_.ttf"
+    ]
+  },
+  "_VMain-CIv52OBw.css": {
+    "file": "assets/VMain-CIv52OBw.css",
+    "src": "_VMain-CIv52OBw.css"
+  },
+  "__plugin-vue_export-helper-Cb7nWlAb.js": {
+    "file": "assets/_plugin-vue_export-helper-Cb7nWlAb.js",
+    "name": "_plugin-vue_export-helper"
+  },
+  "admin/catalog/main.js": {
+    "file": "assets/admin_catalog-D229q5r4.js",
+    "name": "admin_catalog",
+    "src": "admin/catalog/main.js",
+    "isEntry": true,
+    "imports": [
+      "_VMain-B4voAa0Z.js",
+      "__plugin-vue_export-helper-Cb7nWlAb.js"
+    ],
+    "css": [
+      "assets/admin_catalog-ELXdHVrr.css"
+    ]
+  },
+  "admin/collections/main.js": {
+    "file": "assets/admin_collections-bP3I9koT.js",
+    "name": "admin_collections",
+    "src": "admin/collections/main.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue_export-helper-Cb7nWlAb.js"
+    ],
+    "css": [
+      "assets/admin_collections-tn0RQdqM.css"
+    ]
+  },
+  "admin/dctypes/main.js": {
+    "file": "assets/admin_dctypes-Dk0Y1sPM.js",
+    "name": "admin_dctypes",
+    "src": "admin/dctypes/main.js",
+    "isEntry": true,
+    "imports": [
+      "_VMain-B4voAa0Z.js",
+      "__plugin-vue_export-helper-Cb7nWlAb.js"
+    ],
+    "css": [
+      "assets/admin_dctypes-BKUmQQkA.css"
+    ]
+  },
+  "admin/test/main.js": {
+    "file": "assets/admin_test-B_mu6BFE.js",
+    "name": "admin_test",
+    "src": "admin/test/main.js",
+    "isEntry": true,
+    "imports": [
+      "__plugin-vue_export-helper-Cb7nWlAb.js"
+    ]
+  },
+  "node_modules/@mdi/font/fonts/materialdesignicons-webfont.eot": {
+    "file": "assets/materialdesignicons-webfont-CSr8KVlo.eot",
+    "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.eot"
+  },
+  "node_modules/@mdi/font/fonts/materialdesignicons-webfont.ttf": {
+    "file": "assets/materialdesignicons-webfont-B7mPwVP_.ttf",
+    "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.ttf"
+  },
+  "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff": {
+    "file": "assets/materialdesignicons-webfont-PXm3-2wK.woff",
+    "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff"
+  },
+  "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff2": {
+    "file": "assets/materialdesignicons-webfont-Dp5v-WZN.woff2",
+    "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff2"
+  }
+}
