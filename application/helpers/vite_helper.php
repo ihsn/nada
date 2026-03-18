@@ -192,25 +192,54 @@ if (!function_exists('get_vite_entry_assets')) {
             return $assets;
         }
         
-        // Add main file
-        if (isset($entry_data['file'])) {
-            $file_url = base_url($dist_path . '/' . $entry_data['file']);
-            $extension = strtolower(pathinfo($entry_data['file'], PATHINFO_EXTENSION));
-            
-            switch ($extension) {
-                case 'css':
-                    $assets['css'][] = $file_url;
-                    break;
-                case 'js':
-                    $assets['js'][] = $file_url;
-                    break;
+        // Collect CSS from this entry and all imported chunks (e.g. VMain's VMain-CIv52OBw.css)
+        $seen_css = [];
+        $collect_css_from_chunk = function ($chunk_key) use ($manifest, $dist_path, &$collect_css_from_chunk, &$seen_css) {
+            $urls = [];
+            if (!isset($manifest[$chunk_key])) {
+                return $urls;
+            }
+            $data = $manifest[$chunk_key];
+            if (isset($data['css'])) {
+                foreach ($data['css'] as $css_file) {
+                    if (!isset($seen_css[$css_file])) {
+                        $seen_css[$css_file] = true;
+                        $urls[] = base_url($dist_path . '/' . $css_file);
+                    }
+                }
+            }
+            if (isset($data['imports'])) {
+                foreach ($data['imports'] as $imp) {
+                    foreach ($collect_css_from_chunk($imp) as $u) {
+                        $urls[] = $u;
+                    }
+                }
+            }
+            return $urls;
+        };
+        // CSS from imported chunks first (e.g. _VMain-B4voAa0Z.js -> VMain-CIv52OBw.css), then entry's own
+        if (isset($entry_data['imports'])) {
+            foreach ($entry_data['imports'] as $imp) {
+                foreach ($collect_css_from_chunk($imp) as $u) {
+                    $assets['css'][] = $u;
+                }
+            }
+        }
+        if (isset($entry_data['css'])) {
+            foreach ($entry_data['css'] as $css_file) {
+                if (!isset($seen_css[$css_file])) {
+                    $seen_css[$css_file] = true;
+                    $assets['css'][] = base_url($dist_path . '/' . $css_file);
+                }
             }
         }
         
-        // Add CSS files
-        if (isset($entry_data['css'])) {
-            foreach ($entry_data['css'] as $css_file) {
-                $assets['css'][] = base_url($dist_path . '/' . $css_file);
+        // Add main JS file
+        if (isset($entry_data['file'])) {
+            $file_url = base_url($dist_path . '/' . $entry_data['file']);
+            $extension = strtolower(pathinfo($entry_data['file'], PATHINFO_EXTENSION));
+            if ($extension === 'js') {
+                $assets['js'][] = $file_url;
             }
         }
         
