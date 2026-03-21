@@ -205,7 +205,10 @@ class catalog_search_opensearch
             return ['found' => 0, 'total' => 0, 'limit' => $limit, 'offset' => $offset, 'rows' => []];
         }
 
-        $filters = [['term' => ['survey_id' => $sid]]];
+        $filters = [
+            ['term' => ['survey_id'        => $sid]],
+            ['term' => ['survey_published' => 1]],
+        ];
         $bool    = ['filter' => $filters];
 
         $fulltext = $this->build_variable_fulltext_clause($this->study_keywords);
@@ -262,7 +265,9 @@ class catalog_search_opensearch
 
     private function build_variable_query(int $limit, int $offset): array
     {
-        $filters = [];
+        $filters = [
+            ['term' => ['survey_published' => 1]],
+        ];
 
         // Year range
         $from = (int)($this->from ?? 0);

@@ -398,37 +398,38 @@ class Search_helper_model extends CI_Model {
 
 	/**
 	 * Build WHERE conditions for variable facet queries based on active search filters.
-	 * Each facet method passes $exclude to omit its own filter 
+	 * Each facet method passes $exclude to omit its own filter.
 	 *
 	 * @param array  $filters  Keys: from, to, country[], dtype[], type[]
 	 * @param string $exclude  Which filter to skip: 'country', 'dtype', or 'type'
+	 * @param string $alias    Table alias for surveys (default: 'surveys')
 	 */
-	private function _apply_variable_facet_filters($filters, $exclude = null)
+	private function _apply_variable_facet_filters($filters, $exclude = null, $alias = 'surveys')
 	{
 		// Year range
 		$from = isset($filters['from']) ? (int)$filters['from'] : 0;
 		$to   = isset($filters['to'])   ? (int)$filters['to']   : 0;
 		if ($from > 0 && $to > 0) {
-			$this->db->where("surveys.id IN (SELECT sid FROM survey_years WHERE data_coll_year BETWEEN $from AND $to)", null, false);
+			$this->db->where("$alias.id IN (SELECT sid FROM survey_years WHERE data_coll_year BETWEEN $from AND $to)", null, false);
 		} elseif ($from > 0) {
-			$this->db->where("surveys.id IN (SELECT sid FROM survey_years WHERE data_coll_year >= $from)", null, false);
+			$this->db->where("$alias.id IN (SELECT sid FROM survey_years WHERE data_coll_year >= $from)", null, false);
 		} elseif ($to > 0) {
-			$this->db->where("surveys.id IN (SELECT sid FROM survey_years WHERE data_coll_year > 0 AND data_coll_year <= $to)", null, false);
+			$this->db->where("$alias.id IN (SELECT sid FROM survey_years WHERE data_coll_year > 0 AND data_coll_year <= $to)", null, false);
 		}
 
 		// Country filter
 		if ($exclude !== 'country' && !empty($filters['country'])) {
 			$ids = array_filter(array_map('intval', (array)$filters['country']));
 			if (!empty($ids)) {
-				$this->db->where('surveys.id IN (SELECT sid FROM survey_countries WHERE cid IN (' . implode(',', $ids) . '))', null, false);
+				$this->db->where("$alias.id IN (SELECT sid FROM survey_countries WHERE cid IN (" . implode(',', $ids) . "))", null, false);
 			}
 		}
 
-		// Data access type (license) filter — uses surveys.formid directly, no JOIN needed
+		// Data access type (license) filter — uses formid directly, no JOIN needed
 		if ($exclude !== 'dtype' && !empty($filters['dtype'])) {
 			$ids = array_filter(array_map('intval', (array)$filters['dtype']));
 			if (!empty($ids)) {
-				$this->db->where_in('surveys.formid', $ids);
+				$this->db->where_in("$alias.formid", $ids);
 			}
 		}
 
@@ -437,7 +438,7 @@ class Search_helper_model extends CI_Model {
 			$types = array_filter((array)$filters['type']);
 			if (!empty($types)) {
 				$escaped = array_map(array($this->db, 'escape'), $types);
-				$this->db->where('surveys.type IN (' . implode(',', $escaped) . ')', null, false);
+				$this->db->where("$alias.type IN (" . implode(',', $escaped) . ")", null, false);
 			}
 		}
 	}
@@ -460,9 +461,7 @@ class Search_helper_model extends CI_Model {
 			$this->db->where($subquery, null, false);
 		}
 
-		// Alias surveys → s, adjust filter helper to use s.* instead of surveys.*
-		// Temporarily rewrite as surveys alias is 's' in this query
-		$this->_apply_variable_facet_filters_aliased($filters, 'type', 's');
+		$this->_apply_variable_facet_filters($filters, 'type', 's');
 
 		$result = $this->db->get()->result_array();
 
@@ -545,44 +544,6 @@ class Search_helper_model extends CI_Model {
 		return $countries;
 	}
 
-	/**
-	 * Same as _apply_variable_facet_filters but uses a custom surveys table alias.
-	 * Used by get_dataset_types_for_variables which aliases surveys as 's'.
-	 */
-	private function _apply_variable_facet_filters_aliased($filters, $exclude, $alias)
-	{
-		$from = isset($filters['from']) ? (int)$filters['from'] : 0;
-		$to   = isset($filters['to'])   ? (int)$filters['to']   : 0;
-		if ($from > 0 && $to > 0) {
-			$this->db->where("$alias.id IN (SELECT sid FROM survey_years WHERE data_coll_year BETWEEN $from AND $to)", null, false);
-		} elseif ($from > 0) {
-			$this->db->where("$alias.id IN (SELECT sid FROM survey_years WHERE data_coll_year >= $from)", null, false);
-		} elseif ($to > 0) {
-			$this->db->where("$alias.id IN (SELECT sid FROM survey_years WHERE data_coll_year > 0 AND data_coll_year <= $to)", null, false);
-		}
-
-		if ($exclude !== 'country' && !empty($filters['country'])) {
-			$ids = array_filter(array_map('intval', (array)$filters['country']));
-			if (!empty($ids)) {
-				$this->db->where("$alias.id IN (SELECT sid FROM survey_countries WHERE cid IN (" . implode(',', $ids) . "))", null, false);
-			}
-		}
-
-		if ($exclude !== 'dtype' && !empty($filters['dtype'])) {
-			$ids = array_filter(array_map('intval', (array)$filters['dtype']));
-			if (!empty($ids)) {
-				$this->db->where_in("$alias.formid", $ids);
-			}
-		}
-
-		if ($exclude !== 'type' && !empty($filters['type'])) {
-			$types = array_filter((array)$filters['type']);
-			if (!empty($types)) {
-				$escaped = array_map(array($this->db, 'escape'), $types);
-				$this->db->where("$alias.type IN (" . implode(',', $escaped) . ")", null, false);
-			}
-		}
-	}
 
 
 	public function get_active_repositories($study_type=NULL,$filter_values=array())

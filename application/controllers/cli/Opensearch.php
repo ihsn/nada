@@ -171,7 +171,7 @@ class OpenSearch extends CI_Controller
             $schema = new OpenSearch_schema_manager();
 
             $db_surveys   = (int)$this->db->query('SELECT COUNT(id)  AS t FROM surveys')->row_array()['t'];
-            $db_variables = (int)$this->db->query('SELECT COUNT(uid) AS t FROM variables WHERE sid IN (SELECT id FROM surveys WHERE published=1)')->row_array()['t'];
+            $db_variables = (int)$this->db->query('SELECT COUNT(uid) AS t FROM variables')->row_array()['t'];
             $db_citations = (int)$this->db->query('SELECT COUNT(id)  AS t FROM citations')->row_array()['t'];
 
             $idx_surveys   = $this->manager->count_documents('surveys');

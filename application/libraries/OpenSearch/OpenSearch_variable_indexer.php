@@ -169,22 +169,49 @@ class OpenSearch_variable_indexer
     private function build_document(array $row): array
     {
         return [
-            'id'            => (int)$row['uid'],
-            'survey_id'     => (int)$row['sid'],
-            'survey_idno'   => $row['idno']        ?? null,
-            'survey_title'  => $row['title']       ?? null,
-            'survey_nation' => $row['nation']      ?? null,
-            'year_start'    => isset($row['year_start']) ? (int)$row['year_start'] : null,
-            'year_end'      => isset($row['year_end'])   ? (int)$row['year_end']   : null,
-            'dataset_type'  => $row['type']        ?? null,
-            'fid'           => $row['fid']         ?? null,
-            'vid'           => $row['vid']         ?? null,
-            'name'          => $row['name']        ?? null,
-            'label'         => $row['labl']        ?? null,
-            'question'      => $row['qstn']        ?? null,
-            'categories'    => isset($row['catgry']) ? mb_strimwidth($row['catgry'], 0, 32000) : null,
-            'country_ids'   => $row['country_ids'] ?? [],
+            'id'               => (int)$row['uid'],
+            'survey_id'        => (int)$row['sid'],
+            'survey_published' => isset($row['published']) ? (int)$row['published'] : 0,
+            'survey_idno'      => $row['idno']        ?? null,
+            'survey_title'     => $row['title']       ?? null,
+            'survey_nation'    => $row['nation']      ?? null,
+            'year_start'       => isset($row['year_start']) ? (int)$row['year_start'] : null,
+            'year_end'         => isset($row['year_end'])   ? (int)$row['year_end']   : null,
+            'dataset_type'     => $row['type']        ?? null,
+            'fid'              => $row['fid']         ?? null,
+            'vid'              => $row['vid']         ?? null,
+            'name'             => $row['name']        ?? null,
+            'label'            => $row['labl']        ?? null,
+            'question'         => $row['qstn']        ?? null,
+            'categories'       => isset($row['catgry']) ? mb_strimwidth($row['catgry'], 0, 32000) : null,
+            'country_ids'      => $row['country_ids'] ?? [],
         ];
+    }
+
+    /**
+     * Partial update — sets survey_published on all variable documents for a survey.
+     * Called by OpenSearch_manager::atomic_survey_update() on publish/unpublish.
+     */
+    public function update_survey_published(int $survey_id, int $published): bool
+    {
+        try {
+            OpenSearch_client::get()->updateByQuery([
+                'index'   => $this->index,
+                'refresh' => true,
+                'body'    => [
+                    'query'  => ['term' => ['survey_id' => $survey_id]],
+                    'script' => [
+                        'source' => 'ctx._source.survey_published = params.published',
+                        'lang'   => 'painless',
+                        'params' => ['published' => $published],
+                    ],
+                ],
+            ]);
+            return true;
+        } catch (Exception $e) {
+            log_message('error', "OpenSearch_variable_indexer::update_survey_published({$survey_id}): " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -240,11 +267,10 @@ class OpenSearch_variable_indexer
     ): array {
         $this->ci->db->select(
             'v.uid, v.sid, v.fid, v.vid, v.name, v.labl, v.qstn, v.catgry,
-             s.idno, s.title, s.nation, s.year_start, s.year_end, s.type'
+             s.idno, s.title, s.nation, s.year_start, s.year_end, s.type, s.published'
         );
         $this->ci->db->from('variables v');
         $this->ci->db->join('surveys s', 's.id = v.sid', 'inner');
-        $this->ci->db->where('s.published', 1);
 
         if ($uid !== null) {
             $this->ci->db->where('v.uid', $uid);

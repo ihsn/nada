@@ -200,10 +200,11 @@ class OpenSearch_schema_manager
     private function variables_mapping(): array
     {
         return [
-            'id'            => ['type' => 'integer'],
-            'vid'           => ['type' => 'keyword'],
-            'fid'           => ['type' => 'keyword'],
-            'survey_id'     => ['type' => 'integer'],
+            'id'               => ['type' => 'integer'],
+            'vid'              => ['type' => 'keyword'],
+            'fid'              => ['type' => 'keyword'],
+            'survey_id'        => ['type' => 'integer'],
+            'survey_published' => ['type' => 'integer'],
             'name'          => ['type' => 'text', 'fields' => ['keyword' => ['type' => 'keyword']]],
             'label'         => ['type' => 'text', 'analyzer' => 'english',
                                 'fields' => ['keyword' => ['type' => 'keyword']]],

@@ -255,12 +255,16 @@ class OpenSearch_manager
             return;
         }
 
+        $published = (int)$row['published'];
+
         $this->survey_indexer->atomic_update($survey_id, [
-            'published'       => (int)$row['published'],
+            'published'       => $published,
             'changed'         => (int)$row['changed'],
             'total_views'     => (int)$row['total_views'],
             'total_downloads' => (int)$row['total_downloads'],
             'var_count'       => (int)$row['varcount'],
         ]);
+
+        $this->variable_indexer->update_survey_published($survey_id, $published);
     }
 }
