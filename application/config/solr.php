@@ -372,6 +372,118 @@ $config['solr_schema_fields'] = array(
             'stored' => true,
             'multiValued' => false
         )
+    ),
+
+    // Citation document fields (doctype=3)
+    // Fields already defined in survey_document_fields (doctype, doi, title, title_sort,
+    // abstract, keywords, published) are shared and not repeated here.
+    'citation_fields' => array(
+        // Identification
+        array(
+            'name' => 'citation_id',
+            'type' => 'pint',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false,
+            'docValues' => true
+        ),
+        array(
+            'name' => 'citation_uuid',
+            'type' => 'string',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        // Searchable text
+        array(
+            'name' => 'authors',
+            'type' => 'text_en',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        // Sortable authors (string with docValues — required for Solr sort)
+        array(
+            'name' => 'cit_authors_sort',
+            'type' => 'string',
+            'indexed' => true,
+            'stored' => false,
+            'multiValued' => false,
+            'docValues' => true
+        ),
+        array(
+            'name' => 'notes',
+            'type' => 'text_en',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'organization',
+            'type' => 'text_en',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        // Filterable / sortable
+        array(
+            'name' => 'ctype',
+            'type' => 'string',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'pub_date',
+            'type' => 'pint',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false,
+            'docValues' => true
+        ),
+        // Display fields
+        array(
+            'name' => 'subtitle',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'volume',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'issue',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'edition',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'place_publication',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'publisher',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
     )
 );
 

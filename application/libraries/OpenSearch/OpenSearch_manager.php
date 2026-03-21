@@ -18,18 +18,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 require_once dirname(__FILE__) . '/OpenSearch_client.php';
 require_once dirname(__FILE__) . '/OpenSearch_survey_indexer.php';
 require_once dirname(__FILE__) . '/OpenSearch_variable_indexer.php';
+require_once dirname(__FILE__) . '/OpenSearch_citation_indexer.php';
 
 class OpenSearch_manager
 {
     private $ci;
     private $survey_indexer;
     private $variable_indexer;
+    private $citation_indexer;
 
     public function __construct(array $params = [])
     {
         $this->ci               =& get_instance();
         $this->survey_indexer   = new OpenSearch_survey_indexer();
         $this->variable_indexer = new OpenSearch_variable_indexer();
+        $this->citation_indexer = new OpenSearch_citation_indexer();
     }
 
     // =========================================================================
@@ -52,7 +55,7 @@ class OpenSearch_manager
                 break;
 
             case 'citations':
-                // Phase 3 — not yet implemented
+                $this->handle_citation_delta($operation, $obj_id);
                 break;
         }
     }
@@ -211,6 +214,36 @@ class OpenSearch_manager
         return $this->variable_indexer->delete_survey_variables($survey_id);
     }
 
+    /**
+     * Batch-index citations.
+     */
+    public function import_citations_batch(int $offset = 0, int $batch_size = 100): array
+    {
+        $result = $this->citation_indexer->index_citations_batch($offset, $batch_size);
+        return [
+            'rows_processed' => $result['indexed'],
+            'errors'         => $result['errors'],
+            'has_more'       => $result['has_more'],
+            'last_row_id'    => $offset + $result['indexed'],
+        ];
+    }
+
+    /**
+     * Index (or re-index) a single citation.
+     */
+    public function import_single_citation(int $citation_id): bool
+    {
+        return $this->citation_indexer->index_citation($citation_id);
+    }
+
+    /**
+     * Delete a single citation from the index.
+     */
+    public function delete_citation(int $citation_id): bool
+    {
+        return $this->citation_indexer->delete_citation($citation_id);
+    }
+
     // =========================================================================
     // Private helpers
     // =========================================================================
@@ -266,5 +299,16 @@ class OpenSearch_manager
         ]);
 
         $this->variable_indexer->update_survey_published($survey_id, $published);
+    }
+
+    private function handle_citation_delta(string $operation, int $citation_id): void
+    {
+        if ($operation === 'delete') {
+            $this->citation_indexer->delete_citation($citation_id);
+            return;
+        }
+
+        // create, update, import, publish — re-index the document
+        $this->citation_indexer->index_citation($citation_id);
     }
 }

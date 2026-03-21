@@ -11,6 +11,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *   index_studies [offset]                  Index all surveys (batched)
  *   index_single_survey <survey_id>         Index one survey
  *   index_variables [offset]                Index all variables (batched)
+ *   index_citations [offset]                Index all citations (batched)
  *
  * Index management
  * ----------------
@@ -47,8 +48,9 @@ class OpenSearch extends CI_Controller
     // Indexing
     // =========================================================================
 
-    public function index_studies(int $start_offset = 0): void
+    public function index_studies($start_offset = 0): void
     {
+        $start_offset = (int)$start_offset;
         echo "Starting survey indexing (offset: {$start_offset})...\n\n";
 
         set_time_limit(0);
@@ -88,8 +90,9 @@ class OpenSearch extends CI_Controller
         echo "\nDone.  {$total} surveys indexed in {$elapsed}s.\n";
     }
 
-    public function index_variables(int $start_offset = 0): void
+    public function index_variables($start_offset = 0): void
     {
+        $start_offset = (int)$start_offset;
         echo "Starting variable indexing (offset: {$start_offset})...\n\n";
 
         set_time_limit(0);
@@ -129,11 +132,55 @@ class OpenSearch extends CI_Controller
         echo "\nDone.  {$total} variables indexed in {$elapsed}s.\n";
     }
 
-    public function index_single_survey(int $survey_id): void
+    public function index_single_survey($survey_id): void
     {
+        $survey_id = (int)$survey_id;
         echo "Indexing survey {$survey_id}...\n";
         $ok = $this->manager->import_single_survey($survey_id);
         echo $ok ? "Done.\n" : "Failed — check logs.\n";
+    }
+
+    public function index_citations($start_offset = 0): void
+    {
+        $start_offset = (int)$start_offset;
+
+        echo "Starting citation indexing (offset: {$start_offset})...\n\n";
+
+        set_time_limit(0);
+
+        $batch_size = 100;
+        $offset     = $start_offset;
+        $total      = 0;
+        $batch_num  = 0;
+        $start_time = microtime(true);
+
+        while (true) {
+            echo "Batch " . (++$batch_num) . " (offset: {$offset})... ";
+            $result = $this->manager->import_citations_batch($offset, $batch_size);
+
+            if ($result['rows_processed'] === 0) {
+                echo "done.\n";
+                break;
+            }
+
+            $total  += $result['rows_processed'];
+            $offset += $result['rows_processed'];
+            echo "indexed {$result['rows_processed']} citations. Total: {$total}\n";
+
+            if (!empty($result['errors'])) {
+                echo "  ERRORS in this batch: " . count($result['errors']) . "\n";
+                foreach ($result['errors'] as $e) {
+                    echo "    doc " . ($e['id'] ?? '?') . ": " . json_encode($e['error']) . "\n";
+                }
+            }
+
+            if (!$result['has_more']) {
+                break;
+            }
+        }
+
+        $elapsed = round(microtime(true) - $start_time, 2);
+        echo "\nDone.  {$total} citations indexed in {$elapsed}s.\n";
     }
 
     // =========================================================================
@@ -320,6 +367,7 @@ Indexing:
   index_studies [offset]               Index all surveys (batched, offset optional)
   index_single_survey <id>             Index one survey
   index_variables [offset]             Index all variables (batched, offset optional)
+  index_citations [offset]             Index all citations (batched, offset optional)
 
 Index management:
   clean_index [type]                   Delete all documents (default: surveys)
@@ -342,6 +390,8 @@ Examples:
   php index.php cli/opensearch/index_studies 500
   php index.php cli/opensearch/index_variables
   php index.php cli/opensearch/index_variables 1000
+  php index.php cli/opensearch/index_citations
+  php index.php cli/opensearch/index_citations 500
   php index.php cli/opensearch/status
   php index.php cli/opensearch/refresh_index
 

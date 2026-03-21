@@ -222,14 +222,67 @@ class OpenSearch_schema_manager
 
     private function citations_mapping(): array
     {
-        // Phase 3 — placeholder
         return [
+            // --- Identification ---
             'id'           => ['type' => 'integer'],
-            'survey_id'    => ['type' => 'integer'],
-            'title'        => ['type' => 'text', 'analyzer' => 'english'],
-            'authors'      => ['type' => 'text'],
-            'year'         => ['type' => 'integer'],
-            'published'    => ['type' => 'integer'],
+            'uuid'         => ['type' => 'keyword'],
+
+            // --- Full-text search ---
+            'title'        => ['type' => 'text', 'analyzer' => 'english',
+                               'fields' => ['keyword' => ['type' => 'keyword']]],
+            'subtitle'     => ['type' => 'keyword', 'index' => false],
+            'alt_title'    => ['type' => 'text',    'analyzer' => 'english'],
+            'authors_text' => ['type' => 'text',    'analyzer' => 'english',
+                               'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]],
+            'abstract'     => ['type' => 'text',    'analyzer' => 'english'],
+            'keywords'     => ['type' => 'text',    'analyzer' => 'english'],
+            'notes'        => ['type' => 'text',    'analyzer' => 'english'],
+            'organization' => ['type' => 'text',    'analyzer' => 'english'],
+            'doi'          => ['type' => 'keyword'],
+
+            // --- Authors (display, structured) ---
+            'authors' => [
+                'type'       => 'object',
+                'properties' => [
+                    'fname'       => ['type' => 'keyword', 'index' => false],
+                    'lname'       => ['type' => 'keyword', 'index' => false],
+                    'initial'     => ['type' => 'keyword', 'index' => false],
+                    'author_type' => ['type' => 'keyword', 'index' => false],
+                ],
+            ],
+
+            // --- Display fields ---
+            'editors'            => ['type' => 'keyword', 'index' => false],
+            'translators'        => ['type' => 'keyword', 'index' => false],
+            'url'                => ['type' => 'keyword', 'index' => false],
+            'volume'             => ['type' => 'keyword', 'index' => false],
+            'issue'              => ['type' => 'keyword', 'index' => false],
+            'edition'            => ['type' => 'keyword', 'index' => false],
+            'place_publication'  => ['type' => 'keyword', 'index' => false],
+            'place_state'        => ['type' => 'keyword', 'index' => false],
+            'publisher'          => ['type' => 'keyword', 'index' => false],
+            'page_from'          => ['type' => 'keyword', 'index' => false],
+            'page_to'            => ['type' => 'keyword', 'index' => false],
+            'pub_month'          => ['type' => 'keyword', 'index' => false],
+            'pub_day'            => ['type' => 'keyword', 'index' => false],
+            'owner'              => ['type' => 'keyword', 'index' => false],
+
+            // --- Filterable ---
+            'ctype'              => ['type' => 'keyword'],
+            'pub_year'           => ['type' => 'integer'],
+            'publication_medium' => ['type' => 'integer'],
+            'flag'               => ['type' => 'keyword'],
+            'url_status'         => ['type' => 'keyword'],
+            'published'          => ['type' => 'integer'],
+            'created'            => ['type' => 'integer'],
+            'changed'            => ['type' => 'integer'],
+            'created_by'         => ['type' => 'integer'],
+            'changed_by'         => ['type' => 'integer'],
+
+            // --- Survey / repository linkage ---
+            'survey_ids'     => ['type' => 'integer'],
+            'survey_count'   => ['type' => 'integer'],
+            'repository_ids' => ['type' => 'keyword'],
         ];
     }
 }

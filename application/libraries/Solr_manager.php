@@ -827,7 +827,11 @@ class Solr_manager {
             break;
 
             case 'citations':
-                //throw  new exception("update handler not implemented for citations");
+                if ($delta_op === 'delete') {
+                    $this->delete_document('citation_id:' . (int)$obj_id);
+                } else {
+                    $this->import_citations([$obj_id]);
+                }
             break;
         }
     }
@@ -1209,6 +1213,44 @@ class Solr_manager {
      * @param array $id_array Array of citation IDs
      * @return bool Success status
      */
+    /**
+     * Build a [citation_id => "Last, First; Last, First"] map from citation_authors.
+     * Used to populate the cit_authors_sort field for Solr sorting.
+     *
+     * @param array $ids  Array of citation IDs
+     * @return array      [id => authors_string]
+     */
+    private function _build_cit_authors_sort_map(array $ids)
+    {
+        if (empty($ids)) {
+            return array();
+        }
+
+        $rows = $this->ci->db
+            ->select('cid, fname, lname')
+            ->where_in('cid', $ids)
+            ->where('author_type', 'author')
+            ->order_by('cid ASC, id ASC')
+            ->get('citation_authors')
+            ->result_array();
+
+        $map = array();
+        foreach ($rows as $row) {
+            $cid  = (int)$row['cid'];
+            $name = trim(($row['lname'] ?? '') . ' ' . ($row['fname'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+            $map[$cid][] = $name;
+        }
+
+        $result = array();
+        foreach ($map as $cid => $names) {
+            $result[$cid] = implode('; ', $names);
+        }
+        return $result;
+    }
+
     public function import_citations($id_array)
     {
         $this->ci->db->select("
@@ -1239,6 +1281,13 @@ class Solr_manager {
 
         if (!$rows){
             return false;
+        }
+
+        $author_sort_map = $this->_build_cit_authors_sort_map(array_column($rows, 'id'));
+
+        foreach ($rows as $key => $row) {
+            $rows[$key]['title_sort']   = $row['title'] ?? '';
+            $rows[$key]['cit_authors_sort'] = $author_sort_map[$row['id']] ?? '';
         }
 
         $this->index_documents($rows,$_prefix='cit-');
@@ -1482,6 +1531,13 @@ class Solr_manager {
 
 		//row variable id
 		$last_row_id=$rows[ count($rows)-1]['citation_id'];
+
+		$author_sort_map = $this->_build_cit_authors_sort_map(array_column($rows, 'citation_id'));
+
+		foreach ($rows as $key => $row) {
+		    $rows[$key]['title_sort']   = $row['title'] ?? '';
+		    $rows[$key]['cit_authors_sort'] = $author_sort_map[$row['citation_id']] ?? '';
+		}
 
 		        $this->index_documents($rows,$id_prefix='cit-');
 

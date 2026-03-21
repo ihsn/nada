@@ -15,6 +15,7 @@ require(APPPATH . '/libraries/MY_REST_Controller.php');
  * GET /api/opensearch/import_surveys_batch[?offset=0&batch_size=50]
  * GET /api/opensearch/import_single_survey/<id>
  * GET /api/opensearch/import_variables_batch[?offset=0&batch_size=200]
+ * GET /api/opensearch/import_citations_batch[?offset=0&batch_size=100]
  * GET /api/opensearch/clear_index[?type=surveys]
  * GET /api/opensearch/commit[?type=surveys]
  * GET /api/opensearch/schema_create[?type=surveys&replace=false]
@@ -119,6 +120,19 @@ class OpenSearch extends MY_REST_Controller
 
         try {
             $result = $this->manager->import_variables_batch($offset, $batch_size);
+            $this->respond($result);
+        } catch (Exception $e) {
+            $this->respond_error($e->getMessage());
+        }
+    }
+
+    public function import_citations_batch_get(): void
+    {
+        $offset     = max(0, (int)$this->get('offset'));
+        $batch_size = max(1, (int)($this->get('batch_size') ?: 100));
+
+        try {
+            $result = $this->manager->import_citations_batch($offset, $batch_size);
             $this->respond($result);
         } catch (Exception $e) {
             $this->respond_error($e->getMessage());

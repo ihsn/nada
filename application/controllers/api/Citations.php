@@ -243,6 +243,8 @@ class Citations extends MY_REST_Controller
 				}
 			}
 
+			$this->events->emit('db.after.update', 'citations', $citation_id, 'import');
+
 			$output=array(
 				'citation_id'=>$citation_id,
 				'uuid'=>$options['uuid'],
