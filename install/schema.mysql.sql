@@ -302,7 +302,8 @@ CREATE TABLE `survey_citations` (
   `citationid` int(11) DEFAULT NULL,
   `id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `Idx_s_c` (`sid`,`citationid`)
+  UNIQUE KEY `Idx_s_c` (`sid`,`citationid`),
+  KEY `idx_survey_citations_citationid` (`citationid`)
 ) DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -565,7 +566,14 @@ CREATE TABLE `citations` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uid_UNIQUE` (`uuid`),
   FULLTEXT KEY `ft_citations` (`title`,`subtitle`,`alt_title`,`authors`,`editors`,`translators`),
-  FULLTEXT KEY `ft_cit2` (`title`,`subtitle`,`authors`,`organization`,`abstract`,`keywords`,`notes`,`doi`)
+  FULLTEXT KEY `ft_cit2` (`title`,`subtitle`,`authors`,`organization`,`abstract`,`keywords`,`notes`,`doi`),
+  KEY `idx_citations_published` (`published`),
+  KEY `idx_citations_ctype` (`ctype`),
+  KEY `idx_citations_pub_year` (`pub_year`),
+  KEY `idx_citations_flag` (`flag`),
+  KEY `idx_citations_url_status` (`url_status`),
+  KEY `idx_citations_created_by` (`created_by`),
+  KEY `idx_citations_changed_by` (`changed_by`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 

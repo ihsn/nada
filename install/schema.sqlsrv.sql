@@ -278,7 +278,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_survey_topics on [dbo].[survey_topics](
 CREATE TABLE survey_citations (
   id int NOT NULL IDENTITY(1,1),
   sid int DEFAULT NULL,
-  citationid int DEFAULT NULL,  
+  citationid int DEFAULT NULL,
   PRIMARY KEY (id)
 ) ;
 
@@ -286,6 +286,8 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_survey_cit on [dbo].[survey_citations](
 	[sid] ASC,
 	[citationid] ASC
 );
+
+CREATE NONCLUSTERED INDEX idx_survey_citations_citationid ON [dbo].[survey_citations] ([citationid]);
 
 
 
@@ -554,6 +556,14 @@ CREATE TABLE citations (
   lang varchar(50) DEFAULT NULL,
   PRIMARY KEY (id)
 );
+
+CREATE NONCLUSTERED INDEX idx_citations_published  ON [dbo].[citations] ([published]);
+CREATE NONCLUSTERED INDEX idx_citations_ctype       ON [dbo].[citations] ([ctype]);
+CREATE NONCLUSTERED INDEX idx_citations_pub_year    ON [dbo].[citations] ([pub_year]);
+CREATE NONCLUSTERED INDEX idx_citations_flag        ON [dbo].[citations] ([flag]);
+CREATE NONCLUSTERED INDEX idx_citations_url_status  ON [dbo].[citations] ([url_status]);
+CREATE NONCLUSTERED INDEX idx_citations_created_by  ON [dbo].[citations] ([created_by]);
+CREATE NONCLUSTERED INDEX idx_citations_changed_by  ON [dbo].[citations] ([changed_by]);
 
 
 --
@@ -1067,6 +1077,8 @@ CREATE TABLE citation_authors (
   author_type varchar(45) DEFAULT NULL,
   PRIMARY KEY (id)
 ) ;
+
+CREATE NONCLUSTERED INDEX idx_citation_authors_cid_type ON [dbo].[citation_authors] ([cid], [author_type]);
 
 
 

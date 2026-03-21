@@ -34,24 +34,6 @@ class Search_helper_model extends CI_Model {
 		return $this->db->query($sql)->result_array();
 	}
 	
-	/**
-	* TODO://REMOVE NO LONGER IN USE - need to check
-	*
-	*	Returns a list of countries filtered by topics
-	*
-	*/	
-	function get_countries_by_topics($topic_array)
-	{
-		$topics=implode(",", $topic_array);
-		
-		$sql=sprintf('select nation from terms
-				  inner join survey_topics on terms.tid= survey_topics.tid
-				  inner join surveys on surveys.id =survey_topics.sid
-				  where terms.tid in (%s)
-				  group by nation',$topics);		
-		
-		return $this->db->query($sql)->result_array();
-	}
 	
 	/**
 	* Returns a list of countries filtered by topics with min and max year
