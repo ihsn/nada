@@ -40,7 +40,7 @@ class Migration_Create_analytics_tables extends MY_Migration {
                 $row = $result->row();
                 $needs_update = ($row->cnt > 0);
             }
-        } elseif ($db_driver === 'sqlsrv' || $db_driver === 'mssql') {
+        } elseif ($db_driver === 'sqlsrv') {
             $result = $this->db->query("
                 SELECT COUNT(*) as cnt 
                 FROM INFORMATION_SCHEMA.COLUMNS 
@@ -78,7 +78,7 @@ class Migration_Create_analytics_tables extends MY_Migration {
             
             $this->db->query("UPDATE `analytics_pageview_events` SET `user_agent` = LEFT(`user_agent`, 200) WHERE LENGTH(`user_agent`) > 200");
             $this->db->query("UPDATE `analytics_download_events` SET `user_agent` = LEFT(`user_agent`, 200) WHERE LENGTH(`user_agent`) > 200");
-        } elseif ($db_driver === 'sqlsrv' || $db_driver === 'mssql') {
+        } elseif ($db_driver === 'sqlsrv') {
             $this->db->query("EXEC sp_rename 'analytics_download_events.file_id', 'file_name', 'COLUMN'");
             $this->db->query("EXEC sp_rename 'analytics_daily_files.file_id', 'file_name', 'COLUMN'");
             $this->db->query("EXEC sp_rename 'analytics_monthly_files.file_id', 'file_name', 'COLUMN'");
@@ -101,7 +101,7 @@ class Migration_Create_analytics_tables extends MY_Migration {
     private function create_tables($db_driver)
     {
         // Determine which SQL file to use
-        if ($db_driver === 'sqlsrv' || $db_driver === 'mssql') {
+        if ($db_driver === 'sqlsrv') {
             $sql_file = FCPATH . 'install/analytics-schema-sqlsrv.sql';
         } else {
             $sql_file = FCPATH . 'install/analytics-schema-mysql.sql';

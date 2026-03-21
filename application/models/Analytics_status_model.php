@@ -251,7 +251,7 @@ class Analytics_status_model extends CI_Model {
 	 */
 	public function touch_heartbeat()
 	{
-		if ($this->db->dbdriver === 'sqlsrv' || $this->db->dbdriver === 'mssql') {
+		if ($this->db->dbdriver === 'sqlsrv') {
 			return $this->db->query(
 				"UPDATE TOP(1) analytics_aggregation_status SET last_updated_at = ? WHERE [status] = ?",
 				array(date('Y-m-d H:i:s'), self::STATUS_RUNNING)
