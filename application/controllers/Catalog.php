@@ -143,27 +143,46 @@ class Catalog extends MY_Controller {
 			);
 		}
 		
-		$this->facets['da_types']=$this->Search_helper_model->get_active_data_types(
-			$repo_id,
-			$this->active_tab,
-			$this->input->get("dtype")
-		);
+		if ($this->input->get('view') === 'v') {
+			$var_filters = array(
+				'from'    => (int)$this->input->get('from'),
+				'to'      => (int)$this->input->get('to'),
+				'country' => (array)$this->input->get('country'),
+				'dtype'   => (array)$this->input->get('dtype'),
+				'type'    => (array)$this->input->get('type'),
+			);
+			$this->facets['da_types'] = $this->Search_helper_model->get_active_data_types_for_variables($repo_id, $var_filters);
+		} else {
+			$this->facets['da_types'] = $this->Search_helper_model->get_active_data_types(
+				$repo_id,
+				$this->active_tab,
+				$this->input->get("dtype")
+			);
+		}
 
 		$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);
 
-		$this->facets['countries']=$this->Search_helper_model->get_active_countries(
-			$repo_id, 
-			$this->active_tab, 
-			$this->input->get("country")
-		);
-				
+		if ($this->input->get('view') === 'v') {
+			$this->facets['countries'] = $this->Search_helper_model->get_active_countries_for_variables($repo_id, $var_filters);
+		} else {
+			$this->facets['countries'] = $this->Search_helper_model->get_active_countries(
+				$repo_id,
+				$this->active_tab,
+				$this->input->get("country")
+			);
+		}
+
 		$this->facets['tags']=$this->Search_helper_model->get_active_tags(
 			$repo_id,
 			$this->active_tab,
 			$this->input->get("tag")
 		);
-	
-		$this->facets['types']=$this->Search_helper_model->get_dataset_types($repo_id);
+
+		if ($this->input->get('view') === 'v') {
+			$this->facets['types'] = $this->Search_helper_model->get_dataset_types_for_variables($repo_id, $var_filters);
+		} else {
+			$this->facets['types'] = $this->Search_helper_model->get_dataset_types($repo_id);
+		}
 		
 		//load user defined facets from db
 		$facets_list=$this->Facet_model->select_all();
@@ -196,6 +215,20 @@ class Catalog extends MY_Controller {
 	 */
 	private function load_facets_html()
 	{
+		// Variable search filters
+		if ($this->input->get('view') === 'v') {
+			return [
+				'year'      => $this->load->view('search/filter_years',
+					['years' => $this->facets['years'], 'is_enabled' => true], true),
+				'country'   => $this->load->view('search/facet',
+					['items' => $this->facets['countries'], 'filter_id' => 'country', 'is_enabled' => true], true),
+				'da_type'   => $this->load->view('search/facet',
+					['items' => $this->facets['da_types'], 'filter_id' => 'dtype', 'is_enabled' => true], true),
+				'data_type' => $this->load->view('search/facet',
+					['items' => $this->facets['types'], 'filter_id' => 'type', 'is_enabled' => true], true),
+			];
+		}
+
 		//enabled filters with user defined order
 		$filters=(array)$this->enabled_filters;
 
@@ -508,7 +541,7 @@ class Catalog extends MY_Controller {
 		$params=array(
 			'collections'=>$search_options->collection,
 			'study_keywords'=>$search_options->sk,
-			//'variable_keywords'=>$search_options->vk,
+			'variable_keywords'=>$search_options->sk,
 			'variable_fields'=>$search_options->vf,
 			'countries'=>$search_options->country,
 			'regions'=>$search_options->region,

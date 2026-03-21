@@ -97,8 +97,8 @@ $bg=0;
         <?php endforeach;?>
     <?php endif;?>
 
-    <?php if (isset($search_options->data_class) && is_array($search_options->data_class)):?>
-        <?php foreach($search_options->data_class as $data_class):?> 
+    <?php if (isset($search_options->data_class) && is_array($search_options->data_class) && is_array($data_classifications)):?>
+        <?php foreach($search_options->data_class as $data_class):?>
             <?php if (array_key_exists($data_class,$data_classifications)):?>
                 <span class="badge badge-default badge-secondary wb-badge-close remove-filter data_class" data-type="data_class[]" data-value="<?php echo $data_class;?>">
                     <?php echo $data_classifications[$data_class]['title'];?><i class="fas fa-times"></i>

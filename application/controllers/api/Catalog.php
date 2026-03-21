@@ -134,8 +134,6 @@ class Catalog extends MY_REST_Controller
 		//page parameters
 		$search_options->collection		=xss_clean($this->input->get("collection"));
 		$search_options->sk				=trim(xss_clean($this->input->get("sk")));
-		$search_options->vk				=trim(xss_clean($this->input->get("vk")));
-		$search_options->vf				=xss_clean($this->input->get("vf"));
 		$search_options->country		=xss_clean($this->input->get("country"));
 		$search_options->view			=xss_clean($this->input->get("view"));
 		$search_options->topic			=xss_clean($this->input->get("topic"));
@@ -162,8 +160,6 @@ class Catalog extends MY_REST_Controller
 		$params=array(
 			'collections'		=> $search_options->collection,
 			'study_keywords'	=> $search_options->sk,
-			//'variable_keywords'	=> $search_options->vk,
-			//'variable_fields'	=> array('name','labl'),//$search_options->vf,
 			'countries'			=> $search_options->country,
 			'topics'			=> $search_options->topic,
 			'from'				=> $search_options->from,
@@ -656,44 +652,170 @@ class Catalog extends MY_REST_Controller
 
 
 	/**
-	 * 
-	 * List dataset variables
-	 * 
+	 *
+	 * List or search variables.
+	 *
+	 * idno and var_id may be supplied as URL segments or querystring params:
+	 *   /api/catalog/{idno}/variables/{var_id}
+	 *   /api/catalog/variables?idno=xyz&var_id=v1
+	 *
+	 * Behaviour:
+	 *   idno + var_id  → single variable
+	 *   idno + ?sk=    → per-study keyword search (v_quick_search)
+	 *   idno           → list all variables for study
+	 *   (no idno)      → catalog-wide variable search (vsearch)
+	 *
 	 */
 	function variables_get($idno=null,$var_id=null)
 	{
+		// Accept idno and var_id from querystring when not in URL
+		if (empty($idno)) {
+			$idno = xss_clean($this->input->get('idno')) ?: null;
+		}
+		if (empty($var_id)) {
+			$var_id = xss_clean($this->input->get('var_id')) ?: null;
+		}
 
-		if($var_id){
+		// Single variable
+		if ($var_id) {
 			return $this->variable_get($idno, $var_id);
 		}
 
+		// Catalog-wide variable search
+		if (empty($idno)) {
+			return $this->_vsearch_get();
+		}
+
+		// Per-study: list or keyword search
 		try{
-			$sid=$this->get_sid_from_idno($idno);
-			$user_id=$this->get_api_user_id();        
-			$survey=$this->Dataset_model->get_row($sid);
+			$sid    = $this->get_sid_from_idno($idno);
+			$survey = $this->Dataset_model->get_row($sid);
 
 			if(!$survey){
-				throw new exception("STUDY_NOT_FOUND");
+				throw new Exception("STUDY_NOT_FOUND");
 			}
 
-			$survey_variables=$this->Variable_model->list_by_dataset($sid);
-			
-			//format dates
-			//array_walk($project, 'unix_date_to_gmt_row',array('created','changed','submitted_date','administer_date'));
+			$sk = trim(xss_clean($this->input->get('sk')));
 
-			$response=array(
-				'total'=> count($survey_variables),
-				'variables'=>$survey_variables
+			if ($sk !== '') {
+				$limit  = $this->get_page_size();
+				$page   = max(1, (int)$this->input->get('page'));
+				$offset = ($page - 1) * $limit;
+
+				$params = array(
+					'study_keywords'    => $sk,
+					'variable_keywords' => $sk,
+					'sort_by'           => xss_clean($this->input->get('sort_by')),
+					'sort_order'        => xss_clean($this->input->get('sort_order')),
+				);
+				$this->load->library('catalog_search', $params);
+				$variables = $this->catalog_search->v_quick_search($sid, $limit, $offset);
+
+				$response = array(
+					'found'     => $variables['found']  ?? 0,
+					'total'     => $variables['total']  ?? 0,
+					'limit'     => $variables['limit']  ?? $limit,
+					'offset'    => $variables['offset'] ?? $offset,
+					'page'      => $page,
+					'variables' => $variables['rows']   ?? array(),
+				);
+			} else {
+				$variables = $this->Variable_model->list_by_dataset($sid);
+				$response  = array(
+					'found'     => count($variables),
+					'total'     => count($variables),
+					'variables' => $variables,
+				);
+			}
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$this->set_response(
+				array('status' => 'failed', 'message' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
+	 *
+	 * Catalog-wide variable search — called by variables_get() when no idno is provided.
+	 *
+	 * Query parameters:
+	 *   sk          keyword(s)
+	 *   country     pipe-separated country names / ISO codes
+	 *   from, to    year range
+	 *   dtype       data access type (model name)
+	 *   type        dataset type
+	 *   sort_by, sort_order
+	 *   page, ps    pagination
+	 *
+	 */
+	private function _vsearch_get()
+	{
+		$limit  = $this->get_page_size();
+		$page   = max(1, (int)$this->input->get('page'));
+		$offset = ($page - 1) * $limit;
+
+		$sk      = trim(xss_clean($this->input->get('sk')));
+		$country = xss_clean($this->input->get('country'));
+		$from    = xss_clean($this->input->get('from'));
+		$to      = xss_clean($this->input->get('to'));
+		$dtype   = xss_clean($this->input->get('dtype'));
+		$type    = xss_clean($this->input->get('type'));
+
+		$params = array(
+			'study_keywords'    => $sk,
+			'variable_keywords' => $sk,
+			'countries'         => $this->get_countries_id($country),
+			'from'              => $from,
+			'to'                => $to,
+			'dtype'             => $this->Form_model->map_name_to_id($dtype),
+			'type'              => $type,
+			'sort_by'           => xss_clean($this->input->get('sort_by')),
+			'sort_order'        => xss_clean($this->input->get('sort_order')),
+		);
+
+		try{
+			$this->load->library('catalog_search', $params);
+			$result         = $this->catalog_search->vsearch($limit, $offset);
+			$result['page'] = $page;
+
+			// Nest study context fields — keep sid at row level, move title/idno/nation under study{}
+			if (!empty($result['rows'])) {
+				foreach ($result['rows'] as &$row) {
+					$row['study'] = array(
+						'id'     => $row['sid'],
+						'idno'   => $row['idno'],
+						'title'  => $row['title'],
+						'nation' => $row['nation'],
+					);
+					unset($row['idno'], $row['title'], $row['nation']);
+				}
+				unset($row);
+			}
+
+			$response = array(
+				'result' => $result,
+				'params' => array(
+					'sk'      => $sk,
+					'country' => $country,
+					'from'    => $from,
+					'to'      => $to,
+					'dtype'   => $dtype,
+					'type'    => $type,
+				),
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
+			$this->set_response(
+				array('status' => 'failed', 'errors' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
 			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
 

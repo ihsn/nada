@@ -479,7 +479,7 @@
                     <div class="nav-section mb-3">
                         <h6 class="nav-section-title">Index Operations</h6>
                         <button type="button" class="btn btn-primary btn-sm btn-block mb-2" v-on:click="toggleTab('index-datasets')">
-                            <i class="fas fa-database"></i> Index Datasets
+                            <i class="fas fa-database"></i> Index Studies
                         </button>
                         <button type="button" class="btn btn-primary btn-sm btn-block mb-2" v-on:click="toggleTab('index-variables')">
                             <i class="fas fa-list"></i> Index Variables
@@ -847,7 +847,7 @@
                     <div class="card">
                         <div class="card-header d-flex align-items-center">
                             <i class="fas fa-database text-primary mr-2"></i>
-                            <h5 class="mb-0">Index Datasets</h5>
+                            <h5 class="mb-0">Index Studies</h5>
                         </div>
                         <div class="card-body">
                             <div class="card-text">
@@ -885,7 +885,7 @@
                                         </button>
                                 </div>
 
-                                    <div v-if="indexing_processed || indexing_running" class="progress-section">
+                                    <div v-if="indexing_running || dataset_stopped || dataset_last_row_processed > 0" class="progress-section">
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <span class="small font-weight-bold">Progress</span>
                                             <span class="small" v-if="dataset_total_count > 0">
@@ -914,8 +914,8 @@
                             </div>
 
                                     <div v-if="dataset_stopped" class="alert alert-warning mt-2">
-                                        <strong><i class="fas fa-pause"></i> Dataset Processing Stopped</strong><br>
-                                        <small>Indexed {{indexing_status.toLocaleString()}} datasets 
+                                        <strong><i class="fas fa-pause"></i> Study Processing Stopped</strong><br>
+                                        <small>Indexed {{indexing_status.toLocaleString()}} studies
                                             <span v-if="dataset_total_count > 0">({{getDatasetProgressPercentage().toFixed(1)}}%)</span>
                                             • Last processed ID: {{dataset_last_row_processed}}
                                         </small>
@@ -923,7 +923,7 @@
                                     
                                     <div v-if="!indexing_running && !dataset_stopped && indexing_processed === 0 && dataset_total_count > 0" class="alert alert-info mt-2">
                                         <small>
-                                            <i class="fas fa-info-circle"></i> Total surveys in database: <strong>{{dataset_total_count.toLocaleString()}}</strong>
+                                            <i class="fas fa-info-circle"></i> Total studies in database: <strong>{{dataset_total_count.toLocaleString()}}</strong>
                                         </small>
                                     </div>
                                 </div>
@@ -989,7 +989,7 @@
                                         </button>
                                     </div>
 
-                                    <div v-if="indexing_processed || var_processing" class="progress-section">
+                                    <div v-if="var_processing || var_stopped || variable_last_row_processed > 0" class="progress-section">
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <span class="small font-weight-bold">Progress</span>
                                             <span class="small" v-if="variable_total_count > 0">
@@ -1837,8 +1837,12 @@
                     vm=this;
                     axios.get(url)
                     .then(function (response) {
-                        console.log(response);                        
-                        vm.index_counts=response;                        
+                        console.log(response);
+                        vm.index_counts=response;
+                        // Auto-populate var_start_row from last indexed variable if not already set
+                        if (vm.var_start_row === 0 && response.data && response.data.result && response.data.result.last_variable) {
+                            vm.var_start_row = response.data.result.last_variable;
+                        }
                     })
                     .catch(function (error) {
                         console.log(error);
@@ -1882,32 +1886,6 @@
                     if (this.dataset_last_row_processed > 0) {
                         this.dataset_start_row = this.dataset_last_row_processed;
                     }
-                },
-                resumeVariableFromLastProcessed: function() {
-                    if (this.variable_last_row_processed > 0) {
-                        this.var_start_row = this.variable_last_row_processed;
-                    }
-                },
-                useLastVariableId: function() {
-                    if (this.index_counts.data && this.index_counts.data.result && this.index_counts.data.result.last_variable) {
-                        this.var_start_row = this.index_counts.data.result.last_variable;
-                    }
-                },
-                getVariableProgressPercentage: function() {
-                    if (this.variable_total_count === 0 || this.indexing_status === 0) {
-                        return 0;
-                    }
-                    return (this.indexing_status / this.variable_total_count) * 100;
-                },
-                resumeVariableProcessing: function() {
-                    // Use last processed ID as start row if available
-                    if (this.variable_last_row_processed > 0) {
-                        this.var_start_row = this.variable_last_row_processed;
-                    }
-                    // Reset stopped flag and start indexing
-                    this.var_stopped = false;
-                    this.indexing_processed = 0;
-                    this.indexVariablesOnClick();
                 },
                 resumeVariableFromLastProcessed: function() {
                     if (this.variable_last_row_processed > 0) {
@@ -1986,10 +1964,7 @@
                     // Load variable counts when switching to index-variables tab
                     if (tab === 'index-variables') {
                         this.getDbCounts();
-                        // Auto-populate start row from last indexed variable if available
-                        if (this.index_counts.data && this.index_counts.data.result && this.index_counts.data.result.last_variable && this.var_start_row === 0) {
-                            this.var_start_row = this.index_counts.data.result.last_variable;
-                        }
+                        this.getIndexCounts();
                     }
                     
                     // Load schema information when switching to schema management
@@ -2010,6 +1985,7 @@
                 indexDatasetOnClick: function()
                 {
                     this.indexing_processed=0;
+                    this.indexing_status=0;
                     this.dataset_stopped=false;
                     this.indexing_running=true;
                     this.indexDatasets(this.dataset_start_row,this.dataset_rows_limit);
@@ -2068,6 +2044,7 @@
                 indexVariablesOnClick: function()
                 {
                     this.indexing_processed=0;
+                    this.indexing_status=0;
                     this.var_stopped=false;
                     this.var_processing=true;
                     this.indexVariables(this.var_start_row,this.var_rows_limit);
@@ -2307,7 +2284,7 @@
                 },
                 stopDatasetProcessing: function()
                 {
-                    if (confirm('Are you sure you want to stop dataset processing? This will halt the current batch and any remaining datasets will not be processed.')) {
+                    if (confirm('Are you sure you want to stop study processing? This will halt the current batch and any remaining studies will not be processed.')) {
                         this.indexing_running = false;
                         this.dataset_stopped = true;
                         

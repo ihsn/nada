@@ -107,7 +107,6 @@ class Catalog_search_mysql{
 	{		
 		$type=$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
-		$variable=false;//$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$regions=$this->_build_regions_query();
@@ -121,8 +120,7 @@ class Catalog_search_mysql{
 		$created=$this->_build_created_query();
         $countries_iso3=$this->_build_countries_iso3_query();
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
-		$sort_by=array_key_exists($this->sort_by,$this->sort_allowed_fields) ? $this->sort_by : 'title';
-		
+
 		$sort_by='title';
 		if (array_key_exists($this->sort_by,$this->sort_allowed_fields))
 		{
@@ -163,7 +161,7 @@ class Catalog_search_mysql{
 		}
 
 		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3,$created,$data_classification,$tags,$type,$regions);
+		$where_list=array($study,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3,$created,$data_classification,$tags,$type,$regions);
 		
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -201,68 +199,30 @@ class Catalog_search_mysql{
 			$study_fields.=', '.$study. ' as rank_';
 		}
 
-		//build final search sql query
-		$sql='';
+		//study search
+		$this->ci->db->select("SQL_CALC_FOUND_ROWS $study_fields ",FALSE);
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
+		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+		$this->ci->db->where('surveys.published',1);
 
-		if ($variable!==FALSE)
-		{
-			//variable search
-			$this->ci->db->select('SQL_CALC_FOUND_ROWS '.$study_fields.',varcount, count(*) as var_found',FALSE);
-			$this->ci->db->from('surveys');
-			$this->ci->db->join('forms','surveys.formid=forms.formid','left');
-			$this->ci->db->join('variables v','surveys.id=v.sid','inner');
-			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
-			$this->ci->db->where('surveys.published',1);
-	
-			if ($repository!='')
-			{
-				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
-			}
-			
-			$this->ci->db->group_by('id,idno,title,nation');
-			
-			//multi-sort
-			foreach($sort_options as $sort)
-			{
-				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
-			}
-			
-			$this->ci->db->limit($limit,$offset);
-			
-			if ($where!='') {
-				$this->ci->db->where($where);
-			}
-		
-			$query=$this->ci->db->get();
-		}		
-		else 
-		{
-			//study search
-			$this->ci->db->select("SQL_CALC_FOUND_ROWS $study_fields ",FALSE);
-			$this->ci->db->from('surveys');
-			$this->ci->db->join('forms','surveys.formid=forms.formid','left');			
-			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
-			$this->ci->db->where('surveys.published',1);
-			
-			if ($repository!=''){
-				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
-			}
-
-
-			//multi-sort
-			foreach($sort_options as $sort)
-			{
-				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
-			}
-
-			$this->ci->db->limit($limit,$offset);
-			
-			if ($where!='') {
-				$this->ci->db->where($where,FALSE,FALSE);
-			}
-		
-			$query=$this->ci->db->get();
+		if ($repository!=''){
+			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 		}
+
+		//multi-sort
+		foreach($sort_options as $sort)
+		{
+			$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
+		}
+
+		$this->ci->db->limit($limit,$offset);
+
+		if ($where!='') {
+			$this->ci->db->where($where,FALSE,FALSE);
+		}
+
+		$query=$this->ci->db->get();
 		
 		if ($query){
 			//result to array
@@ -299,26 +259,7 @@ class Catalog_search_mysql{
 		//$result['search_counts_by_type']=null;
 		$result['search_counts_by_type']=$this->search_counts_by_type();
 
-		if ($result['found']>0){
-			//search for variables for SURVEY types
-			$id_list=array_column($this->search_result, "id");
-
-			if(count($id_list)>0){
-				//search variables and get the counts
-				$variables_by_study=$this->search_variable_counts($id_list,$this->study_keywords);
-				if(!empty($variables_by_study)){
-					foreach($this->search_result as $idx=>$row)
-					{
-						if(array_key_exists($row['id'],$variables_by_study)){
-							$this->search_result[$idx]['var_found']=$variables_by_study[$row['id']]['var_found'];
-						}
-					}
-				}
-			}
-
-			$result['rows']=$this->search_result;
-		}
-
+	
 		return $result;
 	}
 
@@ -332,7 +273,6 @@ class Catalog_search_mysql{
 	{		
 		$type=false;//$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
-		$variable=false;//$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$regions=$this->_build_regions_query();
@@ -346,7 +286,7 @@ class Catalog_search_mysql{
         $countries_iso3=$this->_build_countries_iso3_query();
 		
 		//array of all options
-		$where_list=array($tags,$study,$variable,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3,$regions,$type);
+		$where_list=array($tags,$study,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3,$regions,$type);
 
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -511,7 +451,7 @@ class Catalog_search_mysql{
 		}
 
 		//fulltext index name
-		$study_fulltext_index='keywords, var_keywords';
+		$study_fulltext_index='keywords';
 
 		$keywords=explode(" ",$study_keywords);
 		$study_keywords=$this->parse_fulltext_keywords($study_keywords);
@@ -831,15 +771,15 @@ class Catalog_search_mysql{
 		$to=(integer)$this->to;
 
 		if ($from==0 && $to>0){
-			return sprintf('surveys.id in (select sid from survey_years where (data_coll_year <= %s) or (data_coll_year=0) )',$to);
+			return sprintf('surveys.id in (select sid from survey_years where data_coll_year > 0 and data_coll_year <= %s)',$to);
 		}
 
 		if ($from>0 && $to==0){
-			return sprintf('surveys.id in (select sid from survey_years where (data_coll_year >= %s) or (data_coll_year=0) )',$from);
+			return sprintf('surveys.id in (select sid from survey_years where data_coll_year >= %s)',$from);
 		}
-		
+
 		if ($from>0 && $to>0){
-			return sprintf('surveys.id in (select sid from survey_years where (data_coll_year between %s and %s) or (data_coll_year=0) )',$from, $to);
+			return sprintf('surveys.id in (select sid from survey_years where data_coll_year between %s and %s)',$from, $to);
 		}
 		
 		return FALSE;
@@ -929,7 +869,7 @@ class Catalog_search_mysql{
 			return FALSE;
 		}
 
-		if ($param!='')
+		if ($params!='')
 		{
 			return sprintf('surveys.id in (select sid from survey_repos where survey_repos.repositoryid in (%s) )',$params);
 		}
@@ -1072,70 +1012,36 @@ class Catalog_search_mysql{
 		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'title';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
-		$variable_keywords=$this->study_keywords;
-		$variable_fields=$this->variable_fields;
-
-		$study="";//$this->_build_study_query();
 		$variable=$this->_build_variable_query();
-		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
-		$regions=$this->_build_regions_query();
 		$years=$this->_build_years_query();
-		$collections=$this->_build_collections_query();
 		$dtype=$this->_build_dtype_query();
-		$tags=$this->_build_tags_query();
-		$repository=$this->_build_repository_query();
-		$type=$this->_build_dataset_type_query();
-		
-		//array of all options
-		$where_list=array($study,$variable,$topics,$countries,$years,$collections,$dtype,$tags,$repository,$regions,$type);
+		$dataset_type=$this->_build_dataset_type_query();
 
-        //show only publshed studies
-        $where_list[]='published=1';
-
-		foreach($this->user_facets as $fc){
-			if (array_key_exists($fc['name'],$this->params)){
-				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
-				if($facet_query){
-					$where_list[]=$facet_query;
-				}
-			}
-		}
+		// Variable search filters: keyword, country, year, data type, dataset type + published only
+		$where_list=array('surveys.published=1', $variable, $countries, $years, $dtype, $dataset_type);
 
 		//create combined where clause
 		$where='';
-		
+
 		foreach($where_list as $stmt)
 		{
-			if ($where=='')
-			{
-				$where=$stmt;
+			if ($stmt===FALSE || $stmt==='') {
+				continue;
 			}
-			else
-			{
-				if ($stmt!==FALSE) {
-					$where.="\r\n".' AND '. $stmt;
-				}
-			}
-		}
-		 
-		if ($where=='') {
-			return FALSE;
+			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
 		}
 
-		//echo $where;exit;
-		
 		//search
-		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.qstn, v.vid,  surveys.title as title,surveys.idno, surveys.nation, v.sid",FALSE);
-		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
-		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
-		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
-		$this->ci->db->order_by($sort_by, $sort_order); 
-		$this->ci->db->where($where);
-		
-		if ($repository!=''){
-			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
+		$this->ci->db->limit($limit, $offset);
+		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.qstn, v.vid, surveys.title as title,surveys.idno, surveys.nation, v.sid",FALSE);
+		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');
+		if ($dtype !== FALSE && $dtype !== '') {
+			$this->ci->db->join('forms', 'surveys.formid = forms.formid', 'left');
+		}
+		$this->ci->db->order_by($sort_by, $sort_order);
+		if ($where!=='') {
+			$this->ci->db->where($where);
 		}
 
 		//get resultset
@@ -1145,13 +1051,12 @@ class Catalog_search_mysql{
 		$query_found_rows=$this->ci->db->query('select FOUND_ROWS() as rowcount',FALSE)->row_array();
 		$found_rows=$query_found_rows['rowcount'];
 
-		//return $result;
-		$tmp['total']=$this->get_total_variable_count();
 		$tmp['found']=$found_rows;
+		$tmp['total']=$this->get_total_variable_count();
 		$tmp['limit']=$limit;
 		$tmp['offset']=$offset;
 		$tmp['rows']=$result;
-		return $tmp;		
+		return $tmp;
 	}
 
 
@@ -1169,9 +1074,6 @@ class Catalog_search_mysql{
 
 		$sort_by=in_array($this->sort_by,$sortable_fields) ? $this->sort_by : 'name';
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
-
-		$variable_keywords=$this->variable_keywords;
-		$variable_fields=$this->variable_fields;
 
 		$variable=$this->_build_variable_query();
 				
@@ -1196,27 +1098,31 @@ class Catalog_search_mysql{
 		}
 		
 		if ($where=='') {
-			return FALSE;
+			return ['found'=>0,'total'=>0,'limit'=>$limit,'offset'=>$offset,'rows'=>[]];
 		}
 
 		//search
-		$this->ci->db->limit($limit, $offset);		
-		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn, v.fid");
-		$this->ci->db->order_by($sort_by, $sort_order); 
+		$this->ci->db->limit($limit, $offset);
+		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.vid,v.qstn,v.fid", FALSE);
+		$this->ci->db->order_by($sort_by, $sort_order);
 		$this->ci->db->where($where);
-		$this->ci->db->where('sid',$sid);
-		
-		//get resultset
-		$query=$this->ci->db->get("variables as v");
+		$this->ci->db->where('sid', $sid);
 
-		if ($query)
-		{
-			return $query->result_array();
-		}
-		else
-		{
-			return FALSE;
-		}
+		$result = $this->ci->db->get("variables as v")->result_array();
+
+		$found_row = $this->ci->db->query('SELECT FOUND_ROWS() as rowcount', FALSE)->row_array();
+		$found     = (int)$found_row['rowcount'];
+
+		$this->ci->db->where('sid', $sid);
+		$total = $this->ci->db->count_all_results('variables');
+
+		return [
+			'found'  => $found,
+			'total'  => $total,
+			'limit'  => $limit,
+			'offset' => $offset,
+			'rows'   => $result,
+		];
 	}
 
 	function _build_repository_query()

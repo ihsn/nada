@@ -20,8 +20,8 @@ $config['solr_debug'] = false;
 
 // EDisMax query options for survey/document search
 $config['solr_edismax_options'] = array(
-    'qf' => 'title^20.0 nation^20.0 years^30.0 authoring_entity idno^40 keywords abstract methodology var_keywords^15.0',
-    'pf' => 'title^20.0 nation^20.0 years^30.0 authoring_entity idno^40 keywords abstract methodology var_keywords^15.0',
+    'qf' => 'title^20.0 nation^20.0 authoring_entity idno^40 keywords abstract methodology',
+    'pf' => 'title^20.0 nation^20.0 authoring_entity idno^40 keywords abstract methodology',
     'mm' => '2<90%',
     'ps' => '0',
     'qs' => '0',
@@ -32,8 +32,8 @@ $config['solr_edismax_options'] = array(
 
 // EDisMax query options for variable search
 $config['solr_edismax_variable_options'] = array(
-    'qf' => 'var_label^20.0 var_name^20.0 var_categories var_question title nation years idno^30',
-    'pf' => 'var_label^20.0 var_name^20.0 var_categories var_question title nation years idno^30',
+    'qf' => 'var_label^20.0 var_name^20.0 var_categories var_question title nation idno^30',
+    'pf' => 'var_label^20.0 var_name^20.0 var_categories var_question title nation idno^30',
     'mm' => '1',
     'ps' => '0',
     'qs' => '0',
@@ -218,13 +218,6 @@ $config['solr_schema_fields'] = array(
         ),
         array(
             'name' => 'methodology',
-            'type' => 'text_en',
-            'indexed' => true,
-            'stored' => false,
-            'multiValued' => false
-        ),
-        array(
-            'name' => 'var_keywords',
             'type' => 'text_en',
             'indexed' => true,
             'stored' => false,
@@ -445,7 +438,6 @@ $config['solr_xml_schema_reference'] = <<<'XML'
 <field name="authoring_entity" type="text_en" indexed="true" stored="true" multiValued="false"/>
 <field name="keywords" type="text_en" indexed="true" stored="false" multiValued="false"/>
 <field name="methodology" type="text_en" indexed="true" stored="false" multiValued="false"/>
-<field name="var_keywords" type="text_en_var" indexed="true" stored="false" multiValued="false"/>
 <field name="year_start" type="pint" indexed="true" stored="true" multiValued="false" docValues="true"/>
 <field name="year_end" type="pint" indexed="true" stored="true" multiValued="false" docValues="true"/>
 <field name="years" type="pint" indexed="true" stored="true" multiValued="true" docValues="true"/>
