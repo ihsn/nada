@@ -8,11 +8,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *
  * Index name: opensearch_index_surveys (default: nada_surveys)
  *
- * One document per survey. All display fields are stored so search results
- * can be served entirely from OpenSearch — no database re-fetch after search.
  *
- * Public API
- * ----------
  * index_survey(int $survey_id): bool
  * index_surveys_batch(int $offset, int $batch_size = 50): array
  * delete_survey(int $survey_id): bool
@@ -34,10 +30,6 @@ class OpenSearch_survey_indexer
         $this->ci->load->model('Dataset_model');
         $this->ci->load->model('Facet_model');
     }
-
-    // =========================================================================
-    // Public API
-    // =========================================================================
 
     /**
      * Index (or re-index) a single survey by ID.
@@ -141,10 +133,6 @@ class OpenSearch_survey_indexer
         }
     }
 
-    // =========================================================================
-    // Document building
-    // =========================================================================
-
     /**
      * Build one OpenSearch document from a survey DB row plus pre-loaded related data.
      */
@@ -152,10 +140,14 @@ class OpenSearch_survey_indexer
     {
         $id = (int)$row['id'];
 
-        // Decode and extract fields from the metadata JSON blob
+        // Decode metadata for fields not stored in dedicated columns
         $metadata    = $this->ci->Dataset_model->decode_metadata($row['metadata'] ?? null);
-        $abstract    = $this->extract_nested($metadata, 'study_desc.study_info.abstract');
         $methodology = $this->extract_nested($metadata, 'study_desc.method.method_notes');
+
+        // abstract is now a dedicated column on surveys — no metadata decode needed
+        $abstract    = isset($row['abstract']) && $row['abstract'] !== ''
+                       ? $row['abstract']
+                       : null;
 
         return [
             // --- Identification ---
@@ -171,7 +163,6 @@ class OpenSearch_survey_indexer
             'abstract'        => $abstract,
             'keywords'        => $row['keywords']        ?? null,
             'methodology'     => $methodology,
-            'var_keywords'    => $related['var_keywords'][$id] ?? null,
 
             // --- Temporal ---
             'year_start'      => isset($row['year_start']) ? (int)$row['year_start'] : null,
@@ -211,9 +202,6 @@ class OpenSearch_survey_indexer
         ];
     }
 
-    // =========================================================================
-    // Database loading — all in 7 queries regardless of batch size
-    // =========================================================================
 
     /**
      * Load survey rows from the database.
@@ -231,6 +219,7 @@ class OpenSearch_survey_indexer
              surveys.nation,
              surveys.authoring_entity,
              surveys.keywords,
+             surveys.abstract,
              surveys.metadata,
              surveys.year_start,
              surveys.year_end,
@@ -276,7 +265,6 @@ class OpenSearch_survey_indexer
             'collection_ids' => [],
             'topic_ids'      => [],
             'years'          => [],
-            'var_keywords'   => [],
         ];
 
         if (empty($ids)) {
@@ -362,28 +350,9 @@ class OpenSearch_survey_indexer
             $related['years'][(int)$r['sid']][] = (int)$r['data_coll_year'];
         }
 
-        // 7. Variable keywords — single GROUP_CONCAT query
-        $kw_sql = 'SELECT sid,
-                          GROUP_CONCAT(
-                              CONCAT_WS(\' \', NULLIF(name,\'\'), NULLIF(labl,\'\'), NULLIF(qstn,\'\'))
-                              ORDER BY uid
-                              SEPARATOR \' \'
-                          ) AS var_keywords
-                   FROM variables
-                   WHERE sid IN (' . implode(',', array_map('intval', $ids)) . ')
-                   GROUP BY sid';
-
-        $kw_rows = $this->ci->db->query($kw_sql)->result_array();
-        foreach ($kw_rows as $r) {
-            $related['var_keywords'][(int)$r['sid']] = $r['var_keywords'] ?: null;
-        }
-
         return $related;
     }
 
-    // =========================================================================
-    // Bulk indexing
-    // =========================================================================
 
     /**
      * Send documents to OpenSearch via the Bulk API.
@@ -430,10 +399,6 @@ class OpenSearch_survey_indexer
 
         return empty($errors);
     }
-
-    // =========================================================================
-    // Helpers
-    // =========================================================================
 
     /**
      * Extract a value from a nested array using dot-notation path.

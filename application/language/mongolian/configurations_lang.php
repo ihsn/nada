@@ -10,7 +10,7 @@ $lang['webmaster_email'] = "Webmaster email";
 $lang['language'] = "Language";
 $lang['cache_folder'] = "Cache folder";
 
-$lang['survey_catalog_settings'] = "Survey catalog settings";
+$lang['survey_catalog_settings'] = "Catalog page settings";
 $lang['catalog_folder'] = "Catalog folder";
 $lang['local_repository_id'] = "Local repository identifier";
 $lang['ddi_import_folder'] = "DDI import folder";

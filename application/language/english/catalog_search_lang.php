@@ -266,6 +266,9 @@ $lang['related_studies']="Related studies";
 
 $lang['variable_group']='Variable group';
 $lang['keywords']="Keywords";
+$lang['read_more']='Read more';
+$lang['read_less']='Read less';
+$lang['Show abstract']='Show abstract';
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

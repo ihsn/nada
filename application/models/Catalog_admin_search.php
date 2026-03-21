@@ -35,7 +35,8 @@ class Catalog_admin_search extends CI_Model
 		'users.username as created_by_user',
 		'users.username as changed_by_user',
 		'forms.model as form_model',
-		'surveys.thumbnail'
+		'surveys.thumbnail',
+		'surveys.abstract'
 	);
 
 	// Filter parameter mappings: parameter_name => database_field_or_handler

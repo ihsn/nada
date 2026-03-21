@@ -36,15 +36,27 @@
 ?>
 
 <div class="row mb-1">
-    <div class="col-12 mt-2 mt-md-0">
-        <?php if ($this->config->item("catalog_variable_view")!==FALSE && $show_variable_toggle):?>
-        <div class="wb-search-toggle">
-            <div class="btn-group btn-group-toggle study-view-toggle">
-                <button type="button" class="btn btn-sm btn-outline-primary rounded-left active toggle_view" data-value="s"><?php echo t('Study view');?></button>
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-right toggle_view" data-value="v"><a href="<?php echo site_url('catalog/'.@$active_repo['repositoryid'].'?'.$variable_view);?>"><?php echo t('Variable view');?></a></button>
+    <div class="col-12 mt-2 mt-md-0 d-flex align-items-center justify-content-between">
+        <div>
+            <?php if ($this->config->item("catalog_variable_view")=='yes' && $show_variable_toggle):?>
+            <div class="wb-search-toggle">
+                <div class="btn-group btn-group-toggle study-view-toggle">
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-left active toggle_view" data-value="s"><?php echo t('Study view');?></button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-right toggle_view" data-value="v"><a href="<?php echo site_url('catalog/'.@$active_repo['repositoryid'].'?'.$variable_view);?>"><?php echo t('Variable view');?></a></button>
+                </div>
             </div>
+            <?php endif;?>
         </div>
-        <?php endif;?>
+
+        <?php if ($this->config->item('catalog_show_abstract')!='no'): ?>
+        <div class="wb-abstract-toggle">
+            <label class="wb-toggle-switch" for="toggleAbstract">
+                <input type="checkbox" id="toggleAbstract">
+                <span class="wb-toggle-track"></span>
+                <span class="wb-toggle-label"><?php echo t('Show abstract');?></span>
+            </label>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
 

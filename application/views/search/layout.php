@@ -55,7 +55,7 @@
         <!--search bar-->
         <?php echo $this->load->view('search/keyword_search_box',null, true);?>
 
-        <?php if($data_types_nav_bar==true && $this->input->get("view")!=='v' ):?>
+        <?php if($data_types_nav_bar=='yes' && $this->input->get("view")!=='v' ):?>
             <!-- data types nav tabs -->
             <?php echo $this->load->view('search/search_data_tabs',array('tabs'=>$tabs,'type_icons'=>@$type_icons), true);?>
         <?php endif;?>
@@ -96,7 +96,7 @@
         <!--search bar-->
         <?php echo $this->load->view('search/keyword_search_box',null, true);?>
 
-        <?php if($data_types_nav_bar==true || $this->input->get("view")!=='v'):?>
+        <?php if($data_types_nav_bar=='yes' || $this->input->get("view")!=='v'):?>
             <!-- data types nav tabs -->
             <?php echo $this->load->view('search/search_data_tabs',array('tabs'=>$tabs,'type_icons'=>@$type_icons), true);?>
         <?php endif;?>
@@ -863,8 +863,15 @@ $(document).ready(function() {
     $(document.body).on("click",".facet-filter-values-clear", function(event){
         $(this).parent().parent().find('.facet-filter-values').val("").trigger('keyup');
     });
-    
-    
+
+    // Abstract read more/less toggle
+    $(document).on('click', '.abstract-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $abstract = $(this).closest('.study-abstract');
+        $abstract.find('.abstract-short, .abstract-full').toggle();
+    });
+
 
 });
     

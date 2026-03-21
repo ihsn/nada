@@ -126,8 +126,13 @@ class Menu extends MY_Controller {
 		
 		if ($this->config->item("use_html_editor")!=='no')
 		{
-			//load js rich text editor
-       		$this->template->add_js('javascript/tiny_mce/tiny_mce.js');
+			//load Quill editor
+			$this->template->add_css('javascript/quill/quill.snow.css');
+			$this->template->add_js('javascript/quill/quill.min.js');
+			
+			//load CodeMirror for source editing
+			$this->template->add_css('javascript/codemirror/lib/codemirror.css');
+			$this->template->add_js('javascript/codemirror/lib/codemirror.js');
 		}
 	
 		$menu=NULL;

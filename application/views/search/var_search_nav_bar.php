@@ -19,7 +19,7 @@
 
 <div class="row mb-1">
     <div class="col-12 mt-2 mt-md-0">
-        <?php if ($this->config->item("catalog_variable_view")!==FALSE):?>
+        <?php if ($this->config->item("catalog_variable_view")=='yes'):?>
         <div class="wb-search-toggle">
             <div class="btn-group btn-group-toggle study-view-toggle">
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-left toggle_view" data-value="s"><a href="<?php echo site_url('catalog/'.@$active_repo['repositoryid'].'?'.$study_view);?>"><?php echo t('Study view');?></a></button>

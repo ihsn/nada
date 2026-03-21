@@ -486,7 +486,7 @@ class Catalog extends MY_Controller {
 		$offset=						($search_options->page-1)*$limit;
 
 
-		if ($this->config->item("catalog_variable_view")===FALSE && $search_options->view=='v'){
+		if ($this->config->item("catalog_variable_view")!='yes' && $search_options->view=='v'){
 			show_error("Page is not available");
 		}
 

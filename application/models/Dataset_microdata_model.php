@@ -212,66 +212,6 @@ class Dataset_microdata_model extends Dataset_model {
     }
     
 
-    /**
-     * 
-     * 
-     * Store all variables text into a single field
-     * 
-     */
-    function index_variable_data($sid)
-    {
-        $total_vars=$this->Variable_model->get_variables_count($sid);
-        $include_categories=true;
-
-        if($total_vars>8000){
-            $include_categories=false;
-        }
-
-        $limit=1000;
-        $max_loop=ceil($total_vars/$limit);
-
-        $exclude_columns=array('file_id','vid','fid','var_qstn_qstnlit','var_sumstat','var_format','var_val_range');
-
-        if($include_categories==false){
-            $exclude_columns[]="catgry";
-        }
-
-        $counter=0;
-        $output=[];
-        $m=0;
-        $start_uid=0;
-
-        for($vars_processed=0;$vars_processed<$total_vars;){
-            $counter++;
-            if ($counter>$max_loop){break;}
-
-            $variables=$this->variable_chunk_reader($sid, $start_uid, $limit,$include_categories);
-            foreach($variables as $variable){
-                $m++;
-                $start_uid=$variable['uid'];
-
-                $tmp=array();
-                foreach($variable['metadata'] as $key=>$value){
-                    if(!in_array($key,$exclude_columns)){
-                        $tmp[]=$value;
-                    }
-                }
-                $output[]=$this->extract_var_keywords($tmp);
-            }
-            $vars_processed=$vars_processed+$limit;
-        }
-
-        $output=implode(" ",$output);
-        $output=array_unique(array_filter(explode(" ",$output)));
-        $output=implode(" ",($output));
-
-        $options=array(
-            'var_keywords'=>$output 
-        );
-
-        $this->db->where('id',$sid);
-        $this->db->update("surveys",$options);
-    }
 
 
     /**

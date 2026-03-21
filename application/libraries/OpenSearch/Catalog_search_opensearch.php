@@ -670,6 +670,7 @@ class catalog_search_opensearch
                 'doi'             => $s['doi']                   ?? null,
                 'title'           => $s['title']                 ?? null,
                 'subtitle'        => $s['subtitle']              ?? null,
+                'abstract'        => $s['abstract']              ?? null,
                 'nation'          => $s['nation']                ?? null,
                 'authoring_entity'=> $s['authoring_entity']      ?? null,
                 'form_model'      => $s['form_model']            ?? null,
@@ -747,6 +748,7 @@ class catalog_search_opensearch
     {
         return [
             'id', 'idno', 'doi', 'title', 'subtitle', 'nation', 'authoring_entity',
+            'abstract',
             'dataset_type', 'form_model', 'data_class_id',
             'year_start', 'year_end',
             'repository_id', 'repo_title',
@@ -767,7 +769,6 @@ class catalog_search_opensearch
             'keywords^10',
             'abstract',
             'methodology',
-            'var_keywords^15',
         ];
     }
 

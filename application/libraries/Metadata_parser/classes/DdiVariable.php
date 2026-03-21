@@ -167,12 +167,17 @@ class DdiVariable
             $category_stats=array();
 
             if(isset($item['catStat'])){
-                foreach($item['catStat'] as $cat_stat){
-                    $category_stats[]=array(
-                        'value'=>$this->get_element_text($cat_stat),
-                        'type'=>$this->get_attribute_value($cat_stat,'type'),
-                        'wgtd'=>$this->get_attribute_value($cat_stat,'wgtd'),
-                    );
+                // Normalize to array: DDI with a single catStat per category often parses as one assoc array
+                $cat_stat_list = isset($item['catStat'][0]) ? $item['catStat'] : array($item['catStat']);
+                foreach($cat_stat_list as $cat_stat){
+                    $val = $this->get_element_text($cat_stat);
+                    if ($val !== null && $val !== '') {
+                        $category_stats[]=array(
+                            'value'=>$val,
+                            'type'=>$this->get_attribute_value($cat_stat,'type'),
+                            'wgtd'=>$this->get_attribute_value($cat_stat,'wgtd'),
+                        );
+                    }
                 }
             }
 
