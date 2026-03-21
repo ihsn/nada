@@ -395,7 +395,7 @@ if (isset($featured_studies) && is_array($featured_studies) ){
     <script type="text/javascript">
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
-        })
+        });
 
         // Abstract visibility toggle (persisted in localStorage)
         (function() {
