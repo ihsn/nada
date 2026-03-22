@@ -27,19 +27,21 @@
                 }
 
                 foreach($item['stats'] as $stat_row){                          
+                    // Consider missing only when explicitly set to something truthy (e.g. "1", "Y", "true"); "0" and empty mean not missing
+                    $ismissing_ = isset($item['is_missing']) ? $item['is_missing'] : '';
+                    $is_missing_val = ($ismissing_ !== '' && $ismissing_ !== '0' && $ismissing_ !== 0);
+
                     //non-weighted stats
                     $wgtd_=isset($stat_row['wgtd']) ? $stat_row['wgtd'] : '';
                     if($wgtd_!=='wgtd'){
                         $data[$data_idx]['stats_non_wgtd_value']=$stat_row['value'];
-                        $ismissing_=isset($item['is_missing']) ? $item['is_missing'] : '';
-                        if($ismissing_==''){
+                        if(!$is_missing_val){
                             $stats_col[]=$stat_row['value'];
                         }
                     }//weighted stats
                     else if ($stat_row['wgtd']==='wgtd'){
                         $data[$data_idx]['stats_wgtd_value']=$stat_row['value'];
-                        $ismissing_=isset($item['is_missing']) ? $item['is_missing'] : '';
-                        if($ismissing_==''){
+                        if(!$is_missing_val){
                             $stats_col_wgtd[]=$stat_row['value'];
                         }    
                     }

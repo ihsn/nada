@@ -187,9 +187,8 @@ if (isset($featured_studies) && is_array($featured_studies) ){
 
         $collection_links=array();
         foreach($row_collections as $collection_){
-            $collection_links[]='<a href="'.site_url('catalog/'.$collection_['repositoryid']).'">'.$collection_['title'].'</a>';
+            $collection_links[]='<a class="wb-chip" href="'.site_url('catalog/'.$collection_['repositoryid']).'">'.html_escape($collection_['title']).'</a>';
         }
-        $collection_links=implode(" <span class=\"coll-sep\">|</span> ",$collection_links);
     ?>
 
     <div class="survey-row border-bottom pb-3 mb-2 <?php echo ($is_featured == true ? 'xwb-featured xfeatured-study': '');?>" data-url="<?php echo site_url('catalog/'.$row['id']); ?>" >
@@ -228,28 +227,32 @@ if (isset($featured_studies) && is_array($featured_studies) ){
                     ?>
                     <?php echo $survey_year!=0 ? $survey_year : '';?>                
                 </div>
+                <?php if (!empty($row['abstract']) && $this->config->item('catalog_show_abstract')!='no'): ?>
+                <?php
+                    $abstract_full     = html_escape($row['abstract']);
+                    $abstract_short    = html_escape(mb_substr($row['abstract'], 0, 250));
+                    $needs_truncation  = mb_strlen($row['abstract']) > 250;
+                ?>
+                <div class="study-abstract mb-3">
+                    <?php if ($needs_truncation): ?>
+                        <span class="abstract-short"><?php echo $abstract_short; ?>&hellip; <a class="abstract-toggle" href="#"><?php echo t('read_more'); ?></a></span>
+                        <span class="abstract-full" style="display:none"><?php echo $abstract_full; ?> <a class="abstract-toggle" href="#"><?php echo t('read_less'); ?></a></span>
+                    <?php else: ?>
+                        <?php echo $abstract_full; ?>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
                 <div class="sub-title">
                     <?php if (isset($row['authoring_entity'])):?>
                     <div>
-                        <span class="study-by"><?php echo $row['authoring_entity'];?></span>
+                        <span class="study-by" style="font-size:14px;"><?php echo $row['authoring_entity'];?></span>
                     </div>
                     <?php endif;?>
 
-                    <?php if ($row_collections):?>
-                        <span class="owner-collection collection-link mr-3"><?php echo t('catalog_owned_by')?>:
-                        <?php /*
-                        <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                             <span><a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></span>
-                        <?php endif;?>
-                        
-                            <?php foreach($row_collections as $related_collection):?>
-                                <span>
-                                <a href="<?php echo site_url('catalog/'.$related_collection['repositoryid']);?>"><?php echo $related_collection['title'];?></a>
-                                </span>
-                            <?php endforeach;?>
-                            */?>
-                            <?php echo $collection_links;?>
-                        </span>
+                    <?php if ($collection_links):?>
+                        <div class="study-collections mt-1">
+                            <?php echo implode(' ', $collection_links); ?>
+                        </div>
                     <?php endif;?>
                 </div>
                 <div class="survey-stats">
@@ -392,5 +395,32 @@ if (isset($featured_studies) && is_array($featured_studies) ){
     <script type="text/javascript">
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
-        })
+        });
+
+        // Abstract visibility toggle (persisted in localStorage)
+        (function() {
+            var PREF_KEY = 'nada_show_abstracts';
+            var showAbstracts = localStorage.getItem(PREF_KEY) !== 'false';
+
+            function applyPref() {
+                if (showAbstracts) {
+                    $('#surveys').removeClass('hide-abstracts');
+                } else {
+                    $('#surveys').addClass('hide-abstracts');
+                }
+            }
+
+            applyPref();
+
+            $(function() {
+                $('#toggleAbstract').prop('checked', showAbstracts);
+
+                $('#toggleAbstract').on('change', function() {
+                    showAbstracts = $(this).is(':checked');
+                    localStorage.setItem(PREF_KEY, showAbstracts ? 'true' : 'false');
+                    applyPref();
+                });
+
+            });
+        })();
     </script>

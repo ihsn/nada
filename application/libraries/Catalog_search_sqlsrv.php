@@ -313,6 +313,7 @@ class Catalog_search_sqlsrv{
 		//$study_fields='surveys.id as id,surveys.idno,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,year_start,year_end';
 		$study_fields='surveys.id as id,surveys.idno,surveys.doi,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,data_class_id, year_start,year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount, surveys.thumbnail';
+		$study_fields.=', surveys.abstract';
 
 		//add ranking if keywords are not empty
 		if(!empty($this->study_keywords)){
@@ -478,7 +479,7 @@ class Catalog_search_sqlsrv{
 			return FALSE;
 		}
 
-        $this->ci->db->join("freetexttable(surveys, (keywords,var_keywords), ".$this->ci->db->escape($study_keywords).") k","surveys.id=k.[key]","INNER",false);
+        $this->ci->db->join("freetexttable(surveys, (keywords), ".$this->ci->db->escape($study_keywords).") k","surveys.id=k.[key]","INNER",false);
 	}
 	
 
@@ -663,12 +664,19 @@ class Catalog_search_sqlsrv{
 	{
 		$from=(integer)$this->from;
 		$to=(integer)$this->to;
-		
-		if ($from>0 && $to>0)
-		{
-			return sprintf('surveys.id in (select sid from survey_years where (data_coll_year between %s and %s) or (data_coll_year=0) )',$from, $to);
+
+		if ($from==0 && $to>0) {
+			return sprintf('surveys.id in (select sid from survey_years where data_coll_year > 0 and data_coll_year <= %s)',$to);
 		}
-		
+
+		if ($from>0 && $to==0) {
+			return sprintf('surveys.id in (select sid from survey_years where data_coll_year >= %s)',$from);
+		}
+
+		if ($from>0 && $to>0) {
+			return sprintf('surveys.id in (select sid from survey_years where data_coll_year between %s and %s)',$from, $to);
+		}
+
 		return FALSE;
 	}
 
@@ -877,9 +885,6 @@ class Catalog_search_sqlsrv{
 			$sort_by="surveys.title";
 		}
 
-		//$variable_keywords=$this->variable_keywords;
-		//$variable_fields=$this->variable_fields;
-
 		$variable=$this->_build_variable_query();
 		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
@@ -887,32 +892,17 @@ class Catalog_search_sqlsrv{
 		$dtype=$this->_build_dtype_query();
 		$repository = $this->_build_repository_query();
 		$type=$this->_build_dataset_type_query();
-		
-		//array of all options
-		$where_list=array($variable,$topics,$countries,$years,$dtype,$repository,$type);
 
-        //show only publshed studies
-        $where_list[]='published=1';
+		$where_list=array('surveys.published=1', $variable,$topics,$countries,$years,$dtype,$repository,$type);
 
 		//create combined where clause
 		$where='';
-		
 		foreach($where_list as $stmt)
 		{
-			if ($where=='')
-			{
-				$where=$stmt;
+			if ($stmt===FALSE || $stmt==='') {
+				continue;
 			}
-			else
-			{
-				if ($stmt!==FALSE) {
-					$where.="\r\n".' AND '. $stmt;
-				}
-			}
-		}
-
-		if ($where=='') {
-			return FALSE;
+			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
 		}
 		
 		//search
@@ -933,12 +923,12 @@ class Catalog_search_sqlsrv{
         
 		$found_rows=$this->vsearch_count();
 
-		$tmp['total']=$this->get_total_variable_count();//$this->ci->db->count_all('variables');
 		$tmp['found']=$found_rows;
+		$tmp['total']=$this->get_total_variable_count();
 		$tmp['limit']=$limit;
 		$tmp['offset']=$offset;
 		$tmp['rows']=$result;
-		return $tmp;		
+		return $tmp;
 	}
 
 
@@ -950,32 +940,18 @@ class Catalog_search_sqlsrv{
 		$years=$this->_build_years_query();
 		$dtype=$this->_build_dtype_query();
 		$repository = $this->_build_repository_query();
-		
-		//array of all options
-		$where_list=array($variable,$topics,$countries,$years,$dtype,$repository);
+		$type=$this->_build_dataset_type_query();
 
-        //show only publshed studies
-        $where_list[]='published=1';
+		$where_list=array('surveys.published=1', $variable,$topics,$countries,$years,$dtype,$repository,$type);
 
 		//create combined where clause
 		$where='';
-		
 		foreach($where_list as $stmt)
 		{
-			if ($where=='')
-			{
-				$where=$stmt;
+			if ($stmt===FALSE || $stmt==='') {
+				continue;
 			}
-			else
-			{
-				if ($stmt!==FALSE) {
-					$where.="\r\n".' AND '. $stmt;
-				}
-			}
-		}
-
-		if ($where=='') {
-			return FALSE;
+			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
 		}
 		
 		//search
@@ -1036,29 +1012,36 @@ class Catalog_search_sqlsrv{
 		}
 		
 		if ($where=='') {
-			return FALSE;
+			return ['found'=>0,'total'=>0,'limit'=>$limit,'offset'=>$offset,'rows'=>[]];
 		}
 
-		//echo $where;exit;
-		
 		//search
-		$this->ci->db->limit($limit, $offset);		
+		$this->ci->db->limit($limit, $offset);
 		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn,v.fid");
-		$this->ci->db->order_by($sort_by, $sort_order); 
+		$this->ci->db->order_by($sort_by, $sort_order);
 		$this->ci->db->where($where);
-		$this->ci->db->where('v.sid',$surveyid);
-		
-		//get resultset
-		$query=$this->ci->db->get("variables as v");
+		$this->ci->db->where('v.sid', $surveyid);
 
-		if ($query)
-		{
-			return $query->result_array();
-		}
-		else
-		{
-			return FALSE;
-		}
+		$query  = $this->ci->db->get("variables as v");
+		$result = $query ? $query->result_array() : [];
+
+		// Count matching rows (SQL Server has no FOUND_ROWS)
+		$this->ci->db->select("count(*) as rowcount", FALSE);
+		$this->ci->db->where($where);
+		$this->ci->db->where('v.sid', $surveyid);
+		$count_row = $this->ci->db->get("variables as v")->row_array();
+		$found     = (int)($count_row['rowcount'] ?? 0);
+
+		$this->ci->db->where('sid', $surveyid);
+		$total = $this->ci->db->count_all_results('variables');
+
+		return [
+			'found'  => $found,
+			'total'  => $total,
+			'limit'  => $limit,
+			'offset' => $offset,
+			'rows'   => $result,
+		];
 	}
 
 	function _build_repository_query()

@@ -1,0 +1,28 @@
+import { inject, computed } from 'vue';
+
+const APP_CONFIG_KEY = Symbol('APP_CONFIG');
+
+/**
+ * Shared app config composable. Use in any Vue app where the PHP view sets window.APP_CONFIG.
+ * Prefer provide(APP_CONFIG_KEY, window.APP_CONFIG) in main.js so config is injectable (e.g. tests).
+ * Falls back to window.APP_CONFIG when not provided.
+ *
+ * @returns {Object} { config, siteUrl, baseUrl, apiBaseUrl, assetsBase, activeRepo, csrfToken }
+ */
+export function useAppConfig() {
+  const provided = inject(APP_CONFIG_KEY, null);
+  const config = computed(
+    () => provided ?? (typeof window !== 'undefined' && window.APP_CONFIG) ?? {}
+  );
+  return {
+    config,
+    siteUrl: computed(() => config.value?.siteUrl ?? ''),
+    baseUrl: computed(() => config.value?.baseUrl ?? ''),
+    apiBaseUrl: computed(() => config.value?.apiBaseUrl ?? ''),
+    assetsBase: computed(() => config.value?.assetsBase ?? ''),
+    activeRepo: computed(() => config.value?.activeRepo ?? ''),
+    csrfToken: computed(() => config.value?.csrfToken ?? ''),
+  };
+}
+
+export { APP_CONFIG_KEY };

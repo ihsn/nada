@@ -65,8 +65,14 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
     <div class="field">
             <label for="<?php echo 'website_webmaster_email'; ?>"><?php echo t('webmaster_email');?></label>
             <input class="form-control" name="website_webmaster_email" type="text" id="website_webmaster_email"  value="<?php echo get_form_value('website_webmaster_email',isset($website_webmaster_email) ? $website_webmaster_email : ''); ?>"/>
-    </div>    
-    
+    </div>
+
+    <div class="field">
+            <label for="max_resource_upload_size"><?php echo t('max_resource_upload_size');?></label>
+            <input class="input-fixed-3" name="max_resource_upload_size" type="text" id="max_resource_upload_size" value="<?php echo get_form_value('max_resource_upload_size',isset($max_resource_upload_size) ? $max_resource_upload_size : '3000'); ?>"/>
+            <span class="field-note"><?php echo t('max_resource_upload_size_note');?></span>
+    </div>
+
 </fieldset>
 
 <fieldset class="field-expanded ">
@@ -177,83 +183,87 @@ h2{font-size:1.2em;font-weight:bold;border-bottom:1px solid gainsboro;padding-bo
         <span class="field-note"><?php echo t('instruction_ddi_import_folder'); ?></span>
 	</div>
 	<div class="field">
-        <label for="vocabulary"><?php echo t('select_vocabulary'); ?></label>
-        <?php echo form_dropdown('topics_vocab', $this->configurations_model->get_vocabularies_array(), get_form_value("topics_vocab",isset($topics_vocab) ? $topics_vocab : '')); ?>
-        <span class="field-note"><?php echo t('instruction_select_vocabulary'); ?></span>
+        <label for="catalog_records_per_page"><?php echo t('data_catalog_page_size');?></label>
+        <input class="input-fixed-3" name="catalog_records_per_page" type="text" id="catalog_records_per_page" value="<?php echo get_form_value('catalog_records_per_page',isset($catalog_records_per_page) ? $catalog_records_per_page : ''); ?>"/>
+        <span class="field-note"><?php echo t('instruction_catalog_records_per_page'); ?></span>
 	</div>
 
 	<div class="field">
-        <label style="height:50px;" for="<?php echo 'regional_search'; ?>"><?php echo t('regional_search');?></label>
+        <label><?php echo t('catalog_variable_view');?></label>
         <div>
-        <input type="radio" name="regional_search" value="yes" <?php echo ($regional_search=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('regional_search_enable');?> <br/>
-        <input type="radio" name="regional_search" value="no" <?php echo ($regional_search!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('regional_search_disable');?>
+            <input type="radio" name="catalog_variable_view" value="yes" <?php echo (isset($catalog_variable_view) && $catalog_variable_view=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('yes');?>&nbsp;&nbsp;
+            <input type="radio" name="catalog_variable_view" value="no"  <?php echo (!isset($catalog_variable_view) || $catalog_variable_view!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('no');?>
         </div>
+        <span class="field-note"><?php echo t('catalog_variable_view_note');?></span>
 	</div>
 
 	<div class="field">
-        <label style="height:50px;" for="<?php echo 'topic_search'; ?>"><?php echo t('topic_search');?></label>
+        <label><?php echo t('catalog_show_abstract');?></label>
         <div>
-        <input type="radio" name="topic_search" value="yes" <?php echo ($topic_search=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('topic_search_enable');?> <br/>
-        <input type="radio" name="topic_search" value="no" <?php echo ($topic_search!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('topic_search_disable');?>
+            <input type="radio" name="catalog_show_abstract" value="yes" <?php echo (!isset($catalog_show_abstract) || $catalog_show_abstract=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('yes');?>&nbsp;&nbsp;
+            <input type="radio" name="catalog_show_abstract" value="no"  <?php echo (isset($catalog_show_abstract) && $catalog_show_abstract!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('no');?>
         </div>
+        <span class="field-note"><?php echo t('catalog_show_abstract_note');?></span>
 	</div>
 
 	<div class="field">
-        <label style="height:50px;" for="<?php echo 'year_search'; ?>"><?php echo t('year_search');?></label>
+        <label><?php echo t('data_types_nav_bar');?></label>
         <div>
-        <input type="radio" name="year_search" value="yes" <?php echo ($year_search=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('year_search_enable');?> <br/>
-        <input type="radio" name="year_search" value="no" <?php echo ($year_search!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('year_search_disable');?>
+            <input type="radio" name="data_types_nav_bar" value="yes" <?php echo (isset($data_types_nav_bar) && $data_types_nav_bar=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('yes');?>&nbsp;&nbsp;
+            <input type="radio" name="data_types_nav_bar" value="no"  <?php echo (!isset($data_types_nav_bar) || $data_types_nav_bar!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('no');?>
         </div>
+        <span class="field-note"><?php echo t('data_types_nav_bar_note');?></span>
 	</div>
 
 	<div class="field">
-        <label style="height:50px;" for="<?php echo 'collection_search'; ?>"><?php echo t('collection_search');?></label>
+        <label><?php echo t('guests_hide_microdata_tab');?></label>
         <div>
-        <input type="radio" name="collection_search" value="yes" <?php echo ($collection_search=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('collection_search_enable');?> <br/>
-        <input type="radio" name="collection_search" value="no" <?php echo ($collection_search!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('collection_search_disable');?>
+            <input type="radio" name="guests_hide_microdata_tab" value="yes" <?php echo (isset($guests_hide_microdata_tab) && $guests_hide_microdata_tab=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('yes');?>&nbsp;&nbsp;
+            <input type="radio" name="guests_hide_microdata_tab" value="no"  <?php echo (!isset($guests_hide_microdata_tab) || $guests_hide_microdata_tab!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('no');?>
         </div>
+        <span class="field-note"><?php echo t('guests_hide_microdata_tab_note');?></span>
 	</div>
 
 	<div class="field">
-        <label style="height:50px;" for="<?php echo 'da_search'; ?>"><?php echo t('da_search');?></label>
-        <div>
-        <input type="radio" name="da_search" value="yes" <?php echo ($da_search=='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('da_search_enable');?> <br/>
-        <input type="radio" name="da_search" value="no" <?php echo ($da_search!='yes') ? 'checked="checked"' : ''; ?>/> <?php echo t('da_search_disable');?>
-        </div>
-	</div>
-    
-    <div class="field list-group">
-    	<div class="instructions"><?php echo t('instruction_weight'); ?></div>
-    	<div>
-        <label for="<?php echo 'da_search_weight'; ?>"><?php echo t('da_search_weight');?></label>
-        <input class="input-fixed-3" name="da_search_weight" type="text" id="da_search_weight"  value="<?php echo get_form_value('da_search_weight',isset($da_search_weight) ? $da_search_weight : ''); ?>"/>
-        
-        </div>
-        <div>
-        <label for="<?php echo 'regional_search_weight'; ?>"><?php echo t('regional_search_weight');?></label>
-        <input class="input-fixed-3" name="regional_search_weight" type="text" id="regional_search_weight"  value="<?php echo get_form_value('regional_search_weight',isset($regional_search_weight) ? $regional_search_weight : ''); ?>"/>
-       
-</div>
-    <div>
-        <label for="<?php echo 'topic_search_weight'; ?>"><?php echo t('topic_search_weight');?></label>
-        <input class="input-fixed-3" name="topic_search_weight" type="text" id="topic_search_weight"  value="<?php echo get_form_value('topic_search_weight',isset($topic_search_weight) ? $topic_search_weight : ''); ?>"/>
-  </div>
-    <div>
-        <label for="<?php echo 'year_search_weight'; ?>"><?php echo t('year_search_weight');?></label>
-        <input class="input-fixed-3" name="year_search_weight" type="text" id="year_search_weight"  value="<?php echo get_form_value('year_search_weight',isset($year_search_weight) ? $year_search_weight : ''); ?>"/>  
-	</div>
-
-    <div>
-        <label for="<?php echo 'collection_search_weight'; ?>"><?php echo t('collection_search_weight');?></label>
-        <input class="input-fixed-3" name="collection_search_weight" type="text" id="collection_search_weight"  value="<?php echo get_form_value('collection_search_weight',isset($collection_search_weight) ? $collection_search_weight : ''); ?>"/>
-	</div>
-        
+        <label for="catalog_default_sort_by"><?php echo t('catalog_default_sort_by');?></label>
+        <?php
+            $sort_options = array(
+                ''           => t('sort_default'),
+                'relevance'  => t('Relevance'),
+                'popularity' => t('Popularity'),
+                'year'       => t('year'),
+                'title'      => t('title'),
+                'country'    => t('country'),
+            );
+            echo form_dropdown('catalog_default_sort_by', $sort_options, get_form_value('catalog_default_sort_by', isset($catalog_default_sort_by) ? $catalog_default_sort_by : ''));
+        ?>
+        <span class="field-note"><?php echo t('catalog_default_sort_by_note');?></span>
 	</div>
 
 	<div class="field">
-        <label for="<?php echo 'catalog_records_per_page'; ?>"><?php echo t('data_catalog_page_size');?></label>
-        <input class="input-fixed-3" name="catalog_records_per_page" type="text" id="catalog_records_per_page"  value="<?php echo get_form_value('catalog_records_per_page',isset($catalog_records_per_page) ? $catalog_records_per_page : ''); ?>"/>
-        <span class="field-note"><?php echo t('instruction_catalog_records_per_page'); ?></span>        
+        <label for="catalog_default_sort_order"><?php echo t('catalog_default_sort_order');?></label>
+        <?php
+            $order_options = array(
+                ''     => t('sort_default'),
+                'desc' => t('sort_desc'),
+                'asc'  => t('sort_asc'),
+            );
+            echo form_dropdown('catalog_default_sort_order', $order_options, get_form_value('catalog_default_sort_order', isset($catalog_default_sort_order) ? $catalog_default_sort_order : ''));
+        ?>
+	</div>
+</fieldset>
+
+<fieldset class="field-expanded ">
+	<legend><i class="fas fa-search mr-3" style="color:#007bff;"></i><?php echo t('fulltext_search');?></legend>
+
+	<div class="field">
+        <label style="height:75px;"><?php echo t('search_provider');?></label>
+        <div>
+            <input type="radio" name="search_provider" value="db" <?php echo (isset($search_provider) && $search_provider=='db') ? 'checked="checked"' : ''; ?>/> <?php echo t('search_provider_db');?><br/>
+            <input type="radio" name="search_provider" value="opensearch" <?php echo (!isset($search_provider) || $search_provider=='opensearch') ? 'checked="checked"' : ''; ?>/> <?php echo t('search_provider_opensearch');?><br/>
+            <input type="radio" name="search_provider" value="solr" <?php echo (isset($search_provider) && $search_provider=='solr') ? 'checked="checked"' : ''; ?>/> <?php echo t('search_provider_solr');?>
+            <br/><span class="field-note"><?php echo t('search_provider_note');?></span>
+        </div>
 	</div>
 </fieldset>
 

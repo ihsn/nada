@@ -13,6 +13,23 @@ class Citation_model extends CI_Model {
 	//search
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
     {
+        $search_provider = $this->config->item('search_provider');
+
+        if ($search_provider === 'opensearch') {
+            require_once APPPATH . 'libraries/OpenSearch/Citation_search_opensearch.php';
+            $searcher = new Citation_search_opensearch();
+            $result   = $searcher->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
+            $this->search_found_rows = $searcher->search_found_rows;
+            return $result;
+        }
+
+        if ($search_provider === 'solr') {
+            $this->load->library('citation_search_solr');
+            $result = $this->citation_search_solr->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
+            $this->search_found_rows = $this->citation_search_solr->search_found_rows;
+            return $result;
+        }
+
 		$driver=$this->db->dbdriver;
 
 		switch($driver)
@@ -36,7 +53,7 @@ class Citation_model extends CI_Model {
 				$this->search_found_rows=$this->citation_search_sql->search_found_rows;
 				return $result;
 				break;
-		}		
+		}
     }
 	
   	/**

@@ -479,7 +479,7 @@
                     <div class="nav-section mb-3">
                         <h6 class="nav-section-title">Index Operations</h6>
                         <button type="button" class="btn btn-primary btn-sm btn-block mb-2" v-on:click="toggleTab('index-datasets')">
-                            <i class="fas fa-database"></i> Index Datasets
+                            <i class="fas fa-database"></i> Index Studies
                         </button>
                         <button type="button" class="btn btn-primary btn-sm btn-block mb-2" v-on:click="toggleTab('index-variables')">
                             <i class="fas fa-list"></i> Index Variables
@@ -487,7 +487,7 @@
                         <button type="button" class="btn btn-primary btn-sm btn-block mb-2" v-on:click="toggleTab('index-variables-by-survey')">
                             <i class="fas fa-poll"></i> Index by Survey
                         </button>
-                        <button type="button" class="btn btn-secondary btn-sm btn-block mb-2" disabled>
+                        <button type="button" class="btn btn-primary btn-sm btn-block mb-2" v-on:click="toggleTab('index-citations')">
                             <i class="fas fa-quote-left"></i> Index Citations
                         </button>
                     </div>
@@ -847,7 +847,7 @@
                     <div class="card">
                         <div class="card-header d-flex align-items-center">
                             <i class="fas fa-database text-primary mr-2"></i>
-                            <h5 class="mb-0">Index Datasets</h5>
+                            <h5 class="mb-0">Index Studies</h5>
                         </div>
                         <div class="card-body">
                             <div class="card-text">
@@ -885,7 +885,7 @@
                                         </button>
                                 </div>
 
-                                    <div v-if="indexing_processed || indexing_running" class="progress-section">
+                                    <div v-if="indexing_running || dataset_stopped || dataset_last_row_processed > 0" class="progress-section">
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <span class="small font-weight-bold">Progress</span>
                                             <span class="small" v-if="dataset_total_count > 0">
@@ -914,8 +914,8 @@
                             </div>
 
                                     <div v-if="dataset_stopped" class="alert alert-warning mt-2">
-                                        <strong><i class="fas fa-pause"></i> Dataset Processing Stopped</strong><br>
-                                        <small>Indexed {{indexing_status.toLocaleString()}} datasets 
+                                        <strong><i class="fas fa-pause"></i> Study Processing Stopped</strong><br>
+                                        <small>Indexed {{indexing_status.toLocaleString()}} studies
                                             <span v-if="dataset_total_count > 0">({{getDatasetProgressPercentage().toFixed(1)}}%)</span>
                                             • Last processed ID: {{dataset_last_row_processed}}
                                         </small>
@@ -923,7 +923,7 @@
                                     
                                     <div v-if="!indexing_running && !dataset_stopped && indexing_processed === 0 && dataset_total_count > 0" class="alert alert-info mt-2">
                                         <small>
-                                            <i class="fas fa-info-circle"></i> Total surveys in database: <strong>{{dataset_total_count.toLocaleString()}}</strong>
+                                            <i class="fas fa-info-circle"></i> Total studies in database: <strong>{{dataset_total_count.toLocaleString()}}</strong>
                                         </small>
                                     </div>
                                 </div>
@@ -989,7 +989,7 @@
                                         </button>
                                     </div>
 
-                                    <div v-if="indexing_processed || var_processing" class="progress-section">
+                                    <div v-if="var_processing || var_stopped || variable_last_row_processed > 0" class="progress-section">
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <span class="small font-weight-bold">Progress</span>
                                             <span class="small" v-if="variable_total_count > 0">
@@ -1176,6 +1176,100 @@
 
                     </div>
                     <!-- end index variables by survey -->
+
+                    <!-- index citations -->
+                    <div v-if="active_container=='index-citations'" class="index-citations">
+
+                    <div class="card">
+                        <div class="card-header d-flex align-items-center">
+                            <i class="fas fa-quote-left text-primary mr-2"></i>
+                            <h5 class="mb-0">Index Citations</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-text">
+                                <p>Reindex all citations in the catalog</p>
+                                <div class="form-groupx row">
+                                    <div class="col-2">Rows</div>
+                                    <div class="col"><input class="form-controlx" size="6" type="text" v-model="citation_rows_limit" /> <span class="text-secondary">No. of citations to process per request</span></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-2">Start row#</div>
+                                    <div class="col-md-1"><input class="form-controlx" size="6" type="text" v-model="citation_start_row" /></div>
+                                    <div class="col-md-9" v-if="citation_stopped && citation_last_row_processed > 0">
+                                        <small class="text-info">
+                                            <i class="fas fa-info-circle"></i> Last processed ID: <strong>{{citation_last_row_processed}}</strong>
+                                            <button type="button" class="btn btn-link btn-sm p-0 ml-1" v-on:click="resumeCitationFromLastProcessed">
+                                                (Use this to resume)
+                                            </button>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-2">
+                                        <button type="button" class="btn btn-primary btn-sm" v-on:click="indexCitationsOnClick" :disabled="citation_processing">
+                                            <i class="fas fa-play"></i> Start
+                                        </button>
+                                        <button type="button" class="btn btn-success btn-sm" v-on:click="resumeCitationProcessing" :disabled="citation_processing || !citation_stopped || !citation_last_row_processed">
+                                            <i class="fas fa-redo"></i> Resume
+                                        </button>
+                                        <button type="button" class="btn btn-warning btn-sm" v-on:click="stopCitationProcessing" :disabled="!citation_processing">
+                                            <i class="fas fa-stop"></i> Stop
+                                        </button>
+                                    </div>
+
+                                    <div v-if="citation_processing || citation_stopped || citation_last_row_processed > 0" class="progress-section">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small font-weight-bold">Progress</span>
+                                            <span class="small" v-if="citation_total_count > 0">
+                                                {{getCitationProgressPercentage().toFixed(1)}}%
+                                                ({{citation_processed.toLocaleString()}} / {{citation_total_count.toLocaleString()}})
+                                            </span>
+                                            <span class="small" v-else>
+                                                {{citation_processed.toLocaleString()}} processed
+                                            </span>
+                                        </div>
+                                        <div class="progress" style="height: 20px;" v-if="citation_total_count > 0">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                                 role="progressbar"
+                                                 :style="{width: getCitationProgressPercentage() + '%'}"
+                                                 :aria-valuenow="getCitationProgressPercentage()"
+                                                 aria-valuemin="0"
+                                                 :aria-valuemax="citation_total_count">
+                                                {{getCitationProgressPercentage().toFixed(1)}}%
+                                            </div>
+                                        </div>
+                                        <div class="mt-1">
+                                            <small class="text-muted">
+                                                Last processed ID: <strong>{{citation_last_row_processed}}</strong>
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div v-if="citation_stopped" class="alert alert-warning mt-2">
+                                        <strong><i class="fas fa-pause"></i> Citation Processing Stopped</strong><br>
+                                        <small>Indexed {{citation_processed.toLocaleString()}} citations
+                                            <span v-if="citation_total_count > 0">({{getCitationProgressPercentage().toFixed(1)}}%)</span>
+                                            • Last processed ID: {{citation_last_row_processed}}
+                                        </small>
+                                    </div>
+
+                                    <div v-if="!citation_processing && !citation_stopped && citation_processed === 0 && citation_total_count > 0" class="alert alert-info mt-2">
+                                        <small>
+                                            <i class="fas fa-info-circle"></i> Total citations in database: <strong>{{citation_total_count.toLocaleString()}}</strong>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    </div>
+                    <!-- end index citations -->
 
                     <!-- schema management -->
                     <div v-if="active_container=='schema-management'" class="schema-management">
@@ -1651,6 +1745,15 @@
                 total_surveys: 0,
                 processed_surveys: 0,
 
+                // Citations processing
+                citation_rows_limit: 100,
+                citation_start_row: 0,
+                citation_last_row_processed: 0,
+                citation_total_count: 0,
+                citation_processing: false,
+                citation_stopped: false,
+                citation_processed: 0,
+
                 // Schema management
                 schema_info: {
                     data: null,
@@ -1837,8 +1940,12 @@
                     vm=this;
                     axios.get(url)
                     .then(function (response) {
-                        console.log(response);                        
-                        vm.index_counts=response;                        
+                        console.log(response);
+                        vm.index_counts=response;
+                        // Auto-populate var_start_row from last indexed variable if not already set
+                        if (vm.var_start_row === 0 && response.data && response.data.result && response.data.result.last_variable) {
+                            vm.var_start_row = response.data.result.last_variable;
+                        }
                     })
                     .catch(function (error) {
                         console.log(error);
@@ -1863,6 +1970,10 @@
                         if (response.data && response.data.result && response.data.result.variables) {
                             vm.variable_total_count = response.data.result.variables;
                         }
+                        // Set total count for citations
+                        if (response.data && response.data.result && response.data.result.citations) {
+                            vm.citation_total_count = response.data.result.citations;
+                        }
                     })
                     .catch(function (error) {
                         console.log(error);
@@ -1882,32 +1993,6 @@
                     if (this.dataset_last_row_processed > 0) {
                         this.dataset_start_row = this.dataset_last_row_processed;
                     }
-                },
-                resumeVariableFromLastProcessed: function() {
-                    if (this.variable_last_row_processed > 0) {
-                        this.var_start_row = this.variable_last_row_processed;
-                    }
-                },
-                useLastVariableId: function() {
-                    if (this.index_counts.data && this.index_counts.data.result && this.index_counts.data.result.last_variable) {
-                        this.var_start_row = this.index_counts.data.result.last_variable;
-                    }
-                },
-                getVariableProgressPercentage: function() {
-                    if (this.variable_total_count === 0 || this.indexing_status === 0) {
-                        return 0;
-                    }
-                    return (this.indexing_status / this.variable_total_count) * 100;
-                },
-                resumeVariableProcessing: function() {
-                    // Use last processed ID as start row if available
-                    if (this.variable_last_row_processed > 0) {
-                        this.var_start_row = this.variable_last_row_processed;
-                    }
-                    // Reset stopped flag and start indexing
-                    this.var_stopped = false;
-                    this.indexing_processed = 0;
-                    this.indexVariablesOnClick();
                 },
                 resumeVariableFromLastProcessed: function() {
                     if (this.variable_last_row_processed > 0) {
@@ -1971,6 +2056,11 @@
                         this.var_processing = false;
                         this.var_stopped = false;
                     }
+
+                    if (tab !== 'index-citations') {
+                        this.citation_processing = false;
+                        this.citation_stopped = false;
+                    }
                     
                     // Refresh core information when switching to home
                     if (tab === 'home') {
@@ -1986,10 +2076,12 @@
                     // Load variable counts when switching to index-variables tab
                     if (tab === 'index-variables') {
                         this.getDbCounts();
-                        // Auto-populate start row from last indexed variable if available
-                        if (this.index_counts.data && this.index_counts.data.result && this.index_counts.data.result.last_variable && this.var_start_row === 0) {
-                            this.var_start_row = this.index_counts.data.result.last_variable;
-                        }
+                        this.getIndexCounts();
+                    }
+
+                    // Load citation counts when switching to index-citations tab
+                    if (tab === 'index-citations') {
+                        this.getDbCounts();
                     }
                     
                     // Load schema information when switching to schema management
@@ -2010,6 +2102,7 @@
                 indexDatasetOnClick: function()
                 {
                     this.indexing_processed=0;
+                    this.indexing_status=0;
                     this.dataset_stopped=false;
                     this.indexing_running=true;
                     this.indexDatasets(this.dataset_start_row,this.dataset_rows_limit);
@@ -2068,6 +2161,7 @@
                 indexVariablesOnClick: function()
                 {
                     this.indexing_processed=0;
+                    this.indexing_status=0;
                     this.var_stopped=false;
                     this.var_processing=true;
                     this.indexVariables(this.var_start_row,this.var_rows_limit);
@@ -2122,6 +2216,71 @@
                         // always executed
                         console.log("request completed");
                     });
+                },
+                indexCitationsOnClick: function()
+                {
+                    this.citation_processed = 0;
+                    this.citation_stopped = false;
+                    this.citation_processing = true;
+                    this.indexCitations(this.citation_start_row, this.citation_rows_limit);
+                },
+                indexCitations: function(start_row=0, limit=100, processed=0)
+                {
+                    if (!this.citation_processing) {
+                        return;
+                    }
+
+                    let url = CI.base_url + '/api/solr/import_citations_batch/' + start_row + '/' + limit;
+                    let vm = this;
+                    axios.get(url)
+                    .then(function(response) {
+                        if (!vm.citation_processing) {
+                            return;
+                        }
+
+                        let last_row_id = response.data.result.last_row_id;
+                        let rows_processed = response.data.result.rows_processed;
+
+                        if (last_row_id > 0) {
+                            processed += rows_processed;
+                            vm.citation_processed = processed;
+                            vm.citation_last_row_processed = last_row_id;
+
+                            if (vm.citation_processing) {
+                                vm.indexCitations(last_row_id, vm.citation_rows_limit, processed);
+                            }
+                        } else {
+                            vm.citation_processed = processed;
+                            vm.citation_processing = false;
+                            vm.commitSolr();
+                        }
+                    })
+                    .catch(function(error) {
+                        if (vm.citation_processing) {
+                            console.log(error);
+                            vm.citation_processing = false;
+                        }
+                    });
+                },
+                stopCitationProcessing: function()
+                {
+                    this.citation_processing = false;
+                    this.citation_stopped = true;
+                },
+                resumeCitationProcessing: function()
+                {
+                    this.citation_stopped = false;
+                    this.citation_processing = true;
+                    this.indexCitations(this.citation_last_row_processed, this.citation_rows_limit, this.citation_processed);
+                },
+                resumeCitationFromLastProcessed: function()
+                {
+                    this.citation_start_row = this.citation_last_row_processed;
+                },
+                getCitationProgressPercentage: function()
+                {
+                    if (!this.citation_total_count || this.citation_total_count === 0) return 0;
+                    return Math.min(100, (this.citation_processed / this.citation_total_count) * 100);
                 },
                 indexVariablesBySurveyOnClick: function()
                 {
@@ -2307,7 +2466,7 @@
                 },
                 stopDatasetProcessing: function()
                 {
-                    if (confirm('Are you sure you want to stop dataset processing? This will halt the current batch and any remaining datasets will not be processed.')) {
+                    if (confirm('Are you sure you want to stop study processing? This will halt the current batch and any remaining studies will not be processed.')) {
                         this.indexing_running = false;
                         this.dataset_stopped = true;
                         

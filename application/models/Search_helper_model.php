@@ -34,24 +34,6 @@ class Search_helper_model extends CI_Model {
 		return $this->db->query($sql)->result_array();
 	}
 	
-	/**
-	* TODO://REMOVE NO LONGER IN USE - need to check
-	*
-	*	Returns a list of countries filtered by topics
-	*
-	*/	
-	function get_countries_by_topics($topic_array)
-	{
-		$topics=implode(",", $topic_array);
-		
-		$sql=sprintf('select nation from terms
-				  inner join survey_topics on terms.tid= survey_topics.tid
-				  inner join surveys on surveys.id =survey_topics.sid
-				  where terms.tid in (%s)
-				  group by nation',$topics);		
-		
-		return $this->db->query($sql)->result_array();
-	}
 	
 	/**
 	* Returns a list of countries filtered by topics with min and max year
@@ -394,6 +376,156 @@ class Search_helper_model extends CI_Model {
 		
 		return $countries;
 	}
+
+
+	/**
+	 * Build WHERE conditions for variable facet queries based on active search filters.
+	 * Each facet method passes $exclude to omit its own filter.
+	 *
+	 * @param array  $filters  Keys: from, to, country[], dtype[], type[]
+	 * @param string $exclude  Which filter to skip: 'country', 'dtype', or 'type'
+	 * @param string $alias    Table alias for surveys (default: 'surveys')
+	 */
+	private function _apply_variable_facet_filters($filters, $exclude = null, $alias = 'surveys')
+	{
+		// Year range
+		$from = isset($filters['from']) ? (int)$filters['from'] : 0;
+		$to   = isset($filters['to'])   ? (int)$filters['to']   : 0;
+		if ($from > 0 && $to > 0) {
+			$this->db->where("$alias.id IN (SELECT sid FROM survey_years WHERE data_coll_year BETWEEN $from AND $to)", null, false);
+		} elseif ($from > 0) {
+			$this->db->where("$alias.id IN (SELECT sid FROM survey_years WHERE data_coll_year >= $from)", null, false);
+		} elseif ($to > 0) {
+			$this->db->where("$alias.id IN (SELECT sid FROM survey_years WHERE data_coll_year > 0 AND data_coll_year <= $to)", null, false);
+		}
+
+		// Country filter
+		if ($exclude !== 'country' && !empty($filters['country'])) {
+			$ids = array_filter(array_map('intval', (array)$filters['country']));
+			if (!empty($ids)) {
+				$this->db->where("$alias.id IN (SELECT sid FROM survey_countries WHERE cid IN (" . implode(',', $ids) . "))", null, false);
+			}
+		}
+
+		// Data access type (license) filter — uses formid directly, no JOIN needed
+		if ($exclude !== 'dtype' && !empty($filters['dtype'])) {
+			$ids = array_filter(array_map('intval', (array)$filters['dtype']));
+			if (!empty($ids)) {
+				$this->db->where_in("$alias.formid", $ids);
+			}
+		}
+
+		// Dataset type filter
+		if ($exclude !== 'type' && !empty($filters['type'])) {
+			$types = array_filter((array)$filters['type']);
+			if (!empty($types)) {
+				$escaped = array_map(array($this->db, 'escape'), $types);
+				$this->db->where("$alias.type IN (" . implode(',', $escaped) . ")", null, false);
+			}
+		}
+	}
+
+	function get_dataset_types_for_variables($repositoryid=null, $filters=array())
+	{
+		$this->db->select('survey_types.code, survey_types.title, survey_types.weight, COUNT(*) as found');
+		$this->db->from('variables v');
+		$this->db->join('surveys s', 's.id = v.sid', 'inner');
+		$this->db->join('survey_types', 'survey_types.code = s.type', 'inner');
+		$this->db->where('s.published', 1);
+		$this->db->order_by('survey_types.weight', 'desc');
+		$this->db->group_by('survey_types.code, survey_types.title, survey_types.weight');
+
+		if (trim($repositoryid) !== '' && $repositoryid !== 'central') {
+			$subquery = sprintf('(s.repositoryid = %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid));
+			$this->db->join('survey_repos sr', 'sr.sid = s.id', 'left');
+			$this->db->where($subquery, null, false);
+		}
+
+		$this->_apply_variable_facet_filters($filters, 'type', 's');
+
+		$result = $this->db->get()->result_array();
+
+		$output = array();
+		foreach ($result as $row) {
+			$output[$row['code']] = $row;
+		}
+
+		return $output;
+	}
+
+
+	function get_active_data_types_for_variables($repositoryid='', $filters=array())
+	{
+		$this->db->select('surveys.formid as id, forms.model as code, forms.fname as title, COUNT(*) as found');
+		$this->db->from('variables v');
+		$this->db->join('surveys', 'surveys.id = v.sid', 'inner');
+		$this->db->join('forms', 'forms.formid = surveys.formid', 'inner');
+		$this->db->where('surveys.published', 1);
+
+		if (trim($repositoryid) !== '' && $repositoryid !== 'central') {
+			$subquery = sprintf('(surveys.repositoryid = %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid));
+			$this->db->join('survey_repos sr', 'sr.sid = surveys.id', 'left');
+			$this->db->where($subquery, null, false);
+		}
+
+		$this->_apply_variable_facet_filters($filters, 'dtype');
+		$this->db->group_by('surveys.formid, forms.model, forms.fname');
+		$query = $this->db->get();
+
+		if (!$query) {
+			return FALSE;
+		}
+
+		$types = array();
+		foreach ($query->result_array() as $row) {
+			$row['title'] = t('legend_data_' . $row['code']);
+			$types[(string)$row['id']] = $row;
+		}
+
+		return $types;
+	}
+
+
+	function get_active_countries_for_variables($repositoryid=NULL, $filters=array())
+	{
+		$this->db->select('sc.cid as id, countries.name as title, COUNT(*) as found');
+		$this->db->from('variables v');
+		$this->db->join('surveys', 'surveys.id = v.sid', 'inner');
+		$this->db->join('survey_countries sc', 'sc.sid = surveys.id', 'inner');
+		$this->db->join('countries', 'countries.countryid = sc.cid', 'inner');
+		$this->db->where('surveys.published', 1);
+		$this->db->where('sc.cid >', 0);
+
+		if ($repositoryid != NULL) {
+			$subquery = sprintf('(surveys.repositoryid = %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid));
+			$this->db->join('survey_repos sr', 'sr.sid = surveys.id', 'left');
+			$this->db->where($subquery, null, false);
+		}
+
+		$this->_apply_variable_facet_filters($filters, 'country');
+		$this->db->group_by('sc.cid, countries.name');
+		$this->db->order_by('countries.name', 'ASC');
+
+		$query = $this->db->get();
+
+		if (!$query) {
+			return FALSE;
+		}
+
+		$countries = array();
+		foreach ($query->result_array() as $country) {
+			$countries[$country['id']] = $country;
+		}
+
+		return $countries;
+	}
+
 
 
 	public function get_active_repositories($study_type=NULL,$filter_values=array())

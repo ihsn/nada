@@ -27,8 +27,10 @@ export default defineConfig(({ command }) => {
       manifest: true,
       rollupOptions: {
         input: {
+          admin_dashboard: path.resolve(__dirname, 'admin/dashboard/main.js'),
           admin_catalog: path.resolve(__dirname, 'admin/catalog/main.js'),
           admin_codelists: path.resolve(__dirname, 'admin/codelists/main.js'),
+          admin_collections: path.resolve(__dirname, 'admin/collections/main.js'),
           admin_dctypes: path.resolve(__dirname, 'admin/dctypes/main.js'),
           admin_test: path.resolve(__dirname, 'admin/test/main.js'),
         },

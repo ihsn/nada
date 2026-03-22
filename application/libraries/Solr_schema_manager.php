@@ -203,15 +203,19 @@ class Solr_schema_manager {
         
         $field_options = array_merge($default_options, $options);
         
-        $field_definition = array(
-            'add-field' => array(
-                'name' => $field_name,
-                'type' => $field_type,
-                'indexed' => $field_options['indexed'],
-                'stored' => $field_options['stored'],
-                'multiValued' => $field_options['multiValued']
-            )
+        $field_def = array(
+            'name'        => $field_name,
+            'type'        => $field_type,
+            'indexed'     => $field_options['indexed'],
+            'stored'      => $field_options['stored'],
+            'multiValued' => $field_options['multiValued'],
         );
+
+        if (isset($field_options['docValues'])) {
+            $field_def['docValues'] = (bool)$field_options['docValues'];
+        }
+
+        $field_definition = array('add-field' => $field_def);
         
         log_message('debug', 'Solr Schema Manager - Adding field: ' . $field_name . ' with type: ' . $field_type);
         
@@ -234,11 +238,15 @@ class Solr_schema_manager {
         $skipped_count = 0;
         
         foreach ($fields as $field) {
-            $result = $this->add_field($field['name'], $field['type'], array(
-                'indexed' => isset($field['indexed']) ? $field['indexed'] : true,
-                'stored' => isset($field['stored']) ? $field['stored'] : true,
-                'multiValued' => isset($field['multiValued']) ? $field['multiValued'] : false
-            ), $replace_existing);
+            $field_opts = array(
+                'indexed'     => isset($field['indexed'])     ? $field['indexed']     : true,
+                'stored'      => isset($field['stored'])      ? $field['stored']      : true,
+                'multiValued' => isset($field['multiValued']) ? $field['multiValued'] : false,
+            );
+            if (isset($field['docValues'])) {
+                $field_opts['docValues'] = $field['docValues'];
+            }
+            $result = $this->add_field($field['name'], $field['type'], $field_opts, $replace_existing);
             
             if (isset($result['error'])) {
                 $error_count++;
@@ -324,32 +332,30 @@ class Solr_schema_manager {
                 'error' => "Field '$field_name' does not exist, cannot replace"
             );
         }
-        
-        // First delete the old field
-        $delete_response = $this->delete_field($field_name);
-        
-        if (isset($delete_response['error'])) {
-            return array(
-                'error' => "Failed to delete old field: " . $delete_response['error']
-            );
+
+        // Use Solr's replace-field command (atomic — no delete needed, avoids HTTP 400)
+        $field_def = array(
+            'name'        => $field_name,
+            'type'        => $new_definition['type'],
+            'indexed'     => isset($new_definition['indexed'])     ? $new_definition['indexed']     : true,
+            'stored'      => isset($new_definition['stored'])      ? $new_definition['stored']      : true,
+            'multiValued' => isset($new_definition['multiValued']) ? $new_definition['multiValued'] : false,
+        );
+        if (isset($new_definition['docValues'])) {
+            $field_def['docValues'] = (bool)$new_definition['docValues'];
         }
-        
-        // Then add the new field
-        $add_response = $this->add_field($field_name, $new_definition['type'], $new_definition);
-        
+
+        $add_response = $this->make_schema_request(array('replace-field' => $field_def));
+
         if (isset($add_response['error'])) {
             return array(
-                'error' => "Failed to add new field: " . $add_response['error'],
-                'field_deleted' => true,
-                'warning' => "Field '$field_name' was deleted but new field could not be added"
+                'error' => "Failed to replace field: " . $add_response['error'],
             );
         }
-        
+
         return array(
-            'success' => "Field '$field_name' replaced successfully",
-            'old_field_deleted' => true,
-            'new_field_added' => true,
-            'new_definition' => $new_definition
+            'success'        => "Field '$field_name' replaced successfully",
+            'new_definition' => $new_definition,
         );
     }
     
@@ -492,21 +498,49 @@ class Solr_schema_manager {
 
     
     /**
+     * Setup citation document fields (doctype=3).
+     * Only adds fields not already covered by survey_document_fields.
+     * Safe to run multiple times — skips fields that already exist.
+     *
+     * @param bool $replace_existing Whether to replace existing fields
+     * @return array Response from Solr API
+     */
+    public function setup_citation_fields($replace_existing = false) {
+        $config_fields = $this->ci->config->item('solr_schema_fields');
+
+        if (empty($config_fields) || !isset($config_fields['citation_fields'])) {
+            return array('error' => 'Citation fields not configured in solr config file');
+        }
+
+        $citation_fields = $config_fields['citation_fields'];
+
+        if (empty($citation_fields)) {
+            return array('error' => 'Citation fields array is empty in solr config');
+        }
+
+        return $this->add_fields($citation_fields, $replace_existing);
+    }
+
+    /**
      * Setup complete schema for denormalized variables
      * @param bool $replace_existing Whether to replace existing fields
      * @return array Response from Solr API
      */
     public function setup_complete_schema($replace_existing = false) {
         $results = array();
-        
+
         // Setup variable fields
         $var_result = $this->setup_variable_fields($replace_existing);
         $results['variable_fields'] = $var_result;
-        
+
         // Setup survey fields
         $survey_result = $this->setup_survey_fields($replace_existing);
         $results['survey_fields'] = $survey_result;
-        
+
+        // Setup citation fields
+        $citation_result = $this->setup_citation_fields($replace_existing);
+        $results['citation_fields'] = $citation_result;
+
         return $results;
     }
     

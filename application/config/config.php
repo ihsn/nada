@@ -27,6 +27,9 @@ if (!isset($_SERVER['HTTP_HOST']))
 $config['base_url'] = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http");
 $config['base_url'] .= "://".$_SERVER['HTTP_HOST'];
 $config['base_url'] .= str_replace(basename($_SERVER['SCRIPT_NAME']),"",$_SERVER['SCRIPT_NAME']);
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Index File
@@ -78,6 +81,7 @@ $config['url_suffix'] = '';
 | than english.
 |
 */
+// Managed via Site Administration > Settings. 
 $config['language']	= "english";
 
 //List of supported languages. type language name in lower case
@@ -634,7 +638,7 @@ $config['site_user_register']='yes';
 |
 | allowed_resource_types	comma seperated list of file extensions that are allowed for uploading external resources
 */
-$config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,xlsx,ppt,csv,rar,do,r';
+$config['allowed_resource_types']='jpg,jpeg,gif,png,bmp,tif,tiff,zip,rar,7z,gz,tar,doc,docx,odt,rtf,pdf,ppt,pptx,odp,xls,xlsx,csv,tsv,txt,json,xml,geojson,sav,por,sas7bdat,xpt,dta,rdata,dat,do,r,sas';
 
 
 /*
@@ -645,6 +649,7 @@ $config['allowed_resource_types']='jpg,gif,png,zip,doc,docx,pdf,sav,dta,txt,xls,
 | max_resource_upload_size	maximum file upload size in MB
 |
 */
+// Managed via Site Administration > Settings. 
 $config['max_resource_upload_size']='3000';
 
 
@@ -708,22 +713,11 @@ $config['userdata_path']='userdata'; //relative or absolute path
 | valid values are: 'desc', 'asc'
 |
 */
+// Managed via Site Administration > Settings. 
 $config['catalog_default_sort_by']='';
 $config['catalog_default_sort_order']='';
 
 
-/*
-|--------------------------------------------------------------------------
-| Enable/Disable variable search view
-|--------------------------------------------------------------------------
-|
-| True | False
-|
-| true or NULL - enable variable search view
-| false - disable variable search view
-|
-*/
-//$config['catalog_variable_view']=false;
 
 /*
 |--------------------------------------------------------------------------
@@ -734,7 +728,9 @@ $config['catalog_default_sort_order']='';
 |
 | db - use database builtin search - no configurations required
 | solr - use solr for search. solr instance info must be added to solr config file
+| opensearch - use OpenSearch for search. OpenSearch endpoint must be added to the config file
 |
+| Managed via Site Administration > Settings. 
 */
 
 $config['search_provider']='db';
@@ -796,9 +792,10 @@ $config['enable_access_policy_import']=false;
 |
 | 
 */
+// Managed via Site Administration > Settings. 
 $config['guests_hide_microdata_tab']=false;
 
-//show tabs for each data type on search page
+// Managed via Site Administration > Settings. 
 $config['data_types_nav_bar']=false;
 
 //catalog search box location

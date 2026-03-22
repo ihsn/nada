@@ -160,25 +160,48 @@ class Filestore extends MY_REST_Controller
 
     /**
 	 * 
-	 * delete a file
+	 * delete a file (HTTP DELETE)
 	 * 
 	 **/ 
 	function delete_delete($filename=null)
 	{
-		
-		try{
+		return $this->delete_file($filename);
+	}
+
+
+	/**
+	 * 
+	 * delete a file via POST
+	 * 
+	 **/
+	function delete_post($filename=null)
+	{
+		if ($filename === null || $filename === '') {
+			$filename = $this->input->post('filename');
+		}
+		return $this->delete_file($filename);
+	}
+
+
+	/**
+	 * Shared delete logic for DELETE and POST methods.
+	 */
+	private function delete_file($filename=null)
+	{
+		try {
+			if ($filename === null || $filename === '') {
+				throw new Exception('filename_required');
+			}
 			$this->Filestore_model->delete($filename);
 
-			$output=array(
-				'status'=>'success'
+			$output = array(
+				'status' => 'success'
 			);
-
-			$this->set_response($output, REST_Controller::HTTP_OK);			
-		}
-		catch(Exception $e){
-			$output=array(
-				'status'=>'error',
-				'message'=>$e->getMessage()
+			$this->set_response($output, REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$output = array(
+				'status' => 'error',
+				'message' => $e->getMessage()
 			);
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}

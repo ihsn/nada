@@ -171,7 +171,7 @@ else{
 }
 
 //show microdata tab only for logged-in users
-if($this->config->item("guests_hide_microdata_tab")===true && !$this->ion_auth->logged_in()){
+if($this->config->item("guests_hide_microdata_tab")=='yes' && !$this->ion_auth->logged_in()){
 	unset($page_tabs['get_microdata']);
 }
 ?>

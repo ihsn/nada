@@ -35,16 +35,35 @@
     $image_view=isset($search_options->image_view) ? $search_options->image_view :'';
 ?>
 
-<div class="row mb-3">
-    <div class="col-12 col-md-12 mt-2 mt-md-0 ">
-        <div class="filter-action-bar row">
-                <?php if($found>0):?>
-                <?php 
-                /* <div class="search-count mt-1 font-weight-bold col">
-                    <?php echo number_format($found). ' '. t('results');?>
+<div class="row mb-1">
+    <div class="col-12 mt-2 mt-md-0 d-flex align-items-center justify-content-between">
+        <div>
+            <?php if ($this->config->item("catalog_variable_view")=='yes' && $show_variable_toggle):?>
+            <div class="wb-search-toggle">
+                <div class="btn-group btn-group-toggle study-view-toggle">
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-left active toggle_view" data-value="s"><?php echo t('Study view');?></button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-right toggle_view" data-value="v"><a href="<?php echo site_url('catalog/'.@$active_repo['repositoryid'].'?'.$variable_view);?>"><?php echo t('Variable view');?></a></button>
                 </div>
-                */ ?>
+            </div>
+            <?php endif;?>
+        </div>
 
+        <?php if ($this->config->item('catalog_show_abstract')!='no'): ?>
+        <div class="wb-abstract-toggle">
+            <label class="wb-toggle-switch" for="toggleAbstract">
+                <input type="checkbox" id="toggleAbstract">
+                <span class="wb-toggle-track"></span>
+                <span class="wb-toggle-label"><?php echo t('Show abstract');?></span>
+            </label>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php if($found>0):?>
+<div class="row mb-3">
+    <div class="col-12 col-md-12 mt-2 mt-md-0">
+        <div class="filter-action-bar row">
                 <div class="search-count col-md-5 text-md-left mb-2 mb-md-0 pt-2">
                     <?php echo sprintf(t('showing_studies'),
                         number_format(($surveys['limit']*$current_page)-$surveys['limit']+1),
@@ -53,26 +72,14 @@
                     ?>
                 </div>
 
-                <?php if ($this->config->item("catalog_variable_view")!==FALSE):?>
-                    <?php if($show_variable_toggle && (isset($surveys['search_counts_by_type']) && array_key_exists('survey',$surveys['search_counts_by_type']))):?>
-                    <div class="col mt-1 wb-search-toggle">               
-                        <div class="btn-group btn-group-toggle study-view-toggle" >
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-left active toggle_view" data-value="s" ><?php echo t('Study view');?></button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-right toggle_view" data-value="v"><a href="<?php echo site_url('catalog/'.@$active_repo['repositoryid'].'?'.$variable_view);?>"><?php echo t('Variable view');?></a></button>
-                        </div>
-                    </div>
-                    <?php endif;?>
-                <?php endif;?>
-
                 <?php if ($tab_type=='image'):?>
-                    <div class="col mt-1 wb-search-image">                        
+                    <div class="col mt-1 wb-search-image">
                         <div class="btn-group btn-group-toggle image-view-toggle" >
-                            
                             <button type="button" class="btn btn-sm btn-outline-primary <?php echo $image_view!=='thumbnail' ? 'active' :'';?> rounded-left toggle_view" >
                                 <a title="Detail view" href="<?php echo site_url('catalog?'.$image_default_view);?>" >
                                     <i class="fa fa-th-list" aria-hidden="true"></i>
                                     <?php echo t('Details view');?>
-                                </a>                                
+                                </a>
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-primary rounded-right <?php echo $image_view=='thumbnail' ? 'active' :'';?> toggle_view">
                                 <a href="<?php echo site_url('catalog?image_view=thumbnail&'.$image_default_view);?>">
@@ -80,7 +87,6 @@
                                     <?php echo t('Gallery view');?>
                                 </a>
                             </button>
-
                         </div>
                     </div>
                 <?php endif;?>
@@ -97,19 +103,18 @@
                                 <option value="title" data-sort="asc" <?php  echo ($search_options->sort_by=='title' && $search_options->sort_order=='asc') ? 'selected="selected"' : '' ; ?>><?php echo t('Title (A-Z)');?></option>
                                 <option value="title" data-sort="desc" <?php  echo ($search_options->sort_by=='title' && $search_options->sort_order=='desc') ? 'selected="selected"' : '' ; ?>><?php echo t('Title (Z-A)');?></option>
                                 <option value="country" data-sort="asc" <?php  echo ($search_options->sort_by=='country' && $search_options->sort_order=='asc') ? 'selected="selected"' : '' ; ?>><?php echo t('Country (A-Z)');?></option>
-                                <option value="country" data-sort="desc" <?php  echo ($search_options->sort_by=='country' && $search_options->sort_order=='desc') ? 'selected="selected"' : '' ; ?>><?php echo t('Country (Z-A)');?></option>                           
+                                <option value="country" data-sort="desc" <?php  echo ($search_options->sort_by=='country' && $search_options->sort_order=='desc') ? 'selected="selected"' : '' ; ?>><?php echo t('Country (Z-A)');?></option>
                             </select>
                         </label>
                         <?php /*
                         <a target="_blank" href="<?php echo site_url('catalog/export/csv').'?ps=5000&'.get_querystring( array('sort_by','sort_order','collection', 'country','sk','vk','dtype','topic','view','repo','from','to'));?>" class="btn btn btn-outline-primary btn-sm d-none d-sm-block ml-2"><i class="fas fa-file-export"></i> <?php echo t('Export');?></a>
                         */?>
                     </div>
-                </div>                  
-                <?php endif;?>
+                </div>
         </div>
-
-    </div>    
+    </div>
 </div>
+<?php endif;?>
 
 <div class="active-filters-container">
 

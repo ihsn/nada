@@ -20,8 +20,8 @@ $config['solr_debug'] = false;
 
 // EDisMax query options for survey/document search
 $config['solr_edismax_options'] = array(
-    'qf' => 'title^20.0 nation^20.0 years^30.0 authoring_entity idno^40 keywords abstract methodology var_keywords^15.0',
-    'pf' => 'title^20.0 nation^20.0 years^30.0 authoring_entity idno^40 keywords abstract methodology var_keywords^15.0',
+    'qf' => 'title^20.0 nation^20.0 authoring_entity idno^40 keywords abstract methodology',
+    'pf' => 'title^20.0 nation^20.0 authoring_entity idno^40 keywords abstract methodology',
     'mm' => '2<90%',
     'ps' => '0',
     'qs' => '0',
@@ -32,8 +32,8 @@ $config['solr_edismax_options'] = array(
 
 // EDisMax query options for variable search
 $config['solr_edismax_variable_options'] = array(
-    'qf' => 'var_label^20.0 var_name^20.0 var_categories var_question title nation years idno^30',
-    'pf' => 'var_label^20.0 var_name^20.0 var_categories var_question title nation years idno^30',
+    'qf' => 'var_label^20.0 var_name^20.0 var_categories var_question title nation idno^30',
+    'pf' => 'var_label^20.0 var_name^20.0 var_categories var_question title nation idno^30',
     'mm' => '1',
     'ps' => '0',
     'qs' => '0',
@@ -223,13 +223,6 @@ $config['solr_schema_fields'] = array(
             'stored' => false,
             'multiValued' => false
         ),
-        array(
-            'name' => 'var_keywords',
-            'type' => 'text_en',
-            'indexed' => true,
-            'stored' => false,
-            'multiValued' => false
-        ),
         // Date/Year fields
         array(
             'name' => 'year_start',
@@ -379,6 +372,118 @@ $config['solr_schema_fields'] = array(
             'stored' => true,
             'multiValued' => false
         )
+    ),
+
+    // Citation document fields (doctype=3)
+    // Fields already defined in survey_document_fields (doctype, doi, title, title_sort,
+    // abstract, keywords, published) are shared and not repeated here.
+    'citation_fields' => array(
+        // Identification
+        array(
+            'name' => 'citation_id',
+            'type' => 'pint',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false,
+            'docValues' => true
+        ),
+        array(
+            'name' => 'citation_uuid',
+            'type' => 'string',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        // Searchable text
+        array(
+            'name' => 'authors',
+            'type' => 'text_en',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        // Sortable authors (string with docValues — required for Solr sort)
+        array(
+            'name' => 'cit_authors_sort',
+            'type' => 'string',
+            'indexed' => true,
+            'stored' => false,
+            'multiValued' => false,
+            'docValues' => true
+        ),
+        array(
+            'name' => 'notes',
+            'type' => 'text_en',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'organization',
+            'type' => 'text_en',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        // Filterable / sortable
+        array(
+            'name' => 'ctype',
+            'type' => 'string',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'pub_date',
+            'type' => 'pint',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false,
+            'docValues' => true
+        ),
+        // Display fields
+        array(
+            'name' => 'subtitle',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'volume',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'issue',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'edition',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'place_publication',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
+        array(
+            'name' => 'publisher',
+            'type' => 'string',
+            'indexed' => false,
+            'stored' => true,
+            'multiValued' => false
+        ),
     )
 );
 
@@ -445,7 +550,6 @@ $config['solr_xml_schema_reference'] = <<<'XML'
 <field name="authoring_entity" type="text_en" indexed="true" stored="true" multiValued="false"/>
 <field name="keywords" type="text_en" indexed="true" stored="false" multiValued="false"/>
 <field name="methodology" type="text_en" indexed="true" stored="false" multiValued="false"/>
-<field name="var_keywords" type="text_en_var" indexed="true" stored="false" multiValued="false"/>
 <field name="year_start" type="pint" indexed="true" stored="true" multiValued="false" docValues="true"/>
 <field name="year_end" type="pint" indexed="true" stored="true" multiValued="false" docValues="true"/>
 <field name="years" type="pint" indexed="true" stored="true" multiValued="true" docValues="true"/>

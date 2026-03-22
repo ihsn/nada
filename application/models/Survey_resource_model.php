@@ -602,154 +602,215 @@ class Survey_resource_model extends CI_Model {
 	*/
 	function get_grouped_resources_by_survey($surveyid)
 	{
-		$output=FALSE;
-		$dctypes_exclude=[];
-		
-		if ($this->dctype_groups){
-			foreach($this->dctype_groups as $group_name=>$dctypes){
-				foreach($dctypes as $dctype){
-					$dctypes_exclude[]=$dctype;
-					$result=$this->get_resources_by_type($surveyid,$dctype.']');
-					if ($result){
-						if (!isset($output[$group_name])){
-							$output[$group_name]=$result;
-						}else{
-							$output[$group_name]= array_merge($output[$group_name],$result);
+		$output = false;
+		$codes_exclude = array();
+
+		if ($this->dctype_groups) {
+			foreach ($this->dctype_groups as $group_name => $codes) {
+				foreach ($codes as $code) {
+					$codes_exclude[] = $code;
+					$result = $this->get_resources_by_type($surveyid, $code);
+					if ($result) {
+						if (!isset($output[$group_name])) {
+							$output[$group_name] = $result;
+						} else {
+							$output[$group_name] = array_merge($output[$group_name], $result);
 						}
 					}
-
 				}
 			}
-
-			//other materials
-			$output['other_materials']=$this->get_resources_other_materials($surveyid,$dctypes_exclude);
+			$output['other_materials'] = $this->get_resources_other_materials($surveyid, $codes_exclude);
 			return $output;
 		}
 
-		
-		//questionnaires
-		$result=$this->get_resources_by_type($surveyid,'doc/qst]');
-		if ($result)
-		{
-			$output['questionnaires']=$result;
-		}	
-
-		//reports
-		$result=$this->get_resources_by_type($surveyid,'doc/rep]');
-		if ($result)
-		{
-			$output['reports']=$result;
-		}			
-			
-		//technical documents
-		$result=$this->get_resources_by_type($surveyid,'doc/tec]');
-		if ($result)
-		{
-			$output['technical']=$result;
-		}					
-		
-		//other materials
-		$result=$this->get_resources_by_type($surveyid,'other');
-		if ($result)
-		{
-			$output['other']=$result;
-		}			
-
-		return $output;	
+		// Fallback when no config: questionnaires, reports, technical, other
+		$result = $this->get_resources_by_type($surveyid, 'doc/qst');
+		if ($result) {
+			$output['questionnaires'] = $result;
+		}
+		$result = $this->get_resources_by_type($surveyid, 'doc/rep');
+		if ($result) {
+			$output['reports'] = $result;
+		}
+		$result = $this->get_resources_by_type($surveyid, 'doc/tec');
+		if ($result) {
+			$output['technical'] = $result;
+		}
+		$result = $this->get_resources_by_type($surveyid, 'other');
+		if ($result) {
+			$output['other'] = $result;
+		}
+		return $output;
 	}
 
 
 	/**
-	*
-	* Return resource by survey and resource type
-	*
-	*/
-	function get_resources_by_type($surveyid,$dctype) 
-	{
-		$this->db->select('resources.*,surveys.idno as dataset_idno');
-		$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
-		$this->db->where('survey_id',$surveyid);
-		
-		if ($dctype=='other')
-		{
-			//other materials
-			$this->db->not_like('dctype','doc/tec]');
-			$this->db->not_like('dctype','doc/rep]');
-			$this->db->not_like('dctype','doc/qst]');
-			$this->db->not_like('dctype','dat]');
-			$this->db->not_like('dctype','dat/micro]');
-			$this->db->not_like('dctype','[dat/');
-		}
-		else
-		{
-			$this->db->like('dctype',$dctype);
-		}	
-		
-		$result= $this->db->get('resources')->result_array();
-		foreach($result as $row_idx=>$row){
-			$result[$row_idx]['is_microdata']=$this->is_microdata_resource($row['dctype']);
-		}
-		return $result;
-	}
-
-	/**
-	*
-	* 
-	*
-	*/
-	function get_resources_other_materials($surveyid,$dctypes_exclude) 
-	{
-		$this->db->select('resources.*,surveys.idno as dataset_idno');
-		$this->db->join('surveys', 'surveys.id= resources.survey_id','inner');
-		$this->db->where('survey_id',$surveyid);
-		
-		//exclude dctypes
-		$this->db->not_like('dctype','dat]');
-		$this->db->not_like('dctype','dat/micro]');
-		$this->db->not_like('dctype','[dat/');
-
-		foreach($dctypes_exclude as $exclude){
-			$this->db->not_like('dctype',$exclude.']');
-		}
-		
-		$result= $this->db->get('resources')->result_array();
-		foreach($result as $row_idx=>$row){
-			$result[$row_idx]['is_microdata']=$this->is_microdata_resource($row['dctype']);
-		}
-		return $result;
-	}
-
-	/**
-	 * 
-	 * 
-	 * Return true or false if type is microdata
+	 * Flat list of resource_type codes that belong to configured groups (for "other" exclude list).
+	 *
+	 * @return array
 	 */
-	function is_microdata_resource($dctype)
+	private function _get_grouped_resource_type_codes()
 	{
-		$microdata_types=array('[dat/micro]','[dat]','[dat/');
+		$codes = array();
+		if ($this->dctype_groups) {
+			foreach ($this->dctype_groups as $dctypes) {
+				foreach ($dctypes as $code) {
+					$codes[] = $code;
+				}
+			}
+		} else {
+			$codes = array('doc/qst', 'doc/rep', 'doc/tec');
+		}
+		return array_values(array_unique($codes));
+	}
 
-		foreach($microdata_types as $type){
-			if (stripos($dctype,$type)!==FALSE){
-				return true;
+	/**
+	 * Return resources by survey and type. Uses resource_type for reliable filtering.
+	 *
+	 * @param int    $surveyid Survey ID
+	 * @param string $dctype   Type code (e.g. 'doc/qst', 'final'), or 'other' for non-grouped non-microdata, or "Label [code]" (normalized to code)
+	 * @return array
+	 */
+	function get_resources_by_type($surveyid, $dctype)
+	{
+		$code = null;
+		if ($dctype !== 'other') {
+			$code = $this->get_dctype_code_from_string($dctype);
+			if ($code === null || $code === '') {
+				$code = $dctype;
 			}
 		}
 
-		return false;
+		$this->db->select('resources.*, surveys.idno as dataset_idno');
+		$this->db->join('surveys', 'surveys.id = resources.survey_id', 'inner');
+		$this->db->where('survey_id', $surveyid);
 
+		if ($dctype === 'other') {
+			$exclude = array_merge(
+				$this->_get_grouped_resource_type_codes(),
+				$this->_get_microdata_resource_type_codes()
+			);
+			$exclude = array_filter(array_unique($exclude));
+			if (!empty($exclude)) {
+				$this->db->group_start();
+				$this->db->where_not_in('resource_type', $exclude);
+				$this->db->or_where('resource_type IS NULL', null, false);
+				$this->db->group_end();
+			}
+		} else {
+			$this->db->where('resource_type', $code);
+		}
+
+		$result = $this->db->get('resources')->result_array();
+		foreach ($result as $row_idx => $row) {
+			$result[$row_idx]['is_microdata'] = $this->is_microdata_resource_type(isset($row['resource_type']) ? $row['resource_type'] : null)
+				? true
+				: $this->is_microdata_resource(isset($row['dctype']) ? $row['dctype'] : '');
+		}
+		return $result;
 	}
-	
-	
+
 	/**
-	*
-	* Return resources of microdata type
-	**/
+	 * Return resources that are not in the given type codes and not microdata (for "other materials").
+	 *
+	 * @param int   $surveyid        Survey ID
+	 * @param array $resource_type_codes_exclude List of resource_type codes to exclude (e.g. from config groups)
+	 * @return array
+	 */
+	function get_resources_other_materials($surveyid, $resource_type_codes_exclude)
+	{
+		$exclude = array_merge(
+			(array) $resource_type_codes_exclude,
+			$this->_get_microdata_resource_type_codes()
+		);
+		$exclude = array_filter(array_unique($exclude));
+
+		$this->db->select('resources.*, surveys.idno as dataset_idno');
+		$this->db->join('surveys', 'surveys.id = resources.survey_id', 'inner');
+		$this->db->where('survey_id', $surveyid);
+
+		if (!empty($exclude)) {
+			$this->db->group_start();
+			$this->db->where_not_in('resource_type', $exclude);
+			$this->db->or_where('resource_type IS NULL', null, false);
+			$this->db->group_end();
+		}
+
+		$result = $this->db->get('resources')->result_array();
+		foreach ($result as $row_idx => $row) {
+			$result[$row_idx]['is_microdata'] = $this->is_microdata_resource_type(isset($row['resource_type']) ? $row['resource_type'] : null)
+				? true
+				: $this->is_microdata_resource(isset($row['dctype']) ? $row['dctype'] : '');
+		}
+		return $result;
+	}
+
+	/**
+	 * Microdata resource_type codes. Single source of truth for SQL filtering by type.
+	 *
+	 * @return array
+	 */
+	private function _get_microdata_resource_type_codes()
+	{
+		return array('dat', 'dat/micro');
+	}
+
+	/**
+	 * Apply WHERE conditions for microdata (resource_type IN (...)). Caller must set from/where survey_id first.
+	 */
+	private function _where_microdata_resource_type()
+	{
+		$this->db->where_in('resource_type', $this->_get_microdata_resource_type_codes());
+	}
+
+	/**
+	 * Return dctype patterns for microdata (used when only dctype string is available, e.g. display).
+	 *
+	 * @return array
+	 */
+	private function _get_microdata_dctype_patterns()
+	{
+		return array('[dat/micro]', '[dat]', '[dat/');
+	}
+
+	/**
+	 * Return true if resource_type code is microdata. Use for rows that have resource_type set.
+	 */
+	function is_microdata_resource_type($resource_type)
+	{
+		if ($resource_type === null || $resource_type === '') {
+			return false;
+		}
+		return in_array($resource_type, $this->_get_microdata_resource_type_codes(), true);
+	}
+
+	/**
+	 * Return true or false if dctype string indicates microdata. Use when only dctype is available.
+	 */
+	function is_microdata_resource($dctype)
+	{
+		$dctype = $dctype === null || $dctype === '' ? '' : (string) $dctype;
+		foreach ($this->_get_microdata_dctype_patterns() as $type) {
+			if (stripos($dctype, $type) !== false) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	/**
+	 * Return resources of microdata type (uses resource_type for reliable filtering).
+	 */
 	function get_microdata_resources($surveyid)
 	{
 		$this->db->select('*');
-		$this->db->where("survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%')",NULL,FALSE);		
-		$this->db->order_by("dcdate","desc");
-		$this->db->order_by("title","asc");
-		return $this->db->get('resources')->result_array();
+		$this->db->from('resources');
+		$this->db->where('survey_id', $surveyid);
+		$this->_where_microdata_resource_type();
+		$this->db->order_by('dcdate', 'desc');
+		$this->db->order_by('title', 'asc');
+		return $this->db->get()->result_array();
 	}
 	
 	/**
@@ -785,16 +846,8 @@ class Survey_resource_model extends CI_Model {
 		$this->load->model("Licensed_model");
 		$this->load->model("Public_model");
 
-		$microdata_types=array('[dat/micro]','[dat]');
-		$resource_is_microdata=false;
-
-		foreach($microdata_types as $type){
-			if (stripos($resource_obj['dctype'],$type)!==FALSE){
-				$resource_is_microdata=TRUE;	
-			}
-		}
-
-		if ($resource_is_microdata===false){
+		$dctype = isset($resource_obj['dctype']) ? $resource_obj['dctype'] : '';
+		if (!$this->is_microdata_resource($dctype)) {
 			return true;
 		}
 		
@@ -850,19 +903,11 @@ class Survey_resource_model extends CI_Model {
 		$this->load->model("Licensed_model");
 		$this->load->model("Public_model");
 
-		$microdata_types=array('[dat/micro]','[dat]');
-		$resource_is_microdata=false;
-
-		foreach($microdata_types as $type){
-			if (stripos($resource_obj['dctype'],$type)!==FALSE){
-				$resource_is_microdata=TRUE;	
-			}
-		}
-
-		if ($resource_is_microdata===false){
+		$dctype = isset($resource_obj['dctype']) ? $resource_obj['dctype'] : '';
+		if (!$this->is_microdata_resource($dctype)) {
 			return array(
-				'access'=>true,
-				'is_microdata'=>false
+				'access' => true,
+				'is_microdata' => false
 			);
 		}
 		
@@ -945,8 +990,9 @@ class Survey_resource_model extends CI_Model {
 			throw new Exception ('RESOURCE_FILE_NOT_FOUND');
 		}
 
-		$is_microdata=$this->is_microdata_resource($resource);
-		
+		$dctype = isset($resource['dctype']) ? $resource['dctype'] : '';
+		$is_microdata = $this->is_microdata_resource($dctype);
+
 		$this->load->helper('download');
 		log_message('info','Downloading file <em>'.$resource_path.'</em>');
 		$this->analytics_tracker->track_download($survey_id, basename($resource_path), array(
@@ -1015,25 +1061,26 @@ class Survey_resource_model extends CI_Model {
 	*/
 	function has_external_resources($surveyid)
 	{
+		$microdata = $this->_get_microdata_resource_type_codes();
 		$this->db->select('count(*) as total');
-		$this->db->where('survey_id',$surveyid);
-		$this->db->not_like('dctype','dat]');
-		$this->db->not_like('dctype','dat/micro]');
-		$result=$this->db->get('resources')->row_array();		
-		return $result['total'];
+		$this->db->where('survey_id', $surveyid);
+		$this->db->group_start();
+		$this->db->where_not_in('resource_type', $microdata);
+		$this->db->or_where('resource_type IS NULL', null, false);
+		$this->db->group_end();
+		$result = $this->db->get('resources')->row_array();
+		return isset($result['total']) ? (int) $result['total'] : 0;
 	}
 
 	/**
-	*
-	* Returns resource counts group by dctype
-	**/
+	 * Returns resource counts grouped by resource_type (code). Use get_dctype_label_by_code() for display.
+	 */
 	function get_grouped_resources_count($surveyid)
 	{
-		$this->db->select('dctype,count(*) as total');
-		$this->db->where('survey_id',$surveyid);
-		$this->db->group_by('dctype');
-		$result=$this->db->get('resources')->result_array();
-		return $result;
+		$this->db->select('resource_type, count(*) as total');
+		$this->db->where('survey_id', $surveyid);
+		$this->db->group_by('resource_type');
+		return $this->db->get('resources')->result_array();
 	}
 
 	
@@ -1261,10 +1308,11 @@ class Survey_resource_model extends CI_Model {
 	function get_microdata_resources_count_by_survey($sid)
 	{
 		$this->db->select('count(resource_id) as total');
-        $this->db->where('survey_id', $sid);
-		$this->db->where("survey_id=$sid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%')",NULL,FALSE);		
-        $result=$this->db->get('resources')->row_array();
-        return $result['total'];
+		$this->db->from('resources');
+		$this->db->where('survey_id', $sid);
+		$this->_where_microdata_resource_type();
+		$result = $this->db->get()->row_array();
+		return isset($result['total']) ? (int) $result['total'] : 0;
 	}
 
 
@@ -1690,6 +1738,32 @@ class Survey_resource_model extends CI_Model {
 
 
 	/**
+	 * Build download URL and link type for a resource. Single source for catalog vs API link building.
+	 *
+	 * @param array  $resource  Resource row (survey_id, resource_id, filename)
+	 * @param string $link_type 'page' for catalog download URL, 'api' for API download URL
+	 * @return array ['url' => string, 'type' => 'link'|'download']
+	 */
+	private function _build_resource_download_link($resource, $link_type = 'page')
+	{
+		if (!isset($this->form_validation)) {
+			$this->load->library('form_validation');
+		}
+		if (empty($resource['filename'])) {
+			return array('url' => '', 'type' => 'download');
+		}
+		if ($this->form_validation->valid_url($resource['filename'])) {
+			return array('url' => $resource['filename'], 'type' => 'link');
+		}
+		if ($link_type === 'api') {
+			$url = site_url('api/resources/download/' . $resource['survey_id'] . '/' . $resource['resource_id'] . '?file_name=' . rawurlencode($resource['filename']) . '&id_format=id');
+		} else {
+			$url = site_url('catalog/' . $resource['survey_id'] . '/download/' . $resource['resource_id'] . '/' . rawurlencode($resource['filename']));
+		}
+		return array('url' => $url, 'type' => 'download');
+	}
+
+	/**
 	 * 
 	 * Get resources downloadable links by Study IDNO
 	 * 
@@ -1710,20 +1784,13 @@ class Survey_resource_model extends CI_Model {
 			$resources=$this->db->get('resources')->result_array();
 			
 			if ($resources){
-				$output=array();
-				foreach($resources as $resource){
-					$link='';
-					if($this->form_validation->valid_url($resource['filename'])){
-						$link=$resource['filename'];
-					}else{
-						$link=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
-					}  
-
-					yield [
-						'idno'=>$resource['idno'],
-						'link'=>$link
-					];
-				}				
+				foreach ($resources as $resource) {
+					$link_info = $this->_build_resource_download_link($resource, 'page');
+					yield array(
+						'idno' => $resource['idno'],
+						'link' => $link_info['url']
+					);
+				}
 			}
 		}
 	}
@@ -1756,20 +1823,12 @@ class Survey_resource_model extends CI_Model {
 			$resources=$this->db->get('resources')->result_array();
 			
 			if ($resources){
-				$output=array();
-				foreach($resources as $resource){
-					$link='';
-					if($this->form_validation->valid_url($resource['filename'])){
-						$link=$resource['filename'];
-					}else{
-						$link=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
-					}
-					
-					$resource['link']=$link;
-					$resource['ext']=strtolower(pathinfo($resource['filename'],PATHINFO_EXTENSION));
-					
+				foreach ($resources as $resource) {
+					$link_info = $this->_build_resource_download_link($resource, 'page');
+					$resource['link'] = $link_info['url'];
+					$resource['ext'] = strtolower(pathinfo($resource['filename'], PATHINFO_EXTENSION));
 					yield $resource;
-				}				
+				}
 			}
 		}
 	}
@@ -1788,24 +1847,17 @@ class Survey_resource_model extends CI_Model {
 			return false;
 		}
 
-		$output=array();
-		foreach($resources as $resource){
-			$link='';
-			if($this->form_validation->valid_url($resource['filename'])){
-				$link=$resource['filename'];
-				$resource['is_url']=true;
-			}else{
-				$link=site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
-				$resource['filesize']=$this->get_resource_filesize($resource);
-				$resource['is_url']=false;				
+		$output = array();
+		foreach ($resources as $resource) {
+			$link_info = $this->_build_resource_download_link($resource, 'page');
+			$resource['link'] = $link_info['url'];
+			$resource['is_url'] = ($link_info['type'] === 'link');
+			if (!$resource['is_url']) {
+				$resource['filesize'] = $this->get_resource_filesize($resource);
 			}
-			
-			$resource['link']=$link;
-			$resource['ext']=strtolower(pathinfo($resource['filename'],PATHINFO_EXTENSION));
-			
-			$output[]=$resource;
+			$resource['ext'] = strtolower(pathinfo($resource['filename'], PATHINFO_EXTENSION));
+			$output[] = $resource;
 		}
-		
 		return $output;
 	}
 
@@ -1869,49 +1921,32 @@ class Survey_resource_model extends CI_Model {
 	 */
 	function generate_download_link($resources)
 	{
-		foreach($resources as $idx => $resource){
-			if($this->form_validation->valid_url($resource['filename'])){
-				$resources[$idx]['_links']=array(
-					'download'=>$resource['filename'],
-					'type'=>'link'
-				);				
-			}else{
-				if(!empty($resource['filename'])){
-					$resources[$idx]['_links']=array(
-						'download'=> site_url("catalog/{$resource['survey_id']}/download/{$resource['resource_id']}/".rawurlencode($resource['filename'])),
-						'type'=>'download'
-					);
-				}
-			}  
+		foreach ($resources as $idx => $resource) {
+			$link_info = $this->_build_resource_download_link($resource, 'page');
+			if ($link_info['url'] !== '') {
+				$resources[$idx]['_links'] = array(
+					'download' => $link_info['url'],
+					'type' => $link_info['type']
+				);
+			}
 		}
-
 		return $resources;
 	}
 
 	/**
-	 * 
-	 * 
-	 * Add download links for resources
-	 * 
+	 * Add download links for resources (API URL format).
 	 */
 	function generate_api_download_link($resources)
 	{
-		foreach($resources as $idx => $resource){
-			if($this->form_validation->valid_url($resource['filename'])){
-				$resources[$idx]['_links']=array(
-					'download'=>$resource['filename'],
-					'type'=>'link'
-				);				
-			}else{
-				if(!empty($resource['filename'])){
-					$resources[$idx]['_links']=array(
-						'download'=> site_url("api/resources/download/{$resource['survey_id']}/{$resource['resource_id']}?file_name=".rawurlencode($resource['filename']).'&id_format=id'),
-						'type'=>'download'
-					);
-				}
-			}  
+		foreach ($resources as $idx => $resource) {
+			$link_info = $this->_build_resource_download_link($resource, 'api');
+			if ($link_info['url'] !== '') {
+				$resources[$idx]['_links'] = array(
+					'download' => $link_info['url'],
+					'type' => $link_info['type']
+				);
+			}
 		}
-
 		return $resources;
 	}
 
@@ -2257,6 +2292,66 @@ class Survey_resource_model extends CI_Model {
 
 
 	/**
+	 * Build update_data and changes for a single file resource (not URL). Shared by sync_all_resources and sync_resource.
+	 *
+	 * @param array  $resource           Resource row
+	 * @param string $survey_folder      Full path to survey folder
+	 * @param bool   $calculate_checksum Whether to compute SHA256 checksum
+	 * @return array ['not_found' => true] | ['error' => string] | ['update_data' => array, 'changes' => array]
+	 */
+	private function _build_sync_update_for_file_resource($resource, $survey_folder, $calculate_checksum)
+	{
+		$filename = $resource['filename'];
+		$file_path = unix_path($survey_folder . '/' . $filename);
+
+		if (!file_exists($file_path) || !is_file($file_path)) {
+			return array('not_found' => true);
+		}
+
+		$file_metadata = $this->get_file_metadata($resource['survey_id'], $filename);
+		if (!$file_metadata) {
+			return array('error' => 'Could not read file metadata');
+		}
+
+		$update_data = array('changed' => time());
+		$changes = array();
+
+		if (isset($resource['is_url']) && $resource['is_url'] != 0) {
+			$update_data['is_url'] = 0;
+			$changes[] = 'is_url: 1 → 0';
+		}
+
+		if (isset($resource['filesize']) && $resource['filesize'] != $file_metadata['filesize']) {
+			$changes[] = 'filesize: ' . format_bytes($resource['filesize']) . ' → ' . format_bytes($file_metadata['filesize']);
+		}
+		$update_data['filesize'] = $file_metadata['filesize'];
+
+		if (isset($resource['dcformat']) && $resource['dcformat'] != $file_metadata['mime_type']) {
+			$changes[] = 'dcformat: ' . ($resource['dcformat'] ?: 'NULL') . ' → ' . $file_metadata['mime_type'];
+		}
+		$update_data['dcformat'] = $file_metadata['mime_type'];
+
+		if ($calculate_checksum) {
+			$checksum = @hash_file('sha256', $file_path);
+			if ($checksum && (empty($resource['checksum']) || $resource['checksum'] != $checksum)) {
+				$update_data['checksum'] = $checksum;
+				$changes[] = !empty($resource['checksum']) ? 'checksum: updated' : 'checksum: calculated';
+			}
+		}
+
+		if (!empty($resource['dctype'])) {
+			$new_resource_type = $this->get_resource_type_from_dctype($resource['dctype']);
+			$current_type = isset($resource['resource_type']) ? $resource['resource_type'] : null;
+			if ($current_type != $new_resource_type) {
+				$update_data['resource_type'] = $new_resource_type;
+				$changes[] = 'resource_type: ' . ($current_type ?: 'NULL') . ' → ' . $new_resource_type;
+			}
+		}
+
+		return array('update_data' => $update_data, 'changes' => $changes);
+	}
+
+	/**
 	 * 
 	 * Sync all resources metadata for a survey with actual files on disk
 	 * 
@@ -2330,10 +2425,9 @@ class Survey_resource_model extends CI_Model {
 					continue;
 				}
 
-				// Check if file exists
-				$file_path = unix_path($survey_folder . '/' . $filename);
-				
-				if (!file_exists($file_path) || !is_file($file_path)) {
+				$sync_result = $this->_build_sync_update_for_file_resource($resource, $survey_folder, $calculate_checksum);
+
+				if (!empty($sync_result['not_found'])) {
 					$summary['not_found']++;
 					$summary['details'][] = array(
 						'resource_id' => $resource_id,
@@ -2341,66 +2435,22 @@ class Survey_resource_model extends CI_Model {
 						'status' => 'not_found',
 						'reason' => 'File not found on disk'
 					);
-					
 					log_message('warning', "Resource #{$resource_id}: File not found: {$filename}");
 					continue;
 				}
-
-				// Get fresh file metadata
-				$file_metadata = $this->get_file_metadata($survey_id, $filename);
-				
-				if (!$file_metadata) {
+				if (!empty($sync_result['error'])) {
 					$summary['errors']++;
 					$summary['details'][] = array(
 						'resource_id' => $resource_id,
 						'filename' => $filename,
 						'status' => 'error',
-						'reason' => 'Could not read file metadata'
+						'reason' => $sync_result['error']
 					);
 					continue;
 				}
 
-				// Build update data
-				$update_data = array(
-					'changed' => time()
-				);
-				$changes = array();
-
-				// Ensure is_url is set correctly for local files
-				if ($is_url != 0 && $resource['is_url'] != 0) {
-					$update_data['is_url'] = 0;
-					$changes[] = 'is_url: 1 → 0';
-				}
-
-				// Always read and update filesize from actual file
-				if ($resource['filesize'] != $file_metadata['filesize']) {
-					$changes[] = 'filesize: ' . format_bytes($resource['filesize']) . ' → ' . format_bytes($file_metadata['filesize']);
-				}
-				$update_data['filesize'] = $file_metadata['filesize'];
-
-				// Always read and update dcformat from actual file
-				if ($resource['dcformat'] != $file_metadata['mime_type']) {
-					$changes[] = 'dcformat: ' . ($resource['dcformat'] ?: 'NULL') . ' → ' . $file_metadata['mime_type'];
-				}
-				$update_data['dcformat'] = $file_metadata['mime_type'];
-
-				// Calculate checksum if requested
-				if ($calculate_checksum) {
-					$checksum = @hash_file('sha256', $file_path);
-					if ($checksum && $resource['checksum'] != $checksum) {
-						$update_data['checksum'] = $checksum;
-						$changes[] = 'checksum: ' . ($resource['checksum'] ? 'updated' : 'calculated');
-					}
-				}
-
-				// Always update resource_type from dctype
-				if (!empty($resource['dctype'])) {
-					$new_resource_type = $this->get_resource_type_from_dctype($resource['dctype']);
-					if ($resource['resource_type'] != $new_resource_type) {
-						$update_data['resource_type'] = $new_resource_type;
-						$changes[] = 'resource_type: ' . ($resource['resource_type'] ?: 'NULL') . ' → ' . $new_resource_type;
-					}
-				}
+				$update_data = $sync_result['update_data'];
+				$changes = $sync_result['changes'];
 
 				// Only update if there are changes (besides 'changed' timestamp)
 				if (count($update_data) > 1) {
@@ -2518,81 +2568,34 @@ class Survey_resource_model extends CI_Model {
 				return $result;
 			}
 
-			// Get survey folder
 			$survey_folder = $this->Catalog_model->get_survey_path_full($resource['survey_id']);
-			
 			if (!$survey_folder) {
 				$result['status'] = 'error';
 				$result['reason'] = 'Survey folder not found';
 				return $result;
 			}
 
-			// Check if file exists
-			$file_path = unix_path($survey_folder . '/' . $resource['filename']);
-			
-			if (!file_exists($file_path) || !is_file($file_path)) {
+			$sync_result = $this->_build_sync_update_for_file_resource($resource, $survey_folder, $calculate_checksum);
+
+			if (!empty($sync_result['not_found'])) {
 				$result['status'] = 'not_found';
 				$result['reason'] = 'File not found on disk';
 				return $result;
 			}
-
-			// Get file metadata
-			$file_metadata = $this->get_file_metadata($resource['survey_id'], $resource['filename']);
-			
-			if (!$file_metadata) {
+			if (!empty($sync_result['error'])) {
 				$result['status'] = 'error';
-				$result['reason'] = 'Could not read file metadata';
+				$result['reason'] = $sync_result['error'];
 				return $result;
 			}
 
-			// Build update
-			$update_data = array('changed' => time());
-			$changes = array();
+			$update_data = $sync_result['update_data'];
+			$changes = $sync_result['changes'];
 
-			// Ensure is_url is set correctly for local files
-			if ($is_url != 0 && $resource['is_url'] != 0) {
-				$update_data['is_url'] = 0;
-				$changes[] = 'is_url: 1 → 0';
-			}
-
-			// Always read and update filesize from actual file
-			if ($resource['filesize'] != $file_metadata['filesize']) {
-				$changes[] = 'filesize: ' . format_bytes($resource['filesize']) . ' → ' . format_bytes($file_metadata['filesize']);
-			}
-			$update_data['filesize'] = $file_metadata['filesize'];
-
-			// Always read and update dcformat from actual file
-			if ($resource['dcformat'] != $file_metadata['mime_type']) {
-				$changes[] = 'dcformat: ' . ($resource['dcformat'] ?: 'NULL') . ' → ' . $file_metadata['mime_type'];
-			}
-			$update_data['dcformat'] = $file_metadata['mime_type'];
-
-			// Calculate checksum if requested
-			if ($calculate_checksum) {
-				$checksum = @hash_file('sha256', $file_path);
-				if ($checksum && $resource['checksum'] != $checksum) {
-					$update_data['checksum'] = $checksum;
-					$changes[] = 'checksum: ' . ($resource['checksum'] ? 'updated' : 'calculated');
-				}
-			}
-
-			// Always update resource_type
-			if (!empty($resource['dctype'])) {
-				$new_resource_type = $this->get_resource_type_from_dctype($resource['dctype']);
-				if ($resource['resource_type'] != $new_resource_type) {
-					$update_data['resource_type'] = $new_resource_type;
-					$changes[] = 'resource_type: ' . ($resource['resource_type'] ?: 'NULL') . ' → ' . $new_resource_type;
-				}
-			}
-
-			// Update if changes
 			if (count($update_data) > 1) {
 				$this->db->where('resource_id', $resource_id);
 				$this->db->update('resources', $update_data);
-				
 				$result['status'] = 'synced';
 				$result['changes'] = $changes;
-				
 				log_message('info', "Resource #{$resource_id} synced: " . implode(', ', $changes));
 			} else {
 				$result['status'] = 'no_changes';

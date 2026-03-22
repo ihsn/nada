@@ -201,6 +201,9 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_survey_tags on [dbo].[survey_tags](
 	[tag] ASC
 );
 
+-- tag lookup: SELECT sid FROM survey_tags WHERE tag IN (...)
+CREATE NONCLUSTERED INDEX idx_survey_tags_tag ON [dbo].[survey_tags] ([tag] ASC) INCLUDE ([sid]);
+
 
 --
 -- Table structure for table meta
@@ -275,7 +278,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_survey_topics on [dbo].[survey_topics](
 CREATE TABLE survey_citations (
   id int NOT NULL IDENTITY(1,1),
   sid int DEFAULT NULL,
-  citationid int DEFAULT NULL,  
+  citationid int DEFAULT NULL,
   PRIMARY KEY (id)
 ) ;
 
@@ -283,6 +286,8 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_survey_cit on [dbo].[survey_citations](
 	[sid] ASC,
 	[citationid] ASC
 );
+
+CREATE NONCLUSTERED INDEX idx_survey_citations_citationid ON [dbo].[survey_citations] ([citationid]);
 
 
 
@@ -373,6 +378,17 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_surveys on [dbo].[surveys](
 	[id] ASC,
 	[repositoryid] ASC
 );
+
+-- Filter and sort indexes for catalog search
+CREATE NONCLUSTERED INDEX idx_surveys_published ON [dbo].[surveys] ([published] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_type ON [dbo].[surveys] ([type] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_repositoryid ON [dbo].[surveys] ([repositoryid] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_formid ON [dbo].[surveys] ([formid] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_data_class_id ON [dbo].[surveys] ([data_class_id] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_year_start ON [dbo].[surveys] ([year_start] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_total_views ON [dbo].[surveys] ([total_views] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_changed ON [dbo].[surveys] ([changed] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_created ON [dbo].[surveys] ([created] ASC);
 
 
 --
@@ -733,6 +749,14 @@ CREATE TABLE citations (
   PRIMARY KEY (id)
 );
 
+CREATE NONCLUSTERED INDEX idx_citations_published  ON [dbo].[citations] ([published]);
+CREATE NONCLUSTERED INDEX idx_citations_ctype       ON [dbo].[citations] ([ctype]);
+CREATE NONCLUSTERED INDEX idx_citations_pub_year    ON [dbo].[citations] ([pub_year]);
+CREATE NONCLUSTERED INDEX idx_citations_flag        ON [dbo].[citations] ([flag]);
+CREATE NONCLUSTERED INDEX idx_citations_url_status  ON [dbo].[citations] ([url_status]);
+CREATE NONCLUSTERED INDEX idx_citations_created_by  ON [dbo].[citations] ([created_by]);
+CREATE NONCLUSTERED INDEX idx_citations_changed_by  ON [dbo].[citations] ([changed_by]);
+
 
 --
 -- Table structure for table permission_urls
@@ -891,8 +915,11 @@ CREATE TABLE survey_countries (
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_surv_countries on [dbo].[survey_countries](
 	[sid] ASC,
-	[country_name] ASC 
+	[country_name] ASC
 );
+
+-- cid lookup: SELECT sid FROM survey_countries WHERE cid IN (...)
+CREATE NONCLUSTERED INDEX idx_survey_countries_cid ON [dbo].[survey_countries] ([cid] ASC) INCLUDE ([sid]);
 
 
 --
@@ -960,6 +987,9 @@ CREATE TABLE survey_repos (
   isadmin tinyint  NOT NULL,
   PRIMARY KEY (id)
 );
+
+CREATE NONCLUSTERED INDEX idx_survey_repos_repositoryid ON [dbo].[survey_repos] ([repositoryid] ASC) INCLUDE ([sid]);
+CREATE NONCLUSTERED INDEX idx_survey_repos_sid ON [dbo].[survey_repos] ([sid] ASC);
 
 
 --
@@ -1191,6 +1221,10 @@ CREATE INDEX IX_sur_yrs_sid on [dbo].[survey_years](
 	[sid] ASC
 );
 
+-- year range filter: WHERE data_coll_year BETWEEN ? AND ?
+-- Existing IX_sur_years has sid as leading column and cannot serve range scans on data_coll_year
+CREATE NONCLUSTERED INDEX idx_survey_years_year_sid ON [dbo].[survey_years] ([data_coll_year] ASC) INCLUDE ([sid]);
+
 
 
 --
@@ -1235,6 +1269,8 @@ CREATE TABLE citation_authors (
   author_type varchar(45) DEFAULT NULL,
   PRIMARY KEY (id)
 ) ;
+
+CREATE NONCLUSTERED INDEX idx_citation_authors_cid_type ON [dbo].[citation_authors] ([cid], [author_type]);
 
 
 
@@ -1484,10 +1520,9 @@ DROP FULLTEXT INDEX ON surveys;
 
 --add table columns to index
 CREATE FULLTEXT INDEX ON surveys
-( 
-  keywords		Language 1033,
-  var_keywords		Language 1033
- ) 
+(
+  keywords		Language 1033
+ )
 KEY INDEX pk_idx_surveys ; 
 
 
@@ -1883,6 +1918,9 @@ CREATE TABLE survey_facets (
   term_id int DEFAULT NULL,
   PRIMARY KEY (id)
 );
+
+CREATE NONCLUSTERED INDEX idx_survey_facets_term_id ON [dbo].[survey_facets] ([term_id] ASC) INCLUDE ([sid]);
+CREATE NONCLUSTERED INDEX idx_survey_facets_sid ON [dbo].[survey_facets] ([sid] ASC);
 
 INSERT INTO configurations VALUES ('facets_all','["year","data_class","dtype","country"]',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('facets_microdata','["year","data_class","dtype","country"]',NULL,NULL,NULL);

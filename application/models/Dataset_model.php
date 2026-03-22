@@ -43,7 +43,8 @@ class Dataset_model extends CI_Model {
 		'link_study',
 		'link_indicator',
 		'thumbnail',
-		'doi'
+		'doi',
+		'abstract'
 		);
 		
 	
@@ -68,7 +69,8 @@ class Dataset_model extends CI_Model {
 		'created_by',
 		'changed_by',
 		'formid',
-		'doi'
+		'doi',
+		'abstract'
 		);
 	
 
@@ -413,7 +415,7 @@ class Dataset_model extends CI_Model {
 	 */
 	function get_keywords($sid)
 	{
-		$this->db->select("keywords,var_keywords");
+		$this->db->select("keywords");
 		$this->db->where("id",$sid);
 		return $this->db->get("surveys")->row_array();
 	}
@@ -542,9 +544,14 @@ class Dataset_model extends CI_Model {
 		//keywords
 		if (isset($data['metadata']) && !isset($data['keywords'])){
 			//$keywords=str_replace("\n","",$this->array_to_plain_text($options['metadata']));
-			$data['keywords']=$this->extract_keywords($data['metadata'],$type);			
+			$data['keywords']=$this->extract_keywords($data['metadata'],$type);
 		}
-		
+
+		//abstract
+		if (isset($data['metadata']) && !isset($data['abstract'])){
+			$data['abstract'] = $this->extract_abstract($data['metadata'], $type);
+		}
+
 		//encode json fields
 		foreach ($this->encoded_fields as $field){
 			if(isset($data[$field])){
@@ -602,6 +609,11 @@ class Dataset_model extends CI_Model {
 		//keywords
 		if (!isset($data['keywords']) && isset($data['metadata'])){
 			$data['keywords']=$this->extract_keywords($data['metadata'],$type);
+		}
+
+		//abstract
+		if (!isset($data['abstract']) && isset($data['metadata'])){
+			$data['abstract'] = $this->extract_abstract($data['metadata'], $type);
 		}
 
 		//encode json fields
@@ -669,35 +681,45 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	function extract_var_keywords($keywords)
-	{				
-		$keywords=str_replace(array("\n","\r", ")", "(","?",",","/","\\")," ",$this->array_to_plain_text($keywords));
+	function extract_abstract($metadata, $type = '')
+	{
+		// Map of study type => path in metadata (separator '/')
+		$paths = [
+			'survey'        => 'study_desc/study_info/abstract',
+			'document'      => 'document_description/abstract',
+			'script'        => 'project_desc/abstract',
+			'timeseriesdb'  => 'database_description/abstract',
+			'table'         => 'table_description/description',
+			'timeseries'    => 'series_description/definition_short',
+			'video'         => 'video_description/description',
+			'visualization' => 'visualization_description/description',
+			//'geospatial'     => 'description/identificationInfo/abstract', 
+			// 'image': //todo
+		];
 
-		$noise_words=explode(",",
-			'about,after,all,also,an,and,another,any,are,as,at,be,because,been,before,
-			being,between,both,but,by,came,can,come,could,did,do,each,for,from,get,
-			got,has,had,he,have,her,here,him,himself,his,how,if,in,into,is,it,like,
-			make,many,me,might,more,most,much,must,my,never,now,of,on,only,or,other,
-			our,out,over,said,same,see,should,since,some,still,such,take,than,that,
-			the,their,them,then,there,these,they,this,those,through,to,too,under,up,
-			very,was,way,we,well,were,what,where,which,while,who,with,would,you,your,a,not			
-			b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,$,1,2,3,4,5,6,7,8,9,0,_'
-		);
-		$noise_words=array_map('trim',$noise_words);
-
-		$keywords= strtolower(preg_replace('/\b('.implode('|',$noise_words).')\b/i','',$keywords));
-		
-		$patterns=array(
-		 	'/\b\d+\b/u', //remove numbers not part of the any words
-			 '/\b[a-z]{1,2}\b/'//words length <3
-		);
-
-		foreach($patterns as $regex){
-			$keywords= preg_replace($regex, '', $keywords);
+		if (isset($paths[$type])) {
+			$abstract = $this->get_array_nested_value($metadata, $paths[$type], '/');
+		} elseif ($type === 'geospatial') {
+			// identificationInfo is an array of objects in ISO 19139 metadata
+			$ident = $this->get_array_nested_value($metadata, 'description/identificationInfo', '/');
+			if (is_array($ident)) {
+				$first    = reset($ident);
+				$abstract = is_array($first) ? ($first['abstract'] ?? null) : null;
+			} else {
+				$abstract = null;
+			}
+		} else {
+			return null;
 		}
 
-		return $keywords;
+		if (empty($abstract) || !is_string($abstract)) {
+			return null;
+		}
+
+		$abstract = trim(strip_tags($abstract));
+		return $abstract !== '' ? mb_substr($abstract, 0, 500) : null;
 	}
+
 
 
 

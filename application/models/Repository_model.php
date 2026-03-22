@@ -333,6 +333,7 @@ class Repository_model extends CI_Model {
 	**/
 	function select_all($published=null)
 	{
+		$this->db->flush_cache();
 		$this->db->select('*');
 		$this->db->order_by('title', 'ASC'); 
 

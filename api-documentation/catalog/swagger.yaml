@@ -361,13 +361,159 @@ paths:
           schema:
             $ref: "#/definitions/Catalog"
   
+  /catalog/variables:
+    get:
+      tags:
+        - Catalog
+      summary: Search variables across catalog
+      description: >-
+        Search variables across all published studies in the catalog.
+
+
+        `idno` and `var_id` may be supplied as query parameters instead of URL
+        path segments:
+
+        * `/api/catalog/variables?sk=income` — catalog-wide keyword search
+
+        * `/api/catalog/variables?idno=SUR_2020_HH&sk=income` — per-study keyword search
+
+        * `/api/catalog/variables?idno=SUR_2020_HH&var_id=V1` — single variable lookup
+      operationId: searchVariables
+      produces:
+        - application/json
+      parameters:
+        - name: sk
+          in: query
+          description: Keyword search across variable names, labels and questions
+          type: string
+        - name: idno
+          in: query
+          description: "Study unique ID — when provided, limits the search to that study"
+          type: string
+          required: false
+        - name: var_id
+          in: query
+          description: Variable ID — returns a single variable when combined with `idno`
+          type: string
+          required: false
+        - name: country
+          in: query
+          description: "Filter by country name or ISO3 code. Separate multiple values with pipe (|). Example: `Afghanistan|Indonesia` or `afg|idn`"
+          type: string
+        - name: from
+          in: query
+          description: Filter by data collection start year
+          type: integer
+        - name: to
+          in: query
+          description: Filter by data collection end year
+          type: integer
+        - name: dtype
+          in: query
+          description: Filter by data access type
+          type: string
+          enum:
+            - open
+            - direct
+            - public
+            - licensed
+            - enclave
+            - remote
+            - other
+        - name: type
+          in: query
+          description: Filter by dataset type (e.g. `survey`, `geospatial`)
+          type: string
+        - name: sort_by
+          in: query
+          description: "Sort results. Valid options: `name`, `labl`, `title`, `nation`"
+          type: string
+          enum:
+            - name
+            - labl
+            - title
+            - nation
+        - name: sort_order
+          in: query
+          description: Sort direction
+          type: string
+          enum:
+            - asc
+            - desc
+        - name: ps
+          in: query
+          description: Number of results per page. Default is 15
+          type: integer
+        - name: page
+          in: query
+          description: Page number
+          type: integer
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            type: object
+            properties:
+              result:
+                type: object
+                properties:
+                  found:
+                    type: integer
+                    description: Number of variables matching the search
+                  total:
+                    type: integer
+                    description: Total published variables in the catalog
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  page:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        uid:
+                          type: integer
+                        vid:
+                          type: string
+                        fid:
+                          type: string
+                        name:
+                          type: string
+                        labl:
+                          type: string
+                        qstn:
+                          type: string
+                        sid:
+                          type: integer
+                        study:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            idno:
+                              type: string
+                            title:
+                              type: string
+                            nation:
+                              type: string
+              params:
+                type: object
+        "400":
+          description: Bad input
+
   /catalog/{IDNo}/variables:
     get:
       tags:
         - Catalog
         - Metadata
-      summary: List variables by study
-      description: List variables by study. To find variables by a data file, use [Variables by data file](#operation/listDataFileVariables). 
+      summary: List or search variables by study
+      description: >-
+        List all variables for a study, or search within them using `?sk=`.
+        To find variables by data file, use [Variables by data file](#operation/listDataFileVariables).
+        For catalog-wide variable search (without an IDNo), use [Search variables](#operation/searchVariables).
       operationId: listVariables
       consumes:
         - application/json
@@ -380,23 +526,90 @@ paths:
           description: Study unique ID number
           type: string
           required: true
+        - name: sk
+          in: query
+          description: Keyword search within the study's variables (name, label, question text)
+          type: string
+          required: false
+        - name: sort_by
+          in: query
+          description: "Sort results when `sk` is provided. Valid options: `name`, `labl`"
+          type: string
+          enum:
+            - name
+            - labl
+          required: false
+        - name: sort_order
+          in: query
+          description: Sort direction
+          type: string
+          enum:
+            - asc
+            - desc
+          required: false
+        - name: ps
+          in: query
+          description: Number of results per page when `sk` is provided. Default is 15
+          type: integer
+          required: false
+        - name: page
+          in: query
+          description: Page number when `sk` is provided
+          type: integer
+          required: false
         - name: id_format
           in: query
-          description: To use the ID values instead of the IDNo, set id_format to ID
+          description: Set to `id` to use the numeric study ID instead of IDNo
           type: string
           required: false
       responses:
         "200":
-          description: successful operation
+          description: >-
+            Without `sk`: `{ found, total, variables[] }`.
+            With `sk`: `{ found, total, limit, offset, page, variables[] }`.
           schema:
-            $ref: "../catalog-admin/variable-schema.json"
+            type: object
+            properties:
+              found:
+                type: integer
+                description: Variables matching the keyword (equals total when no sk)
+              total:
+                type: integer
+                description: Total variables in the study
+              limit:
+                type: integer
+              offset:
+                type: integer
+              page:
+                type: integer
+              variables:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    uid:
+                      type: integer
+                    vid:
+                      type: string
+                    fid:
+                      type: string
+                    name:
+                      type: string
+                    labl:
+                      type: string
+                    qstn:
+                      type: string
+
   /catalog/{IDNo}/variables/{varId}:
     get:
       tags:
         - Catalog
         - Metadata
-      summary: Find variable
-      description: Get a single variable metadata
+      summary: Get a single variable
+      description: >-
+        Get full metadata for a single variable.
+        Alternatively, supply both `idno` and `var_id` as query parameters to
+        `/api/catalog/variables?idno={IDNo}&var_id={varId}`.
       operationId: findSingleVariable
       consumes:
         - application/json
@@ -416,9 +629,9 @@ paths:
           required: true
         - name: id_format
           in: query
-          description: To use the ID values instead of the IDNo, set id_format to ID
+          description: Set to `id` to use the numeric study ID instead of IDNo
           type: string
-          required: false  
+          required: false
       responses:
         "200":
           description: successful operation

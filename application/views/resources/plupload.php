@@ -47,6 +47,7 @@ $(function() {
 		url : '<?php echo site_url().'/admin/resources/pl_uploads/'.$this->uri->segment(4); ?>',
 		max_file_size : '<?php echo $max_resource_upload_size;?>mb',
 		chunk_size : '2mb',
+		max_retries : 5,
 		unique_names : false,
 		multiple_queues:true,
 		multipart_params: { 

@@ -95,10 +95,7 @@ class Dataset_geospatial_model extends Dataset_model {
         //feature catalog
         $this->upsert_feature_catalog($dataset_id,$feature_catalog);
 
-        //update surveys.keywords
-        $this->update_feature_keywords($dataset_id,$feature_catalog);
-        
-		//complete transaction
+        //complete transaction
 		$this->db->trans_complete();
 
 		return $dataset_id;
@@ -370,40 +367,6 @@ class Dataset_geospatial_model extends Dataset_model {
         $this->db->delete('variables');
     }
 
-
-    function update_feature_keywords($sid,$feature_catalog)
-    {
-        if (!isset($feature_catalog['featureType'])){
-            return '';
-        }
-
-        $output=array();
-        foreach($feature_catalog['featureType'] as $feature_type)
-        {
-            $output[]=$feature_type['typeName'];
-            $output[]=$feature_type['definition'];
-
-            $car_chars=isset($feature_type['carrierOfCharacteristics']) ? $feature_type['carrierOfCharacteristics'] : null;
-            foreach($car_chars as $variable)
-            {
-                $output[]=isset($variable['memberName']) ? $variable['memberName'] : '';
-                $output[]=isset($variable['definition']) ? $variable['definition'] : '';
-
-                if (isset($variable['listedValue'])){                    
-                    $output[]=$this->listed_values_to_str($variable['listedValue']);
-                }
-            }
-        }
-
-        $output= implode(" ", $output);
-
-        $options=array(
-            'var_keywords'=>$output
-        );
-
-        $this->db->where('id',$sid);    
-        $this->db->update("surveys",$options);
-    }
 
     //convert listed values array to string
     function listed_values_to_str($listed_values)

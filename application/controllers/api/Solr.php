@@ -204,6 +204,7 @@ class Solr extends MY_REST_Controller
             $elapsed_time = microtime(true) - $start_time;
             
             $output = array(
+                'rows_processed' => $total_processed,   // alias used by UI progress tracker
                 'total_processed' => $total_processed,
                 'target_limit' => $limit,
                 'remaining' => max(0, $limit - $total_processed),

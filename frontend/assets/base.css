@@ -1,0 +1,33 @@
+/**
+ * Shared base styles for admin Vue apps.
+ * Import in entry points: import '@/assets/base.css'
+ */
+:root {
+  --color-background: #fff;
+  --color-background-soft: #f8f8f8;
+  --color-text: #181818;
+  --color-border: rgba(60, 60, 60, 0.12);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--color-text);
+  background: var(--color-background);
+  line-height: 1.5;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.v-selection-control .v-label {
+  padding-top:5px;
+  height: auto!important;
+}

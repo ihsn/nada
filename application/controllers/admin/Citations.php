@@ -445,6 +445,8 @@ class Citations extends MY_Controller {
 
         if ($db_result!==FALSE)
         {
+            $this->events->emit('db.after.update', 'citations', $id, 'import');
+
             //update successful
             $this->session->set_flashdata('message', t('form_update_success'). ' '.anchor('admin/citations/edit/'.$id,'click here to edit record #'.$id));
 
@@ -628,6 +630,7 @@ class Citations extends MY_Controller {
 
 					//confirm delete
 					$this->Citation_model->delete($item);
+					$this->events->emit('db.after.delete', 'citations', $item);
 				}
 			}
 
@@ -750,6 +753,8 @@ class Citations extends MY_Controller {
 							//log to database
 							$this->db_logger->write_log('import',$entry['title'],'citations');
 
+							$this->events->emit('db.after.update', 'citations', $new_id, 'import');
+
 							//redirect('admin/citations/edit/'.$new_id);
 							//return;
 						}
@@ -824,6 +829,11 @@ class Citations extends MY_Controller {
 		}
 
 		$result=$this->Citation_model->update($id,array('published'=>$publish));
+
+		if ($result) {
+			$this->events->emit('db.after.update', 'citations', $id, 'publish');
+		}
+
 		echo json_encode(array('result'=>(int)$result) );
 	}
 
@@ -917,7 +927,7 @@ class Citations extends MY_Controller {
             return FALSE;
         }
 
-        $study_fulltext_index='keywords,var_keywords';
+        $study_fulltext_index='keywords';
         $where=array();
 
         $tmp_surveys=explode(",",$exclude_surveys);

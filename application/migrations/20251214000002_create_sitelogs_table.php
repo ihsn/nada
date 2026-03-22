@@ -49,7 +49,7 @@ class Migration_Create_sitelogs_table extends MY_Migration {
                     KEY `idx_surveyid_logtime` (`surveyid`, `logtime`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             ");
-        } elseif ($db_driver === 'sqlsrv' || $db_driver === 'mssql') {
+        } elseif ($db_driver === 'sqlsrv') {
             // SQL Server version
             $this->db->query("
                 CREATE TABLE sitelogs (

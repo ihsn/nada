@@ -1,1636 +1,820 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-/**
- * Data Catalog Search Class for SOLR
- */
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 use Solarium\Core\Client\Adapter\Curl;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
+/**
+ * Catalog search implementation for Apache Solr (Solarium client).
+ *
+ * Public interface mirrors Catalog_search_mysql:
+ *   search($limit, $offset)              → study search
+ *   vsearch($limit, $offset)             → variable search
+ *   v_quick_search($sid, $limit, $offset)→ variable search within one survey
+ */
+class Catalog_search_solr
+{
+    var $ci;
 
- class Catalog_search_solr{
+    var $study_keywords    = '';
+    var $variable_keywords = '';
+    var $topics            = array();
+    var $countries         = array();
+    var $regions           = array();
+    var $from              = 0;
+    var $to                = 0;
+    var $repo              = '';
+    var $collections       = array();
+    var $type              = array();
+    var $dtype             = array();
+    var $sid               = '';
+    var $created           = '';
+    var $debug             = false;
+    var $params            = null;
+    var $solr_options      = array();
+    var $varcount          = '';
 
-	var $ci;
+    // Solr field → legacy result key mapping (variables only)
+    private $variable_field_map = array(
+        'var_label'      => 'labl',
+        'var_name'       => 'name',
+        'var_question'   => 'qstn',
+        'var_categories' => 'catgry',
+        'var_survey_id'  => 'sid',
+        'var_uid'        => 'uid',
+    );
 
-	var $errors=array();
+    var $sort_allowed_fields = array(
+        'title'      => 'title_sort',
+        'nation'     => 'nation_sort',
+        'country'    => 'nation_sort',
+        'year'       => 'year_start',
+        'popularity' => 'total_views',
+        'rank'       => 'score',
+        'relevance'  => 'score',
+    );
 
-	var $study_keywords='';
-	var $variable_keywords='';
-	var $variable_fields=array();
-	var $topics=array();
-	var $countries=array();
-	var $regions=array();
-	var $from=0;
-	var $to=0;
-	var $repo='';
-    var $collections=array();
-    var $type=array();
-	var $dtype=array();
-	var $sid='';
-	var $created='';
-	var $debug=false;
-	var $params=null;
-	var $solr_options=array();
-	var $varcount='';
+    var $sort_allowed_order = array('asc', 'desc');
+    var $sort_by    = 'title';
+    var $sort_order = 'asc';
 
-	var $variable_allowed_fields=array('var_label','var_name','var_question');
-	
-	var $field_mapping_new_to_old=array(
-		'var_label' => 'labl',
-		'var_name' => 'name', 
-		'var_question' => 'qstn',
-		'var_survey_id' => 'sid',
-		'var_uid' => 'uid',
-		'vid' => 'vid',
-		'fid' => 'fid'
-	);
+    // Allowed field prefixes for field:value query syntax in study search
+    private $allowed_search_fields = array(
+        'title'       => 'title',
+        'nation'      => 'nation',
+        'country'     => 'nation',
+        'year'        => 'year_start',
+        'author'      => 'authoring_entity',
+        'abstract'    => 'abstract',
+        'keywords'    => 'keywords',
+        'methodology' => 'methodology',
+        'idno'        => 'idno',
+        'type'        => 'dataset_type',
+    );
 
-	var $sort_allowed_fields=array(
-		'title'=>'title_sort',
-        'nation'=>'nation_sort',
-        'country'=>'nation_sort',
-		'year'=>'year_start',
-		'popularity'=>'total_views',
-		'rank'=>'score',
-		'relevance'=>'score'
-	);
+    // Allowed field prefixes for field:value query syntax in variable search
+    private $allowed_variable_search_fields = array(
+        'var_name'       => 'var_name',
+        'var_label'      => 'var_label',
+        'var_question'   => 'var_question',
+        'var_categories' => 'var_categories',
+        'survey_title'   => 'title',
+        'survey_nation'  => 'nation',
+        'survey_year'    => 'year_start',
+    );
 
-	var	$sort_allowed_order=array('asc','desc');
-	var $sort_by='title';
-	var $sort_order='ASC';
+    // -------------------------------------------------------------------------
+    // Constructor / initialisation
+    // -------------------------------------------------------------------------
 
-	var $allowed_search_fields=array(
-		'title'=>'title',
-		'nation'=>'nation', 
-		'country'=>'nation',
-		'year'=>'year_start',
-		'author'=>'authoring_entity',
-		'abstract'=>'abstract',
-		'keywords'=>'keywords',
-		'methodology'=>'methodology',
-		'idno'=>'idno',
-		'type'=>'dataset_type'
-	);
+    function __construct($params = array())
+    {
+        $this->ci = &get_instance();
+        $this->ci->config->load('solr');
+        $this->ci->load->model('Facet_model');
+        $this->user_facets = $this->ci->Facet_model->select_all('user');
 
-	var $allowed_variable_search_fields=array(
-		'var_name'=>'var_name',
-		'var_label'=>'var_label',
-		'var_question'=>'var_question', 
-		'survey_title'=>'title',
-		'survey_nation'=>'nation',
-		'survey_year'=>'year_start'
-	);
+        if ($this->ci->config->item('regional_search') == 'yes') {
+            $this->sort_by = 'nation';
+        }
 
+        $this->solr_options          = $this->ci->config->item('solr_edismax_options');
+        $this->solr_variable_options = $this->ci->config->item('solr_edismax_variable_options');
 
-	function __construct($params = array())
-	{
-		$this->ci=& get_instance();
-		$this->ci->config->load('solr');
-		$this->ci->load->model("Facet_model");
-		$this->user_facets=$this->ci->Facet_model->select_all('user');
+        if ($this->ci->config->item('solr_debug') == true) {
+            $this->debug = true;
+        }
 
-		if ($this->ci->config->item("regional_search")=='yes'){
-			$this->sort_by='nation';
-		}
+        if (count($params) > 0) {
+            $this->initialize($params);
+        }
 
-		$this->solr_options=$this->ci->config->item("solr_edismax_options");
-		$this->solr_variable_options=$this->ci->config->item("solr_edismax_variable_options");
+        $this->params = $params;
+    }
 
-		if($this->ci->config->item('solr_debug')==true){
-			$this->debug=true;
-		}
+    function initialize($params = array())
+    {
+        foreach ($params as $key => $val) {
+            if (property_exists($this, $key)) {
+                $this->$key = $this->validate_parameter($key, $val);
+            }
+        }
+        $this->initialize_solr();
+    }
 
-		if (count($params) > 0){
-			$this->initialize($params);
-		}
+    private function initialize_solr()
+    {
+        require('vendor/autoload.php');
+        $config = array(
+            'endpoint' => array(
+                'localhost' => array(
+                    'host' => $this->ci->config->item('solr_host'),
+                    'port' => $this->ci->config->item('solr_port'),
+                    'path' => '/',
+                    'core' => $this->ci->config->item('solr_collection'),
+                ),
+            ),
+        );
+        $this->solr_client = new Solarium\Client(new Curl(), new EventDispatcher(), $config);
+    }
 
-		$this->params=$params;		
-	}
+    // -------------------------------------------------------------------------
+    // Public search methods
+    // -------------------------------------------------------------------------
 
-	function initialize($params=array())
-	{
-		if (count($params) > 0){
-			foreach ($params as $key => $val){
-				if (isset($this->$key)){
-					$this->$key = $this->validate_parameter($key, $val);
-				}
-			}
-		}
+    function search($limit = 15, $offset = 0)
+    {
+        $query   = $this->solr_client->createSelect();
+        $helper  = $query->getHelper();
+        $edismax = $query->getEDisMax();
 
-		$this->initialize_solr();
-	}
+        // Facet: dataset types — exclude own tag so the type filter doesn't
+        // collapse counts for the active type
+        $query->getFacetSet()
+              ->createFacetField('dataset_types')
+              ->setField('dataset_type')
+              ->getLocalParameters()->addExcludes(['tag_dataset_type']);
 
-	
-	/**
-	 * Process query token for advanced queries
-	 * 
-	 * This function processes a query token for advanced queries.
-	 * It handles operators and quoted phrases.
-	 * 
-	 * @example
-	 * $token = '+health';
-	 * $processed_token = $this->process_query_token($token);
-	 * echo $processed_token; // Output: +health
-	 * 
-	 * 
-	 * @param string $token Query token
-	 * @return string Processed query token
-	 * 
-	 */
-	private function process_query_token($token)
-	{
-		if (preg_match('/^([+\-])(.+)$/', $token, $matches)) {
-			$operator = $matches[1];
-			$term = $matches[2];
-			$term = trim($term, '"\'');
-			$escaped_term = preg_replace('/([\\+&\\-\\|\\(\\)\\{\\}\\[\\]\\^~\\*\\?\\:\\/\\\\])/', '\\\\$1', $term);
-			return $operator . $escaped_term;
-		}
-		
-		if (preg_match('/^["\'].*["\']$/', $token)) {
-			$escaped = preg_replace('/([\\+&\\-\\|\\(\\)\\{\\}\\[\\]\\^~\\*\\?\\:\\/\\\\])/', '\\\\$1', $token);
-			return $escaped;
-		}
-		
-		$escaped = preg_replace('/([\\+\\-&\\|\\(\\)\\{\\}\\[\\]\\^"~\\*\\?\\:\\/\\\\])/', '\\\\$1', $token);
-		return $escaped;
-	}
-	
+        // Base filters
+        $query->createFilterQuery('published')->setQuery('published:1');
+        $query->createFilterQuery('doctype')->setQuery('doctype:1');
 
-	/**
-	 * Validate parameter
-	 * 
-	 * This function validates a parameter and returns the value.
-	 * 
-	 * for keywords, it sanitizes the query, validates the length and escapes special characters.
-	 * for other parameters, it strips tags and returns the value.
-	 * 
-	 * @param string $key Parameter key
-	 * @param string $value Parameter value
-	 * @return string Validated parameter value
-	 */
-	private function validate_parameter($key, $value)
-	{
-		switch($key) {
-			case 'from':
-			case 'to':
-				return max(0, (int)$value);
-			case 'limit':
-				return max(1, min(1000, (int)$value));
-			case 'offset':
-				return max(0, (int)$value);
-			case 'study_keywords':
-			case 'variable_keywords':
-				$keywords = trim(strip_tags($value));
-				$keywords = $this->sanitize_query($keywords);
-				if (strlen($keywords) > 500) {
-					$keywords = substr($keywords, 0, 500);
-				}
-				
-				$trimmed = trim($keywords);
-				if (preg_match('/^".*"$/', $trimmed)) {
-					$keywords = preg_replace('/([+\-&|!(){}[\]^~*?:\\/\\\\])/', '\\\\$1', $trimmed);
-				} else if (preg_match('/[+\-]/', $trimmed)) {
-					$keywords = preg_replace('/([&|!(){}[\]^"~*?:\\/\\\\])/', '\\\\$1', $trimmed);
-				} else if (preg_match('/[a-zA-Z_]+:/', $trimmed)) {
-					$keywords = preg_replace('/([&|!(){}[\]^"~*?\\/\\\\])/', '\\\\$1', $trimmed);
-				} else {
-					$keywords = preg_replace('/[\\+\\-&\\|\\(\\)\\{\\}\\[\\]\\^"~\\*\\?\\:\\/\\\\]/', ' ', $keywords);
-					$keywords = preg_replace('/\s+/', ' ', $keywords);
-					$keywords = trim($keywords);
-				}
-				
-				if (empty($keywords)) {
-					return '';
-				}
-				return $keywords;
-			case 'repo':
-				return trim(strip_tags($value));
-			case 'created':
-				return trim(strip_tags($value));
-			case 'varcount':
-				return in_array($value, array('0', '>0')) ? $value : '';
-			case 'countries':
-			case 'regions':
-			case 'topics':
-			case 'collections':
-			case 'type':
-			case 'dtype':
-				if (!is_array($value)) {
-					return array();
-				}
-				return array_filter(array_map(function($item) {
-					return is_numeric($item) ? (int)$item : trim(strip_tags($item));
-				}, $value));
-			case 'sort_by':
-				return array_key_exists($value, $this->sort_allowed_fields) ? $value : '';
-			case 'sort_order':
-				return in_array(strtolower($value), $this->sort_allowed_order) ? strtolower($value) : 'asc';
-			case 'debug':
-				return (bool)$value;
-			default:
-				return is_string($value) ? trim(strip_tags($value)) : $value;
-		}
-	}
-	
-	private function apply_sorting($query)
-	{
-		if (empty($this->sort_by)) {
-			$sort_by = $this->study_keywords ? 'rank' : 'title';
-			$sort_order = $this->study_keywords ? 'desc' : 'asc';
-		} else {
-			$sort_by = $this->sort_by;
-			$sort_order = $this->sort_order;
-		}
+        // Keywords
+        if ($this->study_keywords) {
+            $query->setQuery($this->escape_keywords($this->study_keywords, $helper));
+        }
 
-		$sort_by = array_key_exists($sort_by, $this->sort_allowed_fields) ? $sort_by : 'title';
-		$sort_order = in_array(strtolower($sort_order), $this->sort_allowed_order) ? strtolower($sort_order) : 'asc';
+        // Filters
+        $this->apply_filter($query, 'dataset_type', $this->_build_dataset_type_query(), 'tag_dataset_type');
+        $this->apply_filter($query, 'countries',    $this->_build_countries_query());
+        $this->apply_filter($query, 'regions',      $this->_build_regions_query());
+        $this->apply_filter($query, 'topics',       $this->_build_topics_query());
+        $this->apply_filter($query, 'collections',  $this->_build_collections_query());
+        $this->apply_filter($query, 'dtype',        $this->_build_dtype_query());
+        $this->apply_filter($query, 'varcount',     $this->_build_varcount_query());
+        $this->apply_filter($query, 'created',      $this->_build_created_query());
 
-		$sort_options = array();
-		$sort_options[0] = array(
-			'sort_by' => $sort_by, 
-			'sort_order' => (strtolower($sort_order) == 'asc') ? $query::SORT_ASC : $query::SORT_DESC
-		);
+        if (!empty($this->repo)) {
+            $query->createFilterQuery('repo')
+                  ->setQuery('repositories:' . $helper->escapeTerm((string)$this->repo));
+        }
 
-		switch($sort_by) {
-			case 'country':
-			case 'nation':
-				$sort_options[1] = array('sort_by' => 'year', 'sort_order' => $query::SORT_DESC);
-				$sort_options[2] = array('sort_by' => 'title', 'sort_order' => $query::SORT_ASC);
-				break;
-			
-			case 'title':
-				$sort_options[1] = array('sort_by' => 'year', 'sort_order' => $query::SORT_DESC);
-				$sort_options[2] = array('sort_by' => 'country', 'sort_order' => $query::SORT_ASC);
-				break;
+        $years = $this->_build_years_query();
+        if ($years) {
+            foreach ($years as $k => $y) {
+                $query->createFilterQuery('years' . $k)->setQuery($y);
+            }
+        }
 
-			case 'year':
-				$sort_options[1] = array('sort_by' => 'country', 'sort_order' => $query::SORT_ASC);
-				$sort_options[2] = array('sort_by' => 'title', 'sort_order' => $query::SORT_ASC);
-				break;
+        // User-defined facets
+        foreach ($this->user_facets as $fc) {
+            if (array_key_exists($fc['name'], $this->params)) {
+                $fq = $this->_build_facet_query('fq_' . $fc['name'], $this->params[$fc['name']]);
+                if ($fq) {
+                    $query->createFilterQuery('fq_' . $fc['name'])->setQuery($fq);
+                }
+            }
+        }
 
-			case 'rank':
-			case 'relevance':
-				$sort_options[1] = array('sort_by' => 'year', 'sort_order' => $query::SORT_DESC);
-				$sort_options[2] = array('sort_by' => 'title', 'sort_order' => $query::SORT_ASC);
-				break;
-		}
-
-		foreach($sort_options as $sort) {
-			$query->addSort($this->sort_allowed_fields[$sort['sort_by']], $sort['sort_order']);
-		}
-	}
-
-	private function initialize_solr()
-	{
-		require('vendor/autoload.php');
-		$this->solr_config = array(
-			'endpoint' => array(
-				'localhost' => array(
-					'host' => $this->ci->config->item('solr_host'),
-					'port' => $this->ci->config->item('solr_port'),
-					'path' => '/',
-					'core' => $this->ci->config->item('solr_collection'),
-				)
-			)
-		);
-		$adapter = new Curl();
-		$eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
-		$this->solr_client =  new Solarium\Client($adapter,$eventDispatcher, $this->solr_config);
-	}
-
-
-	private function map_fields_back_to_old_names($documents)
-	{
-		if (empty($documents)) {
-			return $documents;
-		}
-		
-		$mapped_documents = array();
-		
-		foreach ($documents as $doc) {
-			$mapped_doc = array();
-			
-			foreach ($doc as $field => $value) {
-				if (isset($this->field_mapping_new_to_old[$field])) {
-					$mapped_doc[$this->field_mapping_new_to_old[$field]] = $value;
-				} else {
-					$mapped_doc[$field] = $value;
-				}
-			}
-			
-			$mapped_documents[] = $mapped_doc;
-		}
-		
-		return $mapped_documents;
-	}
-
-	private function parse_field_specific_query($keywords, $search_type = 'survey')
-	{
-		$allowed_fields = ($search_type === 'variable') ? 
-			$this->allowed_variable_search_fields : 
-			$this->allowed_search_fields;
-		
-		$parsed = array(
-			'field_queries' => array(),
-			'general_terms' => array(),
-			'operators' => array()
-		);
-		
-		$tokens = $this->tokenize_with_quotes($keywords);
-		$boolean_operators = array('AND', 'OR', 'NOT');
-		
-		foreach ($tokens as $index => $token) {
-			$token_upper = strtoupper(trim($token));
-			
-			if (in_array($token_upper, $boolean_operators)) {
-				$parsed['operators'][] = array('position' => $index, 'operator' => $token_upper);
-			} elseif (preg_match('/^([a-zA-Z_]+):(.+)$/', $token, $matches)) {
-				$field_name = strtolower($matches[1]);
-				$field_value = trim($matches[2], '"\'');
-				
-				if (array_key_exists($field_name, $allowed_fields)) {
-					$solr_field = $allowed_fields[$field_name];
-					$parsed['field_queries'][$solr_field][] = $field_value;
-				} else {
-					$parsed['general_terms'][] = $token;
-				}
-			} else {
-				$parsed['general_terms'][] = $token;
-			}
-		}
-		
-		return $parsed;
-	}
-
-	private function tokenize_with_quotes($query)
-	{
-		$tokens = array();
-		$current_token = '';
-		$in_quotes = false;
-		
-		for ($i = 0; $i < strlen($query); $i++) {
-			$char = $query[$i];
-			
-			if ($char === '"' && !$in_quotes) {
-				$in_quotes = true;
-				$current_token .= $char;
-			} elseif ($char === '"' && $in_quotes) {
-				$in_quotes = false;
-				$current_token .= $char;
-			} elseif ($char === ' ' && !$in_quotes) {
-				if (trim($current_token) !== '') {
-					$tokens[] = trim($current_token);
-				}
-				$current_token = '';
-			} else {
-				$current_token .= $char;
-			}
-		}
-		
-		if (trim($current_token) !== '') {
-			if ($in_quotes) {
-				$current_token = substr($current_token, 1);
-			}
-			$tokens[] = trim($current_token);
-		}
-		
-		return $tokens;
-	}
-
-	private function build_field_specific_solr_query($parsed_query, $helper)
-	{
-		if (!empty($parsed_query['operators'])) {
-			return $this->build_field_specific_query_with_operators($parsed_query, $helper);
-		}
-		
-		$query_parts = array();
-		
-		foreach ($parsed_query['field_queries'] as $solr_field => $values) {
-			foreach ($values as $value) {
-				$escaped_value = $helper->escapeTerm($value);
-				$query_parts[] = $solr_field . ':' . $escaped_value;
-			}
-		}
-		
-		if (!empty($parsed_query['general_terms'])) {
-			$general_query = implode(' ', $parsed_query['general_terms']);
-			$escaped_general = $this->escape_general_keywords($general_query, $helper);
-			$query_parts[] = $escaped_general;
-		}
-		
-		return implode(' AND ', $query_parts);
-	}
-	
-	private function build_field_specific_query_with_operators($parsed_query, $helper)
-	{
-		$tokens = $this->tokenize_with_quotes($parsed_query['original_query'] ?? '');
-		$search_type = $parsed_query['search_type'] ?? 'survey';
-		$allowed_fields = ($search_type === 'variable') ? 
-			$this->allowed_variable_search_fields : 
-			$this->allowed_search_fields;
-		
-		$result_parts = array();
-		
-		foreach ($tokens as $token) {
-			$token_upper = strtoupper(trim($token));
-			
-			if ($token_upper === 'AND' || $token_upper === 'OR' || $token_upper === 'NOT') {
-				$result_parts[] = $token_upper;
-			} elseif (preg_match('/^([a-zA-Z_]+):(.+)$/', $token, $matches)) {
-				$field_name = strtolower($matches[1]);
-				$field_value = trim($matches[2], '"\'');
-				
-				if (isset($allowed_fields[$field_name])) {
-					$solr_field = $allowed_fields[$field_name];
-					$escaped_value = $helper->escapeTerm($field_value);
-					$result_parts[] = $solr_field . ':' . $escaped_value;
-				} else {
-					$result_parts[] = $token;
-				}
-			} else {
-				$escaped = $this->escape_general_keywords($token, $helper);
-				$result_parts[] = $escaped;
-			}
-		}
-		
-		return implode(' ', $result_parts);
-	}
-
-	private function escape_keywords($keywords, $helper, $search_type = 'survey')
-	{
-		if (empty($keywords)) {
-			return '';
-		}
-		
-		$trimmed = trim($keywords);
-		
-		if (preg_match('/[a-zA-Z_]+:/', $trimmed)) {
-			$parsed = $this->parse_field_specific_query($trimmed, $search_type);
-			$parsed['original_query'] = $trimmed;
-			$parsed['search_type'] = $search_type;
-			return $this->build_field_specific_solr_query($parsed, $helper);
-		}
-		
-		return $this->escape_general_keywords($keywords, $helper);
-	}
-
-	private function escape_general_keywords($keywords, $helper)
-	{
-		if (empty($keywords)) {
-			return '';
-		}
-		
-		$trimmed = trim($keywords);
-		
-		if (preg_match('/^".*"$/', $trimmed)) {
-			$escaped = preg_replace('/([\\+&\\-\\|\\(\\)\\{\\}\\[\\]\\^~\\*\\?\\:\\/\\\\])/', '\\\\$1', $trimmed);
-			return $escaped;
-		}
-		
-		if (preg_match('/[+\-]/', $trimmed)) {
-			return $this->process_advanced_query($trimmed);
-		}
-		
-		$escaped = preg_replace('/([\\+\\-&\\|\\(\\)\\{\\}\\[\\]\\^"~\\*\\?\\:\\/\\\\])/', '\\\\$1', $keywords);
-		return $escaped;
-	}
-
-	private function process_advanced_query($query)
-	{
-		$tokens = $this->tokenize_advanced_query($query);
-		$processed_tokens = array();
-		
-		foreach ($tokens as $token) {
-			$processed_tokens[] = $this->process_query_token($token);
-		}
-		
-		return implode(' ', $processed_tokens);
-	}
-
-	private function tokenize_advanced_query($query)
-	{
-		$tokens = array();
-		$current_token = '';
-		$in_quotes = false;
-		
-		for ($i = 0; $i < strlen($query); $i++) {
-			$char = $query[$i];
-			
-			if ($char === '"' && !$in_quotes) {
-				$in_quotes = true;
-				$current_token .= $char;
-			} elseif ($char === '"' && $in_quotes) {
-				$in_quotes = false;
-				$current_token .= $char;
-			} elseif ($char === ' ' && !$in_quotes) {
-				if (trim($current_token) !== '') {
-					$tokens[] = trim($current_token);
-				}
-				$current_token = '';
-			} else {
-				$current_token .= $char;
-			}
-		}
-		
-		if (trim($current_token) !== '') {
-			$tokens[] = trim($current_token);
-		}
-		
-		return $tokens;
-	}
-
-	function search($limit=15,$offset=0)
-	{
-        $study=$this->_build_study_query();
-        $dataset_types=$this->_build_dataset_type_query();
-		$topics=$this->_build_topics_query();
-		$countries=$this->_build_countries_query();
-		$regions=$this->_build_regions_query();
-		$collections=$this->_build_collections_query();
-		$years=$this->_build_years_query();
-		$repository=!empty($this->repo) ? (string)$this->repo : false;
-        $dtype=$this->_build_dtype_query();
-		$varcount=$this->_build_varcount_query();
-
-		$result=array();
-        $query = $this->solr_client->createSelect();
-        $facetSet = $query->getFacetSet();
-        $facetSet->createFacetField('dataset_types')->setField('dataset_type')->getLocalParameters()->addExcludes(['tag_dataset_type']);
-		$edismax = $query->getEDisMax();		
-		$query->createFilterQuery('published')->setQuery('published:1');
-		$helper = $query->getHelper();
-
-		if($dataset_types){
-            $query->createFilterQuery('dataset_type')->addTag('tag_dataset_type')->setQuery($dataset_types);
-		}
-
-		if($this->study_keywords){
-			$escaped_keywords = $this->escape_keywords($this->study_keywords, $helper);
-			$query->setQuery($escaped_keywords);
-		}
-
-		$this->apply_repository_filter($query, $repository, $helper);
-		$this->apply_single_filter_query($query, 'region', $regions);
-		$this->apply_single_filter_query($query, 'topics', $topics);
-		$this->apply_user_facet_filters($query);
-		$this->apply_sorting($query);
-
-		$this->apply_multi_filter_query($query, 'years', $years);
-		$this->apply_single_filter_query($query, 'dtype', $dtype);
-
-		$created_range = $this->_build_created_query();
-		$this->apply_single_filter_query($query, 'created', $created_range !== false ? $created_range : false);
-
-		$this->apply_single_filter_query($query, 'countries', $countries);
-		$this->apply_single_filter_query($query, 'collections', $collections);
-		$this->apply_single_filter_query($query, 'varcount', $varcount);
-				
         $edismax->setQueryFields($this->solr_options['qf']);
         $edismax->setMinimumMatch($this->solr_options['mm']);
+        $this->apply_sorting($query);
 
-        $query->createFilterQuery('study_search')->setQuery('doctype:1');
         $query->setStart($offset)->setRows($limit);
-        $query->setFields(array('survey_uid'));
+        $query->setFields(array(
+            'id:survey_uid', 'idno', 'doi',
+            'type:dataset_type', 'title', 'subtitle', 'nation',
+            'formid', 'form_model', 'repositoryid', 'repo_title',
+            'total_views', 'total_downloads', 'link_da',
+            'created', 'changed', 'year_start', 'year_end',
+            'authoring_entity', 'data_class_id',
+            'rank:score', 'thumbnail', 'varcount',
+        ));
 
-        if ($this->debug){
-            $debug = $query->getDebug();
+        if ($this->debug) {
+            $query->getDebug();
         }
 
-        $resultset = $this->execute_solr_query($query, null, 'Solr search failed');
-        if ($resultset === null) {
-            $result['found'] = 0;
-            $result['total'] = 0;
-            $result['limit'] = $limit;
-            $result['offset'] = $offset;
-            $result['search_counts_by_type'] = array();
-            $result['rows'] = array();
-            $result['citations'] = array();
-            return $result;
-        }
-        $facetSet = $resultset->getFacetSet();
-        $facet = $facetSet->getFacet('dataset_types');
-        $dataset_types_facet_counts=array();
-        
+        $resultset = $this->solr_client->select($query);
+
+        // Dataset type facet counts
+        $facet       = $resultset->getFacetSet()->getFacet('dataset_types');
+        $type_counts = array();
         if ($facet) {
             foreach ($facet as $value => $count) {
-                $dataset_types_facet_counts[$value]=$count;
+                $type_counts[$value] = $count;
             }
         }
-        
-        if (empty($dataset_types_facet_counts)) {
-            $total_count = $this->solr_total_count($doctype=1);
-            $dataset_types_facet_counts['survey'] = $total_count;
+        if (empty($type_counts)) {
+            $type_counts = $this->get_dataset_type_counts_from_solr();
         }
-        
-        if (!array_key_exists('survey', $dataset_types_facet_counts)) {
-            $dataset_types_facet_counts['survey'] = $this->solr_total_count($doctype=1);
-        }
-        
-        if (empty($dataset_types_facet_counts) || count($dataset_types_facet_counts) < 2) {
-            $dataset_types_facet_counts = $this->get_dataset_type_counts_from_solr();
-        }
-        
+
+        $docs = $resultset->getData()['response']['docs'];
+
+        $result = array(
+            'found'                 => $resultset->getNumFound(),
+            'total'                 => $this->solr_total_count(1),
+            'limit'                 => $limit,
+            'offset'                => $offset,
+            'rows'                  => $docs,
+            'citations'             => $this->fetch_citation_counts($docs),
+            'search_counts_by_type' => $type_counts,
+        );
+
         if ($this->debug) {
-            log_message('debug', 'Solr facets returned: ' . json_encode($dataset_types_facet_counts));
-            log_message('debug', 'Facet object: ' . ($facet ? 'exists' : 'null'));
-            if ($facet) {
-                log_message('debug', 'Facet count: ' . count($facet));
+            $req = $this->solr_client->createRequest($query);
+            $result['debug'] = array(
+                'request_uri' => urldecode($req->getUri()),
+                'solr_debug'  => $resultset->getDebug(),
+                'type_counts' => $type_counts,
+            );
+        }
+
+        return $result;
+    }
+
+    function vsearch($limit = 15, $offset = 0)
+    {
+        $query   = $this->solr_client->createSelect();
+        $helper  = $query->getHelper();
+        $edismax = $query->getEDisMax();
+
+        $query->setFields(array(
+            'var_uid', 'vid', 'fid',
+            'var_label', 'var_name', 'var_question',
+            'var_survey_id', 'title', 'nation', 'idno',
+        ));
+
+        // Base filter: variables only
+        $query->createFilterQuery('doctype')->setQuery('doctype:2');
+
+        // Keywords — use variable_keywords, not study_keywords
+        if ($this->variable_keywords) {
+            $query->setQuery($this->escape_keywords($this->variable_keywords, $helper));
+        }
+
+        // Filters
+        $this->apply_filter($query, 'countries',    $this->_build_countries_query());
+        $this->apply_filter($query, 'dtype',        $this->_build_dtype_query());
+        $this->apply_filter($query, 'dataset_type', $this->_build_dataset_type_query());
+        $this->apply_filter($query, 'collections',  $this->_build_collections_query());
+
+        if (!empty($this->repo)) {
+            $query->createFilterQuery('repo')
+                  ->setQuery('repositories:' . $helper->escapeTerm((string)$this->repo));
+        }
+
+        $years = $this->_build_years_query_for_variables();
+        if ($years) {
+            foreach ($years as $k => $y) {
+                $query->createFilterQuery('years' . $k)->setQuery($y);
             }
         }
 
-		if($this->debug){
-			$request = $this->solr_client->createRequest($query);
-			$debug_result = $resultset->getDebug();
-			$result['debug'] = array(
-				'request_uri' => $request->getUri(),
-				'request_uri_decoded' => urldecode($request->getUri()),
-				'solr_debug' => $this->extract_debug_info($debug_result),
-				'facets_returned' => $dataset_types_facet_counts,
-				'facet_object_exists' => ($facet ? true : false),
-				'facet_count' => $facet ? count($facet) : 0
-			);
-		}
-		
+        $edismax->setQueryFields($this->solr_variable_options['qf']);
+        $edismax->setMinimumMatch($this->solr_variable_options['mm']);
 
-		$this->search_found_rows=$resultset->getNumFound();
-		$this->total_surveys=$this->solr_total_count($doctype=1);
-		$solr_data=$resultset->getData();
-		$solr_docs=$solr_data['response']['docs'];
-		
-		$result['found']=$this->search_found_rows;
-		$result['total']=$this->total_surveys;
-		$result['limit']=$limit;
-		$result['offset']=$offset;
-        $result['search_counts_by_type']=$dataset_types_facet_counts;
-        
-		if ($result['found']>0){
-			$ordered_ids = array();
-			foreach ($solr_docs as $doc) {
-				if (isset($doc['survey_uid'])) {
-					$ordered_ids[] = (int)$doc['survey_uid'];
-				}
-			}
-			
-			if (count($ordered_ids) > 0) {
-				$this->search_result = $this->fetch_survey_rows_from_db($ordered_ids);
-				
-				$id_list = array_column($this->search_result, "id");
-				
-				if(count($id_list)>0){
-					$variables_by_study=$this->get_var_count_by_surveys($id_list,$this->study_keywords);
+        $query->setStart($offset)->setRows($limit);
 
-					if(!empty($variables_by_study)){
-						foreach($this->search_result as $idx=>$row)
-						{
-							if(array_key_exists($row['id'],$variables_by_study)){
-								$this->search_result[$idx]['var_found']=$variables_by_study[$row['id']];
-							}
-						}
-					}
-				}
-			} else {
-				$this->search_result = array();
-			}
-		} else {
-			$this->search_result = array();
-		}
+        $resultset = $this->solr_client->select($query);
+        $docs      = $this->map_variable_fields($resultset->getData()['response']['docs']);
 
-		$result['rows']=$this->search_result;
-		$result['citations']=$this->get_survey_citation();
-		return $result;
-    }
+        $result = array(
+            'found'  => $resultset->getNumFound(),
+            'total'  => $this->solr_total_count(2),
+            'limit'  => $limit,
+            'offset' => $offset,
+            'rows'   => $docs,
+        );
 
-	function get_var_count_by_surveys($survey_arr,$variable_keywords)
-	{
-		if(empty($variable_keywords)){
-			return array();
-		}
-
-		if (!is_array($survey_arr) || empty($survey_arr)) {
-			return array();
-		}
-
-		if ($this->debug) {
-			log_message('debug', 'Variable search - Keywords: ' . $variable_keywords . ', Surveys: ' . implode(',', $survey_arr));
-		}
-
-		$query = $this->solr_client->createSelect();
-		$helper = $query->getHelper();
-		
-		$survey_arr = array_filter(array_map('intval', $survey_arr));
-		if (empty($survey_arr)) {
-			return array();
-		}
-		
-		$escaped_keywords = $this->escape_keywords($variable_keywords, $helper, 'variable');
-		if (empty($escaped_keywords)) {
-			return array();
-		}
-		
-		$query->setQuery(sprintf('doctype:2 AND var_survey_id:(%s) AND (var_label:(%s) OR var_name:(%s) OR var_question:(%s))', 
-			implode(" OR ", $survey_arr),
-			$escaped_keywords,
-			$escaped_keywords,
-			$escaped_keywords
-		));
-		
-		$query->setStart(0)->setRows(100);
-
-		if ($this->debug){
-			$debug = $query->getDebug();
-		}
-	
-		$groupComponent = $query->getGrouping();
-		$groupComponent->addField('var_survey_id');
-		$groupComponent->setLimit(0);
-		$groupComponent->setNumberOfGroups(true);
-
-		$resultset = $this->execute_solr_query($query, null, 'Variable search failed');
-		if ($resultset === null) {
-			return array();
-		}
-	
-		if($this->debug){
-			$request = $this->solr_client->createRequest($query);
-			$debug_info = array(
-				'request_uri' => $request->getUri(),
-				'request_uri_decoded' => urldecode($request->getUri()),
-				'variable_keywords' => $variable_keywords,
-				'survey_count' => count($survey_arr)
-			);
-			log_message('debug', 'Variable search query: ' . $request->getUri());
-		}
-
-		$groups = $resultset->getGrouping();
-		$output=array();
-
-		foreach ($groups as $groupKey => $fieldGroup)
-		{
-			foreach ($fieldGroup as $valueGroup)
-			{
-				$output[(int)$valueGroup->getValue()]=(int)$valueGroup->getNumFound();
-			}
-		}
-
-		if ($this->debug) {
-			log_message('debug', 'Variable search results: ' . json_encode($output));
-			$output['_debug'] = $debug_info;
-		}
-		
-
-
-		return $output;
-	}
-
-	function get_survey_citation()
-	{
-		if (!is_array($this->search_result)) {
-			return array();
-		} else if (count($this->search_result) == 0) {
-			return array();
-		}
-
-		$survey_id_list = array();
-		foreach($this->search_result as $row) {
-			if (isset($row['id'])) {
-				$survey_id_list[] = $row['id'];
-			}
-		}
-
-		$survey_id_list = array_filter(array_map('intval', $survey_id_list));
-		
-		if (empty($survey_id_list)) {
-			return array();
-		}
-
-		$this->ci->db->select('sid,count(sid) as total');
-		$this->ci->db->where_in('sid', $survey_id_list);
-		$this->ci->db->group_by('sid');
-		$query = $this->ci->db->get('survey_citations');
-
-		if ($query) {
-			$citation_rows = $query->result_array();
-
-			$result = array();
-
-			foreach($citation_rows as $row) {
-				$result[$row['sid']] = $row['total'];
-			}
-			return $result;
-		}
-
-		return array();
-	}
-
-	function solr_total_count($doctype=1)
-	{
-		$repository=!empty($this->repo) ? (string)$this->repo : false;
-		$query = $this->solr_client->createSelect();
-		$query->setQuery('doctype:'.$doctype);
-
-		if ($repository) {
-			$helper = $query->getHelper();
-			$this->apply_repository_filter($query, $repository, $helper);
-		}
-
-		if ($doctype == 1) {
-			$query->createFilterQuery('published')->setQuery('published:1');
-		}
-		
-		$query->setStart(0)->setRows(0);
-		
-		$resultset = $this->execute_solr_query($query, null, 'Failed to get Solr total count');
-		if ($resultset === null) {
-			return 0;
-		}
-		return $resultset->getNumFound();
-	}
-
-
-	function _build_study_query()
-	{
-		if (!$this->study_keywords){
-			return false;
-		}
-
-		return array('title'=>$this->study_keywords);
-	}
-
-
-	function _build_topics_query()
-	{
-		return $this->build_numeric_field_query('topics_id', $this->topics);
-	}
-	
-
-	protected function _build_facet_query($facet_name,$values)
-	{
-		if (empty($values)){
-			return false;
-		}
-		
-		$values=(array)$values;
-		foreach($values  as $idx=>$value){
-			if(!empty($value) && is_numeric($value)){
-				$values[$idx]=$value;
-			}
-		}
-
-		$values= implode(' OR ',$values);
-
-		if ($values){
-			return sprintf(' %s:(%s)',$facet_name,$values);
-		}
-		
-		return FALSE;
-	}
-	
-
-	function get_country_id_by_name($country_names=array())
-	{
-		$this->ci->db->select("countryid");
-		$this->ci->db->where_in('name',$country_names);
-		$query= $this->ci->db->get('countries')->result_array();
-
-		if (!$query)
-		{
-			return array();
-		}
-
-		$output=NULL;
-
-		foreach($query as $country)
-		{
-			$output[]=$country['countryid'];
-		}
-
-		return $output;
-	}
-
-	function _build_regions_query()
-	{
-		return $this->build_numeric_field_query('regions', $this->regions);
-	}
-
-	function _build_countries_query()
-	{
-		$countries = $this->countries;
-
-		if (!is_array($countries)) {
-			return false;
-		}
-
-		if (isset($countries[0]) && !is_numeric($countries[0])) {
-			$countries = $this->get_country_id_by_name($countries);
-		}
-
-		return $this->build_numeric_field_query('countries', $countries);
-	}
-
-
-	function _build_years_query()
-	{
-		$from=(integer)$this->from;
-		$to=(integer)$this->to;
-
-		if ($from>0 && $to>0)
-		{
-			$years=array();
-			$years[]=sprintf('years:[%s TO %s]',$from, $to);
-			return $years;
-		}
-
-		return FALSE;
-    }
-    
-
-    function _build_dataset_type_query()
-	{
-		$types=(array)$this->type;
-
-		if (!is_array($types)){
-			return FALSE;
-		}
-		
-		$types_list=array();
-				
-		foreach($types  as $type){
-			if(!empty($type)){
-				$type_trimmed = trim($type);
-				if (!empty($type_trimmed)) {
-					$types_list[] = $type_trimmed;
-				}
-			}
+        if ($this->debug) {
+            $req = $this->solr_client->createRequest($query);
+            $result['debug'] = array(
+                'request_uri'       => urldecode($req->getUri()),
+                'variable_keywords' => $this->variable_keywords,
+            );
         }
 
-		if (empty($types_list)){
-			return FALSE;
-		}
-
-		$types_str = implode(' OR ', $types_list);
-
-		if ($types_str!=''){
-            return sprintf('dataset_type:(%s)', $types_str);
-		}
-		
-		return FALSE;
+        return $result;
     }
-    
 
+    function v_quick_search($surveyid = null, $limit = 50, $offset = 0)
+    {
+        $surveyid = (int)$surveyid;
+        if ($surveyid <= 0) {
+            return array('found' => 0, 'total' => 0, 'limit' => $limit, 'offset' => $offset, 'rows' => array());
+        }
 
-	function _build_sid_query()
-	{
-		if (empty($this->sid)) {
-			return FALSE;
-		}
-		
-		$sid=explode(",",$this->sid);
+        $query   = $this->solr_client->createSelect();
+        $helper  = $query->getHelper();
+        $edismax = $query->getEDisMax();
 
-		$sid_list=array();
-		foreach($sid as $item)
-		{
-			$item_trimmed = trim($item);
-			if (is_numeric($item_trimmed) && $item_trimmed > 0)
-			{
-				$sid_list[] = (int)$item_trimmed;
-			}
-		}
+        $query->setFields(array(
+            'var_uid', 'vid', 'fid',
+            'var_label', 'var_name', 'var_question',
+        ));
 
-		if (count($sid_list) > 0)
-		{
-			return sprintf('survey_uid:(%s)', implode(" OR ", $sid_list));
-		}
+        $query->createFilterQuery('doctype')->setQuery('doctype:2');
+        $query->createFilterQuery('survey')->setQuery('var_survey_id:' . $surveyid);
 
-		return FALSE;
-	}
+        if ($this->variable_keywords) {
+            $query->setQuery($this->escape_keywords($this->variable_keywords, $helper));
+        }
 
-
-	
-
-
-	function _build_collections_query()
-	{
-		$params=$this->collections;
-
-		if (!is_array($params) || empty($params))
-		{
-			return FALSE;
-		}
-
-		$param_list=array();
-		$query = $this->solr_client->createSelect();
-		$helper = $query->getHelper();
-
-		foreach($params  as $param){
-			$trimmed = trim($param);
-			if (!empty($trimmed)){
-				$param_list[] = $helper->escapeTerm($trimmed);
-			}
-		}
-
-		if (count($param_list) > 0){
-			$params_str = implode(' OR ', $param_list);
-			return sprintf(' repositories:(%s)', $params_str);
-		}
-		
-		return FALSE;
-	}
-
-	function get_variable_search_field($is_fulltext=TRUE)
-	{
-		$index=array();
-		$variable_fields=$this->variable_fields();
-
-		if( in_array('var_name',$variable_fields) )
-		{
-			$index[]='var_name';
-		}
-		if( in_array('var_label',$variable_fields) )
-		{
-			$index[]='var_label';
-		}
-		if( in_array('var_question',$variable_fields) )
-		{
-			$index[]='var_question';
-		}
-
-		if (count($index)==0)
-		{
-			$index[]='var_name,var_label,var_question';
-		}
-
-		if ($is_fulltext==TRUE)
-		{
-			return implode(',',$index);
-		}
-		else
-		{
-			return 'concat(' . implode(",' ',",$index) .')';
-		}
-	}
-
-	function variable_fields()
-	{
-		$vf=$this->variable_fields;
-
-		if (!is_array($vf))
-		{
-			return array('var_label,var_question');
-		}
-
-		$tmp=NULL;
-		foreach($vf as $field)
-		{
-			if (in_array($field,$this->variable_allowed_fields))
-			{
-				$tmp[]=$field;
-			}
-		}
-
-		if ($tmp==NULL)
-		{
-			return array('var_label');
-		}
-		else
-		{
-			return $tmp;
-		}
-	}
-
-	function vsearch($limit = 15, $offset = 0)
-	{
-        $dataset_types=$this->_build_dataset_type_query();
-		$countries=$this->_build_countries_query();
-		$collections=$this->_build_collections_query();
-		$years=$this->_build_years_query();
-		$repository=!empty($this->repo) ? (string)$this->repo : false;
-        $dtype=$this->_build_dtype_query();
-
-		$query = $this->solr_client->createSelect();
-
-		$query->setFields(array(
-				'vid',
-				'fid',
-				'var_label',
-				'var_name',
-				'var_question',
-				'var_survey_id',
-				'title',
-				'nation',
-				'idno',
-				'year_start',
-				'year_end',
-				'dataset_type',
-				'repositories'
-			));
-		
-		$edismax = $query->getEDisMax();
-		$helper = $query->getHelper();
-
-		$query->createFilterQuery('doctype_vsearch')->setQuery('doctype:2');
-		
-		$this->apply_single_filter_query($query, 'countries', $countries);
-		$this->apply_multi_filter_query($query, 'years', $years);
-		$this->apply_single_filter_query($query, 'dtype', $dtype);
-		$this->apply_repository_filter($query, $repository, $helper);
-		$this->apply_single_filter_query($query, 'collections', $collections);
-		$this->apply_single_filter_query($query, 'dataset_type', $dataset_types);
-		$this->apply_user_facet_filters($query);
-		
-		$edismax->setQueryFields($this->solr_variable_options['qf']);
+        $edismax->setQueryFields($this->solr_variable_options['qf']);
         $edismax->setMinimumMatch($this->solr_variable_options['mm']);
-		
-		if($this->study_keywords){
-			$escaped_keywords = $this->escape_keywords($this->study_keywords, $helper, 'variable');
-			$query->setQuery($escaped_keywords);
-		}
 
-		$query->setStart($offset)->setRows($limit);
+        $query->setStart($offset)->setRows($limit);
 
-		$resultset = $this->execute_solr_query($query, null, 'Solr variable search failed');
-		if ($resultset === null) {
-			$tmp['total'] = 0;
-			$tmp['found'] = 0;
-			$tmp['limit'] = $limit;
-			$tmp['offset'] = $offset;
-			$tmp['rows'] = array();
-			if ($this->debug) {
-				$tmp['debug'] = array('error' => 'Query execution failed');
-			}
-			return $tmp;
-		}
-		$found_rows = $resultset->getNumFound();
-		$this->search_result = $resultset->getData();
+        $resultset = $this->solr_client->select($query);
+        $docs      = $this->map_variable_fields($resultset->getData()['response']['docs']);
 
-		if($this->debug){
-			$request = $this->solr_client->createRequest($query);
-			$debug_info = array(
-				'request_uri' => $request->getUri(),
-				'request_uri_decoded' => urldecode($request->getUri()),
-				'study_keywords' => $this->study_keywords,
-				'escaped_keywords' => isset($escaped_keywords) ? $escaped_keywords : null
-			);
-			$tmp['debug'] = $debug_info;
-		}
-		
-		$this->search_result['response']['docs'] = $this->map_fields_back_to_old_names($this->search_result['response']['docs']);
+        $this->ci->db->where('sid', $surveyid);
+        $total = $this->ci->db->count_all_results('variables');
 
-		$tmp['total']=$this->solr_total_count($doctype=2);
-		$tmp['found']=$found_rows;
-		$tmp['limit']=$limit;
-		$tmp['offset']=$offset;
-		$tmp['rows']=$this->search_result['response']['docs'];
-		
-		if($this->debug){
-			$tmp['debug'] = $debug_info;
-		}
-		
-		return $tmp;		
-	}
+        $result = array(
+            'found'  => $resultset->getNumFound(),
+            'total'  => $total,
+            'limit'  => $limit,
+            'offset' => $offset,
+            'rows'   => $docs,
+        );
 
-	function v_quick_search($surveyid=NULL,$limit=50,$offset=0)
-	{
-		$query = $this->solr_client->createSelect();
+        if ($this->debug) {
+            $req = $this->solr_client->createRequest($query);
+            $result['debug'] = array(
+                'request_uri'       => urldecode($req->getUri()),
+                'variable_keywords' => $this->variable_keywords,
+                'survey_id'         => $surveyid,
+            );
+        }
 
-		$query->setFields(array(
-				'vid',
-				'var_label',
-				'var_name',
-				'var_survey_id',
-				'fid',
-				'title',
-				'nation',
-				'year_start',
-				'year_end',
-				'idno'
-			));
+        return $result;
+    }
 
-		$surveyid = (int)$surveyid;
-		if ($surveyid <= 0) {
-			return array();
-		}
-		
-		$edismax = $query->getEDisMax();
-		$edismax->setQueryFields($this->solr_variable_options['qf']);
-		$edismax->setMinimumMatch($this->solr_variable_options['mm']);
-		
-		$helper = $query->getHelper();
-		
-		if ($this->variable_keywords) {
-			$escaped_keywords = $this->escape_keywords($this->variable_keywords, $helper, 'variable');
-			$query->setQuery($escaped_keywords);
-		}
-		
-		$query->createFilterQuery('doctype')->setQuery('doctype:2');
-		$query->createFilterQuery('survey')->setQuery('var_survey_id:' . $surveyid);
-		
-		$query->setStart($offset)->setRows($limit);
+    // -------------------------------------------------------------------------
+    // Filter builders — each returns a Solr filter string or false
+    // -------------------------------------------------------------------------
 
-		if($this->debug){
-			$request = $this->solr_client->createRequest($query);
-			$debug_info = array(
-				'request_uri' => $request->getUri(),
-				'request_uri_decoded' => urldecode($request->getUri()),
-				'variable_keywords' => $this->variable_keywords,
-				'escaped_keywords' => isset($escaped_keywords) ? $escaped_keywords : null,
-				'survey_id' => $surveyid
-			);
-		}
+    private function _build_topics_query()
+    {
+        $ids = array_filter(array_map('intval', (array)$this->topics));
+        if (empty($ids)) return false;
+        return 'topics_id:(' . implode(' OR ', $ids) . ')';
+    }
 
-		$helper = $query->getHelper();
-		$resultset = $this->execute_solr_query($query, null, 'Solr variable quick search failed');
-		if ($resultset === null) {
-			$this->search_found_rows = 0;
-			$this->search_result = array('response' => array('docs' => array()));
-			$mapped_docs = array();
-			if ($this->debug) {
-				$mapped_docs['_debug'] = array('error' => 'Query execution failed');
-			}
-			return $mapped_docs;
-		}
-		$this->search_found_rows = $resultset->getNumFound();
-		$this->search_result = $resultset->getData();
-		
-		$mapped_docs = $this->map_fields_back_to_old_names($this->search_result['response']['docs']);
-		
-		if($this->debug){
-			$mapped_docs['_debug'] = $debug_info;
-		}
-		
-		return $mapped_docs;
-	}
+    private function _build_countries_query()
+    {
+        $countries = (array)$this->countries;
+        if (empty($countries)) return false;
 
-	function _build_dtype_query()
-	{
-		$dtypes=$this->dtype;
+        if (!is_numeric($countries[0])) {
+            $countries = $this->get_country_id_by_name($countries);
+        }
 
-		if (!is_array($dtypes) || count($dtypes)<1)
-		{
-			return FALSE;
-		}
+        $ids = array_filter(array_map('intval', $countries));
+        if (empty($ids)) return false;
+        return 'countries:(' . implode(' OR ', $ids) . ')';
+    }
 
-		foreach($dtypes as $key=>$value)
-		{
-			if (!is_numeric($value))
-			{
-				unset($dtypes[$key]);
-			}
-		}
+    private function _build_regions_query()
+    {
+        $ids = array_filter(array_map('intval', (array)$this->regions));
+        if (empty($ids)) return false;
+        return 'regions:(' . implode(' OR ', $ids) . ')';
+    }
 
-		$types_str=implode(" OR ",$dtypes);
+    private function _build_years_query()
+    {
+        $from = (int)$this->from;
+        $to   = (int)$this->to;
+        if ($from === 0 && $to === 0) return false;
+        $f = $from > 0 ? $from : '*';
+        $t = $to   > 0 ? $to   : '*';
+        return array(sprintf('years:[%s TO %s]', $f, $t));
+    }
 
-		if ($types_str!='')
-		{
-			return sprintf(' formid:(%s)',$types_str);
-		}
+    private function _build_years_query_for_variables()
+    {
+        $from = (int)$this->from;
+        $to   = (int)$this->to;
+        if ($from === 0 && $to === 0) return false;
+        $f = $from > 0 ? $from : '*';
+        $t = $to   > 0 ? $to   : '*';
+        // Variables use year_start from the parent survey (not the multivalue 'years' field)
+        return array(sprintf('year_start:[%s TO %s]', $f, $t));
+    }
 
-		return FALSE;
-	}
+    private function _build_dataset_type_query()
+    {
+        $types = array_filter(array_map('trim', (array)$this->type));
+        if (empty($types)) return false;
+        // Strip all chars that are not safe in a Solr term
+        $safe = array_filter(array_map(function($t) {
+            return preg_replace('/[^a-zA-Z0-9_\-]/', '', $t);
+        }, $types));
+        if (empty($safe)) return false;
+        return 'dataset_type:(' . implode(' OR ', $safe) . ')';
+    }
 
+    private function _build_collections_query()
+    {
+        $repos = array_filter(array_map('trim', (array)$this->collections));
+        if (empty($repos)) return false;
+        $safe = array_filter(array_map(function($r) {
+            return preg_replace('/[^a-zA-Z0-9_\-]/', '', $r);
+        }, $repos));
+        if (empty($safe)) return false;
+        return 'repositories:(' . implode(' OR ', $safe) . ')';
+    }
 
+    private function _build_dtype_query()
+    {
+        $ids = array_filter(array_map('intval', (array)$this->dtype));
+        if (empty($ids)) return false;
+        return 'formid:(' . implode(' OR ', $ids) . ')';
+    }
 
-	protected function _build_created_query()
-	{
-		$created_range=explode("-",$this->created);
-		
-		if(empty($created_range)){
-			return false;
-		}
+    private function _build_varcount_query()
+    {
+        if ($this->varcount === '>0' || $this->varcount === 'with_vars' || $this->varcount === '1') {
+            return 'varcount:[1 TO *]';
+        }
+        if ($this->varcount === '0') {
+            return 'varcount:0';
+        }
+        return false;
+    }
 
-		$created_start=strtotime($created_range[0]);
+    private function _build_created_query()
+    {
+        $parts = explode('-', $this->created);
+        $start = strtotime($parts[0] ?? '');
+        if (!$start) return false;
+        $end = (isset($parts[1]) && strtotime($parts[1]))
+            ? strtotime($parts[1]) + 86399
+            : $start + 86399;
+        return sprintf('created:[%d TO %d]', $start, $end);
+    }
 
-		if (empty($created_start)){
-			return false;
-		}
+    protected function _build_facet_query($facet_name, $values)
+    {
+        $values = array_filter(array_map('intval', (array)$values));
+        if (empty($values)) return false;
+        return $facet_name . ':(' . implode(' OR ', $values) . ')';
+    }
 
-		if (isset($created_range[1]) && strtotime($created_range[1])){
-			$created_end= + strtotime($created_range[1]) + 86399;
-		}
-		else{
-			$created_end= $created_start + 86399;
-		}		
+    // -------------------------------------------------------------------------
+    // Helper: apply a filter query only when value is non-false
+    // -------------------------------------------------------------------------
 
-		if (!empty($created_end)){
-			return sprintf('created:[%s TO %s]',$created_start,$created_end);			
-		}
-		return false;
-	}
+    private function apply_filter($query, $key, $value, $tag = null)
+    {
+        if ($value === false || $value === '' || $value === null) return;
+        $fq = $query->createFilterQuery($key)->setQuery($value);
+        if ($tag) {
+            $fq->addTag($tag);
+        }
+    }
 
-	function _build_varcount_query()
-	{
-		$varcount=$this->varcount;
+    // -------------------------------------------------------------------------
+    // Sorting
+    // -------------------------------------------------------------------------
 
-		if ($varcount=='>0'){
-			return sprintf('varcount:[%s TO %s]',1, '*');
-		}
-		else if ($varcount=='0'){
-			return sprintf('varcount:%s',0);
-		}
+    private function apply_sorting($query)
+    {
+        $sort_by = array_key_exists($this->sort_by, $this->sort_allowed_fields)
+            ? $this->sort_by
+            : ($this->study_keywords ? 'rank' : 'title');
 
-		return FALSE;
-	}
+        $sort_order = in_array(strtolower($this->sort_order), $this->sort_allowed_order)
+            ? strtolower($this->sort_order)
+            : 'asc';
 
-	protected function get_dataset_type_counts_from_solr()
-	{
-		$query = $this->solr_client->createSelect();
-		$query->setQuery('doctype:1 AND published:1');
-		$query->setRows(0);
-		
-		$facetSet = $query->getFacetSet();
-		$facetSet->createFacetField('dataset_types')->setField('dataset_type');
-		
-		$resultset = $this->execute_solr_query($query, null, 'Failed to get dataset type counts from Solr');
-		if ($resultset === null) {
-			return array('survey' => $this->solr_total_count($doctype=1));
-		}
-		
-		$facet = $resultset->getFacetSet()->getFacet('dataset_types');
-		
-		$counts = array();
-		if ($facet) {
-			foreach ($facet as $value => $count) {
-				$counts[$value] = $count;
-			}
-		}
-		
-		if (empty($counts)) {
-			$counts['survey'] = $this->solr_total_count($doctype=1);
-		}
-		
-		return $counts;
-	}
+        $asc  = $query::SORT_ASC;
+        $desc = $query::SORT_DESC;
+        $dir  = ($sort_order === 'asc') ? $asc : $desc;
 
-	
-    private function fetch_survey_rows_from_db($survey_ids)
-	{
-		if (empty($survey_ids) || !is_array($survey_ids)) {
-			return array();
-		}
-		
-		$valid_ids = array();
-		foreach ($survey_ids as $id) {
-			$id_int = (int)$id;
-			if ($id_int > 0) {
-				$valid_ids[] = $id_int;
-			}
-		}
-		
-		if (empty($valid_ids)) {
-			return array();
-		}
-		
-		$study_fields = 'surveys.id as id, surveys.type, surveys.idno as idno, surveys.doi, surveys.title, surveys.subtitle, nation, authoring_entity';
-		$study_fields .= ', forms.model as form_model, data_class_id, surveys.year_start, surveys.year_end, surveys.thumbnail';
-		$study_fields .= ', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created, surveys.changed, surveys.total_views, surveys.total_downloads, varcount';
-		
-		$this->ci->db->select($study_fields, FALSE);
-		$this->ci->db->from('surveys');
-		$this->ci->db->join('forms', 'surveys.formid=forms.formid', 'left');
-		$this->ci->db->join('repositories', 'surveys.repositoryid=repositories.repositoryid', 'left');
-		$this->ci->db->where_in('surveys.id', $valid_ids);
-		$this->ci->db->where('surveys.published', 1);
-		
-		$db_results = $this->ci->db->get()->result_array();
-		
-		if (empty($db_results)) {
-			return array();
-		}
-		
-		$lookup = array();
-		foreach ($db_results as $row) {
-			$lookup[$row['id']] = $row;
-		}
-		
-		$ordered_results = array();
-		foreach ($valid_ids as $id) {
-			if (isset($lookup[$id])) {
-				$ordered_results[] = $lookup[$id];
-			}
-		}
-		
-		return $ordered_results;
-	}
+        $query->addSort($this->sort_allowed_fields[$sort_by], $dir);
 
-	private function sanitize_query($query)
-	{
-		if (empty($query)) {
-			return '';
-		}
-		
-		$query = preg_replace('/[\x{200B}\x{00AD}\p{C}]+/u', '', $query);
-		$query = preg_replace('/\s+/u', ' ', $query);
-		return trim($query);
-	}
+        switch ($sort_by) {
+            case 'country':
+            case 'nation':
+                $query->addSort($this->sort_allowed_fields['year'],  $desc);
+                $query->addSort($this->sort_allowed_fields['title'], $asc);
+                break;
+            case 'title':
+                $query->addSort($this->sort_allowed_fields['year'],  $desc);
+                break;
+            case 'year':
+                $query->addSort($this->sort_allowed_fields['nation'], $asc);
+                $query->addSort($this->sort_allowed_fields['title'],  $asc);
+                break;
+            case 'rank':
+            case 'relevance':
+                $query->addSort($this->sort_allowed_fields['year'],  $desc);
+                $query->addSort($this->sort_allowed_fields['title'], $asc);
+                break;
+        }
+    }
 
-	private function apply_user_facet_filters($query)
-	{
-		foreach ($this->user_facets as $fc) {
-			if (array_key_exists($fc['name'], $this->params)) {
-				$filter_ = $this->_build_facet_query('fq_' . $fc['name'], $this->params[$fc['name']]);
-				if ($filter_) {
-					$query->createFilterQuery('fq_' . $fc['name'])->setQuery($filter_);
-				}
-			}
-		}
-	}
+    // -------------------------------------------------------------------------
+    // Result formatting
+    // -------------------------------------------------------------------------
 
-	private function apply_repository_filter($query, $repository, $helper)
-	{
-		if ($repository) {
-			$query->createFilterQuery('repo')->setQuery('repositories:' . $helper->escapeTerm($repository));
-		}
-	}
+    private function map_variable_fields(array $docs): array
+    {
+        return array_map(function($doc) {
+            $out = array();
+            foreach ($doc as $field => $value) {
+                $out[$this->variable_field_map[$field] ?? $field] = $value;
+            }
+            return $out;
+        }, $docs);
+    }
 
-	private function apply_single_filter_query($query, $filter_name, $filter_value)
-	{
-		if ($filter_value) {
-			$query->createFilterQuery($filter_name)->setQuery($filter_value);
-		}
-	}
+    private function fetch_citation_counts(array $docs): array
+    {
+        $ids = array_filter(array_map('intval', array_column($docs, 'id')));
+        if (empty($ids)) return array();
+        $this->ci->db->select('sid, count(sid) as total');
+        $this->ci->db->where_in('sid', $ids);
+        $this->ci->db->group_by('sid');
+        $rows = $this->ci->db->get('survey_citations')->result_array();
+        $result = array();
+        foreach ($rows as $row) {
+            $result[$row['sid']] = (int)$row['total'];
+        }
+        return $result;
+    }
 
-	private function apply_multi_filter_query($query, $filter_prefix, $filter_values)
-	{
-		if ($filter_values && is_array($filter_values)) {
-			foreach ($filter_values as $key => $value) {
-				$query->createFilterQuery($filter_prefix . $key)->setQuery($value);
-			}
-		}
-	}
+    // -------------------------------------------------------------------------
+    // Solr utility
+    // -------------------------------------------------------------------------
 
-	private function execute_solr_query($query, $default_return, $error_message)
-	{
-		try {
-			$resultset = $this->solr_client->select($query);
-			
-			$solr_qtime = $resultset->getQueryTime();
-			
-			if ($solr_qtime > 5000) {
-				$this->log_slow_query($query, $solr_qtime, $resultset, $error_message);
-			}
-			
-			return $resultset;
-		} catch (Exception $e) {
-			log_message('error', $error_message . ': ' . $e->getMessage());
-			if ($this->debug) {
-				throw new Exception($error_message . ': ' . $e->getMessage());
-			}
-			return $default_return;
-		}
-	}
+    function solr_total_count($doctype = 1)
+    {
+        $query = $this->solr_client->createSelect();
+        $query->setQuery('doctype:' . (int)$doctype);
+        $query->createFilterQuery('published')->setQuery('published:1');
+        if (!empty($this->repo)) {
+            $helper = $query->getHelper();
+            $query->createFilterQuery('repo')
+                  ->setQuery('repositories:' . $helper->escapeTerm((string)$this->repo));
+        }
+        $query->setStart(0)->setRows(0);
+        return $this->solr_client->select($query)->getNumFound();
+    }
 
-	private function log_slow_query($query, $solr_qtime, $resultset, $error_message)
-	{
-		if (!isset($this->ci->db_logger)) {
-			$this->ci->load->library('db_logger');
-		}
-		
-		$query_string = $query->getQuery() ?: '*:*';
-		$num_found = $resultset ? $resultset->getNumFound() : 0;
-		
-		$filters = array();
-		try {
-			$filter_queries = $query->getFilterQueries();
-			foreach ($filter_queries as $filter) {
-				$filters[] = $filter->getQuery();
-			}
-		} catch (Exception $e) {
-			$filters = array('unable to extract filters');
-		}
-		
-		$query_type = 'unknown';
-		foreach ($filters as $filter) {
-			if (strpos($filter, 'doctype:1') !== false) {
-				$query_type = 'survey_search';
-				break;
-			} elseif (strpos($filter, 'doctype:2') !== false) {
-				$query_type = 'variable_search';
-				break;
-			}
-		}
-		
-		$filters_str = !empty($filters) ? implode('; ', $filters) : 'none';
-		$query_str = substr($query_string, 0, 80);
-		$filters_str = substr($filters_str, 0, 80);
-		
-		$message = sprintf(
-			'QTime: %dms, Results: %d, Type: %s, Query: %s, Filters: %s',
-			$solr_qtime,
-			$num_found,
-			$query_type,
-			$query_str,
-			$filters_str
-		);
-		
-		$this->ci->db_logger->write_log(
-			'solr-slow-query',
-			$message,
-			$query_type,
-			0
-		);
-	}
+    private function get_dataset_type_counts_from_solr()
+    {
+        try {
+            $query = $this->solr_client->createSelect();
+            $query->setQuery('doctype:1 AND published:1');
+            $query->setRows(0);
+            $query->getFacetSet()->createFacetField('dataset_types')->setField('dataset_type');
+            $facet  = $this->solr_client->select($query)->getFacetSet()->getFacet('dataset_types');
+            $counts = array();
+            if ($facet) {
+                foreach ($facet as $value => $count) {
+                    $counts[$value] = $count;
+                }
+            }
+            return $counts ?: array('survey' => $this->solr_total_count(1));
+        } catch (Exception $e) {
+            log_message('error', 'Solr: failed to get type counts — ' . $e->getMessage());
+            return array('survey' => $this->solr_total_count(1));
+        }
+    }
 
-	private function build_numeric_field_query($field_name, $values, $prefix = '')
-	{
-		if (!is_array($values) || empty($values)) {
-			return false;
-		}
+    private function get_country_id_by_name(array $names)
+    {
+        $this->ci->db->select('countryid');
+        $this->ci->db->where_in('name', $names);
+        $rows = $this->ci->db->get('countries')->result_array();
+        return array_column($rows, 'countryid');
+    }
 
-		$clean_list = array();
-		foreach ($values as $value) {
-			if (is_numeric($value)) {
-				$clean_list[] = (int)$value;
-			}
-		}
+    // -------------------------------------------------------------------------
+    // Input validation / sanitization
+    // -------------------------------------------------------------------------
 
-		if (count($clean_list) > 0) {
-			$field = $prefix ? $prefix . $field_name : $field_name;
-			$values_str = implode(' OR ', $clean_list);
-			return sprintf('%s:(%s)', $field, $values_str);
-		}
+    private function validate_parameter($key, $value)
+    {
+        switch ($key) {
+            case 'from':
+            case 'to':
+                return max(0, (int)$value);
+            case 'study_keywords':
+            case 'variable_keywords':
+                return $this->sanitize_keywords((string)$value);
+            case 'repo':
+            case 'created':
+                return trim(strip_tags((string)$value));
+            case 'varcount':
+                return in_array($value, array('0', '>0', 'with_vars', '1')) ? $value : '';
+            case 'countries':
+            case 'regions':
+            case 'topics':
+            case 'collections':
+            case 'type':
+            case 'dtype':
+                if (!is_array($value)) return array();
+                return array_values(array_filter(array_map(function($item) {
+                    return is_numeric($item) ? (int)$item : trim(strip_tags((string)$item));
+                }, $value)));
+            case 'sort_by':
+                return array_key_exists($value, $this->sort_allowed_fields) ? $value : '';
+            case 'sort_order':
+                return in_array(strtolower($value), $this->sort_allowed_order) ? strtolower($value) : 'asc';
+            case 'debug':
+                return (bool)$value;
+            default:
+                return is_string($value) ? trim(strip_tags($value)) : $value;
+        }
+    }
 
-		return false;
-	}
+    private function sanitize_keywords($keywords)
+    {
+        $keywords = trim(strip_tags($keywords));
+        $keywords = $this->sanitize_query($keywords);
+        if (strlen($keywords) > 500) {
+            $keywords = substr($keywords, 0, 500);
+        }
+        return $keywords;
+    }
 
-	private function extract_debug_info($debug_result)
-	{
-		if (!$debug_result) {
-			return array();
-		}
-		
-		$debug_info = array(
-			'query_string' => $debug_result->getQueryString(),
-			'parsed_query' => $debug_result->getParsedQuery(),
-			'query_parser' => $debug_result->getQueryParser(),
-			'other_query' => $debug_result->getOtherQuery()
-		);
-		
-		$explain = $debug_result->getExplain();
-		if ($explain) {
-			$explain_docs = array();
-			foreach ($explain->getDocuments() as $key => $doc) {
-				$doc_info = array(
-					'key' => $doc->getKey(),
-					'match' => $doc->getMatch(),
-					'value' => $doc->getValue(),
-					'description' => $doc->getDescription()
-				);
-				
-				$details = array();
-				foreach ($doc->getDetails() as $detail) {
-					$details[] = array(
-						'match' => $detail->getMatch(),
-						'value' => $detail->getValue(),
-						'description' => $detail->getDescription()
-					);
-				}
-				$doc_info['details'] = $details;
-				$explain_docs[$key] = $doc_info;
-			}
-			$debug_info['explain'] = $explain_docs;
-		}
-		
-		$explain_other = $debug_result->getExplainOther();
-		if ($explain_other) {
-			$explain_other_docs = array();
-			foreach ($explain_other->getDocuments() as $key => $doc) {
-				$doc_info = array(
-					'key' => $doc->getKey(),
-					'match' => $doc->getMatch(),
-					'value' => $doc->getValue(),
-					'description' => $doc->getDescription()
-				);
-				
-				$details = array();
-				foreach ($doc->getDetails() as $detail) {
-					$details[] = array(
-						'match' => $detail->getMatch(),
-						'value' => $detail->getValue(),
-						'description' => $detail->getDescription()
-					);
-				}
-				$doc_info['details'] = $details;
-				$explain_other_docs[$key] = $doc_info;
-			}
-			$debug_info['explain_other'] = $explain_other_docs;
-		}
-		
-		$timing = $debug_result->getTiming();
-		if ($timing) {
-			$timing_phases = array();
-			foreach ($timing->getPhases() as $phase_key => $phase) {
-				$timing_phases[$phase_key] = array(
-					'name' => $phase_key,
-					'time' => $phase->getTime(),
-					'timings' => $phase->getTimings()
-				);
-			}
-			$debug_info['timing'] = array(
-				'time' => $timing->getTime(),
-				'phases' => $timing_phases
-			);
-		}
-		
-		return $debug_info;
-	}
+    private function sanitize_query($query)
+    {
+        if (empty($query)) return '';
+        $query = preg_replace('/[\x{200B}\x{00AD}\p{C}]+/u', '', $query);
+        $query = preg_replace('/\s+/u', ' ', $query);
+        return trim($query);
+    }
 
+    // -------------------------------------------------------------------------
+    // Keyword escaping / query building
+    // -------------------------------------------------------------------------
+
+    private function escape_keywords($keywords, $helper)
+    {
+        if (empty($keywords)) return '';
+        $keywords = $this->sanitize_query($keywords);
+        if (empty($keywords)) return '';
+
+        // field:value syntax — e.g. title:health nation:Kenya
+        if (preg_match('/[a-zA-Z_]+:/', $keywords)) {
+            $parsed = $this->parse_field_specific_query($keywords);
+            return $this->build_field_specific_solr_query($parsed, $helper);
+        }
+
+        // "exact phrase"
+        if (preg_match('/^".*"$/', $keywords)) {
+            return preg_replace('/([+&\-|(){}[\]^~*?:\/\\\\])/', '\\\\$1', $keywords);
+        }
+
+        // +must -exclude
+        if (preg_match('/[+\-]/', $keywords)) {
+            return $this->process_advanced_query($keywords);
+        }
+
+        // plain keywords
+        return preg_replace('/([+\-&|(){}[\]^"~*?:\/\\\\])/', '\\\\$1', $keywords);
+    }
+
+    private function process_advanced_query($query)
+    {
+        return implode(' ', array_map(
+            array($this, 'process_query_token'),
+            $this->tokenize_query($query, true)
+        ));
+    }
+
+    /**
+     * Tokenize on whitespace while respecting quoted phrases.
+     * When $allow_single_quotes is true, single quotes are also phrase delimiters.
+     */
+    private function tokenize_query($query, $allow_single_quotes = false)
+    {
+        $tokens     = array();
+        $current    = '';
+        $in_quotes  = false;
+        $quote_char = '';
+
+        for ($i = 0; $i < strlen($query); $i++) {
+            $c        = $query[$i];
+            $is_quote = ($c === '"' || ($allow_single_quotes && $c === "'"));
+
+            if ($is_quote && !$in_quotes) {
+                $in_quotes  = true;
+                $quote_char = $c;
+                $current   .= $c;
+            } elseif ($c === $quote_char && $in_quotes) {
+                $in_quotes  = false;
+                $quote_char = '';
+                $current   .= $c;
+            } elseif ($c === ' ' && !$in_quotes) {
+                if ($current !== '') $tokens[] = $current;
+                $current = '';
+            } else {
+                $current .= $c;
+            }
+        }
+
+        // Unclosed quote — strip the opening quote character
+        if ($in_quotes && $current !== '') {
+            $current = substr($current, 1);
+        }
+        if ($current !== '') $tokens[] = $current;
+
+        return $tokens;
+    }
+
+    private function process_query_token($token)
+    {
+        // +term or -term
+        if (preg_match('/^([+\-])(.+)$/', $token, $m)) {
+            $term    = trim($m[2], '"\'');
+            $escaped = preg_replace('/([+&\-|(){}[\]^~*?:\/\\\\])/', '\\\\$1', $term);
+            return $m[1] . $escaped;
+        }
+
+        // "quoted phrase"
+        if (preg_match('/^["\'].*["\']$/', $token)) {
+            return preg_replace('/([+&\-|(){}[\]^~*?:\/\\\\])/', '\\\\$1', $token);
+        }
+
+        // plain term
+        return preg_replace('/([+\-&|(){}[\]^"~*?:\/\\\\])/', '\\\\$1', $token);
+    }
+
+    private function parse_field_specific_query($keywords, $search_type = 'survey')
+    {
+        $allowed = ($search_type === 'variable')
+            ? $this->allowed_variable_search_fields
+            : $this->allowed_search_fields;
+
+        $parsed = array('field_queries' => array(), 'general_terms' => array());
+
+        foreach ($this->tokenize_query($keywords) as $token) {
+            if (preg_match('/^([a-zA-Z_]+):(.+)$/', $token, $m)) {
+                $field = strtolower($m[1]);
+                $value = trim($m[2], '"\'');
+                if (isset($allowed[$field])) {
+                    $parsed['field_queries'][$allowed[$field]][] = $value;
+                } else {
+                    $parsed['general_terms'][] = $token;
+                }
+            } else {
+                $parsed['general_terms'][] = $token;
+            }
+        }
+
+        return $parsed;
+    }
+
+    private function build_field_specific_solr_query($parsed, $helper)
+    {
+        $parts = array();
+
+        foreach ($parsed['field_queries'] as $field => $values) {
+            foreach ($values as $v) {
+                $parts[] = $field . ':' . $helper->escapeTerm($v);
+            }
+        }
+
+        if (!empty($parsed['general_terms'])) {
+            $general = implode(' ', $parsed['general_terms']);
+            $trimmed = trim($general);
+
+            if (preg_match('/^".*"$/', $trimmed)) {
+                $parts[] = preg_replace('/([+&\-|(){}[\]^~*?:\/\\\\])/', '\\\\$1', $trimmed);
+            } elseif (preg_match('/[+\-]/', $trimmed)) {
+                $parts[] = $this->process_advanced_query($trimmed);
+            } else {
+                $parts[] = preg_replace('/([+\-&|(){}[\]^"~*?:\/\\\\])/', '\\\\$1', $general);
+            }
+        }
+
+        return implode(' AND ', $parts);
+    }
 }

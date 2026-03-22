@@ -320,7 +320,7 @@
                     if (!confirm(`Delete file "${filename}"?\n\nThis action cannot be undone.`)) return;
                     
                     try {
-                        const response = await axios.delete(`${apiBase}/delete/${encodeURIComponent(filename)}`);
+                        const response = await axios.post(`${apiBase}/delete/${encodeURIComponent(filename)}`);
                         if (response.data.status === 'success') {
                             this.success = 'File deleted successfully';
                             this.loadFiles();
@@ -340,7 +340,7 @@
                     
                     try {
                         const deletePromises = this.selectedFiles.map(file => 
-                            axios.delete(`${apiBase}/delete/${encodeURIComponent(file.file_name)}`)
+                            axios.post(`${apiBase}/delete/${encodeURIComponent(file.file_name)}`)
                         );
                         
                         await Promise.all(deletePromises);
@@ -777,7 +777,7 @@
                     if (!confirm(`Delete file "${filename}"?\n\nThis action cannot be undone.`)) return;
                     
                     try {
-                        const response = await axios.delete(`${apiBase}/delete/${encodeURIComponent(filename)}`);
+                        const response = await axios.post(`${apiBase}/delete/${encodeURIComponent(filename)}`);
                         if (response.data.status === 'success') {
                             this.$router.push('/');
                         } else {

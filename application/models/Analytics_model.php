@@ -639,12 +639,14 @@ class Analytics_model extends CI_Model {
 			// entirely to prevent double-counting.
 			// Finalized months are intentionally excluded — once a month is finalized, any
 			// late events tracked for that period are ignored by design.
+			$current_first_day = sprintf('%04d-%02d-01', $current_year, $current_month);
+			$current_last_day  = date('Y-m-t', strtotime($current_first_day));
 			$daily_sql = "
 				SELECT study_id, SUM(pageviews) as pageviews, SUM(downloads) as downloads
 				FROM analytics_daily_studies
-				WHERE YEAR(date) = ? AND MONTH(date) = ?
+				WHERE date >= ? AND date <= ?
 			";
-			$params = array($current_year, $current_month);
+			$params = array($current_first_day, $current_last_day);
 			if ($study_id !== null) {  // $study_id is still the original filter parameter here
 				$daily_sql .= " AND study_id = ?";
 				$params[] = $study_id;
@@ -846,26 +848,14 @@ class Analytics_model extends CI_Model {
 			// Step 2: Seed year=0, month=0 rows in analytics_monthly_studies
 			// for any survey missing a legacy-total entry (idempotent)
 			// ----------------------------------------------------------------
-			if ($db_driver === 'mysqli') {
-				$sql = "INSERT INTO analytics_monthly_studies
-				            (year, month, study_id, pageviews, unique_visitors, downloads, finalized)
-				        SELECT 0, 0, lc.survey_id, lc.total_views, 0, lc.total_downloads, 1
-				        FROM analytics_legacy_counts lc
-				        WHERE NOT EXISTS (
-				            SELECT 1 FROM analytics_monthly_studies ams
-				            WHERE ams.year = 0 AND ams.month = 0 AND ams.study_id = lc.survey_id
-				        )";
-			} else {
-				// SQL Server
-				$sql = "INSERT INTO analytics_monthly_studies
-				            (year, month, study_id, pageviews, unique_visitors, downloads, finalized)
-				        SELECT 0, 0, lc.survey_id, lc.total_views, 0, lc.total_downloads, 1
-				        FROM analytics_legacy_counts lc
-				        WHERE NOT EXISTS (
-				            SELECT 1 FROM analytics_monthly_studies ams
-				            WHERE ams.year = 0 AND ams.month = 0 AND ams.study_id = lc.survey_id
-				        )";
-			}
+			$sql = "INSERT INTO analytics_monthly_studies
+			            (year, month, study_id, pageviews, unique_visitors, downloads, finalized)
+			        SELECT 0, 0, lc.survey_id, lc.total_views, 0, lc.total_downloads, 1
+			        FROM analytics_legacy_counts lc
+			        WHERE NOT EXISTS (
+			            SELECT 1 FROM analytics_monthly_studies ams
+			            WHERE ams.year = 0 AND ams.month = 0 AND ams.study_id = lc.survey_id
+			        )";
 			$this->db->query($sql);
 			$result['migrated'] = $this->db->affected_rows();
 
@@ -1287,42 +1277,41 @@ class Analytics_model extends CI_Model {
 		
 		// Validate limit
 		$limit = max(1, min(500, (int)$limit));
-		
-		// Determine date function based on database driver
-		$db_driver = $this->db->dbdriver;
-		$date_func = ($db_driver === 'sqlsrv' || $db_driver === 'mssql') ? 'CAST(ts AS DATE)' : 'DATE(ts)';
-		
+
+		$ts_from = $date_from ? ($date_from . ' 00:00:00') : null;
+		$ts_to   = $date_to   ? (date('Y-m-d', strtotime($date_to . ' +1 day')) . ' 00:00:00') : null;
+
 		// Build count query using raw SQL to avoid query builder state issues
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_pageview_events WHERE 1=1";
 		$count_params = array();
-		
-		if ($date_from) {
-			$count_sql .= " AND {$date_func} >= ?";
-			$count_params[] = $date_from;
+
+		if ($ts_from) {
+			$count_sql .= " AND ts >= ?";
+			$count_params[] = $ts_from;
 		}
-		if ($date_to) {
-			$count_sql .= " AND {$date_func} <= ?";
-			$count_params[] = $date_to;
+		if ($ts_to) {
+			$count_sql .= " AND ts < ?";
+			$count_params[] = $ts_to;
 		}
 		if ($study_id) {
 			$count_sql .= " AND study_id = ?";
 			$count_params[] = $study_id;
 		}
-		
+
 		$count_query = $this->db->query($count_sql, $count_params);
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
-		
+
 		// Build data query
 		$this->db->select('analytics_pageview_events.id, analytics_pageview_events.ts, analytics_pageview_events.study_id, analytics_pageview_events.session_id, analytics_pageview_events.user_agent, analytics_pageview_events.referrer, hashed_ip, surveys.title as study_title');
 		$this->db->from('analytics_pageview_events');
 		$this->db->join('surveys', 'analytics_pageview_events.study_id = surveys.id', 'left');
-		
+
 		// Apply filters for data query
-		if ($date_from) {
-			$this->db->where("{$date_func} >= ", $this->db->escape($date_from), false);
+		if ($ts_from) {
+			$this->db->where('ts >=', $ts_from);
 		}
-		if ($date_to) {
-			$this->db->where("{$date_func} <= ", $this->db->escape($date_to), false);
+		if ($ts_to) {
+			$this->db->where('ts <', $ts_to);
 		}
 		if ($study_id) {
 			$this->db->where('study_id', $study_id);
@@ -1377,21 +1366,20 @@ class Analytics_model extends CI_Model {
 		// Validate limit
 		$limit = max(1, min(500, (int)$limit));
 		
-		// Determine date function based on database driver
-		$db_driver = $this->db->dbdriver;
-		$date_func = ($db_driver === 'sqlsrv' || $db_driver === 'mssql') ? 'CAST(ts AS DATE)' : 'DATE(ts)';
-		
+		$ts_from = $date_from ? ($date_from . ' 00:00:00') : null;
+		$ts_to   = $date_to   ? (date('Y-m-d', strtotime($date_to . ' +1 day')) . ' 00:00:00') : null;
+
 		// Build count query using raw SQL to avoid query builder state issues
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_download_events WHERE 1=1";
 		$count_params = array();
-		
-		if ($date_from) {
-			$count_sql .= " AND {$date_func} >= ?";
-			$count_params[] = $date_from;
+
+		if ($ts_from) {
+			$count_sql .= " AND ts >= ?";
+			$count_params[] = $ts_from;
 		}
-		if ($date_to) {
-			$count_sql .= " AND {$date_func} <= ?";
-			$count_params[] = $date_to;
+		if ($ts_to) {
+			$count_sql .= " AND ts < ?";
+			$count_params[] = $ts_to;
 		}
 		if ($study_id) {
 			$count_sql .= " AND study_id = ?";
@@ -1401,21 +1389,21 @@ class Analytics_model extends CI_Model {
 			$count_sql .= " AND file_type = ?";
 			$count_params[] = $file_type;
 		}
-		
+
 		$count_query = $this->db->query($count_sql, $count_params);
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
-		
+
 		// Build data query
 		$this->db->select('analytics_download_events.id, analytics_download_events.ts, analytics_download_events.study_id, analytics_download_events.file_name, analytics_download_events.file_type, analytics_download_events.user_agent, analytics_download_events.hashed_ip, surveys.title as study_title');
 		$this->db->from('analytics_download_events');
 		$this->db->join('surveys', 'analytics_download_events.study_id = surveys.id', 'left');
-		
+
 		// Apply filters for data query
-		if ($date_from) {
-			$this->db->where("{$date_func} >= ", $this->db->escape($date_from), false);
+		if ($ts_from) {
+			$this->db->where('ts >=', $ts_from);
 		}
-		if ($date_to) {
-			$this->db->where("{$date_func} <= ", $this->db->escape($date_to), false);
+		if ($ts_to) {
+			$this->db->where('ts <', $ts_to);
 		}
 		if ($study_id) {
 			$this->db->where('study_id', $study_id);
@@ -1628,18 +1616,21 @@ class Analytics_model extends CI_Model {
 		//    Exclude the immediately previous calendar month: cleanup_daily_aggregates()
 		//    intentionally retains its rows for the 7-day chart. Queuing it here would
 		//    cause an infinite month_end loop (finalize → retain → queue → finalize...).
+		$current_first_day_o = sprintf('%04d-%02d-01', $current_year, $current_month);
 		$prev_year_o  = $current_month === 1 ? $current_year - 1 : $current_year;
 		$prev_month_o = $current_month === 1 ? 12 : $current_month - 1;
+		$prev_first_day_o = sprintf('%04d-%02d-01', $prev_year_o, $prev_month_o);
+		$prev_last_day_o  = date('Y-m-t', strtotime($prev_first_day_o));
 		$orphan_query = $this->db->query("
 			SELECT YEAR(date) as year, MONTH(date) as month
 			FROM analytics_daily_studies
-			WHERE date < DATE_FORMAT(NOW(), ?)
-			  AND NOT (YEAR(date) = ? AND MONTH(date) = ?)
+			WHERE date < ?
+			  AND NOT (date >= ? AND date <= ?)
 			GROUP BY YEAR(date), MONTH(date)
 		", array(
-			sprintf('%04d-%02d-01', $current_year, $current_month),
-			$prev_year_o,
-			$prev_month_o
+			$current_first_day_o,
+			$prev_first_day_o,
+			$prev_last_day_o
 		));
 
 		if ($orphan_query) {

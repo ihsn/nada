@@ -13,7 +13,7 @@ $ddi=$this->ddi_writer;
       <rspStmt>
         <?php $authoring_entities=(array)$ddi->get_el('study_desc/authoring_entity');?>
         <?php foreach($authoring_entities as $auth_entity):?>
-        <AuthEnty affiliation="<?php echo $ddi->attr_val($auth_entity,'affiliation');?>"><?php echo $ddi->el_Val($auth_entity,'name');?></AuthEnty>
+        <AuthEnty affiliation="<?php echo $ddi->attr_val($auth_entity,'affiliation');?>"><?php echo $ddi->el_val($auth_entity,'name');?></AuthEnty>
         <?php endforeach;?>
 
         <?php //othID - [email attribute is not supported by DDI] ?>
