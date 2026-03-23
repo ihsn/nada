@@ -26,15 +26,17 @@ class Codelist_group_model extends CI_Model {
 		$codelist_id = (int) $codelist_id;
 		$this->db->order_by('sort_order', 'ASC');
 		$this->db->order_by('id', 'ASC');
-		$rows = $this->db->get_where('codelist_group', ['codelist_id' => $codelist_id])->result_array();
+		$_r = $this->db->get_where('codelist_group', ['codelist_id' => $codelist_id]);
+		$rows = $_r ? $_r->result_array() : [];
 		if (empty($rows)) {
 			return [];
 		}
 		$group_ids = array_column($rows, 'id');
 		$items_per_group = [];
-		$group_items = $this->db->where_in('codelist_group_id', $group_ids)
+		$_r = $this->db->where_in('codelist_group_id', $group_ids)
 			->order_by('sort_order')
-			->get('codelist_group_item')->result_array();
+			->get('codelist_group_item');
+		$group_items = $_r ? $_r->result_array() : [];
 		foreach ($group_items as $gi) {
 			$gid = (int) $gi['codelist_group_id'];
 			if (!isset($items_per_group[$gid])) {
@@ -61,14 +63,15 @@ class Codelist_group_model extends CI_Model {
 	 */
 	public function get_group_by_id($group_id, $with_item_ids = true, $with_translations = true)
 	{
-		$row = $this->db->get_where('codelist_group', ['id' => (int) $group_id])->row_array();
+		$_r = $this->db->get_where('codelist_group', ['id' => (int) $group_id]);
+		$row = $_r ? $_r->row_array() : null;
 		if (!$row) {
 			return null;
 		}
 		if ($with_item_ids) {
-			$items = $this->db->order_by('sort_order')
-				->get_where('codelist_group_item', ['codelist_group_id' => $row['id']])
-				->result_array();
+			$_r = $this->db->order_by('sort_order')
+				->get_where('codelist_group_item', ['codelist_group_id' => $row['id']]);
+		$items = $_r ? $_r->result_array() : [];
 			$row['item_ids'] = array_map(function ($r) { return (int) $r['codelist_item_id']; }, $items);
 		}
 		if ($with_translations) {
@@ -85,7 +88,8 @@ class Codelist_group_model extends CI_Model {
 	 */
 	public function get_group_translations($group_id)
 	{
-		$rows = $this->db->get_where('codelist_group_translation', ['codelist_group_id' => (int) $group_id])->result_array();
+		$_r = $this->db->get_where('codelist_group_translation', ['codelist_group_id' => (int) $group_id]);
+		$rows = $_r ? $_r->result_array() : [];
 		$out = [];
 		foreach ($rows as $r) {
 			$out[$r['lang']] = $r['title'];
@@ -111,7 +115,8 @@ class Codelist_group_model extends CI_Model {
 		if (!preg_match('/^[a-zA-Z0-9_-]+$/', $name)) {
 			throw new Exception('Group name may only contain letters, numbers, underscores and dashes.');
 		}
-		$exists = $this->db->get_where('codelist_group', ['codelist_id' => $codelist_id, 'name' => $name])->row_array();
+		$_r = $this->db->get_where('codelist_group', ['codelist_id' => $codelist_id, 'name' => $name]);
+		$exists = $_r ? $_r->row_array() : null;
 		if ($exists) {
 			throw new Exception('Group name already exists in this codelist.');
 		}
@@ -148,10 +153,11 @@ class Codelist_group_model extends CI_Model {
 			if (!preg_match('/^[a-zA-Z0-9_-]+$/', $name)) {
 				throw new Exception('Group name may only contain letters, numbers, underscores and dashes.');
 			}
-			$other = $this->db->get_where('codelist_group', [
+			$_r = $this->db->get_where('codelist_group', [
 				'codelist_id' => $existing['codelist_id'],
 				'name'        => $name,
-			])->row_array();
+			]);
+			$other = $_r ? $_r->row_array() : null;
 			if ($other && (int) $other['id'] !== $group_id) {
 				throw new Exception('Group name already exists in this codelist.');
 			}
@@ -209,10 +215,11 @@ class Codelist_group_model extends CI_Model {
 		if (!$item || (int) $item['codelist_id'] !== (int) $existing['codelist_id']) {
 			throw new Exception('Item not found or does not belong to this codelist.');
 		}
-		$exists = $this->db->get_where('codelist_group_item', [
+		$_r = $this->db->get_where('codelist_group_item', [
 			'codelist_group_id' => $group_id,
 			'codelist_item_id'  => $codelist_item_id,
-		])->row_array();
+		]);
+		$exists = $_r ? $_r->row_array() : null;
 		if ($exists) {
 			return;
 		}
@@ -260,7 +267,8 @@ class Codelist_group_model extends CI_Model {
 		if ($lang === '') {
 			throw new Exception('Language code is required.');
 		}
-		$row = $this->db->get_where('codelist_group_translation', ['codelist_group_id' => $group_id, 'lang' => $lang])->row_array();
+		$_r = $this->db->get_where('codelist_group_translation', ['codelist_group_id' => $group_id, 'lang' => $lang]);
+		$row = $_r ? $_r->row_array() : null;
 		if ($row) {
 			$this->db->where('id', $row['id']);
 			$this->db->update('codelist_group_translation', ['title' => $title]);

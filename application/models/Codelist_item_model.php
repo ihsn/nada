@@ -26,7 +26,8 @@ class Codelist_item_model extends CI_Model {
 		$codelist_id = (int) $codelist_id;
 		$this->db->order_by('sort_order', 'ASC');
 		$this->db->order_by('id', 'ASC');
-		$rows = $this->db->get_where('codelist_item', ['codelist_id' => $codelist_id])->result_array();
+		$_r = $this->db->get_where('codelist_item', ['codelist_id' => $codelist_id]);
+		$rows = $_r ? $_r->result_array() : [];
 		if ($with_translations && !empty($rows)) {
 			$ids = array_column($rows, 'id');
 			$trans = $this->get_item_translations_bulk($ids);
@@ -46,7 +47,8 @@ class Codelist_item_model extends CI_Model {
 	 */
 	public function get_item_by_id($item_id, $with_translations = true)
 	{
-		$row = $this->db->get_where('codelist_item', ['id' => (int) $item_id])->row_array();
+		$_r = $this->db->get_where('codelist_item', ['id' => (int) $item_id]);
+		$row = $_r ? $_r->row_array() : null;
 		if (!$row) {
 			return null;
 		}
@@ -64,7 +66,8 @@ class Codelist_item_model extends CI_Model {
 	 */
 	public function get_item_translations($item_id)
 	{
-		$rows = $this->db->get_where('codelist_item_translation', ['codelist_item_id' => (int) $item_id])->result_array();
+		$_r = $this->db->get_where('codelist_item_translation', ['codelist_item_id' => (int) $item_id]);
+		$rows = $_r ? $_r->result_array() : [];
 		$out = [];
 		foreach ($rows as $r) {
 			$out[$r['lang']] = $r['title'];
@@ -85,7 +88,8 @@ class Codelist_item_model extends CI_Model {
 		}
 		$item_ids = array_map('intval', $item_ids);
 		$this->db->where_in('codelist_item_id', $item_ids);
-		$rows = $this->db->get('codelist_item_translation')->result_array();
+		$_r = $this->db->get('codelist_item_translation');
+		$rows = $_r ? $_r->result_array() : [];
 		$out = [];
 		foreach ($rows as $r) {
 			$id = (int) $r['codelist_item_id'];
@@ -112,7 +116,8 @@ class Codelist_item_model extends CI_Model {
 		if ($code === '') {
 			throw new Exception('Item code is required.');
 		}
-		$exists = $this->db->get_where('codelist_item', ['codelist_id' => $codelist_id, 'code' => $code])->row_array();
+		$_r = $this->db->get_where('codelist_item', ['codelist_id' => $codelist_id, 'code' => $code]);
+		$exists = $_r ? $_r->row_array() : null;
 		if ($exists) {
 			throw new Exception('Item code already exists in this codelist.');
 		}
@@ -151,10 +156,11 @@ class Codelist_item_model extends CI_Model {
 			if ($code === '') {
 				throw new Exception('Item code cannot be empty.');
 			}
-			$other = $this->db->get_where('codelist_item', [
+			$_r = $this->db->get_where('codelist_item', [
 				'codelist_id' => $existing['codelist_id'],
 				'code'        => $code,
-			])->row_array();
+			]);
+			$other = $_r ? $_r->row_array() : null;
 			if ($other && (int) $other['id'] !== $item_id) {
 				throw new Exception('Item code already exists in this codelist.');
 			}
@@ -217,7 +223,8 @@ class Codelist_item_model extends CI_Model {
 		if ($lang === '') {
 			throw new Exception('Language code is required.');
 		}
-		$row = $this->db->get_where('codelist_item_translation', ['codelist_item_id' => $item_id, 'lang' => $lang])->row_array();
+		$_r = $this->db->get_where('codelist_item_translation', ['codelist_item_id' => $item_id, 'lang' => $lang]);
+		$row = $_r ? $_r->row_array() : null;
 		if ($row) {
 			$this->db->where('id', $row['id']);
 			$this->db->update('codelist_item_translation', ['title' => $title]);

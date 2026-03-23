@@ -73,7 +73,7 @@ class Dctype_model extends CI_Model {
 					return $out;
 				}
 			}
-		} catch (Exception $e) {
+		} catch (\Throwable $e) {
 			// fall through
 		}
 		$this->load->config('external_resources');
@@ -116,7 +116,7 @@ class Dctype_model extends CI_Model {
 				}
 				return $out;
 			}
-		} catch (Exception $e) {
+		} catch (\Throwable $e) {
 			// fall through
 		}
 		$this->load->config('external_resources');
