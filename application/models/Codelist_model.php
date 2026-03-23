@@ -23,11 +23,18 @@ class Codelist_model extends CI_Model {
 	public function get_all_codelists($with_item_count = false)
 	{
 		$this->db->order_by('name', 'ASC');
-		$rows = $this->db->get('codelists')->result_array();
+		$_r = $this->db->get('codelists');
+		$rows = $_r ? $_r->result_array() : [];
 		if ($with_item_count && !empty($rows)) {
+			$has_item_table  = $this->db->table_exists('codelist_item');
+			$has_group_table = $this->db->table_exists('codelist_group');
 			foreach ($rows as &$row) {
-				$row['item_count'] = (int) $this->db->where('codelist_id', $row['id'])->count_all_results('codelist_item');
-				$row['group_count'] = (int) $this->db->where('codelist_id', $row['id'])->count_all_results('codelist_group');
+				$row['item_count']  = $has_item_table
+					? (int) $this->db->where('codelist_id', $row['id'])->count_all_results('codelist_item')
+					: 0;
+				$row['group_count'] = $has_group_table
+					? (int) $this->db->where('codelist_id', $row['id'])->count_all_results('codelist_group')
+					: 0;
 			}
 		}
 		return $rows;

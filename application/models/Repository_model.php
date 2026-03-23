@@ -336,9 +336,7 @@ class Repository_model extends CI_Model {
 		$this->db->flush_cache();
 
 		if ($include_counts) {
-			$this->db->select('repositories.*, repository_sections.title as section_title, COUNT(survey_repos.sid) as study_count');
-			$this->db->join('survey_repos', 'survey_repos.repositoryid = repositories.repositoryid', 'left');
-			$this->db->group_by('repositories.id');
+			$this->db->select('repositories.*, repository_sections.title as section_title, (SELECT COUNT(*) FROM survey_repos WHERE survey_repos.repositoryid = repositories.repositoryid) as study_count', FALSE);
 		} else {
 			$this->db->select('repositories.*, repository_sections.title as section_title');
 		}
