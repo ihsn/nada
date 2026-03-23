@@ -32,7 +32,8 @@ class Migration_Update_surveys_fulltext_index extends MY_Migration {
     private function up_mysql()
     {
         // Check the index exists before dropping to make migration re-runnable
-        $indexes = $this->db->query('SHOW INDEX FROM surveys WHERE Key_name = ?', ['ft_keywords'])->result_array();
+        $_r = $this->db->query('SHOW INDEX FROM surveys WHERE Key_name = ?', ['ft_keywords']);
+        $indexes = $_r ? $_r->result_array() : [];
 
         if (!empty($indexes)) {
             $this->db->query('ALTER TABLE `surveys` DROP INDEX `ft_keywords`');
@@ -46,12 +47,13 @@ class Migration_Update_surveys_fulltext_index extends MY_Migration {
     private function up_sqlsrv()
     {
         // Check if a fulltext index exists on surveys
-        $exists = $this->db->query("
+        $_r = $this->db->query("
             SELECT 1
             FROM sys.fulltext_indexes fi
             JOIN sys.tables t ON fi.object_id = t.object_id
             WHERE t.name = 'surveys'
-        ")->row_array();
+        ");
+        $exists = $_r ? $_r->row_array() : null;
 
         if ($exists) {
             $this->db->query('DROP FULLTEXT INDEX ON surveys');

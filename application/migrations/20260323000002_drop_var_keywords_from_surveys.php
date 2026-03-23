@@ -32,9 +32,8 @@ class Migration_Drop_var_keywords_from_surveys extends MY_Migration {
 
     private function up_mysql()
     {
-        $exists = $this->db->query(
-            "SHOW COLUMNS FROM `surveys` LIKE 'var_keywords'"
-        )->row_array();
+        $_r = $this->db->query("SHOW COLUMNS FROM `surveys` LIKE 'var_keywords'");
+        $exists = $_r ? $_r->row_array() : null;
 
         if (!$exists) {
             log_message('info', 'surveys.var_keywords does not exist (MySQL), skipping');
@@ -47,13 +46,14 @@ class Migration_Drop_var_keywords_from_surveys extends MY_Migration {
 
     private function up_sqlsrv()
     {
-        $exists = $this->db->query("
+        $_r = $this->db->query("
             SELECT 1
             FROM   sys.columns c
             JOIN   sys.tables  t ON c.object_id = t.object_id
             WHERE  t.name = 'surveys'
             AND    c.name = 'var_keywords'
-        ")->row_array();
+        ");
+        $exists = $_r ? $_r->row_array() : null;
 
         if (!$exists) {
             log_message('info', 'surveys.var_keywords does not exist (SQLSRV), skipping');

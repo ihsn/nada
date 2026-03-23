@@ -39,7 +39,7 @@ class Migration_Upgrade_resources_table extends MY_Migration {
             FROM resources 
             WHERE dctype IS NOT NULL");
         
-        $dctypes = $query->result_array();
+        $dctypes = $query ? $query->result_array() : [];
         $total = count($dctypes);
         $updated = 0;
         

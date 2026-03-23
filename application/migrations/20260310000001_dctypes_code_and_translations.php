@@ -136,7 +136,8 @@ class Migration_Dctypes_code_and_translations extends MY_Migration {
 
 	private function seed_dctype_translations_en()
 	{
-		$rows = $this->db->select('id, title')->get('dctypes')->result_array();
+		$_r = $this->db->select('id, title')->get('dctypes');
+		$rows = $_r ? $_r->result_array() : [];
 		$inserts = [];
 		foreach ($rows as $row) {
 			$inserts[] = [

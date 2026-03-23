@@ -262,7 +262,8 @@ class Migration_Create_codelists_schema extends MY_Migration {
 			return;
 		}
 
-		$codelist = $this->db->get_where('codelists', ['name' => 'dctypes'])->row_array();
+		$_r = $this->db->get_where('codelists', ['name' => 'dctypes']);
+		$codelist = $_r ? $_r->row_array() : null;
 		if ($codelist) {
 			log_message('info', 'dctypes codelist already seeded');
 			return;
@@ -274,7 +275,8 @@ class Migration_Create_codelists_schema extends MY_Migration {
 			return;
 		}
 
-		$dctypes = $this->db->order_by('id')->get('dctypes')->result_array();
+		$_r = $this->db->order_by('id')->get('dctypes');
+		$dctypes = $_r ? $_r->result_array() : [];
 		$old_id_to_new_id = [];
 		$sort = 0;
 		foreach ($dctypes as $row) {
@@ -289,7 +291,8 @@ class Migration_Create_codelists_schema extends MY_Migration {
 			$sort += 10;
 		}
 
-		$trans = $this->db->get('dctype_translations')->result_array();
+		$_r = $this->db->get('dctype_translations');
+		$trans = $_r ? $_r->result_array() : [];
 		foreach ($trans as $row) {
 			$new_item_id = isset($old_id_to_new_id[(int) $row['dctype_id']]) ? $old_id_to_new_id[(int) $row['dctype_id']] : null;
 			if ($new_item_id) {
@@ -319,7 +322,8 @@ class Migration_Create_codelists_schema extends MY_Migration {
 			$sort_order += 10;
 			$item_sort = 0;
 			foreach ($codes as $code) {
-				$item = $this->db->get_where('codelist_item', ['codelist_id' => $codelist_id, 'code' => $code])->row_array();
+				$_r = $this->db->get_where('codelist_item', ['codelist_id' => $codelist_id, 'code' => $code]);
+			$item = $_r ? $_r->row_array() : null;
 				if ($item) {
 					$this->db->insert('codelist_group_item', [
 						'codelist_group_id' => $group_id,

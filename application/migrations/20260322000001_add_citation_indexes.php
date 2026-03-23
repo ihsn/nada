@@ -58,13 +58,14 @@ class Migration_Add_citation_indexes extends MY_Migration {
      */
     private function mysql_add_index(string $table, string $index_name, string $column)
     {
-        $exists = $this->db->query(
+        $_r = $this->db->query(
             'SELECT 1 FROM information_schema.statistics
              WHERE table_schema = DATABASE()
                AND table_name   = ?
                AND index_name   = ?',
             [$table, $index_name]
-        )->row_array();
+        );
+        $exists = $_r ? $_r->row_array() : null;
 
         if ($exists) {
             log_message('info', "Migration_Add_citation_indexes: {$index_name} already exists, skipping");
@@ -104,10 +105,11 @@ class Migration_Add_citation_indexes extends MY_Migration {
      */
     private function sqlsrv_add_index(string $table, string $index_name, string $columns)
     {
-        $exists = $this->db->query(
+        $_r = $this->db->query(
             "SELECT 1 FROM sys.indexes WHERE name = ? AND object_id = OBJECT_ID(?)",
             [$index_name, $table]
-        )->row_array();
+        );
+        $exists = $_r ? $_r->row_array() : null;
 
         if ($exists) {
             log_message('info', "Migration_Add_citation_indexes: {$index_name} already exists, skipping");

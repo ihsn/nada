@@ -138,7 +138,8 @@ class Migration_Migrate_legacy_totals_from_surveys extends MY_Migration {
                     $this->db->where('year', 0);
                     $this->db->where('month', 0);
                     $this->db->where('study_id', $row['study_id']);
-                    $existing = $this->db->get('analytics_monthly_studies')->row();
+                    $_r = $this->db->get('analytics_monthly_studies');
+                    $existing = $_r ? $_r->row() : null;
                     
                     $data = array(
                         'year' => 0,
