@@ -99,7 +99,7 @@ class Migration_Create_codelists_schema extends MY_Migration {
 					PRIMARY KEY (id),
 					CONSTRAINT unq_codelist_item_code UNIQUE (codelist_id, code),
 					CONSTRAINT fk_codelist_item_codelist FOREIGN KEY (codelist_id) REFERENCES codelists (id) ON DELETE CASCADE,
-					CONSTRAINT fk_codelist_item_parent FOREIGN KEY (parent_id) REFERENCES codelist_item (id) ON DELETE SET NULL
+					CONSTRAINT fk_codelist_item_parent FOREIGN KEY (parent_id) REFERENCES codelist_item (id) ON DELETE NO ACTION
 				)
 			");
 			$this->db->query('CREATE INDEX idx_codelist_item_parent ON codelist_item (parent_id)');
@@ -209,7 +209,7 @@ class Migration_Create_codelists_schema extends MY_Migration {
 					PRIMARY KEY (id),
 					CONSTRAINT unq_codelist_group_item UNIQUE (codelist_group_id, codelist_item_id),
 					CONSTRAINT fk_codelist_grp_item_grp FOREIGN KEY (codelist_group_id) REFERENCES codelist_group (id) ON DELETE CASCADE,
-					CONSTRAINT fk_codelist_grp_item_item FOREIGN KEY (codelist_item_id) REFERENCES codelist_item (id) ON DELETE CASCADE
+					CONSTRAINT fk_codelist_grp_item_item FOREIGN KEY (codelist_item_id) REFERENCES codelist_item (id) ON DELETE NO ACTION
 				)
 			");
 		}
@@ -307,9 +307,7 @@ class Migration_Create_codelists_schema extends MY_Migration {
 		$default_groups = [
 			'questionnaires' => ['doc/qst'],
 			'reports'         => ['doc/rep'],
-			'technical'       => ['doc/tec'],
-			'reproducible'    => ['repro'],
-			'final'           => ['final'],
+			'technical'       => ['doc/tec']
 		];
 		$sort_order = 10;
 		foreach ($default_groups as $group_name => $codes) {

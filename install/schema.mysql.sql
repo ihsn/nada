@@ -608,9 +608,7 @@ INSERT INTO `codelist_item_translation` (`codelist_item_id`,`lang`,`title`) VALU
 INSERT INTO `codelist_group` (`id`,`codelist_id`,`name`,`sort_order`) VALUES
 (1,1,'questionnaires',10),
 (2,1,'reports',20),
-(3,1,'technical',30),
-(4,1,'reproducible',40),
-(5,1,'final',50);
+(3,1,'technical',30)
 
 INSERT INTO `codelist_group_item` (`codelist_group_id`,`codelist_item_id`,`sort_order`) VALUES
 (1,4,0),
