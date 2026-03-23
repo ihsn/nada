@@ -320,76 +320,32 @@ class Catalog_search_sqlsrv{
 			$study_fields.=', k.rank';
 		}
 
-		//build final search sql query
-		$sql='';
-		$sql_array=array();
-		
-		if ($variable!==FALSE)
+		//study search
+		$this->ci->db->select(" $study_fields ",FALSE);
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
+		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+		$this->ci->db->where('surveys.published',1);
+
+		if ($repository!='')
 		{
-			//variable search
-			$this->ci->db->select($study_fields.',varcount, count(*) as var_found',FALSE);
-			$this->ci->db->from('surveys');
-			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-			$this->ci->db->join('variables v','surveys.id=v.sid','inner');
-			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
-			$this->ci->db->where('surveys.published',1);
-			
-			if ($repository!='')
-			{
-				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
-			}
-			
-			$this->ci->db->group_by('surveys.id,surveys.idno,surveys.title,surveys.nation,surveys.authoring_entity, f.model, surveys.repositoryid,varcount, repositories.title, surveys.created,surveys.year_start,surveys.year_end,surveys.changed,surveys.total_views,surveys.total_downloads');
-			
-			if (trim($this->study_keywords)!=='')
-			{
-				$this->ci->db->group_by('k.rank');
-			}
-
-			if ($where!='')
-			{
-				$this->ci->db->where($where);
-			}
-
-			//multi-sort
-			$sql_sorts=array();
-			foreach($sort_options as $sort)
-			{
-				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
-			}
-			
-			$this->ci->db->limit($limit,$offset);
-			$query=$this->ci->db->get();
+			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 		}
-		else 
+
+		//multi-sort
+		foreach($sort_options as $sort)
 		{
-			//study search
-			$this->ci->db->select(" $study_fields ",FALSE);
-			$this->ci->db->from('surveys');
-			$this->ci->db->join('forms f','surveys.formid=f.formid','left');
-			$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
-			$this->ci->db->where('surveys.published',1);
-			
-			if ($repository!='')
-			{
-				$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
-			}
-
-			//multi-sort
-			foreach($sort_options as $sort)
-			{
-				$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
-			}
-
-			$this->ci->db->limit($limit,$offset);
-			
-			if ($where!='') 
-			{
-				$this->ci->db->where($where);
-			}
-		
-			$query=$this->ci->db->get();
+			$this->ci->db->order_by($sort['sort_by'],$sort['sort_order']);
 		}
+
+		$this->ci->db->limit($limit,$offset);
+
+		if ($where!='')
+		{
+			$this->ci->db->where($where);
+		}
+
+		$query=$this->ci->db->get();
 		
 		if ($query)
 		{
@@ -423,26 +379,6 @@ class Catalog_search_sqlsrv{
 		//$result['search_counts_by_type']=array();
 		$result['search_counts_by_type']=$this->search_counts_by_type();
 		
-		if ($result['found']>0){
-			//search for variables for SURVEY types
-			$id_list=array_column($this->search_result, "id");
-
-			if(count($id_list)>0){
-				//search variables and get the counts
-				$variables_by_study=$this->search_variable_counts($id_list,$this->study_keywords);
-				if(!empty($variables_by_study)){
-					foreach($this->search_result as $idx=>$row)
-					{
-						if(array_key_exists($row['id'],$variables_by_study)){
-							$this->search_result[$idx]['var_found']=$variables_by_study[$row['id']]['var_found'];
-						}
-					}
-				}
-			}
-
-			$result['rows']=$this->search_result;
-		}
-
 		return $result;
 	}
 
@@ -1029,8 +965,9 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->select("count(*) as rowcount", FALSE);
 		$this->ci->db->where($where);
 		$this->ci->db->where('v.sid', $surveyid);
-		$count_row = $this->ci->db->get("variables as v")->row_array();
-		$found     = (int)($count_row['rowcount'] ?? 0);
+		$count_query = $this->ci->db->get("variables as v");
+		$count_row   = $count_query ? $count_query->row_array() : [];
+		$found       = (int)($count_row['rowcount'] ?? 0);
 
 		$this->ci->db->where('sid', $surveyid);
 		$total = $this->ci->db->count_all_results('variables');
