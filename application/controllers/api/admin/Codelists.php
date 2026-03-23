@@ -284,6 +284,9 @@ class Codelists extends MY_REST_Controller {
 		}
 	}
 
+	/** POST /api/admin/codelists/item_delete/{id} — POST alias for DELETE */
+	public function item_delete_post($id) { return $this->item_delete($id); }
+
 	/**
 	 * DELETE /api/admin/codelists/item/{id}
 	 */
@@ -395,6 +398,9 @@ class Codelists extends MY_REST_Controller {
 		}
 	}
 
+	/** POST /api/admin/codelists/items_delete/{item_id} — POST alias for DELETE */
+	public function items_delete_post($item_id) { return $this->items_delete($item_id); }
+
 	/**
 	 * DELETE /api/admin/codelists/items/{item_id}
 	 */
@@ -463,6 +469,9 @@ class Codelists extends MY_REST_Controller {
 			], $code);
 		}
 	}
+
+	/** POST /api/admin/codelists/items_translation_delete/{item_id}/{lang} — POST alias for DELETE */
+	public function items_translation_delete_post($item_id, $lang) { return $this->items_translation_delete($item_id, $lang); }
 
 	/**
 	 * DELETE /api/admin/codelists/items_translation/{item_id}/{lang}
@@ -574,6 +583,9 @@ class Codelists extends MY_REST_Controller {
 		}
 	}
 
+	/** POST /api/admin/codelists/groups_delete/{group_id} — POST alias for DELETE */
+	public function groups_delete_post($group_id) { return $this->groups_delete($group_id); }
+
 	/**
 	 * DELETE /api/admin/codelists/groups/{group_id}
 	 */
@@ -618,6 +630,9 @@ class Codelists extends MY_REST_Controller {
 			], REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+	/** POST /api/admin/codelists/groups_items_remove_delete/{group_id}/{item_id} — POST alias for DELETE */
+	public function groups_items_remove_delete_post($group_id, $item_id) { return $this->groups_items_remove_delete($group_id, $item_id); }
 
 	/**
 	 * DELETE /api/admin/codelists/groups_items_remove/{group_id}/{item_id}
@@ -686,6 +701,9 @@ class Codelists extends MY_REST_Controller {
 			], $code);
 		}
 	}
+
+	/** POST /api/admin/codelists/groups_translation_delete/{group_id}/{lang} — POST alias for DELETE */
+	public function groups_translation_delete_post($group_id, $lang) { return $this->groups_translation_delete($group_id, $lang); }
 
 	/**
 	 * DELETE /api/admin/codelists/groups_translation/{group_id}/{lang}

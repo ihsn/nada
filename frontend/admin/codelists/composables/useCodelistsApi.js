@@ -56,7 +56,7 @@ export function useCodelistsApi() {
 
   async function deleteCodelist(id) {
     if (id == null) throw new Error('id required');
-    const { data } = await axios.delete(`${base()}/item/${encodeURIComponent(id)}`);
+    const { data } = await axios.post(`${base()}/item_delete/${encodeURIComponent(id)}`);
     if (data.status !== 'success') throw new Error(data.message || 'Delete failed');
     return data.result;
   }
@@ -101,7 +101,7 @@ export function useCodelistsApi() {
 
   async function deleteItem(itemId) {
     if (itemId == null) throw new Error('item id required');
-    const { data } = await axios.delete(`${base()}/items/${encodeURIComponent(itemId)}`);
+    const { data } = await axios.post(`${base()}/items_delete/${encodeURIComponent(itemId)}`);
     if (data.status !== 'success') throw new Error(data.message || 'Delete item failed');
     return data.result;
   }
@@ -119,8 +119,8 @@ export function useCodelistsApi() {
 
   async function deleteItemTranslation(itemId, lang) {
     if (itemId == null || !lang) throw new Error('item id and lang required');
-    const { data } = await axios.delete(
-      `${base()}/items_translation/${encodeURIComponent(itemId)}/${encodeURIComponent(lang)}`
+    const { data } = await axios.post(
+      `${base()}/items_translation_delete/${encodeURIComponent(itemId)}/${encodeURIComponent(lang)}`
     );
     if (data.status !== 'success') throw new Error(data.message || 'Delete translation failed');
     return data.result;
@@ -157,7 +157,7 @@ export function useCodelistsApi() {
 
   async function deleteGroup(groupId) {
     if (groupId == null) throw new Error('group id required');
-    const { data } = await axios.delete(`${base()}/groups/${encodeURIComponent(groupId)}`);
+    const { data } = await axios.post(`${base()}/groups_delete/${encodeURIComponent(groupId)}`);
     if (data.status !== 'success') throw new Error(data.message || 'Delete group failed');
     return data.result;
   }
@@ -175,8 +175,8 @@ export function useCodelistsApi() {
 
   async function removeGroupItem(groupId, codelistItemId) {
     if (groupId == null || codelistItemId == null) throw new Error('group id and item id required');
-    const { data } = await axios.delete(
-      `${base()}/groups_items_remove/${encodeURIComponent(groupId)}/${encodeURIComponent(codelistItemId)}`
+    const { data } = await axios.post(
+      `${base()}/groups_items_remove_delete/${encodeURIComponent(groupId)}/${encodeURIComponent(codelistItemId)}`
     );
     if (data.status !== 'success') throw new Error(data.message || 'Remove item from group failed');
     return data.result;
@@ -195,8 +195,8 @@ export function useCodelistsApi() {
 
   async function deleteGroupTranslation(groupId, lang) {
     if (groupId == null || !lang) throw new Error('group id and lang required');
-    const { data } = await axios.delete(
-      `${base()}/groups_translation/${encodeURIComponent(groupId)}/${encodeURIComponent(lang)}`
+    const { data } = await axios.post(
+      `${base()}/groups_translation_delete/${encodeURIComponent(groupId)}/${encodeURIComponent(lang)}`
     );
     if (data.status !== 'success') throw new Error(data.message || 'Delete group translation failed');
     return data.result;
