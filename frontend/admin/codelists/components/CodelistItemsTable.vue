@@ -21,6 +21,14 @@
         <template #item.code="{ item }">
           <code>{{ item.code }}</code>
         </template>
+        <template #item.sort_order="{ item }">
+          <input
+            type="number"
+            :value="item.sort_order ?? ''"
+            class="sort-input"
+            @change="emit('update-item-sort', { itemId: item.id, sort_order: $event.target.value === '' ? null : Number($event.target.value) })"
+          />
+        </template>
         <template #item.translations="{ item }">
           <div class="text-body-2 d-flex flex-column flex-wrap gap-1">
             <template v-for="(title, lang) in (item.translations || {})" :key="lang">
@@ -78,7 +86,7 @@ const props = defineProps({
   enabledLanguages: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(['delete-item', 'item-form-saved', 'add-translation', 'remove-translation']);
+const emit = defineEmits(['delete-item', 'item-form-saved', 'add-translation', 'remove-translation', 'update-item-sort']);
 
 const translationsDialog = reactive({ show: false, itemId: null });
 const translationsDialogItem = computed(() =>
@@ -123,3 +131,19 @@ function openTranslations(item) {
 
 defineExpose({ openCreateItem, openEditItem, openTranslations });
 </script>
+
+<style scoped>
+.sort-input {
+  margin-top: 2px;
+  width: 60px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  text-align: right;
+  font-size: 0.875rem;
+}
+.sort-input:focus {
+  outline: none;
+  border-color: rgba(var(--v-theme-primary), 0.8);
+}
+</style>

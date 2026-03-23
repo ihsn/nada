@@ -107,7 +107,7 @@ $route['api/catalog/(:any)/variable/(.*)'] = "api/catalog/variable/$1/$2";
 
 
 //Collections
-$route['api/collections/(:any)/datasets'] = "api/collections/datasets/$1";
+$route['api/admin/collections/(:any)/datasets'] = "api/admin/collections/datasets/$1";
 
 //Tables API - fields endpoints (new format: /api/tables/fields/{db_id}/{table_id})
 $route['api/tables/fields/(:any)/(:any)/sync'] = "api/tables/fields_sync/$1/$2";
@@ -222,12 +222,8 @@ $route['api/db_logs/api_logs/files']         = "api/db_logs/api_logs_files";
 // Dashboard API
 $route['api/dashboard/stats'] = "api/dashboard/stats";
 
-// Admin Dctypes API (must be before generic api/admin/dctypes/(:num))
-$route['api/admin/dctypes/(:num)/translations/(:any)'] = 'api/admin/dctypes/translation/$1/$2';
-$route['api/admin/dctypes/(:num)/translations']        = 'api/admin/dctypes/translations/$1';
-$route['api/admin/dctypes/(:num)']                    = 'api/admin/dctypes/item/$1';
-
 // Admin Codelists API (nested routes first)
+$route['api/admin/codelists/item/(:num)/restore']         = 'api/admin/codelists/item_restore/$1';
 $route['api/admin/codelists/item/(:num)/items']           = 'api/admin/codelists/item_items/$1';
 $route['api/admin/codelists/item/(:num)/groups']          = 'api/admin/codelists/item_groups/$1';
 $route['api/admin/codelists/items/(:num)/translations/(:any)'] = 'api/admin/codelists/items_translation/$1/$2';

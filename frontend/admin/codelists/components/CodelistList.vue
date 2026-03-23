@@ -11,6 +11,9 @@
           class="elevation-0"
           hide-default-footer
         >
+          <template #item.name="{ item }">
+            <a href="#" class="text-primary text-decoration-none font-weight-medium" @click.prevent="$emit('manage', item)">{{ item.name }}</a>
+          </template>
           <template #item.item_count="{ item }">
             {{ item.item_count ?? '—' }}
           </template>

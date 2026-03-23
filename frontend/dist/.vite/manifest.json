@@ -1,12 +1,69 @@
 {
-  "_VMain-B4voAa0Z.js": {
-    "file": "assets/VMain-B4voAa0Z.js",
-    "name": "VMain",
+  "_VAlert-CNomqSZP.js": {
+    "file": "assets/VAlert-CNomqSZP.js",
+    "name": "VAlert",
     "imports": [
-      "__plugin-vue_export-helper-Cb7nWlAb.js"
+      "_VMain-DsAlTgYQ.js",
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js"
     ],
     "css": [
-      "assets/VMain-CIv52OBw.css"
+      "assets/VAlert-CnoZxwNu.css"
+    ]
+  },
+  "_VAlert-CnoZxwNu.css": {
+    "file": "assets/VAlert-CnoZxwNu.css",
+    "src": "_VAlert-CnoZxwNu.css"
+  },
+  "_VCheckbox-B5ArcKiY.js": {
+    "file": "assets/VCheckbox-B5ArcKiY.js",
+    "name": "VCheckbox",
+    "imports": [
+      "_VMain-DsAlTgYQ.js",
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js"
+    ],
+    "css": [
+      "assets/VCheckbox-DXrFno_w.css"
+    ]
+  },
+  "_VCheckbox-DXrFno_w.css": {
+    "file": "assets/VCheckbox-DXrFno_w.css",
+    "src": "_VCheckbox-DXrFno_w.css"
+  },
+  "_VDialog-CvlBvlKA.css": {
+    "file": "assets/VDialog-CvlBvlKA.css",
+    "src": "_VDialog-CvlBvlKA.css"
+  },
+  "_VDialog-Dpb2jkyq.js": {
+    "file": "assets/VDialog-Dpb2jkyq.js",
+    "name": "VDialog",
+    "imports": [
+      "_VMain-DsAlTgYQ.js",
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js"
+    ],
+    "css": [
+      "assets/VDialog-CvlBvlKA.css"
+    ]
+  },
+  "_VForm-j-xJK8xE.js": {
+    "file": "assets/VForm-j-xJK8xE.js",
+    "name": "VForm",
+    "imports": [
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js",
+      "_VMain-DsAlTgYQ.js"
+    ]
+  },
+  "_VMain-C0K3cFsZ.css": {
+    "file": "assets/VMain-C0K3cFsZ.css",
+    "src": "_VMain-C0K3cFsZ.css"
+  },
+  "_VMain-DsAlTgYQ.js": {
+    "file": "assets/VMain-DsAlTgYQ.js",
+    "name": "VMain",
+    "imports": [
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js"
+    ],
+    "css": [
+      "assets/VMain-C0K3cFsZ.css"
     ],
     "assets": [
       "assets/materialdesignicons-webfont-CSr8KVlo.eot",
@@ -15,59 +72,122 @@
       "assets/materialdesignicons-webfont-B7mPwVP_.ttf"
     ]
   },
-  "_VMain-CIv52OBw.css": {
-    "file": "assets/VMain-CIv52OBw.css",
-    "src": "_VMain-CIv52OBw.css"
+  "_VRow-5T8_x58P.css": {
+    "file": "assets/VRow-5T8_x58P.css",
+    "src": "_VRow-5T8_x58P.css"
   },
-  "__plugin-vue_export-helper-Cb7nWlAb.js": {
-    "file": "assets/_plugin-vue_export-helper-Cb7nWlAb.js",
+  "_VRow-Ceb1hjZX.js": {
+    "file": "assets/VRow-Ceb1hjZX.js",
+    "name": "VRow",
+    "imports": [
+      "_VMain-DsAlTgYQ.js",
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js"
+    ],
+    "css": [
+      "assets/VRow-5T8_x58P.css"
+    ]
+  },
+  "_VSwitch-Bx-3PVYa.js": {
+    "file": "assets/VSwitch-Bx-3PVYa.js",
+    "name": "VSwitch",
+    "imports": [
+      "_VMain-DsAlTgYQ.js",
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js"
+    ],
+    "css": [
+      "assets/VSwitch-CaOOdN36.css"
+    ]
+  },
+  "_VSwitch-CaOOdN36.css": {
+    "file": "assets/VSwitch-CaOOdN36.css",
+    "src": "_VSwitch-CaOOdN36.css"
+  },
+  "__plugin-vue_export-helper-DlAUqK2U.js": {
+    "file": "assets/_plugin-vue_export-helper-DlAUqK2U.js",
     "name": "_plugin-vue_export-helper"
   },
+  "_runtime-dom.esm-bundler-Dxh4vfqJ.js": {
+    "file": "assets/runtime-dom.esm-bundler-Dxh4vfqJ.js",
+    "name": "runtime-dom.esm-bundler"
+  },
   "admin/catalog/main.js": {
-    "file": "assets/admin_catalog-D229q5r4.js",
+    "file": "assets/admin_catalog-CAmJ6UEd.js",
     "name": "admin_catalog",
     "src": "admin/catalog/main.js",
     "isEntry": true,
     "imports": [
-      "_VMain-B4voAa0Z.js",
-      "__plugin-vue_export-helper-Cb7nWlAb.js"
+      "_VMain-DsAlTgYQ.js",
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js",
+      "_VRow-Ceb1hjZX.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_VCheckbox-B5ArcKiY.js",
+      "_VSwitch-Bx-3PVYa.js",
+      "_VDialog-Dpb2jkyq.js"
     ],
     "css": [
-      "assets/admin_catalog-ELXdHVrr.css"
+      "assets/admin_catalog-BsHpnLR2.css"
+    ]
+  },
+  "admin/codelists/main.js": {
+    "file": "assets/admin_codelists-pm2CJhrm.js",
+    "name": "admin_codelists",
+    "src": "admin/codelists/main.js",
+    "isEntry": true,
+    "imports": [
+      "_VMain-DsAlTgYQ.js",
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js",
+      "_VAlert-CNomqSZP.js",
+      "_VForm-j-xJK8xE.js",
+      "_VDialog-Dpb2jkyq.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_VCheckbox-B5ArcKiY.js"
+    ],
+    "css": [
+      "assets/admin_codelists-CrcdqRtT.css"
     ]
   },
   "admin/collections/main.js": {
-    "file": "assets/admin_collections-bP3I9koT.js",
+    "file": "assets/admin_collections-m1KvQuM4.js",
     "name": "admin_collections",
     "src": "admin/collections/main.js",
     "isEntry": true,
     "imports": [
-      "__plugin-vue_export-helper-Cb7nWlAb.js"
+      "_VMain-DsAlTgYQ.js",
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js",
+      "_VForm-j-xJK8xE.js",
+      "_VRow-Ceb1hjZX.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_VSwitch-Bx-3PVYa.js",
+      "_VAlert-CNomqSZP.js",
+      "_VDialog-Dpb2jkyq.js"
     ],
     "css": [
-      "assets/admin_collections-tn0RQdqM.css"
+      "assets/admin_collections-Bu7BNu9O.css"
     ]
   },
-  "admin/dctypes/main.js": {
-    "file": "assets/admin_dctypes-Dk0Y1sPM.js",
-    "name": "admin_dctypes",
-    "src": "admin/dctypes/main.js",
+  "admin/dashboard/main.js": {
+    "file": "assets/admin_dashboard-o0pfbNF7.js",
+    "name": "admin_dashboard",
+    "src": "admin/dashboard/main.js",
     "isEntry": true,
     "imports": [
-      "_VMain-B4voAa0Z.js",
-      "__plugin-vue_export-helper-Cb7nWlAb.js"
+      "_VMain-DsAlTgYQ.js",
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js",
+      "_VRow-Ceb1hjZX.js",
+      "_VAlert-CNomqSZP.js"
     ],
     "css": [
-      "assets/admin_dctypes-BKUmQQkA.css"
+      "assets/admin_dashboard-DF9PIwRR.css"
     ]
   },
   "admin/test/main.js": {
-    "file": "assets/admin_test-B_mu6BFE.js",
+    "file": "assets/admin_test-WBFkNAZm.js",
     "name": "admin_test",
     "src": "admin/test/main.js",
     "isEntry": true,
     "imports": [
-      "__plugin-vue_export-helper-Cb7nWlAb.js"
+      "_runtime-dom.esm-bundler-Dxh4vfqJ.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
     ]
   },
   "node_modules/@mdi/font/fonts/materialdesignicons-webfont.eot": {

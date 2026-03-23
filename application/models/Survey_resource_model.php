@@ -38,7 +38,8 @@ class Survey_resource_model extends CI_Model {
 		'metadata'
 	);
 
-	private $dctype_groups=array();
+	private $dctype_groups = array();
+	private $dctype_group_translations = array();
 	
 			
     public function __construct()
@@ -46,17 +47,38 @@ class Survey_resource_model extends CI_Model {
 		parent::__construct();
 		$this->load->model("Dataset_model");
 		$this->load->model("Catalog_model");
-		$this->load->config("external_resources");
+		$this->load->model("Dctype_model");
 		$this->load->helper('hash');
 
-		$this->dctype_groups=$this->config->item("dctype_groups","external_resources");
+		$this->dctype_groups             = $this->Dctype_model->get_groups();
+		$this->dctype_group_translations = $this->Dctype_model->get_group_translations();
 		//$this->output->enable_profiler(TRUE);
     }
 	
 
 	/**
+	 * Get resolved group labels for a given language code.
+	 * Falls back to English translation, then null (caller should use t($key)).
+	 *
+	 * @param string $lang_code ISO 639-1 code e.g. 'en', 'fr'
+	 * @return array [ group_name => title ]
+	 */
+	public function get_group_labels($lang_code = 'en')
+	{
+		$labels = array();
+		foreach ($this->dctype_group_translations as $group_name => $translations) {
+			if (!empty($translations[$lang_code])) {
+				$labels[$group_name] = $translations[$lang_code];
+			} elseif (!empty($translations['en'])) {
+				$labels[$group_name] = $translations['en'];
+			}
+		}
+		return $labels;
+	}
+
+	/**
 	 * Prepare and validate resource data for insert or update
-	 * 
+	 *
 	 * @param array $options - raw input data
 	 * @param bool $is_insert - true for insert, false for update
 	 * @param int $resource_id - resource ID (for update operations only)
@@ -374,13 +396,13 @@ class Survey_resource_model extends CI_Model {
 	**/
 	function get_dc_types()
 	{
-		$result= $this->db->get('dctypes')->result_array();
-
-		$list=array();
-		foreach($result as $row){
-			$list[$row['title']]=$row['title'];
+		$this->load->model('Dctype_model');
+		$lang = ci_lang_to_iso();
+		$flat = $this->Dctype_model->get_flat_for_lang($lang);
+		$list = array();
+		foreach ($flat as $code => $title) {
+			$list[$code] = $title . ' [' . $code . ']';
 		}
-		
 		return $list;
 	}
 	
@@ -1655,9 +1677,9 @@ class Survey_resource_model extends CI_Model {
 
 		// Extract code from string if in format "Label [code]"
 		$code = $this->get_dctype_code_from_string($dctype);
-		
-		// Return the extracted code (empty string if no brackets found)
-		return !empty($code) ? $code : null;
+
+		// No brackets found — treat the whole value as a bare code (e.g., "doc/qst")
+		return !empty($code) ? $code : $dctype;
 	}
 
 

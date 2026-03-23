@@ -1,0 +1,44 @@
+{
+  "name": "dctypes",
+  "description": "Resource document types",
+  "items": [
+    { "code": "doc/adm", "title": "Document, Administrative",  "sort_order": 10 },
+    { "code": "doc/anl", "title": "Document, Analytical",      "sort_order": 20 },
+    { "code": "doc/qst", "title": "Document, Questionnaire",   "sort_order": 30 },
+    { "code": "doc/ref", "title": "Document, Reference",       "sort_order": 40 },
+    { "code": "doc/rep", "title": "Document, Report",          "sort_order": 50 },
+    { "code": "doc/tec", "title": "Document, Technical",       "sort_order": 60 },
+    { "code": "doc/oth", "title": "Document, Other",           "sort_order": 70 },
+    { "code": "dat",     "title": "Database",                  "sort_order": 80 },
+    { "code": "dat/micro","title": "Microdata",                "sort_order": 90 },
+    { "code": "map",     "title": "Map",                       "sort_order": 100 },
+    { "code": "prg",     "title": "Program / script",          "sort_order": 110 },
+    { "code": "tbl",     "title": "Table",                     "sort_order": 120 },
+    { "code": "pic",     "title": "Photo / image",             "sort_order": 130 },
+    { "code": "vid",     "title": "Video",                     "sort_order": 140 },
+    { "code": "aud",     "title": "Audio",                     "sort_order": 150 },
+    { "code": "web",     "title": "Web Site",                  "sort_order": 160 }    
+  ],
+  "groups": [
+    {
+      "name": "technical",
+      "sort_order": 10,
+      "item_codes": ["doc/tec"]
+    },
+    {
+      "name": "reports",
+      "sort_order": 20,
+      "item_codes": ["doc/rep", "doc/anl", "doc/ref", "doc/adm"]
+    },
+    {
+      "name": "questionnaires",
+      "sort_order": 30,
+      "item_codes": ["doc/qst"]
+    },
+    {
+      "name": "other",
+      "sort_order": 40,
+      "item_codes": ["doc/oth", "dat", "map", "prg", "tbl", "pic", "vid", "aud", "web"]
+    }
+  ]
+}

@@ -331,11 +331,20 @@ class Repository_model extends CI_Model {
 	* Returns an array of all repositories
 	*	
 	**/
-	function select_all($published=null)
+	function select_all($published=null, $include_counts=false)
 	{
 		$this->db->flush_cache();
-		$this->db->select('*');
-		$this->db->order_by('title', 'ASC'); 
+
+		if ($include_counts) {
+			$this->db->select('repositories.*, repository_sections.title as section_title, COUNT(survey_repos.sid) as study_count');
+			$this->db->join('survey_repos', 'survey_repos.repositoryid = repositories.repositoryid', 'left');
+			$this->db->group_by('repositories.id');
+		} else {
+			$this->db->select('repositories.*, repository_sections.title as section_title');
+		}
+
+		$this->db->join('repository_sections', 'repository_sections.id = repositories.section', 'left');
+		$this->db->order_by('title', 'ASC');
 
 		if($published!==null){
 			$this->db->where('ispublished',$published);
@@ -620,18 +629,33 @@ class Repository_model extends CI_Model {
 	*
 	*	@data_access_types	array	public, licensed, etc.
 	**/
-	public function repo_survey_list($repositoryid,$data_access_types=NULL)
+	public function repo_survey_list($repositoryid, $data_access_types=NULL, $limit=NULL, $offset=NULL)
 	{
 		$this->db->select('surveys.id,surveys.title,surveys.nation,surveys.year_start,surveys.year_end,forms.model as da_model,surveys.created,surveys.changed');
 		$this->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
 		$this->db->join('forms', 'surveys.formid = forms.formid','left');
 		$this->db->where('survey_repos.repositoryid',$repositoryid);
-		if ($data_access_types)
-		{
+		if ($data_access_types){
 			$this->db->where_in('forms.model',$data_access_types);
 		}
-		$this->db->where('surveys.published',1);		
+		$this->db->where('surveys.published',1);
+		$this->db->order_by('surveys.title','ASC');
+		if ($limit !== NULL){
+			$this->db->limit($limit, $offset ?: 0);
+		}
 		return $this->db->get('surveys')->result_array();
+	}
+
+	public function repo_survey_count($repositoryid, $data_access_types=NULL)
+	{
+		$this->db->join('survey_repos', 'surveys.id = survey_repos.sid','inner');
+		$this->db->join('forms', 'surveys.formid = forms.formid','left');
+		$this->db->where('survey_repos.repositoryid',$repositoryid);
+		if ($data_access_types){
+			$this->db->where_in('forms.model',$data_access_types);
+		}
+		$this->db->where('surveys.published',1);
+		return $this->db->count_all_results('surveys');
 	}
 	
 	

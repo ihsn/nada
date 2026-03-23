@@ -288,14 +288,12 @@ class DD_resource_model extends CI_Model {
 	*
 	**/
 	function get_dc_types(){
-		$result= $this->db->get('dctypes')->result_array();
-
-		$list=array();
-		foreach($result as $row)
-		{
-			$list[$row['title']]=$row['title'];
+		$this->load->model('Dctype_model');
+		$flat = $this->Dctype_model->get_flat();
+		$list = array();
+		foreach ($flat as $title) {
+			$list[$title] = $title;
 		}
-		
 		return $list;
 	}
 	

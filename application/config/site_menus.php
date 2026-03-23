@@ -178,10 +178,6 @@ $menu[]=array(
 		'type'	=>'divider'
 	),
 	array(
-		'title'	=>'External resource types',
-		'url'	=>'admin/dctypes'
-	),
-	array(
 		'title'	=>'Codelists',
 		'url'	=>'admin/codelists'
 	),

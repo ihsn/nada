@@ -61,6 +61,15 @@ export function useCodelistsApi() {
     return data.result;
   }
 
+  async function restoreCodelist(id) {
+    if (id == null) throw new Error('id required');
+    const { data } = await axios.post(`${base()}/item/${encodeURIComponent(id)}/restore`, {}, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (data.status !== 'success') throw new Error(data.message || 'Restore failed');
+    return data.result?.codelist;
+  }
+
   async function fetchItems(codelistId) {
     if (codelistId == null) return [];
     const { data } = await axios.get(`${base()}/item_items/${encodeURIComponent(codelistId)}`);
@@ -215,5 +224,6 @@ export function useCodelistsApi() {
     removeGroupItem,
     saveGroupTranslation,
     deleteGroupTranslation,
+    restoreCodelist,
   };
 }

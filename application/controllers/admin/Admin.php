@@ -13,7 +13,14 @@ class Admin extends MY_Controller {
 
     function index()
     {
-        $data['title'] = t('Dashboard');
+        $this->load->helper('vite_helper');
+        $data['title']      = t('Dashboard');
+        $data['site_url']   = site_url();
+        $data['base_url']   = base_url();
+        $data['assets_base']= base_url('frontend/dist/');
+        $data['csrf_token'] = $this->security->get_csrf_hash();
+        $data['translations'] = $this->lang->language;
+
         $content = $this->load->view('dashboard/index', $data, TRUE);
         $this->template->write('title', $data['title'], TRUE);
         $this->template->write('content', $content, TRUE);

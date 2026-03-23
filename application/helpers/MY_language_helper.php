@@ -91,5 +91,39 @@ if ( ! function_exists('tt'))
 }
 
 // ------------------------------------------------------------------------
+
+/**
+ * ci_lang_to_iso
+ *
+ * Converts a CodeIgniter language folder name (e.g. 'english', 'french')
+ * to an ISO 639-1 code (e.g. 'en', 'fr') using the iso_languages config.
+ * Falls back to 'en' if no match is found.
+ *
+ * @param  string $ci_lang  CI language name (lowercase), defaults to config 'language'
+ * @return string           ISO 639-1 code
+ */
+if ( ! function_exists('ci_lang_to_iso'))
+{
+    function ci_lang_to_iso($ci_lang = null)
+    {
+        $CI =& get_instance();
+        if ($ci_lang === null) {
+            $ci_lang = $CI->config->item('language') ?: 'english';
+        }
+        $ci_lang = strtolower($ci_lang);
+        $CI->config->load('iso_languages', true);
+        $iso_langs = $CI->config->item('iso_languages', 'iso_languages');
+        if (is_array($iso_langs)) {
+            foreach ($iso_langs as $code => $info) {
+                if (strtolower($info['name']) === $ci_lang) {
+                    return $code;
+                }
+            }
+        }
+        return 'en';
+    }
+}
+
+// ------------------------------------------------------------------------
 /* End of file language_helper.php */
 /* Location: ./system/helpers/language_helper.php */

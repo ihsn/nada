@@ -375,7 +375,11 @@ class Resources extends MY_Controller {
 			{
 				//load values from db
 				$data=$this->Survey_resource_model->select_single($id);
-			}	
+				// Normalize dctype to bare code so the dropdown pre-selects correctly
+				if (!empty($data['dctype'])) {
+					$data['dctype'] = $this->Survey_resource_model->get_resource_type_from_dctype($data['dctype']);
+				}
+			}
 		}
 				
 		if (is_numeric($id))

@@ -283,6 +283,7 @@ class Study extends MY_Controller {
 		$user=$this->ion_auth->current_user();
 		$options['user_id']=isset($user->id) ? $user->id : false;
         $options['resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid);
+        $options['group_labels'] = $this->Survey_resource_model->get_group_labels(ci_lang_to_iso());
         $options['sid']=$sid;
         $options['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
 		$microdata_resources=$this->Survey_resource_model->get_microdata_resources($sid);

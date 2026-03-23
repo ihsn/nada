@@ -3,7 +3,18 @@
     <v-btn variant="text" prepend-icon="mdi-arrow-left" class="pa-0 mb-3" @click="emit('back')">
       Back to codelists
     </v-btn>
-    <h2 class="text-h6 mb-3">{{ codelist?.name }}</h2>
+    <div class="d-flex align-center mb-3">
+      <h2 class="text-h6 flex-grow-1">{{ codelist?.name }}</h2>
+      <v-btn
+        v-if="codelist?.has_defaults"
+        variant="outlined"
+        size="small"
+        prepend-icon="mdi-restore"
+        @click="restoreDialog.show = true"
+      >
+        Restore defaults
+      </v-btn>
+    </div>
     <p v-if="codelist?.description" class="text-body-2 text-medium-emphasis mb-4">
       {{ codelist.description }}
     </p>
@@ -24,6 +35,7 @@
           @item-form-saved="onItemFormSaved"
           @add-translation="onAddTranslation"
           @remove-translation="onRemoveTranslation"
+          @update-item-sort="onUpdateItemSort"
         />
       </v-window-item>
       <v-window-item value="groups">
@@ -38,6 +50,7 @@
           @remove-group-item="onRemoveGroupItem"
           @add-group-translation="onAddGroupTranslation"
           @remove-group-translation="onRemoveGroupTranslation"
+          @update-group-sort="onUpdateGroupSort"
         />
       </v-window-item>
     </v-window>
@@ -53,6 +66,22 @@
           <v-spacer />
           <v-btn variant="text" @click="deleteItemDialog.show = false">Cancel</v-btn>
           <v-btn color="error" :loading="deleteItemDialog.saving" @click="doDeleteItem">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Restore defaults confirm -->
+    <v-dialog v-model="restoreDialog.show" max-width="440" persistent>
+      <v-card>
+        <v-card-title>Restore defaults?</v-card-title>
+        <v-card-text>
+          This will reset all items and groups for <strong>{{ codelist?.name }}</strong> to the built-in defaults.
+          Existing translations will be preserved. This cannot be undone.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="restoreDialog.show = false">Cancel</v-btn>
+          <v-btn color="warning" :loading="restoreDialog.saving" @click="doRestore">Restore</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -107,10 +136,12 @@ const {
   removeGroupItem,
   saveGroupTranslation,
   deleteGroupTranslation,
+  restoreCodelist,
 } = useCodelistsApi();
 
 const deleteItemDialog = reactive({ show: false, saving: false, item: null });
 const deleteGroupDialog = reactive({ show: false, saving: false, group: null });
+const restoreDialog = reactive({ show: false, saving: false });
 
 function confirmDeleteItem(item) {
   deleteItemDialog.item = item;
@@ -129,6 +160,12 @@ async function doDeleteItem() {
   } finally {
     deleteItemDialog.saving = false;
   }
+}
+
+function onUpdateItemSort({ itemId, sort_order }) {
+  updateItem(itemId, { sort_order })
+    .then(() => emit('refresh'))
+    .catch((e) => emit('error', e?.response?.data?.message || e?.message));
 }
 
 function onItemFormSaved(payload) {
@@ -208,5 +245,25 @@ function onRemoveGroupTranslation({ groupId, lang }) {
   deleteGroupTranslation(groupId, lang)
     .then(() => emit('refresh'))
     .catch((e) => emit('error', e?.response?.data?.message || e?.message));
+}
+
+function onUpdateGroupSort({ groupId, sort_order }) {
+  updateGroup(groupId, { sort_order })
+    .then(() => emit('refresh'))
+    .catch((e) => emit('error', e?.response?.data?.message || e?.message));
+}
+
+async function doRestore() {
+  if (!props.codelist?.id) return;
+  restoreDialog.saving = true;
+  try {
+    await restoreCodelist(props.codelist.id);
+    restoreDialog.show = false;
+    emit('refresh');
+  } catch (e) {
+    emit('error', e?.response?.data?.message || e?.message || 'Restore failed');
+  } finally {
+    restoreDialog.saving = false;
+  }
 }
 </script>

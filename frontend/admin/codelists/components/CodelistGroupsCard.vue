@@ -22,7 +22,12 @@
           <strong>{{ grp.name }}</strong>
         </template>
         <template #item.sort_order="{ item: grp }">
-          {{ grp.sort_order ?? '—' }}
+          <input
+            type="number"
+            :value="grp.sort_order ?? ''"
+            class="sort-input"
+            @change="emit('update-group-sort', { groupId: grp.id, sort_order: $event.target.value === '' ? null : Number($event.target.value) })"
+          />
         </template>
         <template #item.translations="{ item: grp }">
           <div class="text-body-2 d-flex flex-column gap-1">
@@ -110,6 +115,7 @@ const emit = defineEmits([
   'remove-group-item',
   'add-group-translation',
   'remove-group-translation',
+  'update-group-sort',
 ]);
 
 const groupForm = reactive({ show: false, group: null });
@@ -182,5 +188,18 @@ defineExpose({ openCreateGroup, openEditGroup, openGroupItems, openGroupTranslat
 .codelist-groups-table :deep(td),
 .codelist-groups-table :deep(th) {
   vertical-align: top;
+}
+.sort-input {
+  margin-top:2px;
+  width: 60px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  text-align: right;
+  font-size: 0.875rem;
+}
+.sort-input:focus {
+  outline: none;
+  border-color: rgba(var(--v-theme-primary), 0.8);
 }
 </style>

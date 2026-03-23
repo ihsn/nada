@@ -74,18 +74,18 @@ class Codelists extends MY_REST_Controller {
 	}
 
 	/**
-	 * GET /api/admin/codelists/item/{id} — one codelist with items and groups (nested).
+	 * GET /api/admin/codelists/by_name/{name} — one codelist by name with items and groups (nested).
 	 */
-	public function item_get($id)
+	public function by_name_get($name)
 	{
 		try {
-			$id = (int) $id;
-			$codelist = $this->Codelist_model->get_codelist_by_id($id);
+			$codelist = $this->Codelist_model->get_codelist_by_name($name);
 			if (!$codelist) {
 				$this->set_response(['status' => 'error', 'message' => 'Not found'], REST_Controller::HTTP_NOT_FOUND);
 				return;
 			}
-			$codelist['items'] = $this->Codelist_item_model->get_items_by_codelist($id, true);
+			$id = (int) $codelist['id'];
+			$codelist['items']  = $this->Codelist_item_model->get_items_by_codelist($id, true);
 			$codelist['groups'] = $this->Codelist_group_model->get_groups_by_codelist($id, true);
 			$this->set_response([
 				'status' => 'success',
@@ -97,6 +97,166 @@ class Codelists extends MY_REST_Controller {
 				'message' => $e->getMessage(),
 			], REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * GET /api/admin/codelists/item/{id} — one codelist with items and groups (nested).
+	 */
+	public function item_get($id)
+	{
+		try {
+			$id = (int) $id;
+			$codelist = $this->Codelist_model->get_codelist_by_id($id);
+			if (!$codelist) {
+				$this->set_response(['status' => 'error', 'message' => 'Not found'], REST_Controller::HTTP_NOT_FOUND);
+				return;
+			}
+			$codelist['items']       = $this->Codelist_item_model->get_items_by_codelist($id, true);
+			$codelist['groups']      = $this->Codelist_group_model->get_groups_by_codelist($id, true);
+			$codelist['has_defaults'] = $this->_seed_path($codelist['name']) !== null;
+			$this->set_response([
+				'status' => 'success',
+				'result' => ['codelist' => $codelist],
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->set_response([
+				'status'  => 'error',
+				'message' => $e->getMessage(),
+			], REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * POST /api/admin/codelists/item_restore/{id} — restore a codelist from its seed file.
+	 * Deletes all existing items and groups, re-inserts from seed, preserves translations.
+	 */
+	public function item_restore_post($id)
+	{
+		try {
+			$id = (int) $id;
+			$codelist = $this->Codelist_model->get_codelist_by_id($id);
+			if (!$codelist) {
+				$this->set_response(['status' => 'error', 'message' => 'Not found'], REST_Controller::HTTP_NOT_FOUND);
+				return;
+			}
+
+			$path = $this->_seed_path($codelist['name']);
+			if (!$path) {
+				$this->set_response(['status' => 'error', 'message' => 'No seed file found for this codelist.'], REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
+
+			$seed = json_decode(file_get_contents($path), true);
+			if (!$seed || !isset($seed['items'])) {
+				$this->set_response(['status' => 'error', 'message' => 'Invalid seed file.'], REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
+
+			// 1. Save existing item translations keyed by code
+			$item_translations = array();
+			$existing_items = $this->Codelist_item_model->get_items_by_codelist($id, true);
+			foreach ($existing_items as $item) {
+				if (!empty($item['translations'])) {
+					$item_translations[$item['code']] = $item['translations'];
+				}
+			}
+
+			// 2. Save existing group translations keyed by group name
+			$group_translations = array();
+			$existing_groups = $this->Codelist_group_model->get_groups_by_codelist($id, true);
+			foreach ($existing_groups as $group) {
+				if (!empty($group['translations'])) {
+					$group_translations[$group['name']] = $group['translations'];
+				}
+			}
+
+			// 3. Delete all groups (cascades group_items and group_translations)
+			$this->db->where('codelist_id', $id)->delete('codelist_group');
+
+			// 4. Delete all items (cascades item_translations)
+			$this->db->where('codelist_id', $id)->delete('codelist_item');
+
+			// 5. Re-insert items and restore translations
+			$code_to_id = array();
+			foreach ($seed['items'] as $item_data) {
+				$this->db->insert('codelist_item', array(
+					'codelist_id' => $id,
+					'code'        => $item_data['code'],
+					'title'       => isset($item_data['title']) ? $item_data['title'] : '',
+					'sort_order'  => isset($item_data['sort_order']) ? (int) $item_data['sort_order'] : 0,
+				));
+				$new_id = $this->db->insert_id();
+				$code_to_id[$item_data['code']] = $new_id;
+
+				if (isset($item_translations[$item_data['code']])) {
+					foreach ($item_translations[$item_data['code']] as $lang => $title) {
+						$this->db->replace('codelist_item_translation', array(
+							'codelist_item_id' => $new_id,
+							'lang'             => $lang,
+							'title'            => $title,
+						));
+					}
+				}
+			}
+
+			// 6. Re-insert groups, link items, restore group translations
+			$groups = isset($seed['groups']) ? $seed['groups'] : array();
+			foreach ($groups as $group_data) {
+				$this->db->insert('codelist_group', array(
+					'codelist_id' => $id,
+					'name'        => $group_data['name'],
+					'sort_order'  => isset($group_data['sort_order']) ? (int) $group_data['sort_order'] : 0,
+				));
+				$group_id = $this->db->insert_id();
+
+				if (!empty($group_data['item_codes'])) {
+					foreach ($group_data['item_codes'] as $code) {
+						if (isset($code_to_id[$code])) {
+							$this->db->insert('codelist_group_item', array(
+								'codelist_group_id' => $group_id,
+								'codelist_item_id'  => $code_to_id[$code],
+								'sort_order'        => 0,
+							));
+						}
+					}
+				}
+
+				if (isset($group_translations[$group_data['name']])) {
+					foreach ($group_translations[$group_data['name']] as $lang => $title) {
+						$this->db->replace('codelist_group_translation', array(
+							'codelist_group_id' => $group_id,
+							'lang'              => $lang,
+							'title'             => $title,
+						));
+					}
+				}
+			}
+
+			$codelist                 = $this->Codelist_model->get_codelist_by_id($id);
+			$codelist['items']        = $this->Codelist_item_model->get_items_by_codelist($id, true);
+			$codelist['groups']       = $this->Codelist_group_model->get_groups_by_codelist($id, true);
+			$codelist['has_defaults'] = true;
+
+			$this->set_response([
+				'status' => 'success',
+				'result' => ['codelist' => $codelist],
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->set_response([
+				'status'  => 'error',
+				'message' => $e->getMessage(),
+			], REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Returns the absolute path to the seed file for $name, or null if none exists.
+	 */
+	private function _seed_path($name)
+	{
+		$name = preg_replace('/[^a-zA-Z0-9_-]/', '', $name);
+		$path = APPPATH . 'data/codelists/' . $name . '.json';
+		return file_exists($path) ? $path : null;
 	}
 
 	/**
