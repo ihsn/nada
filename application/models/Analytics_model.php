@@ -580,10 +580,10 @@ class Analytics_model extends CI_Model {
 			} else {
 				// SQL Server: Use FULL OUTER JOIN
 				$sql = "
-					SELECT 
-						COALESCE(legacy.study_id, current.study_id) as study_id,
-						COALESCE(legacy.pageviews, 0) + COALESCE(current.pageviews, 0) as pageviews,
-						COALESCE(legacy.downloads, 0) + COALESCE(current.downloads, 0) as downloads
+					SELECT
+						COALESCE(legacy.study_id, curr.study_id) as study_id,
+						COALESCE(legacy.pageviews, 0) + COALESCE(curr.pageviews, 0) as pageviews,
+						COALESCE(legacy.downloads, 0) + COALESCE(curr.downloads, 0) as downloads
 					FROM (
 						SELECT study_id, pageviews, downloads
 						FROM analytics_monthly_studies
@@ -608,7 +608,7 @@ class Analytics_model extends CI_Model {
 				}
 				$sql .= "
 						GROUP BY study_id
-					) current ON legacy.study_id = current.study_id
+					) curr ON legacy.study_id = curr.study_id
 				";
 			}
 			

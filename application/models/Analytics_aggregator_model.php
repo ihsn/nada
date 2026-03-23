@@ -308,11 +308,19 @@ class Analytics_aggregator_model extends CI_Model {
 		$ts_start = $date . ' 00:00:00';
 		$ts_end   = date('Y-m-d', strtotime($date . ' +1 day')) . ' 00:00:00';
 
-		$total_files_query = $this->db->query("
-			SELECT COUNT(DISTINCT CONCAT(study_id, '|', file_name)) as total
-			FROM analytics_download_events
-			WHERE ts >= ? AND ts < ?
-		", array($ts_start, $ts_end));
+		if ($this->db->dbdriver === 'sqlsrv') {
+			$total_files_query = $this->db->query("
+				SELECT COUNT(DISTINCT CAST(study_id AS NVARCHAR(50)) + '|' + file_name) as total
+				FROM analytics_download_events
+				WHERE ts >= ? AND ts < ?
+			", array($ts_start, $ts_end));
+		} else {
+			$total_files_query = $this->db->query("
+				SELECT COUNT(DISTINCT CONCAT(study_id, '|', file_name)) as total
+				FROM analytics_download_events
+				WHERE ts >= ? AND ts < ?
+			", array($ts_start, $ts_end));
+		}
 
 		$total_files = 0;
 		if ($total_files_query && $total_files_query->num_rows() > 0) {
