@@ -41,7 +41,9 @@ class Codelist_model extends CI_Model {
 	 */
 	public function get_codelist_by_id($id)
 	{
-		$row = $this->db->get_where('codelists', ['id' => (int) $id])->row_array();
+		$result = $this->db->get_where('codelists', ['id' => (int) $id]);
+		if (!$result) { return null; }
+		$row = $result->row_array();
 		return $row ?: null;
 	}
 
@@ -53,7 +55,9 @@ class Codelist_model extends CI_Model {
 	 */
 	public function get_codelist_by_name($name)
 	{
-		$row = $this->db->get_where('codelists', ['name' => $name])->row_array();
+		$result = $this->db->get_where('codelists', ['name' => $name]);
+		if (!$result) { return null; }
+		$row = $result->row_array();
 		return $row ?: null;
 	}
 
