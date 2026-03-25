@@ -162,6 +162,8 @@ class Catalog extends MY_REST_Controller
 			'study_keywords'	=> $search_options->sk,
 			'countries'			=> $search_options->country,
 			'topics'			=> $search_options->topic,
+			'regions'			=> $this->_parse_search_ids_param($this->input->get('region')),
+			'data_class'		=> $this->_parse_search_ids_param($this->input->get('data_class')),
 			'from'				=> $search_options->from,
 			'to'				=> $search_options->to,
 			'tags'				=> $search_options->tag,
@@ -176,6 +178,11 @@ class Catalog extends MY_REST_Controller
 			'ps'				=> $this->security->xss_clean($this->input->get("ps")),
 			'created'			=> $this->security->xss_clean($this->input->get("created")),
 		);
+
+		$varcount_param=xss_clean($this->input->get('varcount'));
+		if ($varcount_param!=='' && $varcount_param!==false){
+			$params['varcount']=$varcount_param;
+		}
 
 		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);		
 
@@ -484,6 +491,36 @@ class Catalog extends MY_REST_Controller
 	}
 
 
+
+	/**
+	 * Parse comma- or pipe-separated positive integers for search filters
+	 * (e.g. region IDs, data_class_id values)
+	 *
+	 * @param mixed $raw GET parameter (string, array, or false)
+	 * @return int[]
+	 */
+	private function _parse_search_ids_param($raw)
+	{
+		if ($raw===false || $raw===null || $raw===''){
+			return array();
+		}
+		if (is_array($raw)){
+			$raw=implode(',',$raw);
+		}
+		$raw=(string)$raw;
+		$parts=preg_split('/[|,\s]+/',$raw,-1,PREG_SPLIT_NO_EMPTY);
+		$out=array();
+		foreach ($parts as $p){
+			$p=trim($p);
+			if ($p!=='' && ctype_digit($p)){
+				$n=(int)$p;
+				if ($n>0){
+					$out[]=$n;
+				}
+			}
+		}
+		return $out;
+	}
 
 	/**
 	 * 
