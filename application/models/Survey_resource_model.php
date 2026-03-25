@@ -40,6 +40,23 @@ class Survey_resource_model extends CI_Model {
 
 	private $dctype_groups = array();
 	private $dctype_group_translations = array();
+
+	/** @var bool */
+	private $_dctype_group_cache_loaded = false;
+
+	/**
+	 * Load dctype group config from Dctype_model (codelists DB or config fallback) once per request.
+	 */
+	private function _ensure_dctype_group_cache()
+	{
+		if ($this->_dctype_group_cache_loaded) {
+			return;
+		}
+		$this->_dctype_group_cache_loaded = true;
+		$this->load->model('Dctype_model');
+		$this->dctype_groups             = $this->Dctype_model->get_groups();
+		$this->dctype_group_translations = $this->Dctype_model->get_group_translations();
+	}
 	
 			
     public function __construct()
@@ -47,11 +64,7 @@ class Survey_resource_model extends CI_Model {
 		parent::__construct();
 		$this->load->model("Dataset_model");
 		$this->load->model("Catalog_model");
-		$this->load->model("Dctype_model");
 		$this->load->helper('hash');
-
-		$this->dctype_groups             = $this->Dctype_model->get_groups();
-		$this->dctype_group_translations = $this->Dctype_model->get_group_translations();
 		//$this->output->enable_profiler(TRUE);
     }
 	
@@ -65,6 +78,7 @@ class Survey_resource_model extends CI_Model {
 	 */
 	public function get_group_labels($lang_code = 'en')
 	{
+		$this->_ensure_dctype_group_cache();
 		$labels = array();
 		foreach ($this->dctype_group_translations as $group_name => $translations) {
 			if (!empty($translations[$lang_code])) {
@@ -624,6 +638,7 @@ class Survey_resource_model extends CI_Model {
 	*/
 	function get_grouped_resources_by_survey($surveyid)
 	{
+		$this->_ensure_dctype_group_cache();
 		$output = false;
 		$codes_exclude = array();
 
@@ -673,6 +688,7 @@ class Survey_resource_model extends CI_Model {
 	 */
 	private function _get_grouped_resource_type_codes()
 	{
+		$this->_ensure_dctype_group_cache();
 		$codes = array();
 		if ($this->dctype_groups) {
 			foreach ($this->dctype_groups as $dctypes) {
