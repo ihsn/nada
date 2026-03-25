@@ -401,8 +401,9 @@ class Solr_manager {
             //survey countries - use batch loaded data
             $rows[$key]['countries'] = isset($batch_countries[$row['survey_uid']]) ? $batch_countries[$row['survey_uid']] : array();
             
-            //survey repositories - use batch loaded data
-            $rows[$key]['repositories'] = isset($batch_repositories[$row['survey_uid']]) ? $batch_repositories[$row['survey_uid']] : array();
+            //survey repositories — primary surveys.repositoryid + survey_repos (Solr fq repositories:* matches both)
+            $secondary_repos = isset($batch_repositories[$row['survey_uid']]) ? $batch_repositories[$row['survey_uid']] : array();
+            $rows[$key]['repositories'] = $this->merge_survey_repository_ids($row['repositoryid'] ?? null, $secondary_repos);
             //survey years - use batch loaded data
             $rows[$key]['years'] = isset($batch_years[$row['survey_uid']]) ? $batch_years[$row['survey_uid']] : array();
 
@@ -940,8 +941,11 @@ class Solr_manager {
         //survey topics
         //survey countries
         $survey['countries']=$this->load_survey_countries($survey['survey_uid']);
-        //survey repositories
-        $survey['repositories']=$this->load_survey_repositories($survey['survey_uid']);
+        //survey repositories — primary + survey_repos
+        $survey['repositories'] = $this->merge_survey_repository_ids(
+            $survey['repositoryid'] ?? null,
+            $this->load_survey_repositories($survey['survey_uid'])
+        );
         //survey years
         $survey['years']=$this->load_survey_years($survey['survey_uid']);
         $survey['regions']=$this->derive_regions_from_countries($survey['countries']);
@@ -1759,6 +1763,27 @@ class Solr_manager {
         
         return $repos_by_survey;
     }
+
+    /**
+     * Primary surveys.repositoryid plus survey_repos values (same semantics as SQL catalog collection filter).
+     *
+     * @param string|null $primary_repositoryid
+     * @param array       $secondary_repositoryids From survey_repos only
+     * @return string[]
+     */
+    private function merge_survey_repository_ids($primary_repositoryid, array $secondary_repositoryids)
+    {
+        $out = array();
+        if ($primary_repositoryid !== null && $primary_repositoryid !== '') {
+            $out[] = (string)$primary_repositoryid;
+        }
+        foreach ($secondary_repositoryids as $rid) {
+            if ($rid !== null && $rid !== '') {
+                $out[] = (string)$rid;
+            }
+        }
+        return array_values(array_unique($out));
+    }
     
     /**
      * Batch load survey years for multiple surveys
@@ -1973,7 +1998,8 @@ class Solr_manager {
         foreach($rows as $key=>$row)
         {
             $row['countries']    = isset($batch_countries[$row['survey_uid']])    ? $batch_countries[$row['survey_uid']]    : array();
-            $row['repositories'] = isset($batch_repositories[$row['survey_uid']]) ? $batch_repositories[$row['survey_uid']] : array();
+            $secondary_repos      = isset($batch_repositories[$row['survey_uid']]) ? $batch_repositories[$row['survey_uid']] : array();
+            $row['repositories'] = $this->merge_survey_repository_ids($row['repositoryid'] ?? null, $secondary_repos);
             $row['years']        = isset($batch_years[$row['survey_uid']])        ? $batch_years[$row['survey_uid']]        : array();
             $row['regions']      = $this->derive_regions_from_countries_batch($row['countries'], $regions_by_country);
 
@@ -2460,9 +2486,13 @@ class Solr_manager {
                 $survey_data['countries'] = $batch_countries[$survey_id];
             }
             
-            // Add repositories
-            if (in_array('repositories', $metadata_fields) && isset($batch_repositories[$survey_id])) {
-                $survey_data['repositories'] = $batch_repositories[$survey_id];
+            // Add repositories — primary + survey_repos (variable vsearch uses same fq as study search)
+            if (in_array('repositories', $metadata_fields)) {
+                $secondary_repos = isset($batch_repositories[$survey_id]) ? $batch_repositories[$survey_id] : array();
+                $merged_repos    = $this->merge_survey_repository_ids($survey['repositoryid'] ?? null, $secondary_repos);
+                if (!empty($merged_repos)) {
+                    $survey_data['repositories'] = $merged_repos;
+                }
             }
             
             // Add years
