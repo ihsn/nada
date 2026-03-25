@@ -1563,10 +1563,19 @@ class Datasets extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($dataset_idno);
 			$this->has_dataset_access('edit',$sid);
 
-			$thumbnail_storage_path='files/thumbnails'; 
+			$thumbnail_storage_path='files/thumbnails';
+			$thumbnail_abs_path=FCPATH.$thumbnail_storage_path;
+
+			if ( ! is_dir($thumbnail_abs_path))
+			{
+				if ( ! @mkdir($thumbnail_abs_path, 0755, true))
+				{
+					throw new Exception('Could not create thumbnail storage directory: '.$thumbnail_abs_path);
+				}
+			}
 
 			//upload class configurations for RDF
-			$config['upload_path'] = $thumbnail_storage_path;
+			$config['upload_path'] = $thumbnail_abs_path;
 			$config['overwrite'] = false;
 			$config['encrypt_name']=false;
 			$config['file_name']='thumbnail-s'.$sid;
@@ -1580,7 +1589,7 @@ class Datasets extends MY_REST_Controller
 
 			if(!$upload_result){
 				$error = $this->upload->display_errors('','');
-				throw new Exception("FILE_UPLOAD::".$error);
+				throw new Exception("FILE_UPLOAD::".$error.' [path: '.$thumbnail_storage_path.']');
 			}
 		
 			$upload = $this->upload->data();
