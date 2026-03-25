@@ -143,34 +143,20 @@ class Catalog extends MY_Controller {
 			);
 		}
 		
-		if ($this->input->get('view') === 'v') {
-			$var_filters = array(
-				'from'    => (int)$this->input->get('from'),
-				'to'      => (int)$this->input->get('to'),
-				'country' => (array)$this->input->get('country'),
-				'dtype'   => (array)$this->input->get('dtype'),
-				'type'    => (array)$this->input->get('type'),
-			);
-			$this->facets['da_types'] = $this->Search_helper_model->get_active_data_types_for_variables($repo_id, $var_filters);
-		} else {
-			$this->facets['da_types'] = $this->Search_helper_model->get_active_data_types(
-				$repo_id,
-				$this->active_tab,
-				$this->input->get("dtype")
-			);
-		}
+		// Study/survey-level facets for both study and variable search (catalog metadata, not keyword-scoped).
+		$this->facets['da_types'] = $this->Search_helper_model->get_active_data_types(
+			$repo_id,
+			$this->active_tab,
+			$this->input->get("dtype")
+		);
 
 		$this->facets['data_class']=$this->Search_helper_model->get_active_data_classifications($repo_id);
 
-		if ($this->input->get('view') === 'v') {
-			$this->facets['countries'] = $this->Search_helper_model->get_active_countries_for_variables($repo_id, $var_filters);
-		} else {
-			$this->facets['countries'] = $this->Search_helper_model->get_active_countries(
-				$repo_id,
-				$this->active_tab,
-				$this->input->get("country")
-			);
-		}
+		$this->facets['countries'] = $this->Search_helper_model->get_active_countries(
+			$repo_id,
+			$this->active_tab,
+			$this->input->get("country")
+		);
 
 		$this->facets['tags']=$this->Search_helper_model->get_active_tags(
 			$repo_id,
@@ -178,11 +164,7 @@ class Catalog extends MY_Controller {
 			$this->input->get("tag")
 		);
 
-		if ($this->input->get('view') === 'v') {
-			$this->facets['types'] = $this->Search_helper_model->get_dataset_types_for_variables($repo_id, $var_filters);
-		} else {
-			$this->facets['types'] = $this->Search_helper_model->get_dataset_types($repo_id);
-		}
+		$this->facets['types'] = $this->Search_helper_model->get_dataset_types($repo_id);
 		
 		//load user defined facets from db
 		$facets_list=$this->Facet_model->select_all();
@@ -215,18 +197,33 @@ class Catalog extends MY_Controller {
 	 */
 	private function load_facets_html()
 	{
-		// Variable search filters
+		// Variable search: only years, collections, countries, license (dtype), dataset type
 		if ($this->input->get('view') === 'v') {
-			return [
-				'year'      => $this->load->view('search/filter_years',
-					['years' => $this->facets['years'], 'is_enabled' => true], true),
-				'country'   => $this->load->view('search/facet',
-					['items' => $this->facets['countries'], 'filter_id' => 'country', 'is_enabled' => true], true),
-				'da_type'   => $this->load->view('search/facet',
-					['items' => $this->facets['da_types'], 'filter_id' => 'dtype', 'is_enabled' => true], true),
+			$v = array(
+				'year' => $this->load->view('search/filter_years',
+					array('years' => $this->facets['years'], 'is_enabled' => true), true),
+				'country' => $this->load->view('search/facet',
+					array('items' => $this->facets['countries'], 'filter_id' => 'country', 'is_enabled' => true), true),
+				'da_type' => $this->load->view('search/facet',
+					array('items' => $this->facets['da_types'], 'filter_id' => 'dtype', 'is_enabled' => true), true),
 				'data_type' => $this->load->view('search/facet',
-					['items' => $this->facets['types'], 'filter_id' => 'type', 'is_enabled' => true], true),
-			];
+					array('items' => $this->facets['types'], 'filter_id' => 'type', 'is_enabled' => true), true),
+			);
+			if (! isset($this->active_repo_id)) {
+				$v = array(
+					'year' => $v['year'],
+					'repositories' => $this->load->view('search/facet',
+						array(
+							'items' => $this->facets['repositories'],
+							'filter_id' => 'collection',
+							'is_enabled' => true,
+						), true),
+					'country' => $v['country'],
+					'da_type' => $v['da_type'],
+					'data_type' => $v['data_type'],
+				);
+			}
+			return $v;
 		}
 
 		//enabled filters with user defined order
@@ -461,7 +458,15 @@ class Catalog extends MY_Controller {
 
 		//page parameters
 		$search_options->collection		=xss_clean($this->input->get("collection"));
+		if (!is_array($search_options->collection)) {
+			if ($search_options->collection === false || $search_options->collection === null || $search_options->collection === '') {
+				$search_options->collection = array();
+			} else {
+				$search_options->collection = array($search_options->collection);
+			}
+		}
 		$search_options->sk				=trim(xss_clean($this->input->get("sk")));
+		$search_options->vk				=trim(xss_clean($this->input->get("vk")));
 		$search_options->vf				=xss_clean($this->input->get("vf"));
 		$search_options->country		=xss_clean($this->input->get("country"));
 		$search_options->region			=xss_clean($this->input->get("region"));
@@ -538,10 +543,15 @@ class Catalog extends MY_Controller {
 			$search_options->type=$search_options->tab_type;
 		}
 
+		$variable_keywords = $search_options->sk;
+		if ($search_options->view === 'v' && $search_options->vk !== '') {
+			$variable_keywords = $search_options->vk;
+		}
+
 		$params=array(
 			'collections'=>$search_options->collection,
 			'study_keywords'=>$search_options->sk,
-			'variable_keywords'=>$search_options->sk,
+			'variable_keywords'=>$variable_keywords,
 			'variable_fields'=>$search_options->vf,
 			'countries'=>$search_options->country,
 			'regions'=>$search_options->region,
@@ -622,7 +632,8 @@ class Catalog extends MY_Controller {
 		);
 
 		$this->load->library('catalog_search',$params);
-		$data['variables']=$this->catalog_search->v_quick_search($sid);
+		$var_result = $this->catalog_search->v_quick_search($sid);
+		$data['variables'] = isset($var_result['rows']) ? $var_result['rows'] : $var_result;
 		$this->load->view("catalog_search/var_quick_list", $data); 
 	}
 

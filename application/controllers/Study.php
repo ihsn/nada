@@ -723,8 +723,9 @@ class Study extends MY_Controller {
 		}
 
 		if ($this->input->get('vk')!=''){
-			//show search result
-			$data['variables']=$this->catalog_search->v_quick_search($id,$limit=50);
+			//show search result (v_quick_search returns found/total/rows like catalog_search API)
+			$var_result = $this->catalog_search->v_quick_search($id, $limit = 50);
+			$data['variables'] = isset($var_result['rows']) ? $var_result['rows'] : $var_result;
 			$data['sid']=$id;
 			$html.=$this->load->view('survey_info/search_variable_list',$data,TRUE);
 		}

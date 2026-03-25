@@ -19,7 +19,7 @@ class Analytics extends MY_REST_Controller
 			return true;
 		}
 
-		parent::_auth_override_check();
+		return parent::_auth_override_check();
 	}
 
 	/**
