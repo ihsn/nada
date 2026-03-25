@@ -10,9 +10,7 @@
 class Catalog_search_sqlsrv{ 
 	
 	var $ci;
-	
-	var $errors=array();
-	
+
 	//search fields
 	var $study_keywords='';
 	var $variable_keywords='';
@@ -30,6 +28,7 @@ class Catalog_search_sqlsrv{
 	var $created='';
 	var $tags=array();
 	var $country_iso3='';
+	var $regions=array();
 
 	var $params;
 
@@ -88,8 +87,6 @@ class Catalog_search_sqlsrv{
 		{
 			$this->use_fulltext=FALSE;
 		}
-		//log_message('debug', "Catalog_search Class Initialized");
-		//$this->ci->output->enable_profiler(TRUE);
 		$this->params=$params;
 	}
 	
@@ -99,7 +96,11 @@ class Catalog_search_sqlsrv{
 		{
 			foreach ($params as $key => $val)
 			{
-				if (isset($this->$key))
+				if ($key === 'ci')
+				{
+					continue;
+				}
+				if (property_exists($this, $key))
 				{
 					$this->$key = $val;
 				}
@@ -131,8 +132,10 @@ class Catalog_search_sqlsrv{
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';		
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 						
+		$regions=$this->_build_regions_query();
+
 		//array of all options
-		$where_list=array($sid,$type,$study,$variable,$topics,$countries,$years,$dtype,$collections,$created, $tags,$countries_iso3,$data_class);
+		$where_list=array($sid,$type,$study,$variable,$topics,$countries,$years,$dtype,$collections,$created,$tags,$countries_iso3,$data_class,$regions);
 		
 		if ($repository!=''){
 			$where_list[]=$repository;
@@ -155,16 +158,10 @@ class Catalog_search_sqlsrv{
 		
 		foreach($where_list as $stmt)
 		{
-			if ($where=='')
-			{
-				$where=$stmt;
+			if ($stmt===FALSE || $stmt==='' || $stmt===NULL) {
+				continue;
 			}
-			else
-			{
-				if ($stmt!==FALSE) {
-					$where.="\r\n".' AND '. $stmt;
-				}
-			}
+			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
 		}
 
 
@@ -215,7 +212,7 @@ class Catalog_search_sqlsrv{
 			
 			if ($where!='') 
 			{
-				$this->ci->db->where($where);
+				$this->ci->db->where($where, FALSE, FALSE);
 			}
 
 			$query=$this->ci->db->get("surveys");
@@ -251,6 +248,7 @@ class Catalog_search_sqlsrv{
         $countries_iso3=$this->_build_countries_iso3_query();
 		$tags=$this->_build_tags_query();
 		$created=$this->_build_created_query();
+		$regions=$this->_build_regions_query();
 
         //RANK sort is only available when search study keywords
         if(!trim($this->study_keywords)){
@@ -272,12 +270,12 @@ class Catalog_search_sqlsrv{
             $sort_options[2] = array('sort_by' => 'nation', 'sort_order' => 'asc');
         }
         if ($sort_by == 'year') {
-            $sort_options[2] = array('sort_by' => 'nation', 'sort_order' => 'asc');
+            $sort_options[1] = array('sort_by' => 'nation', 'sort_order' => 'asc');
             $sort_options[2] = array('sort_by' => 'surveys.title', 'sort_order' => 'asc');
         }
 
 		//array of all options
-		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$repository,$dtype,$collections, $created, $tags,$data_class,$countries_iso3,$type);
+		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$repository,$dtype,$collections,$created,$tags,$data_class,$countries_iso3,$regions,$type);
 
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -296,21 +294,14 @@ class Catalog_search_sqlsrv{
 		
 		foreach($where_list as $stmt)
 		{
-			if ($where=='')
-			{
-				$where=$stmt;
+			if ($stmt===FALSE || $stmt==='' || $stmt===NULL) {
+				continue;
 			}
-			else
-			{
-				if ($stmt!==FALSE) {
-					$where.="\r\n".' AND '. $stmt;
-				}
-			}
+			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
 		}
 
 
 		//study fields returned by the select statement
-		//$study_fields='surveys.id as id,surveys.idno,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,year_start,year_end';
 		$study_fields='surveys.id as id,surveys.idno,surveys.doi,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,data_class_id, year_start,year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount, surveys.thumbnail';
 		$study_fields.=', surveys.abstract';
@@ -342,7 +333,7 @@ class Catalog_search_sqlsrv{
 
 		if ($where!='')
 		{
-			$this->ci->db->where($where);
+			$this->ci->db->where($where, FALSE, FALSE);
 		}
 
 		$query=$this->ci->db->get();
@@ -376,7 +367,6 @@ class Catalog_search_sqlsrv{
 			$result['citations']=$this->get_survey_citation();
 		}
 
-		//$result['search_counts_by_type']=array();
 		$result['search_counts_by_type']=$this->search_counts_by_type();
 		
 		return $result;
@@ -442,7 +432,7 @@ class Catalog_search_sqlsrv{
 			
 	function _build_variable_query()
 	{
-		$variable_keywords=trim($this->study_keywords);		
+		$variable_keywords=trim($this->variable_keywords) ?: trim($this->study_keywords);
 		$variable_fields=$this->variable_fields();		//cleaned list of variable fields array
 
 		if ($variable_keywords=='')
@@ -463,9 +453,6 @@ class Catalog_search_sqlsrv{
 		{
 			if (strlen($keyword) >=3)
 			{
-				//get fulltext index name
-				//$fulltext_index=$this->get_variable_search_field(TRUE);
-				
 				//wild card search
 				$tmp_where[]=sprintf('v.labl like %s',$this->ci->db->escape('%'.$keyword.'%'));
 				$tmp_where[]=sprintf('v.name like %s',$this->ci->db->escape('%'.$keyword.'%'));
@@ -819,19 +806,20 @@ class Catalog_search_sqlsrv{
 
 		if ($sort_by=='title'){
 			$sort_by="surveys.title";
+		} elseif ($sort_by=='nation'){
+			$sort_by="surveys.nation";
 		}
 
 		$variable=$this->_build_variable_query();
-		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
+		$collections=$this->_build_collections_query();
 		$dtype=$this->_build_dtype_query();
 		$repository = $this->_build_repository_query();
 		$type=$this->_build_dataset_type_query();
 
-		$where_list=array('surveys.published=1', $variable,$topics,$countries,$years,$dtype,$repository,$type);
+		$where_list=array('surveys.published=1', $variable, $countries, $years, $collections, $repository, $dtype, $type);
 
-		//create combined where clause
 		$where='';
 		foreach($where_list as $stmt)
 		{
@@ -841,14 +829,13 @@ class Catalog_search_sqlsrv{
 			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
 		}
 		
-		//search
 		$this->ci->db->limit($limit, $offset);		
 		$this->ci->db->select("v.uid,v.name,v.labl,v.vid, v.qstn, surveys.title as title,surveys.nation as nation, v.sid, surveys.idno",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
-		$this->ci->db->order_by($sort_by, $sort_order); 
-		$this->ci->db->where($where);
+		$this->ci->db->order_by($sort_by, $sort_order);
+		$this->ci->db->where($where, FALSE, FALSE);
 
 		if ($repository!=''){
 			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
@@ -871,16 +858,15 @@ class Catalog_search_sqlsrv{
 	function vsearch_count()
 	{
 		$variable=$this->_build_variable_query();
-		$topics=$this->_build_topics_query();
 		$countries=$this->_build_countries_query();
 		$years=$this->_build_years_query();
+		$collections=$this->_build_collections_query();
 		$dtype=$this->_build_dtype_query();
 		$repository = $this->_build_repository_query();
 		$type=$this->_build_dataset_type_query();
 
-		$where_list=array('surveys.published=1', $variable,$topics,$countries,$years,$dtype,$repository,$type);
+		$where_list=array('surveys.published=1', $variable, $countries, $years, $collections, $repository, $dtype, $type);
 
-		//create combined where clause
 		$where='';
 		foreach($where_list as $stmt)
 		{
@@ -890,19 +876,17 @@ class Catalog_search_sqlsrv{
 			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
 		}
 		
-		//search
 		$this->ci->db->select("count(*) as rowsfound",FALSE);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');	
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		
-		$this->ci->db->where($where);
+		$this->ci->db->where($where, FALSE, FALSE);
 
 		if ($repository!=''){
 			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
 		}
 
-        //get result set
 		$result=$this->ci->db->get("variables as v")->row_array();
 		return $result['rowsfound'];
 	}
@@ -935,19 +919,13 @@ class Catalog_search_sqlsrv{
 		
 		foreach($where_list as $stmt)
 		{
-			if ($where=='')
-			{
-				$where=$stmt;
+			if ($stmt===FALSE || $stmt==='' || $stmt===NULL) {
+				continue;
 			}
-			else
-			{
-				if ($stmt!==FALSE) {
-					$where.="\r\n".' AND '. $stmt;
-				}
-			}
+			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
 		}
-		
-		if ($where=='') {
+
+		if ($where==='') {
 			return ['found'=>0,'total'=>0,'limit'=>$limit,'offset'=>$offset,'rows'=>[]];
 		}
 
@@ -955,7 +933,7 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->limit($limit, $offset);
 		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn,v.fid");
 		$this->ci->db->order_by($sort_by, $sort_order);
-		$this->ci->db->where($where);
+		$this->ci->db->where($where, FALSE, FALSE);
 		$this->ci->db->where('v.sid', $surveyid);
 
 		$query  = $this->ci->db->get("variables as v");
@@ -963,7 +941,7 @@ class Catalog_search_sqlsrv{
 
 		// Count matching rows (SQL Server has no FOUND_ROWS)
 		$this->ci->db->select("count(*) as rowcount", FALSE);
-		$this->ci->db->where($where);
+		$this->ci->db->where($where, FALSE, FALSE);
 		$this->ci->db->where('v.sid', $surveyid);
 		$count_query = $this->ci->db->get("variables as v");
 		$count_row   = $count_query ? $count_query->row_array() : [];
@@ -988,9 +966,6 @@ class Catalog_search_sqlsrv{
 		if ($repo!='' && $repo!='central')
 		{
 			return sprintf('survey_repos.repositoryid = %s',$this->ci->db->escape($repo));
-			/*return sprintf('(surveys.repositoryid= %s OR survey_repos.repositoryid = %s)',
-				$this->ci->db->escape($repo),
-				$this->ci->db->escape($repo));*/
 		}
 		return FALSE;
 	}
@@ -998,18 +973,22 @@ class Catalog_search_sqlsrv{
 
 	function _build_collections_query()
 	{	
-		$params=$this->collections;//must always be an array
+		$params=$this->collections;
 
-		if (!is_array($params))
-		{
+		if ($params === null || $params === false || $params === '') {
 			return FALSE;
+		}
+		if (!is_array($params)) {
+			$params = array($params);
 		}
 		
 		$param_list=array();
 
 		foreach($params  as $param)
 		{
-			//escape country names for db
+			if ($param === null || $param === '') {
+				continue;
+			}
 			$param_list[]=$this->ci->db->escape($param);
 		}
 
@@ -1022,9 +1001,12 @@ class Catalog_search_sqlsrv{
 			return FALSE;
 		}
 
-		if ($param!='')
+		if ($params!='')
 		{
-			return sprintf('surveys.id in (select sid from survey_repos where repositoryid in (%s) )',$params);
+			return sprintf(
+				'(surveys.repositoryid in (%1$s) OR surveys.id in (select sid from survey_repos where survey_repos.repositoryid in (%1$s)))',
+				$params
+			);
 		}
 		
 		return FALSE;	
@@ -1103,9 +1085,10 @@ class Catalog_search_sqlsrv{
 		$data_class=$this->_build_data_class_query();
 		$sid=$this->_build_sid_query();
         $countries_iso3=$this->_build_countries_iso3_query();
-		
+		$regions=$this->_build_regions_query();
+
 		//array of all options
-		$where_list=array($tags,$study,$topics,$countries,$years,$repository,$collections,$dtype,$data_class,$sid,$countries_iso3,$tags,$type);
+		$where_list=array($tags,$study,$topics,$countries,$years,$repository,$collections,$dtype,$data_class,$sid,$countries_iso3,$regions,$type);
 		
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -1121,18 +1104,12 @@ class Catalog_search_sqlsrv{
 		
 		foreach($where_list as $stmt)
 		{
-			if ($where=='')
-			{
-				$where=$stmt;
+			if ($stmt===FALSE || $stmt==='' || $stmt===NULL) {
+				continue;
 			}
-			else
-			{
-				if ($stmt!==FALSE) {
-					$where.="\r\n".' AND '. $stmt;
-				}
-			}
+			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
 		}
-		
+
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,nation,authoring_entity,forms.model as form_model,data_class_id,surveys.year_start,surveys.year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
@@ -1172,57 +1149,6 @@ class Catalog_search_sqlsrv{
 		}
 		
 		return $output;
-	}
-
-	/**
-	 * 
-	 * Returns variables count by survey
-	 * 
-	 * @id_list = survey id list
-	 * @keywords - search text
-	 * 
-	 **/ 
-	function search_variable_counts($id_list,$keywords)
-	{
-		$keywords=trim($keywords);
-		$keywords=str_replace(array('"',"'"), '',$keywords);
-
-		if(strlen($keywords)<3 || strlen($keywords)>100){
-			return false;
-		}
-
-		if(!is_array($id_list) || empty($id_list)){
-			return false;
-		}
-
-		//$keywords=$this->parse_fulltext_keywords($keywords);
-		
-		$where=false;
-		
-		if (strlen($keywords) >=3){
-			$fulltext_index=$this->get_variable_search_field(TRUE);
-			$where=sprintf('(freetext((%s),%s) )', $fulltext_index,$this->ci->db->escape($keywords));
-		}
-		else{
-			return false;
-		}	
-
-		if($where)
-		{
-			$sql='select count(*) as var_found,sid from variables v where ';
-			$sql.=$where;
-			$sql.=' AND sid in ('. implode(",", $id_list). ') ';
-			$sql.='group by sid;';
-			
-			$result=$this->ci->db->query($sql)->result_array();
-			$output=array();
-
-			foreach($result as $row){
-				$output[$row['sid']]=$row;
-			}
-
-			return $output;
-		}
 	}
 
 	function _build_data_class_query()
@@ -1293,6 +1219,32 @@ class Catalog_search_sqlsrv{
 
         return FALSE;
     }
+
+	protected function _build_regions_query()
+	{
+		$regions=$this->regions;
+
+		if (!is_array($regions) || !count($regions)){
+			return FALSE;
+		}
+
+		foreach($regions as $idx=>$region){
+			if(!is_numeric($region)){
+				unset($regions[$idx]);
+			}
+		}
+
+		$regions=implode(',',$regions);
+
+		if ($regions!=''){
+			return sprintf('surveys.id in (select sid from region_countries
+				inner join survey_countries on region_countries.country_id=survey_countries.cid
+					where region_countries.region_id in (%s))',$regions);
+		}
+
+		return FALSE;
+	}
+
 
 	protected function _build_facet_query($facet_name,$values)
 	{

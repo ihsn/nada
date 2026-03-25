@@ -23,7 +23,7 @@ $item_limit=0;
                             <input class="form-check-input chk chk-collection" type="checkbox" name="collection[]"
                                    value="<?php echo form_prep($repo['repositoryid']); ?>"
                                    id="repo-<?php echo form_prep($repo['id']); ?>"
-                                <?php if($search_options->collection!='' && in_array($repo['repositoryid'],$search_options->collection)):?>
+                                <?php if(is_array($search_options->collection) && count($search_options->collection) > 0 && in_array($repo['repositoryid'],$search_options->collection)):?>
                                     checked="checked"
                                 <?php endif;?>>
                             <?php echo html_escape($repo['title']); ?> <span> <span class="count">(<?php echo $repo['surveys_found']; ?>)</span></span>

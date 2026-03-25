@@ -8,7 +8,7 @@ $item_limit=0;
     <div class="sidebar-filter-entries wb-sidebar-filter-collapse collections-container">
         <div class="form-check any">
             <label class="form-check-label" for="collection-any" <?php echo t('any');?> >
-                <input class="form-check-input chk-any" id="collection-any" type="checkbox" <?php echo $search_options->collection!="" ? '' : 'checked="checked"';?>>
+                <input class="form-check-input chk-any" id="collection-any" type="checkbox" <?php echo !empty($search_options->collection) ? '' : 'checked="checked"';?>>
                 <small><strong><?php echo t('any');?></strong></small>
             </label>
         </div>
@@ -20,7 +20,7 @@ $item_limit=0;
                             <input class="form-check-input chk chk-collection" type="checkbox" name="collection[]"
                                    value="<?php echo form_prep($repo['repositoryid']); ?>"
                                    id="repo-<?php echo form_prep($repo['id']); ?>"
-                                <?php if($search_options->collection!='' && in_array($repo['repositoryid'],$search_options->collection)):?>
+                                <?php if(is_array($search_options->collection) && count($search_options->collection) > 0 && in_array($repo['repositoryid'],$search_options->collection)):?>
                                     checked="checked"
                                 <?php endif;?>>
                             <small><?php echo html_escape($repo['title']); ?> <span>(<?php echo $repo['surveys_found']; ?>)</span></small>
