@@ -173,11 +173,3 @@ CREATE TABLE `analytics_aggregation_status` (
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
-/* Update study_id in all analytics tables to INT */
-ALTER TABLE analytics_pageview_events MODIFY study_id INT NOT NULL;
-ALTER TABLE analytics_download_events MODIFY study_id INT NOT NULL;
-ALTER TABLE analytics_daily_studies MODIFY study_id INT NOT NULL;
-ALTER TABLE analytics_monthly_studies MODIFY study_id INT NOT NULL;
-ALTER TABLE analytics_daily_files MODIFY study_id INT NOT NULL;
-ALTER TABLE analytics_monthly_files MODIFY study_id INT NOT NULL;
