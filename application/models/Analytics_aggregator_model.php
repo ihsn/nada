@@ -46,7 +46,6 @@ class Analytics_aggregator_model extends CI_Model {
 				COUNT(DISTINCT session_id) as unique_visitors
 			FROM analytics_pageview_events
 			WHERE ts >= ? AND ts < ?
-				AND session_id IS NOT NULL
 			GROUP BY study_id
 		";
 
@@ -199,7 +198,7 @@ class Analytics_aggregator_model extends CI_Model {
 		$total_studies_query = $this->db->query("
 			SELECT COUNT(DISTINCT study_id) as total
 			FROM analytics_pageview_events
-			WHERE ts >= ? AND ts < ? AND session_id IS NOT NULL
+			WHERE ts >= ? AND ts < ?
 		", array($ts_start, $ts_end));
 
 		$total_studies = 0;
@@ -226,7 +225,6 @@ class Analytics_aggregator_model extends CI_Model {
 		$this->db->from('analytics_pageview_events');
 		$this->db->where('ts >=', $ts_start);
 		$this->db->where('ts <', $ts_end);
-		$this->db->where('session_id IS NOT NULL', null, false);
 		$this->db->order_by('study_id');
 		$this->db->limit($limit, $offset);
 		$studies_query = $this->db->get();
@@ -268,7 +266,6 @@ class Analytics_aggregator_model extends CI_Model {
 				COUNT(DISTINCT session_id) as unique_visitors
 			FROM analytics_pageview_events
 			WHERE ts >= ? AND ts < ?
-				AND session_id IS NOT NULL
 				AND study_id IN ($placeholders)
 			GROUP BY study_id
 		";
@@ -1208,7 +1205,8 @@ class Analytics_aggregator_model extends CI_Model {
 
 		$raw_dates = array();
 		foreach ($raw_dates_query->result() as $row) {
-			$raw_dates[] = $row->event_date;
+			// Normalize so array_diff matches (drivers may return DateTime object or Y-m-d vs datetime string)
+			$raw_dates[] = date('Y-m-d', strtotime((string)$row->event_date));
 		}
 
 		// Get all dates that already have daily aggregates
@@ -1221,7 +1219,7 @@ class Analytics_aggregator_model extends CI_Model {
 		$aggregate_dates = array();
 		if ($aggregate_query) {
 			foreach ($aggregate_query->result() as $row) {
-				$aggregate_dates[] = $row->date;
+				$aggregate_dates[] = date('Y-m-d', strtotime((string)$row->date));
 			}
 		}
 

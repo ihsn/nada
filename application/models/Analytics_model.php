@@ -766,6 +766,13 @@ class Analytics_model extends CI_Model {
 	 */
 	public function needs_legacy_migration()
 	{
+		if (!$this->db->table_exists('analytics_legacy_counts')
+			|| !$this->db->table_exists('analytics_monthly_studies')
+			|| !$this->db->table_exists('surveys'))
+		{
+			return false;
+		}
+
 		// Backup needed: analytics_legacy_counts is still empty
 		$backup_query = $this->db->query("SELECT COUNT(*) as cnt FROM analytics_legacy_counts");
 		if ($backup_query) {
@@ -822,7 +829,19 @@ class Analytics_model extends CI_Model {
 		);
 
 		try {
-			$db_driver = $this->db->dbdriver;
+			if (!$this->db->table_exists('analytics_legacy_counts')
+				|| !$this->db->table_exists('analytics_monthly_studies')
+				|| !$this->db->table_exists('surveys'))
+			{
+				$result['errors'][] = 'Required tables (analytics_legacy_counts, analytics_monthly_studies, surveys) are missing';
+				return $result;
+			}
+
+			$surveys_has_legacy_sql = '(COALESCE(total_views, 0) > 0 OR COALESCE(total_downloads, 0) > 0)';
+			$seed_missing_sql = 'NOT EXISTS (
+				SELECT 1 FROM analytics_monthly_studies ams
+				WHERE ams.year = 0 AND ams.month = 0 AND ams.study_id = lc.survey_id
+			)';
 
 			// ----------------------------------------------------------------
 			// Step 1: Backup legacy totals if not already done
@@ -831,34 +850,44 @@ class Analytics_model extends CI_Model {
 			$legacy_count = $count_query ? (int)$count_query->row()->cnt : 0;
 
 			if ($legacy_count === 0) {
-				// Bulk-insert all surveys that have non-zero legacy counts
-				$sql = "INSERT INTO analytics_legacy_counts (survey_id, total_views, total_downloads)
-				        SELECT id,
-				               COALESCE(total_views, 0),
-				               COALESCE(total_downloads, 0)
-				        FROM surveys
-				        WHERE COALESCE(total_views, 0) > 0 OR COALESCE(total_downloads, 0) > 0";
-				$this->db->query($sql);
-				$result['backed_up'] = $this->db->affected_rows();
+				$need_backup_q = $this->db->query("SELECT COUNT(*) as cnt FROM surveys WHERE {$surveys_has_legacy_sql}");
+				$to_backup = $need_backup_q ? (int)$need_backup_q->row()->cnt : 0;
+
+				if ($to_backup > 0) {
+					$sql = "INSERT INTO analytics_legacy_counts (survey_id, total_views, total_downloads)
+					        SELECT id,
+					               COALESCE(total_views, 0),
+					               COALESCE(total_downloads, 0)
+					        FROM surveys
+					        WHERE {$surveys_has_legacy_sql}";
+					$this->db->query($sql);
+				}
+
+				$result['backed_up'] = $to_backup;
 			} else {
 				$result['skipped'] = $legacy_count;
 			}
 
 			// ----------------------------------------------------------------
-			// Step 2: Seed year=0, month=0 rows in analytics_monthly_studies
-			// for any survey missing a legacy-total entry (idempotent)
+			// Step 2: Seed year=0, month=0 rows (same SQL for MySQL and SQL Server)
+			// Use a prior COUNT so we do not rely on affected_rows() after INSERT…SELECT
+			// (sqlsrv often returns -1 for that pattern).
 			// ----------------------------------------------------------------
-			$sql = "INSERT INTO analytics_monthly_studies
-			            (year, month, study_id, pageviews, unique_visitors, downloads, finalized)
-			        SELECT 0, 0, lc.survey_id, lc.total_views, 0, lc.total_downloads, 1
-			        FROM analytics_legacy_counts lc
-			        WHERE NOT EXISTS (
-			            SELECT 1 FROM analytics_monthly_studies ams
-			            WHERE ams.year = 0 AND ams.month = 0 AND ams.study_id = lc.survey_id
-			        )";
-			$this->db->query($sql);
-			$result['migrated'] = $this->db->affected_rows();
+			$pending_seed_q = $this->db->query(
+				"SELECT COUNT(*) as cnt FROM analytics_legacy_counts lc WHERE {$seed_missing_sql}"
+			);
+			$to_seed = $pending_seed_q ? (int)$pending_seed_q->row()->cnt : 0;
 
+			if ($to_seed > 0) {
+				$sql = "INSERT INTO analytics_monthly_studies
+				            (year, month, study_id, pageviews, unique_visitors, downloads, finalized)
+				        SELECT 0, 0, lc.survey_id, lc.total_views, 0, lc.total_downloads, 1
+				        FROM analytics_legacy_counts lc
+				        WHERE {$seed_missing_sql}";
+				$this->db->query($sql);
+			}
+
+			$result['migrated'] = $to_seed;
 			$result['success'] = true;
 
 		} catch (Exception $e) {
@@ -1843,26 +1872,36 @@ class Analytics_model extends CI_Model {
 					$result_dl = $this->aggregate_downloads_daily($date);
 					
 					if ($result_pv['success'] && $result_dl['success']) {
-						// $total = count of still-missing dates INCLUDING the one just processed.
-						// Use ($total - 1) for remaining — do NOT use cumulative processed_items from DB
-						// because find_missing_daily_aggregates() shrinks on every call while
-						// processed_items grows, causing remaining to go negative halfway through.
-						$total = $next_action['total'];
-						$remaining = $total - 1;
-						$daily_done = ($remaining <= 0);
+						$date_norm = date('Y-m-d', strtotime($date));
+						$still_missing = $this->find_missing_daily_aggregates();
+						$still_missing_norm = array_map(function ($d) {
+							return date('Y-m-d', strtotime((string)$d));
+						}, $still_missing);
+
+						if (in_array($date_norm, $still_missing_norm, true)) {
+							throw new Exception(
+								"Daily aggregate for {$date} is still missing after a successful run. " .
+								"Check analytics_pageview_events and analytics_daily_studies."
+							);
+						}
+
+						$total = (int)$next_action['total'];
+						$remaining = count($still_missing);
+						$daily_done = ($remaining === 0);
 						$processed = ($status['processed_items'] ?? 0) + 1;
-						
+
 						// Always return has_more=true until we call complete_aggregation_status(); otherwise UI stops polling and DB stays "running"
 						$result['has_more'] = true;
 						// Cap daily-phase progress so UI doesn't think job is complete (100% only when sync done)
-						$result['progress'] = $daily_done ? 15 : ($total > 0 ? max(1, round((1 - $remaining / $total) * 15)) : 0);
+						$total_for_progress = max($total, $remaining + 1, 1);
+						$result['progress'] = $daily_done ? 15 : max(1, round((1 - $remaining / $total_for_progress) * 15));
 						$result['message'] = $daily_done
 							? "Daily aggregation complete. Rolling up monthly next."
 							: "Processed {$date}. {$remaining} date(s) remaining.";
-						
-$this->update_aggregation_status(array(
+
+						$this->update_aggregation_status(array(
 							'current_step' => $daily_done ? 'monthly' : 'daily',
-							'current_item' => $date,
+							'current_item' => $daily_done ? null : ($still_missing[0] ?? $date),
 							'total_items' => $total,
 							'processed_items' => $processed,
 							'progress_percent' => $result['progress'],
