@@ -354,6 +354,7 @@ class Solr_manager {
                 surveys.published,
                 surveys.total_views,
                 surveys.keywords,
+                surveys.abstract,
                 surveys.authoring_entity,
                 surveys.metadata,
                 surveys.total_downloads",FALSE);
@@ -918,6 +919,7 @@ class Solr_manager {
         surveys.published,
         surveys.total_views,
         surveys.metadata,
+        surveys.abstract,
         surveys.total_downloads";
 
         if ($inc_keywords==true){
@@ -1959,6 +1961,7 @@ class Solr_manager {
                 surveys.published,
                 surveys.total_views,
                 surveys.keywords,
+                surveys.abstract,
                 surveys.metadata,
                 surveys.authoring_entity,
                 surveys.total_downloads",FALSE);
@@ -2420,6 +2423,7 @@ class Solr_manager {
             surveys.published,
             surveys.total_views,
             surveys.keywords,
+            surveys.abstract,
             surveys.authoring_entity,
             surveys.metadata,
             surveys.total_downloads", FALSE);

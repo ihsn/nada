@@ -207,6 +207,7 @@ class Catalog_search_solr
         $query->setFields(array(
             'id:survey_uid', 'idno', 'doi',
             'type:dataset_type', 'title', 'subtitle', 'nation',
+            'abstract',
             'formid', 'form_model', 'repositoryid', 'repo_title',
             'total_views', 'total_downloads', 'link_da',
             'created', 'changed', 'year_start', 'year_end',

@@ -58,6 +58,7 @@ $config['solr_survey_metadata_fields'] = array(
     'regions',
     'methodology',
     'keywords',
+    'abstract',
     'authoring_entity',
     'formid'
 );
@@ -206,7 +207,7 @@ $config['solr_schema_fields'] = array(
             'name' => 'abstract',
             'type' => 'text_en',
             'indexed' => true,
-            'stored' => false,
+            'stored' => true,
             'multiValued' => false
         ),
         array(
@@ -571,7 +572,7 @@ $config['solr_xml_schema_reference'] = <<<'XML'
 <field name="link_da" type="string" indexed="true" stored="true" multiValued="false"/>
 
 <!-- Additional fields for citations and other document types -->
-<field name="abstract" type="text_en" indexed="true" stored="false" multiValued="false"/>
+<field name="abstract" type="text_en" indexed="true" stored="true" multiValued="false"/>
 <field name="citation_id" type="pint" indexed="true" stored="true" multiValued="false"/>
 <field name="citation_uuid" type="text_general" indexed="true" stored="true" multiValued="false"/>
 
