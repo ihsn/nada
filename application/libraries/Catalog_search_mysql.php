@@ -39,6 +39,7 @@ class Catalog_search_mysql{
 	//allowed sort options
 	var $sort_allowed_fields=array(
 						'rank'=>'rank_',
+						'relevance'=>'rank_',
 						'title'=>'title',
 						'country'=>'nation',
 						'nation'=>'nation',

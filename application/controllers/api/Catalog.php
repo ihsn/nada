@@ -36,6 +36,35 @@ class Catalog extends MY_REST_Controller
 
 		return 15;//default page size
 	}
+
+	/**
+	 * Same rules as web Catalog: keyword listing → relevance desc; browse → site default / title.
+	 *
+	 * @return array{0:string,1:string}
+	 */
+	private function _normalize_catalog_sort_for_listing($fulltext_keywords, $sort_by, $sort_order)
+	{
+		$allowed_fields = array('year','title','nation','country','popularity','rank','relevance');
+		$allowed_order  = array('asc','desc');
+		$sb = trim((string) $sort_by);
+		$so = strtolower(trim((string) $sort_order));
+		if (! in_array($sb, $allowed_fields, true)) {
+			$sb = '';
+		}
+		if (! in_array($so, $allowed_order, true)) {
+			$so = '';
+		}
+		if (! class_exists('Catalog_study_sort', false)) {
+			require_once APPPATH . 'libraries/Catalog_study_sort.php';
+		}
+		return Catalog_study_sort::resolve(
+			trim((string) $fulltext_keywords),
+			$sb,
+			$so,
+			$this->config->item('catalog_default_sort_by'),
+			$this->config->item('catalog_default_sort_order')
+		);
+	}
 	
 	/**
 	 * 
@@ -157,6 +186,12 @@ class Catalog extends MY_REST_Controller
 			$search_options->type=$search_options->tab_type;
 		}
 
+		list($sort_by_resolved, $sort_order_resolved) = $this->_normalize_catalog_sort_for_listing(
+			$search_options->sk,
+			$search_options->sort_by,
+			$search_options->sort_order
+		);
+
 		$params=array(
 			'collections'		=> $search_options->collection,
 			'study_keywords'	=> $search_options->sk,
@@ -167,8 +202,8 @@ class Catalog extends MY_REST_Controller
 			'from'				=> $search_options->from,
 			'to'				=> $search_options->to,
 			'tags'				=> $search_options->tag,
-			'sort_by'			=> $search_options->sort_by,
-			'sort_order'		=> $search_options->sort_order,
+			'sort_by'			=> $sort_by_resolved,
+			'sort_order'		=> $sort_order_resolved,
 			//'repo'=>$search_options->filter->repo,
 			'repo'				=> $this->security->xss_clean($this->input->get("repo")),
 			'dtype'				=> $this->Form_model->map_name_to_id($search_options->dtype),
@@ -739,11 +774,17 @@ class Catalog extends MY_REST_Controller
 				$page   = max(1, (int)$this->input->get('page'));
 				$offset = ($page - 1) * $limit;
 
+				list($vsb, $vso) = $this->_normalize_catalog_sort_for_listing(
+					$sk,
+					xss_clean($this->input->get('sort_by')),
+					xss_clean($this->input->get('sort_order'))
+				);
+
 				$params = array(
 					'study_keywords'    => $sk,
 					'variable_keywords' => $sk,
-					'sort_by'           => xss_clean($this->input->get('sort_by')),
-					'sort_order'        => xss_clean($this->input->get('sort_order')),
+					'sort_by'           => $vsb,
+					'sort_order'        => $vso,
 				);
 				$this->load->library('catalog_search', $params);
 				$variables = $this->catalog_search->v_quick_search($sid, $limit, $offset);
@@ -803,6 +844,12 @@ class Catalog extends MY_REST_Controller
 		$dtype   = xss_clean($this->input->get('dtype'));
 		$type    = xss_clean($this->input->get('type'));
 
+		list($vsb, $vso) = $this->_normalize_catalog_sort_for_listing(
+			$sk,
+			xss_clean($this->input->get('sort_by')),
+			xss_clean($this->input->get('sort_order'))
+		);
+
 		$params = array(
 			'study_keywords'    => $sk,
 			'variable_keywords' => $sk,
@@ -811,8 +858,8 @@ class Catalog extends MY_REST_Controller
 			'to'                => $to,
 			'dtype'             => $this->Form_model->map_name_to_id($dtype),
 			'type'              => $type,
-			'sort_by'           => xss_clean($this->input->get('sort_by')),
-			'sort_order'        => xss_clean($this->input->get('sort_order')),
+			'sort_by'           => $vsb,
+			'sort_order'        => $vso,
 		);
 
 		try{

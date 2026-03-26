@@ -34,6 +34,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 require_once dirname(__FILE__) . '/OpenSearch_client.php';
 
+if (! class_exists('Catalog_study_sort', false)) {
+    require_once APPPATH . 'libraries/Catalog_study_sort.php';
+}
+
 class catalog_search_opensearch
 {
     // -------------------------------------------------------------------------
@@ -211,7 +215,7 @@ class catalog_search_opensearch
         ];
         $bool    = ['filter' => $filters];
 
-        $fulltext = $this->build_variable_fulltext_clause($this->study_keywords);
+        $fulltext = $this->build_variable_fulltext_clause($this->variable_keywords);
         if ($fulltext !== null) {
             $bool['must'] = [$fulltext];
         }
@@ -222,7 +226,7 @@ class catalog_search_opensearch
             'track_total_hits' => true,
             '_source'          => ['id', 'survey_id', 'vid', 'fid', 'name', 'label', 'question'],
             'query'            => ['bool' => $bool],
-            'sort'             => [['name.keyword' => 'asc']],
+            'sort'             => $this->build_variable_sort(true),
             'aggs'             => [
                 'total_in_study' => ['filter' => ['term' => ['survey_id' => $sid]]],
             ],
@@ -293,7 +297,7 @@ class catalog_search_opensearch
 
         $bool = empty($filters) ? [] : ['filter' => $filters];
 
-        $fulltext = $this->build_variable_fulltext_clause($this->study_keywords);
+        $fulltext = $this->build_variable_fulltext_clause($this->variable_keywords);
         if ($fulltext !== null) {
             $bool['must'] = [$fulltext];
         }
@@ -340,23 +344,52 @@ class catalog_search_opensearch
         ];
     }
 
-    private function build_variable_sort(): array
+    /**
+     * @param bool $quick_only_fields When true, only sort fields present on v_quick_search _source (name/label/score).
+     */
+    private function build_variable_sort(bool $quick_only_fields = false): array
     {
-        $key   = strtolower(trim($this->sort_by ?? 'name'));
-        $order = strtolower($this->sort_order ?? 'asc') === 'desc' ? 'desc' : 'asc';
+        $def_by  = $this->ci->config->item('catalog_default_sort_by');
+        $def_ord = $this->ci->config->item('catalog_default_sort_order');
+        list($key, $order) = Catalog_study_sort::resolve(
+            trim((string) $this->variable_keywords),
+            $this->sort_by,
+            $this->sort_order,
+            $def_by,
+            $def_ord
+        );
+        $key   = strtolower(trim($key));
+        $order = strtolower($order) === 'desc' ? 'desc' : 'asc';
 
-        $map = [
-            'name'      => 'name.keyword',
-            'label'     => 'label.keyword',
-            'labl'      => 'label.keyword',
-            'relevance' => '_score',
-        ];
-
-        $field = $map[$key] ?? 'name.keyword';
-
-        if ($field === '_score') {
+        if ($key === 'relevance' || $key === 'rank') {
             return [['_score' => 'desc'], ['name.keyword' => 'asc']];
         }
+
+        if ($quick_only_fields) {
+            $quick_map = [
+                'title'   => 'name.keyword',
+                'nation'  => 'name.keyword',
+                'country' => 'name.keyword',
+                'year'    => 'name.keyword',
+            ];
+            if ($key === 'popularity') {
+                $order = 'asc';
+            }
+            $field = $quick_map[$key] ?? 'name.keyword';
+            return [[$field => $order], ['name.keyword' => 'asc']];
+        }
+
+        $map = [
+            'title'      => 'survey_title.keyword',
+            'nation'     => 'survey_nation.keyword',
+            'country'    => 'survey_nation.keyword',
+            'year'       => 'year_start',
+            'popularity' => 'year_start',
+        ];
+        if ($key === 'popularity') {
+            $order = 'desc';
+        }
+        $field = $map[$key] ?? 'name.keyword';
 
         return [[$field => $order], ['name.keyword' => 'asc']];
     }
@@ -630,10 +663,20 @@ class catalog_search_opensearch
      */
     private function build_sort(): array
     {
-        $key   = strtolower(trim($this->sort_by ?? 'title'));
-        $order = strtolower($this->sort_order ?? 'asc') === 'desc' ? 'desc' : 'asc';
+        $def_by  = $this->ci->config->item('catalog_default_sort_by');
+        $def_ord = $this->ci->config->item('catalog_default_sort_order');
+        list($key, $order) = Catalog_study_sort::resolve(
+            trim((string) $this->study_keywords),
+            $this->sort_by,
+            $this->sort_order,
+            $def_by,
+            $def_ord
+        );
+        $key   = strtolower(trim($key));
+        $order = strtolower($order) === 'desc' ? 'desc' : 'asc';
 
-        [$field, $default_order] = self::$sort_map[$key] ?? ['title.keyword', 'asc'];
+        $map_entry  = self::$sort_map[$key] ?? ['title.keyword', 'asc'];
+        $field      = $map_entry[0];
 
         // For _score the order must be desc
         if ($field === '_score') {

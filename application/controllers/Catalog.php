@@ -505,12 +505,6 @@ class Catalog extends MY_Controller {
 		$allowed_fields = array('year','title','nation','country','popularity','rank', 'relevance');
 		$allowed_order=array('asc','desc');
 
-		//load default sort options from config if not set
-		if(empty($search_options->sort_by)){
-			$search_options->sort_by=$this->config->item("catalog_default_sort_by");
-			$search_options->sort_order=$this->config->item("catalog_default_sort_order");
-		}
-
 		//set default sort options, if passed values are not valid
 		if (!in_array(trim($search_options->sort_by),$allowed_fields)){
 			$search_options->sort_by='';
@@ -547,6 +541,18 @@ class Catalog extends MY_Controller {
 		if ($search_options->view === 'v' && $search_options->vk !== '') {
 			$variable_keywords = $search_options->vk;
 		}
+
+		$this->load->library('catalog_study_sort');
+		$ft_for_sort = ($search_options->view === 'v')
+			? trim((string) $variable_keywords)
+			: trim((string) $search_options->sk);
+		list($search_options->sort_by, $search_options->sort_order) = Catalog_study_sort::resolve(
+			$ft_for_sort,
+			$search_options->sort_by,
+			$search_options->sort_order,
+			$this->config->item('catalog_default_sort_by'),
+			$this->config->item('catalog_default_sort_order')
+		);
 
 		$params=array(
 			'collections'=>$search_options->collection,
@@ -585,8 +591,8 @@ class Catalog extends MY_Controller {
 			$data['search_type']='study';
 		}
 
-		$data['current_page']=$search_options->page;
-		$data['search_options']=$search_options;
+		$data['current_page'] = $search_options->page;
+		$data['search_options'] = $search_options;
 		$data['data_access_types']=$this->facets['da_types'];//$this->Form_model->get_form_list();
 		$data['data_classifications']=$this->facets['data_class'];//$this->Data_classification_model->get_list();
 		$data['regions']=$this->facets['regions'];

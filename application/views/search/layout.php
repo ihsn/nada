@@ -476,9 +476,19 @@ $(document).ready(function() {
         $("#page").val(1);        
     }    
 
-    //submit search form
-    $(document.body).on("click","#submit_search", function(){                    
-        $("#sort_by").val("");
+    //submit search form — set relevance when keywords are present
+    $(document.body).on("click","#submit_search", function(){
+        var sk = $.trim(($('input[name="sk"]').val() || ''));
+        var vk = $.trim(($('input[name="vk"]').val() || ''));
+        var isVarView = (($('#view').val() || '') === 'v');
+        var hasKw = isVarView ? (vk.length > 0 || sk.length > 0) : (sk.length > 0);
+        if (hasKw) {
+            $("#sort_by").val("relevance");
+            $("#sort_order").val("desc");
+        } else {
+            $("#sort_by").val("");
+            $("#sort_order").val("");
+        }
         reset_page();
         change_state();
         return false;

@@ -43,6 +43,7 @@ class Catalog_search_sqlsrv{
         'popularity'=>'total_views',
         'collection'=>'repositories.repositoryid',
         'rank'=>'k.rank',
+        'relevance'=>'k.rank',
 		'created'=>'created',
 		'changed'=>'changed'
         );
@@ -250,9 +251,9 @@ class Catalog_search_sqlsrv{
 		$created=$this->_build_created_query();
 		$regions=$this->_build_regions_query();
 
-        //RANK sort is only available when search study keywords
-        if(!trim($this->study_keywords)){
-            unset($this->sort_allowed_fields['rank']);
+        // RANK / relevance sort only when study keywords
+        if (! trim($this->study_keywords)) {
+            unset($this->sort_allowed_fields['rank'], $this->sort_allowed_fields['relevance']);
         }
 
         $sort_by = array_key_exists($this->sort_by, $this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';

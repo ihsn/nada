@@ -3,6 +3,10 @@
 use Solarium\Core\Client\Adapter\Curl;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
+if (! class_exists('Catalog_study_sort', false)) {
+    require_once APPPATH . 'libraries/Catalog_study_sort.php';
+}
+
 /**
  * Catalog search implementation for Apache Solr (Solarium client).
  *
@@ -197,7 +201,7 @@ class Catalog_search_solr
 
         $edismax->setQueryFields($this->solr_options['qf']);
         $edismax->setMinimumMatch($this->solr_options['mm']);
-        $this->apply_sorting($query);
+        $this->apply_sorting($query, $this->study_keywords);
 
         $query->setStart($offset)->setRows($limit);
         $query->setFields(array(
@@ -293,6 +297,8 @@ class Catalog_search_solr
         $edismax->setQueryFields($this->solr_variable_options['qf']);
         $edismax->setMinimumMatch($this->solr_variable_options['mm']);
 
+        $this->apply_sorting($query, $this->variable_keywords);
+
         $query->setStart($offset)->setRows($limit);
 
         $resultset = $this->solr_client->select($query);
@@ -342,6 +348,8 @@ class Catalog_search_solr
 
         $edismax->setQueryFields($this->solr_variable_options['qf']);
         $edismax->setMinimumMatch($this->solr_variable_options['mm']);
+
+        $this->apply_sorting($query, $this->variable_keywords);
 
         $query->setStart($offset)->setRows($limit);
 
@@ -500,15 +508,17 @@ class Catalog_search_solr
     // Sorting
     // -------------------------------------------------------------------------
 
-    private function apply_sorting($query)
+    private function apply_sorting($query, $fulltext_keywords)
     {
-        $sort_by = array_key_exists($this->sort_by, $this->sort_allowed_fields)
-            ? $this->sort_by
-            : ($this->study_keywords ? 'rank' : 'title');
-
-        $sort_order = in_array(strtolower($this->sort_order), $this->sort_allowed_order)
-            ? strtolower($this->sort_order)
-            : 'asc';
+        $def_by  = $this->ci->config->item('catalog_default_sort_by');
+        $def_ord = $this->ci->config->item('catalog_default_sort_order');
+        list($sort_by, $sort_order) = Catalog_study_sort::resolve(
+            $fulltext_keywords,
+            $this->sort_by,
+            $this->sort_order,
+            $def_by,
+            $def_ord
+        );
 
         $asc  = $query::SORT_ASC;
         $desc = $query::SORT_DESC;
