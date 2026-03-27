@@ -67,6 +67,18 @@
 
 /*
  *---------------------------------------------------------------
+ * VUE FRONTEND ENVIRONMENT
+ *---------------------------------------------------------------
+ *
+ * Set to 'development' to enable frontend development mode (loads from Vite dev server)
+ * Set to 'production' to use production build (loads from dist folder)
+ *
+ * NOTE: When set to 'development', make sure to run 'npm run dev' in frontend directory
+ */
+	define('VUE_ENVIRONMENT', isset($_SERVER['VUE_ENVIRONMENT']) ? $_SERVER['VUE_ENVIRONMENT'] : 'production');
+
+/*
+ *---------------------------------------------------------------
  * ERROR REPORTING
  *---------------------------------------------------------------
  *
