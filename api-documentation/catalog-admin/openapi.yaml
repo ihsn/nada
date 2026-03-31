@@ -34,6 +34,10 @@ tags:
     description: File storage for uploading and viewing images and other document types.
   - name: Widgets
     description: "Widgets are embeddable content such as charts, visualizations or any other content. Widgets require Bootstrap 4 with JQuery to work properly, make sure the following lines are included in Widget's HTML and set the page height in pixels e.g. &lt;body style=&quot;`height:500px`&quot;&gt;. \n\n`https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css` \n `https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js` \n `https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js`"
+  - name: Analytics
+    description: |
+      Site analytics: raw pageview and download events, daily and monthly aggregates, CSV/JSON exports, and aggregation jobs.
+      Endpoints require an admin user and `X-API-KEY` (same as other catalog-admin APIs).
 
 x-tagGroups:
   - name: Authentication
@@ -59,6 +63,7 @@ x-tagGroups:
       - Reports
       - Widgets
       - Resumable uploads
+      - Analytics
 
 security:
   - ApiKeyAuth: []
@@ -2184,6 +2189,520 @@ paths:
         '200':
           description: Upload deleted
 
+  # ----------------------------------------------------------------
+  # Analytics
+  # ----------------------------------------------------------------
+
+  /analytics/raw/pageviews:
+    get:
+      tags:
+        - Analytics
+      summary: List raw pageview events
+      description: Paginated raw pageview events with optional date and study filters. Admin only.
+      operationId: analyticsRawPageviews
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsDateFrom'
+        - $ref: '#/components/parameters/AnalyticsDateTo'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+        - $ref: '#/components/parameters/AnalyticsLimit'
+        - $ref: '#/components/parameters/AnalyticsOffset'
+        - name: sort_by
+          in: query
+          description: Field to sort by (default `ts`)
+          schema:
+            type: string
+            default: ts
+        - name: sort_order
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsPaginatedListResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/raw/downloads:
+    get:
+      tags:
+        - Analytics
+      summary: List raw download events
+      description: Paginated raw download events with optional filters. Admin only.
+      operationId: analyticsRawDownloads
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsDateFrom'
+        - $ref: '#/components/parameters/AnalyticsDateTo'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+        - name: file_type
+          in: query
+          description: Filter by file type
+          schema:
+            type: string
+        - $ref: '#/components/parameters/AnalyticsLimit'
+        - $ref: '#/components/parameters/AnalyticsOffset'
+        - name: sort_by
+          in: query
+          description: Field to sort by (default `ts`)
+          schema:
+            type: string
+            default: ts
+        - name: sort_order
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsPaginatedListResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/daily/studies:
+    get:
+      tags:
+        - Analytics
+      summary: Daily study aggregates
+      description: Paginated daily per-study metrics (pageviews, unique visitors, downloads). Admin only.
+      operationId: analyticsDailyStudies
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsDateFrom'
+        - $ref: '#/components/parameters/AnalyticsDateTo'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+        - $ref: '#/components/parameters/AnalyticsLimit'
+        - $ref: '#/components/parameters/AnalyticsOffset'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsPaginatedListResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/daily/files:
+    get:
+      tags:
+        - Analytics
+      summary: Daily file aggregates
+      description: Paginated daily per-file download counts. Admin only.
+      operationId: analyticsDailyFiles
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsDateFrom'
+        - $ref: '#/components/parameters/AnalyticsDateTo'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+        - $ref: '#/components/parameters/AnalyticsLimit'
+        - $ref: '#/components/parameters/AnalyticsOffset'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsPaginatedListResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/daily/studies/export:
+    get:
+      tags:
+        - Analytics
+      summary: Export daily study aggregates
+      description: >-
+        Download all matching daily study rows as CSV (default) or JSON. Same filters as daily studies list; not paginated. Admin only.
+      operationId: analyticsDailyStudiesExport
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsExportFormat'
+        - $ref: '#/components/parameters/AnalyticsDateFrom'
+        - $ref: '#/components/parameters/AnalyticsDateTo'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+      responses:
+        '200':
+          description: Attachment (`daily_studies_export.csv` or `.json`)
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/daily/files/export:
+    get:
+      tags:
+        - Analytics
+      summary: Export daily file aggregates
+      description: Download all matching daily file rows as CSV or JSON. Admin only.
+      operationId: analyticsDailyFilesExport
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsExportFormat'
+        - $ref: '#/components/parameters/AnalyticsDateFrom'
+        - $ref: '#/components/parameters/AnalyticsDateTo'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+      responses:
+        '200':
+          description: Attachment (`daily_files_export.csv` or `.json`)
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/monthly/studies:
+    get:
+      tags:
+        - Analytics
+      summary: Monthly study aggregates
+      description: Paginated monthly per-study metrics. Admin only.
+      operationId: analyticsMonthlyStudies
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsYear'
+        - $ref: '#/components/parameters/AnalyticsMonth'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+        - $ref: '#/components/parameters/AnalyticsLimit'
+        - $ref: '#/components/parameters/AnalyticsOffset'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsPaginatedListResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/monthly/files:
+    get:
+      tags:
+        - Analytics
+      summary: Monthly file aggregates
+      description: Paginated monthly per-file download metrics. Admin only.
+      operationId: analyticsMonthlyFiles
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsYear'
+        - $ref: '#/components/parameters/AnalyticsMonth'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+        - $ref: '#/components/parameters/AnalyticsLimit'
+        - $ref: '#/components/parameters/AnalyticsOffset'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsPaginatedListResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/monthly/totals:
+    get:
+      tags:
+        - Analytics
+      summary: Monthly totals (all studies)
+      description: Recent months of aggregate totals (pageviews, unique visitors, downloads). Admin only.
+      operationId: analyticsMonthlyTotals
+      parameters:
+        - name: months
+          in: query
+          description: Number of months to return (default 12, max 24)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 24
+            default: 12
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsMonthlyTotalsResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/monthly/studies/export:
+    get:
+      tags:
+        - Analytics
+      summary: Export monthly study aggregates
+      description: Download all matching monthly study rows as CSV or JSON. Admin only.
+      operationId: analyticsMonthlyStudiesExport
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsExportFormat'
+        - $ref: '#/components/parameters/AnalyticsYear'
+        - $ref: '#/components/parameters/AnalyticsMonth'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+      responses:
+        '200':
+          description: Attachment (`monthly_studies_export.csv` or `.json`)
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/monthly/files/export:
+    get:
+      tags:
+        - Analytics
+      summary: Export monthly file aggregates
+      description: Download all matching monthly file rows as CSV or JSON. Admin only.
+      operationId: analyticsMonthlyFilesExport
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsExportFormat'
+        - $ref: '#/components/parameters/AnalyticsYear'
+        - $ref: '#/components/parameters/AnalyticsMonth'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+      responses:
+        '200':
+          description: Attachment (`monthly_files_export.csv` or `.json`)
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/aggregate/daily:
+    post:
+      tags:
+        - Analytics
+      summary: Run daily aggregation (chunked)
+      description: >-
+        Aggregate raw events into daily tables for one calendar day. If `date` is omitted, the server picks the first missing date.
+        Repeat calls with returned offsets (`pageviews.offset`, `downloads.offset`) until `has_more` is false. Admin only.
+      operationId: analyticsAggregateDaily
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                  description: Date to process (`YYYY-MM-DD`). Omit to auto-select a missing date.
+                offset:
+                  type: integer
+                  description: Legacy starting offset for both pageviews and downloads when specialized offsets omitted
+                pv_offset:
+                  type: integer
+                  description: Starting offset for pageview aggregation chunk
+                dl_offset:
+                  type: integer
+                  description: Starting offset for download aggregation chunk
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsAggregateDailyResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/aggregate/monthly:
+    post:
+      tags:
+        - Analytics
+      summary: Run monthly aggregation (chunked)
+      description: Roll daily aggregates into monthly aggregates for one month. Admin only.
+      operationId: analyticsAggregateMonthly
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                year:
+                  type: integer
+                  description: Year (defaults to current year)
+                month:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                  description: Month (defaults to current month)
+                offset:
+                  type: integer
+                  default: 0
+                  description: Chunk offset for large datasets
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsAggregateMonthlyResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/aggregate/totals:
+    post:
+      tags:
+        - Analytics
+      summary: Update all-time (legacy) totals
+      description: Refresh study-level totals. Omit `study_id` to update in chunked batches across all studies. Admin only.
+      operationId: analyticsAggregateTotals
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                study_id:
+                  type: string
+                  description: If set, update only this study
+                offset:
+                  type: integer
+                  default: 0
+                  description: Chunk offset when updating all studies
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsAggregateTotalsResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/aggregate/run:
+    post:
+      tags:
+        - Analytics
+      summary: Run one aggregation step (polling)
+      description: Processes a single step for the web-driven aggregation UI; use with `aggregate/status` polling. Admin only.
+      operationId: analyticsAggregateRun
+      responses:
+        '200':
+          description: Step completed or idle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsAggregateRunResponse'
+        '400':
+          description: Error or failed step
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsAggregateRunResponse'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/aggregate/status:
+    get:
+      tags:
+        - Analytics
+      summary: Aggregation job status
+      description: Current aggregation state for polling (progress, step, messages). Admin only.
+      operationId: analyticsAggregateStatus
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsAggregateStatusResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/aggregate/stop:
+    post:
+      tags:
+        - Analytics
+      summary: Stop aggregation
+      description: Request stop of the current aggregation run. Admin only.
+      operationId: analyticsAggregateStop
+      responses:
+        '200':
+          description: Stop acknowledged (check `status` and `message` in body)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success, error]
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
 # ----------------------------------------------------------------
 # Security & Components
 # ----------------------------------------------------------------
@@ -2194,6 +2713,85 @@ components:
       type: apiKey
       name: X-API-KEY
       in: header
+
+  parameters:
+    AnalyticsDateFrom:
+      name: date_from
+      in: query
+      description: Filter from date (`YYYY-MM-DD`)
+      schema:
+        type: string
+        format: date
+    AnalyticsDateTo:
+      name: date_to
+      in: query
+      description: Filter to date (`YYYY-MM-DD`)
+      schema:
+        type: string
+        format: date
+    AnalyticsStudyId:
+      name: study_id
+      in: query
+      description: Filter by study ID
+      schema:
+        type: string
+    AnalyticsLimit:
+      name: limit
+      in: query
+      description: Page size (default 50)
+      schema:
+        type: integer
+        default: 50
+    AnalyticsOffset:
+      name: offset
+      in: query
+      description: Pagination offset (default 0)
+      schema:
+        type: integer
+        default: 0
+    AnalyticsYear:
+      name: year
+      in: query
+      description: Filter by year
+      schema:
+        type: integer
+    AnalyticsMonth:
+      name: month
+      in: query
+      description: Filter by month (1–12)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 12
+    AnalyticsExportFormat:
+      name: format
+      in: query
+      description: Export format (default `csv`)
+      schema:
+        type: string
+        enum: [csv, json]
+        default: csv
+
+  responses:
+    AnalyticsBadRequest:
+      description: Bad request or server error message
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AnalyticsErrorResponse'
+    AnalyticsForbidden:
+      description: Admin access required (`ACCESS-DENIED`)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: failed
+              message:
+                type: string
+                example: ACCESS-DENIED
 
   schemas:
     FileStore:
@@ -2641,3 +3239,185 @@ components:
           description: URL to the indicators website
       xml:
         name: datasetOptions
+
+    AnalyticsErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+
+    AnalyticsPaginatedListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        has_more:
+          type: boolean
+
+    AnalyticsMonthlyTotalsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: array
+          description: Monthly rollup rows (pageviews, unique visitors, downloads, etc.)
+          items:
+            type: object
+            additionalProperties: true
+
+    AnalyticsAggregateDailyResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        date:
+          type: string
+          format: date
+        pageviews:
+          type: object
+          additionalProperties: true
+        downloads:
+          type: object
+          additionalProperties: true
+        has_more:
+          type: boolean
+        has_more_batches:
+          type: boolean
+        remaining_dates:
+          type: integer
+        processed:
+          type: integer
+        total:
+          type: integer
+
+    AnalyticsAggregateMonthlyResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        year:
+          type: integer
+        month:
+          type: integer
+        processed:
+          type: integer
+        total_studies:
+          type: integer
+        offset:
+          type: integer
+        has_more:
+          type: boolean
+        execution_time:
+          type: number
+
+    AnalyticsAggregateTotalsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        success:
+          type: boolean
+        processed:
+          type: integer
+          nullable: true
+        total_studies:
+          type: integer
+          nullable: true
+        offset:
+          type: integer
+        has_more:
+          type: boolean
+
+    AnalyticsAggregateRunResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        current_step:
+          type: string
+          nullable: true
+        current_item:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+        progress:
+          type: number
+        message:
+          type: string
+        error:
+          type: boolean
+          description: Present when the step failed
+
+    AnalyticsAggregateStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+            current_step:
+              type: string
+              nullable: true
+            current_item:
+              type: string
+              nullable: true
+            total_items:
+              type: integer
+            processed_items:
+              type: integer
+            progress_percent:
+              type: number
+            message:
+              type: string
+              nullable: true
+            started_at:
+              type: string
+              nullable: true
+            completed_at:
+              type: string
+              nullable: true
+            last_updated_at:
+              type: string
+              nullable: true
+            error_message:
+              type: string
+              nullable: true
+            context:
+              type: object
+              additionalProperties: true
+              nullable: true
+            last_completed_at:
+              type: string
+              nullable: true
+            last_completed_started_at:
+              type: string
+              nullable: true
