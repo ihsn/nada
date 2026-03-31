@@ -215,6 +215,15 @@ class OpenSearch_manager
     }
 
     /**
+     * Re-index all variable documents for a survey (delete existing + bulk index).
+     * Used after variable import when not going through the delta event pipeline.
+     */
+    public function index_survey_variables(int $survey_id): bool
+    {
+        return $this->variable_indexer->index_survey_variables($survey_id);
+    }
+
+    /**
      * Batch-index citations.
      */
     public function import_citations_batch(int $offset = 0, int $batch_size = 100): array
@@ -255,7 +264,7 @@ class OpenSearch_manager
 
         if (in_array($operation, $full_reindex_ops, true)) {
             $this->survey_indexer->index_survey($survey_id);
-            $this->variable_indexer->index_survey_variables($survey_id);
+            $this->index_survey_variables($survey_id);
             return;
         }
 

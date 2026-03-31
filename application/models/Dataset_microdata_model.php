@@ -152,7 +152,31 @@ class Dataset_microdata_model extends Dataset_model {
 		return $dataset_id;
     }
 
+    /**
+     * Refresh variable search documents for a dataset when Solr or OpenSearch is enabled.
+     * No-op when search_provider is "db" (variables are queried from the database).
+     *
+     * @param int $sid Survey / dataset ID
+     */
+    public function index_variable_data($sid)
+    {
+        if (!is_numeric($sid) || (int) $sid <= 0) {
+            return;
+        }
+        $sid = (int) $sid;
 
+        $provider = $this->config->item('search_provider');
+        if ($provider === 'solr') {
+            $this->load->library('Solr_manager');
+            $this->solr_manager->delete_document('var_survey_id:' . $sid);
+            $this->solr_manager->import_survey_variables($sid);
+            return;
+        }
+        if ($provider === 'opensearch') {
+            $this->load->library('OpenSearch/OpenSearch_manager');
+            $this->opensearch_manager->index_survey_variables($sid);
+        }
+    }
 
     
 
