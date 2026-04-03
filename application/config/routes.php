@@ -108,6 +108,10 @@ $route['api/catalog/(:any)/variable/(.*)'] = "api/catalog/variable/$1/$2";
 
 //Collections
 $route['api/admin/collections/(:any)/datasets'] = "api/admin/collections/datasets/$1";
+// Legacy alias: api/collections/* -> api/admin/collections/* (controller moved under admin)
+$route['api/collections/(:any)/datasets'] = "api/admin/collections/datasets/$1";
+$route['api/collections'] = 'api/admin/collections';
+$route['api/collections/(.*)'] = 'api/admin/collections/$1';
 
 //Tables API - fields endpoints (new format: /api/tables/fields/{db_id}/{table_id})
 $route['api/tables/fields/(:any)/(:any)/sync'] = "api/tables/fields_sync/$1/$2";
