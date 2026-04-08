@@ -260,6 +260,160 @@ class Analytics_model extends CI_Model {
 	}
 	
 	/**
+	 * Get legacy totals (year=0, month=0) for studies with pagination
+	 *
+	 * @param array $filters Filter parameters (study_id)
+	 * @param int $limit Number of records per page (0 = no limit)
+	 * @param int $offset Pagination offset
+	 * @return array Result with data, total, and pagination info
+	 */
+	public function get_legacy_studies($filters = array(), $limit = 50, $offset = 0)
+	{
+		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
+
+		$limit = (int)$limit;
+		if ($limit > 0) { $limit = min(500, $limit); }
+
+		$count_sql = "SELECT COUNT(*) as total FROM analytics_monthly_studies WHERE year = 0 AND month = 0";
+		$count_params = array();
+		if ($study_id) {
+			$count_sql .= " AND study_id = ?";
+			$count_params[] = $study_id;
+		}
+		$count_query = $this->db->query($count_sql, $count_params);
+		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
+
+		$this->db->reset_query();
+		$this->db->select('surveys.title, surveys.nation, surveys.year_start as study_year, analytics_monthly_studies.study_id, analytics_monthly_studies.pageviews, analytics_monthly_studies.unique_visitors, analytics_monthly_studies.downloads');
+		$this->db->from('analytics_monthly_studies');
+		$this->db->join('surveys', 'analytics_monthly_studies.study_id = surveys.id', 'left');
+		$this->db->where('analytics_monthly_studies.year', 0);
+		$this->db->where('analytics_monthly_studies.month', 0);
+		if ($study_id) {
+			$this->db->where('analytics_monthly_studies.study_id', $study_id);
+		}
+		$this->db->order_by('analytics_monthly_studies.study_id', 'ASC');
+		if ($limit > 0) { $this->db->limit($limit, $offset); }
+		$query = $this->db->get();
+
+		$data = array();
+		if ($query) {
+			foreach ($query->result_array() as $row) {
+				$data[] = $row;
+			}
+		}
+
+		return array(
+			'data'     => $data,
+			'total'    => $total,
+			'limit'    => $limit,
+			'offset'   => $offset,
+			'has_more' => $limit > 0 && ($offset + $limit) < $total
+		);
+	}
+
+	/**
+	 * Get legacy totals (year=0, month=0) for files with pagination
+	 *
+	 * @param array $filters Filter parameters (study_id)
+	 * @param int $limit Number of records per page (0 = no limit)
+	 * @param int $offset Pagination offset
+	 * @return array Result with data, total, and pagination info
+	 */
+	public function get_legacy_files($filters = array(), $limit = 50, $offset = 0)
+	{
+		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
+
+		$limit = (int)$limit;
+		if ($limit > 0) { $limit = min(500, $limit); }
+
+		$count_sql = "SELECT COUNT(*) as total FROM analytics_monthly_files WHERE year = 0 AND month = 0";
+		$count_params = array();
+		if ($study_id) {
+			$count_sql .= " AND study_id = ?";
+			$count_params[] = $study_id;
+		}
+		$count_query = $this->db->query($count_sql, $count_params);
+		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
+
+		$this->db->reset_query();
+		$this->db->select('surveys.title, analytics_monthly_files.study_id, analytics_monthly_files.file_name, analytics_monthly_files.downloads');
+		$this->db->from('analytics_monthly_files');
+		$this->db->join('surveys', 'analytics_monthly_files.study_id = surveys.id', 'left');
+		$this->db->where('analytics_monthly_files.year', 0);
+		$this->db->where('analytics_monthly_files.month', 0);
+		if ($study_id) {
+			$this->db->where('analytics_monthly_files.study_id', $study_id);
+		}
+		$this->db->order_by('analytics_monthly_files.study_id', 'ASC');
+		$this->db->order_by('analytics_monthly_files.file_name', 'ASC');
+		if ($limit > 0) { $this->db->limit($limit, $offset); }
+		$query = $this->db->get();
+
+		$data = array();
+		if ($query) {
+			foreach ($query->result_array() as $row) {
+				$data[] = $row;
+			}
+		}
+
+		return array(
+			'data'     => $data,
+			'total'    => $total,
+			'limit'    => $limit,
+			'offset'   => $offset,
+			'has_more' => $limit > 0 && ($offset + $limit) < $total
+		);
+	}
+
+	/**
+	 * Set (upsert) legacy totals for a study with caller-provided values
+	 *
+	 * Directly writes the supplied pageviews, unique_visitors, and downloads
+	 * into the year=0, month=0 row — does not aggregate from monthly data.
+	 *
+	 * @param string $study_id Study identifier
+	 * @param int $pageviews Total pageviews
+	 * @param int $unique_visitors Total unique visitors
+	 * @param int $downloads Total downloads
+	 * @return bool Success
+	 */
+	public function set_legacy_study_totals($study_id, $pageviews, $unique_visitors, $downloads)
+	{
+		$sql = "
+			INSERT INTO analytics_monthly_studies (year, month, study_id, pageviews, unique_visitors, downloads)
+			VALUES (0, 0, ?, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+				pageviews        = VALUES(pageviews),
+				unique_visitors  = VALUES(unique_visitors),
+				downloads        = VALUES(downloads)
+		";
+		return $this->db->query($sql, array($study_id, (int)$pageviews, (int)$unique_visitors, (int)$downloads));
+	}
+
+	/**
+	 * Set (upsert) legacy download total for a file with a caller-provided value
+	 *
+	 * Directly writes the supplied downloads into the year=0, month=0 row
+	 * for the given study_id + file_name combination.
+	 *
+	 * @param string $study_id Study identifier
+	 * @param string $file_name File name
+	 * @param int $downloads Total downloads
+	 * @return bool Success
+	 */
+	public function set_legacy_file_totals($study_id, $file_name, $downloads)
+	{
+		$sql = "
+			INSERT INTO analytics_monthly_files (year, month, study_id, file_name, downloads)
+			VALUES (0, 0, ?, ?, ?)
+			ON DUPLICATE KEY UPDATE
+				downloads = VALUES(downloads)
+		";
+		return $this->db->query($sql, array($study_id, $file_name, (int)$downloads));
+	}
+
+	/**
 	 * Get all-time totals for a study (from legacy totals)
 	 * 
 	 * @param string $study_id Study identifier

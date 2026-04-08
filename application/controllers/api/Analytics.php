@@ -19,7 +19,7 @@ class Analytics extends MY_REST_Controller
 			return true;
 		}
 
-		return parent::_auth_override_check();
+		parent::_auth_override_check();
 	}
 
 	/**
@@ -873,7 +873,210 @@ class Analytics extends MY_REST_Controller
 		$this->is_admin_or_die();
 		$this->aggregate_run_post();
 	}
-	
+
+	/**
+	 * Get legacy (all-time) study totals stored with year=0, month=0
+	 *
+	 * GET /api/analytics/legacy/studies
+	 *
+	 * Query params:
+	 *   - study_id: filter by study ID (optional)
+	 *   - limit:    number of records (default: 50)
+	 *   - offset:   pagination offset (default: 0)
+	 */
+	function legacy_studies_get()
+	{
+		try {
+			$this->is_admin_or_die();
+
+			$filters = array(
+				'study_id' => $this->input->get('study_id')
+			);
+			$limit  = (int)$this->input->get('limit')  ?: 50;
+			$offset = (int)$this->input->get('offset') ?: 0;
+
+			$result = $this->Analytics_model->get_legacy_studies($filters, $limit, $offset);
+
+			$response = array(
+				'status'   => 'success',
+				'data'     => $result['data'],
+				'total'    => $result['total'],
+				'limit'    => $result['limit'],
+				'offset'   => $result['offset'],
+				'has_more' => $result['has_more']
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+
+		} catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Get legacy (all-time) file totals stored with year=0, month=0
+	 *
+	 * GET /api/analytics/legacy/files
+	 *
+	 * Query params:
+	 *   - study_id: filter by study ID (optional)
+	 *   - limit:    number of records (default: 50)
+	 *   - offset:   pagination offset (default: 0)
+	 */
+	function legacy_files_get()
+	{
+		try {
+			$this->is_admin_or_die();
+
+			$filters = array(
+				'study_id' => $this->input->get('study_id')
+			);
+			$limit  = (int)$this->input->get('limit')  ?: 50;
+			$offset = (int)$this->input->get('offset') ?: 0;
+
+			$result = $this->Analytics_model->get_legacy_files($filters, $limit, $offset);
+
+			$response = array(
+				'status'   => 'success',
+				'data'     => $result['data'],
+				'total'    => $result['total'],
+				'limit'    => $result['limit'],
+				'offset'   => $result['offset'],
+				'has_more' => $result['has_more']
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+
+		} catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Set legacy (all-time) totals for studies using caller-provided values
+	 *
+	 * POST /api/analytics/legacy/studies
+	 *
+	 * Body params (JSON array):
+	 *   [
+	 *     {
+	 *       "study_id":        "IDNO or numeric sid" (required),
+	 *       "pageviews":       0,
+	 *       "unique_visitors": 0,
+	 *       "downloads":       0
+	 *     },
+	 *     ...
+	 *   ]
+	 *
+	 * Pass ?id_format=id to treat study_id as a numeric database id.
+	 */
+	function legacy_studies_post()
+	{
+		try {
+			$this->is_admin_or_die();
+
+			$input = $this->raw_json_input();
+
+			if (empty($input) || !is_array($input)) {
+				$this->set_response(array('status' => 'error', 'message' => 'Request body must be a JSON array'), REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
+
+			$results  = array();
+			$errors   = array();
+
+			foreach ($input as $index => $item) {
+				if (empty($item['study_id'])) {
+					$errors[] = array('index' => $index, 'study_id' => null, 'error' => 'study_id is required');
+					continue;
+				}
+
+				try {
+					// Resolve idno or numeric sid (pass ?id_format=id to use numeric sid directly)
+					$sid             = $this->get_sid_from_idno($item['study_id']);
+					$pageviews       = isset($item['pageviews'])       ? (int)$item['pageviews']       : 0;
+					$unique_visitors = isset($item['unique_visitors']) ? (int)$item['unique_visitors'] : 0;
+					$downloads       = isset($item['downloads'])       ? (int)$item['downloads']       : 0;
+
+					$ok = $this->Analytics_model->set_legacy_study_totals($sid, $pageviews, $unique_visitors, $downloads);
+
+					if ($ok) {
+						$results[] = array('study_id' => $item['study_id'], 'sid' => $sid, 'status' => 'updated');
+					} else {
+						$errors[] = array('index' => $index, 'study_id' => $item['study_id'], 'error' => 'DB update failed');
+					}
+				} catch (Exception $e) {
+					$errors[] = array('index' => $index, 'study_id' => $item['study_id'], 'error' => $e->getMessage());
+				}
+			}
+
+			$response = array(
+				'status'  => empty($errors) ? 'success' : (empty($results) ? 'error' : 'partial'),
+				'updated' => count($results),
+				'failed'  => count($errors),
+				'results' => $results,
+				'errors'  => $errors
+			);
+
+			$http_status = empty($results) && !empty($errors)
+				? REST_Controller::HTTP_BAD_REQUEST
+				: REST_Controller::HTTP_OK;
+
+			$this->set_response($response, $http_status);
+
+		} catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Set legacy (all-time) download total for a file using a caller-provided value
+	 *
+	 * POST /api/analytics/legacy/files
+	 *
+	 * Body params (JSON):
+	 *   - study_id:  Study identifier (required)
+	 *   - file_name: File name (required)
+	 *   - downloads: Total downloads to store (required)
+	 */
+	function legacy_files_post()
+	{
+		try {
+			$this->is_admin_or_die();
+
+			$input = $this->raw_json_input();
+
+			if (empty($input['study_id'])) {
+				$this->set_response(array('status' => 'error', 'message' => 'study_id is required'), REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
+
+			if (empty($input['file_name'])) {
+				$this->set_response(array('status' => 'error', 'message' => 'file_name is required'), REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
+
+			// Resolve idno or numeric sid (pass ?id_format=id to use numeric sid directly)
+			$study_id  = $this->get_sid_from_idno($input['study_id']);
+			$file_name = $input['file_name'];
+			$downloads = isset($input['downloads']) ? (int)$input['downloads'] : 0;
+
+			$result = $this->Analytics_model->set_legacy_file_totals($study_id, $file_name, $downloads);
+
+			if ($result) {
+				$this->set_response(array(
+					'status'  => 'success',
+					'message' => "Legacy file totals updated for {$file_name} in study {$study_id}"
+				), REST_Controller::HTTP_OK);
+			} else {
+				$this->set_response(array('status' => 'error', 'message' => 'Failed to update legacy file totals'), REST_Controller::HTTP_BAD_REQUEST);
+			}
+
+		} catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
 	/**
 	 * Track a pageview event (public endpoint)
 	 * 

@@ -338,6 +338,8 @@ $route['api/analytics/monthly/files'] = "api/analytics/monthly_files";
 $route['api/analytics/monthly/totals'] = "api/analytics/monthly_totals";
 $route['api/analytics/studies'] = "api/analytics/studies";
 $route['api/analytics/aggregate/run_all'] = "api/analytics/aggregate_run_all";
+$route['api/analytics/legacy/studies'] = "api/analytics/legacy_studies";
+$route['api/analytics/legacy/files'] = "api/analytics/legacy_files";
 
 
 /* End of file routes.php */

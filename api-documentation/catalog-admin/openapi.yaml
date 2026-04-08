@@ -2703,6 +2703,131 @@ paths:
         '403':
           $ref: '#/components/responses/AnalyticsForbidden'
 
+  /analytics/legacy/studies:
+    get:
+      tags:
+        - Analytics
+      summary: List legacy study totals
+      description: >-
+        Returns all-time (legacy) study totals stored with `year=0, month=0`.
+        These are pre-analytics historical counts migrated from the surveys table.
+        Optionally filtered by `study_id`. Admin only.
+      operationId: analyticsLegacyStudiesGet
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+        - $ref: '#/components/parameters/AnalyticsLimit'
+        - $ref: '#/components/parameters/AnalyticsOffset'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsPaginatedListResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+    post:
+      tags:
+        - Analytics
+      summary: Set legacy study totals
+      description: >-
+        Upsert caller-provided all-time totals (`year=0, month=0`) for one or more studies.
+        Accepts a JSON array. Each item's `study_id` may be an IDNO string (default) or a
+        numeric database id (add `?id_format=id`). Directly writes the supplied values —
+        does **not** aggregate from monthly data. Returns per-item results and errors. Admin only.
+      operationId: analyticsLegacyStudiesPost
+      parameters:
+        - name: id_format
+          in: query
+          description: Set to `id` to treat `study_id` as a numeric database id instead of IDNO
+          schema:
+            type: string
+            enum: [id]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLegacyStudyInput'
+      responses:
+        '200':
+          description: All or partial records updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsLegacyStudyResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/legacy/files:
+    get:
+      tags:
+        - Analytics
+      summary: List legacy file totals
+      description: >-
+        Returns all-time (legacy) file download totals stored with `year=0, month=0`.
+        Optionally filtered by `study_id`. Admin only.
+      operationId: analyticsLegacyFilesGet
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+        - $ref: '#/components/parameters/AnalyticsLimit'
+        - $ref: '#/components/parameters/AnalyticsOffset'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsPaginatedListResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+    post:
+      tags:
+        - Analytics
+      summary: Set legacy file totals
+      description: >-
+        Upsert a caller-provided all-time download total (`year=0, month=0`) for a
+        specific `study_id` + `file_name` combination.
+        `study_id` may be an IDNO string (default) or a numeric database id (add `?id_format=id`).
+        Directly writes the supplied value — does **not** aggregate from monthly data. Admin only.
+      operationId: analyticsLegacyFilesPost
+      parameters:
+        - name: id_format
+          in: query
+          description: Set to `id` to treat `study_id` as a numeric database id instead of IDNO
+          schema:
+            type: string
+            enum: [id]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLegacyFileInput'
+      responses:
+        '200':
+          description: Legacy file totals updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
 # ----------------------------------------------------------------
 # Security & Components
 # ----------------------------------------------------------------
@@ -3421,3 +3546,81 @@ components:
             last_completed_started_at:
               type: string
               nullable: true
+
+    AnalyticsLegacyStudyInput:
+      type: array
+      items:
+        type: object
+        required: [study_id, pageviews, unique_visitors, downloads]
+        properties:
+          study_id:
+            type: string
+            description: >-
+              Study IDNO string (default) or numeric database id.
+              Pass `?id_format=id` as a query parameter to use the numeric id.
+          pageviews:
+            type: integer
+            minimum: 0
+            description: Total all-time pageviews to store
+          unique_visitors:
+            type: integer
+            minimum: 0
+            description: Total all-time unique visitors to store
+          downloads:
+            type: integer
+            minimum: 0
+            description: Total all-time downloads to store
+
+    AnalyticsLegacyStudyResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, partial, error]
+        updated:
+          type: integer
+          description: Number of records successfully updated
+        failed:
+          type: integer
+          description: Number of records that failed
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              study_id:
+                type: string
+              sid:
+                type: integer
+              status:
+                type: string
+                example: updated
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              index:
+                type: integer
+              study_id:
+                type: string
+                nullable: true
+              error:
+                type: string
+
+    AnalyticsLegacyFileInput:
+      type: object
+      required: [study_id, file_name, downloads]
+      properties:
+        study_id:
+          type: string
+          description: >-
+            Study IDNO string (default) or numeric database id.
+            Pass `?id_format=id` as a query parameter to use the numeric id.
+        file_name:
+          type: string
+          description: File name
+        downloads:
+          type: integer
+          minimum: 0
+          description: Total all-time downloads to store for this file
