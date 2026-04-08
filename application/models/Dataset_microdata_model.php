@@ -153,8 +153,11 @@ class Dataset_microdata_model extends Dataset_model {
     }
 
     /**
-     * Refresh variable search documents for a dataset when Solr or OpenSearch is enabled.
-     * No-op when search_provider is "db" (variables are queried from the database).
+     * Refresh variable search documents for a dataset.
+     *
+     * Always writes the deduplicated label set to surveys.var_keywords (used by
+     * fulltext search.
+     *
      *
      * @param int $sid Survey / dataset ID
      */
@@ -164,6 +167,11 @@ class Dataset_microdata_model extends Dataset_model {
             return;
         }
         $sid = (int) $sid;
+
+        // Always rebuild the denormalised label cache in the surveys table.
+        $var_keywords = $this->Dataset_model->extract_var_keywords($sid);
+        $this->db->where('id', $sid);
+        $this->db->update('surveys', ['var_keywords' => $var_keywords]);
 
         $provider = $this->config->item('search_provider');
         if ($provider === 'solr') {

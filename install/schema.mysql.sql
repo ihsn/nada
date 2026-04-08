@@ -377,11 +377,12 @@ CREATE TABLE `surveys` (
   `metadata` mediumtext,
   `var_keywords` mediumtext,
   `keywords` text,
+  `abstract` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `surveyid_UNIQUE` (`idno`),
   UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`),
   FULLTEXT KEY `ft_titl` (`title`),
-  FULLTEXT KEY `ft_keywords` (`keywords`)
+  FULLTEXT KEY `ft_keywords` (`keywords`,`var_keywords`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

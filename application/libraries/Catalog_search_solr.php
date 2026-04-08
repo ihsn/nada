@@ -254,6 +254,18 @@ class Catalog_search_solr
             );
         }
 
+        // Enrich results with per-study keyword-match variable counts ("N variables found" badge).
+        if ($this->study_keywords && !empty($result['rows'])) {
+            $id_list    = array_column($result['rows'], 'id');
+            $var_counts = $this->search_variable_counts($id_list, $this->study_keywords);
+            foreach ($result['rows'] as &$row) {
+                if (isset($var_counts[(int)$row['id']])) {
+                    $row['var_found'] = $var_counts[(int)$row['id']];
+                }
+            }
+            unset($row);
+        }
+
         return $result;
     }
 
@@ -827,5 +839,66 @@ class Catalog_search_solr
         }
 
         return implode(' AND ', $parts);
+    }
+
+    // -------------------------------------------------------------------------
+    // Variable match helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Query doctype:2 variable documents with $keywords, restricted to the
+     * survey IDs on the current page, and facet by var_survey_id.
+     * Returns [ survey_id => match_count ] — the real "N variables found" number.
+     *
+     * @param  int[]  $id_list   Survey UIDs on the current result page
+     * @param  string $keywords  Raw search string (same as passed to the study query)
+     * @return array             [ survey_id => int ]
+     */
+    private function search_variable_counts(array $id_list, $keywords)
+    {
+        if (empty($id_list) || trim($keywords) === '') {
+            return array();
+        }
+
+        $query  = $this->solr_client->createSelect();
+        $helper = $query->getHelper();
+
+        // Match variables only
+        $query->createFilterQuery('doctype')->setQuery('doctype:2');
+
+        // Restrict to studies on this page
+        $sid_filter = 'var_survey_id:(' . implode(' OR ', array_map('intval', $id_list)) . ')';
+        $query->createFilterQuery('sids')->setQuery($sid_filter);
+
+        // Apply the same keyword query via edismax on variable fields
+        $edismax = $query->getEDisMax();
+        $edismax->setQueryFields($this->solr_variable_options['qf']);
+        $edismax->setMinimumMatch($this->solr_variable_options['mm']);
+        $query->setQuery($this->escape_keywords($keywords, $helper));
+
+        // We only need facet counts, not documents
+        $query->setRows(0);
+
+        // Facet on var_survey_id to get per-study counts
+        $facet = $query->getFacetSet()->createFacetField('by_survey');
+        $facet->setField('var_survey_id');
+        $facet->setLimit(count($id_list));
+        $facet->setMinCount(1);
+
+        try {
+            $resultset = $this->solr_client->select($query);
+        } catch (Exception $e) {
+            log_message('error', 'Catalog_search_solr::search_variable_counts — ' . $e->getMessage());
+            return array();
+        }
+
+        $counts = array();
+        $facet_result = $resultset->getFacetSet()->getFacet('by_survey');
+        if ($facet_result) {
+            foreach ($facet_result as $sid => $count) {
+                $counts[(int)$sid] = (int)$count;
+            }
+        }
+        return $counts;
     }
 }

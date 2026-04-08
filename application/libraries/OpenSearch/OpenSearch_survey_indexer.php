@@ -163,6 +163,7 @@ class OpenSearch_survey_indexer
             'abstract'        => $abstract,
             'keywords'        => $row['keywords']        ?? null,
             'methodology'     => $methodology,
+            'var_keywords'    => isset($row['var_keywords']) && $row['var_keywords'] !== '' ? $row['var_keywords'] : null,
 
             // --- Temporal ---
             'year_start'      => isset($row['year_start']) ? (int)$row['year_start'] : null,
@@ -220,6 +221,7 @@ class OpenSearch_survey_indexer
              surveys.authoring_entity,
              surveys.keywords,
              surveys.abstract,
+             surveys.var_keywords,
              surveys.metadata,
              surveys.year_start,
              surveys.year_end,

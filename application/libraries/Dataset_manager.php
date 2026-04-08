@@ -144,10 +144,11 @@ class Dataset_manager{
      * 
      * @sid_arr - array of IDs
      * @index_options (array)
-     *  - study | all study level options (core, facets, keywords)
+     *  - study | all study level options (core, facets, keywords, var_keywords)
      *  - core | only subtitle field for now
      *  - facets | tags, years
      *  - keywords | study keywords
+     *  - var_keywords | variable label keywords (microdata only)
      *  - var | all fields for vars
      */
     function repopulate_index($sid, $index_options=array('core','facets','keywords'))
@@ -174,6 +175,13 @@ class Dataset_manager{
     
             $this->ci->db->where('id',$sid);
             $this->ci->db->update('surveys',$data);
+        }
+
+        //microdata variable label keywords
+        if (in_array('var_keywords',$index_options) || in_array('study',$index_options)){
+            if ($type === 'survey') {
+                $this->ci->Dataset_microdata_model->index_variable_data($sid);
+            }
         }
 
         //facets

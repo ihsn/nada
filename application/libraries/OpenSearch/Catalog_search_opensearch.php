@@ -138,6 +138,19 @@ class catalog_search_opensearch
             $counts_by_type[$bucket['key']] = (int)$bucket['doc_count'];
         }
 
+        // var_found badge: query nada_variables with the same keywords, aggregated by survey_id.
+        // This gives the real match count ("3 variables found"), not the total variable count.
+        if ($this->study_keywords && !empty($rows)) {
+            $id_list    = array_column($rows, 'id');
+            $var_counts = $this->search_variable_counts($id_list, $this->study_keywords);
+            foreach ($rows as &$row) {
+                if (isset($var_counts[(int)$row['id']])) {
+                    $row['var_found'] = $var_counts[(int)$row['id']];
+                }
+            }
+            unset($row);
+        }
+
         // Citation counts are a lightweight lookup — fetch from DB only
         $survey_ids = array_column($rows, 'id');
         $citations  = $this->fetch_citation_counts($survey_ids);
@@ -812,6 +825,7 @@ class catalog_search_opensearch
             'keywords^10',
             'abstract',
             'methodology',
+            'var_keywords^15',
         ];
     }
 
@@ -834,5 +848,60 @@ class catalog_search_opensearch
     {
         $arr = $this->normalise_array($value);
         return array_values(array_filter(array_map('intval', $arr)));
+    }
+
+    /**
+     * Count how many variable documents in nada_variables match $keywords
+     * for each study in $id_list.
+     * Uses a terms aggregation (size=page) — zero rows returned, counts only.
+     *
+     * @param  int[]  $id_list   Survey IDs on the current result page
+     * @param  string $keywords  Raw search string
+     * @return array             [ survey_id => match_count ]
+     */
+    private function search_variable_counts(array $id_list, string $keywords): array
+    {
+        if (empty($id_list) || trim($keywords) === '') {
+            return [];
+        }
+
+        $fulltext = $this->build_variable_fulltext_clause($keywords);
+        if ($fulltext === null) {
+            return [];
+        }
+
+        $body = [
+            'size'             => 0,
+            'track_total_hits' => false,
+            'query'            => [
+                'bool' => [
+                    'must'   => [$fulltext],
+                    'filter' => [
+                        ['terms' => ['survey_id' => $id_list]],
+                    ],
+                ],
+            ],
+            'aggs' => [
+                'by_survey' => [
+                    'terms' => [
+                        'field' => 'survey_id',
+                        'size'  => count($id_list),
+                    ],
+                ],
+            ],
+        ];
+
+        try {
+            $response = $this->execute($this->variable_index, $body);
+        } catch (Exception $e) {
+            log_message('error', 'Catalog_search_opensearch::search_variable_counts — ' . $e->getMessage());
+            return [];
+        }
+
+        $counts = [];
+        foreach ($response['aggregations']['by_survey']['buckets'] ?? [] as $bucket) {
+            $counts[(int)$bucket['key']] = (int)$bucket['doc_count'];
+        }
+        return $counts;
     }
 }

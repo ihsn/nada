@@ -112,16 +112,3 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_survey_tags_tag' AND 
     CREATE NONCLUSTERED INDEX idx_survey_tags_tag ON survey_tags (tag) INCLUDE (sid);
 
 
--- ============================================================
--- Fulltext index on surveys.keywords only
--- (var_keywords removed from survey fulltext search)
---
--- NOTE: If the existing fulltext index on surveys was created
--- with var_keywords included, run the following to rebuild it.
--- Only needed if var_keywords was previously in the FT index.
--- Uncomment and run manually if required:
---
--- DROP FULLTEXT INDEX ON surveys;
--- CREATE FULLTEXT INDEX ON surveys (keywords Language 1033)
--- KEY INDEX pk_idx_surveys;
--- ============================================================

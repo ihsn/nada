@@ -370,7 +370,8 @@ CREATE TABLE surveys (
   thumbnail varchar(300) DEFAULT NULL,
   metadata varchar(max),
   var_keywords varchar(max),
-  keywords varchar(max),  
+  keywords varchar(max),
+  abstract nvarchar(500) NULL,  
   PRIMARY KEY (id)
 );
 
@@ -1519,8 +1520,9 @@ DROP FULLTEXT INDEX ON surveys;
 --add table columns to index
 CREATE FULLTEXT INDEX ON surveys
 (
-  keywords		Language 1033
- )
+  keywords     Language 1033,
+  var_keywords Language 1033
+)
 KEY INDEX pk_idx_surveys ; 
 
 

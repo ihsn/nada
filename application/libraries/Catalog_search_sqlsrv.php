@@ -181,7 +181,7 @@ class Catalog_search_sqlsrv{
             $study_keywords=trim($this->study_keywords);
 
             if ($study_keywords!=='') {
-                $query_count.='inner join freetexttable(surveys, (keywords), '.  $this->ci->db->escape($study_keywords) . ') k on surveys.id=k.[key]';
+                $query_count.='inner join freetexttable(surveys, (keywords,var_keywords), '.  $this->ci->db->escape($study_keywords) . ') k on surveys.id=k.[key]';
             }
 			
 			if ($repository!='')
@@ -370,6 +370,25 @@ class Catalog_search_sqlsrv{
 
 		$result['search_counts_by_type']=$this->search_counts_by_type();
 		
+		if ($result['found']>0){
+				//attach variable match counts to each study card
+				$id_list=array_column($this->search_result, "id");
+
+				if(count($id_list)>0){
+						$variables_by_study=$this->search_variable_counts($id_list,$this->study_keywords);
+						if(!empty($variables_by_study)){
+								foreach($this->search_result as $idx=>$row)
+								{
+										if(array_key_exists($row['id'],$variables_by_study)){
+												$this->search_result[$idx]['var_found']=$variables_by_study[$row['id']]['var_found'];
+										}
+								}
+						}
+				}
+
+				$result['rows']=$this->search_result;
+		}
+
 		return $result;
 	}
 
@@ -406,7 +425,7 @@ class Catalog_search_sqlsrv{
 			return FALSE;
 		}
 
-        $this->ci->db->join("freetexttable(surveys, (keywords), ".$this->ci->db->escape($study_keywords).") k","surveys.id=k.[key]","INNER",false);
+        $this->ci->db->join("freetexttable(surveys, (keywords,var_keywords), ".$this->ci->db->escape($study_keywords).") k","surveys.id=k.[key]","INNER",false);
 	}
 	
 
@@ -1268,6 +1287,49 @@ class Catalog_search_sqlsrv{
 		
 		return FALSE;
 	}
+
+
+	/**
+	 * Returns variable match counts per survey for the current keyword,
+	 * used to populate the "N variables found" badge on study cards.
+	 *
+	 * @param  array  $id_list   Survey IDs from current search result page
+	 * @param  string $keywords  The study keyword string
+	 * @return array|false       [sid => ['var_found' => N, 'sid' => sid], ...]
+	 */
+	function search_variable_counts($id_list, $keywords)
+	{
+			$keywords=trim($keywords);
+			$keywords=str_replace(array('"',"'"), '',$keywords);
+
+			if(strlen($keywords)<3 || strlen($keywords)>100){
+					return false;
+			}
+
+			if(!is_array($id_list) || empty($id_list)){
+					return false;
+			}
+
+			if (strlen($keywords) < 3){
+					return false;
+			}
+
+			$fulltext_index=$this->get_variable_search_field(TRUE);
+			$where=sprintf('(freetext((%s),%s) )', $fulltext_index, $this->ci->db->escape($keywords));
+
+			$sql='select count(*) as var_found,sid from variables v where ';
+			$sql.=$where;
+			$sql.=' AND sid in ('. implode(',', array_map('intval', $id_list)). ') ';
+			$sql.='group by sid;';
+
+			$result=$this->ci->db->query($sql)->result_array();
+			$output=array();
+			foreach($result as $row){
+					$output[$row['sid']]=$row;
+			}
+			return $output;
+	}
+
 
 }// END Search class
 

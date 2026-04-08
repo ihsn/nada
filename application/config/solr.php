@@ -20,8 +20,8 @@ $config['solr_debug'] = false;
 
 // EDisMax query options for survey/document search
 $config['solr_edismax_options'] = array(
-    'qf' => 'title^20.0 nation^20.0 authoring_entity idno^40 keywords abstract methodology',
-    'pf' => 'title^20.0 nation^20.0 authoring_entity idno^40 keywords abstract methodology',
+    'qf' => 'title^20.0 nation^20.0 authoring_entity idno^40 keywords abstract methodology var_keywords^15.0',
+    'pf' => 'title^20.0 nation^20.0 authoring_entity idno^40 keywords abstract methodology var_keywords^15.0',
     'mm' => '2<90%',
     'ps' => '0',
     'qs' => '0',
@@ -372,6 +372,13 @@ $config['solr_schema_fields'] = array(
             'indexed' => true,
             'stored' => true,
             'multiValued' => false
+        ),
+        array(
+            'name' => 'var_keywords',
+            'type' => 'text_en',
+            'indexed' => true,
+            'stored' => false,
+            'multiValued' => false
         )
     ),
 
@@ -570,6 +577,7 @@ $config['solr_xml_schema_reference'] = <<<'XML'
 <field name="total_downloads" type="pint" indexed="true" stored="true" multiValued="false" docValues="true"/>
 <field name="thumbnail" type="string" indexed="false" stored="true" multiValued="false"/>
 <field name="link_da" type="string" indexed="true" stored="true" multiValued="false"/>
+<field name="var_keywords" type="text_en" indexed="true" stored="false" multiValued="false"/>
 
 <!-- Additional fields for citations and other document types -->
 <field name="abstract" type="text_en" indexed="true" stored="true" multiValued="false"/>

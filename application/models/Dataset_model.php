@@ -681,6 +681,97 @@ class Dataset_model extends CI_Model {
 	}
 
 
+	/**
+	 * Build the var_keywords string 
+	 *
+	 * Fetches up to $max_vars variable labels from the variables table, removes
+	 * noise words (loaded from config/noise_words.php), strips standalone numbers
+	 * and very short tokens, deduplicates at the word level, and returns a
+	 * space-separated string capped at $max_bytes bytes.
+	 *
+	 * @param  int $sid       Survey / dataset ID
+	 * @param  int $max_vars  Maximum number of variable labels to process (default 3000)
+	 * @param  int $max_bytes Hard ceiling on the returned string length (default 65535)
+	 * @return string
+	 */
+	public function extract_var_keywords($sid, $max_vars = 3000, $max_bytes = 65535)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return '';
+		}
+
+		// Load noise words from config
+		$this->load->config('noise_words', true);
+		$noise_words = $this->config->item('noise_words', 'noise_words');
+		if (!is_array($noise_words) || empty($noise_words)) {
+			$noise_words = [];
+		}
+		// Build a case-insensitive regex alternation of exact whole words
+		$noise_pattern = !empty($noise_words)
+			? '/\b(' . implode('|', array_map('preg_quote', $noise_words)) . ')\b/iu'
+			: null;
+
+		// Fetch labels only — flat column, no JSON decode required
+		$this->db->select('labl');
+		$this->db->where('sid', $sid);
+		$this->db->where('labl !=', '');
+		$this->db->order_by('uid', 'ASC');
+		$this->db->limit($max_vars);
+		$rows = $this->db->get('variables')->result_array();
+
+		if (empty($rows)) {
+			return '';
+		}
+
+		$global_words = [];
+
+		foreach ($rows as $row) {
+			$label = trim($row['labl']);
+			if ($label === '') {
+				continue;
+			}
+
+			// Normalise whitespace and remove punctuation noise
+			$label = str_replace(["\n", "\r", "(", ")", "?", ",", "/", "\\", "-", "_"], ' ', $label);
+			$label = strtolower($label);
+
+			// Remove noise words
+			if ($noise_pattern !== null) {
+				$label = preg_replace($noise_pattern, ' ', $label);
+			}
+
+			// Remove standalone numbers and tokens shorter than 3 characters
+			$label = preg_replace('/\b\d+\b/', ' ', $label);
+			$label = preg_replace('/\b\w{1,2}\b/u', ' ', $label);
+
+			// Collect unique words from this label into the global set
+			$words = array_filter(explode(' ', $label));
+			foreach ($words as $word) {
+				$word = trim($word);
+				if ($word !== '') {
+					$global_words[$word] = true;
+				}
+			}
+		}
+
+		if (empty($global_words)) {
+			return '';
+		}
+
+		$output = implode(' ', array_keys($global_words));
+
+		// Apply hard byte ceiling
+		if (strlen($output) > $max_bytes) {
+			$output = mb_substr($output, 0, $max_bytes);
+			// Trim to last complete word
+			$output = substr($output, 0, (int) strrpos($output, ' '));
+		}
+
+		return $output;
+	}
+
+
 	function extract_abstract($metadata, $type = '')
 	{
 		// Map of study type => path in metadata (separator '/')

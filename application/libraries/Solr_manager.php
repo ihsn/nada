@@ -355,6 +355,7 @@ class Solr_manager {
                 surveys.total_views,
                 surveys.keywords,
                 surveys.abstract,
+                surveys.var_keywords,
                 surveys.authoring_entity,
                 surveys.metadata,
                 surveys.total_downloads",FALSE);
@@ -436,6 +437,11 @@ class Solr_manager {
             // Add nation_sort for sorting (string field with docValues)
             if (isset($rows[$key]['nation'])) {
                 $rows[$key]['nation_sort'] = $rows[$key]['nation'];
+            }
+
+            // var_keywords
+            if (!isset($rows[$key]['var_keywords'])) {
+                $rows[$key]['var_keywords'] = '';
             }
 
             //row survey id
@@ -923,7 +929,7 @@ class Solr_manager {
         surveys.total_downloads";
 
         if ($inc_keywords==true){
-            $fields.=',surveys.keywords';
+            $fields.=',surveys.keywords,surveys.var_keywords';
         }
 
         //get survey record + study level metadata
@@ -980,6 +986,11 @@ class Solr_manager {
         // Add nation_sort for sorting (string field with docValues)
         if (isset($survey['nation'])) {
             $survey['nation_sort'] = $survey['nation'];
+        }
+
+        // var_keywords
+        if (!isset($survey['var_keywords'])) {
+            $survey['var_keywords'] = '';
         }
         
         return $survey;

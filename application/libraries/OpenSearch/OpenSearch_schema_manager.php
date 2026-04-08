@@ -157,6 +157,7 @@ class OpenSearch_schema_manager
             'abstract'        => ['type' => 'text',    'analyzer' => 'english'],
             'keywords'        => ['type' => 'text',    'analyzer' => 'english'],
             'methodology'     => ['type' => 'text',    'analyzer' => 'english'],
+            'var_keywords'    => ['type' => 'text',    'analyzer' => 'english', 'index' => true, 'store' => false],
 
             // --- Temporal ---
             'year_start'      => ['type' => 'integer'],

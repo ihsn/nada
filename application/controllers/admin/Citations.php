@@ -927,7 +927,7 @@ class Citations extends MY_Controller {
             return FALSE;
         }
 
-        $study_fulltext_index='keywords';
+        $study_fulltext_index='keywords,var_keywords';
         $where=array();
 
         $tmp_surveys=explode(",",$exclude_surveys);
@@ -961,7 +961,7 @@ class Citations extends MY_Controller {
 					KEY_TBL.*
 					FROM surveys
 					INNER JOIN
-						freetexttable (surveys,(keywords),%s,100) as KEY_TBL
+						freetexttable (surveys,(keywords,var_keywords),%s,100) as KEY_TBL
 					ON surveys.id=KEY_TBL.[KEY]
 					WHERE KEY_TBL.RANK >=10
 					ORDER BY KEY_TBL.RANK DESC;",$this->db->escape($keywords));
