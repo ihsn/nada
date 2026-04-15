@@ -89,7 +89,6 @@ class MY_Email extends CI_Email {
         'email_driver' => 'smtp',
         'acs_endpoint' => '',
         'acs_access_key' => '',
-        'acs_sender_address' => '',
         'acs_api_version' => '2025-09-01',
         'acs_connection_string' => '',
     );
@@ -271,7 +270,6 @@ class MY_Email extends CI_Email {
                     'charset' => $this->CI->config->item('charset'),
                     'acs_endpoint' => $this->CI->config->item('acs_endpoint'),
                     'acs_access_key' => $this->CI->config->item('acs_access_key'),
-                    'acs_sender_address' => $this->CI->config->item('acs_sender_address'),
                     'acs_api_version' => $this->CI->config->item('acs_api_version'),
                     'acs_connection_string' => $this->CI->config->item('acs_connection_string'),
                 );
@@ -307,10 +305,7 @@ class MY_Email extends CI_Email {
         $from_name = null;
         
         // Priority 1: smtp_email from email.php config file
-        if (!empty($config['acs_sender_address']) && isset($config['email_driver']) && $config['email_driver'] === 'acs') {
-            $from_email = $config['acs_sender_address'];
-        }
-        elseif (!empty($config['smtp_email'])) {
+        if (!empty($config['smtp_email'])) {
             $from_email = $config['smtp_email'];
         }
         // Priority 2: website_webmaster_email from DB config
@@ -600,7 +595,7 @@ class MY_Email extends CI_Email {
             $output .= "Driver: " . $this->driver_name . "\n";
             if ($this->driver_name === 'acs') {
                 $output .= "ACS Endpoint: " . $this->acs_endpoint . "\n";
-                $output .= "ACS Sender Address: " . $this->acs_sender_address . "\n";
+                $output .= "Sender Address: " . $this->smtp_email . "\n";
                 $output .= "ACS API Version: " . $this->acs_api_version . "\n";
             } else {
                 $output .= "SMTP Host: " . $this->smtp_host . "\n";
@@ -729,7 +724,6 @@ class MY_Email extends CI_Email {
         if ($this->driver_name === 'acs') {
             $config['acs_endpoint'] = $this->acs_endpoint;
             $config['acs_access_key'] = $this->acs_access_key;
-            $config['acs_sender_address'] = $this->acs_sender_address;
             $config['acs_api_version'] = $this->acs_api_version;
             $config['acs_connection_string'] = $this->acs_connection_string;
             $config['debug'] = $this->smtp_debug > 0;

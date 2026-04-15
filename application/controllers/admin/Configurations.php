@@ -262,10 +262,10 @@ class Configurations extends MY_Controller {
 		);
 
 		if ($email_driver === 'acs') {
-			$config['acs_endpoint']         = $this->input->post('acs_endpoint');
-			$config['acs_access_key']       = $this->input->post('acs_access_key');
-			$config['acs_sender_address']   = $this->input->post('acs_sender_address');
-			$config['acs_api_version']      = $this->input->post('acs_api_version') ?: '2025-09-01';
+			$config['acs_endpoint']          = $this->input->post('acs_endpoint');
+			$config['acs_access_key']        = $this->input->post('acs_access_key');
+			$config['smtp_email']            = $this->input->post('acs_sender_address');
+			$config['acs_api_version']       = $this->input->post('acs_api_version') ?: '2025-09-01';
 			$config['acs_connection_string'] = $this->input->post('acs_connection_string');
 
 			if ($config['acs_access_key'] == '') {

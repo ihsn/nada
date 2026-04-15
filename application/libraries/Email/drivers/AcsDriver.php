@@ -43,7 +43,7 @@ class AcsDriver implements EmailInterface {
 
         $this->endpoint = rtrim(isset($config['acs_endpoint']) ? (string)$config['acs_endpoint'] : '', '/');
         $this->access_key = isset($config['acs_access_key']) ? (string)$config['acs_access_key'] : '';
-        $this->sender_address = isset($config['acs_sender_address']) ? (string)$config['acs_sender_address'] : '';
+        $this->sender_address = isset($config['smtp_email']) ? (string)$config['smtp_email'] : '';
 
         if (!empty($config['acs_api_version'])) {
             $this->api_version = (string)$config['acs_api_version'];
