@@ -22,7 +22,22 @@ fieldset legend{
 
 <?php echo form_open(null, array('id'=>'email-form'));?>
 
+    <fieldset class="form-group">
+    <div class="row">
+      <legend class="col-form-label col-sm-2 pt-0"><label>Email driver</label></legend>
+      <div class="col-sm-10">
+      <?php
+        $email_drivers=array(
+            'smtp'=>'SMTP',
+            'acs'=>'Azure Communication Services'
+        );
+      ?>
+      <?php echo form_dropdown('email_driver', $email_drivers, set_value('email_driver', $email_driver), 'id="email_driver" class="form-control"');?>
+      </div>
+      </div>
+    </fieldset>
 
+<div id="smtp-settings">
     <div class="form-group row">
         <label for="smtp-host" class="col-sm-2 col-form-label">SMTP host</label>
         <div class="col-sm-10">
@@ -134,6 +149,45 @@ fieldset legend{
       <input type="email" class="form-control" name="mail_from" value="<?php echo set_value('mail_from', $mail_from); ?>"" placeholder="Leave this empty, if Username/Email are the same">
     </div>
   </div>
+</div>
+
+<div id="acs-settings">
+  <div class="form-group row">
+    <label for="acs-endpoint" class="col-sm-2 col-form-label">ACS endpoint</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" name="acs_endpoint" id="acs-endpoint" value="<?php echo set_value('acs_endpoint', $acs_endpoint); ?>" placeholder="https://your-resource.communication.azure.com">
+    </div>
+  </div>
+
+  <div class="form-group row">
+    <label for="acs-key" class="col-sm-2 col-form-label">ACS access key</label>
+    <div class="col-sm-10">
+      <input type="password" class="form-control" name="acs_access_key" id="acs-key" value="<?php echo set_value('acs_access_key', $acs_access_key); ?>" placeholder="Leave empty to use config/email.php">
+    </div>
+  </div>
+
+  <div class="form-group row">
+    <label for="acs-connection-string" class="col-sm-2 col-form-label">Connection string</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" name="acs_connection_string" id="acs-connection-string" value="<?php echo set_value('acs_connection_string', $acs_connection_string); ?>" placeholder="Optional alternative to endpoint/access key">
+      <small class="form-text text-muted">Optional. Endpoint and access key take precedence if both are provided.</small>
+    </div>
+  </div>
+
+  <div class="form-group row">
+    <label for="acs-sender-address" class="col-sm-2 col-form-label">Sender address</label>
+    <div class="col-sm-10">
+      <input type="email" class="form-control" name="acs_sender_address" id="acs-sender-address" value="<?php echo set_value('acs_sender_address', $acs_sender_address); ?>" placeholder="DoNotReply@your-domain.com">
+    </div>
+  </div>
+
+  <div class="form-group row">
+    <label for="acs-api-version" class="col-sm-2 col-form-label">API version</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" name="acs_api_version" id="acs-api-version" value="<?php echo set_value('acs_api_version', $acs_api_version); ?>" placeholder="2025-09-01">
+    </div>
+  </div>
+</div>
 
   <div class="form-group row">
     <label for="email_to" class="col-sm-2 col-form-label">Email to</label>
@@ -158,6 +212,17 @@ fieldset legend{
 
 
 <script>
+function toggle_driver_fields(){
+    var driver=$("#email_driver").val();
+    if(driver==="acs"){
+        $("#smtp-settings").hide();
+        $("#acs-settings").show();
+    } else {
+        $("#smtp-settings").show();
+        $("#acs-settings").hide();
+    }
+}
+
 function send_mail(){
     $("#email_output").show().html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> sending ...');
     data=$("#email-form").serialize();
@@ -167,7 +232,13 @@ function send_mail(){
     });
 }
 
+$("#email_driver").on("change", function() {
+  toggle_driver_fields();
+});
+
 $( "#btn_submit" ).on( "click", function() {
   send_mail();
 });
+
+toggle_driver_fields();
 </script>

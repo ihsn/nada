@@ -202,14 +202,20 @@ class Configurations extends MY_Controller {
 		$this->config->load('email');
 
 		$email_config=array(
+			'email_driver'=>$this->config->item('email_driver'),
 			'smtp_host'=>$this->config->item('smtp_host'),
 			'smtp_auth'=>$this->config->item('smtp_auth'),
 			'smtp_crypto'=>$this->config->item('smtp_crypto'),
 			'smtp_user'=>$this->config->item('smtp_user'),
-			'mail_from'=>$this->config->item('smtp_user'),
+			'mail_from'=>$this->config->item('email_driver')==='acs' ? $this->config->item('acs_sender_address') : $this->config->item('smtp_user'),
 			'smtp_pass'=>'',
 			'smtp_port'=>$this->config->item('smtp_port'),
-			'useragent'=>$this->config->item('useragent')
+			'useragent'=>$this->config->item('useragent'),
+			'acs_endpoint'=>$this->config->item('acs_endpoint'),
+			'acs_access_key'=>'',
+			'acs_sender_address'=>$this->config->item('acs_sender_address'),
+			'acs_api_version'=>$this->config->item('acs_api_version') ?: '2025-09-01',
+			'acs_connection_string'=>''
 		);
 
 		$content=$this->load->view('site_configurations/test_email', $email_config,true);
@@ -230,23 +236,47 @@ class Configurations extends MY_Controller {
 		$this->config->load('email');
 		$this->load->library('email');		
 
+		$email_driver=$this->input->post('email_driver');
+		if (!$email_driver){
+			$email_driver=$this->config->item('email_driver') ?: 'smtp';
+		}
+
 		$config = Array(
-			'protocol'  => 'smtp',
-			'useragent' =>$this->input->post('useragent'),
-			'smtp_host' => $this->input->post('smtp_host'),
-			'smtp_port' => $this->input->post('smtp_port'),
-			'smtp_user' => $this->input->post('smtp_user'),
-			'smtp_pass' => $this->input->post('smtp_pass'),
+			'email_driver' => $email_driver,
 			'mailtype'  => 'html',
-			'smtp_debug'  => 2,
-			'smtp_auth' =>$this->input->post('smtp_auth'),
-			'smtp_crypto' =>$this->input->post('smtp_crypto'),
+			'smtp_debug'  => 2
 		);
 
-		//password
-		if($config['smtp_pass']==''){
-			//use password from the config file
-			$config['smtp_pass']=$this->config->item("smtp_pass");
+		if ($email_driver==='acs'){
+			$config['acs_endpoint']=$this->input->post('acs_endpoint');
+			$config['acs_access_key']=$this->input->post('acs_access_key');
+			$config['acs_sender_address']=$this->input->post('acs_sender_address');
+			$config['acs_api_version']=$this->input->post('acs_api_version') ?: '2025-09-01';
+			$config['acs_connection_string']=$this->input->post('acs_connection_string');
+
+			if($config['acs_access_key']==''){
+				$config['acs_access_key']=$this->config->item("acs_access_key");
+			}
+
+			if($config['acs_connection_string']==''){
+				$config['acs_connection_string']=$this->config->item("acs_connection_string");
+			}
+		}
+		else{
+			$config['protocol']  = 'smtp';
+			$config['useragent'] =$this->input->post('useragent');
+			$config['smtp_host'] = $this->input->post('smtp_host');
+			$config['smtp_port'] = $this->input->post('smtp_port');
+			$config['smtp_user'] = $this->input->post('smtp_user');
+			$config['smtp_pass'] = $this->input->post('smtp_pass');
+			$config['smtp_auth'] =$this->input->post('smtp_auth');
+			$config['smtp_crypto'] =$this->input->post('smtp_crypto');
+
+			//password
+			if($config['smtp_pass']==''){
+				//use password from the config file
+				$config['smtp_pass']=$this->config->item("smtp_pass");
+			}
 		}
 
 		// Initialize email with test config
@@ -261,8 +291,10 @@ class Configurations extends MY_Controller {
 		$this->email->to($this->input->post('mail_to'));		
 		$this->email->subject('NADA test email');
 		$this->email->message('NADA test email message body');
-		$this->email->send();
+		$result=$this->email->send(false);
+		echo $result ? "Send result: success\n\n" : "Send result: failed\n\n";
 		echo $this->email->print_debugger();
+		$this->email->clear(true);
 	}
 	
 }
