@@ -175,13 +175,6 @@ fieldset legend{
   </div>
 
   <div class="form-group row">
-    <label for="acs-sender-address" class="col-sm-2 col-form-label">Sender address</label>
-    <div class="col-sm-10">
-      <input type="email" class="form-control" name="acs_sender_address" id="acs-sender-address" value="<?php echo set_value('acs_sender_address', $acs_sender_address); ?>" placeholder="DoNotReply@your-domain.com">
-    </div>
-  </div>
-
-  <div class="form-group row">
     <label for="acs-api-version" class="col-sm-2 col-form-label">API version</label>
     <div class="col-sm-10">
       <input type="text" class="form-control" name="acs_api_version" id="acs-api-version" value="<?php echo set_value('acs_api_version', $acs_api_version); ?>" placeholder="2025-09-01">

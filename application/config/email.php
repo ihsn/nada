@@ -2,7 +2,7 @@
 
 //this file overwrites email settings loaded from the database
 
-$config['email_driver']     = 'smtp';                    // Email driver: 'smtp', 'sendgrid', 'acs', 'microsoft_graph'
+$config['email_driver']     = 'smtp';                     // Email driver: 'smtp', 'sendgrid', 'acs', 'microsoft_graph'
 $config['useragent']        = 'PHPMailer';              // Mail engine switcher: 'CodeIgniter' or 'PHPMailer'
 $config['protocol']         = 'smtp';                   // 'mail', 'sendmail', or 'smtp'
 $config['mailpath']         = '/usr/sbin/sendmail';
@@ -135,7 +135,8 @@ $config['smtp_display_name'] = 'Your Name';
 $config['email_driver']          = 'acs';
 $config['acs_endpoint']          = 'https://your-resource.communication.azure.com';
 $config['acs_access_key']        = ''; // ACS access key
-$config['acs_sender_address']    = 'DoNotReply@your-domain.com';
+$config['smtp_email']            = 'DoNotReply@your-domain.com';
+$config['smtp_display_name']     = 'Your Name';
 $config['acs_api_version']       = '2025-09-01';
 $config['acs_connection_string'] = ''; // Optional alternative to endpoint/access key
 */

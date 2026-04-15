@@ -207,13 +207,12 @@ class Configurations extends MY_Controller {
 			'smtp_auth'=>$this->config->item('smtp_auth'),
 			'smtp_crypto'=>$this->config->item('smtp_crypto'),
 			'smtp_user'=>$this->config->item('smtp_user'),
-			'mail_from'=>$this->config->item('email_driver')==='acs' ? $this->config->item('acs_sender_address') : $this->config->item('smtp_user'),
+			'mail_from'=>$this->config->item('smtp_email'),
 			'smtp_pass'=>'',
 			'smtp_port'=>$this->config->item('smtp_port'),
 			'useragent'=>$this->config->item('useragent'),
 			'acs_endpoint'=>$this->config->item('acs_endpoint'),
 			'acs_access_key'=>'',
-			'acs_sender_address'=>$this->config->item('acs_sender_address'),
 			'acs_api_version'=>$this->config->item('acs_api_version') ?: '2025-09-01',
 			'acs_connection_string'=>''
 		);
@@ -250,7 +249,6 @@ class Configurations extends MY_Controller {
 		if ($email_driver==='acs'){
 			$config['acs_endpoint']=$this->input->post('acs_endpoint');
 			$config['acs_access_key']=$this->input->post('acs_access_key');
-			$config['acs_sender_address']=$this->input->post('acs_sender_address');
 			$config['acs_api_version']=$this->input->post('acs_api_version') ?: '2025-09-01';
 			$config['acs_connection_string']=$this->input->post('acs_connection_string');
 

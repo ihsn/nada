@@ -90,7 +90,6 @@ function load_email_settings()
   } elseif ($email_driver === 'acs') {
     $config['acs_endpoint'] = $ci->config->item("acs_endpoint");
     $config['acs_access_key'] = $ci->config->item("acs_access_key");
-    $config['acs_sender_address'] = $ci->config->item("acs_sender_address");
     $config['acs_api_version'] = $ci->config->item("acs_api_version");
     $config['acs_connection_string'] = $ci->config->item("acs_connection_string");
   } elseif ($email_driver === 'microsoft_graph') {
