@@ -115,6 +115,40 @@ class CI_DB_sqlsrv_driver extends CI_DB {
 	// --------------------------------------------------------------------
 
 	/**
+	 * Escape for T-SQL string literals
+	 *
+	 * Parent CI_DB::escape() emits '...' only. Non-prefixed literals use the
+	 * connection/database code page, so Unicode (e.g. Arabic) is lost as '?'.
+	 * NVARCHAR assignments need Unicode literals: N'...'.
+	 *
+	 * @param	mixed	$str
+	 * @return	mixed
+	 */
+	public function escape($str)
+	{
+		if (is_array($str))
+		{
+			return array_map(array($this, 'escape'), $str);
+		}
+		elseif (is_string($str) OR (is_object($str) && method_exists($str, '__toString')))
+		{
+			return 'N\''.$this->escape_str($str).'\'';
+		}
+		elseif (is_bool($str))
+		{
+			return ($str === FALSE) ? 0 : 1;
+		}
+		elseif ($str === NULL)
+		{
+			return 'NULL';
+		}
+
+		return $str;
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
 	 * Database connection
 	 *
 	 * @param	bool	$pooling
