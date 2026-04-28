@@ -12,7 +12,9 @@ require(APPPATH . '/libraries/MY_REST_Controller.php');
  * Endpoints (PUT/DELETE also have POST aliases where noted):
  *
  *   GET    /api/admin/data_structures                                ?flat=1&page=&per_page=&search|q=&status=  (no page: full list; with page: paginated + total; search filters name/title/agency/idno/version/description/notes/id)
- *   POST   /api/admin/data_structures/create                       — create DSD (JSON body)
+	 *   POST   /api/admin/data_structures/create                       — create DSD (JSON body)
+	 *          Optional overwrite=1|0 (query/body): when true, update existing DSD by idno or
+	 *          identity (agency+name+version) if found and not locked; otherwise create new.
  *   POST   /api/admin/data_structures/update/{id_or_idno}         — update DSD (JSON body); path: digits only = id (PK), else idno
  *   POST   /api/admin/data_structures/status/{id_or_idno}         — change DSD status only (JSON body: status)
  *   GET    /api/admin/data_structures/{segment}                 ?with_components=1|0 — segment: digits only = id (PK); otherwise idno (idno must never be purely numeric)
@@ -137,6 +139,12 @@ class Data_structures extends MY_REST_Controller {
 
 	/**
 	 * POST /api/admin/data_structures/create — create structure version row.
+	 *
+	 * Optional overwrite behaviour:
+	 * - Query/body overwrite=1|true|yes (or falsey variants)
+	 * - If overwrite is enabled and a DSD already exists (matched by idno or identity),
+	 *   update that row in place only when not locked.
+	 * - Locked rows (published/archived) cannot be overwritten.
 	 */
 	public function create_post()
 	{
@@ -145,12 +153,38 @@ class Data_structures extends MY_REST_Controller {
 			if (!$input || !is_array($input)) {
 				throw new Exception('JSON body required');
 			}
+			$overwrite = $this->_read_bool_flag_from_query_or_body('overwrite', $input, false);
+			unset($input['overwrite']);
+
+			if ($overwrite) {
+				$existing = $this->_resolve_existing_structure_for_overwrite($input);
+				if ($existing) {
+					if (Data_structure_model::is_locked_status((int) $existing['status'])) {
+						throw new Exception('Locked data structures (published/archived) cannot be overwritten.');
+					}
+					$this->_merge_audit_ids_on_update($input);
+					$this->Data_structure_model->update_structure((int) $existing['id'], $input);
+					$row = $this->Data_structure_model->get_structure_by_id((int) $existing['id'], false);
+					$this->set_response([
+						'status' => 'success',
+						'result' => [
+							'data_structure' => $row,
+							'overwritten'    => true,
+						],
+					], REST_Controller::HTTP_OK);
+					return;
+				}
+			}
+
 			$this->_merge_audit_ids_on_create($input);
 			$id = $this->Data_structure_model->create_structure($input);
 			$row = $this->Data_structure_model->get_structure_by_id($id, false);
 			$this->set_response([
 				'status' => 'success',
-				'result' => ['data_structure' => $row],
+				'result' => [
+					'data_structure' => $row,
+					'overwritten'    => false,
+				],
 			], REST_Controller::HTTP_CREATED);
 		} catch (Exception $e) {
 			$msg = $e->getMessage();
@@ -911,6 +945,96 @@ class Data_structures extends MY_REST_Controller {
 		if (!array_key_exists('updated_by', $input) || $input['updated_by'] === '' || $input['updated_by'] === null) {
 			$input['updated_by'] = (int) $uid;
 		}
+	}
+
+	/**
+	 * Resolve overwrite target from request payload using:
+	 * - explicit idno, and/or
+	 * - identity (agency + name + version)
+	 *
+	 * If both are present they must point to the same row.
+	 *
+	 * @param array $input create payload
+	 * @return array|null data_structures row (without components)
+	 * @throws Exception when idno and identity conflict
+	 */
+	private function _resolve_existing_structure_for_overwrite(array $input)
+	{
+		$row_by_idno = null;
+		$row_by_identity = null;
+
+		$idno = isset($input['idno']) ? trim((string) $input['idno']) : '';
+		if ($idno !== '') {
+			$row_by_idno = $this->Data_structure_model->get_structure_by_idno($idno);
+		}
+
+		$name = isset($input['name']) ? trim((string) $input['name']) : '';
+		if ($name !== '') {
+			$agency = isset($input['agency']) && trim((string) $input['agency']) !== ''
+				? trim((string) $input['agency'])
+				: Data_structure_model::DEFAULT_AGENCY;
+			$version = isset($input['version']) && trim((string) $input['version']) !== ''
+				? trim((string) $input['version'])
+				: Data_structure_model::DEFAULT_VERSION;
+			if (preg_match('/^\d+\.\d+$/', $version)) {
+				$version .= '.0';
+			}
+			$row_by_identity = $this->Data_structure_model->get_structure_by_identity($name, $agency, $version);
+		}
+
+		if ($row_by_idno && $row_by_identity && (int) $row_by_idno['id'] !== (int) $row_by_identity['id']) {
+			throw new Exception('idno and identity refer to different data structures; overwrite is ambiguous.');
+		}
+
+		return $row_by_idno ?: $row_by_identity;
+	}
+
+	/**
+	 * Reads a boolean flag from query params first, then optional JSON body key.
+	 *
+	 * Accepted truthy: 1, true, yes, on
+	 * Accepted falsey: 0, false, no, off
+	 *
+	 * @param string $name
+	 * @param array  $input
+	 * @param bool   $default
+	 * @return bool
+	 */
+	private function _read_bool_flag_from_query_or_body($name, array $input, $default)
+	{
+		$qv = $this->query($name);
+		if ($qv !== null && $qv !== false && $qv !== '') {
+			return $this->_boolish($qv, $default);
+		}
+		if (array_key_exists($name, $input)) {
+			return $this->_boolish($input[$name], $default);
+		}
+		return (bool) $default;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @param bool  $default
+	 * @return bool
+	 */
+	private function _boolish($value, $default)
+	{
+		if (is_bool($value)) {
+			return $value;
+		}
+		if (is_int($value) || is_float($value)) {
+			return ((int) $value) === 1;
+		}
+		if (is_string($value)) {
+			$v = strtolower(trim($value));
+			if (in_array($v, ['1', 'true', 'yes', 'on'], true)) {
+				return true;
+			}
+			if (in_array($v, ['0', 'false', 'no', 'off'], true)) {
+				return false;
+			}
+		}
+		return (bool) $default;
 	}
 
 	/**
