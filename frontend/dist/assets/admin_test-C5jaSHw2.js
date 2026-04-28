@@ -1,0 +1,1 @@
+import{o as n,c as o,d as t,k as p}from"./runtime-dom.esm-bundler-Dhrt2tW0.js";import{_ as s}from"./_plugin-vue_export-helper-DlAUqK2U.js";const a={name:"App"};function r(l,e,m,u,d,f){return n(),o("div",null,[...e[0]||(e[0]=[t("h1",null,"Admin Test Page",-1),t("p",null,"This is a test page for Vue 3 integration.",-1)])])}const c=s(a,[["render",r]]),i=p(c);i.mount("#app");
