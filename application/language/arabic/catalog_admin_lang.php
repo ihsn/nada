@@ -164,6 +164,7 @@ $lang['tab_citations']="اقتباسات";
 $lang['tab_data_files']="ملفات البيانات";
 $lang['tab_notes']="ملاحظات";
 $lang['tab_related_data']="دراسات ذات صلة";
+$lang['tab_timeseries_data']="بيانات المؤشرات";
 $lang['license']="رخصة";
 $lang['select_license']="إختر الرخصة";
 $lang['select_study_thumbnail']="إختر ملف الصورة (PNG ، JPG ، JPEG ، GIF)";

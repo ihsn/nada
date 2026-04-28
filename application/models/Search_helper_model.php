@@ -698,6 +698,67 @@ class Search_helper_model extends CI_Model {
 			return $output;
 	}
 
+	/**
+	 * Keep only "type" / "type[]" values that exist in survey_types (reference table).
+	 * One cheap query scoped to the submitted tokens only — no joins or counts over surveys.
+	 *
+	 * @param string|string[]|false|null $raw Value(s) after XSS cleaning
+	 * @return string|array Empty string if none valid; otherwise canonical codes from the database
+	 */
+	function filter_catalog_type_param($raw)
+	{
+		if ($raw === false || $raw === null || $raw === '') {
+			return '';
+		}
+
+		$items = is_array($raw) ? $raw : array($raw);
+		$candidates = array();
+
+		foreach ($items as $t) {
+			if ( ! is_string($t) && ! is_numeric($t)) {
+				continue;
+			}
+			$k = strtolower(trim((string) $t));
+			if ($k !== '') {
+				$candidates[$k] = true;
+			}
+		}
+
+		$candidates = array_keys($candidates);
+		$max = 32;
+		if (count($candidates) > $max) {
+			$candidates = array_slice($candidates, 0, $max);
+		}
+
+		if (empty($candidates)) {
+			return '';
+		}
+
+		$code_col = $this->db->protect_identifiers('code');
+		$escaped = array();
+		foreach ($candidates as $c) {
+			$escaped[] = $this->db->escape($c);
+		}
+
+		$this->db->select('code');
+		$this->db->from('survey_types');
+		$this->db->where('LOWER(' . $code_col . ') IN (' . implode(',', $escaped) . ')', null, false);
+
+		$rows = $this->db->get()->result_array();
+		if (empty($rows)) {
+			return '';
+		}
+
+		$out = array();
+		foreach ($rows as $row) {
+			if ( ! empty($row['code'])) {
+				$out[$row['code']] = true;
+			}
+		}
+
+		return array_keys($out);
+	}
+
 
 	/**
 	* 

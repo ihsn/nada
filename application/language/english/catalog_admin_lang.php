@@ -166,6 +166,7 @@ $lang['tab_citations']="Citations";
 $lang['tab_data_files']="Data files";
 $lang['tab_notes']="Notes";
 $lang['tab_related_data']="Related studies";
+$lang['tab_timeseries_data']="Indicator data";
 $lang['license']="License";
 $lang['select_license']="Select license";
 

@@ -145,6 +145,7 @@ $lang['show_selected_only']="Показать только выбранное";
 
 $lang['Data available from external repository']="Данные доступны из внешнего репозитория ";
 $lang['Data not available']="Наборы данных отсутствуют";
+$lang['tab_timeseries_data']="Данные индикаторов";
 
 /* End of file catalog_admin_lang.php */
 /* Location: ./application/language/russian/catalog_admin_lang.php */

@@ -522,8 +522,8 @@ class Datasets extends MY_REST_Controller
 	 */
 	function create_post($type=null,$idno=null)
 	{
-		if($type=='timeseries-db' || $type=='timeseriesdb'){
-			return $this->create_timeseries_database($idno);
+		if($type=='timeseries-db'){
+			$type='timeseriesdb';
 		}
 
 		try{			
@@ -603,8 +603,8 @@ class Datasets extends MY_REST_Controller
 	 */
 	function update_post($type=null,$idno=null)
 	{
-		if($type=='timeseries-db' || $type=='timeseriesdb'){
-			return $this->update_timeseries_database($idno);
+		if($type=='timeseries-db'){
+			$type='timeseriesdb';
 		}
 
 		try{			
@@ -635,7 +635,7 @@ class Datasets extends MY_REST_Controller
         	$options=array_merge($dataset,$options);
 			
 			//validate & update dataset			
-			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image' || $type=='video' || $type=='timeseries'){
+			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image' || $type=='video' || $type=='timeseries' || $type=='timeseriesdb'){
 				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata); 
 			}
 			else{
@@ -2265,7 +2265,10 @@ class Datasets extends MY_REST_Controller
 			}
 
 			$pretty = $this->input->get('pretty') === 'true' || $this->input->get('pretty') === '1';
-			
+			$dsd_export = strtolower(trim((string) $this->input->get('dsd_export'))) === JSON_Writer::DSD_EXPORT_INLINE
+				? JSON_Writer::DSD_EXPORT_INLINE
+				: JSON_Writer::DSD_EXPORT_REFERENCE;
+
 			$dataset = $this->Dataset_model->get_row($sid);
 			$study_path = $this->Dataset_model->get_storage_fullpath($sid);
 			if (!$study_path) {
@@ -2273,22 +2276,26 @@ class Datasets extends MY_REST_Controller
 			}
 
 			$extension = ($format == 'jsonl') ? 'jsonl' : 'json';
-			$json_path = $study_path . '/' . $dataset['idno'] . '.' . $extension;
+			$inline_suffix = ($dataset['type'] === 'timeseries' && $dsd_export === JSON_Writer::DSD_EXPORT_INLINE)
+				? '.inline'
+				: '';
+			$json_path = $study_path . '/' . $dataset['idno'] . $inline_suffix . '.' . $extension;
 
 			if (!file_exists($study_path)) {
 				mkdir($study_path, 0755, true);
 			}
 
 			if ($format == 'jsonl') {
-				$result = $this->json_writer->write_jsonl($sid, $json_path, true);
+				$result = $this->json_writer->write_jsonl($sid, $json_path, true, $dsd_export);
 			} else {
-				$result = $this->json_writer->write_json($sid, $json_path, true, $pretty);
+				$result = $this->json_writer->write_json($sid, $json_path, true, $pretty, $dsd_export);
 			}
 
 			$response=array(
 				'status'=>  'success',
 				'path' => $result,
-				'format' => $format
+				'format' => $format,
+				'dsd_export' => $dsd_export,
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -2317,8 +2324,12 @@ class Datasets extends MY_REST_Controller
 			$this->has_dataset_access('view',$sid);
 			
 			$this->load->library('Package_Exporter');
-			
-			$temp_zip = $this->package_exporter->export($sid);
+
+			$dsd_export = strtolower(trim((string) $this->input->get('dsd_export'))) === 'inline'
+				? 'inline'
+				: 'reference';
+
+			$temp_zip = $this->package_exporter->export($sid, null, $dsd_export);
 			
 			if (!file_exists($temp_zip)) {
 				throw new Exception("FAILED_TO_CREATE_PACKAGE");

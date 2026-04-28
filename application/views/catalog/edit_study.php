@@ -678,6 +678,9 @@ background: white;
 				<?php if (!empty($analytics_enabled)): ?>
 				<li role="presentation" <?php echo $selected_page=='analytics' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/analytics');?>" aria-controls="analytics" role="tab"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> <?php echo t('Analytics');?></a></li>
 				<?php endif; ?>
+				<?php if ($study_type === 'timeseries'): ?>
+				<li role="presentation" <?php echo $selected_page=='timeseries-data' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/timeseries-data');?>" aria-controls="timeseries-data" role="tab"><?php echo t('tab_timeseries_data');?></a></li>
+				<?php endif; ?>
 				
 			</ul>
 
@@ -717,6 +720,9 @@ background: white;
 				break;
 				case 'analytics':
 					$this->load->view('catalog/study_analytics');
+				break;
+				case 'timeseries-data':
+					$this->load->view('catalog/study_timeseries_data_tab');
 				break;
 				default:
 					$this->load->view('catalog/edit_study_overview');

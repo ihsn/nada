@@ -33,6 +33,11 @@ $config['timeseriesdb']=array(
     'language_translations'=>'fields_timeseriesdb'
 ); 
 
+$config['timeseries-db']=array(
+    'template' => 'metadata_templates/timeseriesdb-template',
+    'language_translations'=>'fields_timeseriesdb'
+);
+
 
 $config['script']=array(
     'template' => 'metadata_templates/script-template',

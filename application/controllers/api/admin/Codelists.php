@@ -30,13 +30,99 @@ class Codelists extends MY_REST_Controller {
 	}
 
 	/**
-	 * GET /api/admin/codelists — list all codelists (with optional item_count, group_count).
+	 * GET /api/admin/codelists — list codelists (with optional item_count; group_count omitted on catalogue rows).
+	 *
+	 * Default: one row per codelist family (latest head: id = pid), including versions_count.
+	 * Use flat=1 for one row per stored version (full table). Alias: collapsed=1 forces family view;
+	 * collapsed=0 forces flat. flat=1 wins when both are set.
+	 *
+	 * With `page` (1-based): returns one page plus `total`, `page`, `per_page`.
+	 * Optional: `per_page` (default 50, max 200), `search` or `q`, `status` (exact smallint).
+	 * With `with_counts` (default on): item_count and dsd_component_count (main grid only; no group_count).
+	 * dsd_component_count: flat = by codelists.id; collapsed = DSD refs to any version with same agency+name.
 	 */
 	public function index_get()
 	{
 		try {
 			$with_counts = $this->get('with_counts') !== '0' && $this->get('with_counts') !== false;
-			$rows = $this->Codelist_model->get_all_codelists($with_counts);
+			$flat = $this->_codelists_catalog_flat_mode();
+			$status_raw = $this->get('status');
+			$status = ($status_raw !== null && $status_raw !== false && $status_raw !== '')
+				? (int) $status_raw
+				: null;
+			$page_raw = $this->get('page');
+			$use_paged = ($page_raw !== null && $page_raw !== false && $page_raw !== '');
+			if ($use_paged) {
+				$page = max(1, (int) $page_raw);
+				$per_raw = $this->get('per_page');
+				$per_page = ($per_raw !== null && $per_raw !== false && $per_raw !== '') ? (int) $per_raw : 50;
+				$search = $this->get('search');
+				if ($search === null || $search === false) {
+					$search = $this->get('q');
+				}
+				$search = is_string($search) ? $search : '';
+				$p = $this->Codelist_model->get_codelists_paged([
+					'page'        => $page,
+					'per_page'    => $per_page,
+					'search'      => $search,
+					'with_counts' => $with_counts,
+					'flat'        => $flat,
+					'status'      => $status,
+				]);
+				$this->set_response([
+					'status' => 'success',
+					'result' => [
+						'codelists' => $p['rows'],
+						'total'     => $p['total'],
+						'page'      => $p['page'],
+						'per_page'  => $p['per_page'],
+					],
+				], REST_Controller::HTTP_OK);
+				return;
+			}
+			$rows = $flat
+				? $this->Codelist_model->get_all_codelists($with_counts)
+				: $this->Codelist_model->get_all_codelists_collapsed($with_counts);
+			$this->set_response([
+				'status' => 'success',
+				'result' => ['codelists' => $rows],
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->set_response([
+				'status'  => 'error',
+				'message' => $e->getMessage(),
+			], REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * flat=1 => all version rows; collapsed=1 => family heads; default collapsed.
+	 * flat=1 wins over collapsed=1.
+	 */
+	private function _codelists_catalog_flat_mode()
+	{
+		$flat = ($this->get('flat') === '1' || $this->get('flat') === 'true');
+		if ($this->get('collapsed') === '1' || $this->get('collapsed') === 'true') {
+			$flat = false;
+		}
+		if ($this->get('collapsed') === '0' || $this->get('collapsed') === 'false') {
+			$flat = true;
+		}
+		if ($this->get('flat') === '1' || $this->get('flat') === 'true') {
+			$flat = true;
+		}
+		return $flat;
+	}
+
+	/**
+	 * GET /api/admin/codelists/versions/{name}
+	 * Query: agency.
+	 */
+	public function versions_get($name)
+	{
+		try {
+			$agency = $this->get('agency');
+			$rows    = $this->Codelist_model->get_codelist_versions($name, $agency ?: null);
 			$this->set_response([
 				'status' => 'success',
 				'result' => ['codelists' => $rows],
@@ -74,12 +160,48 @@ class Codelists extends MY_REST_Controller {
 	}
 
 	/**
-	 * GET /api/admin/codelists/by_name/{name} — one codelist by name with items and groups (nested).
+	 * GET /api/admin/codelists/by_name/{name} — one codelist by name (+ optional agency, version) with items and groups (nested).
+	 *
+	 * Optional query params: agency (default: 'NADA'). Omit version to resolve the latest row for that name.
 	 */
 	public function by_name_get($name)
 	{
 		try {
-			$codelist = $this->Codelist_model->get_codelist_by_name($name);
+			$agency  = $this->get('agency');
+			$version = $this->get('version');
+			$codelist = $this->Codelist_model->get_codelist_by_name($name, $agency ?: null, $version ?: null);
+			if (!$codelist) {
+				$this->set_response(['status' => 'error', 'message' => 'Not found'], REST_Controller::HTTP_NOT_FOUND);
+				return;
+			}
+			$id = (int) $codelist['id'];
+			$codelist['items']  = $this->Codelist_item_model->get_items_by_codelist($id, true);
+			$codelist['groups'] = $this->Codelist_group_model->get_groups_by_codelist($id, true);
+			$this->set_response([
+				'status' => 'success',
+				'result' => ['codelist' => $codelist],
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->set_response([
+				'status'  => 'error',
+				'message' => $e->getMessage(),
+			], REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * GET /api/admin/codelists/by_idno/{idno} — one codelist by its unique idno with items and groups (nested).
+	 *
+	 * idno is the compact single-string identity (default format: "{agency}_{name}_{version}").
+	 */
+	public function by_idno_get($idno = null)
+	{
+		try {
+			$idno = $idno !== null ? rawurldecode($idno) : '';
+			if ($idno === '') {
+				$idno = (string) $this->get('idno');
+			}
+			$codelist = $this->Codelist_model->get_codelist_by_idno($idno);
 			if (!$codelist) {
 				$this->set_response(['status' => 'error', 'message' => 'Not found'], REST_Controller::HTTP_NOT_FOUND);
 				return;
@@ -101,6 +223,9 @@ class Codelists extends MY_REST_Controller {
 
 	/**
 	 * GET /api/admin/codelists/item/{id} — one codelist with items and groups (nested).
+	 *
+	 * Optional: include_items=0 and/or include_groups=0 to omit large arrays; response then includes
+	 * item_count and/or group_count instead of loading every row (detail UIs that page item_items / item_groups).
 	 */
 	public function item_get($id)
 	{
@@ -111,8 +236,21 @@ class Codelists extends MY_REST_Controller {
 				$this->set_response(['status' => 'error', 'message' => 'Not found'], REST_Controller::HTTP_NOT_FOUND);
 				return;
 			}
-			$codelist['items']       = $this->Codelist_item_model->get_items_by_codelist($id, true);
-			$codelist['groups']      = $this->Codelist_group_model->get_groups_by_codelist($id, true);
+			$include_items = $this->get('include_items') !== '0' && $this->get('include_items') !== false;
+			$include_groups = $this->get('include_groups') !== '0' && $this->get('include_groups') !== false;
+
+			if ($include_items) {
+				$codelist['items'] = $this->Codelist_item_model->get_items_by_codelist($id, true);
+			} else {
+				$codelist['items'] = [];
+				$codelist['item_count'] = $this->Codelist_item_model->count_items_by_codelist($id);
+			}
+			if ($include_groups) {
+				$codelist['groups'] = $this->Codelist_group_model->get_groups_by_codelist($id, true);
+			} else {
+				$codelist['groups'] = [];
+				$codelist['group_count'] = $this->Codelist_group_model->count_groups_by_codelist($id);
+			}
 			$codelist['has_defaults'] = $this->_seed_path($codelist['name']) !== null;
 			$this->set_response([
 				'status' => 'success',
@@ -138,6 +276,9 @@ class Codelists extends MY_REST_Controller {
 			if (!$codelist) {
 				$this->set_response(['status' => 'error', 'message' => 'Not found'], REST_Controller::HTTP_NOT_FOUND);
 				return;
+			}
+			if (Codelist_model::is_locked_status((int) ($codelist['status'] ?? 0))) {
+				throw new Exception('Locked codelists cannot be restored from seed.');
 			}
 
 			$path = $this->_seed_path($codelist['name']);
@@ -260,6 +401,56 @@ class Codelists extends MY_REST_Controller {
 	}
 
 	/**
+	 * Throws when codelist status is locked (published/archived).
+	 *
+	 * @param int $codelist_id
+	 * @return void
+	 * @throws Exception
+	 */
+	private function _assert_codelist_mutable($codelist_id)
+	{
+		$codelist = $this->Codelist_model->get_codelist_by_id((int) $codelist_id);
+		if (!$codelist) {
+			throw new Exception('Codelist not found.');
+		}
+		if (Codelist_model::is_locked_status((int) ($codelist['status'] ?? 0))) {
+			throw new Exception('This codelist is locked. Items and groups cannot be modified.');
+		}
+	}
+
+	/**
+	 * Resolve item -> codelist and assert mutable.
+	 *
+	 * @param int $item_id
+	 * @return void
+	 * @throws Exception
+	 */
+	private function _assert_item_codelist_mutable($item_id)
+	{
+		$item = $this->Codelist_item_model->get_item_by_id((int) $item_id, false);
+		if (!$item) {
+			throw new Exception('Item not found.');
+		}
+		$this->_assert_codelist_mutable((int) $item['codelist_id']);
+	}
+
+	/**
+	 * Resolve group -> codelist and assert mutable.
+	 *
+	 * @param int $group_id
+	 * @return void
+	 * @throws Exception
+	 */
+	private function _assert_group_codelist_mutable($group_id)
+	{
+		$group = $this->Codelist_group_model->get_group_by_id((int) $group_id, false, false);
+		if (!$group) {
+			throw new Exception('Group not found.');
+		}
+		$this->_assert_codelist_mutable((int) $group['codelist_id']);
+	}
+
+	/**
 	 * PUT /api/admin/codelists/item/{id}
 	 */
 	public function item_put($id)
@@ -309,11 +500,94 @@ class Codelists extends MY_REST_Controller {
 
 	/**
 	 * GET /api/admin/codelists/item_items/{codelist_id} — list items.
+	 *
+	 * Default (no view=flat, no page): full rows (optionally with translations unless with_translations=0).
+	 * view=flat: each item is { value: code, label: title or code }; translations are not loaded.
+	 *   With page: paginated flat list + total, page, per_page. Optional search / q on code and title.
+	 *   Without page: all items as flat objects (use with care for large lists).
+	 * Non-flat with page (1-based): full DB rows for one page + total, page, per_page; optional search / q;
+	 * per_page default 50, max 200.
 	 */
 	public function item_items_get($codelist_id)
 	{
 		try {
-			$items = $this->Codelist_item_model->get_items_by_codelist((int) $codelist_id, true);
+			$cid = (int) $codelist_id;
+			$view_flat = strtolower((string) $this->get('view')) === 'flat';
+
+			if ($view_flat) {
+				$page_raw = $this->get('page');
+				$use_page = ($page_raw !== null && $page_raw !== false && $page_raw !== '');
+				$search = $this->get('search');
+				if ($search === null || $search === false) {
+					$search = $this->get('q');
+				}
+				$search = is_string($search) ? $search : '';
+
+				if ($use_page) {
+					$page = max(1, (int) $page_raw);
+					$per_raw = $this->get('per_page');
+					$per_page = ($per_raw !== null && $per_raw !== false && $per_raw !== '') ? (int) $per_raw : 50;
+					$p = $this->Codelist_item_model->get_items_by_codelist_paged($cid, [
+						'page'              => $page,
+						'per_page'          => $per_page,
+						'search'            => $search,
+						'with_translations' => false,
+					]);
+					$items = $this->_codelist_items_to_flat($p['rows']);
+					$this->set_response([
+						'status' => 'success',
+						'result' => [
+							'items'    => $items,
+							'total'    => $p['total'],
+							'page'     => $p['page'],
+							'per_page' => $p['per_page'],
+						],
+					], REST_Controller::HTTP_OK);
+					return;
+				}
+
+				$rows = $this->Codelist_item_model->get_items_by_codelist($cid, false);
+				$items = $this->_codelist_items_to_flat($rows);
+				$this->set_response([
+					'status' => 'success',
+					'result' => ['items' => $items],
+				], REST_Controller::HTTP_OK);
+				return;
+			}
+
+			$page_raw_nf = $this->get('page');
+			$use_page_nf = ($page_raw_nf !== null && $page_raw_nf !== false && $page_raw_nf !== '');
+			if ($use_page_nf) {
+				$page_nf = max(1, (int) $page_raw_nf);
+				$per_raw_nf = $this->get('per_page');
+				$per_page_nf = ($per_raw_nf !== null && $per_raw_nf !== false && $per_raw_nf !== '') ? (int) $per_raw_nf : 50;
+				$per_page_nf = min(200, max(1, $per_page_nf));
+				$search_nf = $this->get('search');
+				if ($search_nf === null || $search_nf === false) {
+					$search_nf = $this->get('q');
+				}
+				$search_nf = is_string($search_nf) ? $search_nf : '';
+				$with_translations_nf = $this->get('with_translations') !== '0' && $this->get('with_translations') !== false;
+				$p_nf = $this->Codelist_item_model->get_items_by_codelist_paged($cid, [
+					'page'              => $page_nf,
+					'per_page'          => $per_page_nf,
+					'search'            => $search_nf,
+					'with_translations' => $with_translations_nf,
+				]);
+				$this->set_response([
+					'status' => 'success',
+					'result' => [
+						'items'    => $p_nf['rows'],
+						'total'    => $p_nf['total'],
+						'page'     => $p_nf['page'],
+						'per_page' => $p_nf['per_page'],
+					],
+				], REST_Controller::HTTP_OK);
+				return;
+			}
+
+			$with_translations = $this->get('with_translations') !== '0' && $this->get('with_translations') !== false;
+			$items = $this->Codelist_item_model->get_items_by_codelist($cid, $with_translations);
 			$this->set_response([
 				'status' => 'success',
 				'result' => ['items' => $items],
@@ -327,11 +601,34 @@ class Codelists extends MY_REST_Controller {
 	}
 
 	/**
+	 * Map DB rows to flat { value, label } (code + title only).
+	 *
+	 * @param array $rows
+	 * @return array
+	 */
+	private function _codelist_items_to_flat(array $rows)
+	{
+		$out = [];
+		foreach ($rows as $row) {
+			$code = isset($row['code']) ? (string) $row['code'] : '';
+			$title = isset($row['title']) && $row['title'] !== null && $row['title'] !== ''
+				? trim((string) $row['title'])
+				: '';
+			$out[] = [
+				'value' => $code,
+				'label' => $title !== '' ? $title : $code,
+			];
+		}
+		return $out;
+	}
+
+	/**
 	 * POST /api/admin/codelists/item_items/{codelist_id} — create item. Body: { "code", "title", "parent_id?", "sort_order?" }
 	 */
 	public function item_items_post($codelist_id)
 	{
 		try {
+			$this->_assert_codelist_mutable((int) $codelist_id);
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input) || empty($input['code'])) {
 				throw new Exception('JSON body required: code, optional title, parent_id, sort_order');
@@ -379,6 +676,7 @@ class Codelists extends MY_REST_Controller {
 	public function items_put($item_id)
 	{
 		try {
+			$this->_assert_item_codelist_mutable((int) $item_id);
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
 				throw new Exception('JSON body required: code and/or title, parent_id, sort_order');
@@ -407,6 +705,7 @@ class Codelists extends MY_REST_Controller {
 	public function items_delete($item_id)
 	{
 		try {
+			$this->_assert_item_codelist_mutable((int) $item_id);
 			$this->Codelist_item_model->delete_item((int) $item_id);
 			$this->set_response([
 				'status' => 'success',
@@ -451,6 +750,7 @@ class Codelists extends MY_REST_Controller {
 	public function items_translations_post($item_id)
 	{
 		try {
+			$this->_assert_item_codelist_mutable((int) $item_id);
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input) || empty($input['lang']) || !isset($input['title'])) {
 				throw new Exception('JSON body required: lang, title');
@@ -479,6 +779,7 @@ class Codelists extends MY_REST_Controller {
 	public function items_translation_delete($item_id, $lang)
 	{
 		try {
+			$this->_assert_item_codelist_mutable((int) $item_id);
 			$this->Codelist_item_model->delete_item_translation((int) $item_id, $lang);
 			$this->set_response([
 				'status' => 'success',
@@ -494,11 +795,47 @@ class Codelists extends MY_REST_Controller {
 
 	/**
 	 * GET /api/admin/codelists/item_groups/{codelist_id}
+	 *
+	 * Default: all groups with item_ids and translations.
+	 * With page (1-based): one page + total, page, per_page; optional search / q on group name;
+	 * with_translations=0 to omit translation maps. per_page default 50, max 200.
 	 */
 	public function item_groups_get($codelist_id)
 	{
 		try {
-			$groups = $this->Codelist_group_model->get_groups_by_codelist((int) $codelist_id, true);
+			$cid = (int) $codelist_id;
+			$page_raw = $this->get('page');
+			$use_page = ($page_raw !== null && $page_raw !== false && $page_raw !== '');
+			if ($use_page) {
+				$page = max(1, (int) $page_raw);
+				$per_raw = $this->get('per_page');
+				$per_page = ($per_raw !== null && $per_raw !== false && $per_raw !== '') ? (int) $per_raw : 50;
+				$per_page = min(200, max(1, $per_page));
+				$search = $this->get('search');
+				if ($search === null || $search === false) {
+					$search = $this->get('q');
+				}
+				$search = is_string($search) ? $search : '';
+				$with_translations = $this->get('with_translations') !== '0' && $this->get('with_translations') !== false;
+				$p = $this->Codelist_group_model->get_groups_by_codelist_paged($cid, [
+					'page'              => $page,
+					'per_page'          => $per_page,
+					'search'            => $search,
+					'with_translations' => $with_translations,
+				]);
+				$this->set_response([
+					'status' => 'success',
+					'result' => [
+						'groups'   => $p['rows'],
+						'total'    => $p['total'],
+						'page'     => $p['page'],
+						'per_page' => $p['per_page'],
+					],
+				], REST_Controller::HTTP_OK);
+				return;
+			}
+
+			$groups = $this->Codelist_group_model->get_groups_by_codelist($cid, true);
 			$this->set_response([
 				'status' => 'success',
 				'result' => ['groups' => $groups],
@@ -517,6 +854,7 @@ class Codelists extends MY_REST_Controller {
 	public function item_groups_post($codelist_id)
 	{
 		try {
+			$this->_assert_codelist_mutable((int) $codelist_id);
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input) || empty($input['name'])) {
 				throw new Exception('JSON body required: name, optional sort_order');
@@ -564,6 +902,7 @@ class Codelists extends MY_REST_Controller {
 	public function groups_put($group_id)
 	{
 		try {
+			$this->_assert_group_codelist_mutable((int) $group_id);
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
 				throw new Exception('JSON body required: name and/or sort_order');
@@ -592,6 +931,7 @@ class Codelists extends MY_REST_Controller {
 	public function groups_delete($group_id)
 	{
 		try {
+			$this->_assert_group_codelist_mutable((int) $group_id);
 			$this->Codelist_group_model->delete_group((int) $group_id);
 			$this->set_response([
 				'status' => 'success',
@@ -612,6 +952,7 @@ class Codelists extends MY_REST_Controller {
 	public function groups_items_post($group_id)
 	{
 		try {
+			$this->_assert_group_codelist_mutable((int) $group_id);
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input) || empty($input['codelist_item_id'])) {
 				throw new Exception('JSON body required: codelist_item_id, optional sort_order');
@@ -640,6 +981,7 @@ class Codelists extends MY_REST_Controller {
 	public function groups_items_remove_delete($group_id, $item_id)
 	{
 		try {
+			$this->_assert_group_codelist_mutable((int) $group_id);
 			$this->Codelist_group_model->remove_group_item((int) $group_id, (int) $item_id);
 			$this->set_response([
 				'status' => 'success',
@@ -683,6 +1025,7 @@ class Codelists extends MY_REST_Controller {
 	public function groups_translations_post($group_id)
 	{
 		try {
+			$this->_assert_group_codelist_mutable((int) $group_id);
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input) || empty($input['lang']) || !isset($input['title'])) {
 				throw new Exception('JSON body required: lang, title');
@@ -711,6 +1054,7 @@ class Codelists extends MY_REST_Controller {
 	public function groups_translation_delete($group_id, $lang)
 	{
 		try {
+			$this->_assert_group_codelist_mutable((int) $group_id);
 			$this->Codelist_group_model->delete_group_translation((int) $group_id, $lang);
 			$this->set_response([
 				'status' => 'success',

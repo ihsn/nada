@@ -182,6 +182,10 @@ $menu[]=array(
 		'url'	=>'admin/codelists'
 	),
 	array(
+		'title'	=>'Data structures',
+		'url'	=>'admin/data_structures'
+	),
+	array(
 		'type'	=>'divider'
 	),
 	array(

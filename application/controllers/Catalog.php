@@ -101,7 +101,12 @@ class Catalog extends MY_Controller {
 			$tab='microdata';
 		}
 
-		$this->enabled_filters=(array)json_decode($this->config->item('facets_'.$tab),true);
+		$filters_config=$this->config->item('facets_'.$tab);
+		if ($filters_config===false || $filters_config===null || $filters_config===''){
+			$filters_config=$this->config->item('facets_all');
+		}
+
+		$this->enabled_filters=(array)json_decode($filters_config,true);
 	}
 
 	/**
@@ -535,6 +540,8 @@ class Catalog extends MY_Controller {
 
 		if($search_options->tab_type!=''){
 			$search_options->type=$search_options->tab_type;
+		} else {
+			$search_options->type = $this->Search_helper_model->filter_catalog_type_param($search_options->type);
 		}
 
 		$variable_keywords = $search_options->sk;

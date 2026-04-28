@@ -158,6 +158,13 @@ $route['catalog/(:num)/variable_groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/vargrp'] = "study/variable_groups/$1";
 
 //timeseries db info page
+$route['catalog/(:num)/indicator-chart'] = "study/indicator_chart/$1";
+$route['catalog/(:num)/indicator-data-api'] = "study/indicator_observations/$1";
+// Legacy slug (301-style redirect in controller).
+$route['catalog/(:num)/indicator-observations'] = "study/redirect_indicator_observations/$1";
+$route['catalog/(:num)/indicator-structure'] = "study/indicator_structure/$1";
+// Legacy URL: redirects to indicator-chart (or observations/structure) with query preserved.
+$route['catalog/(:num)/indicator-data'] = "study/indicator_data/$1";
 $route['catalog/(:num)/timeseries-db'] = "study/timeseries_db/$1";
 
 $route['catalog/(:num)/variable-groups/(.*)'] = "study/variable_groups/$1/$2";
@@ -227,6 +234,8 @@ $route['api/db_logs/api_logs/files']         = "api/db_logs/api_logs_files";
 $route['api/dashboard/stats'] = "api/dashboard/stats";
 
 // Admin Codelists API (nested routes first)
+// REST_Controller::_remap: map to versions/$1 (not versions_get/$1) so versions_get is invoked.
+$route['api/admin/codelists/versions/(:any)']             = 'api/admin/codelists/versions/$1';
 $route['api/admin/codelists/item/(:num)/restore']         = 'api/admin/codelists/item_restore/$1';
 $route['api/admin/codelists/item/(:num)/items']           = 'api/admin/codelists/item_items/$1';
 $route['api/admin/codelists/item/(:num)/groups']          = 'api/admin/codelists/item_groups/$1';
@@ -239,6 +248,56 @@ $route['api/admin/codelists/groups/(:num)/translations'] = 'api/admin/codelists/
 $route['api/admin/codelists/item/(:num)']                = 'api/admin/codelists/item/$1';
 $route['api/admin/codelists/items/(:num)']                = 'api/admin/codelists/items/$1';
 $route['api/admin/codelists/groups/(:num)']               = 'api/admin/codelists/groups/$1';
+
+// Admin Data Structures API (DSD catalogue; nested routes first)
+$route['api/admin/data_structures/import_json']                  = 'api/admin/data_structures/import_json';
+$route['api/admin/data_structures/import']                       = 'api/admin/data_structures/import';
+$route['api/admin/data_structures/create']                       = 'api/admin/data_structures/create';
+$route['api/admin/data_structures/update/(:any)']                = 'api/admin/data_structures/update/$1';
+$route['api/admin/data_structures/status/(:any)']                = 'api/admin/data_structures/status/$1';
+// versions/{id-or-idno}: second segment maps to versions_get($1); must precede catch-all …/(:any).
+$route['api/admin/data_structures/versions/(:any)']             = 'api/admin/data_structures/versions/$1';
+$route['api/admin/data_structures/projects/(:any)']             = 'api/admin/data_structures/projects/$1';
+$route['api/admin/data_structures/by_identity']                  = 'api/admin/data_structures/by_identity';
+$route['api/admin/data_structures/validate']                    = 'api/admin/data_structures/validate';
+$route['api/admin/data_structures/export/(:any)']               = 'api/admin/data_structures/export/$1';
+$route['api/admin/data_structures/delete/(:any)']              = 'api/admin/data_structures/delete/$1';
+$route['api/admin/data_structures/components_update/(:num)']   = 'api/admin/data_structures/components_update/$1';
+$route['api/admin/data_structures/components_delete/(:num)']   = 'api/admin/data_structures/components_delete/$1';
+$route['api/admin/data_structures/components/(:any)']          = 'api/admin/data_structures/components/$1';
+// Single structure: GET/DELETE …/{id_or_idno}; register after all named paths above
+$route['api/admin/data_structures/(:any)']                      = 'api/admin/data_structures/structure_lookup/$1';
+
+// Admin Timeseries API (indicator observations / Mongo; nested paths first)
+$route['api/admin/timeseries/data/(:any)/import']                = 'api/admin/timeseries/data_import/$1';
+$route['api/admin/timeseries/data/(:any)/count']                 = 'api/admin/timeseries/data_count/$1';
+$route['api/admin/timeseries/data/(:any)']                       = 'api/admin/timeseries/data/$1';
+$route['api/admin/timeseries/data/(:any)/sync-counts']          = 'api/admin/timeseries/data_sync_counts/$1';
+$route['api/admin/timeseries/data/(:any)/value-counts-summary'] = 'api/admin/timeseries/data_value_counts_summary/$1';
+$route['api/admin/timeseries/data/(:any)/attach-dsd']          = 'api/admin/timeseries/data_attach_dsd/$1';
+$route['api/admin/timeseries/data/(:any)/rehash']              = 'api/admin/timeseries/data_rehash/$1';
+$route['api/admin/timeseries/data/(:any)/duplicates']          = 'api/admin/timeseries/data_duplicates/$1';
+$route['api/admin/timeseries/data/(:any)/schema']              = 'api/admin/timeseries/data_schema/$1';
+$route['api/admin/timeseries/data-structures/(:num)/indexes']  = 'api/admin/timeseries/structure_indexes/$1';
+$route['api/admin/timeseries/data-structures/(:num)/rehash']   = 'api/admin/timeseries/structure_rehash/$1';
+$route['api/admin/timeseries/data-structures/(:num)/duplicates'] = 'api/admin/timeseries/structure_duplicates/$1';
+$route['api/admin/timeseries/data-structures/(:num)/stats']    = 'api/admin/timeseries/structure_stats/$1';
+
+// Public Timeseries API (read-only; nested paths first)
+$route['api/timeseries/data/(:any)/count']                      = 'api/timeseries_public/data_count/$1';
+$route['api/timeseries/data/(:any)/export']                     = 'api/timeseries_public/data_export/$1';
+$route['api/timeseries/data/(:any)']                            = 'api/timeseries_public/data/$1';
+$route['api/timeseries/data/(:any)/filter-options']             = 'api/timeseries_public/data_filter_options/$1';
+$route['api/timeseries/data/(:any)/chart']                      = 'api/timeseries_public/data_chart/$1';
+$route['api/timeseries/data/(:any)/schema']                     = 'api/timeseries_public/data_schema/$1';
+$route['api/timeseries/data-structures/by_idno/(:any)']        = 'api/timeseries_public/structure_by_idno/$1';
+$route['api/timeseries/data-structures/by_identity/(:any)']    = 'api/timeseries_public/structure_by_identity/$1';
+$route['api/timeseries/data-structures/versions/(:any)']       = 'api/timeseries_public/structure_versions/$1';
+$route['api/timeseries/data-structures/item/(:num)']         = 'api/timeseries_public/structure_item/$1';
+$route['api/timeseries/codelists/by_idno/(:any)']              = 'api/timeseries_public/codelist_by_idno/$1';
+$route['api/timeseries/codelists/by_name/(:any)']             = 'api/timeseries_public/codelist_by_name/$1';
+$route['api/timeseries/codelists/item/(:num)/items']          = 'api/timeseries_public/codelist_item_items/$1';
+$route['api/timeseries/codelists/item/(:num)']                = 'api/timeseries_public/codelist_item/$1';
 
 // API Logs Admin Page
 $route['admin/api_logs'] = "admin/logs/api_logs";

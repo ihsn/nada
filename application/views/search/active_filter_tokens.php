@@ -32,7 +32,7 @@ $bg=0;
                             <span 
                                 class="badge badge-default badge-secondary wb-badge-close remove-filter type" 
                                 style="background:<?php echo $facet_bg[$bg];?>" 
-                                data-type="<?php echo $facet_key;?>[]" data-value="<?php echo html_escape($facet_value);?>">
+                                data-type="<?php echo html_escape($facet_key);?>[]" data-value="<?php echo html_escape($facet_value);?>">
                                 <?php echo html_escape($facets[$facet_key]['values'][$facet_value]['title']);?><i class="fa fa-close fas fa-times"></i>
                             </span>                        
                         <?php endif;?>                        
@@ -51,7 +51,7 @@ $bg=0;
     <?php if (is_array($search_options->type)):?>
         <?php foreach($search_options->type as $type):?>
             <?php if ($search_options->tab_type==$type){continue;};?>                
-                <span class="badge badge-default badge-secondary wb-badge-close remove-filter type" data-type="type[]" data-value="<?php echo $type;?>"><?php echo $type;?><i class="fas fa-times"></i></span>
+                <span class="badge badge-default badge-secondary wb-badge-close remove-filter type" data-type="type[]" data-value="<?php echo html_escape($type);?>"><?php echo html_escape($type);?><i class="fas fa-times"></i></span>
         <?php endforeach;?>
     <?php endif;?>
 
@@ -66,7 +66,7 @@ $bg=0;
     <?php if (is_array($search_options->country)):?>
         <?php foreach($search_options->country as $country):?>
             <?php if (is_array($countries) && array_key_exists($country,$countries)):?>
-                <span class="badge badge-default wb-badge-close remove-filter country" data-type="country[]" data-value="<?php echo $country;?>"><?php echo $countries[$country];?><i class="fas fa-times"></i></span>
+                <span class="badge badge-default wb-badge-close remove-filter country" data-type="country[]" data-value="<?php echo html_escape($country);?>"><?php echo html_escape($countries[$country]);?><i class="fas fa-times"></i></span>
             <?php endif;?>
         <?php endforeach;?>
     <?php endif;?>
@@ -74,7 +74,7 @@ $bg=0;
     <?php if (is_array($search_options->collection)):?>
         <?php foreach($search_options->collection as $collection):?>
             <?php if (array_key_exists($collection,$repositories)):?>
-                <span class="badge badge-default wb-badge-close  remove-filter country collection" data-type="collection[]" data-value="<?php echo $collection;?>"><?php echo $repositories[$collection];?><i class="fas fa-times"></i></span>
+                <span class="badge badge-default wb-badge-close  remove-filter country collection" data-type="collection[]" data-value="<?php echo html_escape($collection);?>"><?php echo html_escape($repositories[$collection]);?><i class="fas fa-times"></i></span>
             <?php endif;?>
         <?php endforeach;?>
     <?php endif;?>
@@ -82,7 +82,7 @@ $bg=0;
     <?php if (isset($search_options->region) && is_array($search_options->region)):?>
         <?php foreach($search_options->region as $region):?>
             <?php if (array_key_exists($region,$regions)):?>
-                <span class="badge badge-default wb-badge-close country remove-filter region" data-type="region[]" data-value="<?php echo $region;?>"><?php echo $regions[$region]['title'];?><i class="fas fa-times"></i></span>
+                <span class="badge badge-default wb-badge-close country remove-filter region" data-type="region[]" data-value="<?php echo html_escape($region);?>"><?php echo html_escape($regions[$region]['title']);?><i class="fas fa-times"></i></span>
             <?php endif;?>
         <?php endforeach;?>
     <?php endif;?>
@@ -90,8 +90,8 @@ $bg=0;
     <?php if (isset($search_options->dtype) && is_array($search_options->dtype)):?>
         <?php foreach($search_options->dtype as $dtype):?>
             <?php if (array_key_exists($dtype,$data_access_types)):?>
-                <span class="badge badge-default wb-badge-close remove-filter dtype" data-type="dtype[]" data-value="<?php echo $dtype;?>">
-                    <?php echo $data_access_types[$dtype]['title'];?><i class="fas fa-times"></i>
+                <span class="badge badge-default wb-badge-close remove-filter dtype" data-type="dtype[]" data-value="<?php echo html_escape($dtype);?>">
+                    <?php echo html_escape($data_access_types[$dtype]['title']);?><i class="fas fa-times"></i>
                 </span>
             <?php endif;?>
         <?php endforeach;?>
@@ -100,15 +100,15 @@ $bg=0;
     <?php if (isset($search_options->data_class) && is_array($search_options->data_class) && is_array($data_classifications)):?>
         <?php foreach($search_options->data_class as $data_class):?>
             <?php if (array_key_exists($data_class,$data_classifications)):?>
-                <span class="badge badge-default badge-secondary wb-badge-close remove-filter data_class" data-type="data_class[]" data-value="<?php echo $data_class;?>">
-                    <?php echo $data_classifications[$data_class]['title'];?><i class="fas fa-times"></i>
+                <span class="badge badge-default badge-secondary wb-badge-close remove-filter data_class" data-type="data_class[]" data-value="<?php echo html_escape($data_class);?>">
+                    <?php echo html_escape($data_classifications[$data_class]['title']);?><i class="fas fa-times"></i>
                 </span>
             <?php endif;?>
         <?php endforeach;?>
     <?php endif;?>
 
     <?php if ((int)$search_options->from>0 && (int)$search_options->to>0):?>
-            <span class="badge badge-default wb-badge-close remove-filter years" data-type="years" data-value="0"><?php echo t('between');?> <?php echo $search_options->from;?>-<?php echo $search_options->to;?><i class="fas fa-times"></i></span>
+            <span class="badge badge-default wb-badge-close remove-filter years" data-type="years" data-value="0"><?php echo t('between');?> <?php echo html_escape((string) $search_options->from);?>-<?php echo html_escape((string) $search_options->to);?><i class="fas fa-times"></i></span>
     <?php endif;?>
 
     <?php if (isset($search_options->sk) && $search_options->sk!=''):?>

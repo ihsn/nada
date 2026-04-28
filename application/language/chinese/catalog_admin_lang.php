@@ -138,6 +138,7 @@ $lang['ddi_batch_refresh_title']="批量刷新DDI";
 $lang['btn_refresh']="刷新DDI";
 $lang['refresh_ddi_description']="刷新DDI，更新拥有DDI的元数据的数据库。";
 $lang['total_studies_found']="搜索到的总研究数";
+$lang['tab_timeseries_data']="指标数据";
 
 
 /* End of file catalog_admin_lang.php */

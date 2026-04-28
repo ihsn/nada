@@ -38,6 +38,10 @@ class Dataset_model extends CI_Model {
 		'created_by',
 		'changed_by',
 		'data_class_id',
+		'data_structure_id',
+		'ts_db_id',
+		'ts_dimensions',
+		'ts_sync_required',
 		'formid',
 		'metadata',
 		'link_study',
@@ -68,6 +72,7 @@ class Dataset_model extends CI_Model {
 		'total_downloads',
 		'created_by',
 		'changed_by',
+		'ts_db_id',
 		'formid',
 		'doi',
 		'abstract'
@@ -780,6 +785,7 @@ class Dataset_model extends CI_Model {
 			'document'      => 'document_description/abstract',
 			'script'        => 'project_desc/abstract',
 			'timeseriesdb'  => 'database_description/abstract',
+			'timeseries-db' => 'database_description/abstract',
 			'table'         => 'table_description/description',
 			'timeseries'    => 'series_description/definition_short',
 			'video'         => 'video_description/description',
@@ -1952,11 +1958,11 @@ class Dataset_model extends CI_Model {
         return $ddi_path;
     }
 
-	function download_metadata($sid,$format='json')
+	function download_metadata($sid,$format='json',$dsd_export='reference')
 	{
 		if ($format=='json' || $format=='jsonl'){
 			$this->load->library('JSON_Writer');
-			$this->json_writer->download($sid, $format, false);
+			$this->json_writer->download($sid, $format, false, false, $dsd_export);
 		}
 		else if ($format=='ddi'){
 			return $this->download_metadata_ddi($sid);
@@ -2084,6 +2090,138 @@ class Dataset_model extends CI_Model {
 		}
 
 		return false;
+	}
+
+	// -------------------------------------------------------------------------
+	// Indicator timeseries: surveys.ts_dimensions + surveys.ts_sync_required
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sorted comma-separated DSD component names with column_type `dimension`.
+	 *
+	 * @param array $components Data_structure_component_model rows
+	 * @return string|null
+	 */
+	public function build_ts_dimensions_csv_from_components(array $components)
+	{
+		$names = [];
+		foreach ($components as $c) {
+			if (!is_array($c) || empty($c['name']) || empty($c['column_type'])) {
+				continue;
+			}
+			if ($c['column_type'] === 'dimension') {
+				$names[] = (string) $c['name'];
+			}
+		}
+		$names = array_values(array_unique($names));
+		sort($names, SORT_STRING);
+		return $names !== [] ? implode(',', $names) : null;
+	}
+
+	/**
+	 * @param int $data_structure_id data_structures.id
+	 * @return string|null
+	 */
+	public function build_ts_dimensions_csv_for_structure_id($data_structure_id)
+	{
+		$data_structure_id = (int) $data_structure_id;
+		if ($data_structure_id <= 0) {
+			return null;
+		}
+		$this->load->model('Data_structure_component_model');
+		$components = $this->Data_structure_component_model->get_components_by_structure_id($data_structure_id);
+		return $this->build_ts_dimensions_csv_from_components($components);
+	}
+
+	/**
+	 * Linked surveys: refresh ts_dimensions from live DSD, set ts_sync_required = 1.
+	 *
+	 * @param int $data_structure_id
+	 */
+	public function mark_surveys_indicator_ts_sync_required_for_dsd($data_structure_id)
+	{
+		$dsd_id = (int) $data_structure_id;
+		if ($dsd_id <= 0) {
+			return;
+		}
+		$q = $this->db->select('id')->from('surveys')->where('data_structure_id', $dsd_id)->get();
+		$sids = $q ? array_map('intval', array_column($q->result_array(), 'id')) : [];
+		$csv = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$this->db->where('data_structure_id', $dsd_id);
+		$this->db->update('surveys', [
+			'ts_sync_required' => 1,
+			'ts_dimensions'    => $csv,
+			'changed'          => date('U'),
+		]);
+		$this->_emit_survey_refresh_events_for_sids($sids);
+	}
+
+	/**
+	 * After successful import/rehash for one study.
+	 *
+	 * @param int $sid surveys.id
+	 * @param int $data_structure_id
+	 */
+	public function clear_indicator_ts_sync_for_survey($sid, $data_structure_id)
+	{
+		$sid = (int) $sid;
+		$dsd_id = (int) $data_structure_id;
+		if ($sid <= 0 || $dsd_id <= 0) {
+			return;
+		}
+		$csv = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$this->db->where('id', $sid);
+		$this->db->where('data_structure_id', $dsd_id);
+		$this->db->update('surveys', [
+			'ts_sync_required' => 0,
+			'ts_dimensions'    => $csv,
+			'changed'          => date('U'),
+		]);
+		$this->_emit_survey_refresh_events_for_sids([$sid]);
+	}
+
+	/**
+	 * Full rehash for a DSD (no partial limit): clear flag for every linked survey.
+	 *
+	 * @param int $data_structure_id
+	 */
+	public function clear_indicator_ts_sync_for_all_surveys_on_dsd($data_structure_id)
+	{
+		$dsd_id = (int) $data_structure_id;
+		if ($dsd_id <= 0) {
+			return;
+		}
+		$q = $this->db->select('id')->from('surveys')->where('data_structure_id', $dsd_id)->get();
+		$sids = $q ? array_map('intval', array_column($q->result_array(), 'id')) : [];
+		$csv = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$this->db->where('data_structure_id', $dsd_id);
+		$this->db->update('surveys', [
+			'ts_sync_required' => 0,
+			'ts_dimensions'    => $csv,
+			'changed'          => date('U'),
+		]);
+		$this->_emit_survey_refresh_events_for_sids($sids);
+	}
+
+	/**
+	 * @param int[] $sids
+	 */
+	protected function _emit_survey_refresh_events_for_sids(array $sids)
+	{
+		$sids = array_values(array_unique(array_map('intval', $sids)));
+		$sids = array_filter($sids, function ($x) {
+			return $x > 0;
+		});
+		if ($sids === []) {
+			return;
+		}
+		$CI = &get_instance();
+		if (!isset($CI->events) || !is_object($CI->events)) {
+			return;
+		}
+		foreach ($sids as $sid) {
+			$CI->events->emit('db.after.update', 'surveys', $sid, 'refresh');
+		}
 	}
 
 }//end-class

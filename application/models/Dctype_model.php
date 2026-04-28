@@ -4,11 +4,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  * Dctype_model
  *
- * All dctype data is read from the codelists framework (codelist name = 'dctypes').
- * The dctypes / dctype_translations tables are never used.
+ * All dctype data is read from the codelists framework, bound to the
+ * canonical codelist identified by idno 'NADA_dctypes_1.0'
+ * (agency=NADA, name=dctypes, version=1.0).
+ *
+ * The legacy dctypes / dctype_translations tables are never used.
  * Falls back to external_resources config when the codelist is not seeded.
  */
 class Dctype_model extends CI_Model {
+
+	/** Canonical codelist identifier for dctypes (SDMX-style idno). */
+	const DCTYPES_IDNO = 'NADA_dctypes_1.0';
 
 	public function __construct()
 	{
@@ -19,10 +25,29 @@ class Dctype_model extends CI_Model {
 	// Internal helpers
 	// -------------------------------------------------------------------------
 
-	private function _codelist_id()
+	/**
+	 * Resolve the dctypes codelist row.
+	 *
+	 * Prefers an explicit lookup by idno (Codelist_model::get_codelist_by_idno),
+	 * which is robust to future agencies or versions that may also declare a
+	 * codelist named 'dctypes'. Falls back to the legacy name-based lookup so
+	 * installations upgraded before the idno backfill ran still work.
+	 *
+	 * @return array|null
+	 */
+	private function _codelist_row()
 	{
 		$this->load->model('Codelist_model');
-		$codelist = $this->Codelist_model->get_codelist_by_name('dctypes');
+		$codelist = $this->Codelist_model->get_codelist_by_idno(self::DCTYPES_IDNO);
+		if (!$codelist) {
+			$codelist = $this->Codelist_model->get_codelist_by_name('dctypes');
+		}
+		return $codelist ?: null;
+	}
+
+	private function _codelist_id()
+	{
+		$codelist = $this->_codelist_row();
 		return $codelist ? (int) $codelist['id'] : null;
 	}
 
@@ -89,11 +114,10 @@ class Dctype_model extends CI_Model {
 	public function get_groups()
 	{
 		try {
-			$this->load->model('Codelist_model');
 			$this->load->model('Codelist_item_model');
 			$this->load->model('Codelist_group_model');
 
-			$codelist = $this->Codelist_model->get_codelist_by_name('dctypes');
+			$codelist = $this->_codelist_row();
 			if ($codelist) {
 				$id     = (int) $codelist['id'];
 				$items  = $this->Codelist_item_model->get_items_by_codelist($id, false);
@@ -132,10 +156,9 @@ class Dctype_model extends CI_Model {
 	public function get_group_translations()
 	{
 		try {
-			$this->load->model('Codelist_model');
 			$this->load->model('Codelist_group_model');
 
-			$codelist = $this->Codelist_model->get_codelist_by_name('dctypes');
+			$codelist = $this->_codelist_row();
 			if (!$codelist) {
 				return array();
 			}

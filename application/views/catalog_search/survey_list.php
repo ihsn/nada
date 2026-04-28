@@ -44,8 +44,8 @@
 	//page querystring for variable sub-search
 	$search_querystring='?'.get_querystring( array('sk', 'vk', 'vf','view','topic','country'));
 ?>
-<input type="hidden"  id="sort_order" value="<?php echo $sort_order;?>"/>
-<input type="hidden" id="sort_by" value="<?php echo $sort_by;?>"/>
+<input type="hidden"  id="sort_order" value="<?php echo html_escape((string) $sort_order);?>"/>
+<input type="hidden" id="sort_by" value="<?php echo html_escape((string) $sort_by);?>"/>
 
 <?php if(isset($featured_studies) && $featured_studies!==FALSE ):?>
         <!-- survey-row -->

@@ -32,7 +32,7 @@ else{
 <div class="search-count">
 	<div><?php echo sprintf($items_found,$found,$total);?></div>
 	<?php if($this->input->get("bookmark") ):?>
-    	<div class="bookmark">URL: <?php echo $this->input->get("bookmark");?></div>
+    	<div class="bookmark">URL: <?php echo html_escape($this->input->get("bookmark"));?></div>
     <?php endif;?>
 </div>
 

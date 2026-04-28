@@ -5,8 +5,8 @@
       :items="studies"
       :items-per-page="10"
       hide-default-footer
-      density="compact"
-      class="elevation-0"
+      density="comfortable"
+      class="elevation-0 recent-studies-table"
       no-data-text="No studies found"
     >
       <template #item.title="{ item }">
@@ -48,3 +48,14 @@ const headers = [
   { title: 'Changed', key: 'changed_fmt', sortable: false, width: '110px' },
 ];
 </script>
+
+<style scoped>
+.recent-studies-table :deep(tbody .v-data-table__td) {
+  padding-block: 12px;
+  vertical-align: middle;
+}
+
+.recent-studies-table :deep(thead .v-data-table__th) {
+  padding-block: 10px;
+}
+</style>

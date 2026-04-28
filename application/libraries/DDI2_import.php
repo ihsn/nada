@@ -581,7 +581,8 @@ class DDI2_Import{
             );
 
             if(!$batch_inserts){
-                $variable_id=$this->ci->Variable_model->insert($sid,$variable);
+                // Must pass $options (fid, vid, labl, metadata, …); $variable alone omits nested metadata encoding.
+                $variable_id=$this->ci->Variable_model->insert($sid,$options);
 
                 if (!$variable_id) {
                     throw new Exception("variable not created " . $this->ci->db->last_query());

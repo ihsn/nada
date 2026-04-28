@@ -646,6 +646,8 @@ footer {
 .var-compare-container .compare-box-body{
   padding: 15px 25px;
   width: 400px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .var-compare-container .compare-box .survey-link{
@@ -653,7 +655,18 @@ footer {
   font-size: small;
 }
 
-
+/* Long snake_case data file names must wrap (compare + variable pages) */
+h5.var-file{
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+h5.var-file a{
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: bottom;
+}
 
 
           /*

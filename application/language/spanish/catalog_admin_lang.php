@@ -164,6 +164,7 @@ $lang['tab_citations']="Citas";
 $lang['tab_data_files']="Archivos de datos";
 $lang['tab_notes']="Notas";
 $lang['tab_related_data']="Estudios relacionados";
+$lang['tab_timeseries_data']="Datos de indicadores";
 $lang['license']="Licencia";
 $lang['select_license']="Seleccionar licencia";
 $lang['select_study_thumbnail']="Seleccionar archivo de imagen (PNG, JPG, JPEG, GIF)";

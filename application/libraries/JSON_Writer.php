@@ -2,6 +2,12 @@
 
 class JSON_Writer
 {
+    /** Include only normalized data_structure_reference (pointer to catalogue DSD). */
+    public const DSD_EXPORT_REFERENCE = 'reference';
+
+    /** Include inline data_structure + components + full codelists (sanitized; same enrichment as public API export). */
+    public const DSD_EXPORT_INLINE = 'inline';
+
     private $ci;
 
     public function __construct()
@@ -16,9 +22,10 @@ class JSON_Writer
      * @param string $output_path - Output file path or 'php://output'
      * @param bool $overwrite - Whether to overwrite existing file
      * @param bool $pretty - Whether to pretty print JSON
+     * @param string $dsd_export self::DSD_EXPORT_* — for type=timeseries only: reference (default) or inline DSD+codelists
      * @return string|false - Path to written file or false on failure
      */
-    public function write_json($sid, $output_path = 'php://output', $overwrite = false, $pretty = false)
+    public function write_json($sid, $output_path = 'php://output', $overwrite = false, $pretty = false, $dsd_export = self::DSD_EXPORT_REFERENCE)
     {
         $this->ci->load->model('Dataset_model');
         $this->ci->load->model('Data_file_model');
@@ -49,6 +56,10 @@ class JSON_Writer
         );
 
         $output = array_merge($basic_info, $metadata);
+
+        if ($this->_dataset_is_timeseries($dataset)) {
+            $this->_apply_timeseries_dsd_export((int) $sid, $output, $dsd_export);
+        }
 
         if ($dataset['type'] == 'survey') {
             $output['data_files'] = function () use ($sid) {
@@ -100,9 +111,10 @@ class JSON_Writer
      * @param int $sid - Study ID
      * @param string $output_path - Output file path or 'php://output'
      * @param bool $overwrite - Whether to overwrite existing file
+     * @param string $dsd_export self::DSD_EXPORT_* — for type=timeseries only
      * @return string|false - Path to written file or false on failure
      */
-    public function write_jsonl($sid, $output_path = 'php://output', $overwrite = false)
+    public function write_jsonl($sid, $output_path = 'php://output', $overwrite = false, $dsd_export = self::DSD_EXPORT_REFERENCE)
     {
         $this->ci->load->model('Dataset_model');
         $this->ci->load->model('Data_file_model');
@@ -135,6 +147,10 @@ class JSON_Writer
         );
 
         $study_doc = array_merge($basic_info, $metadata);
+
+        if ($this->_dataset_is_timeseries($dataset)) {
+            $this->_apply_timeseries_dsd_export((int) $sid, $study_doc, $dsd_export);
+        }
 
         if ($dataset['type'] == 'survey') {
             $files = $this->ci->Data_file_model->get_all_by_survey($sid);
@@ -192,9 +208,10 @@ class JSON_Writer
      * @param string $format - 'json' or 'jsonl'
      * @param bool $pretty - Whether to pretty print (only for JSON format)
      * @param bool $force_regenerate - Force regeneration even if cache is valid
+     * @param string $dsd_export self::DSD_EXPORT_* — timeseries study JSON variants (cached per variant)
      * @return void - Streams directly to output
      */
-    public function download($sid, $format = 'json', $pretty = false, $force_regenerate = false)
+    public function download($sid, $format = 'json', $pretty = false, $force_regenerate = false, $dsd_export = self::DSD_EXPORT_REFERENCE)
     {
         $this->ci->load->model('Dataset_model');
 
@@ -213,7 +230,12 @@ class JSON_Writer
         }
 
         $extension = ($format == 'jsonl') ? 'jsonl' : 'json';
-        $json_path = $study_path . '/' . $dataset['idno'] . '.' . $extension;
+        $inline_suffix = '';
+        if ($this->_dataset_is_timeseries($dataset)
+            && strtolower((string) $dsd_export) === self::DSD_EXPORT_INLINE) {
+            $inline_suffix = '.inline';
+        }
+        $json_path = $study_path . '/' . $dataset['idno'] . $inline_suffix . '.' . $extension;
 
         $generate_file = $force_regenerate;
         if (!$generate_file) {
@@ -230,16 +252,17 @@ class JSON_Writer
             }
 
             if ($format == 'jsonl') {
-                $this->write_jsonl($sid, $json_path, true);
+                $this->write_jsonl($sid, $json_path, true, $dsd_export);
             } else {
-                $this->write_json($sid, $json_path, true, $pretty);
+                $this->write_json($sid, $json_path, true, $pretty, $dsd_export);
             }
         }
 
         if (file_exists($json_path)) {
             $content_type = ($format == 'jsonl') ? 'application/x-ndjson' : 'application/json';
             header("Content-Type: {$content_type}; charset=utf-8");
-            header("Content-Disposition: attachment; filename=\"" . $dataset['idno'] . ".{$extension}\"");
+            $attach_name = $dataset['idno'] . $inline_suffix . '.' . $extension;
+            header("Content-Disposition: attachment; filename=\"" . $attach_name . "\"");
             header("Cache-Control: public, max-age=3600");
             header("Last-Modified: " . gmdate('D, d M Y H:i:s', filemtime($json_path)) . ' GMT');
             header("ETag: \"" . md5_file($json_path) . "\"");
@@ -260,9 +283,10 @@ class JSON_Writer
      * @param int $sid - Study ID
      * @param string $format - 'json' or 'jsonl'
      * @param bool $pretty - Whether to pretty print (only for JSON format)
+     * @param string $dsd_export self::DSD_EXPORT_* — for timeseries
      * @return void - Streams directly to output
      */
-    public function stream($sid, $format = 'json', $pretty = false)
+    public function stream($sid, $format = 'json', $pretty = false, $dsd_export = self::DSD_EXPORT_REFERENCE)
     {
         $this->ci->load->model('Dataset_model');
 
@@ -277,12 +301,98 @@ class JSON_Writer
 
         $content_type = ($format == 'jsonl') ? 'application/x-ndjson' : 'application/json';
         header("Content-Type: {$content_type}; charset=utf-8");
-        header("Content-Disposition: attachment; filename=\"" . $dataset['idno'] . ".{$format}\"");
+        $inline_suffix = '';
+        if ($this->_dataset_is_timeseries($dataset)
+            && strtolower((string) $dsd_export) === self::DSD_EXPORT_INLINE) {
+            $inline_suffix = '.inline';
+        }
+        header("Content-Disposition: attachment; filename=\"" . $dataset['idno'] . $inline_suffix . ".{$format}\"");
 
         if ($format == 'jsonl') {
-            $this->write_jsonl($sid, 'php://output', false);
+            $this->write_jsonl($sid, 'php://output', false, $dsd_export);
         } else {
-            $this->write_json($sid, 'php://output', false, $pretty);
+            $this->write_json($sid, 'php://output', false, $pretty, $dsd_export);
+        }
+    }
+
+    /**
+     * @param array $dataset Dataset_model::get_row result
+     */
+    private function _dataset_is_timeseries(array $dataset)
+    {
+        return strtolower((string) (isset($dataset['type']) ? $dataset['type'] : '')) === 'timeseries';
+    }
+
+    /**
+     * Normalize dsd_export query values.
+     *
+     * @param string $mode
+     * @return string self::DSD_EXPORT_REFERENCE|self::DSD_EXPORT_INLINE
+     */
+    private function _normalize_dsd_export_option($mode)
+    {
+        $m = strtolower(trim((string) $mode));
+        if ($m === self::DSD_EXPORT_INLINE) {
+            return self::DSD_EXPORT_INLINE;
+        }
+
+        return self::DSD_EXPORT_REFERENCE;
+    }
+
+    /**
+     * Remove legacy embedded DSD blobs from study metadata export (any nesting level).
+     *
+     * @param array $doc
+     */
+    private function _strip_legacy_inline_dsd_from_document(array &$doc)
+    {
+        unset($doc['components']);
+        $this->_strip_data_structure_keys_recursive($doc);
+    }
+
+    /**
+     * Unset every `data_structure` key recursively so old studies do not leak embedded DSD copies.
+     *
+     * @param array $node
+     */
+    private function _strip_data_structure_keys_recursive(array &$node)
+    {
+        unset($node['data_structure']);
+        foreach ($node as &$child) {
+            if (is_array($child)) {
+                $this->_strip_data_structure_keys_recursive($child);
+            }
+        }
+        unset($child);
+    }
+
+    /**
+     * Timeseries: either only data_structure_reference, or full inline DSD + components + codelists.
+     *
+     * @param int   $sid
+     * @param array $doc
+     * @param string $dsd_export
+     */
+    private function _apply_timeseries_dsd_export($sid, array &$doc, $dsd_export)
+    {
+        $mode = $this->_normalize_dsd_export_option($dsd_export);
+        $this->_strip_legacy_inline_dsd_from_document($doc);
+        $doc['dsd_export'] = $mode;
+
+        $this->ci->load->model('Timeseries_dsd_model');
+        $ref = $this->ci->Timeseries_dsd_model->normalized_data_structure_reference_for_sid($sid);
+        if ($ref !== null) {
+            $doc['data_structure_reference'] = $ref;
+        } else {
+            unset($doc['data_structure_reference']);
+        }
+
+        if ($mode === self::DSD_EXPORT_INLINE) {
+            $bundle = $this->ci->Timeseries_dsd_model->build_inline_dsd_export_bundle_for_sid($sid);
+            if ($bundle !== null) {
+                $doc['data_structure'] = $bundle['data_structure'];
+                $doc['components'] = $bundle['components'];
+            }
         }
     }
 }

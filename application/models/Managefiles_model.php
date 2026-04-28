@@ -28,7 +28,7 @@ class Managefiles_model extends CI_Model {
 	*/
 	function get_survey_path($surveyid)
 	{
-		$this->db->select("dirpath");
+		$this->db->select("dirpath,idno,repositoryid");
 		$this->db->where('id', $surveyid); 
 		$survey=$this->db->get('surveys')->row_array();
 		
@@ -42,9 +42,66 @@ class Managefiles_model extends CI_Model {
 				throw new exception("CATALOG_ROOT not defined.");
 			}
 			
-			if ($survey["dirpath"]=='')
+			if (empty($survey["dirpath"]))
 			{
-				throw new exception("Survey DIRPATH not defined.");
+				$resolved_dirpath='';
+				$idno=isset($survey['idno']) ? trim((string)$survey['idno']) : '';
+				$repositoryid=isset($survey['repositoryid']) ? trim((string)$survey['repositoryid']) : '';
+
+				// Legacy datasets may not have dirpath saved; infer from common folder conventions.
+				$candidates=array();
+				if ($idno!==''){
+					$candidates[]=$idno;
+				}
+				if ($repositoryid!=='' && $idno!==''){
+					$candidates[]=$repositoryid.'/'.$idno;
+				}
+
+				// Last-resort fallback for very old records without IDNO.
+				if ($repositoryid!=='' && $idno===''){
+					$candidates[]=$repositoryid.'/'.(int)$surveyid;
+				}
+				if ($idno===''){
+					$candidates[]=(string)(int)$surveyid;
+				}
+
+				// Convert catalog root to absolute path if needed.
+				$catalog_root_full=$path;
+				if (!file_exists($catalog_root_full)){
+					$catalog_root_full=FCPATH.$catalog_root_full;
+				}
+				$catalog_root_full=unix_path($catalog_root_full);
+
+				foreach($candidates as $candidate){
+					$candidate_path=unix_path($catalog_root_full.'/'.$candidate);
+					if (is_dir($candidate_path)){
+						$resolved_dirpath=$candidate;
+						break;
+					}
+				}
+
+				// No existing folder found: create one and persist dirpath.
+				if ($resolved_dirpath===''){
+					$preferred_dirpath=end($candidates);
+					$new_folder=unix_path($catalog_root_full.'/'.$preferred_dirpath);
+
+					if (!is_dir($new_folder)){
+						@mkdir($new_folder, 0777, true);
+					}
+
+					if (is_dir($new_folder)){
+						$resolved_dirpath=$preferred_dirpath;
+					}
+				}
+
+				if ($resolved_dirpath!==''){
+					$survey['dirpath']=$resolved_dirpath;
+					$this->db->where('id',(int)$surveyid);
+					$this->db->update('surveys',array('dirpath'=>$resolved_dirpath));
+				}
+				else{
+					throw new exception("Survey DIRPATH not defined.");
+				}
 			}
 			
 			$path.='/'.$survey['dirpath'];

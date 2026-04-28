@@ -77,15 +77,57 @@ class Dataset_timeseries_model extends Dataset_model {
         }
 
         $options['changed']=date("U");
-        
-        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional','data_structure','data_notes');
+
+        // Partial API payloads often send { "metadata": { "data_structure_reference": "…" } }. Merged state can
+        // still carry a stale root-level data_structure_reference; prefer the nested value so surveys.data_structure_id updates.
+        if (is_array($options['metadata'] ?? null)) {
+            $nested_ref = $options['metadata']['data_structure_reference'] ?? null;
+            if (is_array($nested_ref) && !empty($nested_ref)) {
+                $options['data_structure_reference'] = $nested_ref;
+            } elseif ($nested_ref !== null && $nested_ref !== '' && trim((string) $nested_ref) !== '') {
+                $options['data_structure_reference'] = trim((string) $nested_ref);
+            }
+        }
+
+        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional','data_structure','data_structure_reference','data_notes');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
                 $options['metadata'][$section]=$options[$section];
                 unset($options[$section]);
             }
-        }                        
+        }
+
+        // Resolve data_structure_reference (DSD idno) -> surveys.data_structure_id (numeric FK).
+        // Keep the idno in metadata for API/transport; use the column for queries and referential integrity.
+        if (array_key_exists('data_structure_reference', (array) ($options['metadata'] ?? []))) {
+            $reference_idno = '';
+            $reference = $options['metadata']['data_structure_reference'];
+            if (is_array($reference)) {
+                $reference_idno = trim((string) ($reference['idno'] ?? ''));
+            } else {
+                $reference_idno = trim((string) $reference);
+            }
+            $embedded_idno = '';
+            if (isset($options['metadata']['data_structure']) && is_array($options['metadata']['data_structure'])) {
+                $embedded_idno = trim((string) ($options['metadata']['data_structure']['idno'] ?? ''));
+            }
+            if ($reference_idno !== '' && $embedded_idno !== '' && $reference_idno !== $embedded_idno) {
+                throw new ValidationException(
+                    'VALIDATION_ERROR',
+                    "data_structure_reference '{$reference_idno}' does not match data_structure.idno '{$embedded_idno}'."
+                );
+            }
+            $options['data_structure_id'] = $this->_resolve_data_structure_id($options['metadata']['data_structure_reference']);
+        }
+
+		$existingSurveyId = null;
+		if (!empty($sid) && is_numeric($sid)) {
+			$existingSurveyId = (int) $sid;
+		} elseif (!empty($dataset_id) && is_numeric($dataset_id) && (int) $dataset_id > 0) {
+			$existingSurveyId = (int) $dataset_id;
+		}
+		$this->_apply_indicator_ts_columns_on_data_structure_change($options, $existingSurveyId);
 
 		//start transaction
 		$this->db->trans_start();
@@ -105,6 +147,39 @@ class Dataset_timeseries_model extends Dataset_model {
 		$this->db->trans_complete();
 
 		return $dataset_id;
+    }
+
+
+    /**
+     * Resolve metadata.data_structure_reference (DSD idno) to data_structures.id.
+     *
+     * Returns:
+     *   - int  — matching data_structures.id when idno is known.
+     *   - null — when the reference is empty/null (clears any previous link).
+     *
+     * Throws ValidationException when a non-empty idno does not resolve, so typos
+     * surface at save time instead of later when observations are posted.
+     */
+    private function _resolve_data_structure_id($reference)
+    {
+        if ($reference === null) {
+            return null;
+        }
+        $idno = '';
+        if (is_array($reference)) {
+            $idno = trim((string) ($reference['idno'] ?? ''));
+        } elseif (is_string($reference)) {
+            $idno = trim($reference);
+        }
+        if ($idno === '') {
+            return null;
+        }
+        $this->load->model('Data_structure_model');
+        $row = $this->Data_structure_model->get_structure_by_idno($idno);
+        if (!$row) {
+            throw new ValidationException('VALIDATION_ERROR', "data_structure_reference '{$idno}' does not match any catalogue DSD (data_structures.idno).");
+        }
+        return (int) $row['id'];
     }
 
 
@@ -246,6 +321,14 @@ class Dataset_timeseries_model extends Dataset_model {
 
     function get_timeseries_db_id($sid)
     {
+        $this->db->select('ts_db_id');
+        $this->db->where('id', (int)$sid);
+        $row=$this->db->get('surveys')->row_array();
+
+        if(isset($row['ts_db_id']) && $row['ts_db_id']!==null && $row['ts_db_id']!==''){
+            return (int)$row['ts_db_id'];
+        }
+
         $metadata=$this->get_metadata($sid);
 
         if(isset($metadata['series_description']['database_id'])){
@@ -254,5 +337,36 @@ class Dataset_timeseries_model extends Dataset_model {
 
         return false;
     }
+
+	/**
+	 * When metadata resolved data_structure_id, align ts_dimensions / ts_sync_required on the survey row.
+	 *
+	 * @param array    $options
+	 * @param int|null $existingSurveyId surveys.id when updating or overwriting an existing row
+	 */
+	private function _apply_indicator_ts_columns_on_data_structure_change(array &$options, $existingSurveyId)
+	{
+		if (!array_key_exists('data_structure_id', $options)) {
+			return;
+		}
+		$newRaw = $options['data_structure_id'];
+		$newId   = ($newRaw !== null && $newRaw !== '' && is_numeric($newRaw)) ? (int) $newRaw : null;
+		if ($existingSurveyId !== null && (int) $existingSurveyId > 0) {
+			$oldRow = $this->db->select('data_structure_id')->get_where('surveys', ['id' => (int) $existingSurveyId])->row_array();
+			$oldId  = (isset($oldRow['data_structure_id']) && $oldRow['data_structure_id'] !== null && $oldRow['data_structure_id'] !== '')
+				? (int) $oldRow['data_structure_id']
+				: null;
+			if ($oldId === $newId) {
+				return;
+			}
+		}
+		if ($newId === null) {
+			$options['ts_dimensions'] = null;
+			$options['ts_sync_required'] = 0;
+		} else {
+			$options['ts_dimensions'] = $this->build_ts_dimensions_csv_for_structure_id($newId);
+			$options['ts_sync_required'] = 1;
+		}
+	}
 
 }

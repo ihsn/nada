@@ -104,14 +104,14 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_vocabularies on [dbo].[vocabularies](
 CREATE TABLE variables (
   uid int NOT NULL IDENTITY(1,1),
   sid int NOT NULL,
-  fid varchar(45) DEFAULT '',
-  vid varchar(45) DEFAULT '',
-  name varchar(100) DEFAULT '',
-  labl varchar(255) DEFAULT '',
-  qstn varchar(max),
-  catgry varchar(max),
-  metadata varchar(max),
-  keywords varchar(max),
+  fid nvarchar(45) DEFAULT '',
+  vid nvarchar(45) DEFAULT '',
+  name nvarchar(100) DEFAULT '',
+  labl nvarchar(255) DEFAULT '',
+  qstn nvarchar(max),
+  catgry nvarchar(max),
+  metadata nvarchar(max),
+  keywords nvarchar(max),
   PRIMARY KEY (uid)
 ) ;
 
@@ -358,6 +358,8 @@ CREATE TABLE surveys (
   link_questionnaire varchar(255) DEFAULT NULL,
   formid int DEFAULT NULL,
   data_class_id int DEFAULT NULL,
+  data_structure_id int DEFAULT NULL,
+  ts_db_id int DEFAULT NULL,
   link_da varchar(255) DEFAULT NULL,
   published tinyint DEFAULT NULL,  
   total_views int DEFAULT '0',
@@ -386,6 +388,8 @@ CREATE NONCLUSTERED INDEX idx_surveys_type ON [dbo].[surveys] ([type] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_repositoryid ON [dbo].[surveys] ([repositoryid] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_formid ON [dbo].[surveys] ([formid] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_data_class_id ON [dbo].[surveys] ([data_class_id] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_data_structure_id ON [dbo].[surveys] ([data_structure_id] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_ts_db_id ON [dbo].[surveys] ([ts_db_id] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_year_start ON [dbo].[surveys] ([year_start] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_total_views ON [dbo].[surveys] ([total_views] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_changed ON [dbo].[surveys] ([changed] ASC);
@@ -478,11 +482,24 @@ SET IDENTITY_INSERT dctype_translations OFF;
 
 CREATE TABLE codelists (
   id int NOT NULL IDENTITY(1,1),
+  pid int NULL,
   name varchar(64) NOT NULL,
+  agency varchar(64) NOT NULL CONSTRAINT df_codelists_agency DEFAULT 'NADA',
+  version varchar(32) NOT NULL CONSTRAINT df_codelists_version DEFAULT '1.0',
+  version_seq int NOT NULL,
+  idno varchar(191) NULL,
   description varchar(255) DEFAULT NULL,
+  status smallint NOT NULL CONSTRAINT df_codelists_status DEFAULT 0,
+  created int NULL,
+  changed int NULL,
   PRIMARY KEY (id),
-  CONSTRAINT unq_codelists_name UNIQUE (name)
+  CONSTRAINT unq_codelists_identity UNIQUE (agency, name, version)
 );
+CREATE UNIQUE INDEX unq_codelists_idno ON codelists(idno) WHERE idno IS NOT NULL;
+CREATE UNIQUE INDEX unq_codelists_family_seq ON codelists(agency, name, version_seq);
+CREATE INDEX idx_codelists_agency_name ON codelists(agency, name);
+CREATE INDEX idx_codelists_pid ON codelists(pid);
+ALTER TABLE codelists ADD CONSTRAINT fk_codelists_pid FOREIGN KEY (pid) REFERENCES codelists (id);
 
 CREATE TABLE codelist_item (
   id int NOT NULL IDENTITY(1,1),
@@ -544,10 +561,86 @@ CREATE TABLE codelist_group_translation (
 CREATE INDEX idx_codelist_group_trans_lang ON codelist_group_translation (lang);
 
 --
+-- Global data structures (DSD catalogue; one row per version)
+--
+
+CREATE TABLE data_structures (
+  id int NOT NULL IDENTITY(1,1),
+  pid int NULL,
+  agency varchar(64) NOT NULL CONSTRAINT df_data_structures_agency DEFAULT 'NADA',
+  name varchar(64) NOT NULL,
+  version varchar(32) NOT NULL,
+  version_seq int NOT NULL,
+  idno varchar(191) NULL,
+  status smallint NOT NULL CONSTRAINT df_data_structures_status DEFAULT 0,
+  title varchar(255) NULL,
+  description varchar(255) NULL,
+  notes nvarchar(max) NULL,
+  content_hash char(64) NULL,
+  metadata nvarchar(max) NULL,
+  created int NULL,
+  updated int NULL,
+  created_by int NULL,
+  updated_by int NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_data_structures_identity UNIQUE (agency, name, version),
+  CONSTRAINT fk_data_structures_pid FOREIGN KEY (pid) REFERENCES data_structures (id)
+);
+CREATE UNIQUE INDEX unq_data_structures_idno ON data_structures(idno) WHERE idno IS NOT NULL;
+CREATE UNIQUE INDEX unq_data_structures_family_seq ON data_structures(agency, name, version_seq);
+CREATE INDEX idx_data_structures_agency_name ON data_structures(agency, name);
+CREATE INDEX idx_data_structures_pid ON data_structures(pid);
+
+CREATE TABLE data_structure_components (
+  id int NOT NULL IDENTITY(1,1),
+  data_structure_id int NOT NULL,
+  sort_order int NOT NULL CONSTRAINT df_dsc_sort_order DEFAULT 0,
+  name varchar(100) NOT NULL,
+  label varchar(255) NULL,
+  description nvarchar(max) NULL,
+  data_type varchar(16) NULL,
+  column_type varchar(32) NOT NULL,
+  time_period_format varchar(30) NULL,
+  codelist_id int NULL,
+  metadata nvarchar(max) NULL,
+  created int NULL,
+  updated int NULL,
+  created_by int NULL,
+  updated_by int NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_dsc_structure_name UNIQUE (data_structure_id, name),
+  CONSTRAINT fk_dsc_data_structure FOREIGN KEY (data_structure_id) REFERENCES data_structures (id) ON DELETE CASCADE,
+  CONSTRAINT fk_dsc_codelist FOREIGN KEY (codelist_id) REFERENCES codelists (id)
+);
+CREATE INDEX idx_dsc_structure_sort ON data_structure_components (data_structure_id, sort_order);
+CREATE INDEX idx_dsc_codelist ON data_structure_components (codelist_id);
+
+CREATE TABLE timeseries_value_counts (
+  id int NOT NULL IDENTITY(1,1),
+  sid int NOT NULL,
+  dsd_id int NOT NULL,
+  component_name varchar(100) NOT NULL,
+  code varchar(255) NOT NULL,
+  obs_count int NOT NULL CONSTRAINT df_tsvc_obs_count DEFAULT 0,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_tsvc_scope_value UNIQUE (sid, dsd_id, component_name, code),
+  CONSTRAINT fk_tsvc_sid FOREIGN KEY (sid) REFERENCES surveys (id) ON DELETE CASCADE,
+  CONSTRAINT fk_tsvc_dsd FOREIGN KEY (dsd_id) REFERENCES data_structures (id) ON DELETE CASCADE
+);
+CREATE INDEX idx_tsvc_scope ON timeseries_value_counts (sid, dsd_id, component_name);
+
+--
+-- Link surveys.data_structure_id -> data_structures.id (declared after both tables exist)
+--
+ALTER TABLE surveys
+  ADD CONSTRAINT fk_surveys_data_structure FOREIGN KEY (data_structure_id) REFERENCES data_structures (id) ON DELETE NO ACTION;
+
+--
 -- Dumping data for codelists (dctypes codelist + default groups)
 --
 SET IDENTITY_INSERT codelists ON;
-INSERT INTO codelists (id, name, description) VALUES (1,'dctypes','Resource types (external resources)');
+INSERT INTO codelists (id, pid, name, agency, version, version_seq, idno, description, status, created, changed) VALUES (1,NULL,'dctypes','NADA','1.0',1,'NADA_dctypes_1.0','Resource types (external resources)',0,NULL,NULL);
+UPDATE codelists SET pid = 1 WHERE id = 1;
 SET IDENTITY_INSERT codelists OFF;
 
 SET IDENTITY_INSERT codelist_item ON;
@@ -1593,6 +1686,7 @@ INSERT INTO survey_types(id,code,title, weight) VALUES(6,'image','Photo',40);
 INSERT INTO survey_types(id,code,title, weight) VALUES(7,'script','Script',30);
 INSERT INTO survey_types(id,code,title, weight) VALUES(8,'visualization','Visualization',60);
 INSERT INTO survey_types(id,code,title, weight) VALUES(9,'video','Video',40);
+INSERT INTO survey_types(id,code,title, weight) VALUES(10,'timeseriesdb','Datasets',75);
 set IDENTITY_INSERT survey_types OFF;
 
 

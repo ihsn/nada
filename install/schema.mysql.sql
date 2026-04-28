@@ -363,6 +363,8 @@ CREATE TABLE `surveys` (
   `link_questionnaire` varchar(255) DEFAULT NULL,
   `formid` int(11) DEFAULT NULL,
   `data_class_id` int(11) DEFAULT NULL,
+  `data_structure_id` int(11) DEFAULT NULL,
+  `ts_db_id` int(11) DEFAULT NULL,
   `link_da` varchar(255) DEFAULT NULL,
   `published` tinyint(4) DEFAULT NULL,
   `total_views` int(11) DEFAULT '0',
@@ -381,6 +383,8 @@ CREATE TABLE `surveys` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `surveyid_UNIQUE` (`idno`),
   UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`),
+  KEY `idx_surveys_data_structure_id` (`data_structure_id`),
+  KEY `idx_surveys_ts_db_id` (`ts_db_id`),
   FULLTEXT KEY `ft_titl` (`title`),
   FULLTEXT KEY `ft_keywords` (`keywords`,`var_keywords`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
@@ -489,15 +493,30 @@ DROP TABLE IF EXISTS `codelist_group_item`;
 DROP TABLE IF EXISTS `codelist_group`;
 DROP TABLE IF EXISTS `codelist_item_translation`;
 DROP TABLE IF EXISTS `codelist_item`;
+DROP TABLE IF EXISTS `data_structure_components`;
+DROP TABLE IF EXISTS `data_structures`;
 DROP TABLE IF EXISTS `codelists`;
 
 CREATE TABLE `codelists` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `pid` int(11) DEFAULT NULL,
   `name` varchar(64) NOT NULL,
+  `agency` varchar(64) NOT NULL DEFAULT 'NADA',
+  `version` varchar(32) NOT NULL DEFAULT '1.0',
+  `version_seq` int(11) NOT NULL,
+  `idno` varchar(191) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
+  `status` smallint(6) NOT NULL DEFAULT 0,
+  `created` int(11) DEFAULT NULL,
+  `changed` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `unq_codelists_name` (`name`)
-) DEFAULT CHARSET=utf8;
+  UNIQUE KEY `unq_codelists_identity` (`agency`,`name`,`version`),
+  UNIQUE KEY `unq_codelists_family_seq` (`agency`,`name`,`version_seq`),
+  UNIQUE KEY `unq_codelists_idno` (`idno`),
+  KEY `idx_codelists_agency_name` (`agency`,`name`),
+  KEY `idx_codelists_pid` (`pid`),
+  CONSTRAINT `fk_codelists_pid` FOREIGN KEY (`pid`) REFERENCES `codelists` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `codelist_item` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -559,10 +578,86 @@ CREATE TABLE `codelist_group_translation` (
 ) DEFAULT CHARSET=utf8;
 
 --
+-- Global data structures (DSD catalogue; one row per version)
+--
+
+CREATE TABLE `data_structures` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `pid` int(11) DEFAULT NULL,
+  `agency` varchar(64) NOT NULL DEFAULT 'NADA',
+  `name` varchar(64) NOT NULL,
+  `version` varchar(32) NOT NULL,
+  `version_seq` int(11) NOT NULL,
+  `idno` varchar(191) DEFAULT NULL,
+  `status` smallint(6) NOT NULL DEFAULT 0,
+  `title` varchar(255) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `notes` text,
+  `content_hash` char(64) DEFAULT NULL,
+  `metadata` json DEFAULT NULL,
+  `created` int(11) DEFAULT NULL,
+  `updated` int(11) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `updated_by` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unq_data_structures_identity` (`agency`,`name`,`version`),
+  UNIQUE KEY `unq_data_structures_family_seq` (`agency`,`name`,`version_seq`),
+  UNIQUE KEY `unq_data_structures_idno` (`idno`),
+  KEY `idx_data_structures_agency_name` (`agency`,`name`),
+  KEY `idx_data_structures_pid` (`pid`),
+  CONSTRAINT `fk_data_structures_pid` FOREIGN KEY (`pid`) REFERENCES `data_structures` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `data_structure_components` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `data_structure_id` int(11) NOT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `name` varchar(100) NOT NULL,
+  `label` varchar(255) DEFAULT NULL,
+  `description` text,
+  `data_type` enum('string','integer','float','double','date','boolean') DEFAULT NULL,
+  `column_type` enum('dimension','time_period','measure','attribute','indicator_id','indicator_name','annotation','geography','observation_value','periodicity') NOT NULL,
+  `time_period_format` varchar(30) DEFAULT NULL,
+  `codelist_id` int(11) DEFAULT NULL,
+  `metadata` json DEFAULT NULL,
+  `created` int(11) DEFAULT NULL,
+  `updated` int(11) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `updated_by` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unq_dsc_structure_name` (`data_structure_id`,`name`),
+  KEY `idx_dsc_structure_sort` (`data_structure_id`,`sort_order`),
+  KEY `idx_dsc_codelist` (`codelist_id`),
+  CONSTRAINT `fk_dsc_data_structure` FOREIGN KEY (`data_structure_id`) REFERENCES `data_structures` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_dsc_codelist` FOREIGN KEY (`codelist_id`) REFERENCES `codelists` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `timeseries_value_counts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sid` int(11) NOT NULL,
+  `dsd_id` int(11) NOT NULL,
+  `component_name` varchar(100) NOT NULL,
+  `code` varchar(255) NOT NULL,
+  `obs_count` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unq_tsvc_scope_value` (`sid`,`dsd_id`,`component_name`,`code`),
+  KEY `idx_tsvc_scope` (`sid`,`dsd_id`,`component_name`),
+  CONSTRAINT `fk_tsvc_sid` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_tsvc_dsd` FOREIGN KEY (`dsd_id`) REFERENCES `data_structures` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Link surveys.data_structure_id -> data_structures.id (declared after both tables exist)
+--
+ALTER TABLE `surveys`
+  ADD CONSTRAINT `fk_surveys_data_structure` FOREIGN KEY (`data_structure_id`) REFERENCES `data_structures` (`id`) ON DELETE RESTRICT;
+
+--
 -- Dumping data for codelists (dctypes codelist + default groups)
 --
 
-INSERT INTO `codelists` (`id`,`name`,`description`) VALUES (1,'dctypes','Resource types (external resources)');
+INSERT INTO `codelists` (`id`,`pid`,`name`,`agency`,`version`,`version_seq`,`idno`,`description`,`status`,`created`,`changed`) VALUES (1,NULL,'dctypes','NADA','1.0',1,'NADA_dctypes_1.0','Resource types (external resources)',0,NULL,NULL);
+UPDATE `codelists` SET `pid` = 1 WHERE `id` = 1;
 
 INSERT INTO `codelist_item` (`id`,`codelist_id`,`parent_id`,`code`,`title`,`sort_order`) VALUES
 (1,1,NULL,'doc/adm','Document, Administrative',0),
@@ -1440,6 +1535,7 @@ INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(6,'image','Photo'
 INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(7,'script','Script',30);
 INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(8,'visualization','Visualization',60);
 INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(9,'video','Video',40);
+INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(10,'timeseriesdb','Datasets',75);
 
 
 -- 

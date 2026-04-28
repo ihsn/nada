@@ -188,6 +188,7 @@ class Catalog_search_mysql{
 		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno, surveys.doi, surveys.title,surveys.subtitle,nation,authoring_entity';
 		$study_fields.=',forms.model as form_model, data_class_id, surveys.year_start,surveys.year_end, surveys.thumbnail';
 		$study_fields.=',surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
+		$study_fields.=',surveys.ts_dimensions';
 		$study_fields.=',surveys.abstract';
 
 		//add ranking if keywords are not empty

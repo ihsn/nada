@@ -5,36 +5,35 @@
       <span class="text-body-2">No pending license requests.</span>
     </div>
 
-    <v-data-table
-      v-else
-      :headers="headers"
-      :items="requests"
-      :items-per-page="-1"
-      hide-default-footer
-      density="compact"
-      class="elevation-0"
-    >
-      <template #item.id="{ item }">
-        <a :href="siteUrl + '/admin/licensed_requests/edit/' + item.id" class="text-decoration-none text-caption font-weight-medium">
-          #{{ item.id }}
+    <v-row v-else dense class="lic-req-grid ma-0">
+      <v-col
+        v-for="item in requests"
+        :key="item.id"
+        cols="12"
+        class="py-1 px-0"
+      >
+        <a
+          :href="editUrl(item.id)"
+          class="lic-req-wrap text-decoration-none"
+        >
+          <v-card variant="flat" rounded="0" class="lic-req-card">
+            <v-card-text class="py-2 pr-2 pl-5">
+              <div class="lic-req-layout">
+                <span class="text-caption font-weight-bold text-primary lic-req-id">#{{ item.id }}</span>
+                <span class="text-body-2 lic-req-title">{{ item.request_title || '—' }}</span>
+                <div class="lic-req-row2 text-caption text-medium-emphasis">
+                  <span class="lic-req-meta">{{ item.username || item.email || '—' }}</span>
+                  <span class="lic-req-dot" aria-hidden="true">·</span>
+                  <span class="lic-req-meta">{{ item.org_rec || '—' }}</span>
+                  <span class="lic-req-dot" aria-hidden="true">·</span>
+                  <span class="lic-req-meta">{{ item.created_fmt }}</span>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
         </a>
-      </template>
-      <template #item.request_title="{ item }">
-        <a :href="siteUrl + '/admin/licensed_requests/edit/' + item.id" class="text-decoration-none text-body-2">
-          {{ item.request_title || '—' }}
-        </a>
-      </template>
-      <template #item.username="{ item }">
-        <span class="text-caption">{{ item.username || item.email || '—' }}</span>
-      </template>
-      <template #item.org_rec="{ item }">
-        <span class="text-caption text-medium-emphasis">{{ item.org_rec || '—' }}</span>
-      </template>
-      <template #item.created_fmt="{ item }">
-        <span class="text-caption text-medium-emphasis">{{ item.created_fmt }}</span>
-      </template>
-    </v-data-table>
-
+      </v-col>
+    </v-row>
   </div>
 </template>
 
@@ -46,13 +45,85 @@ const props = defineProps({
   siteUrl: { type: String, default: '' },
 });
 
-const headers = [
-  { title: 'ID', key: 'id', sortable: false, width: '60px' },
-  { title: 'Title', key: 'request_title', sortable: false },
-  { title: 'Applicant', key: 'username', sortable: false, width: '120px' },
-  { title: 'Organization', key: 'org_rec', sortable: false, width: '140px' },
-  { title: 'Date', key: 'created_fmt', sortable: false, width: '160px' },
-];
-
 const requests = computed(() => props.licenseRequests?.pending_requests ?? []);
+
+function editUrl(id) {
+  return `${props.siteUrl}/admin/licensed_requests/edit/${id}`;
+}
 </script>
+
+<style scoped>
+.lic-req-grid {
+  margin: 0;
+}
+
+.lic-req-wrap {
+  display: block;
+  color: inherit;
+}
+
+.lic-req-card {
+  border: none !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.06) !important;
+  transition: background-color 0.12s ease;
+}
+
+.lic-req-grid :deep(.v-col:last-child) .lic-req-card {
+  border-bottom: none !important;
+}
+
+.lic-req-wrap:hover .lic-req-card {
+  background-color: rgba(var(--v-theme-on-surface), 0.03);
+}
+
+.lic-req-layout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  row-gap: 2px;
+  align-items: start;
+}
+
+.lic-req-id {
+  grid-column: 1;
+  grid-row: 1;
+  white-space: nowrap;
+  line-height: 1.35;
+  padding-top: 1px;
+}
+
+.lic-req-title {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  color: rgb(var(--v-theme-on-surface));
+  font-weight: 500;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.lic-req-row2 {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 4px;
+  line-height: 1.4;
+  min-width: 0;
+}
+
+.lic-req-meta {
+  min-width: 0;
+  word-break: break-word;
+}
+
+.lic-req-dot {
+  opacity: 0.45;
+  user-select: none;
+}
+</style>

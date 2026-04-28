@@ -186,11 +186,13 @@ $config['auth_library_function'] = '';
 
 //no authentication required
 $config['auth_override_class_method']['catalog']['*'] = 'none';
+$config['auth_override_class_method']['catalog_vue']['*'] = 'none';
 $config['auth_override_class_method']['auth']['*'] = 'none';
 $config['auth_override_class_method']['tables']['*'] = 'none';
 
 $config['auth_override_class_method']['downloads']['*'] = 'none';
 $config['auth_override_class_method']['analytics']['*'] = 'none';
+$config['auth_override_class_method']['timeseries_public']['*'] = 'none';
 
 
 
@@ -428,7 +430,7 @@ $config['rest_key_name'] = 'X-API-KEY';
 |   ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 |
 */
-$config['rest_enable_logging'] = FALSE;
+$config['rest_enable_logging'] = TRUE;
 
 /*
 |--------------------------------------------------------------------------

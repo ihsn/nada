@@ -28,27 +28,17 @@
 
         <template v-if="!loading && stats">
           <v-row>
-            <!-- Left column: License Requests + Catalog + Collections -->
+            <!-- Left column: Recently modified studies + Catalog + Collections -->
             <v-col cols="12" md="8">
 
-              <v-card  class="dashboard-card mb-4">
-                <v-card-title class="pb-1 d-flex align-center">
-                  <v-icon start color="orange-darken-2">mdi-file-document-outline</v-icon>
-                  License Requests
-                  <v-chip
-                    size="x-small" class="ml-2"
-                    :color="stats.license_requests?.pending > 0 ? 'error' : 'success'"
-                  >
-                    {{ stats.license_requests?.pending ?? 0 }} pending
-                  </v-chip>
-                  <v-spacer />
-                  <v-btn size="x-small" variant="text" color="primary" :href="siteUrl + '/admin/licensed_requests'" prepend-icon="mdi-arrow-right">
-                    View All
-                  </v-btn>
+              <v-card class="dashboard-card mb-4">
+                <v-card-title class="pb-1">
+                  <v-icon start color="primary">mdi-history</v-icon>
+                  Recently modified studies
                 </v-card-title>
                 <v-divider />
-                <v-card-text class="pa-0">
-                  <LicenseRequestsPanel :license-requests="stats.license_requests" :site-url="siteUrl" />
+                <v-card-text>
+                  <RecentStudies :studies="stats.recent_studies || []" :site-url="siteUrl" />
                 </v-card-text>
               </v-card>
 
@@ -87,7 +77,7 @@
 
             </v-col>
 
-            <!-- Right column: Users + System Health + Recent Studies -->
+            <!-- Right column: Users + System Health + License Requests -->
             <v-col cols="12" md="4">
 
               <v-card class="dashboard-card mb-4">
@@ -114,14 +104,24 @@
                 </v-card-text>
               </v-card>
 
-              <v-card class="dashboard-card">
-                <v-card-title class="pb-1">
-                  <v-icon start color="primary">mdi-history</v-icon>
-                  Recently Modified Studies
+              <v-card  class="dashboard-card">
+                <v-card-title class="pb-1 d-flex align-center">
+                  <v-icon start color="orange-darken-2">mdi-file-document-outline</v-icon>
+                  License Requests
+                  <v-chip
+                    size="x-small" class="ml-2"
+                    :color="stats.license_requests?.pending > 0 ? 'error' : 'success'"
+                  >
+                    {{ stats.license_requests?.pending ?? 0 }} pending
+                  </v-chip>
+                  <v-spacer />
+                  <v-btn size="x-small" variant="text" color="primary" :href="siteUrl + '/admin/licensed_requests'" prepend-icon="mdi-arrow-right">
+                    View All
+                  </v-btn>
                 </v-card-title>
                 <v-divider />
-                <v-card-text>
-                  <RecentStudies :studies="stats.recent_studies || []" :site-url="siteUrl" />
+                <v-card-text class="pa-0">
+                  <LicenseRequestsPanel :license-requests="stats.license_requests" :site-url="siteUrl" />
                 </v-card-text>
               </v-card>
 

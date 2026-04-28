@@ -15,6 +15,8 @@ class Study extends MY_Controller {
 		$this->load->model("Related_study_model");
 		$this->load->model("Variable_model");
 		$this->load->model("Timeseries_db_model");
+		$this->load->model("Timeseries_mongo_model");
+		$this->load->model("Timeseries_dsd_model");
 		$this->load->model("Survey_data_api_model");
 		$this->load->model("Widget_model");
 		
@@ -430,6 +432,168 @@ class Study extends MY_Controller {
 		$output=$this->metadata_template->render_html();
 		$this->render_page($sid, $output,'timeseries_db');
 	}
+
+	/**
+	 * Legacy catalog URL catalog/{sid}/indicator-data — redirects to indicator-chart / indicator-data-api / indicator-structure.
+	 */
+	public function indicator_data($sid)
+	{
+		$survey = $this->Dataset_model->get_row($sid);
+		if (!$survey || $survey['type'] !== 'timeseries') {
+			show_404();
+		}
+		$ctx = $this->Timeseries_dsd_model->resolve_dsd_for_sid((int) $sid);
+		if ($ctx === null) {
+			$content = '<div class="container py-4"><p class="text-muted">' . htmlspecialchars(t('indicator_data_no_dsd')) . '</p></div>';
+			$this->render_page($sid, $content, 'indicator_chart');
+			return;
+		}
+		$tab = strtolower(trim((string) $this->input->get('tab')));
+		$target = 'indicator-chart';
+		if (in_array($tab, array('observations', 'data', 'obs'), true)) {
+			$target = 'indicator-data-api';
+		} elseif (in_array($tab, array('structure', 'dsd', 'ds'), true)) {
+			$target = 'indicator-structure';
+		}
+		$params = array();
+		$qs = isset($_SERVER['QUERY_STRING']) ? (string) $_SERVER['QUERY_STRING'] : '';
+		if ($qs !== '') {
+			parse_str($qs, $params);
+		}
+		unset($params['tab']);
+		$query = count($params) > 0 ? '?' . http_build_query($params) : '';
+		redirect(site_url('catalog/' . (int) $sid . '/' . $target) . $query);
+	}
+
+	public function indicator_chart($sid)
+	{
+		$this->render_indicator_data_public($sid, 'indicator_chart', 'chart');
+	}
+
+	/**
+	 * Permanent redirect from deprecated slug indicator-observations.
+	 */
+	public function redirect_indicator_observations($sid)
+	{
+		$qs = isset($_SERVER['QUERY_STRING']) && (string) $_SERVER['QUERY_STRING'] !== ''
+			? '?' . (string) $_SERVER['QUERY_STRING']
+			: '';
+		redirect(site_url('catalog/' . (int) $sid . '/indicator-data-api') . $qs, 'location', 301);
+	}
+
+	public function indicator_observations($sid)
+	{
+		$this->render_indicator_data_public($sid, 'indicator_observations', 'observations');
+	}
+
+	public function indicator_structure($sid)
+	{
+		$this->render_indicator_data_public($sid, 'indicator_structure', 'structure');
+	}
+
+	/**
+	 * Public catalog: indicator observations (Mongo) with chart + table via public timeseries API.
+	 *
+	 * @param string $active_tab Layout nav key (indicator_chart | indicator_observations | indicator_structure)
+	 * @param string $main_view  Vue initial pane (chart | observations | structure)
+	 */
+	private function render_indicator_data_public($sid, $active_tab, $main_view)
+	{
+		$survey = $this->Dataset_model->get_row($sid);
+		if (!$survey || $survey['type'] !== 'timeseries') {
+			show_404();
+		}
+		$ctx = $this->Timeseries_dsd_model->resolve_dsd_for_sid((int) $sid);
+		if ($ctx === null) {
+			$content = '<div class="container py-4"><p class="text-muted">' . htmlspecialchars(t('indicator_data_no_dsd')) . '</p></div>';
+			$this->render_page($sid, $content, $active_tab);
+			return;
+		}
+		$this->load->helper('vite_helper');
+		$title_key = 'tab_indicator_chart';
+		if ($main_view === 'observations') {
+			$title_key = 'tab_indicator_observations';
+		} elseif ($main_view === 'structure') {
+			$title_key = 'tab_indicator_structure';
+		}
+		$study_abstract = isset($survey['abstract']) ? strip_tags((string) $survey['abstract']) : '';
+		if (strlen($study_abstract) > 4000) {
+			$study_abstract = substr($study_abstract, 0, 4000) . '…';
+		}
+		$content = $this->load->view('catalog/study_indicator_data_public', array(
+			'survey_id' => (int) $sid,
+			'idno'      => isset($survey['idno']) ? (string) $survey['idno'] : '',
+			'indicator_main_view' => $main_view,
+			'catalog_page_title' => function_exists('t') ? t($title_key) : $title_key,
+			'study_title'   => isset($survey['title']) ? (string) $survey['title'] : '',
+			'study_abstract'=> $study_abstract,
+			'indicator_data_api_ui' => $this->indicator_data_api_ui_strings(),
+		), true);
+		$this->render_page($sid, $content, $active_tab);
+	}
+
+	/**
+	 * Translated strings for the public indicator Data API Vue tab (aligned with data_api/preview.php).
+	 *
+	 * @return array<string, string>
+	 */
+	private function indicator_data_api_ui_strings()
+	{
+		$t = function ($key) {
+			return function_exists('t') ? t($key) : $key;
+		};
+		return array(
+			'datasetApiHeading'     => $t('indicator_data_api_dataset_api_heading'),
+			'datasetLabel'          => $t('indicator_data_api_dataset_label'),
+			'observationsLabel'     => $t('indicator_data_api_observations'),
+			'apiUsageHeading'       => $t('indicator_data_api_api_usage'),
+			'metadataLabel'         => $t('indicator_data_api_metadata'),
+			'dataLabel'             => $t('indicator_data_api_data'),
+			'bulkDownloadsHeading'  => $t('indicator_bulk_downloads_heading'),
+			'queryParamsHeading'    => $t('indicator_data_api_query_parameters'),
+			'parameterCol'          => $t('indicator_data_api_parameter'),
+			'descriptionCol'      => $t('indicator_data_api_description'),
+			'examplesHeading'       => $t('indicator_data_api_examples'),
+			'exampleFirst'          => $t('indicator_data_api_example_first'),
+			'exampleOffset'         => $t('indicator_data_api_example_offset'),
+			'paramLimit'            => $t('indicator_data_api_param_limit'),
+			'paramLimitDesc'        => $t('indicator_data_api_param_limit_desc'),
+			'paramOffset'           => $t('indicator_data_api_param_offset'),
+			'paramOffsetDesc'       => $t('indicator_data_api_param_offset_desc'),
+			'paramSort'             => $t('indicator_data_api_param_sort'),
+			'paramSortDesc'         => $t('indicator_data_api_param_sort_desc'),
+			'paramFrom'             => $t('indicator_data_api_param_fromto'),
+			'paramFromDesc'         => $t('indicator_data_api_param_fromto_desc'),
+			'paramDc'               => $t('indicator_data_api_param_dc'),
+			'paramDcDesc'           => $t('indicator_data_api_param_dc_desc'),
+			'dataExplorerHeading'   => $t('indicator_data_api_data_explorer'),
+			'apiOptionsLabel'       => $t('indicator_data_api_api_options'),
+			'totalLabel'            => $t('indicator_data_api_total'),
+			'showingTemplate'       => $t('indicator_data_api_showing'),
+			'bulkFileCol'           => $t('indicator_data_api_bulk_file'),
+			'bulkDateCol'           => $t('indicator_data_api_bulk_date'),
+			'bulkActionsCol'        => $t('indicator_data_api_bulk_actions'),
+			'download'              => $t('indicator_data_api_download'),
+			'link'                  => $t('indicator_data_api_link'),
+			'loading'               => $t('indicator_data_api_loading'),
+			'previous'              => $t('indicator_data_api_previous'),
+			'next'                  => $t('indicator_data_api_next'),
+			'copyUrl'               => $t('indicator_data_api_copy_url'),
+			'openUrl'               => $t('indicator_data_api_open_url'),
+			'copied'                => $t('indicator_data_api_copied'),
+			'copyFailed'            => $t('indicator_data_api_copy_failed'),
+			'filtersHeading'        => $t('indicator_data_api_grid_filters'),
+			'explorerQueryHeading'  => $t('indicator_data_api_explorer_query_heading'),
+			'explorerQueryHint'     => $t('indicator_data_api_explorer_query_hint'),
+			'applyFilters'          => $t('indicator_data_api_apply_filters'),
+			'noFacetFilters'        => $t('indicator_data_api_no_facet_filters'),
+			'filtersIncomplete'     => $t('indicator_data_api_filters_incomplete'),
+			'reportingYearFromLabel' => $t('indicator_data_api_reporting_year_from_label'),
+			'reportingYearToLabel'  => $t('indicator_data_api_reporting_year_to_label'),
+			'reportingYearBoundsHint' => $t('indicator_data_api_reporting_year_bounds_hint'),
+			'timePeriodNoFacets'    => $t('indicator_data_api_time_period_no_facets'),
+		);
+	}
 	
 	private function render_page($sid, $content, $active_tab='description')
 	{
@@ -546,18 +710,49 @@ class Study extends MY_Controller {
 				);
 				break;
 			case 'timeseries':
+				$has_indicator_mongo = $this->Timeseries_dsd_model->resolve_dsd_for_sid((int) $sid) !== null;
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
 						'url'=>site_url("catalog/$sid/study-description"),
 						'show_tab'=>1
 					),
+					'indicator_chart'=>array(
+						'label'=>t('tab_indicator_chart'),
+						'url'=>site_url("catalog/$sid/indicator-chart"),
+						'show_tab'=>$has_indicator_mongo ? 1 : 0
+					),
+					'indicator_observations'=>array(
+						'label'=>t('tab_indicator_observations'),
+						'url'=>site_url("catalog/$sid/indicator-data-api"),
+						'show_tab'=>$has_indicator_mongo ? 1 : 0
+					),
+					'indicator_structure'=>array(
+						'label'=>t('tab_indicator_structure'),
+						'url'=>site_url("catalog/$sid/indicator-structure"),
+						'show_tab'=>$has_indicator_mongo ? 1 : 0
+					),
 					'timeseries_db'=>array(
 						'label'=>t('timeseries_db'),
 						'url'=>site_url("catalog/$sid/timeseries-db"),
 						'show_tab'=>!empty($timeseries_db)
 					),
-					//hide related materials
+					'related_materials'=>array(
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
+						'show_tab'=>(int)$related_resources_count
+					)
+				);
+				break;
+			case 'timeseriesdb':
+			case 'timeseries-db':
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t('timeseries_db'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					// hide unsupported tabs for dataset-style records
 					'related_materials'=>array(
 						'show_tab'=> 0
 					)

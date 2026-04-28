@@ -40,6 +40,7 @@ $lang['select_number_of_records_per_page']="Seleccione o número de registros a 
 $lang['study_already_exists']="O estudo estatístico já existe. Por favor seleccione a opção de substituir para sustituir o estudo estatístico existente.";
 $lang['invalid_ddi_file']="Archivo IDD no válido: ";
 $lang['nothing_to_process']="Nada para procesar";
+$lang['tab_timeseries_data']="Dados de indicadores";
 
 
 /* End of file catalog_admin_lang.php */

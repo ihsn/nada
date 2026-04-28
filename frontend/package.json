@@ -16,6 +16,7 @@
     "@codemirror/lang-html": "^6.4.11",
     "@mdi/font": "^7.4.47",
     "axios": "^1.13.6",
+    "chart.js": "^4.4.8",
     "codemirror": "^6.0.2",
     "lodash": "^4.17.23",
     "vue": "^3.5.29",

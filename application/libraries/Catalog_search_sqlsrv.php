@@ -305,6 +305,7 @@ class Catalog_search_sqlsrv{
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id,surveys.idno,surveys.doi,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,data_class_id, year_start,year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount, surveys.thumbnail';
+		$study_fields.=', surveys.ts_dimensions';
 		$study_fields.=', surveys.abstract';
 
 		//add ranking if keywords are not empty

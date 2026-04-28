@@ -105,13 +105,13 @@ DROP TABLE IF EXISTS variables;
 CREATE TABLE variables (
   uid int NOT NULL IDENTITY(1,1),
   sid int NOT NULL,
-  fid varchar(45) DEFAULT '',
-  vid varchar(45) DEFAULT '',
-  name varchar(100) DEFAULT '',
-  labl varchar(255) DEFAULT '',
-  qstn text,
-  catgry text,
-  metadata text,
+  fid nvarchar(45) DEFAULT '',
+  vid nvarchar(45) DEFAULT '',
+  name nvarchar(100) DEFAULT '',
+  labl nvarchar(255) DEFAULT '',
+  qstn nvarchar(max),
+  catgry nvarchar(max),
+  metadata nvarchar(max),
   PRIMARY KEY (uid)
 ) ;
 

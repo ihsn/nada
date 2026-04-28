@@ -111,11 +111,11 @@ $this->template->add_js($script, $type = 'embed');
         </div>
 	<?php endif;?>	
 		<div class="variable-search">
-    		<?php echo t('find');?> <input maxlength="100" type="text" name="sk" value="<?php echo isset($this->sk) ? $this->sk : '' ; ?>" style="margin-left:10px;margin-right:5px;width:65%;"/> <?php echo t('in_study_description');?>
+    		<?php echo t('find');?> <input maxlength="100" type="text" name="sk" value="<?php echo html_escape(isset($this->sk) ? (string) $this->sk : ''); ?>" style="margin-left:10px;margin-right:5px;width:65%;"/> <?php echo t('in_study_description');?>
 		</div>    
         
         <div class="variable-search" style="margin-top:5px;">
-        	<?php echo t('find');?> <input maxlength="100"  type="text" name="vk" value="<?php echo isset($this->vk) ? $this->vk : '' ; ?>" style="margin-left:10px;margin-right:5px;width:65%;"/> <?php echo t('in_variable_description');?>
+        	<?php echo t('find');?> <input maxlength="100"  type="text" name="vk" value="<?php echo html_escape(isset($this->vk) ? (string) $this->vk : ''); ?>" style="margin-left:10px;margin-right:5px;width:65%;"/> <?php echo t('in_variable_description');?>
 
 			<div style="margin-left:37px;font-size:11px;margin-top:5px;">
             <?php echo t('variable_description_includes');?> 

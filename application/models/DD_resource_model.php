@@ -351,51 +351,6 @@ class DD_resource_model extends CI_Model {
 	}
 	
 	/**
-	* Returns the type ID by type-name
-	*
-	*/
-	function get_dctype_id_by_name($type_name)
-	{
-		$type_arr=explode(' ', $type_name);
-		
-		$type=NULL;
-		
-		if (!$type_arr)
-		{
-			return 0;
-		}
-		
-		foreach($type_arr as $str)
-		{
-			$str=trim($str);
-			if ($str[0]=='[' && $str[strlen($str)-1]==']')
-			{
-				$type=$str;
-			}
-		}
-		
-		//Type not found
-		if ($type==NULL)
-		{
-			return 0;
-		}
-		
-		//search db
-		$this->db->select('id'); 
-		$this->db->like('title', $type); 
-		$result= $this->db->get('dctypes')->row_array();
-		
-		if ($result)
-		{
-			return $result['id'];
-		}
-		else
-		{
-			return 0;
-		}	
-	}
-	
-	/**
 	* Returns the DC Format ID by Format-name
 	*
 	*/

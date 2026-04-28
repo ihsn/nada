@@ -24,8 +24,8 @@
         $compare_items=explode(",",$this->input->cookie('variable-compare', TRUE));
         ?>
 
-        <input type="hidden"  id="sort_order" value="<?php echo $sort_order;?>"/>
-        <input type="hidden" id="sort_by" value="<?php echo $sort_by;?>"/>
+        <input type="hidden"  id="sort_order" value="<?php echo html_escape((string) $sort_order);?>"/>
+        <input type="hidden" id="sort_by" value="<?php echo html_escape((string) $sort_by);?>"/>
         <div id="sort-results-by" class="sort-results-by nada-catalog-sort-links">
             <div class="row">
 
@@ -162,7 +162,7 @@
             </small>
         </div>
         <script type="text/javascript">
-            var sort_info = {'sort_by': '<?php echo $sort_by;?>', 'sort_order': '<?php echo $sort_order;?>'};
+            var sort_info = <?php echo json_encode(array('sort_by' => $sort_by, 'sort_order' => $sort_order), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES); ?>;
         </script>
 
     <?php else: ?>

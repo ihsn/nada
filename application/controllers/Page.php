@@ -137,6 +137,7 @@ class Page extends MY_Controller {
 		}
 		
 		header('HTTP/1.0 404 Not Found');
+		log_message('error', '404 Page Not Found: ' . $this->uri->uri_string());
 		$content=$this->load->view("404_page",NULL,TRUE);
 
 		if ($this->input->is_ajax_request()) {

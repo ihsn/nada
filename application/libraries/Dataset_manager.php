@@ -7,6 +7,7 @@ class Dataset_manager{
         'survey'=>'microdata',
         'geospatial'=>'geospatial',
         'timeseries'=>'timeseries',
+        'timeseriesdb'=>'timeseriesdb',
         'document'=>'document',
         'image'=>'image',
         'video'=>'video',
@@ -22,6 +23,7 @@ class Dataset_manager{
         $this->ci->load->model("Facet_model");
         $this->ci->load->model("Dataset_microdata_model");
         $this->ci->load->model("Dataset_timeseries_model");
+        $this->ci->load->model("Dataset_timeseriesdb_model");
         $this->ci->load->model("Dataset_geospatial_model");
         $this->ci->load->model("Dataset_document_model");
         $this->ci->load->model("Dataset_image_model");

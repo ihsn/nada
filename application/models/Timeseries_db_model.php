@@ -42,17 +42,21 @@ class Timeseries_db_model extends CI_Model {
 	function get_all()
 	{
 		$this->db->select('id,idno,title,created,changed,published');
-		$result= $this->db->get("ts_databases")->result_array();
+		$this->db->where('type','timeseriesdb');
+		$result= $this->db->get("surveys")->result_array();
         return $result;
 	}
 
     function get_row($id) 
 	{
-        $this->db->select('id,idno,title,created,changed,published,metadata');
+        $this->db->select('id,idno,title,created,changed,published,metadata,type');
         $this->db->where('id', $id);
-		$result= $this->db->get("ts_databases")->row_array();
+		$result= $this->db->get("surveys")->row_array();
 
 		if($result){
+			if (!in_array($result['type'], array('timeseriesdb','timeseries-db'))){
+				return false;
+			}
 			$result=$this->decode_encoded_fields($result);
 		}
 
@@ -63,7 +67,8 @@ class Timeseries_db_model extends CI_Model {
 	{
 		$this->db->select('*');
         $this->db->where('idno', $idno);
-		$result= $this->db->get("ts_databases")->row_array();
+		$this->db->where_in('type', array('timeseriesdb','timeseries-db'));
+		$result= $this->db->get("surveys")->row_array();
 
 		if($result){
 			$result=$this->decode_encoded_fields($result);
@@ -80,7 +85,11 @@ class Timeseries_db_model extends CI_Model {
 		if (empty($database_id)){
 			return false;
 		}
-		
+
+		if (is_numeric($database_id)){
+			return $this->get_row((int)$database_id);
+		}
+
 		return $this->get_row_by_idno($database_id);
 	}
 	
@@ -89,7 +98,8 @@ class Timeseries_db_model extends CI_Model {
 	{
 		$this->db->select('id');
 		$this->db->where('idno', $idno); 
-		$query=$this->db->get('ts_databases')->row_array();
+		$this->db->where_in('type', array('timeseriesdb','timeseries-db'));
+		$query=$this->db->get('surveys')->row_array();
 		
 		if ($query){
 			return $query['id'];
@@ -279,7 +289,8 @@ class Timeseries_db_model extends CI_Model {
 	function delete($id)
 	{
 		$this->db->where('id', $id); 
-        $deleted=$this->db->delete('ts_databases');
+        $this->db->where_in('type', array('timeseriesdb','timeseries-db'));
+        $deleted=$this->db->delete('surveys');
 
         return $deleted;
     }
