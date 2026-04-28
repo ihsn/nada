@@ -38,6 +38,10 @@ tags:
     description: |
       Site analytics: raw pageview and download events, daily and monthly aggregates, CSV/JSON exports, and aggregation jobs.
       Endpoints require an admin user and `X-API-KEY` (same as other catalog-admin APIs).
+  - name: Data Structures
+    description: Admin endpoints for global DSD catalogue management.
+  - name: Timeseries Admin
+    description: Admin endpoints for project-level timeseries data and DSD linking.
 
 x-tagGroups:
   - name: Authentication
@@ -64,6 +68,8 @@ x-tagGroups:
       - Widgets
       - Resumable uploads
       - Analytics
+      - Data Structures
+      - Timeseries Admin
 
 security:
   - ApiKeyAuth: []
@@ -2787,6 +2793,839 @@ paths:
           $ref: '#/components/responses/AnalyticsBadRequest'
         '403':
           $ref: '#/components/responses/AnalyticsForbidden'
+
+  # ----------------------------------------------------------------
+  # Data structures (admin)
+  # ----------------------------------------------------------------
+
+  /admin/data_structures:
+    get:
+      tags:
+        - Data Structures
+      summary: List data structures
+      description: List global DSDs. Supports collapsed or flat list and optional pagination.
+      operationId: dataStructuresList
+      parameters:
+        - name: flat
+          in: query
+          schema:
+            type: boolean
+          description: When true, return one row per version.
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: 1-based page number. When provided, returns paginated payload.
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search across title/name/agency/idno/version/description/notes.
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Alias for `search`.
+        - name: status
+          in: query
+          schema:
+            type: integer
+          description: Exact status code filter.
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/data_structures/create:
+    post:
+      tags:
+        - Data Structures
+      summary: Create data structure
+      description: >-
+        Create a global DSD from JSON. Optional `overwrite` updates an existing
+        DSD matched by idno or identity (agency+name+version) only when it is not locked.
+      operationId: dataStructuresCreate
+      parameters:
+        - name: overwrite
+          in: query
+          schema:
+            type: boolean
+          description: When true, overwrite an existing non-locked DSD.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Existing data structure overwritten
+        '201':
+          description: Data structure created
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/data_structures/import_json:
+    post:
+      tags:
+        - Data Structures
+      summary: Import data structure JSON
+      description: Import global DSD, components and codelists from JSON.
+      operationId: dataStructuresImportJson
+      parameters:
+        - name: overwrite_codelists
+          in: query
+          schema:
+            type: boolean
+        - name: dry_run
+          in: query
+          schema:
+            type: boolean
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'data-structure-schema.json'
+      responses:
+        '200':
+          description: Validation/dry-run succeeded
+        '201':
+          description: Import completed
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/data_structures/import:
+    post:
+      tags:
+        - Data Structures
+      summary: Import data structure from SDMX XML
+      description: Import SDMX-ML structure XML from multipart `file` or XML body.
+      operationId: dataStructuresImportXml
+      parameters:
+        - name: overwrite_codelists
+          in: query
+          schema:
+            type: boolean
+        - name: dsd_id
+          in: query
+          schema:
+            type: string
+          description: Optional DataStructure @id selector when multiple are present in XML.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                overwrite_codelists:
+                  type: string
+                dsd_id:
+                  type: string
+          application/xml:
+            schema:
+              type: string
+          text/xml:
+            schema:
+              type: string
+      responses:
+        '201':
+          description: Import completed
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/data_structures/by_identity:
+    get:
+      tags:
+        - Data Structures
+      summary: Get data structure by identity
+      operationId: dataStructuresByIdentity
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: agency
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: query
+          schema:
+            type: string
+        - name: with_components
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Data structure not found
+
+  /admin/data_structures/validate:
+    post:
+      tags:
+        - Data Structures
+      summary: Validate DSD payload or existing DSD
+      operationId: dataStructuresValidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Validation result
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/data_structures/update/{idOrIdno}:
+    post:
+      tags:
+        - Data Structures
+      summary: Update data structure
+      operationId: dataStructuresUpdate
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Updated
+        '404':
+          description: Not found
+
+  /admin/data_structures/status/{idOrIdno}:
+    post:
+      tags:
+        - Data Structures
+      summary: Update data structure status
+      operationId: dataStructuresStatusUpdate
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: integer
+      responses:
+        '200':
+          description: Status updated
+        '404':
+          description: Not found
+
+  /admin/data_structures/versions/{idOrIdno}:
+    get:
+      tags:
+        - Data Structures
+      summary: List versions for a data structure family
+      operationId: dataStructuresVersions
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+
+  /admin/data_structures/projects/{idOrIdno}:
+    get:
+      tags:
+        - Data Structures
+      summary: List linked projects for a data structure
+      operationId: dataStructuresProjects
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 25
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+
+  /admin/data_structures/export/{idOrIdno}:
+    get:
+      tags:
+        - Data Structures
+      summary: Export data structure
+      operationId: dataStructuresExport
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+
+  /admin/data_structures/delete/{idOrIdno}:
+    post:
+      tags:
+        - Data Structures
+      summary: Delete data structure (POST alias)
+      operationId: dataStructuresDeletePost
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+        '409':
+          description: Conflict (locked or in use)
+
+  /admin/data_structures/{idOrIdno}:
+    get:
+      tags:
+        - Data Structures
+      summary: Get data structure by id or idno
+      operationId: dataStructuresGetOne
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: with_components
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Data Structures
+      summary: Delete data structure
+      operationId: dataStructuresDelete
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+        '409':
+          description: Conflict (locked or in use)
+
+  /admin/data_structures/components/{segment}:
+    get:
+      tags:
+        - Data Structures
+      summary: Get data structure components
+      operationId: dataStructuresComponentsGet
+      parameters:
+        - name: segment
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Structure id/idno or component id.
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+    post:
+      tags:
+        - Data Structures
+      summary: Create data structure component
+      operationId: dataStructuresComponentsCreate
+      parameters:
+        - name: segment
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Structure id/idno.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+        '404':
+          description: Not found
+    put:
+      tags:
+        - Data Structures
+      summary: Update data structure component
+      operationId: dataStructuresComponentsUpdate
+      parameters:
+        - name: segment
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Component id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Updated
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Data Structures
+      summary: Delete data structure component
+      operationId: dataStructuresComponentsDelete
+      parameters:
+        - name: segment
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Component id.
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+
+  /admin/data_structures/components_update/{componentId}:
+    post:
+      tags:
+        - Data Structures
+      summary: Update data structure component (POST alias)
+      operationId: dataStructuresComponentsUpdatePost
+      parameters:
+        - name: componentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Updated
+        '404':
+          description: Not found
+
+  /admin/data_structures/components_delete/{componentId}:
+    post:
+      tags:
+        - Data Structures
+      summary: Delete data structure component (POST alias)
+      operationId: dataStructuresComponentsDeletePost
+      parameters:
+        - name: componentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+
+  # ----------------------------------------------------------------
+  # Timeseries Admin
+  # ----------------------------------------------------------------
+
+  /admin/timeseries/data/{idno}:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: List project timeseries observations
+      operationId: timeseriesAdminDataList
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Successful operation
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Insert project timeseries observations
+      operationId: timeseriesAdminDataInsert
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties: true
+      responses:
+        '201':
+          description: Inserted
+
+  /admin/timeseries/data/{idno}/count:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: Count project timeseries observations
+      operationId: timeseriesAdminDataCount
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/timeseries/data/{idno}/schema:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: Get project DSD schema context
+      operationId: timeseriesAdminDataSchema
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/timeseries/data/{idno}/attach-dsd:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Attach or detach DSD for project
+      description: Attach with `data_structure_id`/`data_structure_reference`; detach with `detach=true`.
+      operationId: timeseriesAdminAttachDsd
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data_structure_id:
+                  type: integer
+                data_structure_reference:
+                  type: string
+                detach:
+                  type: boolean
+      responses:
+        '200':
+          description: Link updated
+
+  /admin/timeseries/data/{idno}/import:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Import project timeseries CSV
+      operationId: timeseriesAdminDataImport
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                delimiter:
+                  type: string
+                  example: ","
+                mapping:
+                  type: string
+                  description: JSON object mapping CSV headers to DSD component names.
+                ensure_unique_index:
+                  type: string
+                  enum: ['0', '1']
+      responses:
+        '201':
+          description: Import completed
+
+  /admin/timeseries/data/{idno}/rehash:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Rehash project observations
+      operationId: timeseriesAdminDataRehash
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  type: integer
+      responses:
+        '200':
+          description: Rehash completed
+
+  /admin/timeseries/data/{idno}/duplicates:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: List duplicate observations for project
+      operationId: timeseriesAdminDataDuplicates
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/timeseries/data/{idno}/sync-counts:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Sync value counts for project
+      operationId: timeseriesAdminDataSyncCounts
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sync completed
+
+  /admin/timeseries/data/{idno}/value-counts-summary:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: Get value counts summary for project
+      operationId: timeseriesAdminDataValueCountsSummary
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/timeseries/data-structures/{dsdId}/indexes:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Ensure indexes for DSD collection
+      operationId: timeseriesAdminStructureIndexes
+      parameters:
+        - name: dsdId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                include_unique_key_hash:
+                  type: boolean
+      responses:
+        '200':
+          description: Indexes ensured
+
+  /admin/timeseries/data-structures/{dsdId}/rehash:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Rehash DSD collection observations
+      operationId: timeseriesAdminStructureRehash
+      parameters:
+        - name: dsdId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sid:
+                  type: integer
+                limit:
+                  type: integer
+      responses:
+        '200':
+          description: Rehash completed
+
+  /admin/timeseries/data-structures/{dsdId}/duplicates:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: List duplicate observations for DSD
+      operationId: timeseriesAdminStructureDuplicates
+      parameters:
+        - name: dsdId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: sid
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/timeseries/data-structures/{dsdId}/stats:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: Get DSD collection stats
+      operationId: timeseriesAdminStructureStats
+      parameters:
+        - name: dsdId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
     post:
       tags:
         - Analytics
