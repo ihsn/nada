@@ -13,7 +13,7 @@ require_once APPPATH . '/libraries/MY_REST_Controller.php';
  *   GET .../data/{idno}/export — canonical JSON export (data_structure + components + codelist summary)
  *   GET .../data/{idno}/count
  *   GET .../data/{idno} — d[role] / c[COMPONENT] / legacy; paging: offset (or skip), limit, sort (asc|desc), sort_by (optional API column: sid, period_start, period_end, reporting_year, reporting_freq, or DSD component name); result includes total, found, offset; row JSON strips internal fields and adds period_start / period_end (ISO 8601 UTC), reporting_year / reporting_freq from _ts_year / _ts_freq (see strip_public_observation_fields + append_public_observation_timeseries_fields).
- *   GET .../data/{idno}/chart — same filters as data list (from/to on _ts_year, d[…], c[…]); optional limit (capped); returns chart-ready records (time_period, observation_value, series_key, series_key_label) aggregated server-side from Mongo rows (see Timeseries_mongo_model::build_catalog_chart_records). Metadata includes time_bounds (min/max time_period among returned chart rows).
+ *   GET .../data/{idno}/chart — same filters as data list (from/to on _ts_year, d[…], c[…]); optional limit (capped); returns chart-ready records (time_period, observation_value, series_key, plus series-dimension fields) aggregated server-side from Mongo rows (see Timeseries_mongo_model::build_catalog_chart_records). Metadata includes time_bounds (min/max time_period among returned chart rows).
  *   GET .../data/{idno}/schema — includes time_period_component and observation_value_component (DSD field names) when present.
  *
  * Global data structures (same catalogue as admin, read-only):
@@ -628,7 +628,7 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		$max = (int) $this->config->item('indicator_timeseries_chart_max_raw_rows');
 		if ($max < 1) {
-			$max = 50000;
+			$max = 5000;
 		}
 		$lim = $this->input->get('limit');
 		if ($lim === null || $lim === '') {

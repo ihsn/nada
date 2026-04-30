@@ -23,7 +23,7 @@ $config['indicator_timeseries_default_page_size'] = 100;
 $config['indicator_timeseries_max_page_size']       = 500;
 
 /** Max Mongo observation rows scanned for GET …/chart (server-side chart aggregation). */
-$config['indicator_timeseries_chart_max_raw_rows'] = 50000;
+$config['indicator_timeseries_chart_max_raw_rows'] = 5000;
 
 /*
 |--------------------------------------------------------------------------

@@ -222,6 +222,18 @@ export function useDataStructuresApi() {
     return data.result ?? null;
   }
 
+  /**
+   * Import DSD + codelists from JSON (`data_structure` envelope). POST …/import_json
+   * @param {Record<string, unknown>} body Parsed JSON (overwrite / dry_run merged by caller if needed)
+   */
+  async function importFromJson(body) {
+    const { data } = await axios.post(`${base()}/import_json`, body, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (data.status !== 'success') throw new Error(data.message || 'Import failed');
+    return data.result ?? null;
+  }
+
   /** Codelist rows for pickers (admin codelists index, full list — legacy). */
   async function fetchCodelistsForPicker() {
     const b = codelistsBase();
@@ -310,5 +322,6 @@ export function useDataStructuresApi() {
     fetchCodelistMetaForPicker,
     fetchCodelistItemsFlatPage,
     importFromSdmxXml,
+    importFromJson,
   };
 }

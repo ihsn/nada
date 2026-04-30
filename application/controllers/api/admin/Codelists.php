@@ -1031,7 +1031,14 @@ class Codelists extends MY_REST_Controller {
 			$dryRun    = $this->_boolish($input['dry_run'] ?? null, false);
 
 			$summary = $this->_import_single_codelist_from_json_payload($payload, $overwrite, $dryRun);
-			$code = $dryRun ? REST_Controller::HTTP_OK : REST_Controller::HTTP_CREATED;
+			if ($dryRun) {
+				$code = REST_Controller::HTTP_OK;
+			} elseif (!empty($summary['codelists_created'])) {
+				$code = REST_Controller::HTTP_CREATED;
+			} else {
+				// Reused or updated existing codelist — not a new resource
+				$code = REST_Controller::HTTP_OK;
+			}
 			$this->set_response([
 				'status' => 'success',
 				'result' => $summary,

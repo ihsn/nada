@@ -5,7 +5,8 @@
         <header class="ds-page-header d-flex align-center justify-space-between flex-wrap gap-3 flex-shrink-0 mb-5">
           <h1 class="text-h4 font-weight-semibold text-high-emphasis mb-0">Data structures</h1>
           <div v-if="showListToolbarActions" class="d-flex align-center gap-2 flex-shrink-0">
-            <v-btn variant="tonal" size="small" prepend-icon="mdi-upload" @click="openImportDialog">Import SDMX XML</v-btn>
+            <v-btn variant="tonal" size="small" prepend-icon="mdi-upload" @click="openImportSdmxDialog">Import SDMX XML</v-btn>
+            <v-btn variant="tonal" size="small" prepend-icon="mdi-code-json" @click="openImportJsonDialog">Import JSON</v-btn>
             <v-btn color="primary" size="small" prepend-icon="mdi-plus" @click="goCreate">Add data structure</v-btn>
           </div>
         </header>
@@ -46,10 +47,17 @@ const message = reactive({ text: '', type: 'info' });
 
 const showListToolbarActions = computed(() => route.name === 'data-structures');
 
-function openImportDialog() {
+function openImportSdmxDialog() {
   router.push({
     name: 'data-structures',
     query: { ...route.query, openImport: String(Date.now()) },
+  });
+}
+
+function openImportJsonDialog() {
+  router.push({
+    name: 'data-structures',
+    query: { ...route.query, openImportJson: String(Date.now()) },
   });
 }
 

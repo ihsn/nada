@@ -2927,13 +2927,15 @@ paths:
               $ref: '#/components/schemas/CodelistImportJsonRequest'
       responses:
         '200':
-          description: Dry-run succeeded
+          description: >-
+            Dry-run succeeded, or import completed without creating a new codelist
+            (existing codelist reused, or items updated in place when applicable).
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CodelistImportJsonResponse'
         '201':
-          description: Import completed
+          description: Import completed and a new codelist row was created.
           content:
             application/json:
               schema:

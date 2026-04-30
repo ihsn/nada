@@ -104,7 +104,7 @@ export function usePublicTimeseriesApi(studyIdno) {
    * }} [opts]
    */
   /**
-   * Server-side chart rows (time_period, observation_value, series_key, series_key_label).
+   * Server-side chart rows (time_period, observation_value, series_key, plus series-dimension fields).
    *
    * @param {{ filters?: ObservationFilters; limit?: number }} [opts]
    */

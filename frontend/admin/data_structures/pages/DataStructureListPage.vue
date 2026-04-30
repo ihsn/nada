@@ -41,7 +41,8 @@
       </v-sheet>
     </section>
 
-    <DataStructureImportDialog v-model="importDialog" @imported="onImported" />
+    <DataStructureImportDialog v-model="importDialogSdmx" @imported="onImported" />
+    <DataStructureImportJsonDialog v-model="importDialogJson" @imported="onImported" />
     <DataStructureList
       v-model:page="page"
       v-model:items-per-page="itemsPerPage"
@@ -83,6 +84,7 @@ import { ref, reactive, inject, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import DataStructureList from '../components/DataStructureList.vue';
 import DataStructureImportDialog from '../components/DataStructureImportDialog.vue';
+import DataStructureImportJsonDialog from '../components/DataStructureImportJsonDialog.vue';
 import { useDataStructuresApi } from '../composables/useDataStructuresApi';
 
 defineOptions({ name: 'DataStructureListPage' });
@@ -100,7 +102,8 @@ const itemsPerPage = ref(25);
 const search = ref('');
 const searchDebounced = ref('');
 const statusFilter = ref(null);
-const importDialog = ref(false);
+const importDialogSdmx = ref(false);
+const importDialogJson = ref(false);
 const deleteDialog = reactive({ show: false, saving: false, row: null });
 
 let searchDebounceTimer;
@@ -137,6 +140,10 @@ function resetPageOnStatus() {
 }
 
 function onImported(result) {
+  if (result?.dry_run) {
+    setMessage('Dry run finished — validation passed; nothing was saved.', 'success');
+    return;
+  }
   const n = (result?.codelists_created?.length ?? 0) + (result?.codelists_reused?.length ?? 0) + (result?.codelists_updated?.length ?? 0);
   setMessage(`Import finished. Codelists touched: ${n}.`, 'success');
   const id = result?.data_structure?.id;
@@ -207,9 +214,21 @@ watch(
   () => route.query.openImport,
   (v) => {
     if (v == null || v === '') return;
-    importDialog.value = true;
+    importDialogSdmx.value = true;
     const q = { ...route.query };
     delete q.openImport;
+    router.replace({ query: q });
+  },
+  { immediate: true }
+);
+
+watch(
+  () => route.query.openImportJson,
+  (v) => {
+    if (v == null || v === '') return;
+    importDialogJson.value = true;
+    const q = { ...route.query };
+    delete q.openImportJson;
     router.replace({ query: q });
   },
   { immediate: true }

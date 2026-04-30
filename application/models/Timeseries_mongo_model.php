@@ -1376,22 +1376,25 @@ class Timeseries_mongo_model extends CI_Model {
 	}
 
 	/**
-	 * Public chart time key: DSD time_period column when present, else period_start (ISO).
+	 * Public chart x-axis key for dedupe and labels.
+	 *
+	 * Prefer the DSD component with column_type `time_period` (e.g. monthly `YYYY-MM`);
+	 * otherwise fall back to `reporting_year`, then `period_start`.
 	 *
 	 * @param array       $row
-	 * @param string|null $tpName
+	 * @param string|null $tpName resolved component name for `time_period`
 	 * @return string|null
 	 */
 	private function catalog_chart_time_key(array $row, $tpName)
 	{
+		if ($tpName !== null && isset($row[$tpName]) && $row[$tpName] !== '' && $row[$tpName] !== null) {
+			return trim((string) $row[$tpName]);
+		}
 		if (isset($row['reporting_year']) && $row['reporting_year'] !== null && $row['reporting_year'] !== '') {
 			$y = (int) $row['reporting_year'];
 			if ($y > 0) {
 				return (string) $y;
 			}
-		}
-		if ($tpName !== null && isset($row[$tpName]) && $row[$tpName] !== '' && $row[$tpName] !== null) {
-			return (string) $row[$tpName];
 		}
 		if (!empty($row['period_start'])) {
 			return (string) $row['period_start'];
@@ -1402,7 +1405,7 @@ class Timeseries_mongo_model extends CI_Model {
 	/**
 	 * Build catalog chart rows from public observation payloads (same slice identity as Metadata Editor chart records).
 	 *
-	 * Each output row: time_period (reporting year from `_ts_year` when present, else DSD time field, else period_start), observation_value, series_key, series_key_label.
+	 * Each output row: time_period (DSD `time_period` component when present, else reporting year, else period_start), observation_value, series_key and series-dimension fields.
 	 * series_key = "GEO=… | DIM=…" segments (geography + dimension column_types only), deduped by (series_key, time_period) last wins.
 	 *
 	 * @param array $public_observations List of assoc arrays (post strip + append_public_observation_timeseries_fields)
@@ -1442,12 +1445,17 @@ class Timeseries_mongo_model extends CI_Model {
 				continue;
 			}
 			$series_parts = [];
+			$series_fields = [];
 			if ($geoName !== null && isset($row[$geoName]) && $row[$geoName] !== '' && $row[$geoName] !== null) {
-				$series_parts[] = $geoName . '=' . (string) $row[$geoName];
+				$geoVal = (string) $row[$geoName];
+				$series_parts[] = $geoName . '=' . $geoVal;
+				$series_fields[$geoName] = $geoVal;
 			}
 			foreach ($dimension_names as $dn) {
 				if (isset($row[$dn]) && $row[$dn] !== '' && $row[$dn] !== null) {
-					$series_parts[] = $dn . '=' . (string) $row[$dn];
+					$dnVal = (string) $row[$dn];
+					$series_parts[] = $dn . '=' . $dnVal;
+					$series_fields[$dn] = $dnVal;
 				}
 			}
 			$series_key = count($series_parts) > 0 ? implode(' | ', $series_parts) : 'Series';
@@ -1474,8 +1482,10 @@ class Timeseries_mongo_model extends CI_Model {
 				'time_period'         => $time_period,
 				'observation_value'   => $val,
 				'series_key'          => $series_key,
-				'series_key_label'    => $series_key,
 			);
+			foreach ($series_fields as $fieldName => $fieldValue) {
+				$dedupe[$k][$fieldName] = $fieldValue;
+			}
 		}
 
 		$records = array_values($dedupe);

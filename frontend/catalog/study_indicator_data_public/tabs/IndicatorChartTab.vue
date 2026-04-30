@@ -455,16 +455,13 @@
                   <v-sheet
                     v-if="
                       dataLoadCommitted &&
-                      ((chartModel?.useNumericTimeX && chartModel?.timeXKind !== 'year') ||
-                        (chartModel?.labels?.length && !chartModel?.useNumericTimeX))
+                      chartModel?.useNumericTimeX &&
+                      chartModel?.timeXKind !== 'year'
                     "
                     rounded="lg"
                     class="chart-hint pa-3 mb-3 text-body-2 text-medium-emphasis"
                   >
-                    <template v-if="chartModel?.useNumericTimeX">
-                      <span>Time axis uses a continuous date scale (missing periods appear as wider gaps).</span>
-                    </template>
-                    <span v-else>Time axis uses discrete categories (equal spacing between labels).</span>
+                    <span>Time axis uses a continuous date scale (missing periods appear as wider gaps).</span>
                   </v-sheet>
                   <v-alert
                     v-if="dataLoadCommitted && seriesTruncated"
@@ -547,6 +544,12 @@
                       </template>
                       <v-list density="compact" class="chart-export-list">
                         <v-list-item
+                          prepend-icon="mdi-api"
+                          title="API Query"
+                          :disabled="!chartExportDataAvailable"
+                          @click="showChartApiQueryBox"
+                        />
+                        <v-list-item
                           prepend-icon="mdi-code-json"
                           title="JSON"
                           :disabled="!chartExportDataAvailable"
@@ -561,6 +564,19 @@
                       </v-list>
                     </v-menu>
                   </div>
+                  <v-alert
+                    v-if="dataLoadCommitted && chartApiQueryVisible"
+                    type="info"
+                    variant="tonal"
+                    density="compact"
+                    rounded="lg"
+                    class="mb-3 text-body-2"
+                    closable
+                    @click:close="chartApiQueryVisible = false"
+                  >
+                    <div class="font-weight-medium mb-1">API query</div>
+                    <a :href="chartApiQueryUrl" target="_blank" rel="noopener">{{ chartApiQueryUrl }}</a>
+                  </v-alert>
                   <v-sheet v-if="dataLoadCommitted" rounded="lg" border class="data-shell overflow-hidden">
                     <v-data-table
                       :headers="chartDataTableHeaders"
@@ -594,7 +610,7 @@ defineOptions({ name: 'IndicatorChartTab' });
 
 const setMessage = inject('setMessage', () => {});
 
-const { config } = useAppConfig();
+const { config, apiBaseUrl } = useAppConfig();
 const studyIdno = computed(() => String(config.value?.studyIdno ?? '').trim());
 const studySid = computed(() => config.value?.studySid ?? '');
 const { fetchSchema, fetchFilterOptions, fetchObservationCount, fetchChartData } = usePublicTimeseriesApi(studyIdno);
@@ -639,6 +655,7 @@ const chartMetadata = ref({});
 /** [lowYear, highYear] for v-range-slider; independent until the user moves the slider or edits From/To. */
 const yearSliderLocal = ref([2000, 2020]);
 const chartType = ref('line');
+const chartApiQueryVisible = ref(false);
 
 /** When true, skip syncing chart filter state to the URL (initial load / applying query from URL). */
 const urlSyncSuspended = ref(true);
@@ -1236,10 +1253,11 @@ function seriesLabelForId(id) {
 const chartRecordsDisplay = computed(() =>
   chartRecords.value.map((row) => {
     const sk = row.series_key != null && String(row.series_key) !== '' ? String(row.series_key) : 'Series';
+    const seriesColumns = seriesColumnsFromKey(sk);
     return {
       time_period: formatCell(row.time_period),
       observation_value: formatCell(row.observation_value),
-      series_key: formatCell(row.series_key),
+      ...seriesColumns,
       series_label: seriesLabelForId(sk),
     };
   })
@@ -1252,12 +1270,21 @@ const valueAxisLabel = computed(() => {
 
 const xAxisLabel = computed(() => timePeriodFilterSectionLabel.value);
 
-const chartDataTableHeaders = computed(() => [
-  { title: xAxisLabel.value || 'Time period', key: 'time_period', sortable: false },
-  { title: 'Value', key: 'observation_value', sortable: false },
-  { title: 'Series key', key: 'series_key', sortable: false },
-  { title: 'Series', key: 'series_label', sortable: false },
-]);
+const chartDataTableHeaders = computed(() => {
+  const base = [
+    { title: xAxisLabel.value || 'Time period', key: 'time_period', sortable: false },
+    { title: 'Value', key: 'observation_value', sortable: false },
+  ];
+  const seriesDimKeys = Array.from(
+    new Set(
+      chartRecords.value.flatMap((row) =>
+        Object.keys(seriesColumnsFromKey(row?.series_key != null ? String(row.series_key) : ''))
+      )
+    )
+  ).sort((a, b) => a.localeCompare(b));
+  const dims = seriesDimKeys.map((k) => ({ title: k, key: k, sortable: false }));
+  return [...base, ...dims];
+});
 
 function sanitizeChartExportFilenamePart(s) {
   const t = String(s ?? '')
@@ -1301,13 +1328,33 @@ function escapeCsvField(val) {
   return s;
 }
 
+/** Parse "A=x | B=y" series key into { A: "x", B: "y" }. */
+function seriesColumnsFromKey(seriesKey) {
+  const out = {};
+  const raw = String(seriesKey ?? '').trim();
+  if (!raw || raw === 'Series') return out;
+  const segments = raw.split(' | ');
+  for (const seg of segments) {
+    const eq = seg.indexOf('=');
+    if (eq <= 0) continue;
+    const key = seg.slice(0, eq).trim();
+    const val = seg.slice(eq + 1).trim();
+    if (!key) continue;
+    out[key] = val;
+  }
+  return out;
+}
+
 function buildChartExportRowsForFile() {
   return chartRecords.value.map((row) => {
     const sk = row.series_key != null && String(row.series_key) !== '' ? String(row.series_key) : 'Series';
     const base = row && typeof row === 'object' ? { ...row } : {};
+    const seriesColumns = seriesColumnsFromKey(sk);
+    const seriesLabelCsv = seriesLabelForId(sk).replace(/ · /g, ' | ');
     return {
       ...base,
-      series_label: seriesLabelForId(sk),
+      ...seriesColumns,
+      series_label: seriesLabelCsv,
     };
   });
 }
@@ -1334,7 +1381,18 @@ function exportChartDataJson() {
 function exportChartDataCsv() {
   if (!chartExportDataAvailable.value) return;
   const rows = buildChartExportRowsForFile();
-  const keys = ['time_period', 'observation_value', 'series_key', 'series_key_label', 'series_label'];
+  const baseKeys = ['time_period', 'observation_value'];
+  const seriesDimKeys = Array.from(
+    new Set(
+      rows.flatMap((r) =>
+        Object.keys(r).filter(
+          (k) => !['time_period', 'observation_value', 'series_key', 'series_label'].includes(k)
+        )
+      )
+    )
+  ).sort((a, b) => a.localeCompare(b));
+  const tailKeys = ['series_key', 'series_label'];
+  const keys = [...baseKeys, ...seriesDimKeys, ...tailKeys];
   const present = keys.filter((k) => rows.some((r) => Object.prototype.hasOwnProperty.call(r, k)));
   const header = present.join(',');
   const lines = rows.map((r) => present.map((k) => escapeCsvField(r[k])).join(','));
@@ -1342,6 +1400,40 @@ function exportChartDataCsv() {
   const idPart = sanitizeChartExportFilenamePart(studyIdno.value || String(studySid.value));
   const filename = `chart-data-${idPart}-${chartExportFileStamp()}.csv`;
   downloadTextAsFile(filename, csv, 'text/csv;charset=utf-8');
+}
+
+function buildChartApiQueryUrl() {
+  const idno = encodeURIComponent(String(studyIdno.value ?? '').trim());
+  const apiRoot = String(apiBaseUrl.value ?? '').replace(/\/$/, '');
+  const root = `${apiRoot}/data/${idno}/chart`;
+  const p = new URLSearchParams();
+  p.set('limit', String(CHART_API_LIMIT));
+  const f = activeFilters.value && typeof activeFilters.value === 'object' ? activeFilters.value : {};
+  const from = String(f.from ?? '').trim();
+  const to = String(f.to ?? '').trim();
+  if (from) p.set('from', from);
+  if (to) p.set('to', to);
+  const d = f.d && typeof f.d === 'object' ? f.d : {};
+  for (const [role, vals] of Object.entries(d)) {
+    const list = Array.isArray(vals) ? vals.map((v) => String(v ?? '').trim()).filter(Boolean) : [];
+    if (!list.length) continue;
+    p.set(`d[${role}]`, list.join(','));
+  }
+  const c = f.c && typeof f.c === 'object' ? f.c : {};
+  for (const [key, vals] of Object.entries(c)) {
+    const list = Array.isArray(vals) ? vals.map((v) => String(v ?? '').trim()).filter(Boolean) : [];
+    if (!list.length) continue;
+    p.set(`c[${key}]`, list.join(','));
+  }
+  const qs = p.toString();
+  return qs ? `${root}?${qs}` : root;
+}
+
+const chartApiQueryUrl = computed(() => buildChartApiQueryUrl());
+
+function showChartApiQueryBox() {
+  if (!chartExportDataAvailable.value) return;
+  chartApiQueryVisible.value = true;
 }
 
 function exportChartPng() {
@@ -1669,7 +1761,7 @@ async function renderOrUpdateChart() {
       },
       plugins: {
         legend: {
-          display: model.datasets.length > 1,
+          display: model.datasets.length > 0,
           position: 'top',
         },
         tooltip: {
@@ -1698,7 +1790,7 @@ async function renderOrUpdateChart() {
         x: {
           type: numericX ? 'linear' : 'category',
           title: {
-            display: true,
+            display: false,
             text: xAxisLabel.value,
           },
           ticks: {
@@ -1723,7 +1815,7 @@ async function renderOrUpdateChart() {
         },
         y: {
           title: {
-            display: true,
+            display: false,
             text: valueAxisLabel.value,
           },
           beginAtZero: false,
@@ -1863,6 +1955,7 @@ async function refreshCountsAndData() {
 
 async function onApplyFilters() {
   if (!studyIdno.value) return;
+  if (pageLoading.value || !schema.value) return;
   if (catalogSliceRequired.value && !catalogSliceSelectionComplete.value) {
     setMessage('Choose the required filter values before continuing.', 'warning');
     return;
