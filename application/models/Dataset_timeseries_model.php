@@ -89,7 +89,7 @@ class Dataset_timeseries_model extends Dataset_model {
             }
         }
 
-        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional','data_structure','data_structure_reference','data_notes');
+        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional','data_structure_reference','data_notes');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -98,26 +98,17 @@ class Dataset_timeseries_model extends Dataset_model {
             }
         }
 
+        // Canonical reference precedence for legacy or mixed payloads:
+        // - when data_structure_reference is set, drop any inline metadata.data_structure (not part of the public schema)
+        // - within an inline DSD snapshot, codelist_reference wins over codelist per component
+        if (is_array($options['metadata'] ?? null)) {
+            $this->_apply_reference_precedence_rules_to_metadata($options['metadata']);
+        }
+
         // Resolve data_structure_reference (DSD idno) -> surveys.data_structure_id (numeric FK).
         // Keep the idno in metadata for API/transport; use the column for queries and referential integrity.
         if (array_key_exists('data_structure_reference', (array) ($options['metadata'] ?? []))) {
-            $reference_idno = '';
             $reference = $options['metadata']['data_structure_reference'];
-            if (is_array($reference)) {
-                $reference_idno = trim((string) ($reference['idno'] ?? ''));
-            } else {
-                $reference_idno = trim((string) $reference);
-            }
-            $embedded_idno = '';
-            if (isset($options['metadata']['data_structure']) && is_array($options['metadata']['data_structure'])) {
-                $embedded_idno = trim((string) ($options['metadata']['data_structure']['idno'] ?? ''));
-            }
-            if ($reference_idno !== '' && $embedded_idno !== '' && $reference_idno !== $embedded_idno) {
-                throw new ValidationException(
-                    'VALIDATION_ERROR',
-                    "data_structure_reference '{$reference_idno}' does not match data_structure.idno '{$embedded_idno}'."
-                );
-            }
             $options['data_structure_id'] = $this->_resolve_data_structure_id($options['metadata']['data_structure_reference']);
         }
 
@@ -368,5 +359,53 @@ class Dataset_timeseries_model extends Dataset_model {
 			$options['ts_sync_required'] = 1;
 		}
 	}
+
+    /**
+     * Apply canonical reference precedence in metadata (legacy rows may still carry inline snapshots).
+     * When `data_structure_reference` is set, drop `data_structure`. Within nested components, when
+     * `codelist_reference` is set, drop inline `codelist`.
+     *
+     * @param array $metadata
+     * @return void
+     */
+    private function _apply_reference_precedence_rules_to_metadata(array &$metadata)
+    {
+        if (array_key_exists('data_structure_reference', $metadata)) {
+            $ref = $metadata['data_structure_reference'];
+            $hasRef = false;
+            if (is_array($ref)) {
+                $hasRef = trim((string) ($ref['idno'] ?? '')) !== '';
+            } elseif ($ref !== null && trim((string) $ref) !== '') {
+                $hasRef = true;
+            }
+            if ($hasRef && array_key_exists('data_structure', $metadata)) {
+                unset($metadata['data_structure']);
+            }
+        }
+
+        if (!isset($metadata['data_structure']) || !is_array($metadata['data_structure'])) {
+            return;
+        }
+        if (!isset($metadata['data_structure']['components']) || !is_array($metadata['data_structure']['components'])) {
+            return;
+        }
+
+        foreach ($metadata['data_structure']['components'] as $i => $component) {
+            if (!is_array($component)) {
+                continue;
+            }
+            $ref = isset($component['codelist_reference']) ? $component['codelist_reference'] : null;
+            $hasRef = false;
+            if (is_array($ref)) {
+                $hasRef = trim((string) ($ref['idno'] ?? '')) !== '';
+            } elseif ($ref !== null && trim((string) $ref) !== '') {
+                $hasRef = true;
+            }
+            if ($hasRef && array_key_exists('codelist', $component)) {
+                unset($component['codelist']);
+                $metadata['data_structure']['components'][$i] = $component;
+            }
+        }
+    }
 
 }

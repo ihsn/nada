@@ -996,6 +996,224 @@ class Codelists extends MY_REST_Controller {
 	}
 
 	/**
+	 * POST /api/admin/codelists/import_json
+	 *
+	 * Import one codelist (+items) using the same codelist resolution rules as DSD JSON import:
+	 * - match existing by idno first, then by (name, agency, version)
+	 * - overwrite=true replaces existing items when items are provided
+	 * - otherwise existing codelist is reused and incoming items are ignored with a warning
+	 *
+	 * Body shape:
+	 * {
+	 *   "codelist": { "idno", "name", "agency?", "version?", "description?", "items": [...] },
+	 *   "overwrite": bool,
+	 *   "dry_run": bool
+	 * }
+	 *
+	 * overwrite and dry_run are read only from the JSON body (no query overrides).
+	 */
+	public function import_json_post()
+	{
+		try {
+			$input = $this->raw_json_input();
+			if (!$input || !is_array($input)) {
+				throw new Exception('JSON body required');
+			}
+
+			$payload = isset($input['codelist']) && is_array($input['codelist'])
+				? $input['codelist']
+				: $input;
+			if (!is_array($payload) || empty($payload)) {
+				throw new Exception('Body must include a codelist object.');
+			}
+
+			$overwrite = $this->_boolish($input['overwrite'] ?? null, false);
+			$dryRun    = $this->_boolish($input['dry_run'] ?? null, false);
+
+			$summary = $this->_import_single_codelist_from_json_payload($payload, $overwrite, $dryRun);
+			$code = $dryRun ? REST_Controller::HTTP_OK : REST_Controller::HTTP_CREATED;
+			$this->set_response([
+				'status' => 'success',
+				'result' => $summary,
+			], $code);
+		} catch (Exception $e) {
+			$this->set_response([
+				'status'  => 'error',
+				'message' => $e->getMessage(),
+			], REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * @param array $payload codelist payload
+	 * @param bool  $overwrite
+	 * @param bool  $dryRun
+	 * @return array
+	 * @throws Exception
+	 */
+	private function _import_single_codelist_from_json_payload(array $payload, $overwrite, $dryRun)
+	{
+		$clIdno  = isset($payload['idno']) ? trim((string) $payload['idno']) : '';
+		$clName  = isset($payload['name']) ? trim((string) $payload['name']) : '';
+		$agency  = isset($payload['agency']) && trim((string) $payload['agency']) !== '' ? trim((string) $payload['agency']) : Codelist_model::DEFAULT_AGENCY;
+		$version = isset($payload['version']) && trim((string) $payload['version']) !== '' ? trim((string) $payload['version']) : Codelist_model::DEFAULT_VERSION;
+		$items   = isset($payload['items']) && is_array($payload['items']) ? $payload['items'] : [];
+
+		if ($clIdno === '' && $clName === '') {
+			throw new Exception('codelist.idno or codelist.name is required.');
+		}
+		foreach ($items as $idx => $item) {
+			if (!is_array($item)) {
+				throw new Exception("codelist.items[{$idx}] must be an object.");
+			}
+			$code = isset($item['code']) ? trim((string) $item['code']) : '';
+			if ($code === '') {
+				throw new Exception("codelist.items[{$idx}].code is required.");
+			}
+			if (strlen($code) > 64) {
+				throw new Exception("codelist.items[{$idx}].code exceeds 64 characters.");
+			}
+		}
+
+		$existing = null;
+		if ($clIdno !== '') {
+			$existing = $this->Codelist_model->get_codelist_by_idno($clIdno);
+		}
+		if (!$existing && $clName !== '') {
+			$existing = $this->Codelist_model->get_codelist_by_name($clName, $agency, $version);
+		}
+
+		$summary = [
+			'dry_run'           => (bool) $dryRun,
+			'codelist'          => null,
+			'items_imported'    => count($items),
+			'codelists_created' => [],
+			'codelists_reused'  => [],
+			'codelists_updated' => [],
+			'warnings'          => [],
+		];
+
+		if ($dryRun) {
+			$summary['codelist'] = [
+				'idno'    => $clIdno !== '' ? $clIdno : Codelist_model::make_idno($agency, $clName, $version),
+				'name'    => $clName,
+				'agency'  => $agency,
+				'version' => $version,
+				'action'  => $existing ? (($overwrite && count($items) > 0) ? 'update' : 'reuse') : 'create',
+			];
+			return $summary;
+		}
+
+		$this->db->trans_begin();
+		try {
+			$codelistId = null;
+			if ($existing) {
+				$codelistId = (int) $existing['id'];
+				if ($overwrite && count($items) > 0) {
+					$this->Codelist_item_model->delete_all_items_for_codelist($codelistId);
+					$this->_import_codelist_items($codelistId, $items);
+					$summary['codelists_updated'][] = ['id' => $codelistId, 'idno' => $existing['idno']];
+				} else {
+					if (count($items) > 0 && !$overwrite) {
+						$summary['warnings'][] = [
+							'message'     => 'Codelist already exists; items not applied (set overwrite=true or omit items).',
+							'codelist_id' => $codelistId,
+						];
+					}
+					$summary['codelists_reused'][] = ['id' => $codelistId, 'idno' => $existing['idno']];
+				}
+			} else {
+				if ($clName === '') {
+					throw new Exception('codelist.name is required to create a new codelist.');
+				}
+				$create = [
+					'name'        => $clName,
+					'agency'      => $agency,
+					'version'     => $version,
+					'description' => isset($payload['description']) ? trim((string) $payload['description']) : null,
+				];
+				if ($clIdno !== '') {
+					$create['idno'] = $clIdno;
+				}
+				$codelistId = (int) $this->Codelist_model->create_codelist($create);
+				$this->_import_codelist_items($codelistId, $items);
+				$row = $this->Codelist_model->get_codelist_by_id($codelistId);
+				$summary['codelists_created'][] = ['id' => $codelistId, 'idno' => $row ? $row['idno'] : null];
+			}
+
+			if ($this->db->trans_status() === false) {
+				throw new Exception('Database transaction failed.');
+			}
+			$this->db->trans_commit();
+			$summary['codelist'] = $this->Codelist_model->get_codelist_by_id((int) $codelistId);
+			return $summary;
+		} catch (Exception $e) {
+			$this->db->trans_rollback();
+			throw $e;
+		}
+	}
+
+	/**
+	 * @param int   $codelistId
+	 * @param array $items
+	 * @return void
+	 */
+	private function _import_codelist_items($codelistId, array $items)
+	{
+		foreach ($items as $item) {
+			if (!is_array($item)) {
+				continue;
+			}
+			$code = isset($item['code']) ? trim((string) $item['code']) : '';
+			if ($code === '') {
+				continue;
+			}
+			$title = null;
+			if (isset($item['label']) && $item['label'] !== '' && $item['label'] !== null) {
+				$title = is_string($item['label']) ? trim($item['label']) : (string) $item['label'];
+			} elseif (isset($item['title']) && $item['title'] !== '' && $item['title'] !== null) {
+				$title = is_string($item['title']) ? trim($item['title']) : (string) $item['title'];
+			}
+			$sortOrder = isset($item['sort_order']) ? (int) $item['sort_order'] : 0;
+			$parentId  = null;
+			if (isset($item['parent_id']) && $item['parent_id'] !== '' && $item['parent_id'] !== null && (int) $item['parent_id'] > 0) {
+				$parentId = (int) $item['parent_id'];
+			}
+			$this->Codelist_item_model->create_item((int) $codelistId, [
+				'code'       => $code,
+				'title'      => $title,
+				'sort_order' => $sortOrder,
+				'parent_id'  => $parentId,
+			]);
+		}
+	}
+
+	/**
+	 * @param mixed $value
+	 * @param bool  $default
+	 * @return bool
+	 */
+	private function _boolish($value, $default)
+	{
+		if (is_bool($value)) {
+			return $value;
+		}
+		if (is_int($value) || is_float($value)) {
+			return ((int) $value) === 1;
+		}
+		if (is_string($value)) {
+			$v = strtolower(trim($value));
+			if (in_array($v, ['1', 'true', 'yes', 'on'], true)) {
+				return true;
+			}
+			if (in_array($v, ['0', 'false', 'no', 'off'], true)) {
+				return false;
+			}
+		}
+		return (bool) $default;
+	}
+
+	/**
 	 * GET /api/admin/codelists/groups_translations/{group_id}
 	 */
 	public function groups_translations_get($group_id)

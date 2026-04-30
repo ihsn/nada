@@ -19,14 +19,14 @@ class Data_structure_json_import {
 	}
 
 	/**
-	 * @param array $payload { structure: array, components: array, import_options?: array }
-	 * @param array $options overwrite_codelists (bool), dry_run (bool), user_id (int|null) for component audit fields
+	 * @param array $payload { data_structure: array, overwrite?: bool, dry_run?: bool }
+	 * @param array $options overwrite (bool), dry_run (bool), user_id (int|null) for component audit fields
 	 * @return array
 	 * @throws Exception
 	 */
 	public function import_from_array(array $payload, array $options = [])
 	{
-		$overwrite = !empty($options['overwrite_codelists']);
+		$overwrite = !empty($options['overwrite']);
 		$dryRun    = !empty($options['dry_run']);
 
 		$errors = $this->_validate_payload($payload, $overwrite);
@@ -34,8 +34,11 @@ class Data_structure_json_import {
 			throw new Exception('VALIDATION_FAILED: ' . json_encode($errors));
 		}
 
-		$structure   = $payload['structure'];
-		$components  = $payload['components'];
+		$dsFull = $payload['data_structure'];
+		$components = isset($dsFull['components']) && is_array($dsFull['components']) ? $dsFull['components'] : [];
+		$structure = $dsFull;
+		unset($structure['components'], $structure['metadata']);
+
 		$summary = [
 			'dry_run'            => $dryRun,
 			'data_structure'     => null,
@@ -90,99 +93,114 @@ class Data_structure_json_import {
 	protected function _validate_payload(array $payload, $overwrite)
 	{
 		$errors = [];
-		if (empty($payload['structure']) || !is_array($payload['structure'])) {
-			$errors[] = ['path' => 'structure', 'message' => 'Required object.'];
+		if (empty($payload['data_structure']) || !is_array($payload['data_structure'])) {
+			$errors[] = ['path' => 'data_structure', 'message' => 'Required object.'];
 			return $errors;
 		}
-		if (!isset($payload['components']) || !is_array($payload['components'])) {
-			$errors[] = ['path' => 'components', 'message' => 'Required array.'];
+		$ds = $payload['data_structure'];
+		if (!isset($ds['components']) || !is_array($ds['components'])) {
+			$errors[] = ['path' => 'data_structure.components', 'message' => 'Required array.'];
 			return $errors;
 		}
 
-		$st = $payload['structure'];
+		$st = $ds;
 		$name = isset($st['name']) ? trim((string) $st['name']) : '';
 		if ($name === '') {
-			$errors[] = ['path' => 'structure.name', 'message' => 'Required.'];
+			$errors[] = ['path' => 'data_structure.name', 'message' => 'Required.'];
 		}
 		$idno = isset($st['idno']) ? trim((string) $st['idno']) : '';
 		if ($idno === '') {
-			$errors[] = ['path' => 'structure.idno', 'message' => 'Required for JSON import.'];
+			$errors[] = ['path' => 'data_structure.idno', 'message' => 'Required for JSON import.'];
+		}
+		if (array_key_exists('status', $ds) && $ds['status'] !== null && $ds['status'] !== '') {
+			if (!Data_structure_model::is_valid_status_slug($ds['status'])) {
+				$errors[] = ['path' => 'data_structure.status', 'message' => 'Invalid status; use draft, review, published, deprecated, or archived.'];
+			}
 		}
 
 		$agency  = isset($st['agency']) && trim((string) $st['agency']) !== '' ? trim((string) $st['agency']) : Data_structure_model::DEFAULT_AGENCY;
 		$version = isset($st['version']) && trim((string) $st['version']) !== '' ? trim((string) $st['version']) : Data_structure_model::DEFAULT_VERSION;
 
 		if ($name !== '' && $this->CI->Data_structure_model->get_structure_by_identity($name, $agency, $version)) {
-			$errors[] = ['path' => 'structure', 'message' => "Data structure already exists for agency '{$agency}', name '{$name}', version '{$version}'."];
+			$errors[] = ['path' => 'data_structure', 'message' => "Data structure already exists for agency '{$agency}', name '{$name}', version '{$version}'."];
 		}
 		if ($idno !== '' && $this->CI->Data_structure_model->get_structure_by_idno($idno)) {
-			$errors[] = ['path' => 'structure.idno', 'message' => "idno '{$idno}' already exists."];
+			$errors[] = ['path' => 'data_structure.idno', 'message' => "idno '{$idno}' already exists."];
 		}
 
 		$names = [];
-		foreach ($payload['components'] as $idx => $row) {
+		foreach ($ds['components'] as $idx => $row) {
 			if (!is_array($row)) {
-				$errors[] = ['path' => "components[{$idx}]", 'message' => 'Must be an object.'];
+				$errors[] = ['path' => "data_structure.components[{$idx}]", 'message' => 'Must be an object.'];
 				continue;
 			}
 			$cname = isset($row['name']) ? trim((string) $row['name']) : '';
 			if ($cname === '') {
-				$errors[] = ['path' => "components[{$idx}].name", 'message' => 'Required.'];
+				$errors[] = ['path' => "data_structure.components[{$idx}].name", 'message' => 'Required.'];
 			} elseif (isset($names[$cname])) {
-				$errors[] = ['path' => "components[{$idx}].name", 'message' => 'Duplicate component name in payload.'];
+				$errors[] = ['path' => "data_structure.components[{$idx}].name", 'message' => 'Duplicate component name in payload.'];
 			} else {
 				$names[$cname] = true;
 			}
 			$ct = isset($row['column_type']) ? trim((string) $row['column_type']) : '';
 			if ($ct === '' || !in_array($ct, Data_structure_component_model::$allowed_column_types, true)) {
-				$errors[] = ['path' => "components[{$idx}].column_type", 'message' => 'Invalid or missing column_type.'];
+				$errors[] = ['path' => "data_structure.components[{$idx}].column_type", 'message' => 'Invalid or missing column_type.'];
 			}
 			if (isset($row['data_type']) && $row['data_type'] !== null && trim((string) $row['data_type']) !== '') {
 				$dt = trim((string) $row['data_type']);
 				if (!in_array($dt, Data_structure_component_model::$allowed_data_types, true)) {
-					$errors[] = ['path' => "components[{$idx}].data_type", 'message' => 'Invalid data_type.'];
+					$errors[] = ['path' => "data_structure.components[{$idx}].data_type", 'message' => 'Invalid data_type.'];
 				}
 			}
 
-			$cl = isset($row['codelist']) && is_array($row['codelist']) ? $row['codelist'] : null;
+			$hasRef = !empty($row['codelist_reference']) && is_array($row['codelist_reference']);
+			$refIdno = $hasRef && isset($row['codelist_reference']['idno']) ? trim((string) $row['codelist_reference']['idno']) : '';
+			$cl = (!$hasRef || $refIdno === '') && isset($row['codelist']) && is_array($row['codelist']) ? $row['codelist'] : null;
+			if ($hasRef && $refIdno !== '') {
+				$cl = null;
+			}
 			$clIdno = $cl !== null && isset($cl['idno']) ? trim((string) $cl['idno']) : '';
 			$clName = $cl !== null && isset($cl['name']) ? trim((string) $cl['name']) : '';
 			$clItems = $cl !== null && isset($cl['items']) && is_array($cl['items']) ? $cl['items'] : [];
-			$hasRef = !empty($row['code_list_reference']) && is_array($row['code_list_reference']);
-
-			if ($hasRef) {
-				$errors[] = ['path' => "components[{$idx}].code_list_reference", 'message' => 'External code list reference is not resolved by JSON import.'];
-			}
 
 			$needs = in_array($ct, ['dimension', 'geography'], true);
 			if ($needs) {
-				if ($cl === null) {
-					$errors[] = ['path' => "components[{$idx}].codelist", 'message' => 'dimension/geography requires a codelist object.'];
+				if ($hasRef) {
+					if ($refIdno === '') {
+						$errors[] = ['path' => "data_structure.components[{$idx}].codelist_reference.idno", 'message' => 'Required when codelist_reference is set.'];
+					} else {
+						$existingRef = $this->CI->Codelist_model->get_codelist_by_idno($refIdno);
+						if (!$existingRef) {
+							$errors[] = ['path' => "data_structure.components[{$idx}].codelist_reference.idno", 'message' => "No catalogue codelist found for idno '{$refIdno}'."];
+						}
+					}
+				} elseif ($cl === null) {
+					$errors[] = ['path' => "data_structure.components[{$idx}]", 'message' => 'dimension/geography requires codelist_reference or codelist.'];
 				} else {
 					$existingByIdno = $clIdno !== '' ? $this->CI->Codelist_model->get_codelist_by_idno($clIdno) : null;
 					if ($existingByIdno) {
 						if (!$overwrite && count($clItems) > 0) {
-							$errors[] = ['path' => "components[{$idx}].codelist.items", 'message' => 'Cannot supply codelist.items for an existing codelist unless overwrite_codelists is true.'];
+							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items", 'message' => 'Cannot supply codelist.items for an existing codelist unless overwrite is true.'];
 						}
 					} else {
 						if ($clName === '') {
-							$errors[] = ['path' => "components[{$idx}].codelist.name", 'message' => 'Required to create a new codelist.'];
+							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.name", 'message' => 'Required to create a new codelist.'];
 						}
 						if ($clIdno === '') {
-							$errors[] = ['path' => "components[{$idx}].codelist.idno", 'message' => 'Required to create a new codelist.'];
+							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.idno", 'message' => 'Required to create a new codelist.'];
 						}
 					}
 
 					foreach ($clItems as $j => $item) {
 						if (!is_array($item)) {
-							$errors[] = ['path' => "components[{$idx}].codelist.items[{$j}]", 'message' => 'Must be an object.'];
+							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items[{$j}]", 'message' => 'Must be an object.'];
 							continue;
 						}
 						$code = isset($item['code']) ? trim((string) $item['code']) : '';
 						if ($code === '') {
-							$errors[] = ['path' => "components[{$idx}].codelist.items[{$j}].code", 'message' => 'Required.'];
+							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items[{$j}].code", 'message' => 'Required.'];
 						} elseif (strlen($code) > 64) {
-							$errors[] = ['path' => "components[{$idx}].codelist.items[{$j}].code", 'message' => 'Code exceeds 64 characters.'];
+							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items[{$j}].code", 'message' => 'Code exceeds 64 characters.'];
 						}
 					}
 				}
@@ -224,6 +242,19 @@ class Data_structure_json_import {
 			return null;
 		}
 
+		$hasRef = !empty($comp['codelist_reference']) && is_array($comp['codelist_reference']);
+		$refIdno = $hasRef && isset($comp['codelist_reference']['idno']) ? trim((string) $comp['codelist_reference']['idno']) : '';
+
+		if ($hasRef && $refIdno !== '') {
+			$existing = $this->CI->Codelist_model->get_codelist_by_idno($refIdno);
+			if (!$existing) {
+				throw new Exception("codelist_reference.idno '{$refIdno}' does not match any catalogue codelist.");
+			}
+			$cid = (int) $existing['id'];
+			$summary['codelists_reused'][] = ['id' => $cid, 'idno' => $existing['idno']];
+			return $cid;
+		}
+
 		$cl = isset($comp['codelist']) && is_array($comp['codelist']) ? $comp['codelist'] : [];
 		$clIdno  = isset($cl['idno']) ? trim((string) $cl['idno']) : '';
 		$clName  = isset($cl['name']) ? trim((string) $cl['name']) : '';
@@ -248,7 +279,7 @@ class Data_structure_json_import {
 			} else {
 				if (count($items) > 0 && !$overwrite) {
 					$summary['warnings'][] = [
-						'message'     => 'Codelist already exists; items not applied (set overwrite_codelists or omit items).',
+						'message'     => 'Codelist already exists; items not applied (set overwrite=true or omit items).',
 						'codelist_id' => $cid,
 					];
 				}
@@ -306,7 +337,7 @@ class Data_structure_json_import {
 	}
 
 	/**
-	 * Strip import-only keys; fold extras into metadata.
+	 * Strip import-only keys; fold SDMX-style hints into the component metadata column.
 	 *
 	 * @param int|null $codelistId
 	 * @return array
@@ -314,9 +345,6 @@ class Data_structure_json_import {
 	protected function _component_to_create_row(array $comp, $codelistId)
 	{
 		$meta = [];
-		if (!empty($comp['metadata']) && is_array($comp['metadata'])) {
-			$meta = $comp['metadata'];
-		}
 		if (!empty($comp['paired_time_column'])) {
 			$meta['paired_time_column'] = trim((string) $comp['paired_time_column']);
 		}

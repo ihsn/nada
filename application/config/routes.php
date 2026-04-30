@@ -245,6 +245,7 @@ $route['api/admin/codelists/groups/(:num)/items/(:num)']   = 'api/admin/codelist
 $route['api/admin/codelists/groups/(:num)/items']         = 'api/admin/codelists/groups_items/$1';
 $route['api/admin/codelists/groups/(:num)/translations/(:any)'] = 'api/admin/codelists/groups_translation/$1/$2';
 $route['api/admin/codelists/groups/(:num)/translations'] = 'api/admin/codelists/groups_translations/$1';
+$route['api/admin/codelists/import_json']               = 'api/admin/codelists/import_json';
 $route['api/admin/codelists/item/(:num)']                = 'api/admin/codelists/item/$1';
 $route['api/admin/codelists/items/(:num)']                = 'api/admin/codelists/items/$1';
 $route['api/admin/codelists/groups/(:num)']               = 'api/admin/codelists/groups/$1';
@@ -269,7 +270,8 @@ $route['api/admin/data_structures/components/(:any)']          = 'api/admin/data
 $route['api/admin/data_structures/(:any)']                      = 'api/admin/data_structures/structure_lookup/$1';
 
 // Admin Timeseries API (indicator observations / Mongo; nested paths first)
-$route['api/admin/timeseries/data/(:any)/import']                = 'api/admin/timeseries/data_import/$1';
+// Literal path before data/(:any) so "import" is not captured as an idno
+$route['api/admin/timeseries/data/import']                       = 'api/admin/timeseries/data_import';
 $route['api/admin/timeseries/data/(:any)/count']                 = 'api/admin/timeseries/data_count/$1';
 $route['api/admin/timeseries/data/(:any)']                       = 'api/admin/timeseries/data/$1';
 $route['api/admin/timeseries/data/(:any)/sync-counts']          = 'api/admin/timeseries/data_sync_counts/$1';

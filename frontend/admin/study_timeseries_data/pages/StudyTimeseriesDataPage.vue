@@ -190,7 +190,7 @@
               <p class="text-body-2 text-medium-emphasis mb-4">
                 First row must be headers. Columns are matched to DSD component <code>name</code> (case-insensitive); optional JSON mapping below renames CSV headers.
                 Columns that are not DSD fields (for example <code>_ts_year</code>) are skipped. Each successful import updates the study
-                <code>resources</code> slot <code>ts_csv_latest</code> (configurable) so the CSV appears with other microdata/database files below. API: <code>POST …/import</code>.
+                <code>resources</code> slot <code>ts_csv_latest</code> (configurable) so the CSV appears with other microdata/database files below. API: <code>POST …/data/import</code> (multipart: <code>idno</code>, <code>file</code>, …).
               </p>
               <v-row dense>
                 <v-col cols="12" md="6">

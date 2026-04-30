@@ -40,6 +40,8 @@ tags:
       Endpoints require an admin user and `X-API-KEY` (same as other catalog-admin APIs).
   - name: Data Structures
     description: Admin endpoints for global DSD catalogue management.
+  - name: Codelists Admin
+    description: Admin endpoints for codelist catalogue management and JSON import.
   - name: Timeseries Admin
     description: Admin endpoints for project-level timeseries data and DSD linking.
 
@@ -69,6 +71,7 @@ x-tagGroups:
       - Resumable uploads
       - Analytics
       - Data Structures
+      - Codelists Admin
       - Timeseries Admin
 
 security:
@@ -922,7 +925,11 @@ paths:
       tags:
         - Timeseries
       summary: Create timeseries dataset
-      description: Create a new timeseries project
+      description: >-
+        Create a new timeseries project.
+        DSD/codelist: link the study to the global catalogue with `data_structure_reference` (the schema
+        does not allow an inline DSD snapshot in metadata). For each component, `codelist_reference` is
+        canonical and overrides inline `codelist` when both are present.
       operationId: createTimeSeries
       requestBody:
         required: true
@@ -2836,9 +2843,9 @@ paths:
           description: Alias for `search`.
         - name: status
           in: query
+          description: Exact status code filter (`DataStructureStatusCode`).
           schema:
-            type: integer
-          description: Exact status code filter.
+            $ref: '#/components/schemas/DataStructureStatusCode'
       responses:
         '200':
           description: Successful operation
@@ -2880,17 +2887,13 @@ paths:
       tags:
         - Data Structures
       summary: Import data structure JSON
-      description: Import global DSD, components and codelists from JSON.
+      description: >-
+        Import global DSD, components and codelists from JSON. Body matches
+        `data-structure-schema.json`: root `data_structure` (identity + `components`),
+        optional boolean `overwrite` and `dry_run` on the same JSON object (no query
+        flags). Legacy split body (`structure` + `components` + `import_options`) is
+        not accepted.
       operationId: dataStructuresImportJson
-      parameters:
-        - name: overwrite_codelists
-          in: query
-          schema:
-            type: boolean
-        - name: dry_run
-          in: query
-          schema:
-            type: boolean
       requestBody:
         required: true
         content:
@@ -2902,6 +2905,39 @@ paths:
           description: Validation/dry-run succeeded
         '201':
           description: Import completed
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/codelists/import_json:
+    post:
+      tags:
+        - Codelists Admin
+      summary: Import codelist JSON
+      description: >-
+        Import one codelist and its items using DSD-style resolution rules:
+        match existing by idno first, then by name+agency+version; create when
+        missing; optionally replace items when `overwrite=true`. Boolean `overwrite`
+        and `dry_run` are supplied on the JSON body only (no query parameters).
+      operationId: codelistsImportJson
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodelistImportJsonRequest'
+      responses:
+        '200':
+          description: Dry-run succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodelistImportJsonResponse'
+        '201':
+          description: Import completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodelistImportJsonResponse'
         '400':
           $ref: '#/components/responses/AnalyticsBadRequest'
 
@@ -2985,6 +3021,10 @@ paths:
       tags:
         - Data Structures
       summary: Validate DSD payload or existing DSD
+      description: >-
+        Option A: `{ "data_structure_id": <id> }` for a persisted DSD. Option B:
+        `{ "data_structure": { ...fields..., "components": [ ... ] } }` for a
+        proposed import shape (same nested envelope as `import_json`).
       operationId: dataStructuresValidate
       requestBody:
         required: true
@@ -3045,7 +3085,7 @@ paths:
               required: [status]
               properties:
                 status:
-                  type: integer
+                  $ref: '#/components/schemas/DataStructureStatusCode'
       responses:
         '200':
           description: Status updated
@@ -3408,7 +3448,9 @@ paths:
       tags:
         - Timeseries Admin
       summary: Attach or detach DSD for project
-      description: Attach with `data_structure_id`/`data_structure_reference`; detach with `detach=true`.
+      description: >-
+        Attach with `data_structure_id` or `data_structure_reference`; detach with `detach=true`.
+        The public timeseries metadata schema uses `data_structure_reference` for the DSD link (no inline DSD object).
       operationId: timeseriesAdminAttachDsd
       parameters:
         - name: idno
@@ -3433,26 +3475,23 @@ paths:
         '200':
           description: Link updated
 
-  /admin/timeseries/data/{idno}/import:
+  /admin/timeseries/data/import:
     post:
       tags:
         - Timeseries Admin
       summary: Import project timeseries CSV
       operationId: timeseriesAdminDataImport
-      parameters:
-        - name: idno
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
-              required: [file]
+              required: [idno, file]
               properties:
+                idno:
+                  type: string
+                  description: Catalogue study idno (`surveys.idno`).
                 file:
                   type: string
                   format: binary
@@ -3465,6 +3504,12 @@ paths:
                 ensure_unique_index:
                   type: string
                   enum: ['0', '1']
+                dsd_idno:
+                  type: string
+                  description: >
+                    Optional catalogue DSD idno. When set, the server persists the study→DSD link
+                    (same as POST .../attach-dsd with data_structure_reference) before importing.
+                    Omit when the project is already linked.
       responses:
         '201':
           description: Import completed
@@ -3758,6 +3803,125 @@ components:
                 example: ACCESS-DENIED
 
   schemas:
+    DataStructureStatusCode:
+      type: string
+      description: >-
+        Catalogue DSD lifecycle slug (persisted as an integer in `data_structures.status`):
+        `draft`, `review`, `published` (locked from destructive edits), `deprecated`,
+        `archived` (locked). Request bodies and import JSON must use these strings. The
+        list endpoint `GET /admin/data_structures` also accepts legacy numeric strings
+        `0`, `10`, `20`, `30`, `40` for the `status` query filter only.
+      enum: [draft, review, published, deprecated, archived]
+
+    CodelistImportItem:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          description: Stable code value (max 64 chars).
+        label:
+          type: string
+          description: Display label; mapped to item title on import.
+        title:
+          type: string
+          description: Alternate title field accepted by the importer.
+        sort_order:
+          type: integer
+          default: 0
+        parent_id:
+          type: integer
+          nullable: true
+
+    CodelistImportPayload:
+      type: object
+      properties:
+        idno:
+          type: string
+          description: Preferred stable codelist idno.
+        name:
+          type: string
+          description: Codelist name (required when creating a new codelist).
+        agency:
+          type: string
+          default: NADA
+        version:
+          type: string
+          default: 1.0.0
+        description:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodelistImportItem'
+
+    CodelistImportJsonRequest:
+      type: object
+      required: [codelist]
+      properties:
+        overwrite:
+          type: boolean
+          default: false
+          description: Replace existing item set when matched codelist exists (body only; not a query flag).
+        dry_run:
+          type: boolean
+          default: false
+          description: Validate and resolve action without writing changes (body only; not a query flag).
+        codelist:
+          $ref: '#/components/schemas/CodelistImportPayload'
+
+    CodelistImportJsonResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            dry_run:
+              type: boolean
+            codelist:
+              type: object
+              additionalProperties: true
+            items_imported:
+              type: integer
+            codelists_created:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  idno:
+                    type: string
+                    nullable: true
+            codelists_reused:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  idno:
+                    type: string
+                    nullable: true
+            codelists_updated:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  idno:
+                    type: string
+                    nullable: true
+            warnings:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+
     FileStore:
       type: object
       properties:

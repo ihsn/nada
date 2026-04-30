@@ -14,8 +14,10 @@ require_once APPPATH . '/libraries/MY_REST_Controller.php';
  *   GET .../data/{idno} — paging: offset (or legacy skip), limit, sort; result: data, limit, offset, total, found.
  *        Filters: d[…], c[…], or legacy top-level (see Timeseries_mongo_model::build_observation_query_filter).
  *   POST .../data/{idno} — JSON array or { "data": [...] }
- *   POST .../data/{idno}/import — multipart field `file` (CSV); on success copies CSV into the
- *        study catalogue folder and upserts a {@see resources} row with resource_idno from config
+ *   POST .../data/import — multipart: required `idno` (study idno), `file` (CSV); optional `dsd_idno`
+ *        (catalogue DSD idno) persists the study→DSD link like {@see data_attach_dsd_post} before import;
+ *        optional `delimiter`, `mapping` (JSON string), `ensure_unique_index` (0|1). On success copies CSV
+ *        into the study catalogue folder and upserts a {@see resources} row with resource_idno from config
  *        (default ts_csv_latest → ts_csv_latest.csv) for catalogue / downloads API.
  *   POST .../data/{idno}/rehash — optional JSON { "limit": n }
  *   GET  .../data/{idno}/duplicates
@@ -141,39 +143,7 @@ class Timeseries extends MY_REST_Controller {
 			$input = $this->_optional_json_body();
 			$link = $this->_resolve_structure_link_input($input);
 
-			$row = $this->Dataset_model->get_row_detailed($sid);
-			if (!$row) {
-				throw new Exception('Study not found');
-			}
-			$metadata = is_array($row['metadata'] ?? null) ? $row['metadata'] : [];
-			if ($link === null) {
-				$metadata['data_structure_reference'] = null;
-			} else {
-				$metadata['data_structure_reference'] = (string) $link['idno'];
-			}
-
-			$update = [
-				'metadata' => $this->Dataset_model->encode_metadata($metadata),
-				'data_structure_id' => $link ? (int) $link['id'] : null,
-				'changed' => date('U'),
-			];
-			if ($link === null) {
-				$update['ts_dimensions'] = null;
-				$update['ts_sync_required'] = 0;
-			} else {
-				$update['ts_dimensions'] = $this->Dataset_model->build_ts_dimensions_csv_for_structure_id((int) $link['id']);
-				$update['ts_sync_required'] = 1;
-			}
-
-			$this->db->where('id', $sid);
-			$ok = $this->db->update('surveys', $update);
-			if ($ok === false) {
-				$error = $this->db->error();
-				$msg = is_array($error) ? implode(', ', $error) : 'Database update failed';
-				throw new Exception($msg);
-			}
-
-			$this->events->emit('db.after.update', 'surveys', $sid, 'refresh');
+			$update = $this->_apply_structure_link_to_survey((int) $sid, $link);
 			if ($link === null) {
 				$this->_clear_value_counts_for_sid((int) $sid);
 			} else {
@@ -260,13 +230,34 @@ class Timeseries extends MY_REST_Controller {
 	}
 
 	/**
-	 * POST .../data/{idno}/import — multipart CSV (`file` field)
+	 * POST .../data/import — multipart: required `idno`, `file` (CSV); optional `dsd_idno`, `delimiter`, `mapping`, `ensure_unique_index`
 	 */
-	public function data_import_post($idno = null)
+	public function data_import_post()
 	{
 		try {
-			$ctx = $this->_context_from_idno($idno);
-			$this->has_dataset_access('edit', (int) $ctx['sid']);
+			$postIdno = $this->input->post('idno');
+			$idnoIn    = ($postIdno !== null && trim((string) $postIdno) !== '') ? trim((string) $postIdno) : '';
+			if ($idnoIn === '') {
+				throw new Exception('Dataset idno is required (multipart field "idno")');
+			}
+			$sid = (int) $this->get_sid_from_idno($idnoIn);
+			$this->has_dataset_access('edit', $sid);
+
+			$dsdIdno = $this->input->post('dsd_idno');
+			$dsdIdno = ($dsdIdno !== null && trim((string) $dsdIdno) !== '') ? trim((string) $dsdIdno) : '';
+			if ($dsdIdno !== '') {
+				$this->load->model('Data_structure_model');
+				$dsdRow = $this->Data_structure_model->get_structure_by_idno($dsdIdno);
+				if (!$dsdRow) {
+					throw new Exception("Data structure not found for dsd_idno '{$dsdIdno}'.");
+				}
+				$this->_apply_structure_link_to_survey($sid, [
+					'id'   => (int) $dsdRow['id'],
+					'idno' => (string) $dsdRow['idno'],
+				]);
+			}
+
+			$ctx = $this->_context_from_idno($idnoIn);
 			if (empty($_FILES['file']['tmp_name']) || !is_uploaded_file($_FILES['file']['tmp_name'])) {
 				throw new Exception('Missing uploaded file field "file"');
 			}
@@ -768,6 +759,55 @@ class Timeseries extends MY_REST_Controller {
 			'id' => (int) $row['id'],
 			'idno' => (string) $row['idno'],
 		];
+	}
+
+	/**
+	 * Persist study→DSD link on {@see surveys} (same as attach-dsd).
+	 *
+	 * @param int $sid surveys.id
+	 * @param array{id:int,idno:string}|null $link null detaches
+	 * @return array<string,mixed> applied column values (metadata encoded)
+	 */
+	private function _apply_structure_link_to_survey($sid, $link)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			throw new Exception('Invalid survey id');
+		}
+		$row = $this->Dataset_model->get_row_detailed($sid);
+		if (!$row) {
+			throw new Exception('Study not found');
+		}
+		$metadata = is_array($row['metadata'] ?? null) ? $row['metadata'] : [];
+		if ($link === null) {
+			$metadata['data_structure_reference'] = null;
+		} else {
+			$metadata['data_structure_reference'] = (string) $link['idno'];
+		}
+
+		$update = [
+			'metadata' => $this->Dataset_model->encode_metadata($metadata),
+			'data_structure_id' => $link ? (int) $link['id'] : null,
+			'changed' => date('U'),
+		];
+		if ($link === null) {
+			$update['ts_dimensions'] = null;
+			$update['ts_sync_required'] = 0;
+		} else {
+			$update['ts_dimensions'] = $this->Dataset_model->build_ts_dimensions_csv_for_structure_id((int) $link['id']);
+			$update['ts_sync_required'] = 1;
+		}
+
+		$this->db->where('id', $sid);
+		$ok = $this->db->update('surveys', $update);
+		if ($ok === false) {
+			$error = $this->db->error();
+			$msg = is_array($error) ? implode(', ', $error) : 'Database update failed';
+			throw new Exception($msg);
+		}
+
+		$this->events->emit('db.after.update', 'surveys', $sid, 'refresh');
+		return $update;
 	}
 
 	/**

@@ -21,6 +21,24 @@ class Data_structure_model extends CI_Model {
 	const STATUS_DEPRECATED = 30;
 	const STATUS_ARCHIVED   = 40;
 
+	/** API / JSON slug for each persisted status code (DB remains integer). */
+	private static $STATUS_CODE_TO_SLUG = [
+		self::STATUS_DRAFT      => 'draft',
+		self::STATUS_REVIEW     => 'review',
+		self::STATUS_PUBLISHED  => 'published',
+		self::STATUS_DEPRECATED => 'deprecated',
+		self::STATUS_ARCHIVED  => 'archived',
+	];
+
+	/** @var array<string,int> */
+	private static $STATUS_SLUG_TO_CODE = [
+		'draft'      => self::STATUS_DRAFT,
+		'review'     => self::STATUS_REVIEW,
+		'published'  => self::STATUS_PUBLISHED,
+		'deprecated' => self::STATUS_DEPRECATED,
+		'archived'   => self::STATUS_ARCHIVED,
+	];
+
 	public static $allowed_statuses = [
 		self::STATUS_DRAFT,
 		self::STATUS_REVIEW,
@@ -28,6 +46,105 @@ class Data_structure_model extends CI_Model {
 		self::STATUS_DEPRECATED,
 		self::STATUS_ARCHIVED,
 	];
+
+	/**
+	 * Slugs accepted on API payloads and in JSON Schema (data_structure.status).
+	 *
+	 * @return string[]
+	 */
+	public static function allowed_status_slugs()
+	{
+		return array_keys(self::$STATUS_SLUG_TO_CODE);
+	}
+
+	/**
+	 * Map DB status code to API slug.
+	 *
+	 * @param int|string $code
+	 * @return string
+	 */
+	public static function status_code_to_slug($code)
+	{
+		$c = (int) $code;
+		return isset(self::$STATUS_CODE_TO_SLUG[$c])
+			? self::$STATUS_CODE_TO_SLUG[$c]
+			: 'draft';
+	}
+
+	/**
+	 * Copy a structure row for JSON responses: replace numeric status with slug.
+	 *
+	 * @param array $row
+	 * @return array
+	 */
+	public static function encode_row_status_for_api(array $row)
+	{
+		$out = $row;
+		if (array_key_exists('status', $out) && $out['status'] !== null && $out['status'] !== '') {
+			$out['status'] = self::status_code_to_slug($out['status']);
+		}
+		return $out;
+	}
+
+	/**
+	 * @param array[] $rows
+	 * @return array[]
+	 */
+	public static function encode_rows_status_for_api(array $rows)
+	{
+		$out = [];
+		foreach ($rows as $r) {
+			$out[] = is_array($r) ? self::encode_row_status_for_api($r) : $r;
+		}
+		return $out;
+	}
+
+	/**
+	 * Parse status query or filter value to a DB code. Accepts slug or legacy numeric string.
+	 *
+	 * @param mixed $value
+	 * @return int|null null when value is empty; null when invalid
+	 */
+	/**
+	 * True when value is a non-empty API status slug (case-insensitive). Used for JSON import / validate payloads.
+	 *
+	 * @param mixed $value
+	 * @return bool
+	 */
+	public static function is_valid_status_slug($value)
+	{
+		if (!is_string($value)) {
+			return false;
+		}
+		$s = strtolower(trim($value));
+		return $s !== '' && isset(self::$STATUS_SLUG_TO_CODE[$s]);
+	}
+
+	public static function decode_status_filter_value($value)
+	{
+		if ($value === null || $value === false || $value === '') {
+			return null;
+		}
+		if (is_int($value) || is_float($value)) {
+			$c = (int) $value;
+			return in_array($c, self::$allowed_statuses, true) ? $c : null;
+		}
+		if (is_string($value)) {
+			$s = trim($value);
+			if ($s === '') {
+				return null;
+			}
+			$slug = strtolower($s);
+			if (isset(self::$STATUS_SLUG_TO_CODE[$slug])) {
+				return (int) self::$STATUS_SLUG_TO_CODE[$slug];
+			}
+			if (is_numeric($s)) {
+				$c = (int) $s;
+				return in_array($c, self::$allowed_statuses, true) ? $c : null;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * @param int $status
@@ -630,14 +747,19 @@ class Data_structure_model extends CI_Model {
 		if ($status === null || $status === '') {
 			return self::STATUS_DRAFT;
 		}
-		if (!is_numeric($status)) {
-			throw new Exception('Invalid status. Use numeric status code.');
+		if (is_string($status)) {
+			$slug = strtolower(trim($status));
+			if ($slug !== '' && isset(self::$STATUS_SLUG_TO_CODE[$slug])) {
+				return (int) self::$STATUS_SLUG_TO_CODE[$slug];
+			}
 		}
-		$code = (int) $status;
-		if (!in_array($code, self::$allowed_statuses, true)) {
-			throw new Exception('Invalid status code.');
+		if (is_numeric($status)) {
+			$code = (int) $status;
+			if (in_array($code, self::$allowed_statuses, true)) {
+				return $code;
+			}
 		}
-		return $code;
+		throw new Exception('Invalid status. Use one of: draft, review, published, deprecated, archived (or legacy codes 0, 10, 20, 30, 40).');
 	}
 
 	/**

@@ -31,8 +31,7 @@ require(APPPATH . '/libraries/MY_REST_Controller.php');
  *   POST   /api/admin/data_structures/components_update/{component_id}   (alias for PUT components)
  *   DELETE /api/admin/data_structures/components/{component_id}
  *   POST   /api/admin/data_structures/components_delete/{component_id}    (alias for DELETE components)
- *   POST   /api/admin/data_structures/import_json — JSON body (data-structure-schema.json): structure + components + optional import_options.
- *          Query: overwrite_codelists=1|0, dry_run=1|0 (override body flags).
+ *   POST   /api/admin/data_structures/import_json — JSON body (data-structure-schema.json): data_structure + optional overwrite, dry_run (body only; no query overrides).
  *   POST   /api/admin/data_structures/import — multipart field `file` (SDMX-ML structure XML) or `application/xml` body.
  *          Query/form: overwrite_codelists=1|0, optional dsd_id (DataStructure @id when multiple in file).
  *
@@ -93,9 +92,18 @@ class Data_structures extends MY_REST_Controller {
 				}
 				$search = is_string($search) ? $search : '';
 				$status_raw = $this->get('status');
-				$status = ($status_raw !== null && $status_raw !== false && $status_raw !== '')
-					? (int) $status_raw
-					: null;
+				$status = null;
+				if ($status_raw !== null && $status_raw !== false && $status_raw !== '') {
+					$parsed = Data_structure_model::decode_status_filter_value($status_raw);
+					if ($parsed === null) {
+						$this->set_response([
+							'status'  => 'error',
+							'message' => 'Invalid status filter. Use draft, review, published, deprecated, archived, or a legacy numeric code (0, 10, 20, 30, 40).',
+						], REST_Controller::HTTP_BAD_REQUEST);
+						return;
+					}
+					$status = $parsed;
+				}
 				$p = $this->Data_structure_model->get_structures_catalog_paged([
 					'page'     => $page,
 					'per_page' => $per_page,
@@ -106,7 +114,7 @@ class Data_structures extends MY_REST_Controller {
 				$this->set_response([
 					'status' => 'success',
 					'result' => [
-						'data_structures' => $p['rows'],
+						'data_structures' => Data_structure_model::encode_rows_status_for_api($p['rows']),
 						'total'           => $p['total'],
 						'page'            => $p['page'],
 						'per_page'        => $p['per_page'],
@@ -119,7 +127,7 @@ class Data_structures extends MY_REST_Controller {
 				: $this->Data_structure_model->get_all_structures_collapsed();
 			$this->set_response([
 				'status' => 'success',
-				'result' => ['data_structures' => $rows],
+				'result' => ['data_structures' => Data_structure_model::encode_rows_status_for_api($rows)],
 			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {
 			$this->set_response([
@@ -168,7 +176,7 @@ class Data_structures extends MY_REST_Controller {
 					$this->set_response([
 						'status' => 'success',
 						'result' => [
-							'data_structure' => $row,
+							'data_structure' => Data_structure_model::encode_row_status_for_api($row),
 							'overwritten'    => true,
 						],
 					], REST_Controller::HTTP_OK);
@@ -182,7 +190,7 @@ class Data_structures extends MY_REST_Controller {
 			$this->set_response([
 				'status' => 'success',
 				'result' => [
-					'data_structure' => $row,
+					'data_structure' => Data_structure_model::encode_row_status_for_api($row),
 					'overwritten'    => false,
 				],
 			], REST_Controller::HTTP_CREATED);
@@ -225,7 +233,7 @@ class Data_structures extends MY_REST_Controller {
 			}
 			$this->set_response([
 				'status' => 'success',
-				'result' => ['data_structure' => $row],
+				'result' => ['data_structure' => Data_structure_model::encode_row_status_for_api($row)],
 			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {
 			$this->set_response([
@@ -322,7 +330,7 @@ class Data_structures extends MY_REST_Controller {
 			}
 			$this->set_response([
 				'status' => 'success',
-				'result' => ['data_structure' => $row],
+				'result' => ['data_structure' => Data_structure_model::encode_row_status_for_api($row)],
 			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {
 			$this->set_response([
@@ -358,7 +366,7 @@ class Data_structures extends MY_REST_Controller {
 			$rows   = $this->Data_structure_model->get_structure_versions($name, $agency);
 			$this->set_response([
 				'status' => 'success',
-				'result' => ['data_structures' => $rows],
+				'result' => ['data_structures' => Data_structure_model::encode_rows_status_for_api($rows)],
 			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {
 			$this->set_response([
@@ -468,7 +476,7 @@ class Data_structures extends MY_REST_Controller {
 			$updated = $this->Data_structure_model->get_structure_by_id((int) $row['id'], false);
 			$this->set_response([
 				'status' => 'success',
-				'result' => ['data_structure' => $updated],
+				'result' => ['data_structure' => Data_structure_model::encode_row_status_for_api($updated)],
 			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {
 			$msg  = $e->getMessage();
@@ -498,7 +506,7 @@ class Data_structures extends MY_REST_Controller {
 			$row = $this->Data_structure_model->get_structure_by_id((int) $id, false);
 			$this->set_response([
 				'status' => 'success',
-				'result' => ['data_structure' => $row],
+				'result' => ['data_structure' => Data_structure_model::encode_row_status_for_api($row)],
 			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {
 			$msg  = $e->getMessage();
@@ -570,8 +578,7 @@ class Data_structures extends MY_REST_Controller {
 	/**
 	 * POST /api/admin/data_structures/import_json — create global DSD + codelists + components from JSON.
 	 *
-	 * Body: application/json per application/schemas/data-structure-schema.json (structure, components, import_options).
-	 * Query (optional): overwrite_codelists, dry_run — same as import_options when set to 1/true.
+	 * Body: application/json per application/schemas/data-structure-schema.json (data_structure, optional overwrite, dry_run).
 	 */
 	public function import_json_post()
 	{
@@ -580,30 +587,26 @@ class Data_structures extends MY_REST_Controller {
 			if (!$input || !is_array($input)) {
 				throw new Exception('JSON body required');
 			}
-			if (empty($input['structure']) || !is_array($input['structure'])) {
-				throw new Exception('Body must include a structure object.');
+			if (empty($input['data_structure']) || !is_array($input['data_structure'])) {
+				throw new Exception('Body must include a data_structure object.');
 			}
-			if (!isset($input['components']) || !is_array($input['components'])) {
-				throw new Exception('Body must include a components array.');
+			if (!isset($input['data_structure']['components']) || !is_array($input['data_structure']['components'])) {
+				throw new Exception('Body must include data_structure.components array.');
 			}
 
-			$this->_merge_audit_ids_on_structure($input['structure']);
+			$this->_merge_audit_ids_on_structure($input['data_structure']);
 
-			$impOpts = isset($input['import_options']) && is_array($input['import_options']) ? $input['import_options'] : [];
 			$opts = [
-				'overwrite_codelists' => !empty($impOpts['overwrite_codelists']) && $impOpts['overwrite_codelists'] === true,
-				'dry_run'             => !empty($impOpts['dry_run']) && $impOpts['dry_run'] === true,
-				'user_id'             => $this->get_api_user_id(),
+				'overwrite' => $this->_boolish($input['overwrite'] ?? null, false),
+				'dry_run'   => $this->_boolish($input['dry_run'] ?? null, false),
+				'user_id'   => $this->get_api_user_id(),
 			];
-			if ($this->query('overwrite_codelists') === '1' || $this->query('overwrite_codelists') === 'true') {
-				$opts['overwrite_codelists'] = true;
-			}
-			if ($this->query('dry_run') === '1' || $this->query('dry_run') === 'true') {
-				$opts['dry_run'] = true;
-			}
 
 			$this->load->library('data_structure_json_import');
 			$result = $this->data_structure_json_import->import_from_array($input, $opts);
+			if (!empty($result['data_structure']) && is_array($result['data_structure'])) {
+				$result['data_structure'] = Data_structure_model::encode_row_status_for_api($result['data_structure']);
+			}
 
 			$code = !empty($opts['dry_run']) ? REST_Controller::HTTP_OK : REST_Controller::HTTP_CREATED;
 			$this->set_response([
@@ -655,6 +658,7 @@ class Data_structures extends MY_REST_Controller {
 			}
 			$components = isset($row['components']) ? $row['components'] : [];
 			unset($row['components']);
+			$row = Data_structure_model::encode_row_status_for_api($row);
 			foreach ($components as &$c) {
 				$c = $this->_enrich_component_codelist($c);
 			}
@@ -681,7 +685,7 @@ class Data_structures extends MY_REST_Controller {
 	 * POST /api/admin/data_structures/validate — validate existing id or proposed structure + components (no writes).
 	 *
 	 * Body option A: { "data_structure_id": int } — validate persisted row + components.
-	 * Body option B: { "structure": { ... }, "components": [ ... ] } — validate a create/update payload.
+	 * Body option B: { "data_structure": { ..., "components": [ ... ] } } — validate a create/import payload.
 	 */
 	public function validate_post()
 	{
@@ -704,15 +708,17 @@ class Data_structures extends MY_REST_Controller {
 					$errors = array_merge($errors, $this->_validate_components_list($comps, true));
 				}
 			} else {
-				$structure = isset($input['structure']) ? $input['structure'] : null;
-				if (!is_array($structure)) {
-					$errors[] = ['path' => 'structure', 'message' => 'Required when data_structure_id is omitted.'];
+				$ds = isset($input['data_structure']) ? $input['data_structure'] : null;
+				if (!is_array($ds)) {
+					$errors[] = ['path' => 'data_structure', 'message' => 'Required when data_structure_id is omitted.'];
 				} else {
+					$structure = $ds;
+					unset($structure['components']);
 					$errors = array_merge($errors, $this->_validate_structure_payload_for_create($structure));
 				}
-				$components = isset($input['components']) && is_array($input['components']) ? $input['components'] : [];
+				$components = (is_array($ds) && isset($ds['components']) && is_array($ds['components'])) ? $ds['components'] : [];
 				if (empty($components)) {
-					$warnings[] = ['path' => 'components', 'message' => 'No components supplied.'];
+					$warnings[] = ['path' => 'data_structure.components', 'message' => 'No components supplied.'];
 				}
 				$errors = array_merge($errors, $this->_validate_components_list($components, false));
 			}
@@ -1179,6 +1185,11 @@ class Data_structures extends MY_REST_Controller {
 		}
 		if ($this->Data_structure_model->get_structure_by_idno($idno)) {
 			$errors[] = ['path' => 'structure.idno', 'message' => "idno '{$idno}' already exists."];
+		}
+		if (array_key_exists('status', $structure) && $structure['status'] !== null && $structure['status'] !== '') {
+			if (!Data_structure_model::is_valid_status_slug($structure['status'])) {
+				$errors[] = ['path' => 'data_structure.status', 'message' => 'Invalid status; use draft, review, published, deprecated, or archived.'];
+			}
 		}
 		return $errors;
 	}

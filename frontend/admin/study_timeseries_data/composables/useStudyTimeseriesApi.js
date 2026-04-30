@@ -26,7 +26,7 @@ function messageFromApiError(err) {
 
 /**
  * Admin timeseries Mongo API for one study (catalogue idno).
- * Base: /api/admin/timeseries/data/{idno}/…
+ * Base: /api/admin/timeseries/data/{idno}/… (CSV import uses POST …/data/import with idno in the body).
  */
 export function useStudyTimeseriesApi(studyIdno) {
   const { apiBaseUrl } = useAppConfig();
@@ -37,6 +37,11 @@ export function useStudyTimeseriesApi(studyIdno) {
   function dataPath() {
     const base = (apiBaseUrl.value || '').replace(/\/$/, '');
     return `${base}/data/${idnoEncoded.value}`;
+  }
+
+  function importCsvPath() {
+    const base = (apiBaseUrl.value || '').replace(/\/$/, '');
+    return `${base}/data/import`;
   }
 
   function noCacheParams(extra = {}) {
@@ -109,7 +114,7 @@ export function useStudyTimeseriesApi(studyIdno) {
   }
 
   /**
-   * Multipart CSV import — matches POST …/data/{idno}/import
+   * Multipart CSV import — POST …/data/import (`idno` in form body).
    * @param {{ file: File; delimiter: string; mapping?: Record<string, string>; ensureUniqueIndex?: boolean }} opts
    */
   /**
@@ -137,6 +142,7 @@ export function useStudyTimeseriesApi(studyIdno) {
 
   async function importCsvData(opts) {
     const form = new FormData();
+    form.append('idno', String(unref(studyIdno) ?? '').trim());
     form.append('file', opts.file);
     form.append('delimiter', opts.delimiter ?? ',');
     const mapping = opts.mapping;
@@ -145,7 +151,7 @@ export function useStudyTimeseriesApi(studyIdno) {
     }
     form.append('ensure_unique_index', opts.ensureUniqueIndex === false ? '0' : '1');
     try {
-      const { data } = await axios.post(`${dataPath()}/import`, form, {
+      const { data } = await axios.post(importCsvPath(), form, {
         withCredentials: true,
       });
       if (data.status !== 'success') {
