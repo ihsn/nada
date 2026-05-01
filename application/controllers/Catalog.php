@@ -36,6 +36,10 @@ class Catalog extends MY_Controller {
 		$this->load->config("facets");
 		//$this->enabled_filters=$this->config->item('facets_by_type');
 
+		if ($this->input->get("debug") && $this->input->get("debug")=='m1'){
+			$this->output->enable_profiler(TRUE);
+		}
+		
 		//$this->output->enable_profiler(TRUE);
 		$this->filters_list=array_keys($this->Facet_model->select_all());
 
@@ -72,24 +76,7 @@ class Catalog extends MY_Controller {
 	
 	private function validate_tab_type($tab_type)
 	{
-		if (empty($tab_type)) {
-			return '';
-		}
-
-		$allowed_types = $this->Search_helper_model->get_dataset_types($this->active_repo_id);
-		$allowed_type_codes = array_keys($allowed_types);
-		
-		// Include 'all'
-		$allowed_type_codes[] = 'all';
-		
-		$tab_type_lower = strtolower(trim($tab_type));
-		$allowed_type_codes = array_map('strtolower', $allowed_type_codes);
-		
-		if (in_array($tab_type_lower, $allowed_type_codes)) {
-			return $tab_type_lower;
-		}
-		
-		return '';
+		return $this->Search_helper_model->validate_catalog_tab_type($tab_type, $this->active_repo_id);
 	}
 
 

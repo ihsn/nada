@@ -143,7 +143,7 @@ class Catalog_search_sqlsrv{
 		}
 		
 		//show only publshed studies
-		$where_list[]='published=1';
+		$where_list[]='surveys.published=1';
 
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -213,7 +213,7 @@ class Catalog_search_sqlsrv{
 			
 			if ($where!='') 
 			{
-				$this->ci->db->where($where, FALSE, FALSE);
+				$this->ci->db->where($where, NULL, FALSE);
 			}
 
 			$query=$this->ci->db->get("surveys");
@@ -335,7 +335,7 @@ class Catalog_search_sqlsrv{
 
 		if ($where!='')
 		{
-			$this->ci->db->where($where, FALSE, FALSE);
+			$this->ci->db->where($where, NULL, FALSE);
 		}
 
 		$query=$this->ci->db->get();
@@ -856,7 +856,7 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		$this->ci->db->order_by($sort_by, $sort_order);
-		$this->ci->db->where($where, FALSE, FALSE);
+		$this->ci->db->where($where, NULL, FALSE);
 
 		if ($repository!=''){
 			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
@@ -902,7 +902,7 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		
-		$this->ci->db->where($where, FALSE, FALSE);
+		$this->ci->db->where($where, NULL, FALSE);
 
 		if ($repository!=''){
 			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
@@ -954,7 +954,7 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->limit($limit, $offset);
 		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn,v.fid");
 		$this->ci->db->order_by($sort_by, $sort_order);
-		$this->ci->db->where($where, FALSE, FALSE);
+		$this->ci->db->where($where, NULL, FALSE);
 		$this->ci->db->where('v.sid', $surveyid);
 
 		$query  = $this->ci->db->get("variables as v");
@@ -962,7 +962,7 @@ class Catalog_search_sqlsrv{
 
 		// Count matching rows (SQL Server has no FOUND_ROWS)
 		$this->ci->db->select("count(*) as rowcount", FALSE);
-		$this->ci->db->where($where, FALSE, FALSE);
+		$this->ci->db->where($where, NULL, FALSE);
 		$this->ci->db->where('v.sid', $surveyid);
 		$count_query = $this->ci->db->get("variables as v");
 		$count_row   = $count_query ? $count_query->row_array() : [];
@@ -1045,7 +1045,7 @@ class Catalog_search_sqlsrv{
 		$types_list=array();
 				
 		foreach($types  as $type){
-			if(!empty($type)){
+			if(!empty($type) && strtolower((string)$type)!=='all'){
 				$types_list[]=$this->ci->db->escape($type);
 			}
 		}
@@ -1151,7 +1151,7 @@ class Catalog_search_sqlsrv{
 		}
 		
 		if ($where!='') {
-			$this->ci->db->where($where,FALSE,FALSE);
+			$this->ci->db->where($where, NULL, FALSE);
 		}
 	
 		$query=$this->ci->db->get();

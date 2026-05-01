@@ -759,6 +759,32 @@ class Search_helper_model extends CI_Model {
 		return array_keys($out);
 	}
 
+	/**
+	 * Validate catalog tab_type / dataset tab (same rules as web Catalog controller).
+	 *
+	 * @param string|false|null $tab_type Raw tab_type query value
+	 * @param string|null $repositoryid Repository id or null/central for all published types
+	 * @return string Normalized tab code or '' if invalid
+	 */
+	public function validate_catalog_tab_type($tab_type, $repositoryid = null)
+	{
+		if ($tab_type === false || $tab_type === null || trim((string) $tab_type) === '') {
+			return '';
+		}
+
+		$allowed_types = $this->get_dataset_types($repositoryid);
+		$allowed_type_codes = array_keys($allowed_types);
+		$allowed_type_codes[] = 'all';
+		$tab_type_lower = strtolower(trim((string) $tab_type));
+		$allowed_type_codes = array_map('strtolower', $allowed_type_codes);
+
+		if (in_array($tab_type_lower, $allowed_type_codes, true)) {
+			return $tab_type_lower;
+		}
+
+		return '';
+	}
+
 
 	/**
 	* 

@@ -212,7 +212,7 @@ class Catalog_search_mysql{
 		$this->ci->db->limit($limit,$offset);
 
 		if ($where!='') {
-			$this->ci->db->where($where,FALSE,FALSE);
+			$this->ci->db->where($where, NULL, FALSE);
 		}
 
 		$query=$this->ci->db->get();
@@ -333,7 +333,7 @@ class Catalog_search_mysql{
 		$this->ci->db->group_by('surveys.type');	
 		
 		if ($where!='') {
-			$this->ci->db->where($where,FALSE,FALSE);
+			$this->ci->db->where($where, NULL, FALSE);
 		}
 	
 		$query=$this->ci->db->get();
@@ -594,7 +594,7 @@ class Catalog_search_mysql{
 		$types_list=array();
 				
 		foreach($types  as $type){
-			if(!empty($type)){
+			if(!empty($type) && strtolower((string)$type)!=='all'){
 				$types_list[]=$this->ci->db->escape($type);
 			}
 		}
@@ -1050,7 +1050,7 @@ class Catalog_search_mysql{
 		$this->ci->db->where('surveys.published',1);
 		$this->ci->db->order_by($sort_by, $sort_order);
 		if ($where!=='') {
-			$this->ci->db->where($where,FALSE,FALSE);
+			$this->ci->db->where($where, NULL, FALSE);
 		}
 
 		$result=$this->ci->db->get("variables as v")->result_array();

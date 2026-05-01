@@ -9,6 +9,7 @@ class Catalog extends MY_REST_Controller
 		parent::__construct();
 		$this->load->helper("date");
 		$this->load->model('Catalog_model');
+		$this->load->model('Search_helper_model');
 		$this->load->model('Dataset_model');
 		$this->load->model('Data_file_model');
 		$this->load->model('Variable_model');
@@ -181,9 +182,16 @@ class Catalog extends MY_REST_Controller
 		$search_options->ps				=xss_clean($this->input->get("ps"));
 		$offset=						($search_options->page-1)*$limit;
 
+		$repo_for_tab = xss_clean($this->input->get("repo"));
+		$search_options->tab_type = $this->Search_helper_model->validate_catalog_tab_type(
+			$search_options->tab_type,
+			($repo_for_tab !== false && $repo_for_tab !== null && trim((string) $repo_for_tab) !== '') ? $repo_for_tab : null
+		);
 
 		if($search_options->tab_type!=''){
 			$search_options->type=$search_options->tab_type;
+		} else {
+			$search_options->type = $this->Search_helper_model->filter_catalog_type_param($search_options->type);
 		}
 
 		list($sort_by_resolved, $sort_order_resolved) = $this->_normalize_catalog_sort_for_listing(
@@ -224,8 +232,15 @@ class Catalog extends MY_REST_Controller
 		//convert country names or iso codes into country IDs
 		$params['countries']=$this->get_countries_id($params['countries']);
 
-		//collections to array
-		$params['collections']=explode(",",$params['collections']);		
+		//collections to array — support both ?collection=a,b and ?collection[]=a&collection[]=b
+		$col = $this->input->get('collection');
+		if (is_array($col)) {
+			$params['collections'] = array_values(array_filter(array_map('xss_clean', $col)));
+		} elseif ($col === false || $col === null || $col === '') {
+			$params['collections'] = array();
+		} else {
+			$params['collections'] = explode(',', xss_clean($col));
+		}		
 
 		//custom facet filters by data type	
 		$custom_filters_by_data_type=(array)json_decode($this->config->item('facets_'.'all'),true);
@@ -321,16 +336,37 @@ class Catalog extends MY_REST_Controller
 				}
 
 				$response=array(
+					'status' => 'success',
 					'result'=>$result,
 					'params'=>$params
 				);
 			}
 			else{
 				$response=array(
+					'status' => 'success',
 					'found'=>0,
 					'rows'=>array()
 				);
 			}
+
+			// Optional: include facets, tabs, and site config for Vue UI (?include_facets=1)
+			if ($this->input->get('include_facets')) {
+				$this->load->library('catalog_vue_service');
+				$repo = $this->input->get('repo');
+				$this->catalog_vue_service->set_active_repo($repo ? $repo : 'central');
+				$tab_type = (string) $this->input->get('tab_type');
+				$this->catalog_vue_service->active_tab = $this->catalog_vue_service->validate_tab_type($tab_type);
+				$this->catalog_vue_service->set_enabled_filters();
+				$this->catalog_vue_service->load_facets_data();
+				$surveys_for_tabs = isset($result['rows']) ? array('rows' => $result['rows'], 'found' => isset($result['found']) ? $result['found'] : 0) : array();
+				$response['facets'] = $this->catalog_vue_service->facets;
+				$response['tabs']   = $this->catalog_vue_service->build_tabs(array('surveys' => $surveys_for_tabs));
+				$response['site']   = array(
+					'data_types_nav_bar'     => $this->catalog_vue_service->data_types_nav_bar,
+					'search_box_orientation' => $this->catalog_vue_service->search_box_orientation,
+				);
+			}
+
 			$this->set_response($response, REST_Controller::HTTP_OK);			
 		}
 		catch(Exception $e){
@@ -842,7 +878,7 @@ class Catalog extends MY_REST_Controller
 		$from    = xss_clean($this->input->get('from'));
 		$to      = xss_clean($this->input->get('to'));
 		$dtype   = xss_clean($this->input->get('dtype'));
-		$type    = xss_clean($this->input->get('type'));
+		$type    = $this->Search_helper_model->filter_catalog_type_param(xss_clean($this->input->get('type')));
 
 		list($vsb, $vso) = $this->_normalize_catalog_sort_for_listing(
 			$sk,
@@ -1348,6 +1384,7 @@ class Catalog extends MY_REST_Controller
 	 *   format - 'json' (default) or 'jsonl' for JSON Lines format
 	 *   pretty - 'true' to pretty print JSON (only for JSON format)
 	 *   download - 'true' to download the file instead of streaming
+	 *   dsd_export - for timeseries only: 'reference' (default) or 'inline' — full DSD + components + codelists
 	 * 
 	 */
 	function json_get($idno=null)
@@ -1368,11 +1405,14 @@ class Catalog extends MY_REST_Controller
 
 			$pretty = $this->input->get('pretty') === 'true' || $this->input->get('pretty') === '1';
 			$download = $this->input->get('download') === 'true' || $this->input->get('download') === '1';
+			$dsd_export = strtolower(trim((string) $this->input->get('dsd_export'))) === JSON_Writer::DSD_EXPORT_INLINE
+				? JSON_Writer::DSD_EXPORT_INLINE
+				: JSON_Writer::DSD_EXPORT_REFERENCE;
 
 			if ($download) {
-				$this->json_writer->download($sid, $format, $pretty);
+				$this->json_writer->download($sid, $format, $pretty, false, $dsd_export);
 			} else {
-				$this->json_writer->stream($sid, $format, $pretty);
+				$this->json_writer->stream($sid, $format, $pretty, $dsd_export);
 			}
         }		
 		catch(Exception $e){
