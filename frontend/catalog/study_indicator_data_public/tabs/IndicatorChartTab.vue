@@ -1469,6 +1469,8 @@ function parseLeadingCalendarYear(s) {
 
 /**
  * Choose Chart.js x scale: category (even spacing) vs linear (calendar distance).
+ * Calendar years YYYY use a category axis so ticks match discrete periods (same as the
+ * chart table); a linear axis produced duplicate year labels from fractional tick steps.
  * @param {string[]} sortedTimes
  */
 function classifyTimeKeys(sortedTimes) {
@@ -1477,9 +1479,9 @@ function classifyTimeKeys(sortedTimes) {
   const allYearCodes = trimmed.every((t) => /^\d{4}$/.test(t));
   if (allYearCodes) {
     return {
-      useNumeric: true,
+      useNumeric: false,
       kind: 'year',
-      parse: (t) => Number(String(t).trim()),
+      parse: null,
     };
   }
   const isoDay = /^(\d{4})-(\d{2})-(\d{2})(?:[Tt ].*)?$/;
@@ -1803,13 +1805,6 @@ async function renderOrUpdateChart() {
                   callback(val) {
                     if (model.timeXKind === 'day' && Number.isFinite(val)) {
                       return formatDayTick(val);
-                    }
-                    // Linear scale often uses fractional tick steps. Rounding each tick made
-                    // several positions map to the same calendar year (e.g. triple "2023").
-                    if (model.timeXKind === 'year' && Number.isFinite(val)) {
-                      const y = Math.round(val);
-                      if (Math.abs(val - y) > 1e-6) return '';
-                      return String(y);
                     }
                     if (Number.isFinite(val)) {
                       return Number.isInteger(val) ? String(val) : String(Math.round(val));
