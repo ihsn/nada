@@ -1,0 +1,1 @@
+import{d as e}from"./runtime-dom.esm-bundler-3BIkjnju.js";function f(){const r=e(()=>(typeof window<"u"&&window.APP_CONFIG?.translations)??{});function u(t,s,...n){const o=r.value[t]??s??t;if(n.length===0)return o;let i=0;return String(o).replace(/%s/g,()=>n[i++]!==void 0?n[i-1]:"%s")}return{t:u}}export{f as u};
