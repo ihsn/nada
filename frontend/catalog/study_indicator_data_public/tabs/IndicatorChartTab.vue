@@ -1804,6 +1804,13 @@ async function renderOrUpdateChart() {
                     if (model.timeXKind === 'day' && Number.isFinite(val)) {
                       return formatDayTick(val);
                     }
+                    // Linear scale often uses fractional tick steps. Rounding each tick made
+                    // several positions map to the same calendar year (e.g. triple "2023").
+                    if (model.timeXKind === 'year' && Number.isFinite(val)) {
+                      const y = Math.round(val);
+                      if (Math.abs(val - y) > 1e-6) return '';
+                      return String(y);
+                    }
                     if (Number.isFinite(val)) {
                       return Number.isInteger(val) ? String(val) : String(Math.round(val));
                     }
