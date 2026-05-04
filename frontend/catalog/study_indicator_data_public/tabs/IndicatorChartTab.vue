@@ -396,7 +396,7 @@
                     <v-col cols="12" lg="9">
                   <template v-if="dataLoadCommitted || !catalogSliceRequired">
                   <div class="section-head d-flex flex-wrap align-center gap-3 mb-4">
-                    <div class="section-title">Chart</div>
+                    <div class="section-kicker">Chart</div>
                     <v-spacer />
                     <v-btn-toggle
                       v-if="chartModeToggleVisible"
@@ -481,7 +481,7 @@
                     height="3"
                   />
 
-                  <div class="chart-canvas-wrap chart-shell" role="img" :aria-label="chartAriaLabel">
+                  <div class="chart-canvas-wrap chart-shell chart-shell--padded" role="img" :aria-label="chartAriaLabel">
                     <canvas
                       v-show="!chartLoading && chartModel && chartModel.datasets.length"
                       ref="chartCanvasRef"
@@ -613,34 +613,44 @@ const setMessage = inject('setMessage', () => {});
 const { config, apiBaseUrl } = useAppConfig();
 const studyIdno = computed(() => String(config.value?.studyIdno ?? '').trim());
 const studySid = computed(() => config.value?.studySid ?? '');
+/** Catalog study title from window.APP_CONFIG (server-rendered); used as the chart title. */
+const studyTitle = computed(() => String(config.value?.studyTitle ?? '').trim());
 const { fetchSchema, fetchFilterOptions, fetchObservationCount, fetchChartData } = usePublicTimeseriesApi(studyIdno);
 
 const MAX_SERIES = 16;
 const CHART_API_LIMIT = 5000;
 const CHART_TABLE_ROWS_PER_PAGE = 100;
 
-/** Chart.js canvas text + chart data table body (see `v-bind` in scoped style). */
-const CHART_DATA_FONT_FAMILY =
-  "ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', monospace";
+/** World Bank Data Visualization Style Guide — chart element & label colors. */
+const WB_TEXT = '#111111';
+const WB_TEXT_SUBTLE = '#666666';
+const WB_GREY200 = '#CED4DE';
+const WB_GREY300 = '#8a969f';
 
-const SERIES_COLORS = [
-  '#1976D2',
-  '#4CAF50',
+/** Basic category colors — fixed order (WB guide). Cycled when series count > 9. */
+const WB_CATEGORY_COLORS = [
+  '#34A7F2',
   '#FF9800',
-  '#9C27B0',
-  '#F44336',
-  '#00BCD4',
-  '#FFC107',
-  '#795548',
-  '#3F51B5',
-  '#009688',
-  '#E91E63',
-  '#673AB7',
-  '#8BC34A',
-  '#FF5722',
-  '#607D8B',
-  '#CDDC39',
+  '#664AB6',
+  '#4EC2C0',
+  '#F3578E',
+  '#081079',
+  '#0C7C68',
+  '#AA0000',
+  '#DDDA21',
 ];
+
+/** Chart.js canvas + chart data table body (see `v-bind` in scoped style). */
+const CHART_FONT_FAMILY =
+  "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
+function wbCategoryColor(index) {
+  return WB_CATEGORY_COLORS[index % WB_CATEGORY_COLORS.length];
+}
+
+function isYAxisZeroTick(value) {
+  return typeof value === 'number' && Math.abs(value) < 1e-12;
+}
 
 const pageLoading = ref(true);
 const applyLoading = ref(false);
@@ -659,6 +669,9 @@ const chartApiQueryVisible = ref(false);
 
 /** When true, skip syncing chart filter state to the URL (initial load / applying query from URL). */
 const urlSyncSuspended = ref(true);
+
+/** When true, ignore filter-draft watches (initial hydrate / programmatic sync in loadAll). */
+const suppressAutoApply = ref(true);
 
 /** API filter payload last applied (from / to / d / c) */
 const activeFilters = ref(null);
@@ -1232,6 +1245,34 @@ function buildApiFiltersFromDraft() {
   };
 }
 
+/** Stable snapshot for watching filter edits (order-independent). */
+function filterDraftSnapshot() {
+  const cKeys = Object.keys(filterDraft.c || {}).sort();
+  const c = {};
+  for (const k of cKeys) {
+    const arr = filterDraft.c[k];
+    c[k] = Array.isArray(arr) ? [...arr].map(String).sort() : [];
+  }
+  return JSON.stringify({
+    from: String(filterDraft.from ?? '').trim(),
+    to: String(filterDraft.to ?? '').trim(),
+    dGeography: [...filterDraft.dGeography].map(String).sort(),
+    dPeriodicity: [...filterDraft.dPeriodicity].map(String).sort(),
+    c,
+  });
+}
+
+/** Resolve facet codes to labels using loaded codelists (same source as filter sidebar). */
+function facetCodesDisplayLabels(componentName, codes) {
+  if (!Array.isArray(codes) || !codes.length) return [];
+  const items = codelistSelectItems.value[componentName] || [];
+  return codes.map((code) => {
+    const c = String(code ?? '').trim();
+    const hit = items.find((it) => String(it.value) === c);
+    return hit?.title ? String(hit.title) : c;
+  });
+}
+
 /** Turn `col=code` segments into readable labels using loaded codelists (server `series_key`). */
 function seriesLabelForId(id) {
   if (!id || id === 'Series') return id;
@@ -1269,6 +1310,53 @@ const valueAxisLabel = computed(() => {
 });
 
 const xAxisLabel = computed(() => timePeriodFilterSectionLabel.value);
+
+/** Second line under chart title: applied reporting-year range, geography, periodicity, and dimension slices. */
+const chartFilterSubtitle = computed(() => {
+  const f = activeFilters.value;
+  if (!f) return '';
+
+  const parts = [];
+
+  const from = typeof f.from === 'string' ? f.from.trim() : '';
+  const to = typeof f.to === 'string' ? f.to.trim() : '';
+  if (from && to) parts.push(`${from}–${to}`);
+  else if (from) parts.push(`From ${from}`);
+  else if (to) parts.push(`To ${to}`);
+  else {
+    const tb = chartMetadata.value?.time_bounds;
+    if (tb?.min != null && tb?.max != null) {
+      const a = String(tb.min).trim();
+      const b = String(tb.max).trim();
+      if (a && b) parts.push(`${a}–${b}`);
+    }
+  }
+
+  const d = f.d && typeof f.d === 'object' ? f.d : {};
+  const geo = geographyComponent.value;
+  if (geo?.name && Array.isArray(d.geography) && d.geography.length) {
+    const labels = facetCodesDisplayLabels(geo.name, d.geography);
+    const head = facetLabel(geo) || 'Geography';
+    parts.push(`${head}: ${labels.join(', ')}`);
+  }
+
+  const per = periodicityComponent.value;
+  if (per?.name && Array.isArray(d.periodicity) && d.periodicity.length) {
+    const labels = facetCodesDisplayLabels(per.name, d.periodicity);
+    const head = facetLabel(per) || 'Periodicity';
+    parts.push(`${head}: ${labels.join(', ')}`);
+  }
+
+  const c = f.c && typeof f.c === 'object' ? f.c : {};
+  for (const col of facetComponentsForC.value) {
+    const arr = c[col.name];
+    if (!Array.isArray(arr) || !arr.length) continue;
+    const labels = facetCodesDisplayLabels(col.name, arr);
+    parts.push(`${facetLabel(col)}: ${labels.join(', ')}`);
+  }
+
+  return parts.join(' · ');
+});
 
 const chartDataTableHeaders = computed(() => {
   const base = [
@@ -1676,7 +1764,7 @@ const chartModel = computed(() => {
       });
     }
 
-    const color = SERIES_COLORS[idx % SERIES_COLORS.length];
+    const color = wbCategoryColor(idx);
     return {
       label: seriesLabelForId(id),
       data,
@@ -1705,7 +1793,11 @@ const chartModel = computed(() => {
 
 const chartAriaLabel = computed(() => {
   const n = chartModel.value?.totalPoints ?? 0;
-  return `Time series chart, ${n} points`;
+  const t = studyTitle.value;
+  const sub = chartFilterSubtitle.value;
+  const head = t ? `Time series chart: ${t}` : 'Time series chart';
+  const mid = sub ? `. ${sub}` : '';
+  return `${head}${mid}. ${n} points`;
 });
 
 const seriesTruncated = computed(() => (chartModel.value?.dropped ?? 0) > 0);
@@ -1743,6 +1835,8 @@ async function renderOrUpdateChart() {
 
   const isBar = chartType.value === 'column' && model.datasets.length === 1;
   const numericX = model.useNumericTimeX === true;
+  const chartTitleText = studyTitle.value || 'Chart';
+  const chartSubtitleText = chartFilterSubtitle.value;
 
   const inst = new Chart(canvas, {
     type: isBar ? 'bar' : 'line',
@@ -1751,24 +1845,127 @@ async function renderOrUpdateChart() {
       datasets: model.datasets,
     },
     options: {
+      color: WB_TEXT_SUBTLE,
       font: {
-        family: CHART_DATA_FONT_FAMILY,
+        family: CHART_FONT_FAMILY,
         size: 11,
       },
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 20,
+          right: 20,
+          top: 6,
+          bottom: 10,
+        },
+      },
       interaction: {
         mode: numericX ? 'nearest' : 'index',
         intersect: false,
       },
       plugins: {
+        title: {
+          display: true,
+          text: chartTitleText,
+          color: WB_TEXT,
+          align: 'start',
+          font: {
+            family: CHART_FONT_FAMILY,
+            size: 15,
+            weight: '600',
+          },
+          padding: {
+            top: 8,
+            bottom: 4,
+          },
+        },
+        subtitle: {
+          display: Boolean(chartSubtitleText),
+          text: chartSubtitleText,
+          color: WB_TEXT_SUBTLE,
+          align: 'start',
+          font: {
+            family: CHART_FONT_FAMILY,
+            size: 12,
+            weight: '400',
+          },
+          padding: {
+            top: 0,
+            bottom: 28,
+          },
+        },
         legend: {
           display: model.datasets.length > 0,
-          position: 'top',
+          position: 'bottom',
+          align: 'start',
+          title: {
+            display: model.datasets.length > 0,
+            text: '\u200b',
+            color: 'transparent',
+            font: {
+              family: CHART_FONT_FAMILY,
+              size: 1,
+              lineHeight: 1,
+            },
+            padding: {
+              top: 14,
+              bottom: 0,
+              left: 0,
+              right: 0,
+            },
+          },
+          labels: {
+            color: WB_TEXT,
+            usePointStyle: false,
+            boxWidth: 28,
+            boxHeight: 3,
+            padding: 12,
+            font: {
+              family: CHART_FONT_FAMILY,
+              size: 11,
+              weight: '600',
+            },
+            generateLabels: (chart) => {
+              const gen = Chart.defaults.plugins.legend.labels.generateLabels;
+              const items = gen(chart);
+              return items.map((item) => ({
+                ...item,
+                text: String(item.text || '').toUpperCase(),
+                fillStyle: item.strokeStyle || item.fillStyle,
+                lineWidth: 0,
+              }));
+            },
+          },
         },
         tooltip: {
-          backgroundColor: 'rgba(0, 0, 0, 0.82)',
-          padding: 10,
+          backgroundColor: '#ffffff',
+          titleColor: WB_TEXT,
+          bodyColor: WB_TEXT,
+          borderColor: WB_GREY200,
+          borderWidth: 0.5,
+          padding: 12,
+          cornerRadius: 2,
+          caretPadding: 6,
+          titleFont: {
+            family: CHART_FONT_FAMILY,
+            size: 12,
+            weight: '600',
+          },
+          bodyFont: {
+            family: CHART_FONT_FAMILY,
+            size: 12,
+            weight: '400',
+          },
+          footerFont: {
+            family: CHART_FONT_FAMILY,
+            size: 12,
+          },
+          boxWidth: 8,
+          boxHeight: 8,
+          boxPadding: 4,
+          usePointStyle: true,
+          displayColors: true,
           callbacks: {
             title(items) {
               if (!items?.length) return '';
@@ -1795,11 +1992,19 @@ async function renderOrUpdateChart() {
             display: false,
             text: xAxisLabel.value,
           },
+          grid: {
+            display: false,
+          },
+          border: {
+            display: true,
+            color: WB_GREY200,
+          },
           ticks: {
+            color: WB_TEXT_SUBTLE,
             maxRotation: 45,
             minRotation: 0,
             autoSkip: true,
-            maxTicksLimit: model.timeXKind === 'day' ? 14 : 28,
+            maxTicksLimit: model.timeXKind === 'day' ? 12 : 8,
             ...(numericX
               ? {
                   callback(val) {
@@ -1821,8 +2026,21 @@ async function renderOrUpdateChart() {
             text: valueAxisLabel.value,
           },
           beginAtZero: false,
+          border: {
+            display: false,
+            dash(context) {
+              return isYAxisZeroTick(context.tick?.value) ? [] : [4, 2];
+            },
+          },
+          ticks: {
+            color: WB_TEXT_SUBTLE,
+            maxTicksLimit: 6,
+          },
           grid: {
-            color: 'rgba(0, 0, 0, 0.06)',
+            color(context) {
+              return isYAxisZeroTick(context.tick?.value) ? WB_GREY300 : WB_GREY200;
+            },
+            lineWidth: 1,
           },
         },
       },
@@ -1868,7 +2086,13 @@ watch(
 );
 
 watch(
-  () => [chartLoading.value, chartType.value, chartModel.value?.totalPoints ?? 0],
+  () => [
+    chartLoading.value,
+    chartType.value,
+    chartModel.value?.totalPoints ?? 0,
+    studyTitle.value,
+    chartFilterSubtitle.value,
+  ],
   async () => {
     if (chartLoading.value) {
       destroyChart();
@@ -1881,6 +2105,7 @@ watch(
 
 onBeforeUnmount(() => {
   debouncedWriteCatalogQueryToUrl.cancel();
+  debouncedAutoApply.cancel();
   destroyChart();
 });
 
@@ -1955,7 +2180,7 @@ async function refreshCountsAndData() {
   await reloadChart();
 }
 
-async function onApplyFilters() {
+async function applyFiltersInternal() {
   if (!studyIdno.value) return;
   if (pageLoading.value || !schema.value) return;
   if (catalogSliceRequired.value && !catalogSliceSelectionComplete.value) {
@@ -1973,12 +2198,22 @@ async function onApplyFilters() {
   }
 }
 
+const debouncedAutoApply = debounce(() => {
+  void applyFiltersInternal();
+}, 320);
+
+async function onApplyFilters() {
+  debouncedAutoApply.cancel();
+  await applyFiltersInternal();
+}
+
 async function loadAll() {
   if (!studyIdno.value) {
     fatalError.value = 'Missing study IDNO in page configuration.';
     pageLoading.value = false;
     return;
   }
+  suppressAutoApply.value = true;
   pageLoading.value = true;
   fatalError.value = '';
   urlSyncSuspended.value = true;
@@ -2013,12 +2248,21 @@ async function loadAll() {
     chartFilterExpandedPanels.value = [];
   } finally {
     pageLoading.value = false;
+    suppressAutoApply.value = false;
     nextTick(() => {
       urlSyncSuspended.value = false;
       writeCatalogQueryToUrl();
     });
   }
 }
+
+watch(
+  () => filterDraftSnapshot(),
+  () => {
+    if (suppressAutoApply.value || pageLoading.value || !schema.value || !studyIdno.value) return;
+    debouncedAutoApply();
+  }
+);
 
 watch(
   () => schema.value?.sid,
@@ -2153,7 +2397,7 @@ onMounted(() => {
 }
 
 .main-panel {
-  min-height: 420px;
+  min-height: 480px;
 }
 
 .catalog-divider {
@@ -2206,7 +2450,15 @@ onMounted(() => {
   border-radius: 0;
   background: rgba(var(--v-theme-on-surface), 0.025);
   border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.chart-shell.chart-shell--padded {
+  box-sizing: border-box;
+  padding: 1rem 1.25rem 1.25rem;
 }
 
 .facet-checkbox-panel {
@@ -2289,15 +2541,15 @@ onMounted(() => {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  height: min(420px, 55vh);
-  min-height: 280px;
+  height: min(480px, 60vh);
+  min-height: 300px;
 }
 
 .chart-empty-state {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  min-height: min(420px, 55vh);
+  min-height: min(480px, 60vh);
 }
 
 .chart-empty-state__icon {
@@ -2338,7 +2590,7 @@ onMounted(() => {
 
 /* Body only: distinct data face + aligned digits (headers stay Vuetify UI). */
 .chart-data-table :deep(tbody td) {
-  font-family: v-bind(CHART_DATA_FONT_FAMILY);
+  font-family: v-bind(CHART_FONT_FAMILY);
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.015em;
