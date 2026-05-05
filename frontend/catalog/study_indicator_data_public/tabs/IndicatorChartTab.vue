@@ -799,6 +799,10 @@ const WB_CATEGORY_COLORS = [
 const CHART_FONT_FAMILY =
   "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
+/** Match plugins.title / plugins.subtitle font sizes in `renderOrUpdateChart`. */
+const CHART_TITLE_FONT_PX = 15;
+const CHART_SUBTITLE_FONT_PX = 12;
+
 function wbCategoryColor(index) {
   return WB_CATEGORY_COLORS[index % WB_CATEGORY_COLORS.length];
 }
@@ -2207,6 +2211,88 @@ function formatDayTick(ms) {
   }
 }
 
+/** Width available for title/subtitle text (matches options.layout.padding left + right). */
+function getChartTitleMaxTextWidth(canvasEl) {
+  const padX = 40;
+  let w = canvasEl?.clientWidth || canvasEl?.offsetWidth || 0;
+  if (!w) {
+    const wrap = canvasEl?.closest?.('.chart-canvas-wrap');
+    w = wrap?.clientWidth || wrap?.offsetWidth || 0;
+  }
+  const inner = w > 0 ? w - padX : 520;
+  return Math.max(200, inner);
+}
+
+/**
+ * Wrap for Chart.js title/subtitle (`text` as string[]). Uses canvas measureText + chart width.
+ */
+function wrapTextToMeasuredLines(text, ctx, maxWidth) {
+  const s = String(text ?? '').trim();
+  if (!s) return [];
+  const max = Math.max(60, Number(maxWidth) || 400);
+
+  function measure(line) {
+    return ctx.measureText(line).width;
+  }
+
+  /** Greedy segment when a single token is wider than max. */
+  function breakLongToken(token) {
+    const out = [];
+    let rest = token;
+    while (rest.length) {
+      if (measure(rest) <= max) {
+        out.push(rest);
+        break;
+      }
+      let lo = 1;
+      let hi = rest.length;
+      let best = 1;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        const sub = rest.slice(0, mid);
+        if (measure(sub) <= max) {
+          best = mid;
+          lo = mid + 1;
+        } else {
+          hi = mid - 1;
+        }
+      }
+      if (best < 1) best = 1;
+      out.push(rest.slice(0, best));
+      rest = rest.slice(best);
+    }
+    return out;
+  }
+
+  const words = s.split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = '';
+
+  function flush() {
+    if (current) {
+      lines.push(current);
+      current = '';
+    }
+  }
+
+  for (const word of words) {
+    if (measure(word) > max) {
+      flush();
+      lines.push(...breakLongToken(word));
+      continue;
+    }
+    const next = current ? `${current} ${word}` : word;
+    if (measure(next) <= max) {
+      current = next;
+    } else {
+      flush();
+      current = word;
+    }
+  }
+  flush();
+  return lines.length ? lines : [s];
+}
+
 async function renderOrUpdateChart() {
   await nextTick();
   await new Promise((r) => requestAnimationFrame(r));
@@ -2220,6 +2306,14 @@ async function renderOrUpdateChart() {
   const numericX = model.useNumericTimeX === true;
   const chartTitleText = studyTitle.value || 'Chart';
   const chartSubtitleText = chartFilterSubtitle.value;
+  const maxTextW = getChartTitleMaxTextWidth(canvas);
+  const measureCtx = canvas.getContext('2d');
+  measureCtx.font = `600 ${CHART_TITLE_FONT_PX}px ${CHART_FONT_FAMILY}`;
+  const chartTitleLines = wrapTextToMeasuredLines(chartTitleText, measureCtx, maxTextW);
+  measureCtx.font = `400 ${CHART_SUBTITLE_FONT_PX}px ${CHART_FONT_FAMILY}`;
+  const chartSubtitleLines = String(chartSubtitleText).trim()
+    ? wrapTextToMeasuredLines(chartSubtitleText, measureCtx, maxTextW)
+    : [];
   const T = getChartJsTheme(chartBg.value);
 
   const inst = new Chart(canvas, {
@@ -2251,13 +2345,14 @@ async function renderOrUpdateChart() {
       plugins: {
         title: {
           display: true,
-          text: chartTitleText,
+          text: chartTitleLines,
           color: T.text,
           align: 'start',
           font: {
             family: CHART_FONT_FAMILY,
             size: 15,
             weight: '600',
+            lineHeight: 1.35,
           },
           padding: {
             top: 8,
@@ -2265,14 +2360,15 @@ async function renderOrUpdateChart() {
           },
         },
         subtitle: {
-          display: Boolean(chartSubtitleText),
-          text: chartSubtitleText,
+          display: chartSubtitleLines.length > 0,
+          text: chartSubtitleLines,
           color: T.textSubtle,
           align: 'start',
           font: {
             family: CHART_FONT_FAMILY,
             size: 12,
             weight: '400',
+            lineHeight: 1.35,
           },
           padding: {
             top: 0,
@@ -2307,8 +2403,8 @@ async function renderOrUpdateChart() {
             padding: 12,
             font: {
               family: CHART_FONT_FAMILY,
-              size: 11,
-              weight: '600',
+              size: 10,
+              weight: 'normal',
             },
             generateLabels: (chart) => {
               const gen = Chart.defaults.plugins.legend.labels.generateLabels;
@@ -2436,6 +2532,12 @@ async function renderOrUpdateChart() {
   });
 }
 
+/** Rebuild chart so title/subtitle wrap uses latest canvas width (`resize()` alone does not reflow plugins.title text). */
+const debouncedChartRelayoutOnResize = debounce(() => {
+  if (chartLoading.value) return;
+  void renderOrUpdateChart();
+}, 120);
+
 watch(
   () => chartModel.value?.datasets?.length ?? 0,
   (n) => {
@@ -2488,26 +2590,27 @@ watch(
   { deep: true, flush: 'post' }
 );
 
-/** Embed: flex layout changes don’t fire window.resize — Chart.js only listens to window by default */
+/** Window resize, sidebar layout, embed flex: reflow wrapped titles (Chart.js default resize is not enough). */
 watchEffect((onCleanup) => {
-  const embed = !!config.value?.indicatorEmbed;
+  if (typeof ResizeObserver === 'undefined') return;
   const canvas = chartCanvasRef.value;
-  const inst = chartInstance.value;
-  if (!embed || !canvas || !inst || typeof ResizeObserver === 'undefined') {
-    return;
-  }
+  if (!canvas) return;
   const wrap = canvas.closest('.chart-canvas-wrap');
   if (!wrap) return;
   const ro = new ResizeObserver(() => {
-    requestAnimationFrame(() => inst.resize());
+    debouncedChartRelayoutOnResize();
   });
   ro.observe(wrap);
-  onCleanup(() => ro.disconnect());
+  onCleanup(() => {
+    ro.disconnect();
+    debouncedChartRelayoutOnResize.cancel();
+  });
 });
 
 onBeforeUnmount(() => {
   debouncedWriteCatalogQueryToUrl.cancel();
   debouncedAutoApply.cancel();
+  debouncedChartRelayoutOnResize.cancel();
   destroyChart();
   if (embedDialogNoticeTimer) {
     clearTimeout(embedDialogNoticeTimer);
