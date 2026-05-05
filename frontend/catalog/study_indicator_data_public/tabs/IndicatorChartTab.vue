@@ -1,18 +1,37 @@
 <template>
-  <div class="catalog-indicator-page">
-    <v-progress-linear v-if="pageLoading" indeterminate color="primary" class="mb-6 rounded-s" height="3" />
+  <div class="catalog-indicator-page" :class="{ 'catalog-indicator-page--embed': isIndicatorEmbed }">
+    <v-progress-linear
+      v-if="pageLoading"
+      indeterminate
+      color="primary"
+      :class="isIndicatorEmbed ? 'mb-0 rounded-0' : 'mb-6 rounded-s'"
+      height="3"
+    />
 
     <v-alert v-if="fatalError" type="error" variant="tonal" class="mb-6" rounded="lg" prominent density="comfortable">
       {{ fatalError }}
     </v-alert>
 
     <template v-else-if="schema">
-      <v-row dense class="main-layout">
-        <v-col cols="12" class="d-flex flex-column">
-          <v-card class="main-panel flex-grow-1 d-flex flex-column" rounded="0" flat>
-            <v-card-text class="pa-0 flex-grow-1">
-                  <v-row dense class="chart-tab-layout align-start">
-                    <v-col cols="12" lg="3" class="d-flex mb-4 mb-lg-0 pr-lg-3">
+      <v-row
+        dense
+        class="main-layout"
+        :class="{ 'catalog-indicator-page__main--embed flex-grow-1 ma-0': isIndicatorEmbed }"
+      >
+        <v-col cols="12" class="d-flex flex-column" :class="{ 'min-height-0 flex-grow-1 px-0': isIndicatorEmbed }">
+          <v-card
+            class="main-panel flex-grow-1 d-flex flex-column"
+            :class="{ 'catalog-indicator-page__panel--embed flex-grow-1': isIndicatorEmbed }"
+            rounded="0"
+            flat
+          >
+            <v-card-text class="pa-0 flex-grow-1 d-flex flex-column" :class="{ 'min-height-0': isIndicatorEmbed }">
+                  <v-row
+                    dense
+                    class="chart-tab-layout align-start"
+                    :class="{ 'flex-grow-1 flex-shrink-1 min-height-0 ma-0': isIndicatorEmbed }"
+                  >
+                    <v-col v-if="!isIndicatorEmbed" cols="12" lg="3" class="d-flex mb-4 mb-lg-0 pr-lg-3">
                       <v-card class="filter-panel filter-panel--dense flex-grow-1" rounded="0" flat>
                         <v-card-text class="pa-0">
                           <v-expansion-panels
@@ -393,11 +412,12 @@
                         </v-card-text>
                       </v-card>
                     </v-col>
-                    <v-col cols="12" lg="9">
+                    <v-col cols="12" :lg="isIndicatorEmbed ? 12 : 9">
                   <template v-if="dataLoadCommitted || !catalogSliceRequired">
-                  <div class="section-head d-flex flex-wrap align-center gap-3 mb-4">
-                    <div class="section-kicker">Chart</div>
+                  <div v-if="!isIndicatorEmbed" class="section-head d-flex flex-wrap align-center gap-2 mb-4">
+                    <div class="section-title">Chart</div>
                     <v-spacer />
+                    <div class="d-flex flex-wrap align-center gap-2">
                     <v-btn-toggle
                       v-if="chartModeToggleVisible"
                       v-model="chartType"
@@ -406,10 +426,10 @@
                       variant="outlined"
                       divided
                       rounded="md"
-                      class="chart-type-toggle"
+                      class="chart-type-toggle chart-toolbar-toggles"
                     >
-                      <v-btn value="line" size="x-small" class="text-none">Line</v-btn>
-                      <v-btn value="column" size="x-small" class="text-none">Columns</v-btn>
+                      <v-btn value="line" size="x-small" class="text-none chart-toolbar-toggle-btn">Line</v-btn>
+                      <v-btn value="column" size="x-small" class="text-none chart-toolbar-toggle-btn">Columns</v-btn>
                     </v-btn-toggle>
                     <v-menu
                       v-if="dataLoadCommitted"
@@ -421,17 +441,45 @@
                           v-bind="chartMenuProps"
                           icon
                           variant="text"
-                          size="small"
-                          density="comfortable"
-                          class="chart-toolbar-settings"
+                          size="x-small"
+                          density="compact"
+                          rounded="md"
+                          class="chart-toolbar-cog-btn"
                           :disabled="chartLoading"
-                          title="Chart export"
-                          aria-label="Chart export"
+                          title="Chart options"
+                          aria-label="Chart options"
                         >
-                          <v-icon class="chart-toolbar-settings__icon" size="18">mdi-cog-outline</v-icon>
+                          <v-icon size="16">mdi-cog-outline</v-icon>
                         </v-btn>
                       </template>
                       <v-list density="compact" class="chart-export-list">
+                        <v-list-item class="chart-menu-dark-mode-item" :ripple="false">
+                          <template #prepend>
+                            <v-icon size="small" class="text-medium-emphasis">mdi-weather-night</v-icon>
+                          </template>
+                          <v-list-item-title class="text-body-2">Chart background</v-list-item-title>
+                          <template #append>
+                            <div class="chart-menu-dark-switch-wrap" @click.stop>
+                              <v-switch
+                                v-model="chartDarkMode"
+                                class="chart-toolbar-bg-switch"
+                                color="primary"
+                                density="compact"
+                                hide-details
+                                false-icon="mdi-weather-sunny"
+                                true-icon="mdi-weather-night"
+                                aria-label="Toggle chart background between light and dark"
+                              />
+                            </div>
+                          </template>
+                        </v-list-item>
+                        <v-list-item
+                          v-if="embedUiAvailable"
+                          prepend-icon="mdi-code-tags"
+                          title="Embed chart"
+                          :disabled="!embedChartPageUrl"
+                          @click="embedDialogOpen = true"
+                        />
                         <v-list-item
                           prepend-icon="mdi-file-image-outline"
                           title="Download chart as PNG"
@@ -440,9 +488,10 @@
                         />
                       </v-list>
                     </v-menu>
+                    </div>
                   </div>
                   <v-alert
-                    v-if="dataLoadCommitted && chartScanTruncated"
+                    v-if="!isIndicatorEmbed && dataLoadCommitted && chartScanTruncated"
                     type="warning"
                     variant="tonal"
                     density="compact"
@@ -454,6 +503,7 @@
                   </v-alert>
                   <v-sheet
                     v-if="
+                      !isIndicatorEmbed &&
                       dataLoadCommitted &&
                       chartModel?.useNumericTimeX &&
                       chartModel?.timeXKind !== 'year'
@@ -464,7 +514,7 @@
                     <span>Time axis uses a continuous date scale (missing periods appear as wider gaps).</span>
                   </v-sheet>
                   <v-alert
-                    v-if="dataLoadCommitted && seriesTruncated"
+                    v-if="!isIndicatorEmbed && dataLoadCommitted && seriesTruncated"
                     type="info"
                     variant="tonal"
                     density="compact"
@@ -481,12 +531,25 @@
                     height="3"
                   />
 
-                  <div class="chart-canvas-wrap chart-shell chart-shell--padded" role="img" :aria-label="chartAriaLabel">
-                    <canvas
-                      v-show="!chartLoading && chartModel && chartModel.datasets.length"
-                      ref="chartCanvasRef"
-                      class="chart-canvas"
-                    ></canvas>
+                  <div class="chart-canvas-wrap chart-shell chart-shell--padded" :class="chartShellThemeClass">
+                    <div class="chart-canvas-area" role="img" :aria-label="chartAriaLabel">
+                      <canvas
+                        v-show="!chartLoading && chartModel && chartModel.datasets.length"
+                        ref="chartCanvasRef"
+                        class="chart-canvas"
+                      ></canvas>
+                    </div>
+                    <div v-if="indicatorChartSourceVisible" class="chart-source">
+                      <span class="chart-source__label text-medium-emphasis">Source:</span>
+                      <a
+                        class="chart-source__link"
+                        :href="indicatorChartPageUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {{ indicatorChartLinkText }}
+                      </a>
+                    </div>
                   </div>
 
                   <p
@@ -507,6 +570,7 @@
                   <template v-else>
                     <div
                       class="chart-empty-state chart-shell d-flex flex-column align-center justify-center text-center pa-8"
+                      :class="chartShellThemeClass"
                       role="status"
                       aria-live="polite"
                     >
@@ -514,15 +578,34 @@
                         mdi-chart-timeline-variant
                       </v-icon>
                       <div class="text-h5 font-weight-semibold mb-2">No chart yet</div>
-                      <p class="text-body-1 text-medium-emphasis mb-0" style="max-width: 28rem">
+                      <p
+                        v-if="isIndicatorEmbed"
+                        class="text-body-1 text-medium-emphasis mb-0"
+                        style="max-width: 28rem"
+                      >
+                        Add filter parameters to the embed URL, or open the full indicator chart page to explore data and
+                        filters.
+                      </p>
+                      <p v-else class="text-body-1 text-medium-emphasis mb-0" style="max-width: 28rem">
                         Choose values in the filter panel on the left, then confirm to load the chart and tables.
                       </p>
+                      <div v-if="indicatorChartSourceVisible" class="chart-source chart-source--empty mt-8 align-self-stretch">
+                        <span class="chart-source__label text-medium-emphasis">Source:</span>
+                        <a
+                          class="chart-source__link"
+                          :href="indicatorChartPageUrl"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {{ indicatorChartLinkText }}
+                        </a>
+                      </div>
                     </div>
                   </template>
 
-                  <v-divider v-if="dataLoadCommitted" class="my-6 catalog-divider" />
+                  <v-divider v-if="dataLoadCommitted && !isIndicatorEmbed" class="my-6 catalog-divider" />
 
-                  <div v-if="dataLoadCommitted" class="section-head d-flex flex-wrap align-center gap-2 mb-3">
+                  <div v-if="dataLoadCommitted && !isIndicatorEmbed" class="section-head d-flex flex-wrap align-center gap-2 mb-3">
                     <div class="section-title">Chart data</div>
                     <v-spacer />
                     <v-chip size="small" variant="tonal" color="primary" class="font-weight-medium">{{ chartRecords.length }} rows</v-chip>
@@ -532,14 +615,15 @@
                           v-bind="chartDataMenuProps"
                           icon
                           variant="text"
-                          size="small"
-                          density="comfortable"
-                          class="chart-toolbar-settings"
+                          size="x-small"
+                          density="compact"
+                          rounded="md"
+                          class="chart-toolbar-cog-btn"
                           :disabled="chartLoading || chartRecords.length === 0"
                           title="Chart data export"
                           aria-label="Chart data export"
                         >
-                          <v-icon class="chart-toolbar-settings__icon" size="18">mdi-cog-outline</v-icon>
+                          <v-icon size="16">mdi-cog-outline</v-icon>
                         </v-btn>
                       </template>
                       <v-list density="compact" class="chart-export-list">
@@ -565,7 +649,7 @@
                     </v-menu>
                   </div>
                   <v-alert
-                    v-if="dataLoadCommitted && chartApiQueryVisible"
+                    v-if="dataLoadCommitted && !isIndicatorEmbed && chartApiQueryVisible"
                     type="info"
                     variant="tonal"
                     density="compact"
@@ -577,7 +661,7 @@
                     <div class="font-weight-medium mb-1">API query</div>
                     <a :href="chartApiQueryUrl" target="_blank" rel="noopener">{{ chartApiQueryUrl }}</a>
                   </v-alert>
-                  <v-sheet v-if="dataLoadCommitted" rounded="lg" border class="data-shell overflow-hidden">
+                  <v-sheet v-if="dataLoadCommitted && !isIndicatorEmbed" rounded="lg" border class="data-shell overflow-hidden">
                     <v-data-table
                       :headers="chartDataTableHeaders"
                       :items="chartRecordsDisplay"
@@ -596,11 +680,95 @@
         </v-col>
       </v-row>
     </template>
+
+    <v-dialog
+      v-if="embedUiAvailable"
+      v-model="embedDialogOpen"
+      max-width="640"
+      scrollable
+      transition="scale-transition"
+    >
+      <v-card class="embed-chart-dialog rounded-lg">
+        <v-card-title class="embed-chart-dialog__title">Embed this chart</v-card-title>
+        <v-card-text class="embed-chart-dialog__body pa-4 pt-2">
+          <v-row dense class="mb-4">
+            <v-col cols="12" sm="6">
+              <div class="embed-chart-dialog__label mb-1">Width</div>
+              <v-text-field
+                v-model="embedDialogWidth"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                autocomplete="off"
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <div class="embed-chart-dialog__label mb-1">Height (px)</div>
+              <v-text-field
+                v-model.number="embedDialogHeightPx"
+                type="number"
+                :min="EMBED_IFRAME_HEIGHT_MIN"
+                :max="EMBED_IFRAME_HEIGHT_MAX"
+                step="1"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </v-col>
+          </v-row>
+          <div class="embed-chart-dialog__section-label mb-1">HTML (iframe)</div>
+          <v-textarea
+            :model-value="embedIframeHtml"
+            readonly
+            auto-grow
+            variant="outlined"
+            density="compact"
+            rows="6"
+            class="embed-chart-dialog__textarea embed-code-textarea font-monospace"
+          />
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <v-btn color="primary" variant="flat" size="x-small" rounded="lg" class="text-none" @click="onCopyEmbedIframe">
+              Copy embed code
+            </v-btn>
+            <v-btn variant="tonal" size="x-small" rounded="lg" class="text-none" @click="onCopyEmbedUrl"> Copy link only </v-btn>
+          </div>
+          <v-alert
+            v-if="embedDialogNotice"
+            :type="embedDialogNoticeIsError ? 'warning' : 'success'"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="embed-chart-dialog__notice mt-3 mb-0 py-2"
+          >
+            {{ embedDialogNotice }}
+          </v-alert>
+          <div class="embed-chart-dialog__section-label mt-4 mb-1">Direct URL</div>
+          <v-sheet rounded="lg" border class="embed-chart-dialog__url-sheet pa-2 text-break">
+            <a :href="embedChartPageUrl" target="_blank" rel="noopener noreferrer">{{ embedChartPageUrl }}</a>
+          </v-sheet>
+        </v-card-text>
+        <v-card-actions class="embed-chart-dialog__actions px-4 pb-3">
+          <v-spacer />
+          <v-btn variant="text" size="x-small" rounded="lg" class="text-none" @click="embedDialogOpen = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, shallowRef, reactive, computed, inject, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import {
+  ref,
+  shallowRef,
+  reactive,
+  computed,
+  inject,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  watchEffect,
+  nextTick,
+} from 'vue';
 import debounce from 'lodash/debounce';
 import Chart from 'chart.js/auto';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
@@ -610,7 +778,7 @@ defineOptions({ name: 'IndicatorChartTab' });
 
 const setMessage = inject('setMessage', () => {});
 
-const { config, apiBaseUrl } = useAppConfig();
+const { config, apiBaseUrl, siteUrl } = useAppConfig();
 const studyIdno = computed(() => String(config.value?.studyIdno ?? '').trim());
 const studySid = computed(() => config.value?.studySid ?? '');
 /** Catalog study title from window.APP_CONFIG (server-rendered); used as the chart title. */
@@ -665,7 +833,74 @@ const chartMetadata = ref({});
 /** [lowYear, highYear] for v-range-slider; independent until the user moves the slider or edits From/To. */
 const yearSliderLocal = ref([2000, 2020]);
 const chartType = ref('line');
+
+/** URL query `chart_bg`: light | dark (`white` is accepted for older URLs and mapped to light) */
+const Q_CHART_BG = 'chart_bg';
+const VALID_CHART_BG = ['light', 'dark'];
+
+function normalizeChartBg(raw) {
+  const s = String(raw ?? '').trim().toLowerCase();
+  if (s === 'white') return 'light';
+  return VALID_CHART_BG.includes(s) ? s : 'light';
+}
+
+const chartBg = ref('light');
+
+/** Icon switch: off = light, on = dark (syncs with `chartBg` / URL `chart_bg`). */
+const chartDarkMode = computed({
+  get() {
+    return normalizeChartBg(chartBg.value) === 'dark';
+  },
+  set(on) {
+    chartBg.value = on ? 'dark' : 'light';
+  },
+});
+
+/** Chart.js colors for the current `chart_bg` (light vs dark). */
+function getChartJsTheme(bg) {
+  const mode = normalizeChartBg(bg);
+  if (mode === 'dark') {
+    return {
+      text: '#ececec',
+      textSubtle: '#a8aeb8',
+      grid: 'rgba(255,255,255,0.14)',
+      gridZero: 'rgba(255,255,255,0.42)',
+      tooltipBg: '#2d2d2d',
+      tooltipBorder: 'rgba(255,255,255,0.2)',
+      tooltipText: '#ececec',
+    };
+  }
+  return {
+    text: '#111111',
+    textSubtle: '#666666',
+    grid: '#CED4DE',
+    gridZero: '#8a969f',
+    tooltipBg: '#ffffff',
+    tooltipBorder: '#CED4DE',
+    tooltipText: '#111111',
+  };
+}
+
+/** Solid background for PNG export (matches shell presets). */
+const CHART_BG_EXPORT_HEX = {
+  light: '#f6f6f8',
+  dark: '#1e1e1e',
+};
+
+const chartShellThemeClass = computed(() => `chart-shell--bg-${normalizeChartBg(chartBg.value)}`);
+
 const chartApiQueryVisible = ref(false);
+const embedDialogOpen = ref(false);
+/** Inline feedback inside embed dialog after copy actions */
+const embedDialogNotice = ref('');
+const embedDialogNoticeIsError = ref(false);
+let embedDialogNoticeTimer = null;
+
+/** Embed dialog: iframe dimensions for generated HTML */
+const EMBED_IFRAME_HEIGHT_MIN = 200;
+const EMBED_IFRAME_HEIGHT_MAX = 3000;
+const embedDialogWidth = ref('100%');
+const embedDialogHeightPx = ref(520);
 
 /** When true, skip syncing chart filter state to the URL (initial load / applying query from URL). */
 const urlSyncSuspended = ref(true);
@@ -913,6 +1148,12 @@ function readChartTypeFromQuery(q) {
   }
 }
 
+function readChartBgFromQuery(q) {
+  if (q.has(Q_CHART_BG)) {
+    chartBg.value = normalizeChartBg(q.get(Q_CHART_BG));
+  }
+}
+
 function readChartFiltersFromQuery(q) {
   if (q.has(Q_FROM)) {
     filterDraft.from = String(q.get(Q_FROM) ?? '').trim();
@@ -938,6 +1179,7 @@ function applyCatalogQueryFromUrl() {
   if (typeof window === 'undefined') return;
   const q = new URLSearchParams(window.location.search || '');
   readChartTypeFromQuery(q);
+  readChartBgFromQuery(q);
   readChartFiltersFromQuery(q);
 }
 
@@ -1035,6 +1277,7 @@ function stripCatalogQueryKeys(sp) {
   for (const key of [...sp.keys()]) {
     if (
       key === Q_CHART ||
+      key === Q_CHART_BG ||
       key === Q_FROM ||
       key === Q_TO ||
       key === Q_GEO ||
@@ -1050,6 +1293,7 @@ function stripCatalogQueryKeys(sp) {
 function buildCatalogQueryParams() {
   const p = new URLSearchParams();
   p.set(Q_CHART, chartType.value === 'column' ? 'column' : 'line');
+  p.set(Q_CHART_BG, normalizeChartBg(chartBg.value));
   const fr = String(filterDraft.from || '').trim();
   const to = String(filterDraft.to || '').trim();
   if (fr) p.set(Q_FROM, fr);
@@ -1095,7 +1339,139 @@ function writeCatalogQueryToUrl() {
 
 const debouncedWriteCatalogQueryToUrl = debounce(writeCatalogQueryToUrl, 260);
 
+const isIndicatorEmbed = computed(() => !!config.value?.indicatorEmbed);
+
+/** Show catalog-page embed UI (hidden on `/embed/catalog/.../chart`). */
+const embedUiAvailable = computed(
+  () => !isIndicatorEmbed.value && !!schema.value && String(siteUrl.value || '').trim() !== ''
+);
+
+/** Public iframe URL — same query keys as this catalog chart (`buildCatalogQueryParams`). */
+const embedChartPageUrl = computed(() => {
+  const sid = studySid.value;
+  const base = String(siteUrl.value || '').replace(/\/?$/, '/');
+  const n = Number(sid);
+  if (!Number.isFinite(n) || n <= 0 || !base) return '';
+  const path = `embed/catalog/${n}/chart`;
+  const qs = buildCatalogQueryParams().toString();
+  return qs ? `${base}${path}?${qs}` : `${base}${path}`;
+});
+
+/** Full catalog indicator chart page (non-embed); shown as “Source” under the plot for attribution / embeds */
+const indicatorChartPageUrl = computed(() => {
+  const sid = studySid.value;
+  const base = String(siteUrl.value || '').replace(/\/?$/, '/');
+  const n = Number(sid);
+  if (!Number.isFinite(n) || n <= 0 || !base) return '';
+  const path = `catalog/${n}/indicator-chart`;
+  const qs = buildCatalogQueryParams().toString();
+  return qs ? `${base}${path}?${qs}` : `${base}${path}`;
+});
+
+const indicatorChartSourceVisible = computed(() => String(indicatorChartPageUrl.value || '').trim() !== '');
+
+/** Visible label for the source link (study title, else neutral fallback) */
+const indicatorChartLinkText = computed(() => {
+  const t = String(studyTitle.value || '').trim();
+  return t !== '' ? t : 'View indicator page';
+});
+
+function escapeHtmlAttr(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;');
+}
+
+/** CSS width for pasted iframe (plain number → px) */
+function normalizeEmbedIframeWidth(raw) {
+  const s = String(raw ?? '').trim().slice(0, 120);
+  if (!s) return '100%';
+  if (/^\d+$/.test(s)) return `${s}px`;
+  return s;
+}
+
+function clampEmbedIframeHeightPx(n) {
+  let h = Number(n);
+  if (!Number.isFinite(h)) h = 520;
+  return Math.min(EMBED_IFRAME_HEIGHT_MAX, Math.max(EMBED_IFRAME_HEIGHT_MIN, Math.round(h)));
+}
+
+const embedIframeHtml = computed(() => {
+  const url = embedChartPageUrl.value;
+  if (!url) return '';
+  const title = studyTitle.value || 'Indicator chart';
+  const w = normalizeEmbedIframeWidth(embedDialogWidth.value);
+  const h = clampEmbedIframeHeightPx(embedDialogHeightPx.value);
+  const style = `border:0;display:block;width:${w};height:${h}px;max-width:100%`;
+  return `<iframe src="${escapeHtmlAttr(url)}" style="${escapeHtmlAttr(style)}" title="${escapeHtmlAttr(title)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+});
+
+async function copyTextToClipboard(text) {
+  if (!text) return false;
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* fall through */
+  }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
+function showEmbedDialogNotice(text, isError = false) {
+  embedDialogNotice.value = text;
+  embedDialogNoticeIsError.value = isError;
+  if (embedDialogNoticeTimer) {
+    clearTimeout(embedDialogNoticeTimer);
+    embedDialogNoticeTimer = null;
+  }
+  embedDialogNoticeTimer = setTimeout(() => {
+    embedDialogNotice.value = '';
+    embedDialogNoticeTimer = null;
+  }, 5000);
+}
+
+async function onCopyEmbedIframe() {
+  const ok = await copyTextToClipboard(embedIframeHtml.value);
+  showEmbedDialogNotice(ok ? 'Link copied.' : 'Could not copy.', !ok);
+}
+
+async function onCopyEmbedUrl() {
+  const ok = await copyTextToClipboard(embedChartPageUrl.value);
+  showEmbedDialogNotice(ok ? 'Link copied.' : 'Could not copy.', !ok);
+}
+
+watch(embedDialogOpen, (open) => {
+  if (!open) {
+    embedDialogNotice.value = '';
+    embedDialogNoticeIsError.value = false;
+    if (embedDialogNoticeTimer) {
+      clearTimeout(embedDialogNoticeTimer);
+      embedDialogNoticeTimer = null;
+    }
+  }
+});
+
 watch(chartType, () => {
+  debouncedWriteCatalogQueryToUrl();
+});
+
+watch(chartBg, () => {
   debouncedWriteCatalogQueryToUrl();
 });
 
@@ -1526,9 +1902,21 @@ function showChartApiQueryBox() {
 
 function exportChartPng() {
   if (!chartExportPngAvailable.value) return;
-  const inst = chartInstance.value;
-  if (!inst?.toBase64Image) return;
-  const dataUrl = inst.toBase64Image('image/png', 1);
+  const canvas = chartCanvasRef.value;
+  if (!canvas) return;
+  const mode = normalizeChartBg(chartBg.value);
+  const bgHex = CHART_BG_EXPORT_HEX[mode] || CHART_BG_EXPORT_HEX.light;
+  const w = canvas.width;
+  const h = canvas.height;
+  const tmp = document.createElement('canvas');
+  tmp.width = w;
+  tmp.height = h;
+  const ctx = tmp.getContext('2d');
+  if (!ctx) return;
+  ctx.fillStyle = bgHex;
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(canvas, 0, 0);
+  const dataUrl = tmp.toDataURL('image/png', 1);
   const idPart = sanitizeChartExportFilenamePart(studyIdno.value || String(studySid.value));
   const filename = `chart-${idPart}-${chartExportFileStamp()}.png`;
   triggerBrowserDownload({ href: dataUrl, download: filename, revokeObjectUrl: false });
@@ -1837,6 +2225,7 @@ async function renderOrUpdateChart() {
   const numericX = model.useNumericTimeX === true;
   const chartTitleText = studyTitle.value || 'Chart';
   const chartSubtitleText = chartFilterSubtitle.value;
+  const T = getChartJsTheme(chartBg.value);
 
   const inst = new Chart(canvas, {
     type: isBar ? 'bar' : 'line',
@@ -1845,7 +2234,7 @@ async function renderOrUpdateChart() {
       datasets: model.datasets,
     },
     options: {
-      color: WB_TEXT_SUBTLE,
+      color: T.textSubtle,
       font: {
         family: CHART_FONT_FAMILY,
         size: 11,
@@ -1868,7 +2257,7 @@ async function renderOrUpdateChart() {
         title: {
           display: true,
           text: chartTitleText,
-          color: WB_TEXT,
+          color: T.text,
           align: 'start',
           font: {
             family: CHART_FONT_FAMILY,
@@ -1883,7 +2272,7 @@ async function renderOrUpdateChart() {
         subtitle: {
           display: Boolean(chartSubtitleText),
           text: chartSubtitleText,
-          color: WB_TEXT_SUBTLE,
+          color: T.textSubtle,
           align: 'start',
           font: {
             family: CHART_FONT_FAMILY,
@@ -1916,7 +2305,7 @@ async function renderOrUpdateChart() {
             },
           },
           labels: {
-            color: WB_TEXT,
+            color: T.text,
             usePointStyle: false,
             boxWidth: 28,
             boxHeight: 3,
@@ -1939,10 +2328,10 @@ async function renderOrUpdateChart() {
           },
         },
         tooltip: {
-          backgroundColor: '#ffffff',
-          titleColor: WB_TEXT,
-          bodyColor: WB_TEXT,
-          borderColor: WB_GREY200,
+          backgroundColor: T.tooltipBg,
+          titleColor: T.tooltipText,
+          bodyColor: T.tooltipText,
+          borderColor: T.tooltipBorder,
           borderWidth: 0.5,
           padding: 12,
           cornerRadius: 2,
@@ -1997,10 +2386,10 @@ async function renderOrUpdateChart() {
           },
           border: {
             display: true,
-            color: WB_GREY200,
+            color: T.grid,
           },
           ticks: {
-            color: WB_TEXT_SUBTLE,
+            color: T.textSubtle,
             maxRotation: 45,
             minRotation: 0,
             autoSkip: true,
@@ -2033,12 +2422,12 @@ async function renderOrUpdateChart() {
             },
           },
           ticks: {
-            color: WB_TEXT_SUBTLE,
+            color: T.textSubtle,
             maxTicksLimit: 6,
           },
           grid: {
             color(context) {
-              return isYAxisZeroTick(context.tick?.value) ? WB_GREY300 : WB_GREY200;
+              return isYAxisZeroTick(context.tick?.value) ? T.gridZero : T.grid;
             },
             lineWidth: 1,
           },
@@ -2089,6 +2478,7 @@ watch(
   () => [
     chartLoading.value,
     chartType.value,
+    chartBg.value,
     chartModel.value?.totalPoints ?? 0,
     studyTitle.value,
     chartFilterSubtitle.value,
@@ -2103,10 +2493,31 @@ watch(
   { deep: true, flush: 'post' }
 );
 
+/** Embed: flex layout changes don’t fire window.resize — Chart.js only listens to window by default */
+watchEffect((onCleanup) => {
+  const embed = !!config.value?.indicatorEmbed;
+  const canvas = chartCanvasRef.value;
+  const inst = chartInstance.value;
+  if (!embed || !canvas || !inst || typeof ResizeObserver === 'undefined') {
+    return;
+  }
+  const wrap = canvas.closest('.chart-canvas-wrap');
+  if (!wrap) return;
+  const ro = new ResizeObserver(() => {
+    requestAnimationFrame(() => inst.resize());
+  });
+  ro.observe(wrap);
+  onCleanup(() => ro.disconnect());
+});
+
 onBeforeUnmount(() => {
   debouncedWriteCatalogQueryToUrl.cancel();
   debouncedAutoApply.cancel();
   destroyChart();
+  if (embedDialogNoticeTimer) {
+    clearTimeout(embedDialogNoticeTimer);
+    embedDialogNoticeTimer = null;
+  }
 });
 
 async function loadCodelistsForSchema() {
@@ -2397,20 +2808,11 @@ onMounted(() => {
 }
 
 .main-panel {
-  min-height: 480px;
+  min-height: 520px;
 }
 
 .catalog-divider {
   opacity: 0.55;
-}
-
-.section-kicker {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(var(--v-theme-on-surface), 0.5);
-  margin-bottom: 0.15rem;
 }
 
 .section-title {
@@ -2420,25 +2822,96 @@ onMounted(() => {
   line-height: 1.2;
 }
 
+.chart-toolbar-toggles :deep(.v-btn.chart-toolbar-toggle-btn),
 .chart-type-toggle :deep(.v-btn) {
   min-width: 0;
-  padding-inline: 0.5rem;
-  font-size: 0.6875rem;
+  min-height: 22px !important;
+  height: 22px !important;
+  padding-inline: 0.3rem;
+  padding-block: 0;
+  font-size: 0.5625rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+  line-height: 1.2;
 }
 
-.chart-toolbar-settings {
+/* Non-`inset` switch = smaller track; used in chart options menu (dark mode) */
+.chart-toolbar-bg-switch {
   flex-shrink: 0;
-  margin-inline-start: 0.375rem;
+  --v-input-control-height: 22px;
+  --v-input-padding-top: 0px;
 }
 
-.chart-toolbar-settings__icon {
-  opacity: 0.88;
+.chart-toolbar-bg-switch :deep(.v-selection-control) {
+  min-height: 22px !important;
+  align-items: center;
 }
 
-.chart-toolbar-settings :deep(.v-btn__overlay) {
-  opacity: 0.06;
+.chart-toolbar-bg-switch :deep(.v-switch .v-switch__track) {
+  min-width: 30px;
+  height: 12px;
+}
+
+.chart-toolbar-bg-switch :deep(.v-switch .v-switch__thumb) {
+  height: 16px;
+  width: 16px;
+}
+
+.chart-toolbar-bg-switch :deep(.v-locale--is-ltr.v-switch .v-selection-control__input),
+.chart-toolbar-bg-switch :deep(.v-locale--is-ltr .v-switch .v-selection-control__input) {
+  transform: translateX(-8px);
+}
+
+.chart-toolbar-bg-switch :deep(.v-locale--is-ltr.v-switch .v-selection-control--dirty .v-selection-control__input),
+.chart-toolbar-bg-switch :deep(.v-locale--is-ltr .v-switch .v-selection-control--dirty .v-selection-control__input) {
+  transform: translateX(8px);
+}
+
+.chart-toolbar-bg-switch :deep(.v-locale--is-rtl.v-switch .v-selection-control__input),
+.chart-toolbar-bg-switch :deep(.v-locale--is-rtl .v-switch .v-selection-control__input) {
+  transform: translateX(8px);
+}
+
+.chart-toolbar-bg-switch :deep(.v-locale--is-rtl.v-switch .v-selection-control--dirty .v-selection-control__input),
+.chart-toolbar-bg-switch :deep(.v-locale--is-rtl .v-switch .v-selection-control--dirty .v-selection-control__input) {
+  transform: translateX(-8px);
+}
+
+.chart-toolbar-bg-switch :deep(.v-img),
+.chart-toolbar-bg-switch :deep(.v-icon) {
+  opacity: 0.9;
+}
+
+.chart-toolbar-bg-switch :deep(.v-switch .v-switch__thumb .v-icon) {
+  font-size: 12px !important;
+}
+
+/** Icon-only — matches chart toolbar control height */
+.chart-toolbar-cog-btn {
+  flex-shrink: 0;
+  min-width: 30px !important;
+  width: 30px;
+  height: 22px !important;
+  min-height: 22px !important;
+  padding-inline: 0 !important;
+  padding-block: 0 !important;
+}
+
+.chart-toolbar-cog-btn :deep(.v-icon) {
+  opacity: 0.9;
+}
+
+.chart-export-list :deep(.v-list-item) {
+  --v-list-prepend-gap: 8px;
+}
+
+.chart-menu-dark-mode-item :deep(.v-list-item__append) {
+  align-self: center;
+}
+
+.chart-menu-dark-switch-wrap {
+  display: flex;
+  align-items: center;
 }
 
 .chart-hint {
@@ -2459,6 +2932,28 @@ onMounted(() => {
 .chart-shell.chart-shell--padded {
   box-sizing: border-box;
   padding: 1rem 1.25rem 1.25rem;
+}
+
+.chart-shell.chart-shell--bg-light {
+  background: rgba(var(--v-theme-on-surface), 0.025);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.chart-shell.chart-shell--bg-dark {
+  background: #1e1e1e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.chart-shell.chart-shell--bg-dark .text-h5,
+.chart-shell.chart-shell--bg-dark .text-body-1 {
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .facet-checkbox-panel {
@@ -2536,20 +3031,120 @@ onMounted(() => {
   min-height: 32px;
 }
 
+/* Undo catalog page max-width / padding so embed fills the iframe */
+.catalog-indicator-page.catalog-indicator-page--embed {
+  max-width: none !important;
+  margin-inline: 0 !important;
+  padding-block: 0 !important;
+}
+
+.catalog-indicator-page--embed {
+  flex: 1 1 0%;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Vuetify grid gutters inset the chart — remove for embed */
+.catalog-indicator-page--embed .main-layout.row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100%;
+  max-width: 100%;
+}
+.catalog-indicator-page--embed .chart-tab-layout.row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100%;
+  max-width: 100%;
+}
+
+.catalog-indicator-page--embed .catalog-indicator-page__main--embed {
+  min-height: 0;
+}
+
+.catalog-indicator-page--embed .catalog-indicator-page__panel--embed {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.catalog-indicator-page--embed .catalog-indicator-page__panel--embed :deep(.v-card__loader) {
+  top: 0;
+}
+
+.catalog-indicator-page--embed .chart-tab-layout > .v-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  min-height: 0;
+  max-width: 100%;
+}
+
+.catalog-indicator-page--embed .chart-shell.chart-shell--padded {
+  flex: 1 1 0%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Same horizontal inset as Chart.js layout.padding (left/right 20) so “Source” lines up with title */
+.catalog-indicator-page--embed .chart-source {
+  padding-inline-start: calc(28px + 0.75rem);
+  padding-inline-end: calc(20px + 0.75rem);
+  padding-bottom: 0.35rem;
+}
+
+/* Fixed plot height — canvas area flexes; source line sits under Chart.js legend */
 .chart-canvas-wrap {
+  display: flex;
+  flex-direction: column;
   position: relative;
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  height: min(480px, 60vh);
-  min-height: 300px;
+  min-width: min(100%, 280px);
+  height: 520px;
+  min-height: 380px;
+  box-sizing: border-box;
+}
+
+.chart-canvas-area {
+  position: relative;
+  flex: 1 1 0%;
+  min-height: 0;
+  width: 100%;
 }
 
 .chart-empty-state {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  min-height: min(480px, 60vh);
+  min-width: min(100%, 280px);
+  height: 520px;
+  min-height: 380px;
+  box-sizing: border-box;
+}
+
+/* Embed iframe: flex-fill overrides fixed catalog height */
+.catalog-indicator-page--embed .chart-canvas-wrap,
+.catalog-indicator-page--embed .chart-empty-state {
+  flex: 1 1 0%;
+  height: auto;
+  min-height: 280px;
+  min-width: min(100%, 280px);
+  width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+  box-sizing: border-box;
 }
 
 .chart-empty-state__icon {
@@ -2560,6 +3155,37 @@ onMounted(() => {
   width: 100% !important;
   height: 100% !important;
   display: block;
+}
+
+.chart-source {
+  flex-shrink: 0;
+  align-self: stretch;
+  box-sizing: border-box;
+  padding-top: 0.5rem;
+  padding-inline-start: 28px;
+  padding-inline-end: 20px;
+  line-height: 1.35;
+  word-break: break-word;
+  font-size: 0.625rem;
+}
+
+.chart-source__label {
+  margin-inline-end: 0.3rem;
+}
+
+.chart-source__link {
+  color: rgb(var(--v-theme-primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 400;
+}
+
+.chart-source__link:hover {
+  opacity: 0.9;
+}
+
+.chart-source--empty {
+  text-align: start;
 }
 
 .data-shell {
@@ -2608,5 +3234,75 @@ onMounted(() => {
 .chart-data-table :deep(.v-data-table-footer__info) {
   justify-content: flex-start;
   padding-inline: 12px 16px;
+}
+
+/* Embed dialog — smaller typography */
+.embed-chart-dialog {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.embed-chart-dialog__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  padding: 10px 16px 6px !important;
+  min-height: 0 !important;
+}
+
+.embed-chart-dialog__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(var(--v-theme-on-surface), 0.85);
+}
+
+.embed-chart-dialog__section-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(var(--v-theme-on-surface), 0.55);
+}
+
+.embed-chart-dialog__url-sheet {
+  font-size: 0.75rem;
+}
+
+.embed-chart-dialog__url-sheet a {
+  font-size: inherit;
+}
+
+.embed-chart-dialog :deep(.v-field .v-field__input) {
+  font-size: 0.8125rem;
+  min-height: 34px;
+}
+
+.embed-chart-dialog :deep(.v-messages__message) {
+  font-size: 0.6875rem;
+  line-height: 1.35;
+}
+
+.embed-chart-dialog__textarea :deep(textarea),
+.embed-chart-dialog__textarea :deep(.v-field__input) {
+  font-size: 0.75rem !important;
+  line-height: 1.4;
+  min-height: 7.5rem;
+}
+
+.embed-chart-dialog :deep(.v-btn) {
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  min-height: 28px !important;
+}
+
+.embed-chart-dialog__actions :deep(.v-btn) {
+  font-size: 0.6875rem;
+  min-height: 28px !important;
+}
+
+.embed-chart-dialog__notice {
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 </style>

@@ -16,11 +16,12 @@ $_page_title = isset($catalog_page_title)
 $_study_title = isset($study_title) ? (string) $study_title : '';
 $_study_abstract = isset($study_abstract) ? (string) $study_abstract : '';
 $_indicator_ui = isset($indicator_data_api_ui) && is_array($indicator_data_api_ui) ? $indicator_data_api_ui : array();
+$_embed_mode = !empty($embed_mode);
 
 $vite_dev_url = defined('VITE_DEV_URL') ? VITE_DEV_URL : 'http://localhost:5173';
 $use_vite_dev = defined('VUE_ENVIRONMENT') && VUE_ENVIRONMENT === 'development';
 ?>
-<div id="catalog-study-indicator-data-app" class="catalog-study-indicator-data-vue"></div>
+<div id="catalog-study-indicator-data-app" class="catalog-study-indicator-data-vue<?php echo $_embed_mode ? ' catalog-study-indicator-data-vue--embed' : ''; ?>"></div>
 <script>
 window.APP_CONFIG = Object.assign({}, window.APP_CONFIG || {}, {
 	siteUrl: "<?php echo addslashes(site_url()); ?>",
@@ -33,7 +34,8 @@ window.APP_CONFIG = Object.assign({}, window.APP_CONFIG || {}, {
 	indicatorMainView: <?php echo json_encode($_imv); ?>,
 	studyTitle: <?php echo json_encode($_study_title, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>,
 	studyAbstract: <?php echo json_encode($_study_abstract, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>,
-	indicatorDataApiUi: <?php echo json_encode($_indicator_ui, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>
+	indicatorDataApiUi: <?php echo json_encode($_indicator_ui, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>,
+	indicatorEmbed: <?php echo json_encode($_embed_mode); ?>
 });
 </script>
 <?php if ($use_vite_dev): ?>

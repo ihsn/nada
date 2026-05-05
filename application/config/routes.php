@@ -158,6 +158,8 @@ $route['catalog/(:num)/variable_groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/vargrp'] = "study/variable_groups/$1";
 
 //timeseries db info page
+$route['embed/catalog/(:num)/chart'] = 'embed/catalog_chart/$1';
+
 $route['catalog/(:num)/indicator-chart'] = "study/indicator_chart/$1";
 $route['catalog/(:num)/indicator-data-api'] = "study/indicator_observations/$1";
 // Legacy slug (301-style redirect in controller).
