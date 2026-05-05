@@ -109,7 +109,69 @@ class Dataset_timeseriesdb_model extends Dataset_model {
             $output['authoring_entity']=implode(", ",$author_names);
         }
 
+        // nation/nations from database_description.ref_country[].name
+        $ref_countries=(array)$this->get_array_nested_value($options,'database_description/ref_country');
+        if (count($ref_countries)>0){
+            $country_names=array();
+            foreach($ref_countries as $country){
+                if(isset($country['name']) && trim((string)$country['name'])!==''){
+                    $country_names[]=trim((string)$country['name']);
+                }
+            }
+
+            if (!empty($country_names)){
+                $country_names=array_values(array_unique($country_names));
+                $output['nations']=$country_names;
+                $output['nation']=implode(", ",$country_names);
+            }
+        }
+
+        // year_start/year_end from database_description.time_coverage[].start/end
+        $time_coverage=(array)$this->get_array_nested_value($options,'database_description/time_coverage');
+        if (count($time_coverage)>0){
+            $start_years=array();
+            $end_years=array();
+
+            foreach($time_coverage as $period){
+                if (isset($period['start'])){
+                    $year=$this->extract_year($period['start']);
+                    if ($year>0){
+                        $start_years[]=$year;
+                    }
+                }
+
+                if (isset($period['end'])){
+                    $year=$this->extract_year($period['end']);
+                    if ($year>0){
+                        $end_years[]=$year;
+                    }
+                }
+            }
+
+            if (!empty($start_years)){
+                $output['year_start']=min($start_years);
+            }
+
+            if (!empty($end_years)){
+                $output['year_end']=max($end_years);
+            }
+        }
+
         return $output;
+    }
+
+    private function extract_year($value)
+    {
+        if (is_numeric($value) && (int)$value>999 && (int)$value<3001){
+            return (int)$value;
+        }
+
+        $value=(string)$value;
+        if (preg_match('/\b(1[6-9][0-9]{2}|20[0-9]{2}|2[1-9][0-9]{2}|3000)\b/', $value, $matches)){
+            return (int)$matches[1];
+        }
+
+        return 0;
     }
 
     function update_filters($sid, $metadata=null)

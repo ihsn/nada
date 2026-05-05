@@ -34,7 +34,7 @@
 <?php if (isset($data) && is_array($data) && count($data)>0 ):?>
 <div class="table-responsive field field-<?php echo str_replace(".","__",$name);?>">
     <?php if ($hide_field_title!=true):?>
-    <div class="xsl-caption field-caption"><?php echo t($name);?></div>
+    <div class="xsl-caption field-caption"><?php echo tt($name, $name);?></div>
     <?php endif;?>
     <div class="field-value">                
         <?php if (isset($data[0]) && is_array($data[0])):?>
@@ -58,7 +58,7 @@
             <?php foreach($data as $row):?>                
                     <?php foreach($columns as $column_name):?>                        
                         <div>
-                            <div class="field-caption"><?php echo t($name.'.'.$column_name);?></div>
+                            <div class="field-caption"><?php echo tt($name.'.'.$column_name, $name.'.'.$column_name);?></div>
                             <div class="mb-3">
                                 <?php if(empty($row[$column_name])){continue;}?>    
                                 <?php if(is_array($row[$column_name])):?>

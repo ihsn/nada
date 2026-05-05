@@ -644,6 +644,87 @@ paths:
               schema:
                 $ref: 'survey-schema.json'
 
+  /datasets/patch/{type}/{IDNo}:
+    post:
+      tags:
+        - Survey
+        - Datasets
+      summary: Patch dataset metadata (JSON Patch)
+      description: |
+        Applies [RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902) JSON Patch operations to the dataset metadata document
+        returned by the catalog (same `patches` array shape as the metadata editor `POST .../editor/patch/{project-type}/{id}` API).
+
+        Path segments: `type` is the dataset type (`survey`, `geospatial`, `timeseries`, `timeseriesdb`, `document`, etc.—same as `/datasets/update/{type}/{IDNo}`).
+        `IDNo` is the study IDNO (or internal numeric id with query `?id_format=id`).
+
+        Request body:
+        - `patches` (required): array of RFC 6902 JSON Patch operations.
+      operationId: patchDatasetMetadata
+      parameters:
+        - name: type
+          in: path
+          required: true
+          description: Dataset type (must match the existing study type)
+          schema:
+            type: string
+        - name: IDNo
+          in: path
+          required: true
+          description: Dataset IDNo
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - patches
+              properties:
+                patches:
+                  type: array
+                  description: RFC 6902 JSON Patch operations to apply to the dataset metadata document.
+                  items:
+                    type: object
+                    required:
+                      - op
+                      - path
+                    properties:
+                      op:
+                        type: string
+                        description: JSON Patch operation.
+                        enum: [add, remove, replace, move, copy, test]
+                      path:
+                        type: string
+                        description: JSON Pointer path in the metadata document.
+                        example: /database_description/title_statement/title
+                      value:
+                        description: Value used by add/replace/test operations.
+                      from:
+                        type: string
+                        description: Source path used by move/copy operations.
+                        example: /study_desc/title_statement/title
+            example:
+              patches:
+                - op: replace
+                  path: /path/to/the/field
+                  value: value
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  dataset:
+                    type: object
+                    description: Catalog row for the study (shape varies by type)
+
   /datasets/import_ddi:
     post:
       tags:
@@ -944,40 +1025,6 @@ paths:
             application/json:
               schema:
                 $ref: 'timeseries-schema.json'
-
-  /dataset/series/{datasetIDNo}/{fileId}:
-    post:
-      tags:
-        - Timeseries
-      summary: Add series
-      description: Add series for timeseries
-      operationId: AddTimeSeries
-      parameters:
-        - name: datasetIDNo
-          in: path
-          required: true
-          description: Dataset user defined IDNo
-          schema:
-            type: string
-        - name: fileId
-          in: path
-          required: true
-          description: File ID - user defined unique file identifier
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: 'series-schema.json'
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: 'series-schema.json'
 
   # ----------------------------------------------------------------
   # Images

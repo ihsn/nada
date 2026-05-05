@@ -66,7 +66,7 @@ class Study extends MY_Controller {
 
 		$survey['resources']=$this->Survey_resource_model->get_survey_resources_group_by_filename($sid);
 
-		if (in_array($survey['type'], array('script','survey'))){
+		if (in_array($survey['type'], array('script','survey','timeseriesdb','timeseries-db'))){
 			$output=$this->render_metadata_html($survey);
 		}
 		else{		
@@ -97,8 +97,11 @@ class Study extends MY_Controller {
 	{
 		$this->load->library("Display_template");
 		//try{
-
-			$template=$this->display_template->get_template_project_type($project['type']);
+			$project_type = $project['type'];
+			if ($project_type === 'timeseries-db') {
+				$project_type = 'timeseriesdb';
+			}
+			$template=$this->display_template->get_template_project_type($project_type);
 
 			if (isset($template['template'])){
 				$template=$template['template'];
@@ -748,7 +751,7 @@ class Study extends MY_Controller {
 			case 'timeseries-db':
 				$page_tabs=array(
 					'description'=>array(
-						'label'=>t('timeseries_db'),
+						'label'=>'Dataset description',
 						'url'=>site_url("catalog/$sid/study-description"),
 						'show_tab'=>1
 					),

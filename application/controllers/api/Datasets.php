@@ -1,5 +1,7 @@
 <?php
 
+use Swaggest\JsonDiff\JsonPatch;
+
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
 class Datasets extends MY_REST_Controller
@@ -670,6 +672,103 @@ class Datasets extends MY_REST_Controller
 				'status'=>'failed',
 				'message'=>$e->getMessage(),
 				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * Apply RFC 6902 JSON Patch to dataset metadata (same contract as metadata editor patch).
+	 *
+	 * POST api/datasets/patch/{type}/{idno}
+	 *
+	 * Body: { "patches": [ ... ] }
+	 */
+	function patch_post($type=null,$idno=null)
+	{
+		if($type=='timeseries-db'){
+			$type='timeseriesdb';
+		}
+
+		try{
+			$body=$this->raw_json_input();
+			if (!is_array($body)){
+				throw new Exception("INVALID_JSON_INPUT");
+			}
+
+			if (!isset($body['patches'])){
+				throw new Exception("`patches` parameter is required");
+			}
+
+			if (!is_array($body['patches'])){
+				throw new Exception("`patches` must be a JSON array");
+			}
+
+			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
+
+			$dataset=$this->dataset_manager->get_row($sid);
+
+			if(!$dataset){
+				throw new Exception("DATASET_NOT_FOUND");
+			}
+
+			if ($dataset['type']!==$type){
+				throw new Exception("TYPE_MISMATCH: dataset type is [".$dataset['type']."] but URL type is [".$type."]");
+			}
+
+			$metadata=$this->dataset_manager->get_metadata($sid);
+
+			if (!is_array($metadata)){
+				throw new Exception("METADATA_NOT_AVAILABLE");
+			}
+
+			$metadata_for_patch=json_decode(json_encode($metadata));
+			$patch=JsonPatch::import($body['patches']);
+			$patch->setFlags(1);
+			$patch->apply($metadata_for_patch);
+
+			$patched=json_decode(json_encode($metadata_for_patch), true);
+
+			$user_id=$this->get_api_user_id();
+			$options=array_merge($dataset, $patched);
+			$options['changed_by']=$user_id;
+			$options['changed']=date("U");
+
+			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image' || $type=='video' || $type=='timeseries' || $type=='timeseriesdb'){
+				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, true);
+			}
+			else{
+				$dataset_id=$this->dataset_manager->create_dataset($type,$options);
+			}
+
+			$dataset=$this->dataset_manager->get_row($dataset_id);
+
+			$this->events->emit('db.after.update', 'surveys', $dataset_id,'refresh');
+
+			$response=array(
+				'status'=>'success',
+				'dataset'=>$dataset,
+				'_links'=>array(
+					'view'=>site_url('catalog/'.$dataset['id'])
+				)
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>(array)$e->GetValidationErrors()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}

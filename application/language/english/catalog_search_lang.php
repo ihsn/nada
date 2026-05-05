@@ -240,7 +240,7 @@ $lang['Photo']='Image';
 
 $lang['geospatial_description']="Description";
 $lang['timeseries_description']="Series Description";
-$lang['timeseries_db']="Source database";
+$lang['timeseries_db']="Dataset description";
 $lang['tab_indicator_data']="Indicator data";
 $lang['tab_indicator_chart']="Chart & data";
 $lang['tab_indicator_observations']="Data API";
