@@ -395,12 +395,11 @@
 
                           <div class="filter-sidebar-apply pt-2 pb-2">
                             <v-btn
-                              color="primary"
-                              variant="flat"
+                              variant="outlined"
                               size="small"
-                              rounded="lg"
+                              rounded="xl"
                               block
-                              class="text-none"
+                              class="text-none filter-apply-outlined"
                               :loading="applyLoading"
                               :disabled="applyLoading || (catalogSliceRequired && !catalogSliceSelectionComplete)"
                               prepend-icon="mdi-check"
@@ -413,7 +412,7 @@
                       </v-card>
                     </v-col>
                     <v-col cols="12" :lg="isIndicatorEmbed ? 12 : 9">
-                  <template v-if="dataLoadCommitted || !catalogSliceRequired">
+                  <template v-if="chartVisualizationReady">
                   <div v-if="!isIndicatorEmbed" class="section-head d-flex flex-wrap align-center gap-2 mb-4">
                     <div class="section-title">Chart</div>
                     <v-spacer />
@@ -574,10 +573,9 @@
                       role="status"
                       aria-live="polite"
                     >
-                      <v-icon size="112" color="primary" class="chart-empty-state__icon mb-5">
+                      <v-icon size="112" color="primary" class="chart-empty-state__icon mb-4">
                         mdi-chart-timeline-variant
                       </v-icon>
-                      <div class="text-h5 font-weight-semibold mb-2">No chart yet</div>
                       <p
                         v-if="isIndicatorEmbed"
                         class="text-body-1 text-medium-emphasis mb-0"
@@ -587,25 +585,14 @@
                         filters.
                       </p>
                       <p v-else class="text-body-1 text-medium-emphasis mb-0" style="max-width: 28rem">
-                        Choose values in the filter panel on the left, then confirm to load the chart and tables.
+                        Choose values in the filter panel on the left for the chart.
                       </p>
-                      <div v-if="indicatorChartSourceVisible" class="chart-source chart-source--empty mt-8 align-self-stretch">
-                        <span class="chart-source__label text-medium-emphasis">Source:</span>
-                        <a
-                          class="chart-source__link"
-                          :href="indicatorChartPageUrl"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {{ indicatorChartLinkText }}
-                        </a>
-                      </div>
                     </div>
                   </template>
 
-                  <v-divider v-if="dataLoadCommitted && !isIndicatorEmbed" class="my-6 catalog-divider" />
+                  <v-divider v-if="chartVisualizationReady && !isIndicatorEmbed" class="my-6 catalog-divider" />
 
-                  <div v-if="dataLoadCommitted && !isIndicatorEmbed" class="section-head d-flex flex-wrap align-center gap-2 mb-3">
+                  <div v-if="chartVisualizationReady && !isIndicatorEmbed" class="section-head d-flex flex-wrap align-center gap-2 mb-3">
                     <div class="section-title">Chart data</div>
                     <v-spacer />
                     <v-chip size="small" variant="tonal" color="primary" class="font-weight-medium">{{ chartRecords.length }} rows</v-chip>
@@ -649,7 +636,7 @@
                     </v-menu>
                   </div>
                   <v-alert
-                    v-if="dataLoadCommitted && !isIndicatorEmbed && chartApiQueryVisible"
+                    v-if="chartVisualizationReady && !isIndicatorEmbed && chartApiQueryVisible"
                     type="info"
                     variant="tonal"
                     density="compact"
@@ -661,7 +648,7 @@
                     <div class="font-weight-medium mb-1">API query</div>
                     <a :href="chartApiQueryUrl" target="_blank" rel="noopener">{{ chartApiQueryUrl }}</a>
                   </v-alert>
-                  <v-sheet v-if="dataLoadCommitted && !isIndicatorEmbed" rounded="lg" border class="data-shell overflow-hidden">
+                  <v-sheet v-if="chartVisualizationReady && !isIndicatorEmbed" rounded="lg" border class="data-shell overflow-hidden">
                     <v-data-table
                       :headers="chartDataTableHeaders"
                       :items="chartRecordsDisplay"
@@ -1083,6 +1070,14 @@ function syncChartFilterExpandedPanelsOpen() {
 
 /** User has applied filters at least once (payload sent to APIs). */
 const dataLoadCommitted = computed(() => activeFilters.value != null);
+
+/** Show chart + chart-data table only when required facet slices are complete and filters are committed (or slice not required). */
+const chartVisualizationReady = computed(() => {
+  if (!catalogSliceRequired.value) {
+    return dataLoadCommitted.value;
+  }
+  return dataLoadCommitted.value && catalogSliceSelectionComplete.value;
+});
 
 // --- URL query sync (tab + chart filter draft) ---------------------------------
 
@@ -2595,7 +2590,9 @@ async function applyFiltersInternal() {
   if (!studyIdno.value) return;
   if (pageLoading.value || !schema.value) return;
   if (catalogSliceRequired.value && !catalogSliceSelectionComplete.value) {
-    setMessage('Choose the required filter values before continuing.', 'warning');
+    activeFilters.value = null;
+    clearCatalogData();
+    chartLoading.value = false;
     return;
   }
   applyLoading.value = true;
@@ -2730,6 +2727,15 @@ onMounted(() => {
 .filter-panel--dense .field-label {
   font-size: 0.6875rem;
   margin-bottom: 0.2rem;
+}
+
+.filter-sidebar-apply .filter-apply-outlined.v-btn--variant-outlined {
+  border-color: rgba(var(--v-theme-on-surface), 0.12) !important;
+  border-radius: 14px !important;
+}
+
+.filter-sidebar-apply .filter-apply-outlined.v-btn--variant-outlined:not(.v-btn--disabled):hover {
+  border-color: rgba(var(--v-theme-on-surface), 0.22) !important;
 }
 
 .filter-expansion-panels {

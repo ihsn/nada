@@ -180,7 +180,13 @@
                 <v-divider class="mb-4" />
 
                 <div class="d-flex justify-end">
-                  <v-btn class="text-none" color="primary" variant="flat" rounded="lg" min-width="12rem" @click="applyExplorerFilters">
+                  <v-btn
+                    class="text-none filter-apply-outlined"
+                    variant="outlined"
+                    rounded="xl"
+                    min-width="12rem"
+                    @click="applyExplorerFilters"
+                  >
                     {{ ui.applyFilters }}
                   </v-btn>
                 </div>
@@ -908,5 +914,14 @@ onMounted(() => {
 .explorer-range-summary {
   line-height: 1.2;
   padding-top: 0.2rem;
+}
+
+.filter-apply-outlined.v-btn--variant-outlined {
+  border-color: rgba(var(--v-theme-on-surface), 0.12) !important;
+  border-radius: 14px !important;
+}
+
+.filter-apply-outlined.v-btn--variant-outlined:not(.v-btn--disabled):hover {
+  border-color: rgba(var(--v-theme-on-surface), 0.22) !important;
 }
 </style>
