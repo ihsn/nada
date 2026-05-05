@@ -744,7 +744,7 @@ class Datasets extends MY_REST_Controller
 			$options['changed']=date("U");
 
 			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image' || $type=='video' || $type=='timeseries' || $type=='timeseriesdb'){
-				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, true);
+				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, true, false);
 			}
 			else{
 				$dataset_id=$this->dataset_manager->create_dataset($type,$options);

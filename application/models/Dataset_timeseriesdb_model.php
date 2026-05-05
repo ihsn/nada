@@ -17,7 +17,7 @@ class Dataset_timeseriesdb_model extends Dataset_model {
         parent::__construct();
     }
 
-    function update_dataset($sid,$type,$options, $merge_metadata=false)
+    function update_dataset($sid,$type,$options, $merge_metadata=false, $validate_schema=true)
     {
         $options['sid']=$sid;
 
@@ -30,13 +30,15 @@ class Dataset_timeseriesdb_model extends Dataset_model {
             }
         }
 
-        return $this->create_dataset($type,$options,$sid);
+        return $this->create_dataset($type,$options,$sid, $validate_schema);
     }
 
-    function create_dataset($type,$options, $sid=null)
+    function create_dataset($type,$options, $sid=null, $validate_schema=true)
     {
         // schema file is timeseries-db-schema.json
-        $this->validate_schema('timeseries-db',$options);
+        if ($validate_schema){
+            $this->validate_schema('timeseries-db',$options);
+        }
 
         $core_fields=$this->get_core_fields($options);
         $options=array_merge($options,$core_fields);

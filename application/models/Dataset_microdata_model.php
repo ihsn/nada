@@ -33,7 +33,7 @@ class Dataset_microdata_model extends Dataset_model {
      * @is_update - for partially updating a study
      * 
      */
-    function create_dataset($type,$options, $sid=null,$is_update=false)
+    function create_dataset($type,$options, $sid=null,$is_update=false,$validate_schema=true)
 	{
         $data_files=null;
 		$variables=null;
@@ -55,7 +55,9 @@ class Dataset_microdata_model extends Dataset_model {
         }
 
 		//validate schema
-        $this->validate_schema($type,$options);
+        if ($validate_schema){
+            $this->validate_schema($type,$options);
+        }
 
         if (!isset($options['overwrite'])){
             $options['overwrite']='no';
@@ -197,7 +199,7 @@ class Dataset_microdata_model extends Dataset_model {
      *  false - replace all metadata with new values (no merge)
      * 
      */
-    function update_dataset($sid,$type,$options, $merge_metadata=false)
+    function update_dataset($sid,$type,$options, $merge_metadata=false, $validate_schema=true)
 	{
 		//need this to validate IDNO for uniqueness
         $options['sid']=$sid;
@@ -240,7 +242,7 @@ class Dataset_microdata_model extends Dataset_model {
             }
         }
 
-        return $this->create_dataset($type,$options,$sid,$is_update=true);        
+        return $this->create_dataset($type,$options,$sid,$is_update=true,$validate_schema);        
     }
     
 

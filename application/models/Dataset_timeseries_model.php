@@ -27,7 +27,7 @@ class Dataset_timeseries_model extends Dataset_model {
      *  false - replace all metadata with new values (no merge)
      * 
      */
-    function update_dataset($sid,$type,$options, $merge_metadata=false)
+    function update_dataset($sid,$type,$options, $merge_metadata=false, $validate_schema=true)
 	{
 		//need this to validate IDNO for uniqueness
         $options['sid']=$sid;
@@ -42,13 +42,15 @@ class Dataset_timeseries_model extends Dataset_model {
             }
         }
 
-        return $this->create_dataset($type,$options,$sid);
+        return $this->create_dataset($type,$options,$sid, $validate_schema);
     }
 
-    function create_dataset($type,$options, $sid=null)
+    function create_dataset($type,$options, $sid=null, $validate_schema=true)
 	{
 		//validate schema
-        $this->validate_schema($type,$options);
+        if ($validate_schema){
+            $this->validate_schema($type,$options);
+        }
 
         //get core fields for listing datasets in the catalog
         $core_fields=$this->get_core_fields($options);

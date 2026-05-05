@@ -78,7 +78,7 @@ class Dataset_image_model extends Dataset_model {
     }
 
 
-    function update_dataset($sid,$type,$options, $merge_metadata=false)
+    function update_dataset($sid,$type,$options, $merge_metadata=false, $validate_schema=true)
 	{
         //need this to validate IDNO for uniqueness
         $options['sid']=$sid;
@@ -100,7 +100,9 @@ class Dataset_image_model extends Dataset_model {
         $options=$this->clean_metadata($options,$sub_schema_type);
 
         //validate schema
-        $this->validate_schema($type,$options);
+        if ($validate_schema){
+            $this->validate_schema($type,$options);
+        }
 
         //get core fields for listing datasets in the catalog
         $core_fields=$this->get_core_fields($options);

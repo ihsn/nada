@@ -47,10 +47,10 @@ class Dataset_manager{
     }
 
 
-    function update_dataset($sid,$type,$options,$merge_data=false)
+    function update_dataset($sid,$type,$options,$merge_data=false,$validate_schema=true)
     {
         $this->validate_type($type);
-        $result=$this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options, $merge_data);
+        $result=$this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options, $merge_data, $validate_schema);
         $this->ci->Facet_model->index_facets($sid);
         return $result;
     }
