@@ -26,6 +26,7 @@ class ComposerStaticInit57625deda3373c5e89e84ba00508af84
             'Symfony\\Polyfill\\Php80\\' => 23,
             'Symfony\\Contracts\\EventDispatcher\\' => 34,
             'Symfony\\Component\\EventDispatcher\\' => 34,
+            'Swaggest\\JsonDiff\\' => 18,
             'Spatie\\ArrayToXml\\' => 18,
             'Solarium\\' => 9,
             'Slim\\Csrf\\' => 10,
@@ -96,6 +97,10 @@ class ComposerStaticInit57625deda3373c5e89e84ba00508af84
         'Symfony\\Component\\EventDispatcher\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/event-dispatcher',
+        ),
+        'Swaggest\\JsonDiff\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/swaggest/json-diff/src',
         ),
         'Spatie\\ArrayToXml\\' => 
         array (

@@ -10,6 +10,7 @@ return array(
     'Symfony\\Polyfill\\Php80\\' => array($vendorDir . '/symfony/polyfill-php80'),
     'Symfony\\Contracts\\EventDispatcher\\' => array($vendorDir . '/symfony/event-dispatcher-contracts'),
     'Symfony\\Component\\EventDispatcher\\' => array($vendorDir . '/symfony/event-dispatcher'),
+    'Swaggest\\JsonDiff\\' => array($vendorDir . '/swaggest/json-diff/src'),
     'Spatie\\ArrayToXml\\' => array($vendorDir . '/spatie/array-to-xml/src'),
     'Solarium\\' => array($vendorDir . '/solarium/solarium/src'),
     'Slim\\Csrf\\' => array($vendorDir . '/slim/csrf/src'),
