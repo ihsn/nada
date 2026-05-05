@@ -571,7 +571,12 @@ class Timeseries_mongo_model extends CI_Model {
 			return [];
 		}
 		if (strpos($s, ',') !== false) {
-			return array_values(array_filter(array_map('trim', explode(',', $s))));
+			// Do not use array_filter() without callback: it drops string "0" (falsy).
+			$parts = array_map('trim', explode(',', $s));
+			$parts = array_values(array_filter($parts, function ($p) {
+				return $p !== '';
+			}));
+			return $parts;
 		}
 		return [$s];
 	}
