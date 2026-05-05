@@ -7,8 +7,11 @@
 
 $type_icons = array(
 	'survey'       => '<i class="fas fa-database" aria-hidden="true"></i>',
+	'datasets'     => '<i class="fas fa-database" aria-hidden="true"></i>',
 	'geospatial'   => '<i class="fas fa-globe-americas" aria-hidden="true"></i>',
 	'timeseries'   => '<i class="fas fa-chart-line" aria-hidden="true"></i>',
+	'timeseriesdb' => '<i class="fas fa-database" aria-hidden="true"></i>',
+	'timeseries-db'=> '<i class="fas fa-database" aria-hidden="true"></i>',
 	'document'     => '<i class="fas fa-file-alt" aria-hidden="true"></i>',
 	'table'        => '<i class="fa fa-table" aria-hidden="true"></i>',
 	'visualization'=> '<i class="fas fa-chart-pie" aria-hidden="true"></i>',

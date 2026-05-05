@@ -75,8 +75,11 @@
     $type_icons=array(
         'survey'=>'fa-database',
         'microdata'=>'fa-database',
+        'datasets'=>'fa-database',
         'geospatial'=>'fa-globe-americas',
         'timeseries'=>'fa-chart-line',
+        'timeseriesdb'=>'fa-database',
+        'timeseries-db'=>'fa-database',
         'document'=>'fa-file-alt',
         'table'=>'fa-table',
         'visualization'=>'fa-pie-chart',
@@ -205,7 +208,7 @@ if (isset($featured_studies) && is_array($featured_studies) ){
             <div class="<?php echo $row_col2_class;?>">                
                 <h5 class="wb-card-title title">
                     <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" class="d-flex" >   
-                        <i class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>             
+                        <i class="fa <?php echo isset($type_icons[$row['type']]) ? $type_icons[$row['type']] : 'fa-database';?> fa-nada-icon wb-title-icon"></i>             
                         <span>
                             <?php echo $row['title'];?>
                             <?php if(isset($row['subtitle'])):?>
