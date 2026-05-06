@@ -157,7 +157,7 @@ class Timeseries_public extends MY_REST_Controller {
 			$tb_min      = array_key_exists('min', $time_bounds) ? $time_bounds['min'] : null;
 			$tb_max      = array_key_exists('max', $time_bounds) ? $time_bounds['max'] : null;
 			$scanned     = count($obs);
-			$truncated   = $scanned >= $maxRaw;
+			$truncated   = $scanned > $maxRaw;
 			$this->set_response([
 				'status' => 'success',
 				'result' => [
@@ -243,6 +243,8 @@ class Timeseries_public extends MY_REST_Controller {
 	 * GET .../data/{idno}/filter-options
 	 *
 	 * Returns observed-only code options per codelist-backed component.
+	 * Options are ordered by codelist_item.sort_order (missing DB rows last), then label.
+	 * Each option includes sort_order (int from codelist_item, or null if the observed code has no codelist row).
 	 */
 	public function data_filter_options_get($idno = null)
 	{
@@ -292,22 +294,25 @@ class Timeseries_public extends MY_REST_Controller {
 					$label = isset($labels[$code]) && array_key_exists('title', $labels[$code]) && $labels[$code]['title'] !== null && trim((string) $labels[$code]['title']) !== ''
 						? (string) $labels[$code]['title']
 						: $code;
+					$sortOrder = isset($labels[$code])
+						? (int) $labels[$code]['sort_order']
+						: null;
 					$options[] = [
 						'code' => $code,
 						'label' => $label,
+						'sort_order' => $sortOrder,
 						'count' => isset($row['obs_count']) ? (int) $row['obs_count'] : 0,
 					];
 				}
 				usort($options, function ($a, $b) {
+					$oa = isset($a['sort_order']) && $a['sort_order'] !== null ? (int) $a['sort_order'] : PHP_INT_MAX;
+					$ob = isset($b['sort_order']) && $b['sort_order'] !== null ? (int) $b['sort_order'] : PHP_INT_MAX;
+					if ($oa !== $ob) {
+						return $oa <=> $ob;
+					}
 					$al = isset($a['label']) ? (string) $a['label'] : '';
 					$bl = isset($b['label']) ? (string) $b['label'] : '';
-					$c = strcmp($al, $bl);
-					if ($c !== 0) {
-						return $c;
-					}
-					$ac = isset($a['code']) ? (string) $a['code'] : '';
-					$bc = isset($b['code']) ? (string) $b['code'] : '';
-					return strcmp($ac, $bc);
+					return strcmp($al, $bl);
 				});
 				if (empty($options)) {
 					continue;
