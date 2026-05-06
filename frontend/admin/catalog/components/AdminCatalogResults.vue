@@ -1,7 +1,8 @@
 <template>
-  <div>
-    <v-row class="mt-3 mb-0 align-center border-bottom">
-      <v-col cols="6" class="d-flex align-center">
+  <v-card class="admin-catalog-results-card admin-catalog-surface" rounded="lg" elevation="1">
+    <div class="catalog-results-toolbar catalog-results-toolbar--padded">
+      <v-row class="mb-0 align-center">
+      <v-col cols="6" class="d-flex align-center text-body-2">
         <span>
           {{ t('showing_studies_range', 'Showing %s - %s of %s studies', firstItem, lastItem, totalStudies) }}
         </span>
@@ -17,16 +18,17 @@
           @update:model-value="onPageChange"
         />
       </v-col>
-    </v-row>
-
-    <v-row class="mb-2 align-center border-bottom">
-      <v-col cols="4" class="d-flex align-center">
+      </v-row>
+    </div>
+    <div class="catalog-results-toolbar catalog-results-toolbar--padded">
+      <v-row class="mb-0 align-center">
+      <v-col cols="4" class="d-flex align-center ga-1">
         <v-checkbox
           v-model="selectAll"
           :indeterminate="isIndeterminate"
           hide-details
           density="compact"
-          class="ma-0 pa-0 ml-2"
+          class="ma-0 pa-0"
         />
         <v-menu>
           <template #activator="{ props: menuProps }">
@@ -74,12 +76,13 @@
           </v-list>
         </v-menu>
       </v-col>
-    </v-row>
+      </v-row>
+    </div>
 
-    <v-table class="table-striped">      
+    <v-table class="admin-catalog-table" hover density="comfortable">
       <tbody>
         <tr v-for="study in studies" :key="study.id">
-          <td class="text-center align-top pt-3">
+          <td class="text-center align-top">
             <v-checkbox
               v-model="selected"
               :value="study.id"
@@ -88,64 +91,80 @@
               class="ma-0 pa-0"
             />
           </td>
-          <td class="text-center align-top pt-3" :title="study.type">            
-            <v-img :title="study.type" :src="studyTypeImage(study.type)" width="40" height="40" class="pa-3" />
+          <td class="text-center align-top" :title="study.type">
+            <v-img
+              :title="study.type"
+              :src="studyTypeImage(study.type)"
+              width="44"
+              height="44"
+              cover
+              class="study-type-thumb rounded mx-auto d-block"
+            />
           </td>
-          <td style="padding-top: 12px; padding-bottom: 12px">
-            <div class="text-title-medium font-weight-bold">              
+          <td class="align-top">
+            <div class="study-row-detail">
+            <div class="study-row-detail__title-line text-title-medium font-weight-bold">
               <a :href="editUrl(study)" class="text-decoration-none">{{ study.title }}</a>
-              <v-chip v-if="study.type" size="x-small"  class="ml-1">{{ (study.type || '').toUpperCase() }}</v-chip>
-            </div>            
-            <div class="text-caption text-medium-emphasis mt-1">
-              {{ study.nation }}
-              <span class="mr-3" v-if="displayYearRange(study)">{{ displayYearRange(study) }}</span>
-              <span class="text-secondary">{{ t('idno') }}: {{ study.idno }}</span>
+              <v-chip v-if="study.type" size="x-small">{{ (study.type || '').toUpperCase() }}</v-chip>
             </div>
-            <div v-if="study.abstract" class="text-caption text-medium-emphasis mt-1 study-abstract">
+            <div class="study-row-detail__meta text-caption text-medium-emphasis">
+              {{ study.nation }}
+              <span class="mr-2" v-if="displayYearRange(study)">{{ displayYearRange(study) }}</span>
+              <span class="text-medium-emphasis">{{ t('idno') }}: {{ study.idno }}</span>
+            </div>
+            <div v-if="study.abstract" class="text-caption text-medium-emphasis study-abstract">
               {{ study.abstract }}
             </div>
-            <div class="text-caption mt-1">
-              <v-chip v-if="study.form_model" size="x-small" color="primary" variant="flat" class="mr-1 font-weight-medium">{{ (study.form_model || '').toUpperCase() }}</v-chip>
+            <div class="study-row-detail__chips-row text-caption">
+              <v-chip v-if="study.form_model" size="x-small" color="primary" variant="flat" class="font-weight-medium">{{ (study.form_model || '').toUpperCase() }}</v-chip>
               <v-chip v-if="study.pending_lic_requests" color="error" size="x-small">{{ study.pending_lic_requests }} {{ t('pending') }}</v-chip>
             </div>
-            <div class="text-caption mt-1">
+            <div v-if="sortedRepositories(study).length || (Array.isArray(study.tags) && study.tags.length > 0)" class="study-row-detail__chips-row text-caption">
               <template v-if="sortedRepositories(study).length">
-                <span class="text-medium-emphasis mr-1">{{ t('repositories') }}:</span>
+                <span class="text-medium-emphasis chip-label">{{ t('repositories') }}:</span>
                 <v-chip
                   v-for="repo in sortedRepositories(study)"
                   :key="repo.id"
                   size="x-small"
                   :color="String(repo?.isadmin) === '1' ? 'primary' : undefined"
                   variant="tonal"
-                  class="mr-1"
                   :title="String(repo?.isadmin) === '1' ? t('owner_repository') : undefined"
                 >
                   {{ (repo.repositoryid && repo.repositoryid.trim() ? repo.repositoryid : 'central').trim().toUpperCase() }}
                 </v-chip>
               </template>
-              <template v-if="study.tags"></template>              
-                <span v-if="study.tags.length>0" class="text-medium-emphasis mr-1">{{ t('tags') }}:</span>
+              <template v-if="Array.isArray(study.tags) && study.tags.length > 0">
+                <span class="text-medium-emphasis chip-label">{{ t('tags') }}:</span>
                 <v-chip
                   v-for="tag in study.tags"
                   :key="tag"
                   size="x-small"
-                  class="mr-1">{{ tag }}</v-chip>
+                >{{ tag }}</v-chip>
+              </template>
             </div>
 
-            <div class="actions-bar text-caption text-medium-emphasis mt-3">
-              <span>{{ t('created') }}: {{ formatDate(study.created) }}</span>
-              <span class="mx-2">·</span>
-              <span>{{ t('last_changed') }}: {{ formatDate(study.changed) }}</span>
-              <span class="mx-2">·</span>
-              <span>{{ t('changed_by') }}: {{ study.changed_by_user ?? study.created_by_user ?? '—' }}</span>
+            <div class="study-meta-bar text-caption">
+              <span class="study-meta-bar__item">
+                <span class="study-meta-bar__key">{{ t('created') }}:</span>
+                <span class="study-meta-bar__value">{{ formatDate(study.created) }}</span>
+              </span>
+              <span class="study-meta-bar__sep" aria-hidden="true">·</span>
+              <span class="study-meta-bar__item">
+                <span class="study-meta-bar__key">{{ t('last_changed') }}:</span>
+                <span class="study-meta-bar__value">{{ formatDate(study.changed) }}</span>
+              </span>
+              <span class="study-meta-bar__sep" aria-hidden="true">·</span>
+              <span class="study-meta-bar__item">
+                <span class="study-meta-bar__key">{{ t('changed_by') }}:</span>
+                <span class="study-meta-bar__value">{{ study.changed_by_user ?? study.created_by_user ?? '—' }}</span>
+              </span>
             </div>
-              
+            </div>
 
           </td>
-          <td class="text-center align-top pt-2">
-            <div class="d-flex align-center justify-center ga-2">
+          <td class="text-center align-top">
+            <div class="study-actions-inline">
               <v-switch
-                clas="mr-4"
                 :model-value="Number(study.published) === 1"
                 :title="Number(study.published) === 1 ? t('published') : t('draft')"
                 color="success"
@@ -182,20 +201,34 @@
       </tbody>
     </v-table>
 
-    <v-row class="mt-2">
-      <v-col cols="12" class="d-flex justify-center">
-        <v-pagination
-          v-if="totalPages > 1"
-          v-model="currentPage"
-          :length="totalPages"
-          :total-visible="10"
-          density="compact"
-          color="primary"
-          @update:model-value="onPageChange"
-        />
-      </v-col>
-    </v-row>
-  </div>
+    <div class="admin-catalog-results-footer">
+      <v-row class="mt-2 align-center">
+        <v-col cols="12" sm="auto" class="d-flex align-center justify-center justify-sm-start ga-2 pb-2 pb-sm-0">
+          <span class="text-body-2 text-medium-emphasis text-no-wrap">{{ t('items_per_page', 'Per page') }}</span>
+          <v-select
+            :model-value="itemsPerPage"
+            :items="pageSizeOptions"
+            density="compact"
+            variant="outlined"
+            hide-details
+            class="admin-catalog-page-size-select"
+            @update:model-value="onItemsPerPageChange"
+          />
+        </v-col>
+        <v-col cols="12" sm class="d-flex justify-center">
+          <v-pagination
+            v-if="totalPages > 1"
+            v-model="currentPage"
+            :length="totalPages"
+            :total-visible="10"
+            density="compact"
+            color="primary"
+            @update:model-value="onPageChange"
+          />
+        </v-col>
+      </v-row>
+    </div>
+  </v-card>
 </template>
 
 <script setup>
@@ -244,6 +277,9 @@ const currentSort = computed(() => props.currentSort || null);
 function onSortChange(opt) {
   emit('sort-change', { sort: opt.value });
 }
+
+/** Allowed page sizes for admin catalog (must stay in sync with App.vue URL parsing). */
+const pageSizeOptions = [15, 50, 100];
 
 const itemsPerPage = computed(() => props.pagination?.itemsPerPage ?? 15);
 const totalPages = computed(() =>
@@ -361,6 +397,15 @@ function onPageChange(page) {
   });
 }
 
+function onItemsPerPageChange(val) {
+  const n = Number(val);
+  if (!pageSizeOptions.includes(n)) return;
+  emit('pagination-change', {
+    page: 1,
+    itemsPerPage: n,
+  });
+}
+
 const selectedStudies = computed(() =>
   props.studies.filter((s) => selected.value.includes(s.id))
 );
@@ -467,6 +512,21 @@ watch(
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  max-width: 600px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.study-row-detail__title-line a {
+  color: rgb(var(--v-theme-primary));
+  font-weight: 600;
+}
+.study-row-detail__title-line a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.admin-catalog-page-size-select {
+  width: 88px;
+  flex-shrink: 0;
 }
 </style>
