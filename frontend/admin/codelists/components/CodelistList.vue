@@ -1,18 +1,37 @@
 <template>
   <div class="cl-list-root">
+    <v-expand-transition>
+      <v-sheet
+        v-if="selected.length > 0"
+        border
+        rounded="xl"
+        class="pa-3 px-4 mb-3 d-flex align-center flex-wrap gap-2 ga-2 bg-surface"
+      >
+        <span class="text-body-2 font-weight-medium">{{ selected.length }} selected</span>
+        <v-btn color="error" variant="flat" size="small" prepend-icon="mdi-delete" @click="emitBatchDelete">
+          Delete selected
+        </v-btn>
+        <v-btn variant="text" size="small" @click="clearSelection">Clear</v-btn>
+      </v-sheet>
+    </v-expand-transition>
+
     <v-card rounded="xl" border class="overflow-hidden">
       <v-card-text class="pa-0">
         <v-data-table-server
+          v-model="selected"
           v-model:expanded="expandedIds"
           :headers="headers"
-          :items="codelists"
+          :items="displayItems"
           :items-length="serverTotal"
           :page="page"
           :items-per-page="itemsPerPage"
           :items-per-page-options="[10, 25, 50, 100]"
           :loading="loading"
           item-value="id"
+          item-selectable="selectable"
+          select-strategy="page"
           show-expand
+          show-select
           hover
           class="elevation-0"
           @update:page="$emit('update:page', $event)"
@@ -92,7 +111,7 @@
                   prepend-icon="mdi-delete"
                   title="Delete"
                   color="error"
-                  :disabled="Number(item.status) === 20"
+                  :disabled="!isRowDeletable(item)"
                   @click="$emit('delete', item)"
                 />
                 <v-list-item prepend-icon="mdi-playlist-edit" title="Manage" @click="$emit('manage', item)" />
@@ -158,7 +177,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import CodelistFormDialog from './CodelistFormDialog.vue';
 import { useCodelistsApi } from '../composables/useCodelistsApi';
 
@@ -173,7 +192,28 @@ const props = defineProps({
   hasSearch: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['manage', 'delete', 'saved', 'update:page', 'update:itemsPerPage']);
+const emit = defineEmits(['manage', 'delete', 'saved', 'batch-delete', 'update:page', 'update:itemsPerPage']);
+
+const selected = ref([]);
+
+/** Matches server `Codelist_model::delete_codelist` — published rows cannot be deleted. */
+function isRowDeletable(row) {
+  return Number(row?.status) !== 20;
+}
+
+const displayItems = computed(() =>
+  props.codelists.map((row) => ({
+    ...row,
+    selectable: isRowDeletable(row),
+  }))
+);
+
+watch(
+  () => [props.page, props.itemsPerPage],
+  () => {
+    selected.value = [];
+  }
+);
 
 const emptyTitle = computed(() => {
   if (props.loading) return '';
@@ -191,8 +231,6 @@ const emptyHint = computed(() => {
   }
   return '';
 });
-
-defineExpose({ openCreate });
 
 const { fetchCodelistVersions } = useCodelistsApi();
 
@@ -309,6 +347,29 @@ function onFormSaved(payload) {
     emit('saved', payload);
   }
 }
+
+function clearSelection() {
+  selected.value = [];
+}
+
+function emitBatchDelete() {
+  const raw = Array.isArray(selected.value) ? selected.value : [];
+  const ids = raw
+    .map((x) => {
+      if (x != null && typeof x === 'object' && 'id' in x) return Number(x.id);
+      return Number(x);
+    })
+    .filter((n) => Number.isInteger(n) && n >= 1);
+  const idSet = new Set(ids);
+  const rows = props.codelists.filter((r) => idSet.has(Number(r.id)));
+  if (!rows.length) return;
+  emit('batch-delete', rows);
+}
+
+defineExpose({
+  openCreate,
+  clearSelection,
+});
 </script>
 
 <style scoped>

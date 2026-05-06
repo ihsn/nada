@@ -499,6 +499,71 @@ class Codelists extends MY_REST_Controller {
 	}
 
 	/**
+	 * POST /api/admin/codelists/batch_delete — delete multiple codelist rows by primary key id.
+	 * JSON body: { "ids": [1, 2, 3] } — deduped; max 100 per request.
+	 * Same rules as single delete (published + DSD references).
+	 */
+	public function batch_delete_post()
+	{
+		try {
+			$input = $this->raw_json_input();
+			if (!$input || !is_array($input)) {
+				throw new Exception('JSON body required');
+			}
+			$ids_raw = isset($input['ids']) ? $input['ids'] : null;
+			if (!is_array($ids_raw)) {
+				throw new Exception('ids must be a JSON array of numeric codelist ids.');
+			}
+			$max_batch = 100;
+			$seen      = [];
+			foreach ($ids_raw as $v) {
+				$n = (int) $v;
+				if ($n >= 1) {
+					$seen[$n] = true;
+				}
+			}
+			$ids = array_keys($seen);
+			if (count($ids) === 0) {
+				throw new Exception('Provide at least one valid codelist id.');
+			}
+			if (count($ids) > $max_batch) {
+				throw new Exception('At most ' . $max_batch . ' codelists can be deleted per request.');
+			}
+			rsort($ids, SORT_NUMERIC);
+
+			$deleted = [];
+			$failed  = [];
+			foreach ($ids as $cid) {
+				try {
+					$this->Codelist_model->delete_codelist((int) $cid);
+					$deleted[] = (int) $cid;
+				} catch (Exception $e) {
+					$failed[] = [
+						'id'      => (int) $cid,
+						'message' => $e->getMessage(),
+					];
+				}
+			}
+
+			$this->set_response([
+				'status' => 'success',
+				'result' => [
+					'deleted'       => $deleted,
+					'failed'        => $failed,
+					'deleted_count' => count($deleted),
+					'failed_count'  => count($failed),
+				],
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$msg = $e->getMessage();
+			$this->set_response([
+				'status'  => 'error',
+				'message' => $msg === 'INVALID_JSON_INPUT' ? 'Invalid JSON body' : $msg,
+			], REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
 	 * GET /api/admin/codelists/item_items/{codelist_id} — list items.
 	 *
 	 * Default (no view=flat, no page): full rows (optionally with translations unless with_translations=0).

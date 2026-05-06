@@ -52,6 +52,7 @@
       :has-search="hasSearch"
       @manage="goToDetail"
       @delete="confirmDeleteCodelist"
+      @batch-delete="confirmBatchDeleteCodelists"
       @saved="onCodelistSaved"
     />
 
@@ -68,6 +69,25 @@
           <v-spacer />
           <v-btn variant="text" @click="deleteDialog.show = false">Cancel</v-btn>
           <v-btn color="error" :loading="deleteDialog.saving" @click="doDeleteCodelist">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="batchDeleteDialog.show" max-width="480" persistent>
+      <v-card rounded="xl">
+        <v-card-title>Delete selected codelists?</v-card-title>
+        <v-card-text>
+          This will delete
+          <strong>{{ batchDeleteDialog.rows?.length ?? 0 }}</strong>
+          {{
+            (batchDeleteDialog.rows?.length ?? 0) === 1 ? 'codelist version' : 'codelist versions'
+          }}. Items, groups, and translations for each removed version are deleted. Published versions or codelists
+          referenced by data structure (DSD) components cannot be removed.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="batchDeleteDialog.show = false">Cancel</v-btn>
+          <v-btn color="error" :loading="batchDeleteDialog.saving" @click="doBatchDeleteCodelists">Delete</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -92,6 +112,7 @@ const {
   createCodelist,
   updateCodelist,
   deleteCodelist,
+  deleteCodelistsBatch,
 } = useCodelistsApi();
 
 const listRef = ref(null);
@@ -103,6 +124,7 @@ const search = ref('');
 const searchDebounced = ref('');
 const statusFilter = ref(null);
 const deleteDialog = reactive({ show: false, saving: false, codelist: null });
+const batchDeleteDialog = reactive({ show: false, saving: false, rows: [] });
 
 let searchDebounceTimer;
 
@@ -221,6 +243,52 @@ async function doDeleteCodelist() {
     setMessage(e?.response?.data?.message || e?.message || 'Delete failed', 'error');
   } finally {
     deleteDialog.saving = false;
+  }
+}
+
+function confirmBatchDeleteCodelists(rows) {
+  const list = Array.isArray(rows) ? rows : [];
+  if (!list.length) return;
+  batchDeleteDialog.rows = list;
+  batchDeleteDialog.show = true;
+}
+
+async function doBatchDeleteCodelists() {
+  const rows = batchDeleteDialog.rows;
+  if (!Array.isArray(rows) || !rows.length) return;
+  batchDeleteDialog.saving = true;
+  try {
+    const result = await deleteCodelistsBatch(rows.map((r) => r.id));
+    const deletedCount = Number(result?.deleted_count) || 0;
+    const failed = Array.isArray(result?.failed) ? result.failed : [];
+    const failedCount = failed.length;
+    if (deletedCount > 0 && failedCount === 0) {
+      setMessage(
+        deletedCount === 1 ? 'Codelist version deleted.' : `${deletedCount} codelist versions deleted.`,
+        'success'
+      );
+    } else if (deletedCount > 0 && failedCount > 0) {
+      const sample = failed
+        .slice(0, 3)
+        .map((f) => `#${f.id}: ${f.message}`)
+        .join('; ');
+      setMessage(`Deleted ${deletedCount}; ${failedCount} failed${sample ? `. ${sample}` : ''}`, 'warning');
+    } else if (failedCount > 0) {
+      const sample = failed
+        .slice(0, 3)
+        .map((f) => `#${f.id}: ${f.message}`)
+        .join('; ');
+      setMessage(`Could not delete selected codelists${sample ? `. ${sample}` : ''}`, 'error');
+    } else {
+      setMessage('Nothing was deleted.', 'info');
+    }
+    batchDeleteDialog.show = false;
+    listRef.value?.clearSelection?.();
+    await loadList();
+  } catch (e) {
+    setMessage(e?.response?.data?.message || e?.message || 'Batch delete failed', 'error');
+  } finally {
+    batchDeleteDialog.saving = false;
   }
 }
 </script>

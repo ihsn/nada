@@ -257,6 +257,7 @@ $route['api/admin/codelists/groups/(:num)/items']         = 'api/admin/codelists
 $route['api/admin/codelists/groups/(:num)/translations/(:any)'] = 'api/admin/codelists/groups_translation/$1/$2';
 $route['api/admin/codelists/groups/(:num)/translations'] = 'api/admin/codelists/groups_translations/$1';
 $route['api/admin/codelists/import_json']               = 'api/admin/codelists/import_json';
+$route['api/admin/codelists/batch_delete']              = 'api/admin/codelists/batch_delete';
 $route['api/admin/codelists/item/(:num)']                = 'api/admin/codelists/item/$1';
 $route['api/admin/codelists/items/(:num)']                = 'api/admin/codelists/items/$1';
 $route['api/admin/codelists/groups/(:num)']               = 'api/admin/codelists/groups/$1';

@@ -219,6 +219,30 @@ export function useCodelistsApi() {
     return data.result;
   }
 
+  /**
+   * Delete many codelists by id. Partial success possible; check result.failed.
+   * @param {Array<string|number>} ids
+   */
+  async function deleteCodelistsBatch(ids) {
+    const clean = [
+      ...new Set(
+        (Array.isArray(ids) ? ids : [])
+          .map((id) => Number(id))
+          .filter((n) => Number.isInteger(n) && n >= 1)
+      ),
+    ];
+    if (clean.length === 0) {
+      throw new Error('At least one codelist id is required');
+    }
+    const { data } = await axios.post(
+      `${base()}/batch_delete`,
+      { ids: clean },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Batch delete failed');
+    return data.result ?? {};
+  }
+
   async function restoreCodelist(id) {
     if (id == null) throw new Error('id required');
     const { data } = await axios.post(`${base()}/item/${encodeURIComponent(id)}/restore`, {}, {
@@ -373,6 +397,7 @@ export function useCodelistsApi() {
     createCodelist,
     updateCodelist,
     deleteCodelist,
+    deleteCodelistsBatch,
     fetchItems,
     createItem,
     updateItem,

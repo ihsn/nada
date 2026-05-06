@@ -389,7 +389,7 @@
     ]
   },
   "admin/catalog/main.js": {
-    "file": "assets/admin_catalog-CsCxKDtb.js",
+    "file": "assets/admin_catalog-DjiKATdF.js",
     "name": "admin_catalog",
     "src": "admin/catalog/main.js",
     "isEntry": true,
@@ -413,11 +413,11 @@
       "_VApp-BVtrcrX-.js"
     ],
     "css": [
-      "assets/admin_catalog-BAfb51qO.css"
+      "assets/admin_catalog-C0jK4Zue.css"
     ]
   },
   "admin/codelists/main.js": {
-    "file": "assets/admin_codelists-DAmOG2ul.js",
+    "file": "assets/admin_codelists-BgRJmEu1.js",
     "name": "admin_codelists",
     "src": "admin/codelists/main.js",
     "isEntry": true,
@@ -435,16 +435,16 @@
       "_VDialog-BUWgCvOV.js",
       "_index-BOeqtr82.js",
       "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_VMenu-MtG5ZFu1.js",
       "_VDataTableServer-hAtLcWju.js",
       "_VTable-BSWiZg-i.js",
-      "_VMenu-MtG5ZFu1.js",
       "_VCheckbox-CQzu3_Ls.js",
       "_VTabs-jH6-u9Iu.js",
       "_VDataTable-CpBDWXdM.js",
       "_VPagination-DNa7dF3O.js"
     ],
     "css": [
-      "assets/admin_codelists-B_he5Okq.css"
+      "assets/admin_codelists-aREarKy6.css"
     ]
   },
   "admin/collections/main.js": {
@@ -503,7 +503,7 @@
     ]
   },
   "admin/data_structures/main.js": {
-    "file": "assets/admin_data_structures-1K_JkCxP.js",
+    "file": "assets/admin_data_structures-DFTu9Xy2.js",
     "name": "admin_data_structures",
     "src": "admin/data_structures/main.js",
     "isEntry": true,
@@ -532,7 +532,7 @@
       "_VDataTable-CpBDWXdM.js"
     ],
     "css": [
-      "assets/admin_data_structures-CLN-q1Eg.css"
+      "assets/admin_data_structures-CCQDpisF.css"
     ]
   },
   "admin/ddi_upload/main.js": {
