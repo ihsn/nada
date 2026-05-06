@@ -23,6 +23,7 @@ require(APPPATH . '/libraries/MY_REST_Controller.php');
  *   GET    /api/admin/data_structures/versions/{id_or_idno}       — path: digits only = id (PK); else catalogue idno
  *   GET    /api/admin/data_structures/projects/{id_or_idno}       — list projects/surveys linked to this DSD version
  *   POST   /api/admin/data_structures/delete/{id_or_idno}         — POST when DELETE is blocked (same resolution as DELETE …/{segment})
+ *   POST   /api/admin/data_structures/batch_delete               — JSON body: { "ids": [1,2,3] } — delete many (same rules as single delete per id)
  *   GET    /api/admin/data_structures/export/{id_or_idno}       — canonical JSON export (same id/idno rules as GET …/{segment})
  *   POST   /api/admin/data_structures/validate
  *   GET    /api/admin/data_structures/components/{segment}      — non-digit: structure idno → list. Digit: one component by PK if found, else list for structure id
@@ -527,6 +528,72 @@ class Data_structures extends MY_REST_Controller {
 	public function delete_post($segment = null)
 	{
 		$this->structure_lookup_delete($segment);
+	}
+
+	/**
+	 * POST /api/admin/data_structures/batch_delete — delete multiple structures by primary key id.
+	 * JSON body: { "ids": [1, 2, 3] } — deduped; max 100 per request.
+	 * Each id uses the same validation as single delete (locked / in-use checks).
+	 * Response: deleted[], failed[{ id, message }], deleted_count, failed_count (HTTP 200 unless body invalid).
+	 */
+	public function batch_delete_post()
+	{
+		try {
+			$input = $this->raw_json_input();
+			if (!$input || !is_array($input)) {
+				throw new Exception('JSON body required');
+			}
+			$ids_raw = isset($input['ids']) ? $input['ids'] : null;
+			if (!is_array($ids_raw)) {
+				throw new Exception('ids must be a JSON array of numeric structure ids.');
+			}
+			$max_batch = 100;
+			$seen      = [];
+			foreach ($ids_raw as $v) {
+				$n = (int) $v;
+				if ($n >= 1) {
+					$seen[$n] = true;
+				}
+			}
+			$ids = array_keys($seen);
+			if (count($ids) === 0) {
+				throw new Exception('Provide at least one valid structure id.');
+			}
+			if (count($ids) > $max_batch) {
+				throw new Exception('At most ' . $max_batch . ' structures can be deleted per request.');
+			}
+			rsort($ids, SORT_NUMERIC);
+
+			$deleted = [];
+			$failed  = [];
+			foreach ($ids as $id) {
+				try {
+					$this->Data_structure_model->delete_structure((int) $id);
+					$deleted[] = (int) $id;
+				} catch (Exception $e) {
+					$failed[] = [
+						'id'      => (int) $id,
+						'message' => $e->getMessage(),
+					];
+				}
+			}
+
+			$this->set_response([
+				'status' => 'success',
+				'result' => [
+					'deleted'        => $deleted,
+					'failed'         => $failed,
+					'deleted_count'  => count($deleted),
+					'failed_count'   => count($failed),
+				],
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$msg = $e->getMessage();
+			$this->set_response([
+				'status'  => 'error',
+				'message' => $msg === 'INVALID_JSON_INPUT' ? 'Invalid JSON body' : $msg,
+			], REST_Controller::HTTP_BAD_REQUEST);
+		}
 	}
 
 	/**

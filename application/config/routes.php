@@ -158,8 +158,6 @@ $route['catalog/(:num)/variable_groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/vargrp'] = "study/variable_groups/$1";
 
 //timeseries db info page
-$route['embed/catalog/(:num)/chart'] = 'embed/catalog_chart/$1';
-
 $route['catalog/(:num)/indicator-chart'] = "study/indicator_chart/$1";
 $route['catalog/(:num)/indicator-data-api'] = "study/indicator_observations/$1";
 // Legacy slug (301-style redirect in controller).
@@ -235,6 +233,17 @@ $route['api/db_logs/api_logs/files']         = "api/db_logs/api_logs_files";
 // Dashboard API
 $route['api/dashboard/stats'] = "api/dashboard/stats";
 
+// Admin Display Templates API
+$route['api/admin/templates/import']                          = 'api/admin/templates/import';
+$route['api/admin/templates/validate']                        = 'api/admin/templates/validate';
+$route['api/admin/templates/default/(:any)/(:any)']           = 'api/admin/templates/default/$1/$2';
+$route['api/admin/templates/(:any)/export']                   = 'api/admin/templates/export/$1';
+$route['api/admin/templates/(:any)/duplicate']                = 'api/admin/templates/duplicate/$1';
+$route['api/admin/templates/(:any)/delete']                   = 'api/admin/templates/delete/$1';
+$route['api/admin/templates/renderers/(:any)']                = 'api/admin/templates/renderers_by_type/$1';
+$route['api/admin/templates/renderers']                       = 'api/admin/templates/renderers';
+$route['api/admin/templates/(:any)']                          = 'api/admin/templates/item/$1';
+
 // Admin Codelists API (nested routes first)
 // REST_Controller::_remap: map to versions/$1 (not versions_get/$1) so versions_get is invoked.
 $route['api/admin/codelists/versions/(:any)']             = 'api/admin/codelists/versions/$1';
@@ -264,6 +273,7 @@ $route['api/admin/data_structures/projects/(:any)']             = 'api/admin/dat
 $route['api/admin/data_structures/by_identity']                  = 'api/admin/data_structures/by_identity';
 $route['api/admin/data_structures/validate']                    = 'api/admin/data_structures/validate';
 $route['api/admin/data_structures/export/(:any)']               = 'api/admin/data_structures/export/$1';
+$route['api/admin/data_structures/batch_delete']                = 'api/admin/data_structures/batch_delete';
 $route['api/admin/data_structures/delete/(:any)']              = 'api/admin/data_structures/delete/$1';
 $route['api/admin/data_structures/components_update/(:num)']   = 'api/admin/data_structures/components_update/$1';
 $route['api/admin/data_structures/components_delete/(:num)']   = 'api/admin/data_structures/components_delete/$1';
@@ -272,8 +282,7 @@ $route['api/admin/data_structures/components/(:any)']          = 'api/admin/data
 $route['api/admin/data_structures/(:any)']                      = 'api/admin/data_structures/structure_lookup/$1';
 
 // Admin Timeseries API (indicator observations / Mongo; nested paths first)
-// Literal path before data/(:any) so "import" is not captured as an idno
-$route['api/admin/timeseries/data/import']                       = 'api/admin/timeseries/data_import';
+$route['api/admin/timeseries/data/(:any)/import']                = 'api/admin/timeseries/data_import/$1';
 $route['api/admin/timeseries/data/(:any)/count']                 = 'api/admin/timeseries/data_count/$1';
 $route['api/admin/timeseries/data/(:any)']                       = 'api/admin/timeseries/data/$1';
 $route['api/admin/timeseries/data/(:any)/sync-counts']          = 'api/admin/timeseries/data_sync_counts/$1';

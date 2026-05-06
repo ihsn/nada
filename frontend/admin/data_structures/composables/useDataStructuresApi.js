@@ -166,6 +166,30 @@ export function useDataStructuresApi() {
     return data.result;
   }
 
+  /**
+   * Delete many structures by primary key id. Partial success is possible; check result.failed.
+   * @param {Array<string|number>} ids
+   */
+  async function deleteDataStructuresBatch(ids) {
+    const clean = [
+      ...new Set(
+        (Array.isArray(ids) ? ids : [])
+          .map((id) => Number(id))
+          .filter((n) => Number.isInteger(n) && n >= 1)
+      ),
+    ];
+    if (clean.length === 0) {
+      throw new Error('At least one structure id is required');
+    }
+    const { data } = await axios.post(
+      `${base()}/batch_delete`,
+      { ids: clean },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Batch delete failed');
+    return data.result ?? {};
+  }
+
   async function exportDataStructure(structureId) {
     const sid = requireStructureId(structureId, 'structure id');
     const { data } = await axios.get(`${base()}/export/${encodeURIComponent(String(sid))}`);
@@ -312,6 +336,7 @@ export function useDataStructuresApi() {
     updateDataStructure,
     updateDataStructureStatus,
     deleteDataStructure,
+    deleteDataStructuresBatch,
     exportDataStructure,
     validatePayload,
     createComponent,

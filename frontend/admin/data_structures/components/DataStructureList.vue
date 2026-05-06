@@ -1,18 +1,37 @@
 <template>
   <div class="ds-list-root">
+    <v-expand-transition>
+      <v-sheet
+        v-if="selected.length > 0"
+        border
+        rounded="xl"
+        class="pa-3 px-4 mb-3 d-flex align-center flex-wrap gap-2 ga-2 bg-surface"
+      >
+        <span class="text-body-2 font-weight-medium">{{ selected.length }} selected</span>
+        <v-btn color="error" variant="flat" size="small" prepend-icon="mdi-delete" @click="emitBatchDelete">
+          Delete selected
+        </v-btn>
+        <v-btn variant="text" size="small" @click="clearSelection">Clear</v-btn>
+      </v-sheet>
+    </v-expand-transition>
+
     <v-card rounded="xl" border class="overflow-hidden ds-list-card">
       <v-card-text class="pa-0">
         <v-data-table-server
+          v-model="selected"
           v-model:expanded="expandedIds"
           :headers="headers"
-          :items="structures"
+          :items="displayItems"
           :items-length="serverTotal"
           :page="page"
           :items-per-page="itemsPerPage"
           :items-per-page-options="[10, 25, 50, 100]"
           :loading="loading"
           item-value="id"
+          item-selectable="selectable"
+          select-strategy="page"
           show-expand
+          show-select
           hover
           class="elevation-0 ds-data-table"
           @update:page="$emit('update:page', $event)"
@@ -105,7 +124,7 @@
                   title="Delete"
                   rounded="md"
                   class="text-error"
-                  :disabled="Number(item.status) === 20"
+                  :disabled="isRowLockedForDelete(item)"
                   @click="$emit('delete', item)"
                 />
                 <v-divider class="my-1" />
@@ -168,7 +187,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed } from 'vue';
+import { reactive, ref, computed, watch } from 'vue';
 import DataStructureFormDialog from './DataStructureFormDialog.vue';
 import { useDataStructuresApi } from '../composables/useDataStructuresApi';
 
@@ -185,14 +204,36 @@ const props = defineProps({
   hasSearch: { type: Boolean, default: false },
 });
 
-defineEmits(['manage', 'delete', 'saved', 'projects', 'update:page', 'update:itemsPerPage']);
+const emit = defineEmits(['manage', 'delete', 'saved', 'projects', 'batch-delete', 'update:page', 'update:itemsPerPage']);
 
 const { fetchStructureVersions } = useDataStructuresApi();
 
+const selected = ref([]);
 const expandedIds = ref([]);
 const versionsByFamily = reactive({});
 const versionsLoading = reactive({});
 const versionsError = reactive({});
+
+/** Matches server `Data_structure_model::is_locked_status` — cannot delete. */
+function isRowLockedForDelete(row) {
+  const s = Number(row?.status);
+  return s === 20 || s === 40;
+}
+
+/** Rows with `selectable` for Vuetify `item-selectable` (published/archived cannot be deleted). */
+const displayItems = computed(() =>
+  props.structures.map((row) => ({
+    ...row,
+    selectable: !isRowLockedForDelete(row),
+  }))
+);
+
+watch(
+  () => [props.page, props.itemsPerPage],
+  () => {
+    selected.value = [];
+  }
+);
 
 const headers = [
   { title: '', key: 'data-table-expand', width: '48', sortable: false },
@@ -302,6 +343,28 @@ function openEdit(item) {
   formDialog.structure = item;
   formDialog.show = true;
 }
+
+function clearSelection() {
+  selected.value = [];
+}
+
+function emitBatchDelete() {
+  const raw = Array.isArray(selected.value) ? selected.value : [];
+  const ids = raw
+    .map((x) => {
+      if (x != null && typeof x === 'object' && 'id' in x) return Number(x.id);
+      return Number(x);
+    })
+    .filter((n) => Number.isInteger(n) && n >= 1);
+  const idSet = new Set(ids);
+  const rows = props.structures.filter((r) => idSet.has(Number(r.id)));
+  if (!rows.length) return;
+  emit('batch-delete', rows);
+}
+
+defineExpose({
+  clearSelection,
+});
 </script>
 
 <style scoped>

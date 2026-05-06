@@ -44,6 +44,7 @@
     <DataStructureImportDialog v-model="importDialogSdmx" @imported="onImported" />
     <DataStructureImportJsonDialog v-model="importDialogJson" @imported="onImported" />
     <DataStructureList
+      ref="structureListRef"
       v-model:page="page"
       v-model:items-per-page="itemsPerPage"
       :structures="structures"
@@ -53,6 +54,7 @@
       @manage="goToDetail"
       @projects="goToProjects"
       @delete="confirmDelete"
+      @batch-delete="confirmBatchDelete"
       @saved="onSaved"
     />
 
@@ -76,6 +78,27 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="batchDeleteDialog.show" max-width="480" persistent transition="dialog-bottom-transition">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center ga-2 pt-6 px-6">
+          <v-avatar color="error" variant="tonal" size="40">
+            <v-icon icon="mdi-delete-alert" color="error" />
+          </v-avatar>
+          <span class="text-h6 font-weight-semibold">Delete selected data structures?</span>
+        </v-card-title>
+        <v-card-text class="text-body-1 px-6 pb-2">
+          This will delete
+          <strong>{{ batchDeleteDialog.rows?.length ?? 0 }}</strong>
+          {{ (batchDeleteDialog.rows?.length ?? 0) === 1 ? 'structure' : 'structures' }} (components are removed with each row). Published or archived definitions, or structures linked to projects, cannot be removed.
+        </v-card-text>
+        <v-card-actions class="px-6 pb-6 pt-2">
+          <v-spacer />
+          <v-btn variant="text" @click="batchDeleteDialog.show = false">Cancel</v-btn>
+          <v-btn color="error" variant="flat" :loading="batchDeleteDialog.saving" @click="doBatchDelete">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -93,7 +116,8 @@ const router = useRouter();
 const route = useRoute();
 const setMessage = inject('setMessage', () => {});
 
-const { loading, fetchDataStructures, updateDataStructure, deleteDataStructure } = useDataStructuresApi();
+const { loading, fetchDataStructures, updateDataStructure, deleteDataStructure, deleteDataStructuresBatch } =
+  useDataStructuresApi();
 
 const structures = ref([]);
 const serverTotal = ref(0);
@@ -105,6 +129,8 @@ const statusFilter = ref(null);
 const importDialogSdmx = ref(false);
 const importDialogJson = ref(false);
 const deleteDialog = reactive({ show: false, saving: false, row: null });
+const batchDeleteDialog = reactive({ show: false, saving: false, rows: [] });
+const structureListRef = ref(null);
 
 let searchDebounceTimer;
 
@@ -196,6 +222,55 @@ async function doDelete() {
     setMessage(e?.response?.data?.message || e?.message || 'Delete failed', 'error');
   } finally {
     deleteDialog.saving = false;
+  }
+}
+
+function confirmBatchDelete(rows) {
+  const list = Array.isArray(rows) ? rows : [];
+  if (!list.length) return;
+  batchDeleteDialog.rows = list;
+  batchDeleteDialog.show = true;
+}
+
+async function doBatchDelete() {
+  const rows = batchDeleteDialog.rows;
+  if (!Array.isArray(rows) || !rows.length) return;
+  batchDeleteDialog.saving = true;
+  try {
+    const result = await deleteDataStructuresBatch(rows.map((r) => r.id));
+    const deletedCount = Number(result?.deleted_count) || 0;
+    const failed = Array.isArray(result?.failed) ? result.failed : [];
+    const failedCount = failed.length;
+    if (deletedCount > 0 && failedCount === 0) {
+      setMessage(
+        deletedCount === 1 ? 'Data structure deleted.' : `${deletedCount} data structures deleted.`,
+        'success'
+      );
+    } else if (deletedCount > 0 && failedCount > 0) {
+      const sample = failed
+        .slice(0, 3)
+        .map((f) => `#${f.id}: ${f.message}`)
+        .join('; ');
+      setMessage(
+        `Deleted ${deletedCount}; ${failedCount} failed${sample ? `. ${sample}` : ''}`,
+        'warning'
+      );
+    } else if (failedCount > 0) {
+      const sample = failed
+        .slice(0, 3)
+        .map((f) => `#${f.id}: ${f.message}`)
+        .join('; ');
+      setMessage(`Could not delete selected structures${sample ? `. ${sample}` : ''}`, 'error');
+    } else {
+      setMessage('Nothing was deleted.', 'info');
+    }
+    batchDeleteDialog.show = false;
+    structureListRef.value?.clearSelection?.();
+    await loadList();
+  } catch (e) {
+    setMessage(e?.response?.data?.message || e?.message || 'Batch delete failed', 'error');
+  } finally {
+    batchDeleteDialog.saving = false;
   }
 }
 
