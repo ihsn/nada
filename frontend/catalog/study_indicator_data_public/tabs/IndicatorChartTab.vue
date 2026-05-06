@@ -2107,7 +2107,7 @@ const chartModel = computed(() => {
   for (const m of bySeries.values()) {
     for (const tk of m.keys()) timeSet.add(tk);
   }
-  const sortedTimes = Array.from(timeSet).sort((a, b) => String(a).localeCompare(String(b)));
+  const sortedTimes = Array.from(timeSet).sort((a, b) => (String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0));
   if (!sortedTimes.length) return null;
 
   const scale = classifyTimeKeys(sortedTimes);
@@ -2660,11 +2660,6 @@ async function reloadChart() {
   }
   chartLoading.value = true;
   try {
-    if (filteredObservationCount.value <= 0) {
-      chartRecords.value = [];
-      chartMetadata.value = {};
-      return;
-    }
     const res = await fetchChartData({
       filters: activeFilters.value,
       limit: CHART_API_LIMIT,
@@ -2685,8 +2680,10 @@ async function refreshCountsAndData() {
     clearCatalogData();
     return;
   }
-  filteredObservationCount.value = await fetchObservationCount(activeFilters.value || undefined);
-  await reloadChart();
+  [filteredObservationCount.value] = await Promise.all([
+    fetchObservationCount(activeFilters.value || undefined),
+    reloadChart(),
+  ]);
 }
 
 async function applyFiltersInternal() {
