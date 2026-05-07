@@ -1021,6 +1021,307 @@ class Timeseries_mongo_model extends CI_Model {
 	}
 
 	/**
+	 * Count Mongo observation documents for a study across all indicator_ts_* collections.
+	 *
+	 * @param int $sid surveys.id
+	 * @return int
+	 */
+	public function count_observations_for_sid_all_indicator_collections($sid)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return 0;
+		}
+
+		try {
+			$db = $this->get_db_connection()->{$this->get_mongo_db_name()};
+		} catch (Throwable $e) {
+			log_message('error', 'Timeseries_mongo_model::count_observations_for_sid_all_indicator_collections: ' . $e->getMessage());
+
+			return 0;
+		}
+
+		$prefix  = strtolower((string) $this->collection_prefix);
+		$pattern = '/^' . preg_quote($prefix, '/') . '\d+$/';
+		$flt     = [
+			'$or' => [
+				['sid' => $sid],
+				['sid' => (string) $sid],
+			],
+		];
+
+		$total = 0;
+		foreach ($db->listCollectionNames() as $collName) {
+			$collName = (string) $collName;
+			if (!preg_match($pattern, $collName)) {
+				continue;
+			}
+			try {
+				$total += (int) $db->{$collName}->countDocuments($flt);
+			} catch (Throwable $e) {
+				log_message('error', 'Timeseries_mongo_model: countDocuments failed on ' . $collName . ': ' . $e->getMessage());
+			}
+		}
+
+		return $total;
+	}
+
+	/**
+	 * Recompute {@see count_observations_for_sid_all_indicator_collections()} and persist on surveys.ts_data_count.
+	 *
+	 * @param int $sid surveys.id
+	 * @return int Count written (same as live Mongo total)
+	 */
+	public function refresh_ts_data_count_for_sid($sid)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return 0;
+		}
+
+		$count = $this->count_observations_for_sid_all_indicator_collections($sid);
+
+		if (!$this->db->field_exists('ts_data_count', 'surveys')) {
+			return $count;
+		}
+
+		$row = $this->db->select('id')->get_where('surveys', ['id' => $sid], 1)->row_array();
+		if (!$row) {
+			return $count;
+		}
+
+		$this->db->where('id', $sid);
+		$this->db->update('surveys', ['ts_data_count' => $count]);
+
+		return $count;
+	}
+
+	/**
+	 * Delete indicator observations for a study from every Mongo collection whose name matches
+	 * the configured prefix + numeric DSD id (e.g. indicator_ts_42).
+	 *
+	 * Used when a study is removed from SQL so Mongo does not retain orphaned rows. Also covers
+	 * edge cases where observations existed under a different DSD collection than the survey's
+	 * current data_structure_id.
+	 *
+	 * @param int $sid surveys.id
+	 * @return int Total documents deleted across all matching collections
+	 */
+	public function delete_observations_for_sid_all_indicator_collections($sid)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return 0;
+		}
+
+		try {
+			$db = $this->get_db_connection()->{$this->get_mongo_db_name()};
+		} catch (Throwable $e) {
+			log_message('error', 'Timeseries_mongo_model::delete_observations_for_sid_all_indicator_collections: ' . $e->getMessage());
+			return 0;
+		}
+
+		$prefix  = strtolower((string) $this->collection_prefix);
+		$pattern = '/^' . preg_quote($prefix, '/') . '\d+$/';
+
+		$total = 0;
+		foreach ($db->listCollectionNames() as $collName) {
+			$collName = (string) $collName;
+			if (!preg_match($pattern, $collName)) {
+				continue;
+			}
+			try {
+				$result = $db->{$collName}->deleteMany([
+					'$or' => [
+						['sid' => $sid],
+						['sid' => (string) $sid],
+					],
+				]);
+				$total += (int) $result->getDeletedCount();
+			} catch (Throwable $e) {
+				log_message('error', 'Timeseries_mongo_model: deleteMany failed on ' . $collName . ': ' . $e->getMessage());
+			}
+		}
+
+		$this->refresh_ts_data_count_for_sid($sid);
+
+		return $total;
+	}
+
+	/**
+	 * Find observation documents whose sid does not exist in surveys (MySQL).
+	 *
+	 * Scans all indicator_ts_* collections; may be slow on large deployments.
+	 *
+	 * @return array{ok:bool,error?:string,collections_scanned:int,orphans:array<int,array{collection:string,sid:int,documents:int}>,total_orphan_documents:int}
+	 */
+	public function scan_orphan_indicator_observations()
+	{
+		$out = [
+			'ok'                    => true,
+			'collections_scanned'   => 0,
+			'orphans'               => [],
+			'total_orphan_documents'=> 0,
+		];
+
+		try {
+			$db = $this->get_db_connection()->{$this->get_mongo_db_name()};
+		} catch (Throwable $e) {
+			$out['ok']    = false;
+			$out['error'] = $e->getMessage();
+			return $out;
+		}
+
+		$prefix  = strtolower((string) $this->collection_prefix);
+		$pattern = '/^' . preg_quote($prefix, '/') . '\d+$/';
+
+		foreach ($db->listCollectionNames() as $collName) {
+			$collName = (string) $collName;
+			if (!preg_match($pattern, $collName)) {
+				continue;
+			}
+
+			$out['collections_scanned']++;
+			$coll = $db->{$collName};
+
+			try {
+				$rawSids = $coll->distinct('sid');
+			} catch (Throwable $e) {
+				log_message('error', 'Timeseries_mongo_model::scan_orphan_indicator_observations distinct failed on ' . $collName . ': ' . $e->getMessage());
+				continue;
+			}
+
+			$sidSet = [];
+			foreach ($rawSids as $raw) {
+				$sid = self::coerce_positive_sid($raw);
+				if ($sid !== null) {
+					$sidSet[$sid] = true;
+				}
+			}
+
+			$sidList = array_keys($sidSet);
+			sort($sidList, SORT_NUMERIC);
+
+			foreach (array_chunk($sidList, 500) as $chunk) {
+				if ($chunk === []) {
+					continue;
+				}
+
+				$q = $this->db->select('id')->from('surveys')->where_in('id', $chunk)->get();
+				$existing = [];
+				if ($q) {
+					foreach ($q->result_array() as $row) {
+						$existing[(int) $row['id']] = true;
+					}
+				}
+
+				foreach ($chunk as $sid) {
+					if (isset($existing[$sid])) {
+						continue;
+					}
+					$n = (int) $coll->countDocuments([
+						'$or' => [
+							['sid' => $sid],
+							['sid' => (string) $sid],
+						],
+					]);
+					if ($n > 0) {
+						$out['orphans'][] = [
+							'collection' => $collName,
+							'sid'        => $sid,
+							'documents'  => $n,
+						];
+						$out['total_orphan_documents'] += $n;
+					}
+				}
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Delete observation documents reported by {@see scan_orphan_indicator_observations()}.
+	 *
+	 * @return array{ok:bool,error?:string,deleted:int,groups:int}
+	 */
+	public function purge_orphan_indicator_observations()
+	{
+		$scan = $this->scan_orphan_indicator_observations();
+		if (!$scan['ok']) {
+			return [
+				'ok'    => false,
+				'error' => isset($scan['error']) ? (string) $scan['error'] : 'scan failed',
+				'deleted' => 0,
+				'groups'  => 0,
+			];
+		}
+
+		try {
+			$db = $this->get_db_connection()->{$this->get_mongo_db_name()};
+		} catch (Throwable $e) {
+			return [
+				'ok'    => false,
+				'error' => $e->getMessage(),
+				'deleted' => 0,
+				'groups'  => 0,
+			];
+		}
+
+		$deleted = 0;
+		foreach ($scan['orphans'] as $row) {
+			$name = isset($row['collection']) ? (string) $row['collection'] : '';
+			$sid  = isset($row['sid']) ? (int) $row['sid'] : 0;
+			if ($name === '' || $sid <= 0) {
+				continue;
+			}
+			try {
+				$r = $db->{$name}->deleteMany([
+					'$or' => [
+						['sid' => $sid],
+						['sid' => (string) $sid],
+					],
+				]);
+				$deleted += (int) $r->getDeletedCount();
+			} catch (Throwable $e) {
+				log_message('error', 'Timeseries_mongo_model::purge_orphan_indicator_observations failed on ' . $name . ': ' . $e->getMessage());
+			}
+		}
+
+		return [
+			'ok'      => true,
+			'deleted' => $deleted,
+			'groups'  => count($scan['orphans']),
+		];
+	}
+
+	/**
+	 * @param mixed $raw distinct() value for sid
+	 * @return int|null Positive surveys.id, or null if unusable
+	 */
+	private static function coerce_positive_sid($raw)
+	{
+		if ($raw === null || $raw === '') {
+			return null;
+		}
+		if (is_int($raw)) {
+			return $raw > 0 ? $raw : null;
+		}
+		if (is_float($raw)) {
+			$i = (int) $raw;
+
+			return ($i > 0 && (float) $i === $raw) ? $i : null;
+		}
+		if (is_string($raw) && ctype_digit($raw)) {
+			$i = (int) $raw;
+
+			return $i > 0 ? $i : null;
+		}
+
+		return null;
+	}
+
+	/**
 	 * Min/max calendar year for a study (catalog UI year slider before chart loads).
 	 *
 	 * Prefer `_ts_year` when set; otherwise UTC calendar year from `_ts_period_start`;

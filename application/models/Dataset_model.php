@@ -995,6 +995,13 @@ class Dataset_model extends CI_Model {
 	*/
 	function delete($id)
 	{
+		try {
+			$this->load->model('Timeseries_mongo_model');
+			$this->Timeseries_mongo_model->delete_observations_for_sid_all_indicator_collections((int) $id);
+		} catch (Throwable $e) {
+			log_message('error', 'Dataset_model::delete indicator Mongo cleanup failed for sid=' . $id . ': ' . $e->getMessage());
+		}
+
 		$this->delete_storage_folder($id);
 
 		$this->db->where('id', $id); 

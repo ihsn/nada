@@ -38,6 +38,7 @@ class Catalog_model extends CI_Model {
 	
 	//additional filters on search
 	var $filter=array('isdeleted='=>0);
+	/** @var string|null Legacy sticky repository filter set by admin Catalog controller; avoid for new code. */
 	var $active_repo=NULL;
 	var $active_repo_negate=FALSE;//show repo surveys or negate repo surveys
 	
@@ -728,6 +729,13 @@ class Catalog_model extends CI_Model {
 	*/
 	function delete($id)
 	{
+		try {
+			$this->load->model('Timeseries_mongo_model');
+			$this->Timeseries_mongo_model->delete_observations_for_sid_all_indicator_collections((int) $id);
+		} catch (Throwable $e) {
+			log_message('error', 'Catalog_model::delete indicator Mongo cleanup failed for sid=' . $id . ': ' . $e->getMessage());
+		}
+
 		$this->delete_storage_folder($id);
 		
 		$this->db->where('id', $id); 

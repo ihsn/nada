@@ -151,6 +151,8 @@ class Timeseries extends MY_REST_Controller {
 				$this->_sync_value_counts_for_context($ctx);
 			}
 
+			$this->Timeseries_mongo_model->refresh_ts_data_count_for_sid((int) $sid);
+
 			$this->set_response([
 				'status' => 'success',
 				'result' => [
@@ -213,6 +215,7 @@ class Timeseries extends MY_REST_Controller {
 			}
 			$inserted = $this->Timeseries_mongo_model->insert_observations_batch((int) $ctx['dsd_id'], $docs, false);
 			$this->_sync_value_counts_for_context($ctx);
+			$this->Timeseries_mongo_model->refresh_ts_data_count_for_sid((int) $ctx['sid']);
 			$this->set_response([
 				'status' => 'success',
 				'result' => ['inserted' => $inserted],
@@ -379,6 +382,7 @@ class Timeseries extends MY_REST_Controller {
 				throw new Exception('No data rows in CSV');
 			}
 			$this->_sync_value_counts_for_context($ctx);
+			$this->Timeseries_mongo_model->refresh_ts_data_count_for_sid((int) $ctx['sid']);
 			$this->Dataset_model->clear_indicator_ts_sync_for_survey((int) $ctx['sid'], (int) $ctx['dsd_id']);
 
 			$resourceMeta = null;
