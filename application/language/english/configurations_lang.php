@@ -105,6 +105,19 @@ $lang['search_provider_solr']="Solr";
 $lang['search_provider_note']="Engine used for catalog fulltext search. Changing this requires the selected provider to be configured and running.";
 $lang['edit_email_settings']="To configure email, see <em>config/email.php</em> file.";
 $lang['test_email_configurations']="Test email configurations";
+$lang['test_email_secure_connection']="Secure connection";
+$lang['test_email_library']="Email library";
+$lang['test_email_library_note']="Email engine used when sending messages.";
+$lang['test_email_use_smtp_authentication']="Use SMTP authentication";
+$lang['test_email_from']="Email from";
+$lang['test_email_from_hint']="Leave empty if the same as the account username.";
+$lang['test_email_to']="Email to";
+$lang['test_email_to_placeholder']="Recipient email address";
+$lang['test_email_send']="Send test email";
+$lang['test_email_password_hint']="Leave empty to use the password saved in config/email.php.";
+$lang['test_email_send_ok']="Test email was sent.";
+$lang['test_email_send_failed']="The test email could not be sent.";
+$lang['smtp_crypto_none']="None";
 
 
 /* End of file configurations_lang.php */

@@ -1,0 +1,178 @@
+/**
+ * Site configurations admin — two-column layout (nav + settings) in normal flow.
+ * The nav column scrolls with the page (not fixed/sticky).
+ */
+.site-config-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1rem;
+  width: 100%;
+}
+
+.site-config-panels {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Base: full-width nav in stacked layout; md+ overrides width below (order matters). */
+.site-config-nav {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 960px) {
+  .site-config-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+
+  .site-config-nav {
+    width: 272px;
+    flex-shrink: 0;
+  }
+}
+
+.site-config-app .site-config-nav .v-list-item--active {
+  background-color: rgba(var(--v-theme-primary), 0.08);
+}
+
+.site-config-page-header {
+  margin-bottom: 1.25rem;
+}
+
+.site-config-page-title {
+  margin: 0;
+  color: rgba(var(--v-theme-on-surface), 0.9);
+}
+
+/* Feedback under page title — solid fills */
+.site-config-app .site-config-page-alert {
+  margin-top: 0.75rem;
+  margin-bottom: 2.5rem;
+  max-width: 720px;
+}
+
+.site-config-app .site-config-page-alert.site-config-page-alert--success {
+  background-color: rgb(var(--v-theme-success));
+  color: rgb(var(--v-theme-on-success));
+}
+
+.site-config-app .site-config-page-alert.site-config-page-alert--error {
+  background-color: rgb(var(--v-theme-error));
+  color: rgb(var(--v-theme-on-error));
+}
+
+.site-config-app .site-config-page-alert .v-alert__close .v-btn {
+  color: inherit;
+  opacity: 0.92;
+}
+
+.site-config-app .site-config-page-alert .v-alert__close .v-btn:hover {
+  opacity: 1;
+}
+
+/* Settings cards: compact title + space before form body */
+.site-config-app h2.site-config-card__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: rgba(var(--v-theme-on-surface), 0.85);
+}
+
+.site-config-app .site-config-card-inner > .site-config-card__header + * {
+  padding-top: 16px;
+}
+
+.site-config-languages-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Enabled languages grid: roomier rows than Vuetify compact/default */
+.site-config-app .site-config-enabled-lang-table {
+  --v-table-row-height: 56px;
+  --v-table-header-height: 52px;
+}
+
+.site-config-app .site-config-enabled-lang-table thead th {
+  font-weight: 700;
+}
+
+.site-config-app .site-config-default-lang-select {
+  max-width: 280px;
+}
+
+.site-config-app .site-config-enabled-lang-table th.site-config-iso-col {
+  max-width: 560px;
+}
+
+.site-config-app .site-config-enabled-lang-table td.site-config-iso-col {
+  width: 1%;
+  max-width: 560px;
+  vertical-align: middle;
+}
+
+.site-config-app .site-config-iso-lang-select {
+  max-width: 540px;
+  min-width: 320px;
+}
+
+/* Full fluid width in main column (sidebar + content fills viewport) */
+.site-config-main {
+  width: 100%;
+  max-width: none;
+}
+
+/* Light tint behind elevated cards (light theme); dark theme uses default background */
+.site-config-page-bg {
+  background-color: #f0f2f5;
+}
+
+.v-application.v-theme--dark .site-config-page-bg {
+  background-color: rgb(var(--v-theme-background));
+}
+
+.site-config-path-ok {
+  color: rgb(var(--v-theme-success));
+}
+
+.site-config-path-bad {
+  color: rgb(var(--v-theme-error));
+}
+
+/* Labels above controls (not Vuetify floating labels) */
+.site-config-field__label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgba(var(--v-theme-on-surface), 0.75);
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+
+.site-config-field__hint {
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), 0.6);
+  margin-top: 6px;
+  line-height: 1.35;
+}
+
+.site-config-stack > * + * {
+  margin-top: 1rem;
+}
+
+.site-config-app .test-email-response .v-field__input {
+  max-height: 300px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.8125rem;
+  white-space: pre;
+}
