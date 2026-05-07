@@ -225,9 +225,6 @@ async function submitTestEmail() {
 }
 
 async function saveCurrentSection() {
-  if (activeSection.value === 'test_email') {
-    return;
-  }
   if (activeSection.value === 'mail' && emailConfigFileExists.value) {
     return;
   }
@@ -255,7 +252,6 @@ const currentTitle = computed(() => {
 
 /** Hide Save for tooling-only sections and when mail uses config/email.php only */
 const saveVisible = computed(() => {
-  if (activeSection.value === 'test_email') return false;
   if (activeSection.value === 'mail' && emailConfigFileExists.value) return false;
   return true;
 });
@@ -277,7 +273,7 @@ onBeforeUnmount(() => clearTimeout(pageAlertTimer));
 watch(
   () => activeSection.value,
   (id) => {
-    if (id === 'test_email') {
+    if (id === 'mail') {
       loadTestEmailSection();
     }
   },
@@ -815,7 +811,7 @@ onMounted(async () => {
           <!-- Mail -->
           <v-card v-show="activeSection === 'mail'" elevation="1" rounded="lg" class="bg-surface">
             <div class="pa-4 site-config-card-inner">
-              <div class="site-config-card__header d-flex align-center justify-space-between flex-wrap gap-3">
+              <div class="site-config-card__header d-flex align-center justify-space-between flex-wrap gap-3 mb-4">
                 <h2 class="site-config-card__title">
                   {{ currentTitle }}
                 </h2>
@@ -828,15 +824,12 @@ onMounted(async () => {
                 >
                   {{ tr('update') }}
                 </v-btn>
-              </div>
-            <v-alert v-if="emailConfigFileExists" type="info" variant="tonal" class="mb-4">
-              <span v-html="editEmailHtml" />
-              <div class="mt-3">
-                <v-btn :to="{ name: 'site-config-section', params: { section: 'test_email' } }" variant="tonal" prepend-icon="mdi-email-check">
-                  {{ tr('test_email_configurations') }}
-                </v-btn>
-              </div>
-            </v-alert>
+              </div>            
+            <div v-if="emailConfigFileExists" style="margin-top: 12px; margin-bottom: 16px;">
+              <v-alert type="info" variant="tonal" class="py-2">
+                <span class="d-block" v-html="editEmailHtml" />
+              </v-alert>
+            </div>
 
             <template v-else>
               <v-row dense>
@@ -942,136 +935,121 @@ onMounted(async () => {
                 Sendmail uses the server sendmail path configured in PHP.
               </div>
 
-              <div class="mt-6">
-                <v-btn :to="{ name: 'site-config-section', params: { section: 'test_email' } }" variant="tonal" prepend-icon="mdi-email-check">
-                  {{ tr('test_email_configurations') }}
-                </v-btn>
-              </div>
             </template>
+
+            <div class="text-h6 font-weight-bold mt-8" style="margin-bottom: 28px;">{{ tr('test_email_configurations') }}</div>
+            <v-progress-linear v-if="testEmailLoading" indeterminate color="primary" class="my-4" />
+
+            <form v-show="!testEmailLoading" class="mt-3" @submit.prevent="submitTestEmail">
+              <v-row dense>
+                <v-col cols="12">
+                  <label class="site-config-field__label d-block mb-2">{{ tr('smtp_host') }}</label>
+                  <v-text-field
+                    v-model="testEmailForm.smtp_host"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    autocomplete="off"
+                  />
+                </v-col>
+                <v-col cols="12" sm="4">
+                  <label class="site-config-field__label">{{ tr('smtp_port') }}</label>
+                  <v-text-field
+                    v-model="testEmailForm.smtp_port"
+                    type="number"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    autocomplete="off"
+                  />
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('test_email_use_smtp_authentication') }}</label>
+                  <div class="mt-2">
+                    <v-switch v-model="testEmailForm.smtp_auth" color="primary" density="comfortable" hide-details inset />
+                  </div>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('test_email_secure_connection') }}</label>
+                  <v-radio-group v-model="testEmailForm.smtp_crypto" inline density="compact" class="mt-2">
+                    <v-radio value="" :label="tr('smtp_crypto_none')" />
+                    <v-radio value="tls" label="TLS" />
+                    <v-radio value="ssl" label="SSL" />
+                  </v-radio-group>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('test_email_library') }}</label>
+                  <v-select
+                    v-model="testEmailForm.useragent"
+                    :items="testEmailUseragents"
+                    item-title="title"
+                    item-value="value"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    class="mt-1"
+                  />
+                  <div class="site-config-field__hint">{{ tr('test_email_library_note') }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('smtp_user') }}</label>
+                  <v-text-field
+                    v-model="testEmailForm.smtp_user"
+                    type="email"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    autocomplete="username"
+                  />
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('smtp_password') }}</label>
+                  <v-text-field
+                    v-model="testEmailForm.smtp_pass"
+                    type="password"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    autocomplete="new-password"
+                  />
+                  <div class="site-config-field__hint">{{ tr('test_email_password_hint') }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('test_email_from') }}</label>
+                  <v-text-field v-model="testEmailForm.mail_from" type="email" variant="outlined" density="comfortable" hide-details="auto" />
+                  <div class="site-config-field__hint">{{ tr('test_email_from_hint') }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('test_email_to') }}</label>
+                  <v-text-field
+                    v-model="testEmailForm.mail_to"
+                    type="email"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    :placeholder="tr('test_email_to_placeholder')"
+                    autocomplete="off"
+                  />
+                </v-col>
+                <v-col cols="12" class="mt-2">
+                  <v-btn type="submit" color="primary" :loading="testEmailSending" prepend-icon="mdi-send">
+                    {{ tr('test_email_send') }}
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </form>
+
+            <div v-if="testEmailFullResponse" class="mt-8">
+              <div class="text-subtitle-2 font-weight-medium mb-2 mt-5 pt-5">Response</div>
+              <v-textarea
+                v-model="testEmailFullResponse"
+                readonly
+                variant="outlined"
+                rows="12"
+                hide-details
+                class="test-email-response"
+              />
             </div>
-          </v-card>
-
-          <!-- Test email (SMTP from config/email.php; send only, not site settings save) -->
-          <v-card v-show="activeSection === 'test_email'" elevation="1" rounded="lg" class="bg-surface">
-            <div class="pa-4 site-config-card-inner">
-              <div class="site-config-card__header d-flex align-center justify-space-between flex-wrap gap-3">
-                <h2 class="site-config-card__title">
-                  {{ currentTitle }}
-                </h2>
-              </div>
-
-              <v-progress-linear v-if="testEmailLoading" indeterminate color="primary" class="my-4" />
-
-              <form v-show="!testEmailLoading" @submit.prevent="submitTestEmail">
-                <v-row dense>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('smtp_host') }}</label>
-                    <v-text-field
-                      v-model="testEmailForm.smtp_host"
-                      variant="outlined"
-                      density="comfortable"
-                      hide-details="auto"
-                      autocomplete="off"
-                    />
-                  </v-col>
-                  <v-col cols="12" sm="4">
-                    <label class="site-config-field__label">{{ tr('smtp_port') }}</label>
-                    <v-text-field
-                      v-model="testEmailForm.smtp_port"
-                      type="number"
-                      variant="outlined"
-                      density="comfortable"
-                      hide-details="auto"
-                      autocomplete="off"
-                    />
-                  </v-col>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('test_email_use_smtp_authentication') }}</label>
-                    <div class="mt-2">
-                      <v-switch v-model="testEmailForm.smtp_auth" color="primary" density="comfortable" hide-details inset />
-                    </div>
-                  </v-col>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('test_email_secure_connection') }}</label>
-                    <v-radio-group v-model="testEmailForm.smtp_crypto" inline density="compact" class="mt-2">
-                      <v-radio value="" :label="tr('smtp_crypto_none')" />
-                      <v-radio value="tls" label="TLS" />
-                      <v-radio value="ssl" label="SSL" />
-                    </v-radio-group>
-                  </v-col>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('test_email_library') }}</label>
-                    <v-select
-                      v-model="testEmailForm.useragent"
-                      :items="testEmailUseragents"
-                      item-title="title"
-                      item-value="value"
-                      variant="outlined"
-                      density="comfortable"
-                      hide-details="auto"
-                      class="mt-1"
-                    />
-                    <div class="site-config-field__hint">{{ tr('test_email_library_note') }}</div>
-                  </v-col>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('smtp_user') }}</label>
-                    <v-text-field
-                      v-model="testEmailForm.smtp_user"
-                      type="email"
-                      variant="outlined"
-                      density="comfortable"
-                      hide-details="auto"
-                      autocomplete="username"
-                    />
-                  </v-col>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('smtp_password') }}</label>
-                    <v-text-field
-                      v-model="testEmailForm.smtp_pass"
-                      type="password"
-                      variant="outlined"
-                      density="comfortable"
-                      hide-details="auto"
-                      autocomplete="new-password"
-                    />
-                    <div class="site-config-field__hint">{{ tr('test_email_password_hint') }}</div>
-                  </v-col>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('test_email_from') }}</label>
-                    <v-text-field v-model="testEmailForm.mail_from" type="email" variant="outlined" density="comfortable" hide-details="auto" />
-                    <div class="site-config-field__hint">{{ tr('test_email_from_hint') }}</div>
-                  </v-col>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('test_email_to') }}</label>
-                    <v-text-field
-                      v-model="testEmailForm.mail_to"
-                      type="email"
-                      variant="outlined"
-                      density="comfortable"
-                      hide-details="auto"
-                      :placeholder="tr('test_email_to_placeholder')"
-                      autocomplete="off"
-                    />
-                  </v-col>
-                  <v-col cols="12" class="mt-2">
-                    <v-btn type="submit" color="primary" :loading="testEmailSending" prepend-icon="mdi-send">
-                      {{ tr('test_email_send') }}
-                    </v-btn>
-                  </v-col>
-                </v-row>
-              </form>
-
-              <div v-if="testEmailFullResponse" class="mt-8">
-                <div class="text-subtitle-2 font-weight-medium mb-2 mt-5 pt-5">Response</div>
-                <v-textarea
-                  v-model="testEmailFullResponse"
-                  readonly
-                  variant="outlined"
-                  rows="12"
-                  hide-details
-                  class="test-email-response"
-                />
-              </div>
             </div>
           </v-card>
 

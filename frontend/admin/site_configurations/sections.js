@@ -55,12 +55,6 @@ export const SECTION_DEFS = [
       'microsoft_graph_tenant_id',
     ],
   },
-  /** Tooling only — persisted via POST test_email_send, not site settings API */
-  {
-    id: 'test_email',
-    titleKey: 'test_email_configurations',
-    keys: [],
-  },
 ];
 
 export const SITE_CONFIG_SECTION_IDS = new Set(SECTION_DEFS.map((s) => s.id));
