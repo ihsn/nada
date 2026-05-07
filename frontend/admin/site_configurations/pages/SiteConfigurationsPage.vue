@@ -33,6 +33,11 @@ const testEmailForm = reactive({
 const testEmailLoading = ref(false);
 const testEmailSending = ref(false);
 const testEmailFullResponse = ref('');
+const adminHeaderColorDialog = ref(false);
+const adminHeaderDraftColor = ref('#212121');
+const adminHeaderSwatches = [
+  ['#212121', '#263238', '#1b1f3b', '#004d40', '#3e2723', '#4a148c', '#0d47a1', '#111827'],
+];
 
 function tr(key) {
   const v = config.value?.translations?.[key];
@@ -53,6 +58,24 @@ const snackbarIsError = ref(false);
 
 const ui = computed(() => config.value?.ui || {});
 const emailConfigFileExists = computed(() => !!meta.value?.email_config_file_exists);
+const adminHeaderPreviewColor = computed(() => {
+  const value = String(settings.value?.admin_header_background || '').trim();
+  return /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#212121';
+});
+
+function openAdminHeaderColorDialog() {
+  adminHeaderDraftColor.value = adminHeaderPreviewColor.value;
+  adminHeaderColorDialog.value = true;
+}
+
+function cancelAdminHeaderColorDialog() {
+  adminHeaderColorDialog.value = false;
+}
+
+function applyAdminHeaderColorDialog() {
+  settings.value.admin_header_background = adminHeaderDraftColor.value;
+  adminHeaderColorDialog.value = false;
+}
 
 const editEmailHtml = computed(
   () =>
@@ -218,7 +241,7 @@ async function saveCurrentSection() {
     await reloadAll();
   } catch (e) {
     snackbarIsError.value = true;
-    snackbarText.value = e?.message || String(e);
+    snackbarText.value = e?.response?.data?.message || e?.message || String(e);
     snackbar.value = true;
   } finally {
     saving.value = false;
@@ -346,23 +369,93 @@ onMounted(async () => {
                 <label class="site-config-field__label">{{ tr('website_footer') }}</label>
                 <v-textarea v-model="settings.website_footer" variant="outlined" rows="4" hide-details="auto" />
               </v-col>
-              <v-col cols="12" md="8">
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('default_home_page') }}</label>
-                <v-text-field v-model="settings.default_home_page" variant="outlined" density="comfortable" hide-details="auto" />
+                <v-text-field
+                  v-model="settings.default_home_page"
+                  variant="outlined"
+                  density="comfortable"
+                  hide-details="auto"
+                  style="max-width: 300px;"
+                />
                 <div class="site-config-field__hint">{{ tr('instruction_default_home_page') }}</div>
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('webmaster_name') }}</label>
-                <v-text-field v-model="settings.website_webmaster_name" variant="outlined" density="comfortable" hide-details="auto" />
+                <v-text-field
+                  v-model="settings.website_webmaster_name"
+                  variant="outlined"
+                  density="comfortable"
+                  hide-details="auto"
+                  style="max-width: 300px;"
+                />
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('webmaster_email') }}</label>
-                <v-text-field v-model="settings.website_webmaster_email" variant="outlined" density="comfortable" hide-details="auto" />
+                <v-text-field
+                  v-model="settings.website_webmaster_email"
+                  variant="outlined"
+                  density="comfortable"
+                  hide-details="auto"
+                  style="max-width: 300px;"
+                />
               </v-col>
-              <v-col cols="12" sm="6" md="4">
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('max_resource_upload_size') }}</label>
-                <v-text-field v-model="settings.max_resource_upload_size" variant="outlined" density="comfortable" hide-details="auto" />
+                <v-text-field
+                  v-model="settings.max_resource_upload_size"
+                  variant="outlined"
+                  density="comfortable"
+                  hide-details="auto"
+                  style="max-width: 300px;"
+                />
                 <div class="site-config-field__hint">{{ tr('max_resource_upload_size_note') }}</div>
+              </v-col>
+              <v-col cols="12">
+                <label class="site-config-field__label">Admin header background</label>
+                <div class="d-flex align-center ga-2 flex-wrap">
+                  <v-text-field
+                    v-model="settings.admin_header_background"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    placeholder="#212121"
+                    style="max-width: 300px;"
+                  />
+                  <div
+                    class="rounded border"
+                    role="button"
+                    tabindex="0"
+                    style="width: 46px; height: 46px;"
+                    :style="{ backgroundColor: adminHeaderPreviewColor }"
+                    aria-label="Admin header background preview"
+                    title="Pick background color"
+                    @click="openAdminHeaderColorDialog"
+                    @keydown.enter.prevent="openAdminHeaderColorDialog"
+                    @keydown.space.prevent="openAdminHeaderColorDialog"
+                  />
+                </div>
+                <v-dialog v-model="adminHeaderColorDialog" max-width="460">
+                  <v-card>
+                    <v-card-title class="text-h6">Pick background color</v-card-title>
+                    <v-card-text class="pa-0">
+                      <div class="px-4 pt-2">
+                        <v-color-picker
+                          v-model="adminHeaderDraftColor"
+                          width="100%"
+                          class="w-100"
+                          mode="hexa"
+                          :modes="['hexa']"                        
+                          hide-inputs
+                        />
+                      </div>
+                    </v-card-text>
+                    <v-card-actions class="justify-end px-6 pb-4 pt-5">
+                      <v-btn variant="text" @click="cancelAdminHeaderColorDialog">Cancel</v-btn>
+                      <v-btn color="primary" variant="flat" @click="applyAdminHeaderColorDialog">Apply</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
               </v-col>
             </v-row>
             </div>

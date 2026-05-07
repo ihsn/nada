@@ -10,6 +10,7 @@ export const SECTION_DEFS = [
       'website_webmaster_name',
       'website_webmaster_email',
       'max_resource_upload_size',
+      'admin_header_background',
     ],
   },
   { id: 'languages', titleKey: 'language', keys: ['language', 'supported_languages'] },

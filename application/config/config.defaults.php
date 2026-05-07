@@ -20,6 +20,7 @@ $config['catalog_default_sort_order']='';
 $config['guests_hide_microdata_tab']='no';
 $config['data_types_nav_bar']='no';
 $config['max_resource_upload_size']='3000';
+$config['admin_header_background']='#212121';
 $config['search_provider']='db';
 
 //default cache expiration in seconds
