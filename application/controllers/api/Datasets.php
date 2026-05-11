@@ -1576,7 +1576,7 @@ class Datasets extends MY_REST_Controller
 
 			//upload class configurations for RDF
 			$config['upload_path'] = $thumbnail_abs_path;
-			$config['overwrite'] = false;
+			$config['overwrite'] = true;
 			$config['encrypt_name']=false;
 			$config['file_name']='thumbnail-s'.$sid;
 			$config['file_ext_tolower']=true;
