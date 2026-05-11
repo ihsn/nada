@@ -167,6 +167,32 @@ class Variable_model extends CI_Model {
 
         $variable=$this->db->get("variables")->row_array();
 
+        //Fallback: the DDI2 importer stores file-scoped vids as "{fid}_{vid}"
+        //when the same DDI <var> @ID is referenced from multiple files (e.g.
+        //IPUMS hierarchical RECTYPE shared by Household + Person, or a weight
+        //variable that exists in both files). Callers that pass the ORIGINAL
+        //(un-prefixed) DDI vid + a file context — most notably the variable
+        //detail page (Study::variable) and weight links emitted in
+        //views/survey_info/variable_ddi.php — won't match those stored rows on
+        //the first lookup. When file_id context is available, retry with the
+        //prefixed form so the resolution is transparent to callers and to
+        //existing DDI metadata that references the canonical vid.
+        if(empty($variable) && $file_id){
+            $this->load->library('DDI_Utils');
+            $prefixed_vid=DDI_Utils::prefix_vid($file_id, $var_id);
+
+            //avoid pointless re-query when the caller already passed a prefixed
+            //vid (prefix_vid is a no-op in that case beyond the leading token,
+            //but $var_id may already start with "{file_id}_").
+            if ($prefixed_vid !== $var_id){
+                $this->db->select("*");
+                $this->db->where("sid",$sid);
+                $this->db->where("vid",$prefixed_vid);
+                $this->db->where("fid",$file_id);
+                $variable=$this->db->get("variables")->row_array();
+            }
+        }
+
         if(isset($variable['metadata'])){            
             $variable['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
             $variable=$this->map_variable_fields($variable);

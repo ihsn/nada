@@ -20,6 +20,9 @@ class DDI2_Import{
     //which field to use for country name - nation | geog_coverage
     private $geog_coverage_field='nation'; 
 
+    //non-fatal warnings collected during variable import (e.g. multi-file vars)
+    private $variable_warnings=array();
+
     public function __construct()
     {
         $this->ci =& get_instance();
@@ -265,7 +268,7 @@ class DDI2_Import{
         //index variable keywords
         $this->ci->dataset_manager->index_variable_data($sid);
                     
-        return array(
+        $result=array(
             'sid'=>$sid,
             'idno'=>$idno,
             'varcount'=>$variables_imported,
@@ -273,6 +276,12 @@ class DDI2_Import{
             'repositoryid'=>$this->repositoryid,  
             'folder'=>$survey_folder_rel_path
         );
+
+        if (!empty($this->variable_warnings)){
+            $result['variable_warnings']=$this->variable_warnings;
+        }
+
+        return $result;
     }
 
     
@@ -522,87 +531,176 @@ class DDI2_Import{
             return 0;
         }
 
-        $batch_inserts=true; //enable or disable batch inserts
-        $batch_insert_size=200; //rows inserted at once
-        $batch_insert_count=0;
-        $batch_options=array();
-        $k=0;
+        $this->ci->load->library('DDI_Utils');
 
-        //@var_obj is an instance of the interfaceVariable e.g. DdiVariable
+        // -------------------------------------------------------------------
+        // Pass 1: stage all rows with their ORIGINAL (un-prefixed) vid.
+        //
+        // DDI 2.x @files is IDREFS (whitespace-separated list of file IDREFs).
+        // A single <var> can reference multiple files (e.g. shared
+        // household/person columns in hierarchical IPUMS datasets) and the same
+        // @ID can also appear across multiple <var> blocks with different
+        // @files. Fan out one variables row per referenced file so per-file UI
+        // listings, counts and joins all work unchanged.
+        //
+        // NADA's `variables` table enforces UNIQUE(vid, sid), so a duplicate
+        // ORIGINAL vid across rows would violate the unique key. We resolve
+        // that in pass 2 by prefixing the stored vid with the file token, e.g.
+        //   {fid="H", original_vid="RECTYPE"} => stored_vid="H_RECTYPE".
+        // Single-file vars whose ORIGINAL vid is unique within the survey are
+        // stored verbatim (no prefix) so existing surveys/imports are
+        // unchanged.
+        // -------------------------------------------------------------------
+        $staged_rows=array();
+        $multi_file_seen=array(); //original_vid => raw @files string (for warnings)
+
         foreach($variable_iterator as $var_obj)
         {
-            $fid=null;
-            
             if(!$var_obj){
                 continue;
             }
 
-            if (isset($data_files[$var_obj->get_file_id()])){
-                //get file id
-                $fid=$data_files[$var_obj->get_file_id()]['id'];    
-            }            
-            
-            if(!$fid){
-                throw new exception("var @files attribute not set. ". $var_obj->get_file_id());
+            $raw_file_id=$var_obj->get_file_id();
+            $file_id_tokens=DDI_Utils::split_file_ids($raw_file_id);
+
+            if (empty($file_id_tokens)){
+                throw new Exception("var @files attribute not set. ".(string)$raw_file_id);
             }
-            
-            //transform fields to map to variable fields and validate
-            //$variable=$this->map_variable_fields($var_obj->get_metadata_array());
-            $variable=$var_obj->get_metadata_array();
-            $variable['fid']=$variable['file_id'];   
-            
+
+            $original_vid=$var_obj->get_id();
+            $base_variable=$var_obj->get_metadata_array();
+
+            $inserted_tokens=array();
+            $unknown_tokens=array();
+
+            foreach($file_id_tokens as $fid_token){
+                if (!isset($data_files[$fid_token])){
+                    $unknown_tokens[]=$fid_token;
+                    continue;
+                }
+
+                //per-row metadata blob mirrors the columns
+                $variable=$base_variable;
+                $variable['file_id']=$fid_token;
+                $variable['fid']=$fid_token;
+                $variable['vid']=$original_vid; //may be rewritten in pass 2
+
+                $staged_rows[]=array(
+                    'fid'           => $fid_token,
+                    'vid'           => $original_vid, //may be rewritten in pass 2
+                    'name'          => $var_obj->get_name(),
+                    'labl'          => $var_obj->get_label(),
+                    'qstn'          => $var_obj->get_question(),
+                    'catgry'        => $var_obj->get_categories_str(),
+                    'keywords'      => $var_obj->get_notes(),
+                    'sid'           => $sid,
+                    'metadata'      => $variable,
+                    '_original_vid' => $original_vid, //internal marker, stripped before insert
+                );
+
+                $inserted_tokens[]=$fid_token;
+            }
+
+            if (count($file_id_tokens) > 1){
+                $multi_file_seen[$original_vid]=$raw_file_id;
+            }
+
+            if (!empty($unknown_tokens)){
+                $this->variable_warnings[]=array(
+                    'vid'   => $original_vid,
+                    'name'  => $var_obj->get_name(),
+                    'files' => $raw_file_id,
+                    'message' => 'Variable referenced unknown data file(s): '.implode(', ', $unknown_tokens).' (skipped for those files).'
+                );
+            }
+
+            //If every referenced file was unknown, surface a hard error so the
+            //importer still fails loudly (preserves the legacy contract that
+            //unrecognized @files aborts the import).
+            if (empty($inserted_tokens)){
+                throw new Exception("var @files attribute references unknown data file(s): ".(string)$raw_file_id);
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Pass 2: detect duplicate ORIGINAL vids and rewrite to FID_VID form.
+        //
+        // A vid is "duplicate" if more than one staged row carries the same
+        // ORIGINAL @ID (regardless of whether the duplication came from a
+        // multi-token @files attribute or from two separate <var> blocks that
+        // share an @ID across different files). Prefix every row in such a
+        // group; single-occurrence vids stay verbatim.
+        // -------------------------------------------------------------------
+        $vid_counts=array();
+        foreach($staged_rows as $row){
+            $ov=$row['_original_vid'];
+            $vid_counts[$ov]=isset($vid_counts[$ov]) ? $vid_counts[$ov]+1 : 1;
+        }
+
+        $prefixed_groups=array(); //original_vid => array of stored vids
+        foreach($staged_rows as $idx=>$row){
+            $original_vid=$row['_original_vid'];
+            if ($vid_counts[$original_vid] > 1){
+                $stored_vid=DDI_Utils::prefix_vid($row['fid'], $original_vid);
+                $staged_rows[$idx]['vid']=$stored_vid;
+                $staged_rows[$idx]['metadata']['vid']=$stored_vid;
+                //preserve the source DDI @ID for diagnostics, round-trip and
+                //consumers who need to map back to the canonical name.
+                $staged_rows[$idx]['metadata']['vid_original']=$original_vid;
+
+                $prefixed_groups[$original_vid][]=$row['fid'].' => '.$stored_vid;
+            }
+        }
+
+        foreach($prefixed_groups as $original_vid=>$mapping){
+            $files_attr=isset($multi_file_seen[$original_vid]) ? $multi_file_seen[$original_vid] : null;
+            $this->variable_warnings[]=array(
+                'vid'   => $original_vid,
+                'name'  => $original_vid,
+                'files' => $files_attr,
+                'message' => 'Variable ID appeared across multiple files; stored with prefixed vids: '.implode(', ', $mapping).'.'
+            );
+        }
+
+        // -------------------------------------------------------------------
+        // Pass 3: validate and batch-insert.
+        // -------------------------------------------------------------------
+        $batch_insert_size=200;
+        $batch_options=array();
+        $inserted=0;
+
+        foreach($staged_rows as $row){
+            //validate against the FINAL (post-prefix) vid
+            $validate_payload=array(
+                'fid'  => $row['fid'],
+                'vid'  => $row['vid'],
+                'name' => $row['name'],
+            );
             try{
-                $this->ci->Variable_model->validate_variable($variable);
+                $this->ci->Variable_model->validate_variable($validate_payload);
             }
-            catch(ValidationException $e){                
-                throw new ValidationException("VALIDATION_ERROR: ".$e->getMessage(), $variable);
-                
+            catch(ValidationException $e){
+                throw new ValidationException("VALIDATION_ERROR: ".$e->getMessage(), $row);
             }
             catch(Exception $e){
                 throw new Exception('DDI2_IMPORT::VARIABLE-IMPORT: '.$e->getMessage());
             }
 
+            unset($row['_original_vid']); //strip internal marker
+            $batch_options[]=$row;
+            $inserted++;
 
-            //fid = auto generated numeric id for file
-            //file_id = user defined .e.g. F1, F2
-            
-            $options=array(
-                //'file_id'   	=> $var_obj->get_file_id(),
-                //'fid'   		=> $fid,
-                'fid'           =>$var_obj->get_file_id(), //F1, F2
-                'vid'		    => $var_obj->get_id(),
-                'name'			=> $var_obj->get_name(),
-                'labl'			=> $var_obj->get_label(),
-                'qstn'			=> $var_obj->get_question(),
-                'catgry'		=> $var_obj->get_categories_str(),
-                'keywords'      => $var_obj->get_notes(),
-                'sid'	        => $sid,
-                'metadata'      => $variable
-            );
-
-            if(!$batch_inserts){
-                $variable_id=$this->ci->Variable_model->insert($sid,$variable);
-
-                if (!$variable_id) {
-                    throw new Exception("variable not created " . $this->ci->db->last_query());
-                }
+            if(count($batch_options)>=$batch_insert_size){
+                $this->ci->Variable_model->batch_insert($sid,$batch_options);
+                $batch_options=array();
             }
-
-            if ($batch_inserts){
-                $batch_options[$k]=$options;
-
-                if(count($batch_options)==$batch_insert_size){                    
-                    $this->ci->Variable_model->batch_insert($sid,$batch_options);
-                    $batch_options=[];
-                }
-            }            
-            $k++;
-       }
+        }
 
         if(count($batch_options)>0){
             $this->ci->Variable_model->batch_insert($sid,$batch_options);
         }
-        return $k;//no. of variables imported
+
+        return $inserted;//no. of variables imported (post fan-out)
     }
 
 

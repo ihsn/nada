@@ -405,46 +405,101 @@ class Metadata_Import{
         //delete existing variables + variables metadata
         $this->ci->Variable_model->remove_all_variables($sid);
 
-        $batch_inserts=true; //enable or disable batch inserts
-        $batch_insert_size=100; //rows inserted at once
-        $batch_insert_count=0;
-        $batch_options=array();
-        $k=0;
+        $this->ci->load->library('DDI_Utils');
 
-        //@var_obj is an instance of the interfaceVariable e.g. DdiVariable
+        // -------------------------------------------------------------------
+        // Pass 1: stage all rows with their ORIGINAL (un-prefixed) vid.
+        //
+        // Same fan-out + prefix-on-duplicate strategy as DDI2_import (see the
+        // commentary there). Mirrored here for consistency in case this older
+        // import path is reused.
+        // -------------------------------------------------------------------
+        $staged_rows=array();
+
         foreach($variable_iterator as $var_obj)
         {
-            $core_options=array(
-                'fid'   		=> $data_files[$var_obj->get_file_id()]['id'],
-                'vid'		    =>$var_obj->get_id(),
-                'name'			=>$var_obj->get_name(),
-                'labl'			=>$var_obj->get_label(),
-                'qstn'			=>$var_obj->get_question(),
-                'catgry'		=>$var_obj->get_categories_str(),
-                'sid'	        =>$sid,
-                'metadata'      =>$this->encode_metadata($var_obj->get_metadata_array())
-            );
-
-            if ($batch_inserts){
-                $batch_options[$k]=$core_options;
+            if(!$var_obj){
+                continue;
             }
-            else {
-                //insert variable and get the pk id
-                $variable_id = $this->ci->Variable_model->add_variable_row($sid, $core_options);
 
-                if (!$variable_id) {
-                    throw new Exception("variable not created " . $this->ci->db->last_query());
+            $raw_file_id=$var_obj->get_file_id();
+            $file_id_tokens=DDI_Utils::split_file_ids($raw_file_id);
+
+            if (empty($file_id_tokens)){
+                //preserve legacy behavior: a missing @files yields a null fid
+                //and a PHP notice. Skip silently here rather than insert garbage.
+                continue;
+            }
+
+            $original_vid=$var_obj->get_id();
+            $base_metadata=$var_obj->get_metadata_array();
+
+            foreach($file_id_tokens as $fid_token){
+                if (!isset($data_files[$fid_token])){
+                    continue;
                 }
-            }
 
-            $k++;
+                $variable_metadata=$base_metadata;
+                $variable_metadata['file_id']=$fid_token;
+                $variable_metadata['fid']=$fid_token;
+                $variable_metadata['vid']=$original_vid; //may be rewritten in pass 2
+
+                $staged_rows[]=array(
+                    'fid'           => $data_files[$fid_token]['id'],
+                    'vid'           => $original_vid, //may be rewritten in pass 2
+                    'name'          => $var_obj->get_name(),
+                    'labl'          => $var_obj->get_label(),
+                    'qstn'          => $var_obj->get_question(),
+                    'catgry'        => $var_obj->get_categories_str(),
+                    'sid'           => $sid,
+                    'metadata_array'=> $variable_metadata,
+                    '_fid_token'    => $fid_token, //textual token used for prefix
+                    '_original_vid' => $original_vid,
+                );
+            }
        }
 
-        if($batch_inserts){
-            //echo ("variables in batch insert:" .count($batch_options));
+        // -------------------------------------------------------------------
+        // Pass 2: detect duplicate ORIGINAL vids and rewrite to FID_VID form.
+        // -------------------------------------------------------------------
+        $vid_counts=array();
+        foreach($staged_rows as $row){
+            $ov=$row['_original_vid'];
+            $vid_counts[$ov]=isset($vid_counts[$ov]) ? $vid_counts[$ov]+1 : 1;
+        }
+
+        foreach($staged_rows as $idx=>$row){
+            if ($vid_counts[$row['_original_vid']] > 1){
+                $stored_vid=DDI_Utils::prefix_vid($row['_fid_token'], $row['_original_vid']);
+                $staged_rows[$idx]['vid']=$stored_vid;
+                $staged_rows[$idx]['metadata_array']['vid']=$stored_vid;
+                $staged_rows[$idx]['metadata_array']['vid_original']=$row['_original_vid'];
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Pass 3: encode metadata and batch-insert.
+        // -------------------------------------------------------------------
+        $batch_options=array();
+        $k=0;
+        foreach($staged_rows as $row){
+            $batch_options[$k]=array(
+                'fid'      => $row['fid'],
+                'vid'      => $row['vid'],
+                'name'     => $row['name'],
+                'labl'     => $row['labl'],
+                'qstn'     => $row['qstn'],
+                'catgry'   => $row['catgry'],
+                'sid'      => $row['sid'],
+                'metadata' => $this->encode_metadata($row['metadata_array']),
+            );
+            $k++;
+        }
+
+        if(count($batch_options)>0){
             $this->ci->Variable_model->batch_insert($sid,$batch_options);
         }
 
-        return $k;//no. of variables imported
+        return $k;//no. of variables imported (post fan-out)
     }
 }

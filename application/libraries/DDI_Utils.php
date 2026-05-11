@@ -14,6 +14,58 @@ class DDI_Utils
 		$this->ci =& get_instance();
 		$this->ci->load->model("Catalog_model");
     }
+
+
+	/**
+	 * Split a DDI <var> @files attribute value into individual file ID tokens.
+	 *
+	 * Per DDI 2.x, @files is declared as IDREFS (whitespace-separated list of
+	 * file IDs) so a single variable can reference multiple files (e.g. shared
+	 * household/person columns in hierarchical IPUMS datasets).
+	 *
+	 * @param string|null $value Raw @files attribute value, e.g. "H P" or "F1".
+	 * @return array Ordered list of non-empty tokens. Empty input returns [].
+	 */
+	public static function split_file_ids($value)
+	{
+		if ($value === null || $value === '') {
+			return array();
+		}
+
+		$tokens = preg_split('/\s+/', trim((string)$value), -1, PREG_SPLIT_NO_EMPTY);
+		return is_array($tokens) ? $tokens : array();
+	}
+
+
+	/**
+	 * Build a file-scoped variable ID by prefixing the DDI <var> @ID with its
+	 * <var> @files token.
+	 *
+	 * NADA enforces a UNIQUE(vid, sid) constraint on the `variables` table, so
+	 * a single DDI <var> that references multiple files (e.g. @files="H P" in
+	 * hierarchical IPUMS datasets, or two separate <var> blocks that share the
+	 * same @ID across different files) cannot be stored as-is. To preserve all
+	 * fan-out rows the importer prefixes the stored vid with the file token,
+	 * e.g. {fid="H", original_vid="RECTYPE"} => stored_vid="H_RECTYPE".
+	 *
+	 * Use the same helper everywhere a prefixed vid is produced or looked up
+	 * (importers, weight resolution, etc.) so the convention stays in one place.
+	 *
+	 * @param string $fid          File ID token (e.g. "H").
+	 * @param string $original_vid Original DDI <var> @ID (e.g. "RECTYPE").
+	 * @return string Prefixed vid (e.g. "H_RECTYPE"). Empty inputs return "".
+	 */
+	public static function prefix_vid($fid, $original_vid)
+	{
+		$fid = trim((string)$fid);
+		$original_vid = trim((string)$original_vid);
+		if ($fid === '' || $original_vid === '') {
+			return $original_vid;
+		}
+		return $fid.'_'.$original_vid;
+	}
+
+
 	
 
 
