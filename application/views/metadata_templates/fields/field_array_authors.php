@@ -40,15 +40,25 @@
         <?php if (isset($data[0]) && is_array($data[0])):?>
         <?php            
             if(!isset($columns)){
-             $columns=array('last_name','first_name','initial','affiliation','author_id');
+             $columns=array('full_name','last_name','first_name','initial','affiliation','author_id');
             }
 
-            //remove empty columns
+            // Remove columns with no values (full_name included so harvest rows with only full_name keep a column).
             $non_empty_columns=array();            
             foreach($columns as $column){
                 $column_data=array_filter(array_column($data, $column));
                 if(!empty($column_data)){
                     $non_empty_columns[]=$column;
+                    continue;
+                }
+                // Keep last_name column when names live only in full_name (legacy substitution cell).
+                if ($column === 'last_name') {
+                    foreach ($data as $row) {
+                        if (!empty($row['full_name'])) {
+                            $non_empty_columns[] = $column;
+                            break;
+                        }
+                    }
                 }
             }
             $columns=$non_empty_columns;
@@ -68,7 +78,21 @@
                     
                     <?php foreach($columns as $column_name):?>                        
                         <td>
-                            <?php if(empty($row[$column_name])){continue;}?>    
+                            <?php
+                            if ($column_name !== 'author_id') {
+                                if ($column_name === 'full_name') {
+                                    if (empty($row['full_name'])) {
+                                        continue;
+                                    }
+                                } elseif ($column_name === 'last_name') {
+                                    if (empty($row['last_name']) && empty($row['full_name'])) {
+                                        continue;
+                                    }
+                                } elseif (empty($row[$column_name])) {
+                                    continue;
+                                }
+                            }
+                            ?>
                             <?php if($column_name=='author_id' && is_array($row['author_id'])):?>
                                 <?php foreach($row['author_id'] as $author_id):?>
                                     <div>
