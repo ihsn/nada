@@ -52,6 +52,8 @@
                     continue;
                 }
                 // Keep last_name column when names live only in full_name (legacy substitution cell).
+                // Note: if full_name is already shown as its own column, we should NOT keep last_name just for substitution,
+                // otherwise the name appears twice.
                 if ($column === 'last_name') {
                     foreach ($data as $row) {
                         if (!empty($row['full_name'])) {
@@ -61,6 +63,14 @@
                     }
                 }
             }
+            // If full_name is displayed, drop last_name when it has no real values.
+            if (in_array('full_name', $non_empty_columns, true) && in_array('last_name', $non_empty_columns, true)) {
+                $last_name_values = array_filter(array_column($data, 'last_name'));
+                if (empty($last_name_values)) {
+                    $non_empty_columns = array_values(array_diff($non_empty_columns, array('last_name')));
+                }
+            }
+
             $columns=$non_empty_columns;
         ?>
         
@@ -108,7 +118,7 @@
                                 <?php if(is_url($row[$column_name])):?>
                                      <a target="_blank" href="<?php echo html_escape($row[$column_name]);?>"><i class="fas fa-external-link-alt"></i> <?php echo t('Link');?></a>
                                 <?php else:?>
-                                    <?php if($column_name=='last_name' && isset($row['full_name'])):?>
+                                    <?php if($column_name=='last_name' && !in_array('full_name', $columns, true) && isset($row['full_name'])):?>
                                         <?php echo $row['full_name'];?>
                                     <?php else:?>
                                         <?php echo $row[$column_name];?>
