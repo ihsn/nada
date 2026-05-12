@@ -23,9 +23,10 @@ class JSON_Writer
      * @param bool $overwrite - Whether to overwrite existing file
      * @param bool $pretty - Whether to pretty print JSON
      * @param string $dsd_export self::DSD_EXPORT_* — for type=timeseries only: reference (default) or inline DSD+codelists
+     * @param bool $include_resources Embed external resources (resources table) under `external_resources`
      * @return string|false - Path to written file or false on failure
      */
-    public function write_json($sid, $output_path = 'php://output', $overwrite = false, $pretty = false, $dsd_export = self::DSD_EXPORT_REFERENCE)
+    public function write_json($sid, $output_path = 'php://output', $overwrite = false, $pretty = false, $dsd_export = self::DSD_EXPORT_REFERENCE, $include_resources = false)
     {
         $this->ci->load->model('Dataset_model');
         $this->ci->load->model('Data_file_model');
@@ -61,6 +62,10 @@ class JSON_Writer
             $this->_apply_timeseries_dsd_export((int) $sid, $output, $dsd_export);
         }
 
+        if ($include_resources) {
+            $output['external_resources'] = $this->_get_resources_export_array((int) $sid);
+        }
+
         if ($dataset['type'] == 'survey') {
             $output['data_files'] = function () use ($sid) {
                 $files = $this->ci->Data_file_model->get_all_by_survey($sid);
@@ -94,9 +99,11 @@ class JSON_Writer
             }
         );
 
+        $jsonOpts = JSON_UNESCAPED_SLASHES;
         if ($pretty) {
-            $encoder->setOptions(JSON_PRETTY_PRINT);
+            $jsonOpts |= JSON_PRETTY_PRINT;
         }
+        $encoder->setOptions($jsonOpts);
 
         $encoder->encode();
         fclose($fp);
@@ -112,9 +119,10 @@ class JSON_Writer
      * @param string $output_path - Output file path or 'php://output'
      * @param bool $overwrite - Whether to overwrite existing file
      * @param string $dsd_export self::DSD_EXPORT_* — for type=timeseries only
+     * @param bool $include_resources Embed external resources under `external_resources` on the study line
      * @return string|false - Path to written file or false on failure
      */
-    public function write_jsonl($sid, $output_path = 'php://output', $overwrite = false, $dsd_export = self::DSD_EXPORT_REFERENCE)
+    public function write_jsonl($sid, $output_path = 'php://output', $overwrite = false, $dsd_export = self::DSD_EXPORT_REFERENCE, $include_resources = false)
     {
         $this->ci->load->model('Dataset_model');
         $this->ci->load->model('Data_file_model');
@@ -152,6 +160,10 @@ class JSON_Writer
             $this->_apply_timeseries_dsd_export((int) $sid, $study_doc, $dsd_export);
         }
 
+        if ($include_resources) {
+            $study_doc['external_resources'] = $this->_get_resources_export_array((int) $sid);
+        }
+
         if ($dataset['type'] == 'survey') {
             $files = $this->ci->Data_file_model->get_all_by_survey($sid);
             if ($files) {
@@ -174,6 +186,7 @@ class JSON_Writer
                 fwrite($fp, $json);
             }
         );
+        $study_encoder->setOptions(JSON_UNESCAPED_SLASHES);
 
         $study_encoder->encode();
         fwrite($fp, "\n");
@@ -189,6 +202,7 @@ class JSON_Writer
                         fwrite($fp, $json);
                     }
                 );
+                $var_encoder->setOptions(JSON_UNESCAPED_SLASHES);
 
                 $var_encoder->encode();
                 fwrite($fp, "\n");
@@ -209,9 +223,10 @@ class JSON_Writer
      * @param bool $pretty - Whether to pretty print (only for JSON format)
      * @param bool $force_regenerate - Force regeneration even if cache is valid
      * @param string $dsd_export self::DSD_EXPORT_* — timeseries study JSON variants (cached per variant)
+     * @param bool $include_resources Embed external resources (separate cache file when true)
      * @return void - Streams directly to output
      */
-    public function download($sid, $format = 'json', $pretty = false, $force_regenerate = false, $dsd_export = self::DSD_EXPORT_REFERENCE)
+    public function download($sid, $format = 'json', $pretty = false, $force_regenerate = false, $dsd_export = self::DSD_EXPORT_REFERENCE, $include_resources = false)
     {
         $this->ci->load->model('Dataset_model');
 
@@ -235,7 +250,8 @@ class JSON_Writer
             && strtolower((string) $dsd_export) === self::DSD_EXPORT_INLINE) {
             $inline_suffix = '.inline';
         }
-        $json_path = $study_path . '/' . $dataset['idno'] . $inline_suffix . '.' . $extension;
+        $res_suffix = $include_resources ? '.res' : '';
+        $json_path = $study_path . '/' . $dataset['idno'] . $inline_suffix . $res_suffix . '.' . $extension;
 
         $generate_file = $force_regenerate;
         if (!$generate_file) {
@@ -252,16 +268,16 @@ class JSON_Writer
             }
 
             if ($format == 'jsonl') {
-                $this->write_jsonl($sid, $json_path, true, $dsd_export);
+                $this->write_jsonl($sid, $json_path, true, $dsd_export, $include_resources);
             } else {
-                $this->write_json($sid, $json_path, true, $pretty, $dsd_export);
+                $this->write_json($sid, $json_path, true, $pretty, $dsd_export, $include_resources);
             }
         }
 
         if (file_exists($json_path)) {
             $content_type = ($format == 'jsonl') ? 'application/x-ndjson' : 'application/json';
             header("Content-Type: {$content_type}; charset=utf-8");
-            $attach_name = $dataset['idno'] . $inline_suffix . '.' . $extension;
+            $attach_name = $dataset['idno'] . $inline_suffix . $res_suffix . '.' . $extension;
             header("Content-Disposition: attachment; filename=\"" . $attach_name . "\"");
             header("Cache-Control: public, max-age=3600");
             header("Last-Modified: " . gmdate('D, d M Y H:i:s', filemtime($json_path)) . ' GMT');
@@ -284,9 +300,10 @@ class JSON_Writer
      * @param string $format - 'json' or 'jsonl'
      * @param bool $pretty - Whether to pretty print (only for JSON format)
      * @param string $dsd_export self::DSD_EXPORT_* — for timeseries
+     * @param bool $include_resources Embed external resources
      * @return void - Streams directly to output
      */
-    public function stream($sid, $format = 'json', $pretty = false, $dsd_export = self::DSD_EXPORT_REFERENCE)
+    public function stream($sid, $format = 'json', $pretty = false, $dsd_export = self::DSD_EXPORT_REFERENCE, $include_resources = false)
     {
         $this->ci->load->model('Dataset_model');
 
@@ -306,13 +323,46 @@ class JSON_Writer
             && strtolower((string) $dsd_export) === self::DSD_EXPORT_INLINE) {
             $inline_suffix = '.inline';
         }
-        header("Content-Disposition: attachment; filename=\"" . $dataset['idno'] . $inline_suffix . ".{$format}\"");
+        $res_suffix = $include_resources ? '.res' : '';
+        header("Content-Disposition: attachment; filename=\"" . $dataset['idno'] . $inline_suffix . $res_suffix . ".{$format}\"");
 
         if ($format == 'jsonl') {
-            $this->write_jsonl($sid, 'php://output', false, $dsd_export);
+            $this->write_jsonl($sid, 'php://output', false, $dsd_export, $include_resources);
         } else {
-            $this->write_json($sid, 'php://output', false, $pretty, $dsd_export);
+            $this->write_json($sid, 'php://output', false, $pretty, $dsd_export, $include_resources);
         }
+    }
+
+    /**
+     * External resources for JSON export (aligned with Catalog::resources_get).
+     *
+     * @param int $sid
+     * @return array
+     */
+    private function _get_resources_export_array($sid)
+    {
+        $this->ci->load->model('Survey_resource_model');
+        $this->ci->load->helper('date');
+        $this->ci->load->library('form_validation');
+
+        $resources = $this->ci->Survey_resource_model->get_survey_resources($sid);
+        if (!$resources) {
+            return array();
+        }
+
+        array_walk($resources, 'unix_date_to_gmt', array('created', 'changed'));
+
+        foreach ($resources as $idx => $resource) {
+            if ($this->ci->form_validation->valid_url($resource['filename'])) {
+                $resources[$idx]['url'] = $resource['filename'];
+            } else {
+                $resources[$idx]['url'] = site_url(
+                    'catalog/' . $resource['survey_id'] . '/download/' . $resource['resource_id'] . '/' . rawurlencode($resource['filename'])
+                );
+            }
+        }
+
+        return $resources;
     }
 
     /**

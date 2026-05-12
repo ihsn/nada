@@ -116,6 +116,65 @@ class Catalog extends MY_REST_Controller
 
 
 	/**
+	 * DDI documentation PDF on-disk status (same rules as Catalog_admin::get_study_pdf).
+	 *
+	 * GET /api/catalog/pdf_documentation/{idno}
+	 * GET /api/catalog/pdf_documentation?idno=...
+	 *
+	 * Query id_format=id when using numeric surveys.id. Response pdf_documentation.status: uptodate | outdated | na.
+	 */
+	function pdf_documentation_get($idno = null)
+	{
+		try {
+			if ($idno === null || $idno === '') {
+				$q = $this->input->get('idno');
+				$idno = ($q !== null && trim((string) $q) !== '') ? trim((string) $q) : null;
+			}
+
+			if (! $idno) {
+				throw new Exception('IDNO-NOT-PROVIDED');
+			}
+
+			$sid = $this->get_sid_from_idno($idno);
+
+			$this->load->library('catalog_admin');
+			$info = $this->catalog_admin->get_study_pdf($sid);
+
+			if (isset($info['path'])) {
+				$info['filename'] = basename($info['path']);
+				unset($info['path']);
+			}
+
+			$this->set_response(
+				array(
+					'status'             => 'success',
+					'pdf_documentation'  => $info,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array(
+					'status'  => 'failed',
+					'message' => $e->getMessage(),
+				),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+		catch (Error $e) {
+			$this->set_response(
+				array(
+					'status'  => 'failed',
+					'message' => $e->getMessage(),
+				),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
 	 * 
 	 * Return a list of all study IDNOs in the catalog
 	 * 
@@ -1385,6 +1444,7 @@ class Catalog extends MY_REST_Controller
 	 *   pretty - 'true' to pretty print JSON (only for JSON format)
 	 *   download - 'true' to download the file instead of streaming
 	 *   dsd_export - for timeseries only: 'reference' (default) or 'inline' — full DSD + components + codelists
+	 *   include_resources - 'true' to embed external resources as `external_resources` (same row shape as resources_get + url)
 	 * 
 	 */
 	function json_get($idno=null)
@@ -1405,14 +1465,15 @@ class Catalog extends MY_REST_Controller
 
 			$pretty = $this->input->get('pretty') === 'true' || $this->input->get('pretty') === '1';
 			$download = $this->input->get('download') === 'true' || $this->input->get('download') === '1';
+			$include_resources = $this->input->get('include_resources') === 'true' || $this->input->get('include_resources') === '1';
 			$dsd_export = strtolower(trim((string) $this->input->get('dsd_export'))) === JSON_Writer::DSD_EXPORT_INLINE
 				? JSON_Writer::DSD_EXPORT_INLINE
 				: JSON_Writer::DSD_EXPORT_REFERENCE;
 
 			if ($download) {
-				$this->json_writer->download($sid, $format, $pretty, false, $dsd_export);
+				$this->json_writer->download($sid, $format, $pretty, false, $dsd_export, $include_resources);
 			} else {
-				$this->json_writer->stream($sid, $format, $pretty, $dsd_export);
+				$this->json_writer->stream($sid, $format, $pretty, $dsd_export, $include_resources);
 			}
         }		
 		catch(Exception $e){
