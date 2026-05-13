@@ -4,7 +4,6 @@ class Admin extends MY_Controller {
     public function __construct()
     {
         parent::__construct();
-        $this->template->set_template('admin5');
         // Cache driver kept for clear_cache()
         $this->load->driver('cache', array('adapter' => 'dummy', 'backup' => 'file'));
         $this->lang->load("general");
@@ -14,18 +13,48 @@ class Admin extends MY_Controller {
     function index()
     {
         $this->load->helper('vite_helper');
-        $data['title']      = t('Dashboard');
-        $data['site_url']   = site_url();
-        $data['base_url']   = base_url();
-        $data['assets_base']= base_url('frontend/dist/');
-        $data['csrf_token'] = $this->security->get_csrf_hash();
-        $data['translations'] = $this->lang->language;
 
-        $content = $this->load->view('dashboard/index', $data, TRUE);
-        $this->template->write('title', $data['title'], TRUE);
-        $this->template->write('content', $content, TRUE);
-        $this->template->add_variable('hide_breadcrumb', true);
-        $this->template->render();
+        $inner = array(
+            'site_url'     => site_url(),
+            'base_url'     => base_url(),
+            'assets_base'  => base_url('frontend/dist/'),
+            'csrf_token'   => $this->security->get_csrf_hash(),
+            'translations' => $this->lang->language,
+        );
+
+        $page = array(
+            'title'             => t('Dashboard'),
+            'content'           => $this->load->view('dashboard/index', $inner, true),
+            'hide_breadcrumb'   => true,
+            'theme_folder'      => 'adminvue',
+        );
+
+        $this->load->view('layouts/admin_vue', $page);
+    }
+
+    /**
+     * Admin UI style guide (Vue).
+     */
+    function ui_kit()
+    {
+        $this->load->helper('vite_helper');
+
+        $inner = array(
+            'site_url'     => site_url(),
+            'base_url'     => base_url(),
+            'assets_base'  => base_url('frontend/dist/'),
+            'csrf_token'   => $this->security->get_csrf_hash(),
+            'translations' => $this->lang->language,
+        );
+
+        $page = array(
+            'title'             => 'Admin UI Kit',
+            'content'           => $this->load->view('admin/ui_kit/index', $inner, true),
+            'hide_breadcrumb'   => true,
+            'theme_folder'      => 'adminvue',
+        );
+
+        $this->load->view('layouts/admin_vue', $page);
     }
 
     /**

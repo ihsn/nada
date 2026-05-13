@@ -1,27 +1,41 @@
 <template>
   <div>
-    <v-row v-if="catalog">
+    <div v-if="catalog" class="catalog-stats__tiles-wrap">
+    <v-row dense class="catalog-stats__tiles ga-2">
       <v-col cols="12" sm="4">
-        <v-card variant="outlined" class="text-center py-4">
-          <div class="text-h4 font-weight-bold text-primary">{{ catalog.total.toLocaleString() }}</div>
-          <div class="text-caption text-uppercase text-medium-emphasis mt-1">Total Studies</div>
-        </v-card>
+        <v-sheet
+          rounded="lg"
+          border
+          class="catalog-stats__tile text-center bg-grey-lighten-4"
+        >
+          <div class="text-body-2 font-weight-bold">{{ catalog.total.toLocaleString() }}</div>
+          <div class="text-caption text-medium-emphasis">Total studies</div>
+        </v-sheet>
       </v-col>
       <v-col cols="12" sm="4">
-        <v-card variant="outlined" class="text-center py-4">
-          <div class="text-h4 font-weight-bold text-success">{{ catalog.published.toLocaleString() }}</div>
-          <div class="text-caption text-uppercase text-medium-emphasis mt-1">Published</div>
-        </v-card>
+        <v-sheet
+          rounded="lg"
+          border
+          class="catalog-stats__tile text-center bg-grey-lighten-4"
+        >
+          <div class="text-body-2 font-weight-bold">{{ catalog.published.toLocaleString() }}</div>
+          <div class="text-caption text-medium-emphasis">Published</div>
+        </v-sheet>
       </v-col>
       <v-col cols="12" sm="4">
-        <v-card variant="outlined" class="text-center py-4">
-          <div class="text-h4 font-weight-bold text-warning">{{ catalog.unpublished.toLocaleString() }}</div>
-          <div class="text-caption text-uppercase text-medium-emphasis mt-1">Unpublished</div>
-        </v-card>
+        <v-sheet
+          rounded="lg"
+          border
+          class="catalog-stats__tile text-center bg-grey-lighten-4"
+        >
+          <div class="text-body-2 font-weight-bold">{{ catalog.unpublished.toLocaleString() }}</div>
+          <div class="text-caption text-medium-emphasis">Unpublished</div>
+        </v-sheet>
       </v-col>
     </v-row>
+    </div>
 
-    <v-table v-if="byType.length" density="compact" class="mt-3">
+    <v-table v-if="byType.length" density="compact">
       <thead>
         <tr>
           <th>Study Type</th>
@@ -57,3 +71,19 @@ const props = defineProps({
 
 const byType = computed(() => props.catalog?.by_type ?? []);
 </script>
+
+<style scoped>
+.catalog-stats__tiles-wrap {
+  padding-bottom: 28px;
+  margin-bottom: 4px;
+}
+.catalog-stats__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: 10px 8px;
+}
+</style>

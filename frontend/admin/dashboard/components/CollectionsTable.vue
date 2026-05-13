@@ -9,7 +9,7 @@
       hide-details
       density="compact"
       variant="outlined"
-      class="mb-3"
+      class="mb-3 collections-filter-field"
     />
 
     <v-data-table
@@ -107,3 +107,9 @@ const filtered = computed(() => {
   );
 });
 </script>
+
+<style scoped>
+.collections-filter-field :deep(.v-field-label) {
+  padding-left: 8px;
+}
+</style>

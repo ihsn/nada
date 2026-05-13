@@ -1,0 +1,54 @@
+/* Minimal shell for themes/adminvue (no Bootstrap). Vuetify styles admin components. */
+html {
+  box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+body.admin-vue-body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1a1a1a;
+  /* Light app canvas (avoids a white band under the fixed header when .admin-vue-shell uses padding-top) */
+  background: #f0f2f5;
+  /* Fixed admin Vuetify bar + shell breathing room — reuse for sticky sub-headers in Vue apps */
+  --admin-app-bar-stack: calc(64px + 0.5rem);
+}
+
+/* Main column offset: Vuetify v-app-bar is fixed/sticky — push content below it (don’t rely on in-flow spacers). */
+.admin-vue-shell {
+  width: 100%;
+  max-width: 100%;
+  padding-top: 56px;
+  /* Opaque background so the padding area isn’t transparent to body (was showing as white with #fff body) */
+  background-color: #f0f2f5;
+}
+
+/* Shared page gutter + space below default (PHP) breadcrumbs — all layouts/admin_vue pages */
+.admin-vue-shell > div {
+  padding: 24px 12px 24px;
+  box-sizing: border-box;
+}
+
+.admin-vue-breadcrumb {
+  margin: 0 0 1.25rem 0;
+  color: #666;
+  font-size: 14px;
+}
+.admin-vue-breadcrumb a {
+  color: #1976d2;
+  text-decoration: none;
+}
+.sub-header {
+  background: #f1f1f1;
+  border-bottom: 1px solid #e5e5e5;
+  min-height: 100px;
+  width: 100%;
+  margin: 0 0 1.25rem 0;
+  padding: 10px 25px;
+}
