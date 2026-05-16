@@ -2,6 +2,11 @@
   <div>
     <h1 class="text-h5 font-weight-medium mb-4">Collections</h1>
 
+    <v-alert v-if="accessDenied" type="error" class="mb-4" density="compact">
+      You do not have permission to view or manage collections.
+    </v-alert>
+
+    <template v-else>
     <AdminCollectionsSearchBar
       :loading="loading"
       @search="onSearch"
@@ -50,6 +55,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    </template>
   </div>
 </template>
 
@@ -59,11 +65,12 @@ import { useRouter } from 'vue-router';
 import AdminCollectionsSearchBar from '../components/AdminCollectionsSearchBar.vue';
 import AdminCollectionsFilters from '../components/AdminCollectionsFilters.vue';
 import AdminCollectionsResults from '../components/AdminCollectionsResults.vue';
-import { useCollectionsApi } from '../composables/useCollectionsApi';
+import { useCollectionsApi, isCollectionsAccessDenied } from '../composables/useCollectionsApi';
 
 const router = useRouter();
 const { loading, listCollections, updateCollection, deleteCollection } = useCollectionsApi();
 
+const accessDenied = ref(false);
 const collections = ref([]);
 const searchQuery = ref('');
 const publishedFilter = ref('');
@@ -98,7 +105,17 @@ const filteredCollections = computed(() => {
 });
 
 async function fetchCollections() {
-  collections.value = await listCollections();
+  accessDenied.value = false;
+  try {
+    collections.value = await listCollections();
+  } catch (e) {
+    collections.value = [];
+    if (isCollectionsAccessDenied(e)) {
+      accessDenied.value = true;
+    } else {
+      showError(e);
+    }
+  }
 }
 
 function onSearch(q) { searchQuery.value = q; }
