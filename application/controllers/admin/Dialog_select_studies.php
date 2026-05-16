@@ -13,6 +13,7 @@ class Dialog_select_studies extends MY_Controller {
     {
         parent::__construct();
        	$this->load->model('Catalog_admin_search');
+		$this->load->model('Repository_model');
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
@@ -33,8 +34,11 @@ class Dialog_select_studies extends MY_Controller {
 	* @id	session key
 	**/
 	public function index($skey){
-		//$this->Catalog_model->active_repo=NULL;
-		
+		$central = $this->Repository_model->get_central_catalog_array();
+		if ($this->acl_manager->get_admin_catalog_repository_scope() === false) {
+			$this->acl_manager->repository_permission_or_die($central['repositoryid'], $this->acl_manager->study_repositories_acl_key('view'));
+		}
+
 		//add/remove excluded items in the session
 		$this->update_excluded_items($skey);		
 		
@@ -102,7 +106,7 @@ class Dialog_select_studies extends MY_Controller {
 			}
 		}
 
-		$this->Catalog_admin_search->set_active_repo('');
+		$this->Catalog_admin_search->apply_session_user_acl_scope();
 
 		//survey rows
 		$data['rows']=$this->Catalog_admin_search->search($search_options,$limit,$offset);

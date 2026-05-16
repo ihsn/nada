@@ -31,3 +31,26 @@ body {
   padding-top:5px;
   height: auto!important;
 }
+
+/**
+ * Default horizontal inset for text fields: --v-field-padding-start on .v-field
+ * controls .v-field__input and the resting label.
+ *
+ * Use body.admin-vue-body: the admin layout mounts the header in its own v-app,
+ * but page content (e.g. #admin-dashboard-app) is a sibling, not under .v-application.
+ */
+.v-application .v-field,
+body.admin-vue-body .v-field {
+  --v-field-padding-start: 20px;
+}
+
+/**
+ * Outlined fields: Vuetify sets .v-label.v-field-label--floating to margin: 0 4px,
+ * which ignores --v-field-padding-start. Re-tie the floating label to the same inset.
+ */
+.v-application .v-field--variant-outlined .v-label.v-field-label--floating,
+body.admin-vue-body .v-field--variant-outlined .v-label.v-field-label--floating {
+  margin: 0;
+  margin-inline-start: var(--v-field-padding-start);
+  margin-inline-end: 4px;
+}

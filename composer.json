@@ -16,7 +16,8 @@
         "firebase/php-jwt": "^6.4",
         "renanbr/bibtex-parser": "^2.2",
         "auth0/auth0-php": "^8.3",
-        "league/oauth2-client": "^2.8"        
+        "league/oauth2-client": "^2.8",
+        "swaggest/json-diff": "^3.11"
     },
     "config": {
         "platform": {

@@ -127,8 +127,12 @@ form{margin:10px;padding:0px;}
     </tr>
 <?php if (!empty($dirs)): ?>
 	<?php foreach($dirs as $dir): ?>
+		<?php
+			$dir_rel = unix_path(trim($current_folder.'/'.$dir, '/'));
+			$dir_tok = base64_encode(urlencode($dir_rel));
+		?>
     <tr>
-    	<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo unix_path($current_folder.'/'.$dir); ?>"/></td>
+    	<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo htmlspecialchars($dir_tok, ENT_QUOTES, 'UTF-8'); ?>"/></td>
     	<td colspan="6"><a class="folder" href="<?php echo current_url(); ?>?view=folder&folder=<?php echo unix_path($current_folder.'/'.$dir); ?>"><?php echo $dir; ?></a></td>
     </tr>
     <?php endforeach;?>        
@@ -154,29 +158,33 @@ form{margin:10px;padding:0px;}
 						$resource_type='resource-file';
 					}
 				}
+				$mf_rel = unix_path(trim($current_folder.'/'.$file['relative'].'/'.$file['name'], '/'));
+				$mf_tok = base64_encode(urlencode($mf_rel));
+				$mf_q = 't='.rawurlencode($mf_tok);
+				$mf_root = site_url('admin/managefiles/'.$this->uri->segment(3));
 		?>
         <tr valign="top" class="unknown <?php echo $resource_type;?>-tr">
         	<?php if ($file['name'] ==$this->ddi_file_name):?>
     			<td><input type="checkbox" disabled="disabled"/></td>
-                <td><?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/edit/'.base64_encode(urlencode($current_folder.'/'.$file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file locked-file '.$resource_type ));?></td>
+                <td><?php echo anchor($mf_root.'/edit?'.$mf_q,$file["name"],array('class'=>'file locked-file '.$resource_type ));?></td>
                 <td><?php echo ($file["relative"])=='' ? '-' : $file["relative"];?></td>            
                 <td><?php echo $file['size'];?></td>
                 <td><?php echo $file['fileperms'];?></td>
                 <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
-                <td><?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/page_white_edit.png" alt="'.t('edit').'" title="'.t('edit').'"> ');?> 
+                <td><?php echo anchor($mf_root.'/edit?'.$mf_q,'<img src="images/page_white_edit.png" alt="'.t('edit').'" title="'.t('edit').'"> ');?> 
                     <?php echo '<img src="images/close.gif" alt="'.t('delete').'" title="'.t('delete').'">';?> 
-                    <?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/icon_download.gif" alt="'.t('download').'" title="'.t('download').'"> ');?>
+                    <?php echo anchor($mf_root.'/download?'.$mf_q,'<img src="images/icon_download.gif" alt="'.t('download').'" title="'.t('download').'"> ');?>
                 </td>
             <?php else:?>
-	        	<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo $file["relative"].'/'.$file["name"];?>"/></td>
-                <td><?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/edit/'.base64_encode(urlencode($current_folder.'/'.$file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file '.$resource_type ));?></td>
+	        	<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo htmlspecialchars($mf_tok, ENT_QUOTES, 'UTF-8'); ?>"/></td>
+                <td><?php echo anchor($mf_root.'/edit?'.$mf_q,$file["name"],array('class'=>'file '.$resource_type ));?></td>
                 <td><?php echo ($file["relative"])=='' ? '-' : $file["relative"];?></td>            
                 <td><?php echo $file['size'];?></td>
                 <td><?php echo $file['fileperms'];?></td>
                 <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
-                <td><?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/page_white_edit.png" alt="'.t('edit').'" title="'.t('edit').'"> ');?> 
-                    <?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/delete/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/close.gif" alt="'.t('delete').'" title="'.t('delete').'"> ','onclick="return delete_confirm();"');?> 
-                    <?php echo anchor('admin/managefiles/'.$this->uri->segment(3).'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),'<img src="images/icon_download.gif" alt="'.t('download').'" title="'.t('download').'"> ');?>
+                <td><?php echo anchor($mf_root.'/edit?'.$mf_q,'<img src="images/page_white_edit.png" alt="'.t('edit').'" title="'.t('edit').'"> ');?> 
+                    <?php echo anchor($mf_root.'/delete?'.$mf_q,'<img src="images/close.gif" alt="'.t('delete').'" title="'.t('delete').'"> ','onclick="return delete_confirm();"');?> 
+                    <?php echo anchor($mf_root.'/download?'.$mf_q,'<img src="images/icon_download.gif" alt="'.t('download').'" title="'.t('download').'"> ');?>
                 </td>
             <?php endif;?>
         </tr>

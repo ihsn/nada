@@ -35,5 +35,16 @@ $lang['linked']="Linked";
 $lang['published']="Published";
 $lang['unpublished']="Unpublished";
 
+$lang['dashboard_summary_catalog']="Catalog";
+$lang['dashboard_summary_catalog_caption']="{published} published · {draft} draft";
+$lang['dashboard_summary_collections']="Collections";
+$lang['dashboard_summary_collections_caption']="{studies} studies";
+$lang['dashboard_summary_collections_caption_none']="No additional collections";
+$lang['dashboard_summary_licenses']="Licensed requests";
+$lang['dashboard_summary_licenses_pending']="Pending approval";
+$lang['dashboard_summary_licenses_none']="No pending requests";
+$lang['dashboard_summary_users']="Users";
+$lang['dashboard_summary_users_caption']="{active} active";
+
 /* End of file dashboard_lang.php */
 /* Location: ./application/language/english/dashboard_lang.php */

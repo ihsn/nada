@@ -106,8 +106,17 @@
   font-weight: 700;
 }
 
+.site-config-app {
+  --site-config-field-max-width: 18.75rem;
+}
+
+.site-config-field--fixed-width {
+  max-width: var(--site-config-field-max-width);
+  width: 100%;
+}
+
 .site-config-app .site-config-default-lang-select {
-  max-width: 280px;
+  max-width: var(--site-config-field-max-width);
 }
 
 .site-config-app .site-config-enabled-lang-table th.site-config-iso-col {
@@ -176,3 +185,4 @@
   font-size: 0.8125rem;
   white-space: pre;
 }
+

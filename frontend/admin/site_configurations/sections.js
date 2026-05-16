@@ -26,6 +26,7 @@ export const SECTION_DEFS = [
       'catalog_show_abstract',
       'data_types_nav_bar',
       'guests_hide_microdata_tab',
+      'data_classifications_enabled',
       'catalog_default_sort_by',
       'catalog_default_sort_order',
     ],

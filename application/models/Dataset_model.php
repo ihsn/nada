@@ -2141,6 +2141,37 @@ class Dataset_model extends CI_Model {
 	}
 
 	/**
+	 * Canonical on-disk CSV name for indicator timeseries import (one file per study folder).
+	 *
+	 * @param int $sid surveys.id
+	 * @return string e.g. "123_indicator_data.csv"
+	 */
+	public function get_indicator_timeseries_import_csv_filename($sid)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return '';
+		}
+		return $sid . '_indicator_data.csv';
+	}
+
+	/**
+	 * Public catalogue gating: when 1, chart/data API should be hidden until import or rehash clears the flag.
+	 *
+	 * @param int $sid surveys.id
+	 * @return int 0 or 1
+	 */
+	public function get_indicator_ts_sync_required_for_sid($sid)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return 0;
+		}
+		$r = $this->db->select('ts_sync_required')->get_where('surveys', ['id' => $sid])->row_array();
+		return ($r && !empty($r['ts_sync_required'])) ? 1 : 0;
+	}
+
+	/**
 	 * Linked surveys: refresh ts_dimensions from live DSD, set ts_sync_required = 1.
 	 *
 	 * @param int $data_structure_id

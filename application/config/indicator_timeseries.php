@@ -27,13 +27,15 @@ $config['indicator_timeseries_chart_max_raw_rows'] = 5000;
 
 /*
 |--------------------------------------------------------------------------
-| CSV import → study resource (catalogue downloads / microdata)
+| CSV import → study folder + resources row
 |--------------------------------------------------------------------------
 |
-| After each successful CSV import, the file is copied into the study folder
-| as {resource_idno}.csv and a resources row is created or updated.
-| dctype code must map to resource_type dat or dat/micro to appear under
-| GET /api/downloads/{idno}/files?type=data
+| The import file is always copied to the survey catalogue folder as
+| {surveys.id}_indicator_data.csv (see Dataset_model::get_indicator_timeseries_import_csv_filename).
+| A resources row is also upserted so the file appears under microdata/downloads listings;
+| resource_idno is fixed below; filename in resources matches the canonical CSV name.
+|
+| Legacy copies as {timeseries_csv_resource_idno}.csv are removed on DSD change / detach when present.
 |
 */
 $config['timeseries_csv_resource_idno']   = 'ts_csv_latest';

@@ -1,367 +1,291 @@
 <template>
   <div class="indicator-data-tab">
-    <v-alert v-if="missingDsd && !pageLoading" type="info" variant="tonal" density="compact" class="mb-5">
-      No indicator data is attached yet. To attach data, first select and attach a data structure (DSD).
-    </v-alert>
+    <v-progress-linear v-if="pageLoading" indeterminate color="primary" class="mb-4" />
 
-    <div class="d-flex flex-wrap align-center mb-5">
-      <h2 class="text-h6 mb-0">Data structure</h2>
-      <v-spacer />
-      <div class="d-flex flex-wrap align-center gap-3">
-        <v-btn
-          v-if="schema?.dsd_id"
-          size="small"
-          variant="tonal"
-          prepend-icon="mdi-swap-horizontal"
-          @click="openChangeDsdDialog"
-        >
-          Change linked DSD
-        </v-btn>
-        <v-btn
-          v-if="schema?.dsd_id"
-          size="small"
-          variant="tonal"
-          prepend-icon="mdi-database-cog-outline"
-          :href="dsdAdminHref"
-          target="_blank"
-          rel="noopener"
-        >
-          Open DSD
-        </v-btn>
-        <v-btn
-          v-if="schema?.dsd_id"
-          size="small"
-          color="primary"
-          variant="tonal"
-          prepend-icon="mdi-database-sync"
-          :loading="resyncLoading"
-          @click="runResyncRehash"
-        >
-          Resync data
-        </v-btn>
-        <v-btn
-          v-if="schema?.dsd_id"
-          size="small"
-          color="error"
-          variant="text"
-          prepend-icon="mdi-link-off"
-          :loading="linkSaving"
-          @click="detachDsdLink"
-        >
-          Detach DSD
-        </v-btn>
-      </div>
-    </div>
-
-    <v-progress-linear v-if="pageLoading" indeterminate color="primary" class="mb-5" />
-
-    <v-alert v-if="fatalError && !missingDsd" type="error" class="mb-5" prominent>
+    <v-alert v-if="fatalError && !missingDsd" type="error" class="mb-4" prominent>
       {{ fatalError }}
     </v-alert>
 
-    <v-card v-if="missingDsd && !pageLoading" variant="outlined" class="mb-5 pa-5 section-card">
-      <v-autocomplete
-        v-if="dsdSelectItems.length"
-        v-model="dsdPickValue"
-        :items="dsdSelectItems"
-        item-title="title"
-        item-value="value"
-        label="Choose from catalogue"
-        density="comfortable"
-        variant="outlined"
-        clearable
-        hide-details
-        class="dsd-picker"
-        @update:model-value="onDsdPick"
-      />
-      <div class="d-flex flex-wrap align-center gap-2 action-row">
-        <v-btn color="primary" :loading="linkSaving" @click="saveDsdLink">Attach</v-btn>
-        <v-btn v-if="!dsdSelectItems.length" variant="text" :loading="dsdListLoading" @click="loadDsdCatalogueList">Load catalogue list</v-btn>
-        <v-btn variant="text" :href="dataStructuresAdminHref" target="_blank" rel="noopener">Open data structures admin</v-btn>
-      </div>
-    </v-card>
-
-    <template v-else-if="schema">
-      <v-alert
-        v-if="Number(schema.ts_sync_required) === 1"
-        type="warning"
-        variant="tonal"
-        density="comfortable"
-        class="ts-sync-alert"
-      >
-        <div class="ts-sync-alert__body">
-          <div class="text-subtitle-2 font-weight-medium ts-sync-alert__title">Indicator data is out of sync</div>
-          <p class="text-body-2 mb-2">
-            The linked DSD changed after your last import or full rehash. Use the <strong>Resync data</strong> button at the
-            top of this tab to recompute <code>key_hash</code> and related fields from your stored observations. Re-import
-            the CSV only if you need to replace the underlying values.
-          </p>
-          <p v-if="schema.ts_dimensions" class="text-body-2 text-medium-emphasis mb-0">
-            Current dimension fields (catalog): <code>{{ schema.ts_dimensions }}</code>
-          </p>
-        </div>
-      </v-alert>
-
-      <v-row class="panel-row mb-5">
-        <v-col cols="12">
-          <v-card variant="outlined" class="pa-5 h-100 section-card">
-            <div class="d-flex flex-wrap align-center justify-space-between gap-2 mb-3">
-              <div class="text-subtitle-1 font-weight-medium">Data structure</div>
-              <v-chip v-if="schema?.dsd_id" size="small" variant="tonal" color="primary">
-                DSD ID: {{ schema.dsd_id }}
-              </v-chip>
-            </div>
-
-            <div v-if="dataStructureTitle" class="text-body-1 font-weight-medium mb-2">
-              {{ dataStructureTitle }}
-            </div>
-            <div v-else class="text-body-2 text-medium-emphasis mb-2">
-              No linked DSD (set metadata.data_structure_reference).
-            </div>
-
-            <div v-if="schema.data_structure?.idno" class="d-flex align-center flex-wrap gap-2">
-              <span class="text-body-2 text-medium-emphasis">IDNO</span>
-              <v-chip size="small" variant="outlined">
-                <code>{{ schema.data_structure.idno }}</code>
-              </v-chip>
-            </div>
-
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <v-card variant="outlined" class="pa-0 section-card section-stack downloads-expand-card value-counts-section">
-        <v-expansion-panels v-model="valueCountsPanel" flat multiple class="downloads-panels">
-          <v-expansion-panel value="value-counts">
-            <v-expansion-panel-title class="text-subtitle-1 font-weight-medium px-5 py-4">
-              <div class="d-flex flex-wrap align-center gap-2 w-100 pr-2">
-                <span>Value counts cache</span>
-                <v-spacer />
-                <v-btn
-                  color="primary"
-                  variant="tonal"
-                  size="small"
-                  prepend-icon="mdi-sync"
-                  :loading="valueCountsSyncing"
-                  @click.stop="runValueCountsSync"
-                >
-                  Sync value counts
-                </v-btn>
-              </div>
-            </v-expansion-panel-title>
-            <v-expansion-panel-text class="px-5 pb-5">
-              <v-alert
-                v-if="valueCountsError"
-                type="warning"
-                density="compact"
-                variant="tonal"
-                class="mb-3"
-              >
-                {{ valueCountsError }}
-              </v-alert>
-              <v-progress-linear v-if="valueCountsLoading" indeterminate color="primary" class="mb-3" />
-              <div class="d-flex flex-wrap gap-2 mb-3">
-                <v-chip size="small" variant="tonal">Distinct codes: {{ valueCountsSummary.total_distinct_codes || 0 }}</v-chip>
-                <v-chip size="small" variant="tonal">Total observations: {{ valueCountsSummary.total_observations || 0 }}</v-chip>
-                <v-chip size="small" variant="tonal">Components: {{ valueCountsSummary.components?.length || 0 }}</v-chip>
-              </div>
-              <v-data-table
-                :headers="valueCountsHeaders"
-                :items="valueCountsSummary.components || []"
-                density="compact"
-                class="elevation-0"
-                hide-default-footer
-              />
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
-      </v-card>
-
-      <v-card variant="outlined" class="pa-0 section-card section-stack downloads-expand-card">
-        <v-expansion-panels v-model="importCsvPanel" flat multiple class="downloads-panels">
-          <v-expansion-panel value="import-csv">
-            <v-expansion-panel-title class="text-subtitle-1 font-weight-medium px-5 py-4">
-              Import CSV
-            </v-expansion-panel-title>
-            <v-expansion-panel-text class="px-5 pb-5">
-              <v-alert v-if="importFeedback" :type="importFeedbackType" density="compact" variant="tonal" class="mb-4" closable @click:close="importFeedback = ''">
-                {{ importFeedback }}
-              </v-alert>
-              <p class="text-body-2 text-medium-emphasis mb-4">
-                First row must be headers. Columns are matched to DSD component <code>name</code> (case-insensitive); optional JSON mapping below renames CSV headers.
-                Columns that are not DSD fields (for example <code>_ts_year</code>) are skipped. Each successful import updates the study
-                <code>resources</code> slot <code>ts_csv_latest</code> (configurable) so the CSV appears with other microdata/database files below. API: <code>POST …/data/import</code> (multipart: <code>idno</code>, <code>file</code>, …).
-              </p>
-              <v-row dense>
-                <v-col cols="12" md="6">
-                  <v-file-input
-                    v-model="importFile"
-                    label="CSV file"
-                    accept=".csv,text/csv"
-                    density="comfortable"
-                    variant="outlined"
-                    prepend-icon="mdi-paperclip"
-                    show-size
-                    clearable
-                  />
-                </v-col>
-                <v-col cols="12" md="6">
-                  <p class="text-body-2 text-medium-emphasis mb-0 mt-1">
-                    CSV headers are matched directly to DSD component names.
-                  </p>
-                </v-col>
-              </v-row>
-              <div class="d-flex flex-wrap gap-2 mt-4">
-                <v-btn variant="tonal" prepend-icon="mdi-download" :disabled="!componentsSorted.length" @click="downloadCsvTemplate">
-                  Download template CSV
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  prepend-icon="mdi-upload"
-                  :loading="importLoading"
-                  :disabled="!importFileModel"
-                  @click="submitCsvImport"
-                >
-                  Import
-                </v-btn>
-              </div>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
-      </v-card>
-
-      <v-card variant="outlined" class="pa-0 section-card section-stack downloads-expand-card">
-        <v-expansion-panels v-model="downloadsPanel" flat multiple class="downloads-panels">
-          <v-expansion-panel value="downloads">
-            <v-expansion-panel-title class="text-subtitle-1 font-weight-medium px-5 py-4">
-              Downloads
-            </v-expansion-panel-title>
-            <v-expansion-panel-text class="px-4 pb-4">
-              <p class="text-body-2 text-medium-emphasis mb-4">
-                Includes the latest indicator CSV (<code>resource_idno</code> e.g. <code>ts_csv_latest</code>) and other study files classified as microdata/database
-                (<code>GET /api/downloads/{idno}/files?type=data</code>).
-              </p>
-              <v-progress-linear v-if="downloadsLoading" indeterminate color="primary" class="mb-4" />
-
-              <div class="text-subtitle-2 font-weight-medium mb-2">Study microdata / database files</div>
-              <v-data-table
-                :headers="microdataHeaders"
-                :items="bulkMicrodata"
-                :loading="downloadsLoading"
-                density="compact"
-                class="elevation-0"
-                hide-default-footer
-              >
-                <template #item.changed="{ item }">
-                  {{ formatMicrodataDate(item.changed) }}
-                </template>
-                <template #item.actions="{ item }">
-                  <v-btn
-                    v-if="!item.external_link && item.links?.download"
-                    size="small"
-                    variant="tonal"
-                    prepend-icon="mdi-download"
-                    :href="item.links.download"
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    {{ fileExtLabel(item.filename) }}
-                  </v-btn>
-                  <v-btn
-                    v-else-if="item.external_link && item.filename"
-                    size="small"
-                    variant="tonal"
-                    prepend-icon="mdi-open-in-new"
-                    :href="item.filename"
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    Link
-                  </v-btn>
-                  <span v-else class="text-medium-emphasis">—</span>
-                </template>
-              </v-data-table>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
-      </v-card>
-
-      <v-card variant="outlined" class="pa-5 section-card section-stack">
-        <div class="d-flex flex-wrap align-center gap-2 mb-3">
-          <span class="text-subtitle-1 font-weight-medium">Data preview</span>
-          <v-spacer />
-          <v-btn-toggle v-model="sortDir" mandatory density="compact" variant="outlined" divided>
-            <v-btn value="asc">Time ↑</v-btn>
-            <v-btn value="desc">Time ↓</v-btn>
-          </v-btn-toggle>
-        </div>
-
-        <v-data-table
-          :headers="tableHeaders"
-          :items="displayRows"
-          :loading="obsLoading"
-          density="compact"
-          class="elevation-0"
-          hide-default-footer
-        />
-
-        <div class="d-flex flex-wrap align-center justify-space-between gap-2 mt-3">
-          <span class="text-body-2 text-medium-emphasis">
-            Showing {{ observationRows.length ? offset + 1 : 0 }}–{{ offset + observationRows.length }} of {{ observationListTotal }}
-          </span>
-          <div class="d-flex gap-2">
-            <v-btn size="small" variant="tonal" :disabled="offset <= 0 || obsLoading" @click="goPrev">Previous</v-btn>
-            <v-btn size="small" variant="tonal" :disabled="offset + pageSize >= observationListTotal || obsLoading" @click="goNext">
-              Next
-            </v-btn>
+    <!-- Single form: DSD + CSV import -->
+    <v-card
+      v-if="!pageLoading && !fatalError && (missingDsd || schema)"
+      variant="flat"
+      rounded="0"
+      class="section-card mb-4 pa-0"
+      tag="section"
+    >
+      <v-card-item class="indicator-data-header px-4 pt-4 pb-2">
+        <div class="d-flex flex-wrap align-start justify-space-between gap-3">
+          <div class="min-width-0 flex-grow-1">
+            <v-card-title class="text-subtitle-1 pa-0">Indicator data</v-card-title>
+            <v-card-subtitle class="pa-0 mt-1 text-wrap">
+              <template v-if="hasIndicatorObservations">
+                Observations are loaded. Importing a new CSV replaces all existing rows for this study.
+              </template>
+              <template v-else>
+                Choose a data structure, then upload a CSV.
+              </template>
+            </v-card-subtitle>
           </div>
+          <v-btn
+            v-if="hasLinkedDsd"
+            color="error"
+            variant="tonal"
+            size="small"
+            class="text-none flex-shrink-0"
+            :loading="linkSaving"
+            :disabled="linkSaving || importLoading || clearIndicatorLoading || resyncLoading"
+            @click="removeStructureAndData"
+          >
+            Remove structure & data
+          </v-btn>
         </div>
-      </v-card>
-    </template>
+      </v-card-item>
 
-    <v-dialog v-model="changeDsdDialog" max-width="560" scrollable>
-      <v-card>
-        <v-card-title class="text-h6">Change linked data structure</v-card-title>
-        <v-card-text>
-          <v-alert v-if="observationCount > 0" type="warning" variant="tonal" density="compact" class="mb-4">
-            This study already has <strong>{{ observationCount }}</strong> observation(s). Changing the DSD can break
-            <code>key_hash</code> alignment or orphan existing Mongo documents. Prefer clearing or re-importing after a
-            change if something looks wrong.
-          </v-alert>
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            Pick another global DSD. This updates <code>metadata.data_structure_reference</code> for this study.
-          </p>
+      <v-card-text>
+        <div class="text-subtitle-2 font-weight-medium mb-3">Data structure</div>
+
+        <div class="field-group">
+          <div class="field-label-row d-flex flex-wrap align-center justify-space-between gap-y-1">
+            <label class="field-label field-label--inline" for="indicator-dsd-catalogue">Select data structure</label>
+            <div class="d-flex flex-wrap align-center justify-end gap-x-1 gap-y-1 flex-shrink-0">
+              <template v-if="schema">
+                <a
+                  v-if="dsdAdminHref && dsdAdminHref !== '#'"
+                  :href="dsdAdminHref"
+                  class="text-caption text-primary text-decoration-none field-inline-link"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Open DSD
+                </a>
+                <v-btn
+                  variant="text"
+                  size="small"
+                  density="compact"
+                  prepend-icon="mdi-download"
+                  class="text-caption text-primary px-1 text-none field-inline-link"
+                  :disabled="missingDsd || !componentsSorted.length"
+                  @click="downloadCsvTemplate"
+                >
+                  Download template
+                </v-btn>
+              </template>
+            </div>
+          </div>
+          <div v-if="!dsdSelectItems.length">
+            <v-btn variant="tonal" size="small" :loading="dsdListLoading" @click="loadDsdCatalogueList">Load catalogue</v-btn>
+          </div>
           <v-autocomplete
-            v-if="dsdSelectItems.length"
+            v-else
+            id="indicator-dsd-catalogue"
             v-model="dsdPickValue"
             :items="dsdSelectItems"
             item-title="title"
             item-value="value"
-            label="Choose from catalogue"
-            density="comfortable"
+            placeholder="Search or select…"
+            density="compact"
             variant="outlined"
-            clearable
+            :clearable="!!schema?.data_structure?.idno"
             hide-details
-            class="dsd-picker"
+            :loading="linkSaving"
+            :disabled="linkSaving"
             @update:model-value="onDsdPick"
           />
-          <div class="d-flex flex-wrap gap-2 action-row">
-            <v-btn v-if="!dsdSelectItems.length" variant="text" :loading="dsdListLoading" @click="loadDsdCatalogueList">Load catalogue list</v-btn>
-            <v-btn variant="text" :href="dataStructuresAdminHref" target="_blank" rel="noopener">Open data structures admin</v-btn>
+        </div>
+
+        <v-alert
+          v-if="importFeedback"
+          :type="importFeedbackType"
+          density="compact"
+          variant="tonal"
+          class="mb-3"
+          closable
+          @click:close="importFeedback = ''"
+        >
+          {{ importFeedback }}
+        </v-alert>
+
+        <div class="field-group field-group-upload" :class="{ 'mt-4': !schema }">
+          <label v-if="missingDsd" class="field-label text-wrap" for="indicator-csv-upload">
+            Attach a data structure above to enable file upload (CSV).
+          </label>
+          <template v-else>
+            <div class="text-subtitle-2 font-weight-medium mb-3">Upload data (CSV)</div>
+            <p v-if="schema && !missingDsd" class="text-body-2 text-medium-emphasis mb-2 mt-1">
+              Headers must match DSD component names (case-insensitive); other columns are skipped.
+            </p>
+          </template>
+          <div class="csv-upload-row d-flex flex-wrap align-start gap-3">
+            <div class="csv-upload-row__field flex-grow-1 min-width-0">
+              <v-file-input
+                id="indicator-csv-upload"
+                v-model="importFile"
+                accept=".csv,text/csv"
+                density="compact"
+                variant="outlined"
+                :prepend-icon="false"
+                prepend-inner-icon="mdi-paperclip"
+                show-size
+                clearable
+                hide-details
+                placeholder="Choose file…"
+                aria-label="Indicator data CSV file"
+                :disabled="missingDsd"
+              />
+            </div> &nbsp;
+            <v-btn
+              color="primary"
+              prepend-icon="mdi-upload"
+              class="csv-upload-row__import flex-shrink-0"
+              :loading="importLoading"
+              :disabled="missingDsd || !importFileModel"
+              @click="submitCsvImport"
+            >
+              Import
+            </v-btn>
           </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="changeDsdDialog = false">Cancel</v-btn>
-          <v-btn color="primary" :loading="linkSaving" @click="saveDsdLinkFromDialog">Save</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          <div
+            v-if="hasIndicatorObservations"
+            class="csv-upload-attached d-flex flex-wrap align-center justify-space-between gap-2"
+          >
+            <div class="d-flex flex-wrap align-center gap-2 min-width-0">
+              <v-chip size="small" variant="flat" label class="data-attached-chip">
+                Data attached {{ observationListTotal.toLocaleString() }}
+              </v-chip>
+              <v-btn
+                variant="text"
+                density="compact"
+                size="small"
+                color="error"
+                class="text-none px-2"
+                :loading="clearIndicatorLoading"
+                @click="confirmClearIndicatorData"
+              >
+                Remove data
+              </v-btn>
+            </div>
+            <div class="d-flex flex-wrap align-center gap-0 flex-shrink-0">
+              <v-btn
+                v-if="canDownloadIndicatorCsv"
+                variant="text"
+                density="compact"
+                size="small"
+                class="text-none px-2"
+                :href="indicatorImportCsvUrl"
+                tag="a"
+              >
+                Download data
+              </v-btn>
+            </div>
+          </div>
+        </div>
+
+      </v-card-text>
+    </v-card>
+
+    <v-alert
+      v-if="schema && Number(schema.ts_sync_required) === 1 && hasIndicatorObservations"
+      type="warning"
+      variant="tonal"
+      density="comfortable"
+      class="mb-4"
+    >
+      <div class="d-flex flex-wrap align-center gap-3">
+        <div class="flex-grow-1">
+          <strong>Out of sync</strong> — indicator data is not cleared for the public catalogue until you resync or import.
+          Public timeseries APIs return “unavailable” while this flag is set. Resync updates keys from existing Mongo rows
+          for the <em>current</em> linked structure; use Import if you changed structure or need to replace values.
+          <span v-if="schema.ts_dimensions" class="text-body-2 text-medium-emphasis d-block mt-1">
+            Dimensions: <code>{{ schema.ts_dimensions }}</code>
+          </span>
+        </div>
+        <v-btn color="primary" variant="flat" size="small" :loading="resyncLoading" @click="runResyncRehash"> Resync </v-btn>
+      </div>
+    </v-alert>
+
+    <!-- Preview & dimension summaries (only when observations exist) -->
+    <v-card v-if="schema && !pageLoading && hasIndicatorObservations" variant="flat" rounded="0" class="section-card pa-0">
+      <div class="indicator-data-tab-panels">
+        <v-tabs v-model="mainTab" color="primary" class="px-2" aria-label="Indicator data views">
+          <v-tab value="preview">Data preview</v-tab>
+          <v-tab value="value-counts">Dimension summaries</v-tab>
+        </v-tabs>
+        <v-window v-model="mainTab">
+        <v-window-item value="preview" class="pa-4">
+          <div class="d-flex flex-wrap align-center justify-end gap-2 mb-3">
+            <v-btn-toggle v-model="sortDir" mandatory density="compact" variant="outlined" divided>
+              <v-btn value="asc">Time ↑</v-btn>
+              <v-btn value="desc">Time ↓</v-btn>
+            </v-btn-toggle>
+          </div>
+          <v-data-table
+            :headers="tableHeaders"
+            :items="displayRows"
+            :loading="obsLoading"
+            density="compact"
+            class="elevation-0 indicator-data-grid"
+            hide-default-footer
+          />
+          <div class="d-flex flex-wrap align-center justify-space-between gap-2 mt-3">
+            <span class="text-body-2 text-medium-emphasis">
+              Showing {{ observationRows.length ? offset + 1 : 0 }}–{{ offset + observationRows.length }} of
+              {{ observationListTotal }}
+            </span>
+            <div class="d-flex gap-2">
+              <v-btn size="small" variant="tonal" :disabled="offset <= 0 || obsLoading" @click="goPrev">Previous</v-btn>
+              <v-btn
+                size="small"
+                variant="tonal"
+                :disabled="offset + pageSize >= observationListTotal || obsLoading"
+                @click="goNext"
+              >
+                Next
+              </v-btn>
+            </div>
+          </div>
+        </v-window-item>
+
+        <v-window-item value="value-counts" class="pa-4">
+          <div class="d-flex flex-wrap align-center gap-2 mb-3">
+            <span class="text-body-2 text-medium-emphasis">Per-dimension code counts used for filters and faceted views</span>
+            <v-spacer />
+            <v-btn
+              color="primary"
+              variant="tonal"
+              size="small"
+              prepend-icon="mdi-sync"
+              :loading="valueCountsSyncing"
+              @click="runValueCountsSync"
+            >
+              Sync dimension summaries
+            </v-btn>
+          </div>
+          <v-alert v-if="valueCountsError" type="warning" density="compact" variant="tonal" class="mb-3">
+            {{ valueCountsError }}
+          </v-alert>
+          <v-progress-linear v-if="valueCountsLoading" indeterminate color="primary" class="mb-3" />
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <v-chip size="small" variant="tonal">Distinct codes: {{ valueCountsSummary.total_distinct_codes || 0 }}</v-chip>
+            <v-chip size="small" variant="tonal">Observations: {{ valueCountsSummary.total_observations || 0 }}</v-chip>
+            <v-chip size="small" variant="tonal">Components: {{ valueCountsSummary.components?.length || 0 }}</v-chip>
+          </div>
+          <v-data-table
+            :headers="valueCountsHeaders"
+            :items="valueCountsSummary.components || []"
+            density="compact"
+            class="elevation-0 indicator-data-grid"
+            hide-default-footer
+          />
+        </v-window-item>
+      </v-window>
+      </div>
+    </v-card>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted, watch } from 'vue';
+import { ref, computed, inject, onMounted, watch, nextTick } from 'vue';
 import axios from 'axios';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useStudyTimeseriesApi } from '../composables/useStudyTimeseriesApi';
@@ -370,7 +294,7 @@ defineOptions({ name: 'StudyTimeseriesDataPage' });
 
 const setMessage = inject('setMessage', () => {});
 
-const { config, apiBaseUrl, dataStructuresApiBaseUrl, siteUrl } = useAppConfig();
+const { config, apiBaseUrl, dataStructuresApiBaseUrl } = useAppConfig();
 const studyIdno = computed(() => String(config.value?.studyIdno ?? '').trim());
 
 const {
@@ -379,9 +303,10 @@ const {
   fetchData,
   fetchValueCountsSummary,
   syncValueCounts,
-  importCsvData,
-  rehashData,
-} = useStudyTimeseriesApi(studyIdno);
+    importCsvData,
+    rehashData,
+    clearIndicatorData,
+  } = useStudyTimeseriesApi(studyIdno);
 
 const pageLoading = ref(true);
 const obsLoading = ref(false);
@@ -393,10 +318,12 @@ const dsdPickValue = ref(null);
 const dsdSelectItems = ref([]);
 const dsdListLoading = ref(false);
 const linkSaving = ref(false);
-const changeDsdDialog = ref(false);
+/** Suppress onDsdPick while syncing v-model from schema after load. */
+const dsdPickSyncing = ref(false);
+/** Inner tabs: preview (default) | dimension summaries (tab id: value-counts) */
+const mainTab = ref('preview');
 
 const schema = ref(null);
-const observationCount = ref(0);
 const observationRows = ref([]);
 const sortDir = ref('asc');
 const offset = ref(0);
@@ -408,6 +335,7 @@ const csvDelimiter = ',';
 /** v-file-input model: File | File[] | null */
 const importFile = ref(null);
 const importLoading = ref(false);
+const clearIndicatorLoading = ref(false);
 const resyncLoading = ref(false);
 /** Inline import result or error (API messages show here even if global toast is missed). */
 const importFeedback = ref('');
@@ -422,33 +350,31 @@ const valueCountsSummary = ref({
   components: [],
 });
 
-const downloadsLoading = ref(false);
-const bulkMicrodata = ref([]);
-/** Expansion panel model: empty = collapsed (default). Open panel uses value `downloads`. */
-const downloadsPanel = ref([]);
-/** Same pattern for Import CSV section. */
-const importCsvPanel = ref([]);
-/** Value counts cache section; collapsed by default. */
-const valueCountsPanel = ref([]);
-
-const microdataHeaders = [
-  { title: 'Title', key: 'title', sortable: false },
-  { title: 'File', key: 'filename', sortable: false },
-  { title: 'Date', key: 'changed', sortable: false },
-  { title: '', key: 'actions', sortable: false, width: 140 },
-];
-
 const importFileModel = computed(() => {
   const f = importFile.value;
   if (!f) return null;
   return Array.isArray(f) ? f[0] ?? null : f;
 });
 
-const dataStructureTitle = computed(() => {
-  const ds = schema.value?.data_structure;
-  if (!ds) return '';
-  return ds.title || ds.name || '';
+const hasIndicatorObservations = computed(
+  () => !!schema.value && !missingDsd.value && observationListTotal.value > 0
+);
+
+/** Linked DSD present — show detach + purge control */
+const hasLinkedDsd = computed(() => !!schema.value?.data_structure?.idno);
+
+const indicatorImportCsvUrl = computed(() => {
+  const base = (apiBaseUrl.value || '').replace(/\/$/, '');
+  const id = studyIdno.value;
+  if (!base || !id) return '#';
+  return `${base}/data/${encodeURIComponent(id)}/import-csv`;
 });
+
+/** Canonical import file exists on disk (schema from GET …/schema). */
+const canDownloadIndicatorCsv = computed(
+  () =>
+    !!schema.value?.indicator_import_csv_filename && schema.value?.indicator_import_csv_present === true
+);
 
 const dsdAdminHref = computed(() => {
   const base = (config.value?.dataStructuresAdminUrl || '').replace(/\/$/, '');
@@ -479,7 +405,9 @@ const tableHeaders = computed(() => {
     if (c?.name) keys.push(c.name);
   }
   keys.push('_ts_period_start');
-  return keys.map((k) => ({ title: k, key: k, sortable: false }));
+  return keys
+    .filter((k) => k !== 'key_hash' && !String(k).startsWith('_'))
+    .map((k) => ({ title: k, key: k, sortable: false }));
 });
 
 /** Flatten cell values for v-data-table (handles BSON date shapes). */
@@ -504,10 +432,80 @@ function isMissingDsdMessage(msg) {
   return String(msg || '').includes('No data structure linked');
 }
 
-function onDsdPick(v) {
-  if (v != null && v !== '') {
-    dsdIdnoDraft.value = String(v);
+/** Ensure linked study DSD appears in the autocomplete list (e.g. after catalogue load). */
+function ensureCurrentDsdInCatalogue() {
+  const ds = schema.value?.data_structure;
+  if (!ds?.idno) return;
+  const idno = String(ds.idno).trim();
+  const exists = dsdSelectItems.value.some((item) => String(item?.value || '') === idno);
+  if (exists) return;
+  const title = ds.title || ds.name || idno;
+  const row = {
+    title: `${title} — ${idno}`,
+    value: idno,
+    id: schema.value?.dsd_id != null ? Number(schema.value.dsd_id) : null,
+    reference: {
+      idno,
+      agency: String(ds.agency ?? '').trim(),
+      name: String(ds.name ?? '').trim(),
+      version: String(ds.version ?? '').trim(),
+    },
+  };
+  dsdSelectItems.value = [row, ...dsdSelectItems.value];
+}
+
+/** Sync dropdown model from loaded schema (and skip pick handler while applying). */
+async function finalizeDsdPickerState() {
+  if (schema.value?.data_structure?.idno) {
+    if (!dsdSelectItems.value.length) {
+      await loadDsdCatalogueList();
+    }
+    ensureCurrentDsdInCatalogue();
+    dsdPickSyncing.value = true;
+    dsdPickValue.value = String(schema.value.data_structure.idno).trim();
+    dsdIdnoDraft.value = dsdPickValue.value;
+    await nextTick();
+    dsdPickSyncing.value = false;
+  } else {
+    dsdPickSyncing.value = true;
+    dsdPickValue.value = null;
+    dsdIdnoDraft.value = '';
+    await nextTick();
+    dsdPickSyncing.value = false;
   }
+}
+
+async function onDsdPick(v) {
+  if (dsdPickSyncing.value) return;
+  if (v == null || v === '') {
+    dsdIdnoDraft.value = '';
+    if (schema.value?.data_structure?.idno) {
+      const detached = await detachDsdLink();
+      if (!detached) {
+        await finalizeDsdPickerState();
+      }
+    }
+    return;
+  }
+  if (linkSaving.value) return;
+  const idno = String(v).trim();
+  const current = schema.value?.data_structure?.idno ? String(schema.value.data_structure.idno).trim() : '';
+  if (schema.value && current === idno) {
+    dsdIdnoDraft.value = idno;
+    return;
+  }
+  dsdIdnoDraft.value = idno;
+  const hasObs = observationListTotal.value > 0;
+  if (current && hasObs && idno !== current) {
+    const ok = window.confirm(
+      'Change the linked data structure? All indicator observations and the stored import CSV for this study will be removed. Public indicator views stay hidden until you import again or resync. Continue?'
+    );
+    if (!ok) {
+      await finalizeDsdPickerState();
+      return;
+    }
+  }
+  await saveDsdLink();
 }
 
 async function loadDsdCatalogueList() {
@@ -540,6 +538,13 @@ async function loadDsdCatalogueList() {
     if (!dsdSelectItems.value.length) {
       setMessage('No data structures returned (empty catalogue or no access).', 'info');
     }
+    if (schema.value?.data_structure?.idno) {
+      ensureCurrentDsdInCatalogue();
+      dsdPickSyncing.value = true;
+      dsdPickValue.value = String(schema.value.data_structure.idno).trim();
+      await nextTick();
+      dsdPickSyncing.value = false;
+    }
   } catch (e) {
     dsdSelectItems.value = [];
     setMessage(e?.response?.data?.message || e?.message || 'Could not load DSD list (admin access may be required).', 'warning');
@@ -566,11 +571,7 @@ async function postDsdLink(idno) {
   if (selected?.id) {
     payload.data_structure_id = Number(selected.id);
   }
-  const { data } = await axios.post(
-    url,
-    payload,
-    { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
-  );
+  const { data } = await axios.post(url, payload, { headers: { 'Content-Type': 'application/json' }, withCredentials: true });
   if (data.status && data.status !== 'success') {
     throw new Error(data.message || 'Update failed');
   }
@@ -595,15 +596,6 @@ async function postDsdDetach() {
   return true;
 }
 
-async function openChangeDsdDialog() {
-  dsdIdnoDraft.value = schema.value?.data_structure?.idno ? String(schema.value.data_structure.idno) : '';
-  dsdPickValue.value = null;
-  changeDsdDialog.value = true;
-  if (!dsdSelectItems.value.length) {
-    loadDsdCatalogueList();
-  }
-}
-
 async function saveDsdLink() {
   const idno = String(dsdIdnoDraft.value || '').trim();
   if (!idno) {
@@ -612,56 +604,61 @@ async function saveDsdLink() {
   }
   linkSaving.value = true;
   try {
+    const wasLinked = !!(schema.value?.data_structure?.idno);
     await postDsdLink(idno);
-    setMessage('Data structure linked. Reloading…', 'success');
-    missingDsd.value = false;
-    dsdPickValue.value = null;
+    setMessage(wasLinked ? 'Data structure updated.' : 'Data structure linked.', 'success');
     await loadAll();
   } catch (e) {
     const msg = e?.response?.data?.message || e?.message || 'Could not save link.';
     setMessage(msg, 'error');
+    await finalizeDsdPickerState();
   } finally {
     linkSaving.value = false;
   }
 }
 
-async function saveDsdLinkFromDialog() {
-  const idno = String(dsdIdnoDraft.value || '').trim();
-  if (!idno) {
-    setMessage('Select a DSD from the dropdown.', 'warning');
-    return;
-  }
-  linkSaving.value = true;
-  try {
-    await postDsdLink(idno);
-    setMessage('Linked data structure updated. Reloading…', 'success');
-    changeDsdDialog.value = false;
-    missingDsd.value = false;
-    dsdPickValue.value = null;
-    await loadAll();
-  } catch (e) {
-    const msg = e?.response?.data?.message || e?.message || 'Could not save link.';
-    setMessage(msg, 'error');
-  } finally {
-    linkSaving.value = false;
-  }
-}
-
+/** @returns {Promise<boolean>} true if detached */
 async function detachDsdLink() {
-  if (!window.confirm('Detach the linked DSD from this study?')) {
-    return;
+  if (!window.confirm('Remove the linked DSD from this study?')) {
+    return false;
   }
   linkSaving.value = true;
   try {
     await postDsdDetach();
-    changeDsdDialog.value = false;
     dsdIdnoDraft.value = '';
-    dsdPickValue.value = null;
-    setMessage('Data structure detached. Reloading…', 'success');
+    setMessage('Data structure removed.', 'success');
     await loadAll();
+    return true;
   } catch (e) {
     const msg = e?.response?.data?.message || e?.message || 'Could not detach DSD.';
     setMessage(msg, 'error');
+    await finalizeDsdPickerState();
+    return false;
+  } finally {
+    linkSaving.value = false;
+  }
+}
+
+/** Detach DSD and purge indicator data (same backend path as clearing the DSD picker). */
+async function removeStructureAndData() {
+  if (!hasLinkedDsd.value) return;
+  const ok = window.confirm(
+    'Remove the linked data structure and all indicator data for this study?\n\n' +
+      'This deletes all observations, dimension summaries, and the stored import CSV. ' +
+      'Public indicator views will be unavailable until you link a structure and import again. ' +
+      'This cannot be undone.\n\nContinue?'
+  );
+  if (!ok) return;
+  linkSaving.value = true;
+  try {
+    await postDsdDetach();
+    dsdIdnoDraft.value = '';
+    setMessage('Data structure and indicator data removed.', 'success');
+    await loadAll();
+  } catch (e) {
+    const msg = e?.response?.data?.message || e?.message || 'Could not remove structure and data.';
+    setMessage(msg, 'error');
+    await finalizeDsdPickerState();
   } finally {
     linkSaving.value = false;
   }
@@ -678,7 +675,6 @@ async function runResyncRehash() {
     const updated = typeof res.updated === 'number' ? res.updated : 0;
     setMessage(`Resync complete: ${updated} observation(s) updated.`, 'success');
     await loadAll();
-    await loadDownloadsPanel();
   } catch (e) {
     const msg = e?.message || e?.response?.data?.message || 'Rehash failed.';
     setMessage(msg, 'error');
@@ -710,6 +706,12 @@ async function submitCsvImport() {
     setMessage('Choose a CSV file.', 'warning');
     return;
   }
+  if (observationListTotal.value > 0) {
+    const ok = window.confirm(
+      'This import will replace all existing indicator observations for this study with the rows in your CSV. Continue?'
+    );
+    if (!ok) return;
+  }
   importLoading.value = true;
   importFeedback.value = '';
   try {
@@ -737,8 +739,8 @@ async function submitCsvImport() {
     importFeedback.value = detail;
     setMessage(`Imported ${inserted} observation(s).`, 'success');
     importFile.value = null;
+    mainTab.value = 'preview';
     await loadAll();
-    await loadDownloadsPanel();
   } catch (e) {
     const msg = e?.message || e?.response?.data?.message || 'Import failed.';
     importFeedbackType.value = 'error';
@@ -749,41 +751,26 @@ async function submitCsvImport() {
   }
 }
 
-function formatMicrodataDate(changed) {
-  if (!changed) return '—';
+async function confirmClearIndicatorData() {
+  const ok = window.confirm(
+    'Remove all indicator observations, dimension summaries, and the stored import CSV for this study? The linked data structure will stay attached.'
+  );
+  if (!ok) return;
+  clearIndicatorLoading.value = true;
+  importFeedback.value = '';
   try {
-    const d = new Date(changed);
-    return Number.isNaN(d.getTime()) ? String(changed) : d.toLocaleString();
-  } catch {
-    return String(changed);
-  }
-}
-
-function fileExtLabel(filename) {
-  if (!filename || typeof filename !== 'string') return 'Download';
-  const ext = filename.split('.').pop();
-  return ext && ext.length <= 8 ? ext.toUpperCase() : 'Download';
-}
-
-async function loadDownloadsPanel() {
-  if (!studyIdno.value) {
-    bulkMicrodata.value = [];
-    return;
-  }
-  downloadsLoading.value = true;
-  try {
-    const base = (siteUrl.value || '').replace(/\/$/, '');
-    const microUrl = `${base}/api/downloads/${encodeURIComponent(studyIdno.value)}/files?type=data`;
-    const { data } = await axios.get(microUrl, { withCredentials: true });
-    if (data?.status === 'success' && Array.isArray(data.files)) {
-      bulkMicrodata.value = data.files;
-    } else {
-      bulkMicrodata.value = [];
-    }
-  } catch {
-    bulkMicrodata.value = [];
+    await clearIndicatorData();
+    importFeedbackType.value = 'success';
+    importFeedback.value = 'Indicator data removed.';
+    setMessage('Indicator data removed.', 'success');
+    await loadAll();
+  } catch (e) {
+    const msg = e?.message || e?.response?.data?.message || 'Could not remove data.';
+    importFeedbackType.value = 'error';
+    importFeedback.value = msg;
+    setMessage(msg, 'error');
   } finally {
-    downloadsLoading.value = false;
+    clearIndicatorLoading.value = false;
   }
 }
 
@@ -805,7 +792,7 @@ async function loadValueCountsSummary() {
     };
   } catch (e) {
     valueCountsSummary.value = { total_rows: 0, total_distinct_codes: 0, total_observations: 0, components: [] };
-    valueCountsError.value = e?.response?.data?.message || e?.message || 'Could not load value counts summary.';
+    valueCountsError.value = e?.response?.data?.message || e?.message || 'Could not load dimension summaries.';
   } finally {
     valueCountsLoading.value = false;
   }
@@ -820,10 +807,10 @@ async function runValueCountsSync() {
   try {
     const res = await syncValueCounts();
     const inserted = Number(res?.inserted) || 0;
-    setMessage(`Value counts synced (${inserted} row(s)).`, 'success');
+    setMessage(`Dimension summaries synced (${inserted} row(s)).`, 'success');
     await loadValueCountsSummary();
   } catch (e) {
-    const msg = e?.message || e?.response?.data?.message || 'Could not sync value counts.';
+    const msg = e?.message || e?.response?.data?.message || 'Could not sync dimension summaries.';
     setMessage(msg, 'error');
   } finally {
     valueCountsSyncing.value = false;
@@ -876,6 +863,7 @@ async function loadAll() {
     fatalError.value = 'Missing study IDNO in page configuration.';
     missingDsd.value = false;
     pageLoading.value = false;
+    await finalizeDsdPickerState();
     return;
   }
   pageLoading.value = true;
@@ -884,11 +872,9 @@ async function loadAll() {
   try {
     const [sch, count] = await Promise.all([fetchSchema(), fetchObservationCount()]);
     schema.value = sch;
-    observationCount.value = Number(count) || 0;
     offset.value = 0;
     observationListTotal.value = Number(count) || 0;
     await Promise.all([reloadObservations(), loadValueCountsSummary()]);
-    await loadDownloadsPanel();
   } catch (e) {
     const msg = e?.response?.data?.message || e?.message || 'Could not load timeseries data.';
     if (isMissingDsdMessage(msg)) {
@@ -896,22 +882,20 @@ async function loadAll() {
       fatalError.value = '';
       schema.value = null;
       observationRows.value = [];
-      observationCount.value = 0;
       observationListTotal.value = 0;
       valueCountsSummary.value = { total_rows: 0, total_distinct_codes: 0, total_observations: 0, components: [] };
       valueCountsError.value = '';
       if (!dsdSelectItems.value.length) {
-        loadDsdCatalogueList();
+        await loadDsdCatalogueList();
       }
-      await loadDownloadsPanel();
     } else {
       fatalError.value = msg;
       schema.value = null;
       valueCountsSummary.value = { total_rows: 0, total_distinct_codes: 0, total_observations: 0, components: [] };
       valueCountsError.value = '';
-      await loadDownloadsPanel();
     }
   } finally {
+    await finalizeDsdPickerState();
     pageLoading.value = false;
   }
 }
@@ -928,63 +912,109 @@ onMounted(() => {
 
 <style scoped>
 .indicator-data-tab {
-  max-width: 1200px;
+  width: 100%;
+  max-width: none;
+  background-color: #fff;
+  box-sizing: border-box;
 }
 
+/* Flat section cards: title block + body both solid white */
 .section-card {
-  border-radius: 12px;
+  background-color: #fff !important;
 }
 
-.section-stack + .section-stack {
-  margin-top: 20px;
+.section-card :deep(.v-card-item),
+.section-card :deep(.v-card-text),
+.section-card :deep(.v-tabs),
+.section-card :deep(.v-window),
+.section-card :deep(.v-window-item) {
+  background-color: #fff !important;
 }
 
-.value-counts-section {
-  margin-top: 24px;
+/* Strip between tab underline and panel: slide-group + window inner wrappers stay transparent */
+.indicator-data-tab-panels {
+  background-color: #fff;
 }
 
-.panel-row {
-  margin: -8px;
+.section-card :deep(.v-slide-group),
+.section-card :deep(.v-slide-group__container),
+.section-card :deep(.v-slide-group__content),
+.section-card :deep(.v-window__container) {
+  background-color: #fff !important;
 }
 
-.panel-row > .v-col {
-  padding: 8px;
+.min-width-0 {
+  min-width: 0;
 }
 
-.dsd-picker {
-  margin-bottom: 8px;
+.field-group {
+  margin-bottom: 12px;
 }
 
-.action-row {
-  margin-top: 16px;
+.field-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  letter-spacing: 0.01em;
+  color: rgba(var(--v-theme-on-surface), 0.68);
+  margin-bottom: 6px;
 }
 
-.downloads-expand-card :deep(.v-expansion-panel) {
-  border-radius: 12px;
+.field-label--inline {
+  margin-bottom: 0;
 }
 
-.downloads-panels :deep(.v-expansion-panel-title) {
-  min-height: unset;
+.field-label-row {
+  margin-bottom: 6px;
 }
 
-.downloads-panels :deep(.v-expansion-panel-text__wrapper) {
-  padding-top: 0;
+.field-admin-icon {
+  margin-top: -2px;
 }
 
-.ts-sync-alert {
-  margin-bottom: 24px;
+.field-inline-link:hover {
+  text-decoration: underline !important;
 }
 
-/* v-alert / density can reset utility classes; explicit spacing on our wrapper */
-.ts-sync-alert__body {
+.field-group :deep(.v-field) {
+  font-size: 0.8125rem;
+}
+
+.field-group-upload {
   padding-bottom: 20px;
 }
 
-.ts-sync-alert__title {
-  margin-bottom: 14px;
+.csv-upload-row {
+  margin-bottom: 16px;
 }
 
-.ts-sync-alert__body > p:last-child {
-  margin-bottom: 0;
+.csv-upload-attached {
+  margin-top: 12px;
+}
+
+.indicator-data-grid {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.indicator-data-grid :deep(thead th),
+.indicator-data-grid :deep(.v-data-table__th) {
+  background: rgba(var(--v-theme-on-surface), 0.06) !important;
+  font-weight: 600 !important;
+}
+
+.indicator-data-grid :deep(.v-data-table__td) {
+  border-color: rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.data-attached-chip {
+  background: rgba(var(--v-theme-success), 0.1) !important;
+  color: rgba(var(--v-theme-on-surface), 0.62) !important;
+  font-weight: 500;
+  box-shadow: none !important;
 }
 </style>

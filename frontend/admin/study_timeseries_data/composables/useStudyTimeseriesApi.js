@@ -26,7 +26,7 @@ function messageFromApiError(err) {
 
 /**
  * Admin timeseries Mongo API for one study (catalogue idno).
- * Base: /api/admin/timeseries/data/{idno}/… (CSV import uses POST …/data/import with idno in the body).
+ * Base: /api/admin/timeseries/data/{idno}/…
  */
 export function useStudyTimeseriesApi(studyIdno) {
   const { apiBaseUrl } = useAppConfig();
@@ -40,8 +40,7 @@ export function useStudyTimeseriesApi(studyIdno) {
   }
 
   function importCsvPath() {
-    const base = (apiBaseUrl.value || '').replace(/\/$/, '');
-    return `${base}/data/import`;
+    return `${dataPath()}/import`;
   }
 
   function noCacheParams(extra = {}) {
@@ -71,7 +70,7 @@ export function useStudyTimeseriesApi(studyIdno) {
       params: noCacheParams(),
       withCredentials: true,
     });
-    if (data.status !== 'success') throw new Error(data.message || 'Value counts summary request failed');
+    if (data.status !== 'success') throw new Error(data.message || 'Dimension summaries request failed');
     return data.result?.summary ?? { total_rows: 0, total_distinct_codes: 0, total_observations: 0, components: [] };
   }
 
@@ -83,7 +82,7 @@ export function useStudyTimeseriesApi(studyIdno) {
         { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
       );
       if (data.status !== 'success') {
-        throw new Error(data.message || 'Sync value counts failed');
+        throw new Error(data.message || 'Sync dimension summaries failed');
       }
       return data.result ?? {};
     } catch (err) {
@@ -114,12 +113,8 @@ export function useStudyTimeseriesApi(studyIdno) {
   }
 
   /**
-   * Multipart CSV import — POST …/data/import (`idno` in form body).
-   * @param {{ file: File; delimiter: string; mapping?: Record<string, string>; ensureUniqueIndex?: boolean }} opts
-   */
-  /**
-   * Full study rehash: POST …/data/{idno}/rehash — recomputes key_hash / key_spec_rev from Mongo + current DSD.
-   * @param {{ limit?: number }} [opts] omit limit for full rehash (clears ts_sync_required on success)
+   * POST …/data/{idno}/rehash — optional JSON { "limit": n }
+   * @param {{ limit?: number }} [opts]
    */
   async function rehashData(opts = {}) {
     const body = {};
@@ -140,11 +135,19 @@ export function useStudyTimeseriesApi(studyIdno) {
     }
   }
 
+  /**
+   * Multipart CSV import — POST …/data/{idno}/import. Optional `dsdIdno` links that DSD before loading rows.
+   * @param {{ file: File; delimiter: string; mapping?: Record<string, string>; ensureUniqueIndex?: boolean; dsdIdno?: string }} opts
+   */
   async function importCsvData(opts) {
     const form = new FormData();
     form.append('idno', String(unref(studyIdno) ?? '').trim());
     form.append('file', opts.file);
     form.append('delimiter', opts.delimiter ?? ',');
+    const dsdIdno = opts.dsdIdno != null ? String(opts.dsdIdno).trim() : '';
+    if (dsdIdno !== '') {
+      form.append('dsd_idno', dsdIdno);
+    }
     const mapping = opts.mapping;
     if (mapping && typeof mapping === 'object' && Object.keys(mapping).length > 0) {
       form.append('mapping', JSON.stringify(mapping));
@@ -156,6 +159,25 @@ export function useStudyTimeseriesApi(studyIdno) {
       });
       if (data.status !== 'success') {
         throw new Error(data.message || 'Import failed');
+      }
+      return data.result ?? {};
+    } catch (err) {
+      throw new Error(messageFromApiError(err));
+    }
+  }
+
+  /**
+   * POST …/data/{idno}/clear-data — remove all Mongo observations, dimension summaries, and canonical CSV (DSD link unchanged).
+   */
+  async function clearIndicatorData() {
+    try {
+      const { data } = await axios.post(
+        `${dataPath()}/clear-data`,
+        {},
+        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+      );
+      if (data.status !== 'success') {
+        throw new Error(data.message || 'Clear failed');
       }
       return data.result ?? {};
     } catch (err) {
@@ -182,5 +204,6 @@ export function useStudyTimeseriesApi(studyIdno) {
     syncValueCounts,
     importCsvData,
     rehashData,
+    clearIndicatorData,
   };
 }

@@ -1,8 +1,8 @@
 <template>
-  <div>
-    <v-card class="mb-4">
+  <div class="admin-catalog-filter-stack">
+    <v-card class="admin-catalog-surface" rounded="lg" elevation="1">
       <div
-        class="d-flex align-center pa-4 cursor-pointer"
+        class="admin-catalog-filter-card__header d-flex align-center cursor-pointer ga-2"
         @click="expanded.idno = !expanded.idno"
       >
         <span class="text-subtitle-2 font-weight-medium">{{ t('idno') }}</span>
@@ -10,22 +10,23 @@
         <v-icon size="small">{{ expanded.idno ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
       </div>
       <v-expand-transition>
-        <div v-show="expanded.idno" class="px-4 pb-4">
+        <div v-show="expanded.idno" class="admin-catalog-filter-card__body">
           <v-text-field
             v-model="selected.idno"
             :placeholder="t('filter_by_idno_placeholder')"
             density="compact"
             variant="outlined"
             hide-details
+            clearable
             @update:model-value="emitFilterChange"
           />
         </div>
       </v-expand-transition>
     </v-card>
 
-    <v-card class="mb-4">
+    <v-card class="admin-catalog-surface" rounded="lg" elevation="1">
       <div
-        class="d-flex align-center pa-4 cursor-pointer"
+        class="admin-catalog-filter-card__header d-flex align-center cursor-pointer ga-2"
         @click="expanded.published = !expanded.published"
       >
         <span class="text-subtitle-2 font-weight-medium">{{ t('published') }}</span>
@@ -33,7 +34,7 @@
         <v-icon size="small">{{ expanded.published ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
       </div>
       <v-expand-transition>
-        <div v-show="expanded.published" class="px-4 pb-4">
+        <div v-show="expanded.published" class="admin-catalog-filter-card__body">
           <v-select
             v-model="selected.published"
             :items="publishedOptions"
@@ -49,53 +50,62 @@
       </v-expand-transition>
     </v-card>
 
-    <v-card v-for="section in filterSections" :key="section.key" class="mb-4">
+    <v-card v-for="section in filterSections" :key="section.key" class="admin-catalog-surface" rounded="lg" elevation="1">
       <div
-        class="d-flex align-center pa-4 cursor-pointer"
+        class="admin-catalog-filter-card__header d-flex align-center cursor-pointer ga-2"
         @click="expanded[section.key] = !expanded[section.key]"
       >
         <span class="text-subtitle-2 font-weight-medium">{{ section.title }}</span>
-        <v-chip v-if="selected[section.key].length" size="x-small" class="ml-2" color="primary">
+        <v-chip v-if="selected[section.key].length" size="x-small" class="flex-shrink-0" color="primary">
           {{ selected[section.key].length }}
         </v-chip>
         <v-spacer />
         <v-icon size="small">{{ expanded[section.key] ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
       </div>
       <v-expand-transition>
-        <div v-show="expanded[section.key]" class="px-4 pb-4">
+        <div v-show="expanded[section.key]" class="admin-catalog-filter-card__body">
           <v-text-field
             v-model="search[section.key]"
             :placeholder="t('search_placeholder', 'Search...', section.title.toLowerCase())"
             density="compact"
             variant="outlined"
             hide-details
-            class="mb-3"
             clearable
           />
-          <div
-            :class="['filter-options-list', { scrollable: section.filtered.length > 20 }]"
-            style="max-height: 400px; overflow-y: auto"
-          >
-            <v-checkbox
-              v-for="option in section.filtered"
-              :key="`${section.key}-${option.id}`"
-              :model-value="selected[section.key].includes(option.id)"
-              density="compact"
-              hide-details
-              class="mb-2"
-              @update:model-value="(checked) => setSelection(section.key, option.id, !!checked)"
+            <div
+              :class="['filter-options-list', { scrollable: section.filtered.length > 20 }]"
+              style="max-height: 400px; overflow-y: auto"
             >
-              <template #label>
-                <span>{{ option.name }}</span>
-                <span v-if="option.count != null" class="text-medium-emphasis ml-1">({{ option.count }})</span>
-              </template>
-            </v-checkbox>
-          </div>
+              <div
+                v-for="option in section.filtered"
+                :key="`${section.key}-${option.id}`"
+                class="filter-option-row"
+                @click="toggleFilterOption(section.key, option.id)"
+              >
+                <v-checkbox
+                  :model-value="selected[section.key].includes(option.id)"
+                  density="compact"
+                  hide-details
+                  class="filter-option-row__checkbox"
+                  :aria-label="String(option.name)"
+                  @click.stop
+                  @update:model-value="(checked) => setSelection(section.key, option.id, !!checked)"
+                />
+                <span class="filter-option-row__name text-truncate" :title="String(option.name)">{{ option.name }}</span>
+                <span
+                  v-if="option.count != null"
+                  class="filter-option-row__count text-medium-emphasis tabular-nums text-right"
+                  >{{ option.count }}</span
+                >
+              </div>
+            </div>
         </div>
       </v-expand-transition>
     </v-card>
 
-    <v-btn block color="primary" @click="emitFilterChange">{{ t('apply_filters') }}</v-btn>
+    <v-btn block color="primary" variant="elevated" rounded="lg" size="default" @click="emitFilterChange">
+      {{ t('apply_filters') }}
+    </v-btn>
   </div>
 </template>
 
@@ -158,9 +168,9 @@ const search = ref({
 });
 
 const filterSections = computed(() => [
+  { key: 'collections', title: t('repositories'), filtered: filteredCollections.value },
   { key: 'dataTypes', title: t('data_types'), filtered: filteredDataTypes.value },
   { key: 'dataAccess', title: t('data_access'), filtered: filteredDataAccess.value },
-  { key: 'collections', title: t('repositories'), filtered: filteredCollections.value },
   { key: 'countries', title: t('countries'), filtered: filteredCountries.value },
   { key: 'tags', title: t('tags'), filtered: filteredTags.value },
 ]);
@@ -209,8 +219,17 @@ function setSelection(filterName, optionId, checked) {
   emitFilterChange();
 }
 
+function toggleFilterOption(filterName, optionId) {
+  const arr = selected.value[filterName];
+  setSelection(filterName, optionId, !arr.includes(optionId));
+}
+
 function emitFilterChange() {
-  emit('filter-change', { ...selected.value });
+  const payload = { ...selected.value };
+  if (payload.idno === null || payload.idno === undefined) {
+    payload.idno = '';
+  }
+  emit('filter-change', payload);
 }
 
 watch(
@@ -253,11 +272,6 @@ onMounted(async () => {
 .filter-options-list.scrollable {
   max-height: 400px;
   overflow-y: auto;
-}
-
-.filter-options-list .v-checkbox {
-  display: flex;
-  align-items: center;
 }
 
 .cursor-pointer {

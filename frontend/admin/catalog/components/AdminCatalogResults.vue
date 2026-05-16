@@ -228,6 +228,21 @@
         </v-col>
       </v-row>
     </div>
+
+    <Teleport to="body">
+      <v-dialog
+        v-model="batchProcessing"
+        max-width="360"
+        persistent
+      >
+        <v-card class="pa-8 text-center admin-catalog-batch-processing-card" rounded="lg">
+          <v-progress-circular indeterminate color="primary" size="56" width="4" class="mb-4" />
+          <div class="text-body-1 text-medium-emphasis" role="status" aria-live="polite">
+            {{ t('batch_processing', 'Processing…') }}
+          </div>
+        </v-card>
+      </v-dialog>
+    </Teleport>
   </v-card>
 </template>
 
@@ -256,6 +271,8 @@ const { siteUrl, baseUrl } = useAppConfig();
 const { updateOptions, deleteStudy } = useCatalogApi();
 const selected = ref([]);
 const publishLoading = ref(null);
+/** Shown while batch publish / unpublish / delete requests run after confirmation. */
+const batchProcessing = ref(false);
 
 const sortOptions = [
   { label: t('sort_title_asc'), value: 'title_asc' },
@@ -434,34 +451,38 @@ async function batchAction(action) {
   if (!confirmed) return;
 
   let failed = 0;
-
-  if (action === 'publish') {
-    for (const id of ids) {
-      try {
-        await updateOptions(id, { published: 1 });
-      } catch (e) {
-        console.error('Batch publish failed for id', id, e);
-        failed++;
+  batchProcessing.value = true;
+  try {
+    if (action === 'publish') {
+      for (const id of ids) {
+        try {
+          await updateOptions(id, { published: 1 });
+        } catch (e) {
+          console.error('Batch publish failed for id', id, e);
+          failed++;
+        }
+      }
+    } else if (action === 'unpublish') {
+      for (const id of ids) {
+        try {
+          await updateOptions(id, { published: 0 });
+        } catch (e) {
+          console.error('Batch unpublish failed for id', id, e);
+          failed++;
+        }
+      }
+    } else if (action === 'delete') {
+      for (const id of ids) {
+        try {
+          await deleteStudy(id);
+        } catch (e) {
+          console.error('Batch delete failed for id', id, e);
+          failed++;
+        }
       }
     }
-  } else if (action === 'unpublish') {
-    for (const id of ids) {
-      try {
-        await updateOptions(id, { published: 0 });
-      } catch (e) {
-        console.error('Batch unpublish failed for id', id, e);
-        failed++;
-      }
-    }
-  } else if (action === 'delete') {
-    for (const id of ids) {
-      try {
-        await deleteStudy(id);
-      } catch (e) {
-        console.error('Batch delete failed for id', id, e);
-        failed++;
-      }
-    }
+  } finally {
+    batchProcessing.value = false;
   }
 
   selected.value = [];

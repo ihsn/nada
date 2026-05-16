@@ -158,6 +158,9 @@ function pickSectionPayload(sectionId) {
 
 async function reloadAll() {
   const [s, m] = await Promise.all([fetchSettings(), fetchMeta()]);
+  if (s.data_classifications_enabled === undefined || s.data_classifications_enabled === '') {
+    s.data_classifications_enabled = 'yes';
+  }
   settings.value = { ...s };
   meta.value = { ...m };
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
@@ -367,57 +370,62 @@ onMounted(async () => {
               </v-col>
               <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('default_home_page') }}</label>
-                <v-text-field
-                  v-model="settings.default_home_page"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details="auto"
-                  style="max-width: 300px;"
-                />
+                <div class="site-config-field--fixed-width">
+                  <v-text-field
+                    v-model="settings.default_home_page"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                  />
+                </div>
                 <div class="site-config-field__hint">{{ tr('instruction_default_home_page') }}</div>
               </v-col>
               <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('webmaster_name') }}</label>
-                <v-text-field
-                  v-model="settings.website_webmaster_name"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details="auto"
-                  style="max-width: 300px;"
-                />
+                <div class="site-config-field--fixed-width">
+                  <v-text-field
+                    v-model="settings.website_webmaster_name"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                  />
+                </div>
               </v-col>
               <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('webmaster_email') }}</label>
-                <v-text-field
-                  v-model="settings.website_webmaster_email"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details="auto"
-                  style="max-width: 300px;"
-                />
+                <div class="site-config-field--fixed-width">
+                  <v-text-field
+                    v-model="settings.website_webmaster_email"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                  />
+                </div>
               </v-col>
               <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('max_resource_upload_size') }}</label>
-                <v-text-field
-                  v-model="settings.max_resource_upload_size"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details="auto"
-                  style="max-width: 300px;"
-                />
+                <div class="site-config-field--fixed-width">
+                  <v-text-field
+                    v-model="settings.max_resource_upload_size"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                  />
+                </div>
                 <div class="site-config-field__hint">{{ tr('max_resource_upload_size_note') }}</div>
               </v-col>
               <v-col cols="12">
                 <label class="site-config-field__label">Admin header background</label>
                 <div class="d-flex align-center ga-2 flex-wrap">
-                  <v-text-field
-                    v-model="settings.admin_header_background"
-                    variant="outlined"
-                    density="comfortable"
-                    hide-details="auto"
-                    placeholder="#212121"
-                    style="max-width: 300px;"
-                  />
+                  <div class="site-config-field--fixed-width">
+                    <v-text-field
+                      v-model="settings.admin_header_background"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details="auto"
+                      placeholder="#212121"
+                    />
+                  </div>
                   <div
                     class="rounded border"
                     role="button"
@@ -619,9 +627,18 @@ onMounted(async () => {
                   <v-icon v-else icon="mdi-close-circle" class="site-config-path-bad mt-2" />
                 </div>
               </v-col>
-              <v-col cols="12" sm="4">
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('data_catalog_page_size') }}</label>
-                <v-text-field v-model="settings.catalog_records_per_page" variant="outlined" density="comfortable" hide-details />
+                <div class="site-config-field--fixed-width">
+                  <v-text-field
+                    v-model="settings.catalog_records_per_page"
+                    type="number"
+                    min="1"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details
+                  />
+                </div>
                 <div class="site-config-field__hint">{{ tr('instruction_catalog_records_per_page') }}</div>
               </v-col>
               <v-col cols="12">
@@ -688,30 +705,49 @@ onMounted(async () => {
                 </div>
                 <div class="site-config-field__hint">{{ tr('guests_hide_microdata_tab_note') }}</div>
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12">
+                <label class="site-config-field__label">{{ tr('data_classifications_enabled') }}</label>
+                <div class="d-flex align-center ga-3 mt-1 flex-wrap">
+                  <v-switch
+                    v-model="settings.data_classifications_enabled"
+                    true-value="yes"
+                    false-value="no"
+                    color="primary"
+                    density="comfortable"
+                    hide-details
+                    inset
+                  />
+                  <span class="text-body-2 text-medium-emphasis">{{ settings.data_classifications_enabled === 'yes' ? tr('yes') : tr('no') }}</span>
+                </div>
+              </v-col>
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('catalog_default_sort_by') }}</label>
-                <v-select
-                  v-model="settings.catalog_default_sort_by"
-                  :items="ui.catalog_sort_by_options || []"
-                  item-title="label"
-                  item-value="value"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details
-                />
+                <div class="site-config-field--fixed-width">
+                  <v-select
+                    v-model="settings.catalog_default_sort_by"
+                    :items="ui.catalog_sort_by_options || []"
+                    item-title="label"
+                    item-value="value"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details
+                  />
+                </div>
                 <div class="site-config-field__hint">{{ tr('catalog_default_sort_by_note') }}</div>
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('catalog_default_sort_order') }}</label>
-                <v-select
-                  v-model="settings.catalog_default_sort_order"
-                  :items="ui.catalog_sort_order_options || []"
-                  item-title="label"
-                  item-value="value"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details
-                />
+                <div class="site-config-field--fixed-width">
+                  <v-select
+                    v-model="settings.catalog_default_sort_order"
+                    :items="ui.catalog_sort_order_options || []"
+                    item-title="label"
+                    item-value="value"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details
+                  />
+                </div>
               </v-col>
             </v-row>
             </div>
@@ -767,13 +803,17 @@ onMounted(async () => {
               <v-radio value="no" :label="tr('login_not_required')" />
             </v-radio-group>
             <v-row dense class="mt-4">
-              <v-col cols="12" sm="6">
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('login_timeout_in_min') }}</label>
-                <v-text-field v-model="settings.login_timeout" variant="outlined" density="comfortable" type="number" hide-details />
+                <div class="site-config-field--fixed-width">
+                  <v-text-field v-model="settings.login_timeout" variant="outlined" density="comfortable" type="number" hide-details />
+                </div>
               </v-col>
-              <v-col cols="12" sm="6">
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('min_password_length') }}</label>
-                <v-text-field v-model="settings.min_password_length" variant="outlined" density="comfortable" type="number" hide-details />
+                <div class="site-config-field--fixed-width">
+                  <v-text-field v-model="settings.min_password_length" variant="outlined" density="comfortable" type="number" hide-details />
+                </div>
               </v-col>
             </v-row>
             </div>
@@ -797,13 +837,15 @@ onMounted(async () => {
                 </v-btn>
               </div>
             <label class="site-config-field__label">Google Analytics UA code</label>
-            <v-text-field
-              v-model="settings.google_ua_code"
-              variant="outlined"
-              density="comfortable"
-              placeholder="UA-XXXXXXXX-X"
-              hide-details
-            />
+            <div class="site-config-field--fixed-width">
+              <v-text-field
+                v-model="settings.google_ua_code"
+                variant="outlined"
+                density="comfortable"
+                placeholder="UA-XXXXXXXX-X"
+                hide-details
+              />
+            </div>
             <div class="site-config-field__hint">Legacy Universal Analytics property ID</div>
             </div>
           </v-card>

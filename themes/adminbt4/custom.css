@@ -1,3 +1,7 @@
+/* Fixed Vuetify admin bar (#admin-app-header) — scripts/links may follow the header, so offset this wrapper */
+.admin-bt4-below-fixed-header {
+	margin-top: calc(64px + 0.5rem);
+}
 
 #breadcrumb{
 	margin-left:16px;
@@ -25,7 +29,6 @@
 		border-color: #E5E5E5;
 		height: 100px;
 		width: 100%;
-		margin-top: -10px;
 		margin-bottom: 20px;
 		padding: 10px 25px
 }

@@ -1145,7 +1145,10 @@ class Repository_model extends CI_Model {
 		}
 		
 		$row=$query->row_array();
-		
+		if (empty($row) || ! isset($row['repositoryid'])) {
+			return FALSE;
+		}
+
 		return $row['repositoryid'];
 	}
 	
@@ -1252,6 +1255,9 @@ class Repository_model extends CI_Model {
 		);
 		
 		if($status>0){
+			$this->db->where('repoid',$repo_uid);
+			$this->db->where('sid',(int)$sid);
+			$this->db->delete('featured_surveys');
 			$this->db->insert('featured_surveys',$options);
 		}
 		else{
@@ -1340,8 +1346,9 @@ class Repository_model extends CI_Model {
 	
 	
 	/**
-	* set active repo for the session
-	**/
+	 * Legacy convenience cookie after admin “select active repository” (e.g. Repositories::active).
+	 * Admin catalog Vue/API does not depend on this; some PHP flows and redirects still read it.
+	 */
 	function set_active_repo($repoid)
 	{
 		$this->input->set_cookie($name='active_repo', $value=$repoid, $expire=865000, $domain='', $path='/', $prefix='', $secure=FALSE);
@@ -1664,6 +1671,49 @@ class Repository_model extends CI_Model {
 		}
 		
 		return $this->db->get("surveys")->result_array();
+	}
+
+
+	/**
+	 * When collections config collection_html_filter is true, match legacy
+	 * admin Repositories::sanitize_html_input for long descriptions.
+	 */
+	function sanitize_collection_long_text($html)
+	{
+		$this->load->config('collections');
+		if (!(boolean) $this->config->item('collection_html_filter')) {
+			return $html;
+		}
+
+		$this->load->helper('kses');
+		$allowed_tags = array(
+			'b' => array(),
+			'h1' => array('class' => array()),
+			'h2' => array('class' => array()),
+			'h3' => array('class' => array()),
+			'i' => array('class' => array()),
+			'div' => array('class' => array()),
+			'span' => array('class' => array()),
+			'a' => array(
+				'href' => array(),
+				'title' => array('valueless' => 'n'),
+			),
+			'p' => array('class' => array(), 'id' => array()),
+			'img' => array('src' => array()),
+			'font' => array('size' => array('minval' => 4, 'maxval' => 20)),
+			'br' => array(),
+			'strong' => array(),
+			'ul' => array('class' => array()),
+			'li' => array(),
+		);
+
+		$libxml_error_setting = libxml_use_internal_errors(true);
+		$doc = new DOMDocument();
+		$doc->loadHTML($html);
+		$tidied = $doc->saveHTML();
+		libxml_use_internal_errors($libxml_error_setting);
+
+		return wp_kses($tidied, $allowed_tags);
 	}
 
 }

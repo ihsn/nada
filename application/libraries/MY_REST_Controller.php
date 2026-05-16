@@ -156,7 +156,11 @@ abstract class MY_REST_Controller extends REST_Controller {
 		$id_format=$this->input->get("id_format");
 
 		if ($id_format=='id'){
-			return $idno;
+			$s = is_scalar($idno) ? trim((string) $idno) : '';
+			if ($s === '' || ! ctype_digit($s) || (int) $s <= 0) {
+				throw new Exception('INVALID_ID_FORMAT_ID');
+			}
+			return (int) $s;
 		}
 
         $this->load->library("Dataset_manager");
@@ -218,6 +222,67 @@ abstract class MY_REST_Controller extends REST_Controller {
         catch(Exception $e){
             throw new AclAccessDeniedException('ACCESS-DENIED',$e->getMessage());
         }
+    }
+
+	/**
+	 * Bulk resources export guard: caller must have study view on every idno (used by download_links_post).
+	 *
+	 * @param array $idno_list Study idnos (or numeric ids when request uses id_format=id consistently).
+	 * @throws Exception                 empty or invalid list
+	 * @throws AclAccessDeniedException  view denied on any study
+	 */
+	protected function assert_idno_list_has_dataset_view(array $idno_list)
+	{
+		if (count($idno_list) === 0) {
+			throw new Exception('idno_list must be a non-empty array');
+		}
+		$checked = 0;
+		foreach ($idno_list as $idno) {
+			if ($idno === null || $idno === '') {
+				continue;
+			}
+			$checked++;
+			$sid = $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view', $sid);
+		}
+		if ($checked === 0) {
+			throw new Exception('idno_list contains no valid study identifiers');
+		}
+	}
+
+
+    /**
+     * Parse optional featured flag from study options JSON (`featured`: bool|int|string).
+     *
+     * @param array $input Decoded request body
+     * @return int|null     1 or 0 when client requests a change; null when key absent or null
+     * @throws Exception    INVALID_FEATURED_VALUE
+     */
+    protected function featured_option_from_input(array $input)
+    {
+        if (!array_key_exists('featured', $input)) {
+            return null;
+        }
+        $raw = $input['featured'];
+        if ($raw === null) {
+            return null;
+        }
+        if (is_bool($raw)) {
+            return $raw ? 1 : 0;
+        }
+        if (is_int($raw) || is_float($raw)) {
+            return ((int) $raw) !== 0 ? 1 : 0;
+        }
+        if (is_string($raw)) {
+            $lr = strtolower(trim($raw));
+            if (in_array($lr, array('1', 'true', 'yes', 'on'), true)) {
+                return 1;
+            }
+            if (in_array($lr, array('0', 'false', 'no', 'off', ''), true)) {
+                return 0;
+            }
+        }
+        throw new Exception('INVALID_FEATURED_VALUE');
     }
 
     

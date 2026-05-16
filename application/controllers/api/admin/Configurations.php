@@ -504,6 +504,16 @@ class Configurations extends MY_REST_Controller
 					throw new Exception('INVALID_FOLDER:'.$key);
 				}
 			}
+
+			if ($key === 'data_classifications_enabled')
+			{
+				$v = strtolower(trim((string) $value));
+				if (! in_array($v, array('yes', 'no'), true))
+				{
+					throw new Exception('INVALID_VALUE:data_classifications_enabled');
+				}
+				$value = $v;
+			}
 		}
 		unset($value);
 	}

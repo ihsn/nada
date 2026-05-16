@@ -246,6 +246,7 @@ $lang['tab_indicator_chart']="Chart & data";
 $lang['tab_indicator_observations']="Data API";
 $lang['tab_indicator_structure']="Data structure";
 $lang['indicator_data_no_dsd']="This time series has no linked data structure yet, so indicator observations are not available on the catalog.";
+$lang['indicator_data_sync_pending_public']="Indicator chart and data API views are temporarily unavailable while this dataset is being updated. You can still open the Data structure tab, or try again later.";
 $lang['indicator_bulk_downloads_heading']="Bulk data downloads";
 $lang['indicator_data_api_dataset_api_heading']="Dataset API";
 $lang['indicator_data_api_dataset_label']="Dataset";

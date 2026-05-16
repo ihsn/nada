@@ -248,7 +248,7 @@ class Dashboard_model extends CI_Model {
         }
 
         foreach ($top as &$r) {
-            $r['created_fmt'] = $r['created'] ? date('Y-m-d', (int)$r['created']) : '';
+            $r['created_fmt'] = $r['created'] ? date('Y-m-d H:i', (int)$r['created']) : '';
         }
         unset($r);
 

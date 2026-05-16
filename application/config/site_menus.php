@@ -25,7 +25,7 @@ $menu[]=array(
 			),
 			array(
 				'title'	=>'Manage collections',
-				'url'	=>'admin/repositories'
+				'url'	=>'admin/collections'
 			),
 			array(
 				'type'	=>'divider'

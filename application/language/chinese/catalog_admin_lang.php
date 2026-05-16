@@ -1,6 +1,7 @@
 <?php 
 $lang['catalog_maintenance']="管理集合";
-$lang['add_study_to_collection']="填加研究至集合：";
+$lang['admin_add_study_title']="添加研究";
+$lang['add_study_to_collection']="添加研究";
 $lang['upload_ddi_hover']="上传一个DDI文件";
 $lang['import_ddi']="批量导入DDI";
 $lang['import_ddi_hover']="导入多个DDI文件";
@@ -16,6 +17,7 @@ $lang['folder']="文件夹";
 $lang['file_manager']="文件管理器";
 $lang['resource_manager']="资源管理器";
 $lang['browse_metadata']="浏览元数据";
+$lang['preview_study']="预览研究";
 $lang['share_ddi_w_harvester']="与Harvester(网络数据采集)分享DDI?";
 $lang['msg_select_ddi']="选择一个的DDI文件（.XML）：";
 $lang['ddi_overwrite_exist']="如果研究已存在，是否覆盖？";
@@ -31,6 +33,7 @@ $lang['import_completed']="导入完成！";
 $lang['indicator_database']="指标数据库";
 $lang['study_website']="研究网站";
 $lang['catalog_home']="管理研究";
+$lang['catalog_crumb']="目录";
 $lang['ddi_import_success']="DDI成功导入！";
 $lang['authenty']="发布者";
 $lang['missing']="缺失";
@@ -44,11 +47,8 @@ $lang['nothing_to_process']="没有东西可处理";
 $lang['export_study_citations']="到处参考文献到NADA格式";
 $lang['msg_select_repository']="选择集合";
 $lang['repositories']="集合";
-$lang['msg_copy_studies']="点击研究复制图标％s将复制研究到您的收藏。";
-$lang['copy_studies_to']="复制研究到";
 $lang['change_repo']="切换";
 $lang['repositoryid']="集合";
-$lang['copy_studies']="复制研究";
 $lang['transfer_study_ownership']="转让研究所有者";
 $lang['transfer_ownership']="转让所有者";
 $lang['msg_studies_to_transfer']="将被改变的研究";
@@ -138,6 +138,8 @@ $lang['ddi_batch_refresh_title']="批量刷新DDI";
 $lang['btn_refresh']="刷新DDI";
 $lang['refresh_ddi_description']="刷新DDI，更新拥有DDI的元数据的数据库。";
 $lang['total_studies_found']="搜索到的总研究数";
+$lang['attach_citations']="附加参考文献";
+$lang['manage_citations_legacy_page']="在旧版页面管理";
 $lang['tab_timeseries_data']="指标数据";
 
 

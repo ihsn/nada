@@ -125,14 +125,11 @@ class Catalog_Admin
 	*/
 	function get_formatted_resources($sid)
 	{
-		//get all resoruces attached to a survey
-		$resources=$this->ci->Survey_resource_model->get_survey_resources($sid);
+		$resources = $this->ci->Survey_resource_model->get_survey_resources($sid);
 
-		//total resources
 		$output['total'] = count($resources);
-
-		//formatted resources list
-		$output['formatted']=$this->ci->load->view('catalog/study_resources', array('rows'=>$resources),TRUE);
+		// Resources tab is Vue + api/admin/resources/.../resources (see catalog_resources_app_config).
+		$output['formatted'] = '';
 
 		return $output;
 	}
@@ -289,8 +286,6 @@ class Catalog_Admin
 
 		if ($result===TRUE)
 		{
-			//display import success
-			//$this->load->view('catalog/ddi_import_success', array('info'=>$data['study']));
 			$msg='<strong>'. $data['study']['titl']. '</strong> - <em>'.$this->ci->DDI_Import->variables_imported.' '.t('variables').'</em>';
 			//log_message('info', $msg);
 

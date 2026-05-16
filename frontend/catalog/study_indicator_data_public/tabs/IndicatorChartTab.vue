@@ -416,7 +416,7 @@
                   <div v-if="!isIndicatorEmbed" class="section-head d-flex flex-wrap align-center gap-2 mb-4">
                     <div class="section-title">Chart</div>
                     <v-spacer />
-                    <div class="d-flex flex-wrap align-center gap-2">
+                    <div class="chart-toolbar-controls">
                     <v-btn-toggle
                       v-if="chartModeToggleVisible"
                       v-model="chartType"
@@ -432,6 +432,7 @@
                     </v-btn-toggle>
                     <v-menu
                       v-if="dataLoadCommitted"
+                      class="chart-toolbar-menu"
                       location="bottom end"
                       transition="scale-transition"
                     >
@@ -656,7 +657,6 @@
                       :loading="chartLoading"
                       density="comfortable"
                       class="elevation-0 chart-data-table"
-                      fixed-header
                       hover
                     />
                   </v-sheet>
@@ -774,7 +774,7 @@ const { fetchSchema, fetchFilterOptions, fetchObservationCount, fetchChartData }
 
 const MAX_SERIES = 16;
 const CHART_API_LIMIT = 5000;
-const CHART_TABLE_ROWS_PER_PAGE = 100;
+const CHART_TABLE_ROWS_PER_PAGE = 30;
 
 /** World Bank Data Visualization Style Guide — chart element & label colors. */
 const WB_TEXT = '#111111';
@@ -2928,17 +2928,63 @@ onMounted(() => {
   line-height: 1.2;
 }
 
+/* Line / Columns toggle + chart options (cog) — one row; heights locked to the same value.
+   Vuetify v-btn-group applies its own horizontal bar height (density); inner .v-btn was forced
+   to 22px, so the group and icon button fought each other and alignment flickered. */
+.chart-toolbar-controls {
+  --chart-toolbar-control-height: 24px;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-toolbar-menu {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  line-height: 0;
+}
+
+.chart-toolbar-controls .chart-toolbar-toggles.chart-type-toggle {
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+/* Match VBtnGroup outer box (overrides density-based group height) */
+.chart-toolbar-controls .chart-toolbar-toggles.chart-type-toggle :deep(.v-btn-group.v-btn-group--horizontal) {
+  height: var(--chart-toolbar-control-height) !important;
+  min-height: var(--chart-toolbar-control-height) !important;
+  max-height: var(--chart-toolbar-control-height) !important;
+  align-items: stretch;
+}
+
 .chart-toolbar-toggles :deep(.v-btn.chart-toolbar-toggle-btn),
 .chart-type-toggle :deep(.v-btn) {
   min-width: 0;
-  min-height: 22px !important;
-  height: 22px !important;
   padding-inline: 0.3rem;
   padding-block: 0;
   font-size: 0.5625rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   line-height: 1.2;
+}
+
+/* Fill the fixed-height bar (must stay scoped — height % depends on group rule above).
+   Sized buttons set --v-btn-height larger than our bar; sync it and strip vertical padding
+   so labels sit tighter (VBtn uses horizontal padding from height/size mixins). */
+.chart-toolbar-controls .chart-toolbar-toggles :deep(.v-btn-group--horizontal .v-btn) {
+  --v-btn-height: var(--chart-toolbar-control-height) !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  padding-block: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-inline: 0.35rem !important;
+}
+
+.chart-toolbar-controls .chart-toolbar-toggles :deep(.v-btn-group--horizontal .v-btn .v-btn__content) {
+  line-height: 1.05;
 }
 
 /* Non-`inset` switch = smaller track; used in chart options menu (dark mode) */
@@ -2992,15 +3038,23 @@ onMounted(() => {
   font-size: 12px !important;
 }
 
-/** Icon-only — matches chart toolbar control height */
+/** Icon-only — same outer height as chart Line/Columns v-btn-group */
 .chart-toolbar-cog-btn {
   flex-shrink: 0;
   min-width: 30px !important;
   width: 30px;
-  height: 22px !important;
-  min-height: 22px !important;
+  height: var(--chart-toolbar-control-height, 24px) !important;
+  min-height: var(--chart-toolbar-control-height, 24px) !important;
+  max-height: var(--chart-toolbar-control-height, 24px) !important;
   padding-inline: 0 !important;
   padding-block: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.chart-toolbar-controls .chart-toolbar-cog-btn {
+  flex: 0 0 auto;
 }
 
 .chart-toolbar-cog-btn :deep(.v-icon) {
@@ -3296,20 +3350,6 @@ onMounted(() => {
 
 .data-shell {
   background: rgb(var(--v-theme-surface));
-}
-
-/* Scroll on .v-table__wrapper so fixed-header thead sticks correctly.
-   Scoped CSS does not pierce v-data-table’s inner DOM without :deep(). */
-.chart-data-table {
-  overflow: hidden;
-}
-
-.chart-data-table :deep(.v-table__wrapper) {
-  max-height: min(720px, 70vh);
-  overflow-y: auto;
-  overflow-x: auto;
-  min-height: 0;
-  scrollbar-gutter: stable;
 }
 
 .chart-data-table :deep(th) {

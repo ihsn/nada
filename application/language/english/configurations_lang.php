@@ -89,6 +89,7 @@ $lang['data_types_nav_bar']="Dataset type tabs";
 $lang['data_types_nav_bar_note']="Show dataset type navigation tabs on the catalog search page.";
 $lang['guests_hide_microdata_tab']="Hide microdata tab for guests";
 $lang['guests_hide_microdata_tab_note']="Hide the 'Get Microdata' tab from users who are not logged in.";
+$lang['data_classifications_enabled']="Data classifications";
 $lang['catalog_default_sort_by']="Default sort field";
 $lang['catalog_default_sort_by_note']="Default field used to sort catalog search results.";
 $lang['catalog_default_sort_order']="Default sort order";

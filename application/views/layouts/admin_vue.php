@@ -70,15 +70,6 @@ window.ADMIN_HEADER_CONFIG = <?php echo json_encode($admin_header_config, JSON_H
 
     <div class="admin-vue-shell">
         <div>
-            <?php if (empty($hide_breadcrumb)): ?>
-            <?php $breadcrumbs_str = $this->breadcrumb->to_string(); ?>
-            <?php if ($breadcrumbs_str != ''): ?>
-                <div id="breadcrumb" class="admin-vue-breadcrumb">
-                <?php echo $breadcrumbs_str; ?>
-                </div>
-            <?php endif; ?>
-            <?php endif; ?>
-
             <div id="content">
               <?php if (isset($content)): ?>
                   <?php echo $content; ?>

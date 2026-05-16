@@ -94,6 +94,10 @@ class Collections extends MY_REST_Controller
 		try{
 			$this->has_access($resource_='collection',$privilege='edit');
 			$user_id=$this->get_api_user_id();
+
+			if (isset($options['long_text'])) {
+				$options['long_text'] = $this->Repository_model->sanitize_collection_long_text($options['long_text']);
+			}
 			
 			//validate
 			$this->Repository_model->validate($options);
@@ -160,10 +164,12 @@ class Collections extends MY_REST_Controller
 		try{
 			$this->has_access($resource_='collection',$privilege='edit');
 			$user_id=$this->get_api_user_id();
-			
+
 			if(!isset($options['repositoryid'])){
 				throw new Exception("parameter `repositoryid` is missing");
 			}
+
+			$posted_long = array_key_exists('long_text', $options);
 
 			$repository=$this->Repository_model->get_repository_by_repositoryid($options['repositoryid']);
 			
@@ -172,6 +178,10 @@ class Collections extends MY_REST_Controller
 			}
 
 			$options=array_merge($repository,$options);
+
+			if ($posted_long && isset($options['long_text'])) {
+				$options['long_text'] = $this->Repository_model->sanitize_collection_long_text($options['long_text']);
+			}
 
 			//validate
 			$this->Repository_model->validate($options);
@@ -486,13 +496,171 @@ class Collections extends MY_REST_Controller
 	function sections_get()
 	{
 		try{
+			$user = $this->api_user();
+			if (! $user) {
+				$this->set_response(array('status' => 'failed', 'message' => 'AUTH_REQUIRED'), REST_Controller::HTTP_UNAUTHORIZED);
+				return;
+			}
 			$this->has_access($resource_='collection',$privilege='view');
 			$sections=$this->Repository_model->get_repository_sections();
 			$this->set_response(array('status'=>'success','sections'=>$sections), REST_Controller::HTTP_OK);
 		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
 		catch(Exception $e){
 			$this->set_response(array('status'=>'failed','message'=>$e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+
+	/**
+	 * GET {apiBase}repository_acl/{repository_pk}
+	 *
+	 * Optional query: user_q (min 2 chars) — username/email search for the add-user bar.
+	 */
+	function repository_acl_get($repository_pk = null)
+	{
+		try {
+			$this->has_access('user', 'edit');
+
+			if ($repository_pk === null || $repository_pk === '') {
+				throw new Exception('MISSING_PARAM: repository_pk');
+			}
+
+			$user_q = trim((string) $this->input->get('user_q'));
+			$payload = $this->_repository_acl_payload((int) $repository_pk, $user_q);
+
+			$this->set_response($payload, REST_Controller::HTTP_OK);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS-DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * POST {apiBase}repository_acl/{repository_pk}
+	 *
+	 * JSON: { "user_id": int, "permissions": ["study_view", ...] }
+	 */
+	function repository_acl_post($repository_pk = null)
+	{
+		$options = $this->input->post(null, true);
+		if (empty($options)) {
+			$options = $this->raw_json_input();
+		}
+		if (is_object($options)) {
+			$options = (array) $options;
+		}
+		if ( ! is_array($options)) {
+			$options = array();
+		}
+
+		try {
+			$this->has_access('user', 'edit');
+
+			if ($repository_pk === null || $repository_pk === '') {
+				throw new Exception('MISSING_PARAM: repository_pk');
+			}
+
+			$pk = (int) $repository_pk;
+
+			$user_id = isset($options['user_id']) ? (int) $options['user_id'] : 0;
+			if ($user_id < 1) {
+				throw new Exception('INVALID_USER_ID');
+			}
+
+			$perms = isset($options['permissions']) && is_array($options['permissions']) ? $options['permissions'] : array();
+
+			$this->acl_manager->repositories_acl_replace_user_repository_managed_grants($user_id, $pk, $perms);
+
+			$this->set_response($this->_repository_acl_payload($pk, ''), REST_Controller::HTTP_OK);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS-DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * @param int    $pk repositories.id (0 = central)
+	 * @param string $user_q optional search string for user autocomplete
+	 * @return array
+	 */
+	private function _repository_acl_payload($pk, $user_q = '')
+	{
+		if ($pk === 0) {
+			$repo = $this->Repository_model->get_central_catalog_array();
+		} else {
+			$repo = $this->Repository_model->select_single($pk);
+		}
+
+		if (empty($repo) || empty($repo['repositoryid'])) {
+			throw new Exception('REPOSITORY-NOT-FOUND');
+		}
+
+		$white_list   = $this->acl_manager->get_manageable_repositories_acl_permission_whitelist_map();
+		$managed_keys = array_keys($white_list);
+
+		$this->db->select('u.id, u.username, u.email, ra.permission');
+		$this->db->from('repositories_acl ra');
+		$this->db->join('users u', 'u.id = ra.user_id', 'inner');
+		$this->db->where('ra.repository_id', $pk);
+		$this->db->where_in('ra.permission', $managed_keys);
+		$acl_rows = $this->db->get()->result_array();
+
+		$users_map = array();
+		foreach ($acl_rows as $row) {
+			$uid = (int) $row['id'];
+			if ( ! isset($users_map[$uid])) {
+				$users_map[$uid] = array(
+					'user_id'     => $uid,
+					'username'    => $row['username'],
+					'email'       => isset($row['email']) ? $row['email'] : '',
+					'permissions' => array(),
+				);
+			}
+			$users_map[$uid]['permissions'][] = $row['permission'];
+		}
+		foreach ($users_map as $uid => $u) {
+			$users_map[$uid]['permissions'] = array_values(array_unique($u['permissions']));
+		}
+
+		$user_search = array();
+		if (strlen($user_q) >= 2) {
+			$this->db->select('id, username, email');
+			$this->db->from('users');
+			$this->db->group_start();
+			$this->db->like('username', $user_q);
+			$this->db->or_like('email', $user_q);
+			$this->db->group_end();
+			$this->db->order_by('username', 'ASC');
+			$this->db->limit(40);
+			$user_search = $this->db->get()->result_array();
+		}
+
+		return array(
+			'status'               => 'success',
+			'repository'           => array(
+				'id'           => isset($repo['id']) ? (int) $repo['id'] : $pk,
+				'repositoryid' => $repo['repositoryid'],
+				'title'        => isset($repo['title']) ? $repo['title'] : $repo['repositoryid'],
+			),
+			'study_permissions'    => $this->acl_manager->get_manageable_study_repositories_acl_rows(),
+			'licensed_permissions' => $this->acl_manager->get_manageable_licensed_request_repositories_acl_rows(),
+			'users'                => array_values($users_map),
+			'user_search'          => $user_search,
+		);
 	}
 
 

@@ -131,7 +131,7 @@ $config['acl_permissions'] = [
     ], 
     "study"=>[ 
         "title" => "Manage studies",
-        "description"=> "Global access to studies in all collections. For restricting access by collection, see <i>'Permissions by collection'</i> section below",
+        "description"=> "Site-wide access to studies across collections. Per-collection access is managed under Admin → Collections → Permissions (user grants).",
         "permissions"=>[
             [
                 "permission" => "view"
@@ -233,6 +233,75 @@ $config['acl_permissions'] = [
 
 ];
 
-//permissions by collections
-$config['acl_permissions_collections'] = ['study','licensed_request'];
+/**
+ * Per-collection ACL (repositories_acl): tier definitions for the collections admin UI and satisfiers for checks.
+ * Multiple grants may coexist; study_admin / licensed_request_admin imply full access for that domain.
+ */
+$config['collections_acl'] = array(
+	'study_tiers' => array(
+		array(
+			'key'         => 'study_view',
+			'label'       => 'View',
+			'description' => 'Browse and open studies in this collection.',
+		),
+		array(
+			'key'         => 'study_edit',
+			'label'       => 'Edit',
+			'description' => 'Create and edit studies (metadata, files, import), refresh/replace DDI, batch refresh/import, and transfer ownership. Does not include publish or delete.',
+		),
+		array(
+			'key'         => 'study_delete',
+			'label'       => 'Delete',
+			'description' => 'Delete studies in this collection.',
+		),
+		array(
+			'key'         => 'study_publish',
+			'label'       => 'Publish',
+			'description' => 'Publish or unpublish studies.',
+		),
+		array(
+			'key'         => 'study_admin',
+			'label'       => 'Admin',
+			'description' => 'Full study access for this collection (implies view, edit, delete, publish).',
+		),
+	),
+	'licensed_request_tiers' => array(
+		array(
+			'key'         => 'licensed_request_view',
+			'label'       => 'View',
+			'description' => 'View licensed survey requests for this collection.',
+		),
+		array(
+			'key'         => 'licensed_request_edit',
+			'label'       => 'Edit',
+			'description' => 'Update request status, files, and settings.',
+		),
+		array(
+			'key'         => 'licensed_request_delete',
+			'label'       => 'Delete',
+			'description' => 'Delete or cancel requests where applicable.',
+		),
+		array(
+			'key'         => 'licensed_request_admin',
+			'label'       => 'Admin',
+			'description' => 'Full licensed-request administration for this collection.',
+		),
+	),
+	'satisfiers' => array(
+		'study_view'    => array('study_view', 'study_edit', 'study_delete', 'study_publish', 'study_admin'),
+		'study_edit'    => array('study_edit', 'study_admin'),
+		'study_create'  => array('study_edit', 'study_admin'),
+		'study_delete'  => array('study_delete', 'study_admin'),
+		'study_publish' => array('study_publish', 'study_admin'),
+		'licensed_request_view'   => array(
+			'licensed_request_view',
+			'licensed_request_edit',
+			'licensed_request_delete',
+			'licensed_request_admin',
+		),
+		'licensed_request_edit'   => array('licensed_request_edit', 'licensed_request_admin'),
+		'licensed_request_create' => array('licensed_request_edit', 'licensed_request_admin'),
+		'licensed_request_delete' => array('licensed_request_delete', 'licensed_request_admin'),
+	),
+);
 

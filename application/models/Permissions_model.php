@@ -12,9 +12,8 @@ class Permissions_model extends CI_Model {
 	**/
 	public function get_available_permissions()
 	{
-		$query = $this->db->select('p.*,pu.url')
+		$query = $this->db->select('p.*')
 				->from('permissions p')
-				->join('permission_urls pu', 'p.id = pu.permission_id', 'inner')
 				->order_by('p.section', 'asc')
 				->order_by('p.weight', 'asc');
 					
@@ -188,47 +187,24 @@ class Permissions_model extends CI_Model {
 		return $output;
 	}
 	
-	public function get_permission_urls()
-	{
-		$rows=$this->db->get('permission_urls')->result_array();	
-		
-		$output=array();
-		foreach($rows as $row)
-		{
-			$output[$row['permission_id']][]=$row['url'];
-		}
-
-		return $output;
-	}
-	
 	public function get_permission_by_id($perm_id)
 	{
 		$permissions=$this->db->from('permissions')
 							->where('id',$perm_id)
 							->get()->row_array();
 		
-		//get associated URLs
-		$permissions['urls']=$this->get_permission_associated_urls($perm_id);
-		return $permissions;
-	}
-	
-	public function get_permission_associated_urls($perm_id)
-	{
-		$rows=$this->db->from('permission_urls')
-						->where('permission_id',$perm_id)
-						->get()->result_array();	
-						
-		$urls=array();
-		foreach($rows as $row)
+		if ( ! $permissions)
 		{
-			$urls[]=$row['url'];
-		}			
-		return $urls;	
+			return FALSE;
+		}
+		
+		$permissions['urls']=array();
+		return $permissions;
 	}
 
 	/**
 	*
-	* Update permission description + urls
+	* Update permission fields
 	**/
 	public function update_permission_options($perm_id,$options)
 	{		
@@ -253,36 +229,13 @@ class Permissions_model extends CI_Model {
 			return FALSE;
 		}
 		
-		//update permission urls table
-		
-		//first remove any assigned urls
-		$this->db->where('permission_id',$perm_id);
-		$this->db->delete('permission_urls');
-		
-		//assign new urls
-		foreach($options['url'] as $url)
-		{
-			if (trim($url)==''){continue;}
-			
-			$options=array(
-							'url'=>$url,
-							'permission_id'=>$perm_id
-						);
-			$result=$this->db->insert('permission_urls',$options);			
-			
-			if (!$result)
-			{
-				return FALSE;
-			}
-		}
-		
 		return TRUE;
 	}
 	
 	
 	/**
 	*
-	* Add new permission description + urls
+	* Add new permission
 	**/
 	public function add_permission($options)
 	{		
@@ -307,26 +260,6 @@ class Permissions_model extends CI_Model {
 			return FALSE;
 		}
 		
-		//id for newly added row
-		$perm_id=$this->db->insert_id();
-	
-		//assign new urls
-		foreach($options['url'] as $url)
-		{
-			if (trim($url)==''){continue;}
-			
-			$options=array(
-							'url'=>$url,
-							'permission_id'=>$perm_id
-						);
-			$result=$this->db->insert('permission_urls',$options);			
-			
-			if (!$result)
-			{
-				return FALSE;
-			}
-		}
-		
 		return TRUE;
 	}
 	
@@ -335,10 +268,6 @@ class Permissions_model extends CI_Model {
 		//remove from permissions
 		$this->db->where('id',$perm_id);
 		$this->db->delete('permissions');
-		
-		//remove permission urls
-		$this->db->where('permission_id',$perm_id);
-		$this->db->delete('permission_urls');
 	}
 	
 	

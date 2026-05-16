@@ -20,9 +20,9 @@ if (!isset($show_unpublished))
         <?php if (!$row->ispublished && $show_unpublished==FALSE){continue;}?>
         <?php $found=true;?>
     	<tr class="<?php echo $tr_class; ?>" valign="top">
-            <td class="thumb"><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><img alt="<?php echo $row->repositoryid; ?>" src="<?php echo base_url();?><?php echo $row->thumbnail; ?>"/></a></td>
+            <td class="thumb"><a href="<?php echo site_url('admin/collections'); ?>#/edit/<?php echo rawurlencode($row->repositoryid); ?>"><img alt="<?php echo $row->repositoryid; ?>" src="<?php echo base_url();?><?php echo $row->thumbnail; ?>"/></a></td>
             <td class="text">
-			<h3><a href="<?php echo site_url();?>/admin/repositories/edit/<?php echo $row->id;?>"><?php echo $row->title; ?></a> <span class="repositoryid">[<?php echo $row->repositoryid;?>]</span></h3>
+			<h3><a href="<?php echo site_url('admin/collections'); ?>#/edit/<?php echo rawurlencode($row->repositoryid); ?>"><?php echo $row->title; ?></a> <span class="repositoryid">[<?php echo $row->repositoryid;?>]</span></h3>
 			<p><?php echo $row->short_text; ?></p>
             <div class="options">
             	<?php if($row->ispublished):?>

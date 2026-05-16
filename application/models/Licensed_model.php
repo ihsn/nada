@@ -439,25 +439,27 @@ class Licensed_model extends CI_Model {
 	}
 	
 	
-	//get a list of licensed surveys for the user
+	/**
+	 * Microdata file resources for a survey (for licensed-request processing UI).
+	 *
+	 * Uses {@see Survey_resource_model::get_microdata_resources()} so filtering matches
+	 * the catalog (resource_type dat / dat/micro). Legacy queries on dctype alone missed
+	 * modern rows and used brittle LIKE patterns.
+	 *
+	 * @param int $surveyid
+	 * @return array
+	 */
 	function get_survey_licensed_files($surveyid)
-	{		
-		$where=" survey_id=$surveyid AND (dctype like '%dat/micro]%' OR dctype like '%dat]%' OR dctype like '%[dat/%') ";
-		
-		$this->db->select('title,filename,resource_id');
-		$this->db->from('resources');
-		$this->db->select('title,filename,resource_id,changed');
-		$this->db->where($where,NULL,FALSE);
-		$query = $this->db->get();
-
-		if ($query)
-		{
-			return $query->result_array();
+	{
+		$surveyid = (int) $surveyid;
+		if ($surveyid < 1) {
+			return array();
 		}
-		else
-		{
-			throw new MY_Exception($this->db->_error_message());
-		}	
+
+		$this->load->model('Survey_resource_model');
+		$rows = $this->Survey_resource_model->get_microdata_resources($surveyid);
+
+		return is_array($rows) ? $rows : array();
 	}
 	
 	/**
@@ -726,6 +728,282 @@ class Licensed_model extends CI_Model {
 		$this->db->flush_cache();
 		return $count;
     }
+
+
+	/**
+	 * Normalize survey repository id for comparisons (empty → central).
+	 *
+	 * @param string|null $repositoryid
+	 * @return string lowercase
+	 */
+	public static function normalize_repository_id($repositoryid)
+	{
+		$t = strtolower(trim((string) $repositoryid));
+		return ($t === '') ? 'central' : $t;
+	}
+
+
+	/**
+	 * Distinct repository IDs (normalized lowercase) linked to a licensed request via
+	 * surveys.repositoryid and survey_repos.
+	 *
+	 * @param int $request_id
+	 * @return array list of unique lowercase repositoryid strings
+	 */
+	function get_request_repository_ids($request_id)
+	{
+		$rid = (int) $request_id;
+		if ($rid < 1) {
+			return array();
+		}
+
+		$out = array();
+
+		$this->db->select('s.repositoryid');
+		$this->db->from('survey_lic_requests slr');
+		$this->db->join('surveys s', 's.id = slr.sid');
+		$this->db->where('slr.request_id', $rid);
+		$rows = $this->db->get()->result_array();
+		foreach ($rows as $row) {
+			$out[self::normalize_repository_id(isset($row['repositoryid']) ? $row['repositoryid'] : '')] = true;
+		}
+
+		$this->db->select('sr.repositoryid');
+		$this->db->from('survey_lic_requests slr');
+		$this->db->join('survey_repos sr', 'sr.sid = slr.sid');
+		$this->db->where('slr.request_id', $rid);
+		$rows = $this->db->get()->result_array();
+		foreach ($rows as $row) {
+			if (! empty($row['repositoryid'])) {
+				$out[strtolower(trim((string) $row['repositoryid']))] = true;
+			}
+		}
+
+		return array_keys($out);
+	}
+
+
+	/**
+	 * Whether a request is visible under an ACL repository scope (overlap on any study/repo link).
+	 *
+	 * @param int                $request_id
+	 * @param array|null|false   $repository_scope from get_licensed_request_repository_scope; null = unrestricted
+	 * @return bool
+	 */
+	function request_matches_repository_scope($request_id, $repository_scope)
+	{
+		if ($repository_scope === null) {
+			return true;
+		}
+		if ($repository_scope === false || ! is_array($repository_scope) || count($repository_scope) === 0) {
+			return false;
+		}
+
+		$allowed = array_flip(array_map('strtolower', $repository_scope));
+		foreach ($this->get_request_repository_ids($request_id) as $rid) {
+			if (isset($allowed[$rid])) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * Admin API: search licensed requests with ACL scope and optional collection filter.
+	 *
+	 * @param int|null          $limit
+	 * @param int|null          $offset
+	 * @param array|null        $search_options keys: keywords, status
+	 * @param string|null       $sort_by       username|created|status|request_title
+	 * @param string|null       $sort_order    asc|desc
+	 * @param array|null|false  $repository_scope null = no ACL SQL filter; array = allowed repos; false = no access
+	 * @param string|null       $owner_repo     optional filter by one collection (repositoryid)
+	 * @return array rows
+	 */
+	function admin_search_requests($limit, $offset, $search_options, $sort_by, $sort_order, $repository_scope, $owner_repo = null)
+	{
+		if ($repository_scope === false) {
+			return array();
+		}
+
+		$db_fields = array(
+			'id'            => 'lic_requests.id',
+			'username'      => 'users.username',
+			'created'       => 'lic_requests.created',
+			'status'        => 'lic_requests.status',
+			'request_title' => 'lic_requests.request_title',
+		);
+
+		$this->db->start_cache();
+		$this->db->select('lic_requests.request_title, lic_requests.id, lic_requests.userid, lic_requests.created, lic_requests.status, users.username');
+		$this->db->select('(SELECT COUNT(*) FROM survey_lic_requests slrc WHERE slrc.request_id = lic_requests.id) AS survey_count', false);
+		$this->db->from('lic_requests');
+		$this->db->join($this->tables['users'], $this->tables['users'] . '.id = lic_requests.userid');
+		$this->db->join('survey_lic_requests', 'survey_lic_requests.request_id = lic_requests.id');
+		$this->db->group_by('lic_requests.id, lic_requests.request_title, lic_requests.userid, lic_requests.created, lic_requests.status, users.username');
+
+		$this->_admin_apply_repository_scope_where($repository_scope);
+		$this->_admin_apply_owner_repo_filter($owner_repo);
+
+		$where = array();
+		if ($search_options) {
+			foreach ($search_options as $key => $value) {
+				if ($value === null || trim((string) $value) === '') {
+					continue;
+				}
+				if ($key === 'keywords') {
+					$where[] = sprintf(
+						'(lic_requests.request_title like %s or users.username like %s)',
+						$this->db->escape('%' . $value . '%'),
+						$this->db->escape('%' . $value . '%')
+					);
+				}
+				elseif ($key === 'status' && array_key_exists($key, $db_fields)) {
+					$where[] = sprintf('%s like %s', $db_fields[$key], $this->db->escape('%' . $value . '%'));
+				}
+			}
+		}
+
+		if (count($where) > 0) {
+			$this->db->where(implode(' AND ', $where));
+		}
+
+		$this->db->stop_cache();
+
+		if (! array_key_exists($sort_by, $db_fields)) {
+			$sort_by    = 'created';
+			$sort_order = 'desc';
+		}
+		$sort_order = strtolower((string) $sort_order) === 'asc' ? 'asc' : 'desc';
+		$this->db->order_by($db_fields[$sort_by], $sort_order);
+
+		if ($limit !== null && (int) $limit > 0) {
+			$this->db->limit((int) $limit, max(0, (int) $offset));
+		}
+
+		$rows = $this->db->get()->result_array();
+		$this->db->flush_cache();
+
+		return $rows;
+	}
+
+
+	/**
+	 * @param array|null|false $repository_scope
+	 * @param array|null       $search_options
+	 * @param string|null      $owner_repo
+	 * @return int
+	 */
+	function admin_search_requests_count($repository_scope, $search_options, $owner_repo = null)
+	{
+		if ($repository_scope === false) {
+			return 0;
+		}
+
+		$this->db->start_cache();
+		$this->db->from('lic_requests');
+		$this->db->join($this->tables['users'], $this->tables['users'] . '.id = lic_requests.userid');
+		$this->db->join('survey_lic_requests', 'survey_lic_requests.request_id = lic_requests.id');
+
+		$this->_admin_apply_repository_scope_where($repository_scope);
+		$this->_admin_apply_owner_repo_filter($owner_repo);
+
+		$db_fields = array(
+			'status' => 'lic_requests.status',
+		);
+		$where = array();
+		if ($search_options) {
+			foreach ($search_options as $key => $value) {
+				if ($value === null || trim((string) $value) === '') {
+					continue;
+				}
+				if ($key === 'keywords') {
+					$where[] = sprintf(
+						'(lic_requests.request_title like %s or users.username like %s)',
+						$this->db->escape('%' . $value . '%'),
+						$this->db->escape('%' . $value . '%')
+					);
+				}
+				elseif ($key === 'status' && array_key_exists($key, $db_fields)) {
+					$where[] = sprintf('%s like %s', $db_fields[$key], $this->db->escape('%' . $value . '%'));
+				}
+			}
+		}
+		if (count($where) > 0) {
+			$this->db->where(implode(' AND ', $where));
+		}
+
+		$this->db->stop_cache();
+		$this->db->select('COUNT(DISTINCT lic_requests.id) AS cnt', false);
+		$row = $this->db->get()->row_array();
+		$this->db->flush_cache();
+
+		return ($row && isset($row['cnt'])) ? (int) $row['cnt'] : 0;
+	}
+
+
+	/**
+	 * @param array|null|false $repository_scope
+	 */
+	protected function _admin_apply_repository_scope_where($repository_scope)
+	{
+		if ($repository_scope === null) {
+			return;
+		}
+		if (! is_array($repository_scope) || count($repository_scope) === 0) {
+			$this->db->where('1 = 0', null, false);
+			return;
+		}
+
+		$escaped = array();
+		foreach ($repository_scope as $r) {
+			$escaped[] = $this->db->escape(strtolower(trim((string) $r)));
+		}
+		$in_list = implode(',', $escaped);
+
+		$sql = 'lic_requests.id IN (
+			SELECT DISTINCT slr.request_id
+			FROM survey_lic_requests slr
+			INNER JOIN surveys s ON s.id = slr.sid
+			WHERE (
+				LOWER(s.repositoryid) IN (' . $in_list . ')
+				OR s.id IN (SELECT sid FROM survey_repos WHERE LOWER(repositoryid) IN (' . $in_list . '))
+			)
+		)';
+		$this->db->where($sql, null, false);
+	}
+
+
+	/**
+	 * Optional facet: only requests that include at least one study in this repository.
+	 *
+	 * @param string|null $owner_repo repositoryid or null / central to skip
+	 */
+	protected function _admin_apply_owner_repo_filter($owner_repo)
+	{
+		if ($owner_repo === null || $owner_repo === '') {
+			return;
+		}
+		$rid = strtolower(trim((string) $owner_repo));
+		if ($rid === '' || $rid === 'central') {
+			return;
+		}
+
+		$e = $this->db->escape($rid);
+		$sql = 'lic_requests.id IN (
+			SELECT DISTINCT slr.request_id
+			FROM survey_lic_requests slr
+			INNER JOIN surveys s ON s.id = slr.sid
+			WHERE (
+				LOWER(s.repositoryid) = ' . $e . '
+				OR s.id IN (SELECT sid FROM survey_repos WHERE LOWER(repositoryid) = ' . $e . ')
+			)
+		)';
+		$this->db->where($sql, null, false);
+	}
+
 	
 	/**
 	*

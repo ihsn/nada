@@ -2,7 +2,7 @@
 $lang['Home']="Главная";
 $lang['edit_study']="Редактировать ";
 $lang['Citations']="Библиография";
-$lang['add_study']="Добавить новое исследование";
+$lang['add_study']="Добавить исследование";
 $lang['bulk_import']="Одновременно импортировать несколько DDI";
 $lang['transfer_study_ownership']="Переместить владение исследованием";
 $lang['delete']="Удалить";

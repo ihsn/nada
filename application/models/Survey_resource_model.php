@@ -328,7 +328,67 @@ class Survey_resource_model extends CI_Model {
 		$this->db->order_by('title','ASC');
 		return $this->db->get('resources')->result_array();
 	}
-		
+
+	/**
+	 * Sort a resources result_array in memory (after DB fetch).
+	 *
+	 * @param array  $resources By reference
+	 * @param string $sort_by   title|dctype|changed|created|resource_id|filename
+	 * @param string $sort_order asc|desc
+	 */
+	public function sort_resources_result(array &$resources, $sort_by = null, $sort_order = null)
+	{
+		$allowed = array('title', 'dctype', 'changed', 'created', 'resource_id', 'filename');
+		$col = is_string($sort_by) && in_array($sort_by, $allowed, true) ? $sort_by : 'title';
+		$desc = is_string($sort_order) && strtolower($sort_order) === 'desc';
+
+		usort(
+			$resources,
+			function ($a, $b) use ($col, $desc) {
+				$va = isset($a[$col]) ? $a[$col] : '';
+				$vb = isset($b[$col]) ? $b[$col] : '';
+				if (is_numeric($va) && is_numeric($vb)) {
+					$cmp = ($va == $vb) ? 0 : (($va < $vb) ? -1 : 1);
+				} else {
+					$cmp = strnatcasecmp((string) $va, (string) $vb);
+				}
+				return $desc ? -$cmp : $cmp;
+			}
+		);
+	}
+
+	/**
+	 * Whether the resource filename points to an existing local file or a remote URL (catalog tab semantics).
+	 *
+	 * @param int   $sid
+	 * @param array $resources result_array rows (mutated: adds file_exists bool)
+	 */
+	public function enrich_resources_file_exists($sid, array &$resources)
+	{
+		$this->load->model('Catalog_model');
+		$this->load->helper('file');
+
+		$survey_folder = $this->Catalog_model->get_survey_path_full($sid);
+		$root = ($survey_folder && is_dir($survey_folder)) ? unix_path(rtrim($survey_folder, '/')) : '';
+
+		foreach ($resources as $k => $row) {
+			$fn = isset($row['filename']) ? trim((string) $row['filename']) : '';
+			if ($fn === '') {
+				$resources[$k]['file_exists'] = false;
+				continue;
+			}
+			if (function_exists('is_url') && is_url($fn)) {
+				$resources[$k]['file_exists'] = true;
+				continue;
+			}
+			if ($root !== '') {
+				$full = unix_path($root . '/' . $fn);
+				$resources[$k]['file_exists'] = is_file($full);
+			} else {
+				$resources[$k]['file_exists'] = false;
+			}
+		}
+	}
 
 
 	/**
@@ -1733,8 +1793,8 @@ class Survey_resource_model extends CI_Model {
 	/**
 	 * Build download URL and link type for a resource. Single source for catalog vs API link building.
 	 *
-	 * @param array  $resource  Resource row (survey_id, resource_id, filename)
-	 * @param string $link_type 'page' for catalog download URL, 'api' for API download URL
+	 * @param array  $resource  Resource row (survey_id, resource_id, filename; optional dataset_idno for admin path)
+	 * @param string $link_type page | api | admin_api
 	 * @return array ['url' => string, 'type' => 'link'|'download']
 	 */
 	private function _build_resource_download_link($resource, $link_type = 'page')
@@ -1750,6 +1810,18 @@ class Survey_resource_model extends CI_Model {
 		}
 		if ($link_type === 'api') {
 			$url = site_url('api/resources/download/' . $resource['survey_id'] . '/' . $resource['resource_id'] . '?file_name=' . rawurlencode($resource['filename']) . '&id_format=id');
+		} elseif ($link_type === 'admin_api') {
+			$study_seg = '';
+			$query = '';
+			if (!empty($resource['dataset_idno'])) {
+				$study_seg = rawurlencode((string) $resource['dataset_idno']);
+			} else {
+				$study_seg = (string) (int) $resource['survey_id'];
+				$query = '?id_format=id';
+			}
+			$url = site_url(
+				'api/admin/resources/' . $study_seg . '/resources/download/' . (int) $resource['resource_id'] . $query
+			);
 		} else {
 			$url = site_url('catalog/' . $resource['survey_id'] . '/download/' . $resource['resource_id'] . '/' . rawurlencode($resource['filename']));
 		}
@@ -1928,11 +2000,15 @@ class Survey_resource_model extends CI_Model {
 
 	/**
 	 * Add download links for resources (API URL format).
+	 *
+	 * @param array $resources
+	 * @param bool  $use_admin_api When true, use api/admin/resources/.../download/... (catalog admin); when false, api/resources/download/... (datasets API).
 	 */
-	function generate_api_download_link($resources)
+	function generate_api_download_link($resources, $use_admin_api = false)
 	{
+		$link_type = $use_admin_api ? 'admin_api' : 'api';
 		foreach ($resources as $idx => $resource) {
-			$link_info = $this->_build_resource_download_link($resource, 'api');
+			$link_info = $this->_build_resource_download_link($resource, $link_type);
 			if ($link_info['url'] !== '') {
 				$resources[$idx]['_links'] = array(
 					'download' => $link_info['url'],

@@ -1,27 +1,25 @@
 <style type="text/css">
-.caption{
+.permissions-role-page .caption{
 	padding-left:20px;text-transform:capitalize;
 }
-.description{
-	color:#666666;padding-left:20px;
+.permissions-role-page .description{
+	color:#666;padding-left:20px;font-size:13px;
 }
-.group-description{
-	color:#666666;font-size:smaller;
+.permissions-role-page .group-description{
+	color:#666;font-size:13px;
 }
-.header{border-bottom:2px solid;border-top:0px !important;font-size:16px;}
-.grid-table .br td{border:0px;}
-.h1{margin-top:20px;}
-.group-name{font-weight:bold;}
-.permission-caption label{
-	font-weight:normal;
-	text-transform:capitalize;
+.permissions-role-page .perm-global-header{
+	border-bottom:2px solid #333;padding:10px 0 6px;font-size:16px;font-weight:600;
+	margin-top:12px;
 }
-.perms-by-collection td{
-	border:none!important
+.permissions-role-page .group-name{font-weight:600;}
+.permissions-role-page .permission-caption label{
+	font-weight:normal;text-transform:capitalize;
+	margin:0;
 }
 </style>
 
-<div class="container-fluid">
+<div class="container-fluid permissions-role-page">
 <?php $this->load->view('permissions/links');?>
 <h1><?php echo t('manage_permissions');?></h1>
 
@@ -37,163 +35,64 @@
 <?php $message=$this->session->flashdata('message');?>
 <?php echo ($message!="") ? '<div class="success">'.$message.'</div>' : '';?>
 
-<?php //$post_values=$this->input->post('resource');?>
-
-<div class="col-md-2" >
-	
+<div class="row">
+<div class="col-md-3 mb-3">
 	<ul class="list-group">
 		<?php foreach($roles as $role):?>
-			<a class="list-group-item <?php echo $role['id']==$active_id ? 'active' : '';?>"  href="<?php echo site_url('admin/permissions/manage/'.$role['id']);?>"><?php echo ($role['name']);?></a>
+			<a class="list-group-item list-group-item-action <?php echo $role['id']==$active_id ? 'active' : '';?>"  href="<?php echo site_url('admin/permissions/manage/'.$role['id']);?>"><?php echo htmlspecialchars($role['name']);?></a>
 		<?php endforeach;?>
 	</ul>
-
 </div>
 
 <div class="col-md-9">
-<?php echo form_open(); ?>	
-	<!--<pre>		
-		<?php //var_dump($_POST['resource']['dashboard']); var_dump($this->input->post('resource'));
-			//var_dump($post_values);
-		?>
-	</pre>-->
-	<table class="table trable-striped">
+<?php echo form_open(); ?>
+	<h2 class="h4 mb-3 perm-global-header"><?php echo t('Site-wide permissions'); ?></h2>
+	<p class="text-muted small mb-3"><?php echo t('permissions_global_intro'); ?></p>
+	<table class="table table-sm">
 	<?php foreach ($permissions as $resource=>$rule):?>
 		<tr>
-			<td colspan="3" class="header">
+			<td colspan="3" class="perm-global-header pt-4">
 				<div class="group-name">
-					<?php echo t($rule['title']);?>
+					<?php echo htmlspecialchars(t($rule['title']));?>
 				</div>
 				<?php if(isset($rule['description'])):?>
-					<div class="group-description"><?php echo t($rule['description']);?></div>
+					<div class="group-description"><?php echo $rule['description'];?></div>
 				<?php endif;?>
 			</td>
 		</tr>
 		<?php $x = 0; ?>
 		<?php foreach($rule['permissions'] as $perm):?>
-			<tr class="<?php echo ($x++%2==1) ? '' : 'alternate' ?>">
-			<td style="width:50px;text-align:right;">
-				<?php 					
+			<tr class="<?php echo ($x++%2==1) ? '' : 'table-light' ?>">
+			<td class="text-right" style="width:48px;">
+				<?php
 					$is_checked='';
 					if (isset($post_values[$resource])  && in_array($perm['permission'],$post_values[$resource] )){
 						$is_checked='checked="checked"';
 					}
+					$fid = htmlspecialchars($resource.'.'.$perm['permission'], ENT_QUOTES, 'UTF-8');
 				?>
-				<input 
+				<input
 					<?php echo $is_checked;?>
-					type="checkbox" 
-					id="<?php echo $resource;?>.<?php echo $perm['permission'];?>" 
-					name="resource[<?php echo $resource;?>][]" 
-					value="<?php echo $perm['permission'];?>"/>
+					type="checkbox"
+					id="<?php echo $fid;?>"
+					name="resource[<?php echo htmlspecialchars($resource, ENT_QUOTES, 'UTF-8');?>][]"
+					value="<?php echo htmlspecialchars($perm['permission'], ENT_QUOTES, 'UTF-8');?>"/>
 			</td>
 			<td>
 				<div class="caption">
-					<label for="<?php echo $resource;?>.<?php echo $perm['permission'];?>">
-						<?php echo $perm['permission'];?>
+					<label class="mb-0" for="<?php echo $fid;?>">
+						<?php echo htmlspecialchars($perm['permission']);?>
 					</label>
 				</div>
-				<div class="description"><?php echo isset($perm['description']) ? $perm['description'] : '';?></div>
-			</td>        
+				<div class="description"><?php echo isset($perm['description']) ? htmlspecialchars($perm['description']) : '';?></div>
+			</td>
 			</tr>
-		<?php endforeach;?> 
-		<tr class="br"><td colspan="2">&nbsp;</td></tr>
+		<?php endforeach;?>
 	<?php endforeach;?>
-
-
-	<tr>
-		<td colspan="3"><h2><?php echo t('Permissions by collections');?></h2></td>
-	</tr>
-	<?php foreach ($permissions_collections as $resource=>$rule):?>
-		<tr>
-			<td colspan="3">
-				<table class="table table-sm perms-by-collection">
-					<tr>
-						<td style="width:30%;"><div class="group-name"><?php echo str_replace(" - " , "<BR>",$rule['title']);?></div></td>
-						
-						<?php $x = 0; ?>
-						<?php foreach($rule['permissions'] as $perm):?>
-							<td class="<?php echo ($x++%2==1) ? '' : 'alternate' ?>">
-							<span>
-							
-								<?php 					
-									$is_checked='';
-									if (isset($post_values[$resource])  && in_array($perm['permission'],$post_values[$resource] )){
-										$is_checked='checked="checked"';
-									}
-								?>
-								<input 
-									<?php echo $is_checked;?>
-									type="checkbox" 
-									id="<?php echo $resource;?>.<?php echo $perm['permission'];?>" 
-									name="resource[<?php echo $resource;?>][]" 
-									value="<?php echo $perm['permission'];?>"/>
-								</span>
-							<span>
-								<span class="permission-caption">
-									<label for="<?php echo $resource;?>.<?php echo $perm['permission'];?>">
-										<?php echo $perm['permission'];?>
-									</label>
-								</span>
-								
-								</span>        
-						</td>					
-						<?php endforeach;?>
-					</tr>
-
-
-				</table>
-			</td>
-			<td>
-				
-			</td> 
-	<?php endforeach;?>
-
-
-
-	<?php /* ?>
-
-		<tr>
-			<td colspan="3"><h2><?php echo t('Permissions by collections');?></h2></td>
-		</tr>
-	<?php foreach ($permissions_collections as $resource=>$rule):?>
-		<tr>
-			<td colspan="3" class="header">
-				<div class="group-name"><?php echo t($rule['title']);?></div>
-			</td>
-		</tr>
-		<?php $x = 0; ?>
-		<?php foreach($rule['permissions'] as $perm):?>
-			<tr class="<?php echo ($x++%2==1) ? '' : 'alternate' ?>">
-			<td style="width:50px;text-align:right;">
-				<?php 					
-					$is_checked='';
-					if (isset($post_values[$resource])  && in_array($perm['permission'],$post_values[$resource] )){
-						$is_checked='checked="checked"';
-					}
-				?>
-				<input 
-					<?php echo $is_checked;?>
-					type="checkbox" 
-					id="<?php echo $resource;?>.<?php echo $perm['permission'];?>" 
-					name="resource[<?php echo $resource;?>][]" 
-					value="<?php echo $perm['permission'];?>"/>
-			</td>
-			<td>
-				<div class="caption">
-					<label for="<?php echo $resource;?>.<?php echo $perm['permission'];?>">
-						<?php echo $perm['permission'];?>
-					</label>
-				</div>
-				<div class="description"><?php echo isset($perm['description']) ? $perm['description'] : '';?></div>
-			</td>        
-			</tr>
-		<?php endforeach;?> 
-		<tr class="br"><td colspan="2">&nbsp;</td></tr>
-	<?php endforeach;?>
-	<?php */ ?>
-
 	</table>
-	<button type="submit" class="btn btn-primary"><?php echo t('submit');?></button>
+
+	<button type="submit" class="btn btn-primary mt-3"><?php echo t('submit');?></button>
 <?php echo form_close();?>
 </div>
-
+</div>
 </div>

@@ -372,20 +372,53 @@ class DDI_Writer
             ]);
         }
 
-        //catgry
-        $categories=new \Adbar\Dot($var->get('var_catgry'));
-        foreach($categories->all() as $idx=>$cat){
-            $output->set([
-                'catgry.'.$idx.'.catValu'=> $categories["{$idx}.value"],
-                'catgry.'.$idx.'.labl'=> $categories["{$idx}.labl"],
-                'catgry.'.$idx.'.catStat'=>[                    
-                    '_attributes'=>[
-                        'type'=>$sumstats["{$idx}.type"],
-                        'wgtd'=>$sumstats["{$idx}.wgtd"]
-                    ],
-                    '_value'=> (string)$categories["{$idx}.stats.value"]
-                ]
-            ]);
+        //catgry — catStat must come from each category's stats[] (type, value, wgtd), not var_sumstat
+        $var_catgry_raw = $var->get('var_catgry');
+        if (!is_array($var_catgry_raw)) {
+            $var_catgry_raw = array();
+        }
+        foreach (array_values($var_catgry_raw) as $idx => $cat) {
+            $cat = (array) $cat;
+            $catValu = array_key_exists('value', $cat) && $cat['value'] !== null
+                ? (string) $cat['value']
+                : '';
+            $labl = '';
+            if (isset($cat['labl']) && $cat['labl'] !== null && $cat['labl'] !== '') {
+                $labl = (string) $cat['labl'];
+            } elseif (isset($cat['label']) && $cat['label'] !== null && $cat['label'] !== '') {
+                $labl = (string) $cat['label'];
+            }
+            $set = array(
+                'catgry.'.$idx.'.catValu' => $catValu,
+            );
+            if ($labl !== '') {
+                $set['catgry.'.$idx.'.labl'] = $labl;
+            }
+            $ismissing_ = isset($cat['is_missing']) ? $cat['is_missing'] : '';
+            if ($ismissing_ !== '' && $ismissing_ !== '0' && $ismissing_ !== 0) {
+                $set['catgry.'.$idx.'._attributes'] = array('missing' => 'Y');
+            }
+            $output->set($set);
+
+            $stats = (isset($cat['stats']) && is_array($cat['stats'])) ? $cat['stats'] : array();
+            foreach (array_values($stats) as $sidx => $stat_row) {
+                $stat_row = (array) $stat_row;
+                $stype = isset($stat_row['type']) ? (string) $stat_row['type'] : '';
+                if ($stype === '') {
+                    continue;
+                }
+                if (!array_key_exists('value', $stat_row) || $stat_row['value'] === null || $stat_row['value'] === '') {
+                    continue;
+                }
+                $attrs = array('type' => $stype);
+                if (isset($stat_row['wgtd']) && $stat_row['wgtd'] !== '' && $stat_row['wgtd'] !== null) {
+                    $attrs['wgtd'] = (string) $stat_row['wgtd'];
+                }
+                $output->set(array(
+                    'catgry.'.$idx.'.catStat.'.$sidx.'._value' => (string) $stat_row['value'],
+                    'catgry.'.$idx.'.catStat.'.$sidx.'._attributes' => $attrs,
+                ));
+            }
         }
         
         $output = $this->remove_empty($output->all());

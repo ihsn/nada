@@ -33,7 +33,7 @@ class Catalog_admin_search extends CI_Model
 		'surveys.created_by',
 		'surveys.changed_by',
 		'users.username as created_by_user',
-		'users.username as changed_by_user',
+		'users2.username as changed_by_user',
 		'forms.model as form_model',
 		'surveys.thumbnail',
 		'surveys.abstract'
@@ -48,8 +48,11 @@ class Catalog_admin_search extends CI_Model
 		'published' => 'published'
 	);
 
-	protected $active_repo = 'central';
 	protected $search_count = 0;
+
+	/** When false, search/filter-option queries are limited to these repository ids (owner or survey_repos link). */
+	protected $acl_scope_unrestricted = true;
+	protected $acl_repository_allowlist = array();
 
 	public function __construct()
 	{
@@ -57,17 +60,47 @@ class Catalog_admin_search extends CI_Model
 	}
 
 	/**
-	 * Set the owner repository for filtering by surveys.repositoryid
+	 * Limit study visibility for admin catalog search / filter counts.
 	 *
-	 * @param string|null $repo Repository ID (owner); 'central' or empty = no owner filter
+	 * @param bool  $unrestricted When true, no ACL repository filter is applied.
+	 * @param array $repository_allowlist Lowercase repositoryid values (ignored when unrestricted).
 	 */
-	public function set_active_repo($repo)
+	public function set_acl_scope($unrestricted, array $repository_allowlist = array())
 	{
-		if ($repo === 'central' || $repo === '' || $repo === null) {
-			$this->active_repo = null;
-		} else {
-			$this->active_repo = $repo;
+		$this->acl_scope_unrestricted = (bool) $unrestricted;
+		$this->acl_repository_allowlist = array_values(
+			array_unique(
+				array_filter(
+					array_map(
+						static function ($r) {
+							return strtolower(trim((string) $r));
+						},
+						$repository_allowlist
+					)
+				)
+			)
+		);
+	}
+
+	/**
+	 * Apply ACL scope for the logged-in user (session). Returns false if user has no admin catalog study view.
+	 */
+	public function apply_session_user_acl_scope()
+	{
+		$CI =& get_instance();
+		$CI->load->library('acl_manager');
+		$user = $CI->ion_auth->current_user();
+		$scope = $CI->acl_manager->get_admin_catalog_repository_scope($user);
+		if ($scope === false) {
+			$this->set_acl_scope(false, array());
+			return false;
 		}
+		if ($scope === null) {
+			$this->set_acl_scope(true, array());
+			return true;
+		}
+		$this->set_acl_scope(false, $scope);
+		return true;
 	}
 
 	/**
@@ -87,7 +120,6 @@ class Catalog_admin_search extends CI_Model
 			return array();
 		}
 
-		// Build base query (pass options so sr join is added when filtering by collections)
 		$this->_build_base_query(true, $options);
 
 		// Apply filters
@@ -151,7 +183,7 @@ class Catalog_admin_search extends CI_Model
 	 * Build base query with joins
 	 *
 	 * @param bool $select_fields Whether to select fields
-	 * @param array $options Search options (used to add survey_repos join when filtering by collections)
+	 * @param array $options Search options (reserved for base query tweaks)
 	 */
 	protected function _build_base_query($select_fields = true, $options = array())
 	{
@@ -162,16 +194,6 @@ class Catalog_admin_search extends CI_Model
 		$this->db->join('forms', 'forms.formid = surveys.formid', 'left');
 		$this->db->join('users', 'users.id = surveys.created_by', 'left');
 		$this->db->join('users as users2', 'users2.id = surveys.changed_by', 'left');
-
-		// Add survey_repos join only when filtering by collections (surveys linked to collections)
-		$collections = isset($options['collections']) ? $options['collections'] : null;
-		if (is_string($collections)) {
-			$collections = array_map('trim', explode(',', $collections));
-		}
-		$needs_sr_join = is_array($collections) && count($collections) > 0;
-		if ($needs_sr_join) {
-			$this->db->join('survey_repos sr', 'sr.sid = surveys.id', 'left');
-		}
 	}
 
 	/**
@@ -199,10 +221,10 @@ class Catalog_admin_search extends CI_Model
 		$this->_apply_dataset_type_filter($options);
 		$this->_apply_collection_filter($options);
 
-		// Resource filters
-		$this->_apply_resource_filters($options);
+		// ACL: restrict to repositories the user may see (owner or linked collection)
+		$this->_apply_acl_scope_filter();
 
-		// Owner filter: surveys.repositoryid (from owner_repo param or set_active_repo)
+		// Owner filter: surveys.repositoryid (from options['owner_repo'] only)
 		$this->_apply_owner_repo_filter($options);
 
 		// Optional ID scoping: exclude list or restrict-to list (for dialogs)
@@ -484,42 +506,85 @@ class Catalog_admin_search extends CI_Model
 		}
 
 		if (!empty($ids)) {
-			$this->db->where_in('sr.repositoryid', $ids);
+			$escaped = array();
+			foreach ($ids as $rid) {
+				$escaped[] = $this->db->escape(strtolower((string) $rid));
+			}
+			$in = implode(',', $escaped);
+			$this->db->where(
+				"surveys.id IN (SELECT sid FROM survey_repos WHERE LOWER(repositoryid) IN ($in))",
+				null,
+				false
+			);
 		}
 	}
 
 	/**
-	 * Apply resource-based filters (no_questions, no_datafiles)
-	 *
-	 * @param array $options Search parameters
+	 * Restrict rows to studies the user may see: owner repository in allowlist OR linked via survey_repos.
+	 * Owner and collection IDs use case-insensitive comparison (allowlist is normalized to lowercase).
 	 */
-	protected function _apply_resource_filters($options)
+	protected function _apply_acl_scope_filter()
 	{
-		if (isset($options['no_questions']) && $options['no_questions']) {
-			$this->db->where(
-				"surveys.id NOT IN (SELECT survey_id FROM resources WHERE dctype LIKE '%doc/qst]%')",
-				null,
-				false
-			);
+		if ($this->acl_scope_unrestricted) {
+			return;
 		}
+		$repos = $this->acl_repository_allowlist;
+		if (empty($repos)) {
+			$this->db->where('1 = 0', null, false);
+			return;
+		}
+		$escaped = array();
+		foreach ($repos as $r) {
+			$escaped[] = $this->db->escape($r);
+		}
+		$in_list = implode(',', $escaped);
+		$this->db->group_start();
+		$this->db->where('LOWER(surveys.repositoryid) IN (' . $in_list . ')', null, false);
+		$this->db->or_where('surveys.id IN (SELECT sid FROM survey_repos WHERE LOWER(repositoryid) IN (' . $in_list . '))', null, false);
+		$this->db->group_end();
+	}
 
-		if (isset($options['no_datafiles']) && $options['no_datafiles']) {
-			$this->db->where(
-				"surveys.id NOT IN (SELECT survey_id FROM resources WHERE dctype LIKE '%dat/micro]%' OR dctype LIKE '%dat]%')",
-				null,
-				false
-			);
+	/**
+	 * Limit survey-derived filter stats to ACL scope and optional owner_repo.
+	 *
+	 * @param string $survey_alias Table alias for surveys (e.g. surveys, s)
+	 * @param string|null $repo_id Optional owner_repo from filter_options
+	 */
+	protected function _apply_surveys_acl_and_owner_scope($survey_alias, $repo_id = null)
+	{
+		if (!$this->acl_scope_unrestricted) {
+			$repos = $this->acl_repository_allowlist;
+			if (empty($repos)) {
+				$this->db->where('1 = 0', null, false);
+				return;
+			}
+			$escaped = array();
+			foreach ($repos as $r) {
+				$escaped[] = $this->db->escape($r);
+			}
+			$in_list = implode(',', $escaped);
+			$this->db->group_start();
+			$this->db->where('LOWER(' . $survey_alias . '.repositoryid) IN (' . $in_list . ')', null, false);
+			$this->db->or_where($survey_alias . '.id IN (SELECT sid FROM survey_repos WHERE LOWER(repositoryid) IN (' . $in_list . '))', null, false);
+			$this->db->group_end();
+		}
+		if ($repo_id && $repo_id !== 'central' && trim($repo_id) !== '') {
+			$this->db->where($survey_alias . '.repositoryid', $repo_id);
 		}
 	}
 
 	/**
 	 * Apply owner filter: surveys.repositoryid (owner repository).
-	 * Uses options['owner_repo'] if set, otherwise $this->active_repo from set_active_repo().
-	 * When owner is not set, empty, or "central", no filter is applied (central = everything).
+	 * Pass owner_repo in search options; empty, null, or central = no filter.
+	 *
+	 * @param array $options Search parameters
 	 */
 	protected function _apply_owner_repo_filter($options)
 	{
-		$owner = isset($options['owner_repo']) ? $options['owner_repo'] : $this->active_repo;
+		if (!isset($options['owner_repo'])) {
+			return;
+		}
+		$owner = $options['owner_repo'];
 		if ($owner === '' || $owner === null || $owner === 'central') {
 			return;
 		}
@@ -599,9 +664,7 @@ class Catalog_admin_search extends CI_Model
 		$this->db->select('country_name, COUNT(country_name) AS total');
 		$this->db->from('survey_countries');
 		$this->db->join('surveys', 'surveys.id = survey_countries.sid', 'inner');
-		if ($repo_id && $repo_id !== 'central' && trim($repo_id) !== '') {
-			$this->db->where('surveys.repositoryid', $repo_id);
-		}
+		$this->_apply_surveys_acl_and_owner_scope('surveys', $repo_id);
 		$this->db->group_by('country_name');
 		$result = $this->db->get();
 		return $result ? $result->result_array() : array();
@@ -618,9 +681,7 @@ class Catalog_admin_search extends CI_Model
 		$this->db->select('tag, COUNT(tag) AS total');
 		$this->db->from('survey_tags');
 		$this->db->join('surveys', 'surveys.id = survey_tags.sid', 'inner');
-		if ($repo_id && $repo_id !== 'central' && trim($repo_id) !== '') {
-			$this->db->where('surveys.repositoryid', $repo_id);
-		}
+		$this->_apply_surveys_acl_and_owner_scope('surveys', $repo_id);
 		$this->db->group_by('tag');
 		$result = $this->db->get();
 		return $result ? $result->result_array() : array();
@@ -655,9 +716,7 @@ class Catalog_admin_search extends CI_Model
 	{
 		$this->db->select('formid, COUNT(*) AS total');
 		$this->db->from('surveys');
-		if ($repo_id && $repo_id !== 'central' && trim($repo_id) !== '') {
-			$this->db->where('surveys.repositoryid', $repo_id);
-		}
+		$this->_apply_surveys_acl_and_owner_scope('surveys', $repo_id);
 		$this->db->group_by('formid');
 		$result = $this->db->get();
 		if (!$result) {
@@ -681,9 +740,7 @@ class Catalog_admin_search extends CI_Model
 		$this->db->select('survey_types.code, survey_types.title,  COUNT(*) AS found');
 		$this->db->from('survey_types');
 		$this->db->join('surveys s', 's.type = survey_types.code', 'inner');
-		if ($repo_id && trim($repo_id) !== '' && $repo_id !== 'central') {
-			$this->db->where('s.repositoryid', $repo_id);
-		}
+		$this->_apply_surveys_acl_and_owner_scope('s', $repo_id);
 		$this->db->group_by('survey_types.code, survey_types.title');
 		$result = $this->db->get();
 		if (!$result) {
@@ -727,17 +784,89 @@ class Catalog_admin_search extends CI_Model
 	}
 
 	/**
-	 * Get survey counts per repository (survey_repos)
+	 * Distinct visible surveys per repository for collection facets: linked in survey_repos OR owned
+	 * (surveys.repositoryid). Matches catalog ACL / owner scope. Keys are lowercase repository ids.
 	 *
-	 * @return array List of arrays with repositoryid, total
+	 * @param string|null $owner_repo_scope Optional owner_repo for filter_options
+	 * @return array Map lowercase repositoryid => int count
 	 */
-	protected function _get_collection_survey_counts()
+	protected function _get_collection_facet_counts($owner_repo_scope = null)
 	{
-		$this->db->select('repositoryid, COUNT(sid) AS total');
-		$this->db->from('survey_repos');
-		$this->db->group_by('repositoryid');
-		$result = $this->db->get();
-		return $result ? $result->result_array() : array();
+		$this->db->select('sr.sid AS facet_sid, LOWER(sr.repositoryid) AS facet_rk', false);
+		$this->db->from('survey_repos sr');
+		$this->db->join('surveys s', 's.id = sr.sid', 'inner');
+		$this->_apply_surveys_acl_and_owner_scope('s', $owner_repo_scope);
+		$sql_linked = $this->db->get_compiled_select('', false);
+		$this->db->reset_query();
+
+		$this->db->select('s.id AS facet_sid, LOWER(s.repositoryid) AS facet_rk', false);
+		$this->db->from('surveys s');
+		$this->_apply_surveys_acl_and_owner_scope('s', $owner_repo_scope);
+		$this->db->where('s.repositoryid IS NOT NULL', null, false);
+		$this->db->where("s.repositoryid <> ''", null, false);
+		$sql_owned = $this->db->get_compiled_select('', false);
+		$this->db->reset_query();
+
+		$sql = 'SELECT facet_rk, COUNT(DISTINCT facet_sid) AS total FROM ('
+			. '(' . $sql_linked . ') UNION ALL (' . $sql_owned . ')'
+			. ') facet_union GROUP BY facet_rk';
+
+		$query = $this->db->query($sql);
+		if (!$query) {
+			return array();
+		}
+		$out = array();
+		foreach ($query->result_array() as $row) {
+			$row = array_change_key_case($row, CASE_LOWER);
+			$key = strtolower(trim((string) ($row['facet_rk'] ?? '')));
+			if ($key === '') {
+				continue;
+			}
+			$out[$key] = (int) ($row['total'] ?? 0);
+		}
+		return $out;
+	}
+
+	/**
+	 * Repository rows for facet labels (any publish state), matched case-insensitively.
+	 *
+	 * @param array $lowercase_ids Normalized lowercase repositoryid values
+	 * @return array Map lowercase repositoryid => row
+	 */
+	protected function _get_repository_rows_by_lowercase_ids(array $lowercase_ids)
+	{
+		$lowercase_ids = array_values(
+			array_unique(
+				array_filter(
+					array_map(
+						static function ($id) {
+							return strtolower(trim((string) $id));
+						},
+						$lowercase_ids
+					)
+				)
+			)
+		);
+		if (empty($lowercase_ids)) {
+			return array();
+		}
+		$escaped = array();
+		foreach ($lowercase_ids as $id) {
+			$escaped[] = $this->db->escape($id);
+		}
+		$in = implode(',', $escaped);
+		$this->db->select('repositories.*, repository_sections.title AS section_title, repository_sections.weight AS section_weight');
+		$this->db->from('repositories');
+		$this->db->join('repository_sections', 'repository_sections.id = repositories.section', 'left');
+		$this->db->where('LOWER(repositories.repositoryid) IN (' . $in . ')', null, false);
+		$this->db->order_by('repository_sections.weight ASC, repositories.weight ASC, repositories.title');
+		$query = $this->db->get();
+		$result = $query ? $query->result_array() : array();
+		$by_lower = array();
+		foreach ((array) $result as $row) {
+			$by_lower[strtolower((string) $row['repositoryid'])] = $row;
+		}
+		return $by_lower;
 	}
 
 	// ---------------------------------------------------------------
@@ -812,8 +941,8 @@ class Catalog_admin_search extends CI_Model
 			$formid = (int) $row['formid'];
 			$code   = $row['model'];
 			$count  = isset($counts[$formid]) ? $counts[$formid] : 0;
-			// When scoped by repo, only include types that have at least one survey
-			if ($repo_id && $count < 1) {
+			// Counts are ACL/owner-scoped via _get_formid_counts; omit types with no visible surveys (same as collections)
+			if ($count < 1) {
 				continue;
 			}
 			$formatted[] = array(
@@ -853,34 +982,83 @@ class Catalog_admin_search extends CI_Model
 	}
 
 	/**
-	 * Format collections for API response (surveys linked to collections via survey_repos / repositories table)
+	 * Format collections for API response (repositories the user may facet on).
+	 * Counts match visible studies: survey_repos link OR owner repository, ACL/owner-scoped.
 	 *
-	 * @param string|null $repo_id Repository ID
+	 * @param string|null $repo_id Repository ID (owner_repo scope for filter_options)
 	 * @return array Standardized collection list with survey count per collection
 	 */
 	protected function _format_collections($repo_id = null)
 	{
-		$raw_collections = $this->_get_repositories(true);
-		$stats = $this->_get_collection_survey_counts();
-		$counts = array();
-		foreach ((array) $stats as $row) {
-			$counts[$row['repositoryid']] = (int) $row['total'];
-		}
+		$counts = $this->_get_collection_facet_counts($repo_id);
 
 		$formatted = array();
-		foreach ((array) $raw_collections as $repo) {
-			$rid   = $repo['repositoryid'];
-			$count = isset($counts[$rid]) ? $counts[$rid] : 0;
-			if ($count < 1) {
+
+		if ($this->acl_scope_unrestricted) {
+			$raw_collections = $this->_get_repositories(true);
+			foreach ((array) $raw_collections as $repo) {
+				$rid = $repo['repositoryid'];
+				$c = $counts[strtolower((string) $rid)] ?? 0;
+				if ($c < 1) {
+					continue;
+				}
+				$formatted[] = array(
+					'id'    => $rid,
+					'name'  => $repo['title'],
+					'code'  => $rid,
+					'count' => $c
+				);
+			}
+			return $formatted;
+		}
+
+		$need_meta = array();
+		foreach ($this->acl_repository_allowlist as $allowed) {
+			$low = strtolower((string) $allowed);
+			$c = $counts[$low] ?? 0;
+			if ($c < 1) {
 				continue;
 			}
+			$need_meta[] = $low;
+		}
+		if (empty($need_meta)) {
+			return array();
+		}
+
+		$meta_by_lower = $this->_get_repository_rows_by_lowercase_ids($need_meta);
+		foreach ($need_meta as $low) {
+			if (!isset($meta_by_lower[$low])) {
+				continue;
+			}
+			$repo = $meta_by_lower[$low];
+			$rid  = $repo['repositoryid'];
+			$c    = $counts[$low];
 			$formatted[] = array(
 				'id'    => $rid,
 				'name'  => $repo['title'],
 				'code'  => $rid,
-				'count' => $count
+				'count' => $c
 			);
 		}
+
+		usort(
+			$formatted,
+			static function ($a, $b) use ($meta_by_lower) {
+				$ma = $meta_by_lower[strtolower((string) $a['id'])] ?? array();
+				$mb = $meta_by_lower[strtolower((string) $b['id'])] ?? array();
+				$swa = (int) ($ma['section_weight'] ?? 0);
+				$swb = (int) ($mb['section_weight'] ?? 0);
+				if ($swa !== $swb) {
+					return $swa - $swb;
+				}
+				$wa = (int) ($ma['weight'] ?? 0);
+				$wb = (int) ($mb['weight'] ?? 0);
+				if ($wa !== $wb) {
+					return $wa - $wb;
+				}
+				return strcasecmp($a['name'], $b['name']);
+			}
+		);
 
 		return $formatted;
 	}

@@ -1,7 +1,7 @@
 <template>
-  <v-app>
-    <v-main>
-      <v-container fluid>
+  <v-app class="study-timeseries-vapp">
+    <v-main class="study-timeseries-main">
+      <v-container fluid class="study-timeseries-container">
         <v-alert
           v-if="message.text"
           :type="message.type"
@@ -33,3 +33,22 @@ function setMessage(text, type = 'info') {
 
 provide('setMessage', setMessage);
 </script>
+
+<style scoped>
+/* Full tab canvas white (flat cards leave v-card-item transparent on gray shell) */
+.study-timeseries-vapp {
+  background: #fff !important;
+}
+
+.study-timeseries-vapp :deep(.v-application__wrap) {
+  background: #fff !important;
+}
+
+.study-timeseries-main {
+  background: #fff !important;
+}
+
+.study-timeseries-container {
+  background: #fff !important;
+}
+</style>

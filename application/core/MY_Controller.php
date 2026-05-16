@@ -16,7 +16,15 @@ class MY_Controller extends CI_Controller
     var $_ci_varmap         = array('unit_test' => 'unit', 'user_agent' => 'agent');
 	
 	var $is_admin=TRUE;
-	
+
+	/**
+	 * Legacy UI context (repository row or central stub). Controllers that need it set this explicitly
+	 * (e.g. Catalog, Citations, Licensed_requests, catalog Vue entrypoints). Not auto-populated.
+	 *
+	 * @var object|null
+	 */
+	public $active_repo = NULL;
+
 	/**
 	* Manages both admin/non-admin users
 	*
@@ -286,10 +294,28 @@ class MY_Controller extends CI_Controller
         } 
         else //can connect to db server but not to the database
         {
-            redirect("install");
+			redirect("install");
         }
 	}
 
+	/**
+	 * User may open scoped admin catalog UIs if they have collection scope or global study.view.
+	 */
+	protected function _require_admin_catalog_access()
+	{
+		if ($this->acl_manager->get_admin_catalog_repository_scope() === false) {
+			$this->acl_manager->has_access_or_die('study', 'view');
+		}
+	}
 
-	
-}	
+	/**
+	 * User may open admin licensed-requests UI if they have global or collection-scoped licensed_request access.
+	 */
+	protected function _require_licensed_requests_access()
+	{
+		if ($this->acl_manager->get_licensed_request_repository_scope() === false) {
+			$this->acl_manager->has_access_or_die('licensed_request', 'view');
+		}
+	}
+
+}

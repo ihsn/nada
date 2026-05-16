@@ -54,8 +54,28 @@ class Catalog_tags_model extends CI_Model {
 	
 	public function delete($id) 
 	{
-		$this->db->where('id', $id); 
-		return $this->db->delete('survey_tags');
+		$this->db->where('id', $id);
+		$this->db->delete('survey_tags');
+		return $this->db->affected_rows() > 0;
+	}
+
+
+	/**
+	 * Remove a tag row by survey id and normalized tag string.
+	 *
+	 * @param int    $sid Internal surveys.id
+	 * @param string $tag Stored tag value (same normalization as insert/upsert)
+	 */
+	public function delete_by_sid_and_tag($sid, $tag)
+	{
+		$tag = xss_clean($tag);
+		if ($tag === '') {
+			return false;
+		}
+		$this->db->where('sid', (int) $sid);
+		$this->db->where('tag', $tag);
+		$this->db->delete('survey_tags');
+		return $this->db->affected_rows() > 0;
 	}
 	
 	public function single($id) 

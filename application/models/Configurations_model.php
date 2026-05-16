@@ -101,28 +101,65 @@ class Configurations_model extends CI_Model {
 
 
 	/**
+	 * Site setting: enable data classifications (access policy UI + search facets).
+	 * Stored as yes/no in configurations; defaults to enabled when the key is absent.
+	 *
+	 * @return bool
+	 */
+	public function is_data_classifications_enabled()
+	{
+		$raw = $this->get_config_item('data_classifications_enabled');
+		if ($raw === null || $raw === '')
+		{
+			return true;
+		}
+
+		$v = strtolower(trim((string) $raw));
+		if (in_array($v, array('no', '0', 'false', 'off', 'n'), true))
+		{
+			return false;
+		}
+		if (in_array($v, array('yes', '1', 'true', 'on', 'y'), true))
+		{
+			return true;
+		}
+
+		return (bool) $raw;
+	}
+
+
+	/**
 	* update configurations
 	*
 	*/
 	function update($options)
 	{
-		foreach($options as $key=>$value)
+		foreach ($options as $key => $value)
 		{
-			if (!$this->check_key_exists($key)){
-				$this->add($key,$value);
-				return true;
-			}
-
-			$data=array('value'=>$value);
-			$this->db->where('name', $key);
-			$result=$this->db->update('configurations', $data);
-			
-			if(!$result)
+			if (!$this->upsert($key, $value))
 			{
 				return FALSE;
 			}
-		}		
+		}
 		return TRUE;
+	}
+
+	/**
+	 * Remove a configuration row by key name.
+	 *
+	 * @param string $name
+	 * @return bool TRUE if a row was deleted or delete ran without DB error
+	 */
+	function delete_by_name($name)
+	{
+		if (trim((string) $name) === '')
+		{
+			return FALSE;
+		}
+
+		$this->db->where('name', $name);
+
+		return $this->db->delete('configurations') === TRUE;
 	}
 	
 	/**

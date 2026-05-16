@@ -8,7 +8,6 @@ class Permissions extends MY_Controller {
 		$this->load->helper(array('form', 'url'));
        	//$this->load->model('User_Groups_model');
 		$this->load->model('Permissions_model');
-		//$this->load->model('Repository_model');
 		$this->load->library("Acl_manager");
 		
 		//language files
@@ -48,7 +47,9 @@ class Permissions extends MY_Controller {
 			show_error("System role cannot be edited");
 		}
 
-		$data=$this->acl_manager->get_all_permissions();
+		$data=array(
+			'permissions'=>$this->acl_manager->get_all_permissions(),
+		);
 		$role_permissions=$this->acl_manager->get_role_permissions($role_id);
 
 		//process post

@@ -91,6 +91,18 @@
     
     <div class="clear"></div>
 
+    <?php
+    $variable_metadata_display = (isset($variable['metadata']) && is_array($variable['metadata']))
+        ? $variable['metadata']
+        : array();
+    if (isset($variable_metadata_display['var_catgry']) && is_array($variable_metadata_display['var_catgry'])) {
+        $variable_metadata_display['var_catgry'] = merge_var_catgry_invd_sysmiss_display(
+            $variable_metadata_display['var_catgry'],
+            isset($variable_metadata_display['var_sumstat']) ? $variable_metadata_display['var_sumstat'] : array()
+        );
+    }
+    ?>
+
     <!-- data_collection -->
     <?php echo render_group('questions_n_instructions',
         $fields=array(
@@ -101,7 +113,7 @@
             "var_qstn_postqtxt"=>'text',
             "var_qstn_ivulnstr"=>'text'
         ),
-        $variable['metadata']);
+        $variable_metadata_display);
     ?>
 
 
@@ -112,14 +124,14 @@
             "var_universe"=>'text',
             "var_resp_unit"=>'text'
         ),
-        $variable['metadata']);
+        $variable_metadata_display);
     ?>
 
     <?php echo render_group('concept',
         $fields=array(
             "var_concept"=>'array'
         ),
-        $variable['metadata']);
+        $variable_metadata_display);
     ?>
 
 
@@ -128,7 +140,7 @@
             "var_imputation"=>'text',
             "var_codinstr"=>'text'
         ),
-        $variable['metadata']);
+        $variable_metadata_display);
     ?>
 
     <?php echo render_group('others',
@@ -136,7 +148,7 @@
             "var_security"=>'text',
             "var_notes"=>'text'
         ),
-        $variable['metadata']);
+        $variable_metadata_display);
     ?>
 
 <!--end-container-->

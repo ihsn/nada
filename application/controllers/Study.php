@@ -66,7 +66,7 @@ class Study extends MY_Controller {
 
 		$survey['resources']=$this->Survey_resource_model->get_survey_resources_group_by_filename($sid);
 
-		if (in_array($survey['type'], array('script','survey','timeseriesdb','timeseries-db'))){
+		if (in_array($survey['type'], array('script','survey','timeseries','timeseriesdb','timeseries-db'))){
 			$output=$this->render_metadata_html($survey);
 		}
 		else{		
@@ -512,6 +512,11 @@ class Study extends MY_Controller {
 			$this->render_page($sid, $content, $active_tab);
 			return;
 		}
+		$ts_sync_pending = (int) $this->Dataset_model->get_indicator_ts_sync_required_for_sid((int) $sid) === 1;
+		if ($ts_sync_pending && in_array($main_view, array('chart', 'observations'), true)) {
+			redirect(site_url('catalog/' . (int) $sid . '/indicator-structure'), 'location', 302);
+			return;
+		}
 		$this->load->helper('vite_helper');
 		$title_key = 'tab_indicator_chart';
 		if ($main_view === 'observations') {
@@ -714,6 +719,8 @@ class Study extends MY_Controller {
 				break;
 			case 'timeseries':
 				$has_indicator_mongo = $this->Timeseries_dsd_model->resolve_dsd_for_sid((int) $sid) !== null;
+				$indicator_ts_sync_pending = (int) $this->Dataset_model->get_indicator_ts_sync_required_for_sid((int) $sid) === 1;
+				$show_indicator_chart_and_api = $has_indicator_mongo && !$indicator_ts_sync_pending;
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t($dataset_type.'_description'),
@@ -723,12 +730,12 @@ class Study extends MY_Controller {
 					'indicator_chart'=>array(
 						'label'=>t('tab_indicator_chart'),
 						'url'=>site_url("catalog/$sid/indicator-chart"),
-						'show_tab'=>$has_indicator_mongo ? 1 : 0
+						'show_tab'=>$show_indicator_chart_and_api ? 1 : 0
 					),
 					'indicator_observations'=>array(
 						'label'=>t('tab_indicator_observations'),
 						'url'=>site_url("catalog/$sid/indicator-data-api"),
-						'show_tab'=>$has_indicator_mongo ? 1 : 0
+						'show_tab'=>$show_indicator_chart_and_api ? 1 : 0
 					),
 					'indicator_structure'=>array(
 						'label'=>t('tab_indicator_structure'),

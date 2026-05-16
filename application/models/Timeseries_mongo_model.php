@@ -173,6 +173,58 @@ class Timeseries_mongo_model extends CI_Model {
 	}
 
 	/**
+	 * CSV import must provide a column for every DSD dimension, geography, and measure, plus
+	 * time_period and observation_value when the DSD defines those roles (canonical `name` after header / mapping).
+	 *
+	 * @param string[] $mapped_component_names Unique canonical component names matched from the CSV header row
+	 * @param array    $components             data_structure_components rows
+	 * @throws Exception
+	 */
+	public function assert_csv_import_mapped_fields_cover_required_dsd(array $mapped_component_names, array $components)
+	{
+		$mapped = [];
+		foreach ($mapped_component_names as $n) {
+			$n = trim((string) $n);
+			if ($n !== '') {
+				$mapped[$n] = true;
+			}
+		}
+		$missing = [];
+		foreach ($components as $c) {
+			if (!is_array($c) || empty($c['name']) || empty($c['column_type'])) {
+				continue;
+			}
+			$ct = (string) $c['column_type'];
+			if (!in_array($ct, ['dimension', 'geography', 'measure'], true)) {
+				continue;
+			}
+			$name = (string) $c['name'];
+			if (!isset($mapped[$name])) {
+				$missing[] = "{$name} ({$ct})";
+			}
+		}
+		$tp = $this->get_time_period_component($components);
+		if ($tp !== null && !empty($tp['name'])) {
+			$tn = (string) $tp['name'];
+			if (!isset($mapped[$tn])) {
+				$missing[] = "{$tn} (time_period)";
+			}
+		}
+		$ov = $this->get_component_name_for_column_type($components, 'observation_value');
+		if ($ov !== null && $ov !== '') {
+			if (!isset($mapped[$ov])) {
+				$missing[] = "{$ov} (observation_value)";
+			}
+		}
+		if ($missing !== []) {
+			throw new Exception(
+				'CSV is missing required DSD column(s): ' . implode(', ', $missing)
+				. '. Use each component\'s field name as the header (or the multipart "mapping" JSON from CSV header to DSD name).'
+			);
+		}
+	}
+
+	/**
 	 * Sorted component names that participate in key_hash identity.
 	 *
 	 * @param array $components

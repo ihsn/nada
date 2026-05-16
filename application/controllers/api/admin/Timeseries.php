@@ -6,7 +6,9 @@ require_once APPPATH . '/libraries/MY_REST_Controller.php';
 /**
  * Admin Timeseries API (MongoDB indicator observations, DSD-driven).
  *
- * Base: /api/admin/timeseries — requires admin (session or API key).
+ * Base: /api/admin/timeseries — authenticated session or API key.
+ * Study-scoped routes require {@see MY_REST_Controller::has_dataset_access} (view|edit) on the dataset, aligned with catalog edit.
+ * DSD-wide maintenance (indexes, stats, rehash without a study) remains Ion Auth admin-only.
  * Public read-only mirror: /api/timeseries (see {@see Timeseries_public}).
  *
  * Study-scoped (idno = catalogue dataset idno; DSD via metadata.data_structure_reference idno):
@@ -17,11 +19,13 @@ require_once APPPATH . '/libraries/MY_REST_Controller.php';
  *   POST .../data/import — multipart: required `idno` (study idno), `file` (CSV); optional `dsd_idno`
  *        (catalogue DSD idno) persists the study→DSD link like {@see data_attach_dsd_post} before import;
  *        optional `delimiter`, `mapping` (JSON string), `ensure_unique_index` (0|1). On success copies CSV
- *        into the study catalogue folder and upserts a {@see resources} row with resource_idno from config
- *        (default ts_csv_latest → ts_csv_latest.csv) for catalogue / downloads API.
+ *        into the study catalogue folder as {sid}_indicator_data.csv and upserts a {@see resources} row
+ *        (resource_idno from config) pointing at that filename for catalogue / downloads API.
  *   POST .../data/{idno}/rehash — optional JSON { "limit": n }
- *   GET  .../data/{idno}/duplicates
- *   GET  .../data/{idno}/schema
+	 *   GET  .../data/{idno}/duplicates
+	 *   GET  .../data/{idno}/schema
+	 *   GET  .../data/{idno}/import-csv — stream canonical `{sid}_indicator_data.csv` from the study folder (if present)
+	 *   POST .../data/{idno}/clear-data — delete all indicator observations, dimension-summary cache, and canonical import CSV for this study (DSD link unchanged)
  *
  * DSD-scoped:
  *   POST .../data-structures/{id}/indexes — optional JSON { "include_unique_key_hash": true }
@@ -36,7 +40,8 @@ class Timeseries extends MY_REST_Controller {
 	public function __construct()
 	{
 		parent::__construct();
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
+		$this->load->library('acl_manager');
 		$this->load->model('Timeseries_mongo_model');
 		$this->load->model('Timeseries_dsd_model');
 		$this->load->model('Timeseries_value_count_model');
@@ -65,6 +70,7 @@ class Timeseries extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno($idno);
+			$this->has_dataset_access('view', (int) $ctx['sid']);
 			$filter = $this->Timeseries_mongo_model->build_observation_query_filter(
 				(int) $ctx['sid'],
 				$ctx['components'],
@@ -87,6 +93,7 @@ class Timeseries extends MY_REST_Controller {
 	{
 		try {
 			$ctx    = $this->_context_from_idno($idno);
+			$this->has_dataset_access('view', (int) $ctx['sid']);
 			$query  = (array) $this->input->get();
 			$filter = $this->Timeseries_mongo_model->build_observation_query_filter(
 				(int) $ctx['sid'],
@@ -116,6 +123,60 @@ class Timeseries extends MY_REST_Controller {
 					'total'        => $total,
 					'found'        => $found,
 				],
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->_error_response($e);
+		}
+	}
+
+	/**
+	 * GET .../data/{idno}/import-csv
+	 *
+	 * Streams the configured indicator import CSV from the study catalogue folder.
+	 */
+	public function data_import_csv_get($idno = null)
+	{
+		try {
+			$ctx = $this->_context_from_idno($idno);
+			$this->has_dataset_access('view', (int) $ctx['sid']);
+			$fn = $this->Dataset_model->get_indicator_timeseries_import_csv_filename((int) $ctx['sid']);
+			if ($fn === '') {
+				throw new Exception('No indicator import filename is configured for this study.');
+			}
+			$surveyFolder = $this->Catalog_model->get_survey_path_full((int) $ctx['sid']);
+			if (!$surveyFolder || ! is_dir($surveyFolder)) {
+				throw new Exception('Study folder not found');
+			}
+			$path = unix_path($surveyFolder . '/' . $fn);
+			if (! is_file($path)) {
+				throw new Exception('Indicator import CSV not found on disk.');
+			}
+			$this->load->helper('download');
+			force_download2($path);
+			die();
+		} catch (Exception $e) {
+			$this->_error_response($e);
+		}
+	}
+
+	/**
+	 * POST .../data/{idno}/clear-data
+	 *
+	 * Removes Mongo observations, value-count summaries, and the canonical CSV file; DSD link is unchanged.
+	 */
+	public function data_clear_data_post($idno = null)
+	{
+		try {
+			$ctx = $this->_context_from_idno($idno);
+			$this->has_dataset_access('edit', (int) $ctx['sid']);
+			$this->Timeseries_mongo_model->delete_observations_for_sid((int) $ctx['dsd_id'], (int) $ctx['sid']);
+			$this->_clear_value_counts_for_sid((int) $ctx['sid']);
+			$this->_unlink_indicator_timeseries_import_csv_and_legacy((int) $ctx['sid']);
+			$this->Timeseries_mongo_model->refresh_ts_data_count_for_sid((int) $ctx['sid']);
+			$this->Dataset_model->clear_indicator_ts_sync_for_survey((int) $ctx['sid'], (int) $ctx['dsd_id']);
+			$this->set_response([
+				'status' => 'success',
+				'result' => ['cleared' => true],
 			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {
 			$this->_error_response($e);
@@ -176,6 +237,7 @@ class Timeseries extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno($idno);
+			$this->has_dataset_access('edit', (int) $ctx['sid']);
 			$input = $this->raw_json_input();
 			if (!is_array($input)) {
 				throw new Exception('JSON body required');
@@ -281,9 +343,6 @@ class Timeseries extends MY_REST_Controller {
 			}
 
 			$include_unique = $this->input->post('ensure_unique_index') !== '0';
-			$this->Timeseries_mongo_model->ensure_indexes((int) $ctx['dsd_id'], $include_unique);
-			$this->Timeseries_mongo_model->delete_observations_for_sid((int) $ctx['dsd_id'], (int) $ctx['sid']);
-			$this->_clear_value_counts_for_sid((int) $ctx['sid']);
 
 			$path = $_FILES['file']['tmp_name'];
 			$fh   = fopen($path, 'rb');
@@ -318,6 +377,19 @@ class Timeseries extends MY_REST_Controller {
 				$hint = $ignored_columns !== [] ? ' (ignored headers: ' . implode(', ', array_slice(array_values(array_unique($ignored_columns)), 0, 20)) . ')' : '';
 				throw new Exception('No CSV columns match a DSD field.' . $hint);
 			}
+			try {
+				$this->Timeseries_mongo_model->assert_csv_import_mapped_fields_cover_required_dsd(
+					array_values(array_unique(array_values($rename))),
+					$ctx['components']
+				);
+			} catch (Exception $e) {
+				fclose($fh);
+				throw $e;
+			}
+
+			$this->Timeseries_mongo_model->ensure_indexes((int) $ctx['dsd_id'], $include_unique);
+			$this->Timeseries_mongo_model->delete_observations_for_sid((int) $ctx['dsd_id'], (int) $ctx['sid']);
+			$this->_clear_value_counts_for_sid((int) $ctx['sid']);
 
 			// Same idea as tables API (Data_table_mongo_model::import_csv_chunked): stream fgetcsv and
 			// flush Mongo inserts in bounded batches so we never hold the whole file as documents in RAM.
@@ -426,6 +498,7 @@ class Timeseries extends MY_REST_Controller {
 	{
 		try {
 			$ctx    = $this->_context_from_idno($idno);
+			$this->has_dataset_access('edit', (int) $ctx['sid']);
 			$input  = $this->_optional_json_body();
 			$limit  = null;
 			if (isset($input['limit']) && $input['limit'] !== '') {
@@ -456,6 +529,7 @@ class Timeseries extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno($idno);
+			$this->has_dataset_access('view', (int) $ctx['sid']);
 			$dups = $this->Timeseries_mongo_model->find_duplicate_key_hashes((int) $ctx['dsd_id'], ['sid' => (int) $ctx['sid']]);
 			$this->set_response([
 				'status' => 'success',
@@ -473,9 +547,13 @@ class Timeseries extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno($idno);
+			$this->has_dataset_access('view', (int) $ctx['sid']);
 			$tsRow = $this->db->select('ts_dimensions, ts_sync_required')
 				->get_where('surveys', ['id' => (int) $ctx['sid']])
 				->row_array();
+			$csvFn = $this->Dataset_model->get_indicator_timeseries_import_csv_filename((int) $ctx['sid']);
+			$surveyFolder = $this->Catalog_model->get_survey_path_full((int) $ctx['sid']);
+			$csvPresent = $surveyFolder && $csvFn !== '' && is_file(unix_path($surveyFolder . '/' . $csvFn));
 			$this->set_response([
 				'status' => 'success',
 				'result' => [
@@ -487,6 +565,8 @@ class Timeseries extends MY_REST_Controller {
 					'collection'      => $this->Timeseries_mongo_model->get_collection_name((int) $ctx['dsd_id']),
 					'ts_dimensions' => $tsRow['ts_dimensions'] ?? null,
 					'ts_sync_required' => isset($tsRow['ts_sync_required']) ? (int) $tsRow['ts_sync_required'] : 0,
+					'indicator_import_csv_filename' => $csvFn !== '' ? $csvFn : null,
+					'indicator_import_csv_present'  => (bool) $csvPresent,
 				],
 			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {
@@ -501,6 +581,7 @@ class Timeseries extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno($idno);
+			$this->has_dataset_access('view', (int) $ctx['sid']);
 			$summary = $this->Timeseries_value_count_model->get_summary((int) $ctx['sid'], (int) $ctx['dsd_id']);
 			$this->set_response([
 				'status' => 'success',
@@ -522,6 +603,7 @@ class Timeseries extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno($idno);
+			$this->has_dataset_access('edit', (int) $ctx['sid']);
 			$inserted = $this->_sync_value_counts_for_context($ctx);
 			$this->set_response([
 				'status' => 'success',
@@ -546,6 +628,7 @@ class Timeseries extends MY_REST_Controller {
 	public function structure_indexes_post($dsd_id = null)
 	{
 		try {
+			$this->is_admin_or_die();
 			$dsd_id = (int) $dsd_id;
 			if ($dsd_id <= 0) {
 				throw new Exception('Invalid data structure id');
@@ -586,6 +669,16 @@ class Timeseries extends MY_REST_Controller {
 			$filter = [];
 			if (!empty($input['sid'])) {
 				$filter['sid'] = (int) $input['sid'];
+			}
+			if (!empty($filter['sid'])) {
+				$sidF = (int) $filter['sid'];
+				$this->has_dataset_access('edit', $sidF);
+				$rowS = $this->db->select('data_structure_id')->get_where('surveys', ['id' => $sidF])->row_array();
+				if (!$rowS || empty($rowS['data_structure_id']) || (int) $rowS['data_structure_id'] !== $dsd_id) {
+					throw new Exception('Study is not linked to this data structure');
+				}
+			} else {
+				$this->is_admin_or_die();
 			}
 			$limit = null;
 			if (isset($input['limit']) && $input['limit'] !== '') {
@@ -629,7 +722,15 @@ class Timeseries extends MY_REST_Controller {
 			$filter = [];
 			$sid = $this->input->get('sid');
 			if ($sid !== null && $sid !== '' && is_numeric($sid)) {
-				$filter['sid'] = (int) $sid;
+				$sidInt = (int) $sid;
+				$this->has_dataset_access('view', $sidInt);
+				$rowS = $this->db->select('data_structure_id')->get_where('surveys', ['id' => $sidInt])->row_array();
+				if (!$rowS || empty($rowS['data_structure_id']) || (int) $rowS['data_structure_id'] !== $dsd_id) {
+					throw new Exception('Study is not linked to this data structure');
+				}
+				$filter['sid'] = $sidInt;
+			} else {
+				$this->is_admin_or_die();
 			}
 			$dups = $this->Timeseries_mongo_model->find_duplicate_key_hashes($dsd_id, $filter);
 			$this->set_response([
@@ -647,6 +748,7 @@ class Timeseries extends MY_REST_Controller {
 	public function structure_stats_get($dsd_id = null)
 	{
 		try {
+			$this->is_admin_or_die();
 			$dsd_id = (int) $dsd_id;
 			if ($dsd_id <= 0) {
 				throw new Exception('Invalid data structure id');
@@ -767,6 +869,8 @@ class Timeseries extends MY_REST_Controller {
 
 	/**
 	 * Persist study→DSD link on {@see surveys} (same as attach-dsd).
+	 * When the linked structure id changes or the study is detached, indicator Mongo rows,
+	 * value-count cache, and the canonical import CSV file are removed for a consistent state.
 	 *
 	 * @param int $sid surveys.id
 	 * @param array{id:int,idno:string}|null $link null detaches
@@ -782,6 +886,14 @@ class Timeseries extends MY_REST_Controller {
 		if (!$row) {
 			throw new Exception('Study not found');
 		}
+		$oldDsdId = isset($row['data_structure_id']) && $row['data_structure_id'] !== null && $row['data_structure_id'] !== ''
+			? (int) $row['data_structure_id'] : 0;
+		$newDsdId = $link ? (int) $link['id'] : 0;
+
+		if ($oldDsdId !== $newDsdId) {
+			$this->_purge_indicator_timeseries_on_structure_unlink_or_switch($sid, $oldDsdId, $newDsdId, $link);
+		}
+
 		$metadata = is_array($row['metadata'] ?? null) ? $row['metadata'] : [];
 		if ($link === null) {
 			$metadata['data_structure_reference'] = null;
@@ -812,6 +924,74 @@ class Timeseries extends MY_REST_Controller {
 
 		$this->events->emit('db.after.update', 'surveys', $sid, 'refresh');
 		return $update;
+	}
+
+	/**
+	 * Remove Mongo observations, value-count rows, and on-disk import CSV when the study
+	 * switches or drops its linked DSD.
+	 *
+	 * @param int               $sid
+	 * @param int               $oldDsdId prior surveys.data_structure_id (0 if none)
+	 * @param int               $newDsdId target DSD id when linking (0 when detaching)
+	 * @param array|null        $link null when detaching
+	 */
+	private function _purge_indicator_timeseries_on_structure_unlink_or_switch($sid, $oldDsdId, $newDsdId, $link)
+	{
+		$sid = (int) $sid;
+		$oldDsdId = (int) $oldDsdId;
+		$newDsdId = (int) $newDsdId;
+
+		if ($oldDsdId > 0) {
+			try {
+				$this->Timeseries_mongo_model->delete_observations_for_sid($oldDsdId, $sid);
+			} catch (Exception $e) {
+				log_message('error', 'Indicator timeseries purge (old DSD ' . $oldDsdId . '): ' . $e->getMessage());
+			}
+		}
+
+		if ($link !== null && $newDsdId > 0 && $newDsdId !== $oldDsdId) {
+			try {
+				$this->Timeseries_mongo_model->delete_observations_for_sid($newDsdId, $sid);
+			} catch (Exception $e) {
+				log_message('error', 'Indicator timeseries purge (new DSD ' . $newDsdId . '): ' . $e->getMessage());
+			}
+		}
+
+		$this->_clear_value_counts_for_sid($sid);
+		$this->_unlink_indicator_timeseries_import_csv_and_legacy($sid);
+	}
+
+	/**
+	 * Delete canonical `{sid}_indicator_data.csv` and legacy `ts_csv_latest.csv` if present.
+	 *
+	 * @param int $sid
+	 */
+	private function _unlink_indicator_timeseries_import_csv_and_legacy($sid)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return;
+		}
+		$surveyFolder = $this->Catalog_model->get_survey_path_full($sid);
+		if ($surveyFolder === null || $surveyFolder === '' || !is_dir($surveyFolder)) {
+			return;
+		}
+		$surveyFolder = unix_path($surveyFolder);
+		$fn = $this->Dataset_model->get_indicator_timeseries_import_csv_filename($sid);
+		if ($fn !== '') {
+			$p = unix_path($surveyFolder . '/' . $fn);
+			if (is_file($p)) {
+				@unlink($p);
+			}
+		}
+		$ridno = trim((string) $this->config->item('timeseries_csv_resource_idno'));
+		if ($ridno === '') {
+			$ridno = 'ts_csv_latest';
+		}
+		$legacy = unix_path($surveyFolder . '/' . $ridno . '.csv');
+		if (is_file($legacy)) {
+			@unlink($legacy);
+		}
 	}
 
 	/**
@@ -922,7 +1102,8 @@ class Timeseries extends MY_REST_Controller {
 		if ($msg === 'IDNO-NOT-FOUND' || strpos($msg, 'not found') !== false) {
 			$code = REST_Controller::HTTP_NOT_FOUND;
 		}
-		if ($msg === 'ACCESS-DENIED') {
+		if ($msg === 'ACCESS-DENIED'
+			|| stripos($msg, 'Access denied for resource') !== false) {
 			$code = REST_Controller::HTTP_FORBIDDEN;
 		}
 		$this->set_response([
@@ -969,14 +1150,18 @@ class Timeseries extends MY_REST_Controller {
 			return null;
 		}
 		$surveyFolder = unix_path($surveyFolder);
-		$basename     = $ridno . '.csv';
+		$basename     = $this->Dataset_model->get_indicator_timeseries_import_csv_filename($sid);
+		if ($basename === '') {
+			log_message('error', 'Timeseries CSV resource: invalid sid for filename');
+			return null;
+		}
 		$destFull     = unix_path($surveyFolder . '/' . $basename);
 		if (!@copy($tmpPath, $destFull)) {
 			log_message('error', 'Timeseries CSV resource: copy to survey folder failed');
 			return null;
 		}
 
-		$title = 'Indicator timeseries CSV (latest)';
+		$title = 'Indicator timeseries data (CSV)';
 		$meta  = $this->Survey_resource_model->get_file_metadata($sid, $basename);
 
 		$options = [

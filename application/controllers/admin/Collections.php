@@ -32,14 +32,9 @@ class Collections extends MY_Controller {
 	{
 		$this->template->set_template('admin5');
 
-		//set filter on active repo
-		if (isset($this->active_repo) && $this->active_repo!=null){
-			$this->Catalog_model->active_repo=$this->active_repo->repositoryid;
-		}
+		$this->_require_admin_catalog_access();
 
-		$this->acl_manager->has_access_or_die('study', 'view',null,$this->active_repo->repositoryid);
-
-		// Vue 3 admin catalog: config for the frontend (Vite/Vue 3)
+		// Vue collections page: access is enforced via api/admin/collections and scope; no active_repo.
 		// assets_base is the URL base for frontend/dist (from PHP base_url)
 		$this->load->helper('vite_helper');
 		$collections_view_data = [

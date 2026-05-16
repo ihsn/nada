@@ -16,11 +16,15 @@ class Resources extends MY_REST_Controller
 
 
 	/**
-	 * 
-	 * 
-	 * Get all resources by Dataset
-	 * 
-	 * 
+	 * List resources for a study.
+	 *
+	 * Query parameters:
+	 * - `dctype` — optional filter for get_resources_by_type; if omitted, all resources.
+	 * - `sort_by` — title|dctype|changed|created|resource_id|filename (default title)
+	 * - `sort_order` — asc|desc (default asc)
+	 * - `id_format` — pass `id` when the study ref in the URL is numeric surveys.id
+	 *
+	 * Each row includes `file_exists` (local file or URL target) and `dataset_idno`.
 	 */
 	function index_get($idno=null,$resource_id=null)
 	{	
@@ -33,18 +37,48 @@ class Resources extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($idno);
 			//$this->has_dataset_access('view',$sid);
 
-			$dctype=$this->input->get("dctype");
-			$resources=$this->Survey_resource_model->get_resources_by_type($sid,$dctype);
+			$dctype_raw = $this->input->get('dctype');
+			$dctype = is_string($dctype_raw) ? trim($dctype_raw) : $dctype_raw;
+			if ($dctype !== null && $dctype !== false && $dctype !== '') {
+				$resources = $this->Survey_resource_model->get_resources_by_type($sid, $dctype);
+			} else {
+				$resources = $this->Survey_resource_model->get_survey_resources($sid);
+				$idno_row = $this->db->select('idno')->where('id', (int) $sid)->get('surveys')->row_array();
+				$dataset_idno = isset($idno_row['idno']) ? $idno_row['idno'] : '';
+				foreach ($resources as $k => $row) {
+					$resources[$k]['dataset_idno'] = $dataset_idno;
+					$resources[$k]['is_microdata'] = $this->Survey_resource_model->is_microdata_resource_type(
+						isset($row['resource_type']) ? $row['resource_type'] : null
+					)
+						? true
+						: $this->Survey_resource_model->is_microdata_resource(isset($row['dctype']) ? $row['dctype'] : '');
+				}
+			}
+
+			$sort_by_raw = $this->input->get('sort_by');
+			$sort_order_raw = $this->input->get('sort_order');
+			$sort_by = is_string($sort_by_raw) ? trim($sort_by_raw) : '';
+			$sort_order = is_string($sort_order_raw) ? trim($sort_order_raw) : '';
+			$this->Survey_resource_model->sort_resources_result($resources, $sort_by !== '' ? $sort_by : null, $sort_order !== '' ? $sort_order : null);
+
 			array_walk($resources, 'unix_date_to_gmt',array('created','changed'));
+
+			$this->Survey_resource_model->enrich_resources_file_exists($sid, $resources);
 
 			if($resources){
 				$resources=$this->Survey_resource_model->generate_api_download_link($resources);
 			}
 
+			$allowed_sort = array('title', 'dctype', 'changed', 'created', 'resource_id', 'filename');
+			$sort_effective = ($sort_by !== '' && in_array($sort_by, $allowed_sort, true)) ? $sort_by : 'title';
+			$order_effective = (strtolower((string) $sort_order) === 'desc') ? 'desc' : 'asc';
+
 			$response=array(
 				'status'	=> 'success',
 				'total'		=> count($resources),
-				'resources'	=> $resources
+				'resources'	=> $resources,
+				'sort_by'	=> $sort_effective,
+				'sort_order'	=> $order_effective,
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -402,7 +436,25 @@ class Resources extends MY_REST_Controller
 		}
 	}
 
-	public function delete_all_post($idno=null){
+	public function delete_all_post($idno=null)
+	{
+		$raw = $this->input->raw_input_stream;
+		$confirm = false;
+		if (is_string($raw) && trim($raw) !== '') {
+			$j = json_decode($raw, true);
+			if (is_array($j) && ! empty($j['confirm'])) {
+				$c = $j['confirm'];
+				$confirm = ($c === true || $c === 1 || $c === '1' || $c === 'DELETE_ALL_RESOURCES');
+			}
+		}
+		if (! $confirm) {
+			$this->set_response(
+				array('status' => 'failed', 'message' => 'CONFIRM_REQUIRED: send JSON body {"confirm":true} to delete all resources'),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+			return;
+		}
+
 		return $this->delete_all_delete($idno);
 	}
 
@@ -460,6 +512,14 @@ class Resources extends MY_REST_Controller
 		catch(Exception $e){
 			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * POST alias for {@see fix_links_put()} when PUT cannot be sent.
+	 */
+	function fix_links_post($idno = null)
+	{
+		$this->fix_links_put($idno);
 	}
 
 
@@ -532,6 +592,10 @@ class Resources extends MY_REST_Controller
 			if(!isset($options['idno_list'])){
 				throw new Exception("Param required: idno_list");
 			}
+			if (! is_array($options['idno_list'])) {
+				throw new Exception('idno_list must be an array');
+			}
+			$this->assert_idno_list_has_dataset_view($options['idno_list']);
 
 			$links_generator=$this->Survey_resource_model->get_download_links($options['idno_list']);
 
@@ -548,10 +612,14 @@ class Resources extends MY_REST_Controller
 				$enclosure = '"';				
 
 				$fp = fopen("php://output", 'w');
-				fputcsv($fp,array_keys($links[0]),$delimiter,$enclosure);
+				if (! empty($links)) {
+					fputcsv($fp,array_keys($links[0]),$delimiter,$enclosure);
 
-				foreach ($links as $fields) {
-					fputcsv($fp, $fields,$delimiter,$enclosure);
+					foreach ($links as $fields) {
+						fputcsv($fp, $fields,$delimiter,$enclosure);
+					}
+				} else {
+					fputcsv($fp, array('idno', 'link'), $delimiter, $enclosure);
 				}
 
 				fclose($fp);
@@ -564,6 +632,10 @@ class Resources extends MY_REST_Controller
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);			
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
 		}
 		catch(Exception $e){
 			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);

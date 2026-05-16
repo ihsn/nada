@@ -29,20 +29,10 @@ body.admin-vue-body {
   background-color: #f0f2f5;
 }
 
-/* Shared page gutter + space below default (PHP) breadcrumbs — all layouts/admin_vue pages */
+/* Shared page gutter — layouts/admin_vue pages */
 .admin-vue-shell > div {
   padding: 24px 12px 24px;
   box-sizing: border-box;
-}
-
-.admin-vue-breadcrumb {
-  margin: 0 0 1.25rem 0;
-  color: #666;
-  font-size: 14px;
-}
-.admin-vue-breadcrumb a {
-  color: #1976d2;
-  text-decoration: none;
 }
 .sub-header {
   background: #f1f1f1;

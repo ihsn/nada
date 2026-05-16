@@ -580,10 +580,8 @@ class Search_helper_model extends CI_Model {
 	 */
 	function get_active_data_classifications($repositoryid=null)
 	{
-		$this->config->load('data_access');
-		$data_classifications_enabled=(bool)$this->config->item("data_classifications_enabled");
-
-		if($data_classifications_enabled==false){
+		$this->load->model('Configurations_model');
+		if (! $this->Configurations_model->is_data_classifications_enabled()) {
 			return false;
 		}
 		

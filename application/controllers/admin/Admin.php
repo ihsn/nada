@@ -25,7 +25,7 @@ class Admin extends MY_Controller {
         $page = array(
             'title'             => t('Dashboard'),
             'content'           => $this->load->view('dashboard/index', $inner, true),
-            'hide_breadcrumb'   => true,
+            'hide_breadcrumb'   => false,
             'theme_folder'      => 'adminvue',
         );
 

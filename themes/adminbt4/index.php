@@ -22,8 +22,13 @@ if ($languages!==FALSE)
 	}
 }
 
-$this->load->helper('site_menu');
-$site_navigation_menu=get_site_menu();
+$this->load->library('site_menu');
+$this->load->helper('vite_helper');
+// site_menu is attached to the controller (get_instance()), not to $this in this view — $this is CI_Loader
+$CI =& get_instance();
+$admin_header_config = $CI->site_menu->get_admin_header_config();
+$vite_dev_url_header = defined('VITE_DEV_URL') ? VITE_DEV_URL : 'http://localhost:5173';
+$use_vite_dev_header = defined('VUE_ENVIRONMENT') && VUE_ENVIRONMENT === 'development';
 ?>
 <!DOCTYPE html>
 <html>
@@ -44,7 +49,7 @@ $site_navigation_menu=get_site_menu();
     <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
 
-    <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/custom.css?v=bt4" rel="stylesheet">
+    <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/custom.css?v=bt5" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/style.css?v=3">
     
 
@@ -58,33 +63,6 @@ $site_navigation_menu=get_site_menu();
 
 
     <style>
-      .dropdown-submenu {
-        position: relative;
-      }
-
-      .dropdown-submenu>.dropdown-menu {
-        top: 0;
-        left: 100%;
-      }
-      .dropdown-submenu ul{
-        max-height:550px;
-        overflow-y: scroll;
-      }
-
-      .dropdown-submenu ul li > a{
-        border-bottom:1px solid gainsboro;
-      }
-
-      .dropdown-menu > li > a {
-          display: block;
-          padding: 3px 20px;
-          clear: both;
-          font-weight: normal;
-          line-height: 1.42857143;
-          color: #333333;
-          white-space: nowrap;
-      }
-
       .sub-header {
           background: #F1F1F1;
           background: -webkit-gradient(radial, 100 36, 0, 100 -40, 120, from(#FAFAFA), to(#F1F1F1)), #F1F1F1;
@@ -92,24 +70,9 @@ $site_navigation_menu=get_site_menu();
           border-color: #E5E5E5;
           height: 100px;
           width: 100%;
-          margin-top: -10px;
           margin-bottom: 20px;
           padding: 10px 25px
       }
-
-
-      .nada-site-admin-nav .nav > li > a {
-          position: relative;
-          display: block;
-          padding: 10px 15px;
-          color:white;
-          font-size:14px;
-      }
-
-  /*.navbar-inverse .navbar-nav > .show > a, .navbar-inverse .navbar-nav > .show > a:hover, .navbar-inverse .navbar-nav > .show > a:focus {
-      background-color: #080808;
-      color: #ffffff;
-  }*/
     </style>
 
     <script>
@@ -122,72 +85,23 @@ $site_navigation_menu=get_site_menu();
       });
     });
 
-    $(function() {
-      $("ul.dropdown-menu [data-toggle='dropdown']").on("click", function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        
-        //method 1: remove show from sibilings and their children under your first parent
-        
-    /* 		if (!$(this).next().hasClass('show')) {
-              
-                $(this).parents('.dropdown-menu').first().find('.show').removeClass('show');
-            }  */     
-        
-        
-        //method 2: remove show from all siblings of all your parents
-        $(this).parents('.dropdown-submenu').siblings().find('.show').removeClass("show");
-        
-        $(this).siblings().toggleClass("show");
-        
-        
-        //collapse all after nav is closed
-        $(this).parents('li.nav-item.dropdown.show').on('hidden.bs.dropdown', function(e) {
-          $('.dropdown-submenu .show').removeClass("show");
-        });
-
-      });
-    });
     </script>
 
 </head>
 <body>
 
-
-<nav class="navbar navbar-inverse navbar-expand-lg navbar-secondary bg-dark nada-site-admin-nav">  
-  <a class="navbar-brand site-title" href="<?php echo site_url();?>/admin">NADA <?php echo APP_VERSION;?></a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
-      <?php echo $site_navigation_menu;?>      
-    </ul>
-    <ul class="nav navbar-nav navbar-right float-right pull-right">
-      <li class="divider-vertical"></li>
-      <li class="dropdown">
-      <?php $user=strtoupper($this->session->userdata('username'));?>
-      <?php if ($user):?>
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo $user;?> <b class="caret"></b></a>
-        <ul class="dropdown-menu">
-          <?php if ($this->session->userdata('impersonate_user')):?>
-              <li><?php echo anchor('admin/users/exit_impersonate',t('exit_impersonate'));?></li>  
-            <?php endif;?>
-          <li><?php echo anchor('auth/change_password',t('change_password'));?></li>
-          <li><?php echo anchor('auth/logout',t('logout'));?></li>
-          <li class="divider"></li>
-          <li><a target="_blank" href="<?php echo site_url();?>"><?php echo t('home');?></a></li>
-          <li><a  target="_blank" href="<?php echo site_url('catalog');?>"><?php echo t('data_catalog');?></a></li>
-          <li><a  target="_blank" href="<?php echo site_url('citations');?>"><?php echo t('citations');?></a></li>
-        </ul>
-        <?php endif;?>
-      </li>
-    </ul>
-</nav>
+<script>
+window.ADMIN_HEADER_CONFIG = <?php echo json_encode($admin_header_config, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;
+</script>
+<div id="admin-app-header"></div>
+<?php if ($use_vite_dev_header): ?>
+<?php echo render_vite_dev_scripts('admin/header/main.js', $vite_dev_url_header); ?>
+<?php else: ?>
+<?php echo render_vite_entry_assets('admin_header', 'frontend/dist'); ?>
+<?php endif; ?>
 
 
-
+<div class="admin-bt4-below-fixed-header">
 <?php if(isset($collection)):?>
 <div class="sub-header" > <?php echo $collection;?></div>
 <?php endif;?>
@@ -212,5 +126,7 @@ $site_navigation_menu=get_site_menu();
         </div>
     </div>    
     
+</div>
+
   </body>
 </html>

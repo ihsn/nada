@@ -1,29 +1,62 @@
 <template>
-  <div class="admin-dashboard-page bg-grey-lighten-5">
+  <div class="admin-dashboard-page">
     <v-container fluid class="px-4 pt-2 pb-4">
+        <h1 class="admin-dashboard-page__title text-h5 font-weight-medium mb-4">
+          {{ pageTitle }}
+        </h1>
 
         <!-- Error -->
         <v-alert v-if="error" type="error" density="compact" variant="tinted" closable class="mb-4">
           {{ error }}
         </v-alert>
 
-        <!-- Loading -->
-        <div v-if="loading" class="text-center py-12">
-          <v-progress-circular indeterminate color="primary" size="48" />
-          <div class="mt-3 text-medium-emphasis">Loading dashboard…</div>
-        </div>
+        <!-- Loading: summary skeleton + spinner -->
+        <template v-if="loading">
+          <v-row>
+            <v-col cols="12">
+              <div class="dashboard-summary-grid mb-4">
+                <v-skeleton-loader
+                  v-for="n in 4"
+                  :key="'sk-' + n"
+                  type="image"
+                  height="132"
+                  class="rounded-lg"
+                />
+              </div>
+              <div class="text-center py-8">
+                <v-progress-circular indeterminate color="primary" size="48" />
+                <div class="mt-3 text-medium-emphasis">Loading dashboard…</div>
+              </div>
+            </v-col>
+          </v-row>
+        </template>
 
         <template v-if="!loading && stats">
           <v-row>
-            <!-- Left column: Recently modified studies + Catalog + Collections -->
+            <!-- Left column: summary + Recently modified studies + License requests -->
             <v-col cols="12" md="8">
 
               <div class="dashboard-left-stack">
+              <DashboardSummaryCards
+                :site-url="siteUrl"
+                :stats="stats"
+                :translations="summaryTranslations"
+              />
+
               <v-card class="dashboard-card">
                 <v-card-title class="dashboard-card-title d-flex align-center flex-wrap ga-2">
-                  <span class="d-flex align-center ga-2">
-                    <v-icon size="large" color="primary">mdi-history</v-icon>
+                  <span class="d-flex align-center ga-2 flex-wrap">
+                    <v-icon color="primary">mdi-history</v-icon>
                     Recently modified studies
+                    <v-chip
+                      v-if="(stats.recent_studies || []).length"
+                      size="x-small"
+                      color="primary"
+                      variant="tonal"
+                      class="font-weight-medium"
+                    >
+                      {{ (stats.recent_studies || []).length }}
+                    </v-chip>
                   </span>
                   <v-spacer />
                   <div class="d-flex flex-wrap align-center justify-end ga-1">
@@ -48,59 +81,56 @@
                   </div>
                 </v-card-title>
                 <v-divider />
-                <v-card-text>
+                <v-card-text class="recent-studies-card-text pa-0">
                   <RecentStudies :studies="stats.recent_studies || []" :site-url="siteUrl" />
                 </v-card-text>
               </v-card>
 
               <v-card class="dashboard-card">
                 <v-card-title class="dashboard-card-title d-flex align-center flex-wrap ga-2">
-                  <span class="d-flex align-center ga-2">
-                    <v-icon size="large" color="primary">mdi-book-open-variant</v-icon>
-                    Catalog
-                  </span>
-                  <v-spacer />
-                  <v-btn size="small" variant="text" color="primary" :href="siteUrl + '/admin/catalog'" prepend-icon="mdi-cog">
-                    Manage
-                  </v-btn>
-                </v-card-title>
-                <v-divider />
-                <v-card-text>
-                  <CatalogStats :catalog="stats.catalog" />
-                </v-card-text>
-              </v-card>
-
-              <v-card class="dashboard-card">
-                <v-card-title class="dashboard-card-title d-flex align-center flex-wrap ga-2">
                   <span class="d-flex align-center ga-2 flex-wrap">
-                    <v-icon size="large" color="primary">mdi-folder-multiple</v-icon>
-                    Collections
-                    <v-chip size="x-small" color="primary" variant="outlined">
-                      {{ stats.collections?.length ?? 0 }}
+                    <v-icon color="primary">mdi-file-document-outline</v-icon>
+                    License Requests
+                    <v-chip
+                      v-if="(stats.license_requests?.pending ?? 0) > 0"
+                      size="x-small"
+                      color="error"
+                      variant="tonal"
+                      class="font-weight-medium"
+                    >
+                      {{ stats.license_requests?.pending }}
                     </v-chip>
                   </span>
                   <v-spacer />
-                  <v-btn size="small" variant="text" color="primary" :href="siteUrl + '/admin/collections'" prepend-icon="mdi-cog">
-                    Manage
-                  </v-btn>
+                  <div class="d-flex flex-wrap align-center justify-end ga-1">
+                    <v-btn
+                      size="small"
+                      variant="text"
+                      color="primary"
+                      :href="siteUrl + '/admin/licensed_requests'"
+                      prepend-icon="mdi-arrow-right"
+                    >
+                      View All
+                    </v-btn>
+                  </div>
                 </v-card-title>
                 <v-divider />
-                <v-card-text>
-                  <CollectionsTable :collections="stats.collections || []" :site-url="siteUrl" />
+                <v-card-text class="recent-studies-card-text pa-0">
+                  <LicenseRequestsPanel :license-requests="stats.license_requests" :site-url="siteUrl" />
                 </v-card-text>
               </v-card>
               </div>
 
             </v-col>
 
-            <!-- Right column: Users + System Health + License Requests -->
+            <!-- Right column: Users + System Health -->
             <v-col cols="12" md="4">
 
               <div class="dashboard-right-stack">
               <v-card class="dashboard-card">
                 <v-card-title class="dashboard-card-title d-flex align-center flex-wrap ga-2">
                   <span class="d-flex align-center ga-2 flex-wrap">
-                    <v-icon size="large" color="primary">mdi-account-group</v-icon>
+                    <v-icon color="primary">mdi-account-group</v-icon>
                     Users
                     <v-chip size="x-small" color="primary" variant="outlined">
                       {{ stats.users?.total?.toLocaleString() ?? '…' }} total
@@ -126,36 +156,13 @@
               <v-card class="dashboard-card">
                 <v-card-title class="dashboard-card-title d-flex align-center ga-2">
                   <span class="d-flex align-center ga-2">
-                    <v-icon size="large" color="primary">mdi-monitor-dashboard</v-icon>
+                    <v-icon color="primary">mdi-monitor-dashboard</v-icon>
                     System Health
                   </span>
                 </v-card-title>
                 <v-divider />
                 <v-card-text class="pa-4">
                   <LogsHealth :logs-health="stats.logs_health" :server-info="stats.server_info" :site-url="siteUrl" />
-                </v-card-text>
-              </v-card>
-
-              <v-card class="dashboard-card">
-                <v-card-title class="dashboard-card-title d-flex align-center flex-wrap ga-2">
-                  <span class="d-flex align-center ga-2 flex-wrap">
-                    <v-icon size="large" color="orange-darken-2">mdi-file-document-outline</v-icon>
-                    License Requests
-                    <v-chip
-                      size="x-small"
-                      :color="stats.license_requests?.pending > 0 ? 'error' : 'success'"
-                    >
-                      {{ stats.license_requests?.pending ?? 0 }} pending
-                    </v-chip>
-                  </span>
-                  <v-spacer />
-                  <v-btn size="small" variant="text" color="primary" :href="siteUrl + '/admin/licensed_requests'" prepend-icon="mdi-arrow-right">
-                    View All
-                  </v-btn>
-                </v-card-title>
-                <v-divider />
-                <v-card-text class="pa-0">
-                  <LicenseRequestsPanel :license-requests="stats.license_requests" :site-url="siteUrl" />
                 </v-card-text>
               </v-card>
               </div>
@@ -169,17 +176,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed, inject } from 'vue';
 import { useDashboardApi } from './composables/useDashboardApi';
-import { useAppConfig } from '@/shared/composables/useAppConfig';
-import CatalogStats from './components/CatalogStats.vue';
-import CollectionsTable from './components/CollectionsTable.vue';
+import { useAppConfig, APP_CONFIG_KEY } from '@/shared/composables/useAppConfig';
 import LicenseRequestsPanel from './components/LicenseRequestsPanel.vue';
 import UsersPanel from './components/UsersPanel.vue';
 import LogsHealth from './components/LogsHealth.vue';
 import RecentStudies from './components/RecentStudies.vue';
+import DashboardSummaryCards from './components/DashboardSummaryCards.vue';
 
 const { siteUrl } = useAppConfig();
+const appConfig = inject(APP_CONFIG_KEY, {});
+const pageTitle = computed(() => appConfig?.translations?.dashboard ?? 'Dashboard');
+const summaryTranslations = computed(() => appConfig?.translations ?? {});
 const { loading, error, loadStats } = useDashboardApi();
 const stats = ref(null);
 
@@ -190,7 +199,6 @@ onMounted(async () => {
 
 <style scoped>
 .admin-dashboard-page {
-  /* Fill viewport below fixed admin bar (~64px + shell offset); subtle grey from bg-grey-lighten-5 */
   min-height: calc(100vh - 5rem);
 }
 </style>
@@ -204,11 +212,21 @@ onMounted(async () => {
   gap: 1.5rem;
 }
 .dashboard-card .dashboard-card-title {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  line-height: 1.45;
-  padding: 16px 20px;
-  min-height: 0;
+  letter-spacing: 0.015em;
+  line-height: 1.4;
+  padding: 12px 16px !important;
+  min-height: 0 !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgb(241, 245, 249) 100%
+  );
+}
+
+.dashboard-card .dashboard-card-title :deep(.v-btn) {
+  font-size: 0.8125rem;
 }
 
 .dashboard-card {
@@ -216,5 +234,27 @@ onMounted(async () => {
 }
 .dashboard-card:hover {
   box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
+}
+
+/* Summary stat strip: responsive columns (1 → 2 → 4) for narrow viewports & left column width. */
+.dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+@media (min-width: 520px) {
+  .dashboard-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+@media (min-width: 1180px) {
+  .dashboard-summary-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 </style>

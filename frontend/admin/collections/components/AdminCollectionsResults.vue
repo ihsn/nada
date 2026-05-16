@@ -57,8 +57,9 @@
           <v-list-item
             prepend-icon="mdi-cog-outline"
             title="Manage studies"
-            :href="siteUrl + '/admin/repositories/active/' + item.id"
+            :href="siteUrl + '/admin/collections/active/' + item.id"
           />
+          <v-list-item prepend-icon="mdi-account-key" title="Permissions" @click="goPermissions(item)" />
           <v-divider />
           <v-list-item prepend-icon="mdi-delete" title="Delete" base-color="error" @click="$emit('delete', item)" />
         </v-list>
@@ -72,11 +73,17 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 
 defineOptions({ name: 'AdminCollectionsResults' });
 
+const router = useRouter();
 const { baseUrl, siteUrl } = useAppConfig();
+
+function goPermissions(item) {
+  router.push({ name: 'collection-permissions', params: { repositoryId: String(item.id) } });
+}
 
 defineProps({
   collections: { type: Array, default: () => [] },

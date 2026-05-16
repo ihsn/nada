@@ -6,5 +6,5 @@
     <a href="<?php echo site_url('admin/permissions/roles');?>" class="btn btn-default">
       <i class="fa fa-users" aria-hidden="true"></i>       
       <?php echo t('User Roles');?>
-    </a> 
+    </a>
   </div>

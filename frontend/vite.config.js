@@ -27,6 +27,7 @@ export default defineConfig(({ command }) => {
       manifest: true,
       rollupOptions: {
         input: {
+          admin_header: path.resolve(__dirname, 'admin/header/main.js'),
           admin_dashboard: path.resolve(__dirname, 'admin/dashboard/main.js'),
           admin_catalog: path.resolve(__dirname, 'admin/catalog/main.js'),
           admin_catalog_study_overview: path.resolve(__dirname, 'admin/catalog_study_overview/main.js'),
@@ -35,6 +36,7 @@ export default defineConfig(({ command }) => {
           admin_catalog_study_citations: path.resolve(__dirname, 'admin/catalog_study_citations/main.js'),
           admin_catalog_study_notes: path.resolve(__dirname, 'admin/catalog_study_notes/main.js'),
           admin_catalog_study_related_data: path.resolve(__dirname, 'admin/catalog_study_related_data/main.js'),
+          admin_catalog_study_analytics: path.resolve(__dirname, 'admin/catalog_study_analytics/main.js'),
           admin_catalog_study_sidebar: path.resolve(__dirname, 'admin/catalog_study_sidebar/main.js'),
           admin_catalog_study_edit_breadcrumbs: path.resolve(__dirname, 'admin/catalog_study_edit_breadcrumbs/main.js'),
           admin_licensed_requests: path.resolve(__dirname, 'admin/licensed_requests/main.js'),

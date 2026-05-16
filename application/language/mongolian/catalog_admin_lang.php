@@ -1,5 +1,6 @@
 <?php
 $lang['catalog_maintenance'] = "Catalog Maintenance";
+$lang['admin_add_study_title'] = "Add study";
 $lang['upload_ddi'] = "Upload DDI";
 $lang['upload_ddi_hover'] = "Upload a DDI file";
 $lang['import_ddi'] = "Import DDI";
@@ -19,6 +20,7 @@ $lang['folder'] = "Folder";
 $lang['file_manager'] = "File Manager";
 $lang['resource_manager'] = "Resource Manager";
 $lang['browse_metadata'] = "Browse Metadata";
+$lang['preview_study'] = "Preview study";
 $lang['share_ddi_w_harvester'] = "Share DDI with Harvester?";
 
 //upload ddi
@@ -39,6 +41,7 @@ $lang['import_completed'] = "Import completed!";
 $lang['indicator_database'] = "Indicator database";
 $lang['study_website'] = "Study website";
 $lang['catalog_home'] = "Catalog Home";
+$lang['catalog_crumb'] = "Catalog";
 
 
 $lang['ddi_import_success'] = "The DDI was imported successfully!";
@@ -49,5 +52,7 @@ $lang['click_to_return_to_catalog_page'] = "Click here to return to the Catalog 
 $lang['rdf_export'] = "Export RDF";
 $lang['select_number_of_records_per_page'] = "Select number of records to show per page";
 $lang['tab_timeseries_data'] = "Indicator data";
+$lang['attach_citations'] = "Attach citations";
+$lang['manage_citations_legacy_page'] = "Manage in legacy";
 /* End of file menu_lang.php */
 /* Location: ./system/language/urdu/menu_lang.php */

@@ -19,7 +19,8 @@ class Uploads extends MY_REST_Controller
 	{
 		parent::__construct();
 		$this->load->library('Resumable_upload', null, 'uploader');
-		$this->is_admin_or_die();
+		// Authenticated catalog editors use resumable uploads (not necessarily site admins).
+		$this->is_authenticated_or_die();
 	}
 	
 	/**
@@ -63,7 +64,14 @@ class Uploads extends MY_REST_Controller
 			}
 			
 			$metadata = isset($input['metadata']) ? $input['metadata'] : array();
-			
+			if (! is_array($metadata)) {
+				$metadata = array();
+			}
+			$uid = $this->get_api_user_id();
+			if ($uid) {
+				$metadata['_upload_owner_user_id'] = (int) $uid;
+			}
+
 			// Initialize upload
 			$upload_id = $this->uploader->init_upload(
 				$input['filename'],
@@ -521,7 +529,12 @@ class Uploads extends MY_REST_Controller
 				$metadata = $metadata_input;
 			}
 		}
-		
+
+		$uid = $this->get_api_user_id();
+		if ($uid) {
+			$metadata['_upload_owner_user_id'] = (int) $uid;
+		}
+
 		// Initialize upload
 		$upload_id = $this->uploader->init_upload(
 			$filename,
