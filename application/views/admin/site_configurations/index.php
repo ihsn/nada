@@ -12,8 +12,8 @@ window.APP_CONFIG = {
     apiBaseUrl: "<?php echo addslashes($api_base_url); ?>",
     assetsBase: "<?php echo addslashes(isset($assets_base) ? $assets_base : base_url('frontend/dist/')); ?>",
     csrfToken: "<?php echo addslashes($csrf_token); ?>",
-    translations: <?php echo json_encode(isset($translations) ? $translations : array(), JSON_HEX_APOS | JSON_UNESCAPED_UNICODE); ?>,
-    ui: <?php echo json_encode(isset($ui) ? $ui : array(), JSON_HEX_APOS | JSON_UNESCAPED_UNICODE); ?>
+    translations: <?php echo json_encode(isset($translations) ? $translations : array(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>,
+    ui: <?php echo json_encode(isset($ui) ? $ui : array(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>
 };
 </script>
 <?php if ($use_vite_dev): ?>

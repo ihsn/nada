@@ -47,6 +47,7 @@ export default defineConfig(({ command }) => {
           admin_study_timeseries_data: path.resolve(__dirname, 'admin/study_timeseries_data/main.js'),
           catalog_study_indicator_data: path.resolve(__dirname, 'catalog/study_indicator_data_public/main.js'),
           admin_collections: path.resolve(__dirname, 'admin/collections/main.js'),
+          admin_site_configurations: path.resolve(__dirname, 'admin/site_configurations/main.js'),
           admin_ui_kit: path.resolve(__dirname, 'admin/ui_kit/main.js'),
           admin_test: path.resolve(__dirname, 'admin/test/main.js'),
           catalog_search: path.resolve(__dirname, 'catalog-search/main.js'),
