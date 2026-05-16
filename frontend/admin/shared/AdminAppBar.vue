@@ -196,4 +196,20 @@ const drawer = ref(false);
 .admin-app-bar-brand :deep(.text-medium-emphasis) {
   color: rgba(255, 255, 255, 0.75) !important;
 }
+
+/*
+ * Vuetify 3: .v-btn--variant-text uses color:inherit from .v-toolbar (theme on-surface = dark).
+ * Utilities like .text-white may live only in the shared Vite CSS chunk — keep nav readable in prod.
+ */
+.admin-app-bar.v-toolbar {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.admin-app-bar :deep(.admin-nav-btn.v-btn--variant-text) {
+  color: #fff !important;
+}
+
+.admin-app-bar :deep(.admin-app-bar-brand a) {
+  color: #fff !important;
+}
 </style>
