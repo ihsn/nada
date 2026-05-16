@@ -14,7 +14,7 @@ window.APP_CONFIG = {
     csrfToken: "<?php echo addslashes($csrf_token); ?>",
     csrfTokenName: "<?php echo addslashes(isset($csrf_token_name) ? $csrf_token_name : 'ncsrf'); ?>",
     routerPathBase: "<?php echo addslashes(isset($router_path_base) ? $router_path_base : ''); ?>",
-    translations: <?php echo json_encode($translations, JSON_HEX_APOS); ?>
+    translations: <?php echo json_encode($translations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>
 };
 </script>
 <?php if ($use_vite_dev): ?>
