@@ -42,3 +42,23 @@ body.admin-vue-body {
   margin: 0 0 1.25rem 0;
   padding: 10px 25px;
 }
+
+/*
+ * Admin Vue header (#admin-app-header): Vuetify sets toolbar text color from the light theme’s
+ * on-surface (dark), while the bar background is a custom dark color. Text buttons use
+ * color:inherit, so nav labels turn black. Utility classes like .text-white live in the shared
+ * Vite CSS chunk — if that file is missing or blocked on a host, the bar breaks. These rules are
+ * unlayered so they win over @layer vuetify-components without relying on utility CSS.
+ */
+#admin-app-header .admin-app-bar.v-toolbar {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+#admin-app-header .admin-app-bar .v-btn--variant-text.admin-nav-btn,
+#admin-app-header .admin-app-bar .admin-app-bar-brand a {
+  color: #fff !important;
+}
+
+#admin-app-header .admin-app-bar .v-toolbar-title a .text-medium-emphasis {
+  color: rgba(255, 255, 255, 0.75) !important;
+}

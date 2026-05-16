@@ -46,6 +46,28 @@
   background-color: transparent !important;
 }
 
+/*
+ * Sidebar status buttons: in production builds, @layer vuetify-components (.v-btn--variant-elevated
+ * { background: surface }) can win over @layer utilities (.bg-success), so Published/Draft look white.
+ * Unlayered rules (same approach as #admin-app-header in shell.css).
+ */
+.study-edit-page #catalog-study-sidebar-app .csb-btn-publish--published.v-btn {
+  background: #4caf50 !important;
+  background-color: #4caf50 !important;
+  color: #fff !important;
+}
+
+.study-edit-page #catalog-study-sidebar-app .csb-btn-publish--draft.v-btn {
+  background: #ffc107 !important;
+  background-color: #ffc107 !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.study-edit-page #catalog-study-sidebar-app .csb-btn-delete.v-btn {
+  background-color: rgba(244, 67, 54, 0.12) !important;
+  color: #c62828 !important;
+}
+
 /* ---- Bootstrap-like grid (fluid row + columns) ---- */
 .study-edit-page .row {
   display: flex;
@@ -209,6 +231,62 @@
 
 .study-edit-page .badge-light {
   background-color: #5bc0de;
+}
+
+/* Tab counts from GET …/summary — hidden until a positive count is applied */
+.study-edit-page .study-edit-tab-badge[aria-hidden="true"] {
+  display: none !important;
+}
+
+/* Metadata tab — match other study tabs (white panel + padding) */
+.study-edit-page .study-tab-container--metadata {
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 1.5rem 1.25rem 2rem;
+  box-sizing: border-box;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab {
+  margin: 0;
+  background-color: #fff;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab #app,
+.study-edit-page .study-metadata-editor-embed--tab #body-row,
+.study-edit-page .study-metadata-editor-embed--tab .main-content {
+  background-color: #fff;
+}
+
+.study-edit-page .study-metadata-editor-embed #app {
+  min-height: 480px;
+}
+
+.study-edit-page .study-metadata-editor-embed #sidebar-container {
+  display: none !important;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab > .border-bottom,
+.study-edit-page .study-metadata-editor-embed--tab .border-bottom.py-2 {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab .metadata-form-container .field-type-section {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: none !important;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab .form-section {
+  background: #f6f8fa;
+  color: #1a1a1a;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab .grid-component {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* ---- Flash / alerts ---- */

@@ -114,6 +114,7 @@ $route['api/admin/catalog/data-classifications/(.*)']   = 'api/admin/data_classi
 $route['api/admin/catalog/check_idno/(:any)']           = 'api/admin/catalog/check_idno/$1';
 $route['api/admin/catalog/replace_idno']                = 'api/admin/catalog/replace_idno';
 $route['api/admin/catalog/(:any)/warnings']            = 'api/admin/catalog/warnings/$1';
+$route['api/admin/catalog/(:any)/summary']             = 'api/admin/catalog/summary/$1';
 $route['api/admin/catalog/(:any)/folder-status']      = 'api/admin/catalog/folder_status/$1';
 $route['api/admin/catalog/(:any)/aliases/delete']       = 'api/admin/catalog/aliases_delete/$1';
 $route['api/admin/catalog/(:any)/aliases_delete']       = 'api/admin/catalog/aliases_delete/$1';

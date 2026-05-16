@@ -493,6 +493,60 @@ class Acl_manager
 	}
 
 	/**
+	 * Unified access check. Resolves user from ID; resolves repository from study owner if needed.
+	 * Throws AclAccessDeniedException on denial.
+	 *
+	 * @param string      $resource      e.g. 'study', 'licensed_request'
+	 * @param string      $privilege     e.g. 'view', 'edit', 'delete', 'publish'
+	 * @param int|null    $user_id       defaults to current user
+	 * @param int|null    $study_id      if set and repository_id null, owner repo resolved via Catalog_model::get_study_owner()
+	 * @param string|null $repository_id catalog slug; takes precedence over study_id resolution
+	 * @throws AclAccessDeniedException
+	 */
+	public function check_access($resource, $privilege, $user_id = null, $study_id = null, $repository_id = null)
+	{
+		if ($user_id !== null) {
+			$user = $this->ci->ion_auth->user((int) $user_id)->row();
+			if (empty($user)) {
+				throw new AclAccessDeniedException('User not found');
+			}
+		} else {
+			$user = $this->current_user();
+		}
+
+		if (empty($repository_id) && !empty($study_id)) {
+			$this->ci->load->model('Catalog_model');
+			$repository_id = $this->ci->catalog_model->get_study_owner((int) $study_id) ?: null;
+		}
+
+		$this->has_access($resource, $privilege, $user, $repository_id ?: null);
+	}
+
+	/**
+	 * Throw if user has no study access on any repository (global or collection-scoped).
+	 * @param object|null $user
+	 * @throws AclAccessDeniedException
+	 */
+	public function require_catalog_access($user = null)
+	{
+		if ($this->get_admin_catalog_repository_scope($user) === false) {
+			$this->has_access_or_die('study', 'view', $user);
+		}
+	}
+
+	/**
+	 * Throw if user has no licensed_request access on any repository (global or collection-scoped).
+	 * @param object|null $user
+	 * @throws AclAccessDeniedException
+	 */
+	public function require_licensed_requests_access($user = null)
+	{
+		if ($this->get_licensed_request_repository_scope($user) === false) {
+			$this->has_access_or_die('licensed_request', 'view', $user);
+		}
+	}
+
+	/**
 	 * Whether the user has resource/privilege on at least one catalog repository via Zend per-repo
 	 * resources or repositories_acl collection grants.
 	 *

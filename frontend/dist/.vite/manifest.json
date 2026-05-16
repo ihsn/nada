@@ -853,7 +853,7 @@
     ]
   },
   "admin/catalog_study_notes/main.js": {
-    "file": "assets/admin_catalog_study_notes-DtwdlvxV.js",
+    "file": "assets/admin_catalog_study_notes-BARkekJ6.js",
     "name": "admin_catalog_study_notes",
     "src": "admin/catalog_study_notes/main.js",
     "isEntry": true,
@@ -883,7 +883,7 @@
       "_VTable-B4FNXUAV.js"
     ],
     "css": [
-      "assets/admin_catalog_study_notes-SezQyLJT.css"
+      "assets/admin_catalog_study_notes-BWWFTuUs.css"
     ]
   },
   "admin/catalog_study_overview/main.js": {
@@ -987,7 +987,7 @@
     ]
   },
   "admin/catalog_study_sidebar/main.js": {
-    "file": "assets/admin_catalog_study_sidebar-NE7a87Af.js",
+    "file": "assets/admin_catalog_study_sidebar-s7WmueST.js",
     "name": "admin_catalog_study_sidebar",
     "src": "admin/catalog_study_sidebar/main.js",
     "isEntry": true,
@@ -1014,7 +1014,7 @@
       "_VInput-D-Z-PTwT.js"
     ],
     "css": [
-      "assets/admin_catalog_study_sidebar-D_C0l9s4.css"
+      "assets/admin_catalog_study_sidebar-DvyRTgmE.css"
     ]
   },
   "admin/codelists/main.js": {
@@ -1060,7 +1060,7 @@
     ]
   },
   "admin/collections/main.js": {
-    "file": "assets/admin_collections-BGE6GpZw.js",
+    "file": "assets/admin_collections-BRuapezt.js",
     "name": "admin_collections",
     "src": "admin/collections/main.js",
     "isEntry": true,
@@ -1078,9 +1078,9 @@
       "_VSwitch-B9uS7uYG.js",
       "_VDataTable-DSy2j7cf.js",
       "_index-BOeqtr82.js",
+      "_VAlert-CuGzDcKm.js",
       "_VSnackbar-BpLfmxm6.js",
       "_VCard-B1ITkAUi.js",
-      "_VAlert-CuGzDcKm.js",
       "_VSpacer-C_GYkuOt.js",
       "_VDialog-0MrYkPAa.js",
       "_VTextarea-CzWYEWSQ.js",

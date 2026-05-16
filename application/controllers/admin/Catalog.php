@@ -151,7 +151,7 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
 	{
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 
 		$this->_render_admin_catalog_vue_shell();
 	}
@@ -231,7 +231,7 @@ class Catalog extends MY_Controller {
 	 */
 	function batch_import_page()
 	{
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 		$this->_render_admin_catalog_vue_shell();
 	}
 
@@ -243,7 +243,7 @@ class Catalog extends MY_Controller {
 	 */
 	function batch_refresh_page()
 	{
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 		$this->_render_admin_catalog_vue_shell();
 	}
 
@@ -255,7 +255,7 @@ class Catalog extends MY_Controller {
 	 */
 	function batch_generate_page()
 	{
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 		$this->_render_admin_catalog_vue_shell();
 	}
 
@@ -304,7 +304,7 @@ class Catalog extends MY_Controller {
 	 **/
 	function add_study()
 	{
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 
 		//user has permissions on the repo
 		//$this->acl->user_has_repository_access($this->active_repo->id);
@@ -571,7 +571,7 @@ class Catalog extends MY_Controller {
 	**/
 	function refresh($id=NULL)
 	{
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 
 		if (!is_numeric($id)){
 			show_404();
@@ -663,7 +663,7 @@ class Catalog extends MY_Controller {
 
 	function delete($id)
 	{
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 		//array of id to be deleted
 		$delete_arr=array();
 
@@ -874,7 +874,7 @@ class Catalog extends MY_Controller {
 			show_error("ID_INVALID");
 		}
 
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 
 		$survey_gate = $this->Catalog_model->get_survey($sid);
 		if (!$survey_gate) {
@@ -959,7 +959,7 @@ class Catalog extends MY_Controller {
 	**/
 	function transfer($surveyid=NULL)
 	{
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 
 		if ($surveyid==NULL && !$this->input->post("sid")){
 			show_error("PARAM_MISSING");
@@ -1200,7 +1200,7 @@ class Catalog extends MY_Controller {
 	
 	function create($type=null)
 	{
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 
 		$this->template->set_template('admin5');
 		
@@ -1267,87 +1267,154 @@ class Catalog extends MY_Controller {
 		
 	}
 
-	function metadata_editor($id=null)
-	{		
-		$survey=$this->dataset_manager->get_row($id);
+	/**
+	 * Read a metadata editor template/schema file once per request.
+	 *
+	 * @param string $path
+	 * @return string|false
+	 */
+	private function _read_study_metadata_file($path)
+	{
+		static $cache = array();
+		$key = (string) $path;
+		if (! isset($cache[$key])) {
+			$cache[$key] = is_file($key) ? file_get_contents($key) : false;
+		}
+		return $cache[$key];
+	}
 
-		if (!$survey){
+
+	/**
+	 * Build view data for the legacy Vue metadata editor (inline.php).
+	 *
+	 * @param int|string $id surveys.id
+	 * @param bool       $lazy_metadata When true, metadata is fetched client-side (faster TTFB).
+	 * @return array
+	 */
+	private function _prepare_metadata_editor_options($id, $lazy_metadata = false)
+	{
+		$survey = $this->dataset_manager->get_row($id);
+
+		if (! $survey) {
 			show_error('Survey was not found');
 		}
 
 		$this->acl_manager->has_access_or_die('study', 'edit', null, $survey['repositoryid']);
-				 
-		$template_file="{$survey['type']}_form_template.json";
-		$template_path=null;
-		
-		//locations to look for templates
-		$template_locations=array(
+
+		if ($survey['type'] === 'geospatial') {
+			show_error('GEOSPATIAL-TYPE-NOT-SUPPORTED');
+		}
+
+		$template_file = $survey['type'] . '_form_template.json';
+		$template_path = null;
+		$template_locations = array(
 			'application/metadata_editor_templates/custom',
 			'application/metadata_editor_templates',
 		);
 
-		//look for template in all locations and pick the first one found
-		foreach($template_locations as $path){
-			if (file_exists($path.'/'.$template_file)){
-				$template_path=$path.'/'.$template_file;
+		foreach ($template_locations as $path) {
+			if (file_exists($path . '/' . $template_file)) {
+				$template_path = $path . '/' . $template_file;
 				break;
 			}
 		}
-		
-		//$template_path="application/metadata_editor_templates/{$survey['type']}_form_template.json";
-		$schema_path="application/schemas/{$survey['type']}-schema.json";
 
-		if(!file_exists($template_path)){
-			show_error('Template not found::'. $template_path);
+		$schema_path = 'application/schemas/' . $survey['type'] . '-schema.json';
+
+		if (! $template_path || ! file_exists($template_path)) {
+			show_error('Template not found::' . $template_file);
 		}
 
-		if(!file_exists($schema_path)){
-			show_error('Schema not found::'. $schema_path);
+		if (! file_exists($schema_path)) {
+			show_error('Schema not found::' . $schema_path);
 		}
 
-		$metadata_subset=array(
-			'repositoryid'=>$survey['repositoryid'],
-			'access_policy'=>$survey['data_access_type'],
-			'published'=>$survey['published']			
-		);
-		
-
-		$metadata=$this->dataset_manager->get_metadata($id);
-
-		$options['sid']=$id;
-		$options['survey']=$survey;
-		$options['type']=$survey['type'];		
-
-		if (!empty($metadata)){
-			$options['metadata']=$this->dataset_manager->get_metadata($id);//array_merge($metadata_subset,$this->dataset_manager->get_metadata($id));
-		}else{
-			$options['metadata']=null;
-		}
-
-		if($survey['type']=='geospatial'){
-			show_error('GEOSPATIAL-TYPE-NOT-SUPPORTED');
-		}
-
-		//fix schema elements with mixed types
-		if ($survey['type']=='survey'){
-			//coll_mode
-			$coll_mode=array_data_get($options['metadata'], 'study_desc.method.data_collection.coll_mode');
-			if(!empty($coll_mode) && !is_array($coll_mode)){
-				set_array_nested_value($options['metadata'],'study_desc.method.data_collection.coll_mode',(array)$coll_mode,'.');
+		$metadata = null;
+		if (! $lazy_metadata) {
+			$metadata = $this->dataset_manager->get_metadata($id);
+			if (is_array($metadata)) {
+				if ($survey['type'] === 'survey') {
+					$coll_mode = array_data_get($metadata, 'study_desc.method.data_collection.coll_mode');
+					if (! empty($coll_mode) && ! is_array($coll_mode)) {
+						set_array_nested_value($metadata, 'study_desc.method.data_collection.coll_mode', (array) $coll_mode, '.');
+					}
+				}
+				$metadata['merge_options'] = 'replace';
 			}
 		}
 
+		$options = array(
+			'sid'               => $id,
+			'survey'            => $survey,
+			'type'              => $survey['type'],
+			'metadata'          => $metadata,
+			'metadata_template' => $this->_read_study_metadata_file($template_path),
+			'metadata_schema'   => $this->_read_study_metadata_file($schema_path),
+			'post_url'          => site_url('api/datasets/update/' . $survey['type'] . '/' . $survey['idno']),
+			'lazy_metadata_load'=> (bool) $lazy_metadata,
+			'metadata_api_url'  => site_url('api/admin/catalog/' . (int) $id),
+			'ajv_extra_schemas' => $this->_metadata_editor_ajv_schemas($survey['type']),
+		);
 
-		$options['metadata_template']=file_get_contents($template_path);
-		$options['metadata_schema']=file_get_contents($schema_path);
-		$options['post_url']=site_url('api/datasets/update/'.$survey['type'].'/'.$survey['idno']);
-		//$options['metadata']=array();
-		$options['metadata']['merge_options']='replace';		
-				
-		//render
+		return $options;
+	}
+
+
+	/**
+	 * Extra JSON schemas for AJV (read once per request, not in Vue mounted).
+	 *
+	 * @param string $study_type
+	 * @return array<string, string>
+	 */
+	private function _metadata_editor_ajv_schemas($study_type)
+	{
+		$schemas = array(
+			'provenance' => 'application/schemas/provenance-schema.json',
+		);
+
+		if ($study_type === 'survey') {
+			$schemas['survey'] = 'application/schemas/survey-schema.json';
+			$schemas['ddi'] = 'application/schemas/ddi-schema.json';
+			$schemas['datafile'] = 'application/schemas/datafile-schema.json';
+			$schemas['variable'] = 'application/schemas/variable-schema.json';
+		} elseif ($study_type === 'image') {
+			$schemas['image'] = 'application/schemas/image-schema.json';
+			$schemas['iptc'] = 'application/schemas/iptc-pmd-schema.json';
+			$schemas['iptc_shared'] = 'application/schemas/iptc-phovidmdshared-schema.json';
+		}
+
+		$out = array();
+		foreach ($schemas as $key => $path) {
+			$contents = $this->_read_study_metadata_file($path);
+			if ($contents !== false) {
+				$out[$key] = $contents;
+			}
+		}
+
+		return $out;
+	}
+
+
+	/**
+	 * Render metadata editor HTML (fragment or full document).
+	 *
+	 * @param array $options From _prepare_metadata_editor_options()
+	 * @param bool  $embedded Embed in study edit tab (admin_vue shell)
+	 * @return string
+	 */
+	private function _render_metadata_editor_html(array $options, $embedded = false)
+	{
+		$options['embedded'] = (bool) $embedded;
+		return $this->load->view('metadata_editor/inline', $options, true);
+	}
+
+
+	function metadata_editor($id=null)
+	{
+		$options = $this->_prepare_metadata_editor_options($id, true);
 		$this->template->set_template('admin5');
-		$content= $this->load->view('metadata_editor/inline',$options,true);
-		$this->template->write('content', $content,true);
+		$content = $this->_render_metadata_editor_html($options, false);
+		$this->template->write('content', $content, true);
 		$this->template->render();
 	}
 
@@ -1374,493 +1441,151 @@ class Catalog extends MY_Controller {
 			show_error('Invalid parameters were passed');
 		}
 
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 
 		//test user study permissiosn
 		//$this->acl->user_has_study_access($id);		
-
-		if ($this->uri->segment(5)=='metadata'){
-			return $this->metadata_editor($id);
-		}
 
 		if ($this->uri->segment(5)=='widgets'){
 			return $this->widgets($id);
 		}
 
-		$this->load->model('Citation_model');
-		$this->load->model('Catalog_notes_model');
-		$this->load->model('Catalog_tags_model');
-		$this->load->model('Survey_alias_model');		
-		
-		$this->load->library('catalog_admin');
-		$this->load->library('chicago_citation');
-		
-		//$this->load->library('ion_auth');
+		$tab = $this->_study_edit_tab_slug();
 
-		$this->load->library("catalog_admin");
-		
-		$survey_row=$this->Catalog_model->select_single($id);
+		$survey_row = $this->_load_study_edit_shell($id);
 
-		if (!$survey_row){
+		if ($tab === 'metadata') {
+			$meta_options = $this->_prepare_metadata_editor_options($id, true);
+			$survey_row['metadata_editor'] = $this->_render_metadata_editor_html($meta_options, true);
+		}
+
+		if ($tab !== 'metadata') {
+			$survey_row = $this->_append_study_edit_active_tab_config($id, $survey_row, $tab);
+		} else {
+			$survey_row['catalog_sidebar_app_config'] = $this->_study_edit_sidebar_app_config($id, $survey_row);
+		}
+
+		$this->_render_study_edit_page($id, $survey_row);
+	}
+
+
+	/**
+	 * URI segment 5 for study edit tabs (empty => overview).
+	 *
+	 * @return string
+	 */
+	private function _study_edit_tab_slug()
+	{
+		$seg = $this->uri->segment(5);
+		if ($seg === false || $seg === null || $seg === '') {
+			return 'overview';
+		}
+		return (string) $seg;
+	}
+
+
+	/**
+	 * Minimal study row for edit shell (header, tab nav, ACL).
+	 *
+	 * @param int|string $id surveys.id
+	 * @return array
+	 */
+	private function _load_study_edit_shell($id)
+	{
+		$survey_row = $this->Catalog_model->select_single($id);
+
+		if (! $survey_row) {
 			show_error('Survey was not found');
 		}
 
 		$this->acl_manager->has_access_or_die('study', 'edit', null, $survey_row['repositoryid']);
 
-		$survey_row['survey_id']=$id;
-		$survey_row['is_featured']=$this->Repository_model->is_a_featured_study(
-			$this->_owner_repo_numeric_id_for_survey($survey_row),
-			$id
-		);
+		$survey_row['survey_id'] = $id;
 
-		//study warnings
-		$survey_row['warnings']=$this->catalog_admin->get_study_warnings($id);
-
-		//get survey countries
-		$survey_row['countries']=$this->Catalog_model->get_survey_countries($id);
-
-		//check if survey has citations
-		$survey_row['has_citations']=$this->Catalog_model->has_citations($id);
-
-		// Survey folder file list (for tab badge only; Files tab is Vue + api/admin/catalog/.../files)
-		$survey_row['files'] = $this->catalog_admin->get_files_array($id);
-
-		//get microdata attached to the study
-		$survey_row['microdata_files']=$this->Survey_resource_model->get_microdata_resources($id); 
-
-		//get resources
-		//$resources['rows']=$this->catalog_admin->resources($id);
-		//$survey_row['resources']=$this->load->view('catalog/study_resources', $resources,true);
-
-		//survey collections for current survey
-		$survey_row['collections']=$this->catalog_admin->get_formatted_collections($id,$survey_row['repo']);
-
-		//formatted list of external resources
-		$survey_row['resources']=$this->catalog_admin->get_formatted_resources($id);
-
-		//formatted list of data files
-		$survey_row['data_files']=array();//$this->catalog_admin->get_formatted_data_files($id);
-
-		//get all study notes
-		$survey_row['study_notes']=$this->Catalog_notes_model->get_notes_by_study($id);
-
-		//survey tags
-		$tags['tags'] = $this->Catalog_tags_model->survey_tags($id);
-
-		//all tags
-		$tags['tag_list']=$this->Catalog_model->get_all_survey_tags();
-
-		$survey_row['tags']=$this->load->view('catalog/admin_tags', $tags, true);
-
-		//other survey IDs
-		$survey_aliases = $this->Survey_alias_model->get_aliases($id);
-		$survey_row['survey_aliases']=$this->load->view('catalog/survey_aliases', array('rows'=>$survey_aliases), true);
-		$survey_row['survey_alias_array']=$survey_aliases;
-
-		//get citations for the current survey
-		$selected_citations= $this->Citation_model->get_citations_by_survey($id);
-
-		//TODO: recheck
-		//see if the edited citation has citations attached, otherwise assign empty array
-		$survey_row['selected_citations_id_arr']=$this->_get_related_citations_array($selected_citations);
-		$survey_row['selected_citations'] = $selected_citations;
-
-		//get study relationships
-		$this->load->model("Related_study_model");
-		$survey_row['related_studies']=$this->Related_study_model->get_relationships($id);
-
-		//array of all relationship types
-		$survey_row['relationship_types']=$this->Related_study_model->get_relationship_types_array();
-
-		//pdf documentation for study
-		$survey_row['pdf_documentation']=$this->catalog_admin->get_study_pdf($id);
-
-		//Data classifications
-		$data_classfications = $this->Data_classification_model->get_all();
-		$survey_row['data_classifications']=$data_classfications;
-		$survey_row['data_licenses']=$this->Form_model->get_all();
-
-		$this->load->model('Configurations_model');
-
-		//data classifications is enabled?
-		$data_classifications_enabled = $this->Configurations_model->is_data_classifications_enabled();
-		$survey_row['data_classifications_enabled']=$data_classifications_enabled;
-
-		//by default, set classifcation to PUBLIC
-		if($data_classifications_enabled==false){
-			$survey_row['data_class_id']=$data_classfications['public']['id'];
-		}
-
-		$survey_row['data_access_dropdown']=$this->da_by_class($survey_row['data_class_id'],$survey_row['formid'],'html',true);
-
-		// Pass analytics enabled flag so the view can conditionally show the Analytics tab
 		$this->config->load('analytics');
-		$survey_row['analytics_enabled'] = (bool)$this->config->item('analytics_enabled');
+		$survey_row['analytics_enabled'] = (bool) $this->config->item('analytics_enabled');
 
-		$survey_row['study_type_display'] = $this->_resolve_study_type_display(isset($survey_row['type']) ? $survey_row['type'] : 'survey');
+		$survey_row['study_type_display'] = $this->_resolve_study_type_display(
+			isset($survey_row['type']) ? $survey_row['type'] : 'survey'
+		);
 
-		$_sid_int = (int) $id;
-		$survey_row['catalog_study_analytics_app_config'] = array(
+		return $survey_row;
+	}
+
+
+	/**
+	 * Shared Vue bootstrap fields for study edit mini-apps.
+	 *
+	 * @param int|string $id
+	 * @param array      $survey_row
+	 * @return array
+	 */
+	private function _study_edit_vue_common($id, array $survey_row)
+	{
+		return array(
 			'siteUrl'       => site_url(),
 			'baseUrl'       => base_url(),
 			'assetsBase'    => base_url('frontend/dist/'),
-			'studySid'      => $_sid_int,
-			'analyticsApiBase' => rtrim(site_url('api/analytics'), '/') . '/',
-			'totalViews'    => (int) (isset($survey_row['total_views']) ? $survey_row['total_views'] : 0),
-			'totalDownloads' => (int) (isset($survey_row['total_downloads']) ? $survey_row['total_downloads'] : 0),
-			'exportMonthlyStudiesCsv' => site_url('api/analytics/monthly/studies/export?study_id=' . $_sid_int . '&format=csv'),
-			'exportMonthlyStudiesJson' => site_url('api/analytics/monthly/studies/export?study_id=' . $_sid_int . '&format=json'),
-			'exportFilesCsv' => site_url('api/analytics/monthly/files/export?study_id=' . $_sid_int . '&format=csv'),
-			'exportFilesJson' => site_url('api/analytics/monthly/files/export?study_id=' . $_sid_int . '&format=json'),
-			'labels'        => array(
-				'title'              => t('Analytics'),
-				'loading'            => t('loading'),
-				'kpi_all_views'      => 'All-time views',
-				'kpi_all_downloads'  => 'All-time downloads',
-				'kpi_views_month'    => 'Views this month',
-				'kpi_downloads_month' => 'Downloads this month',
-				'section_trend'      => 'Monthly trend',
-				'section_monthly'    => 'Monthly breakdown',
-				'section_files'      => 'File downloads',
-				'empty_monthly'      => 'No monthly data recorded yet for this study.',
-				'empty_short'        => 'No data yet.',
-				'empty_files'        => 'No file download data yet.',
-				'col_period'         => 'Period',
-				'col_views'          => 'Views',
-				'col_unique'         => 'Unique visitors',
-				'col_downloads'      => 'Downloads',
-				'col_file'           => 'File',
-				'total'              => 'Total',
-				'chart_pageviews'    => 'Pageviews',
-				'chart_downloads'    => 'Downloads',
-			),
+			'csrfToken'     => $this->security->get_csrf_hash(),
+			'csrfTokenName' => $this->security->get_csrf_token_name(),
+			'studySid'      => (int) $id,
+			'studyIdno'     => isset($survey_row['idno']) ? $survey_row['idno'] : '',
 		);
+	}
 
+
+	/**
+	 * Sidebar + active tab Vue config only.
+	 *
+	 * @param int|string $id
+	 * @param array      $survey_row
+	 * @param string     $tab
+	 * @return array
+	 */
+	private function _append_study_edit_active_tab_config($id, array $survey_row, $tab)
+	{
 		$this->load->helper('vite_helper');
-		$survey_row['catalog_overview_app_config'] = array(
-			'siteUrl'                     => site_url(),
-			'baseUrl'                     => base_url(),
-			'apiBaseUrl'                  => site_url('api/admin/catalog/'),
-			'dataClassificationsApiUrl'   => site_url('api/admin/catalog/data-classifications'),
-			'dataClassificationsEnabled'  => (bool) $data_classifications_enabled,
-			'assetsBase'                  => base_url('frontend/dist/'),
-			'csrfToken'                   => $this->security->get_csrf_hash(),
-			'csrfTokenName'               => $this->security->get_csrf_token_name(),
-			'studySid'                    => (int) $id,
-			'studyIdno'                   => isset($survey_row['idno']) ? $survey_row['idno'] : '',
-			'pdfSetupUrl'                 => site_url('admin/pdf_generator/setup/' . $id),
-			'pdfDeleteUrl'                => site_url('admin/pdf_generator/delete/' . $id),
-			'countriesMappingUrl'         => site_url('admin/countries/mappings'),
-			'labels'                      => array(
-				'ref_no'                  => t('ref_no'),
-				'created'                 => t('created'),
-				'last_changed'            => t('last_changed'),
-				'study_aliases'           => t('study_aliases'),
-				'year'                    => t('year'),
-				'country'                 => t('country'),
-				'folder'                  => t('folder'),
-				'study_folder_exists_disk' => t('study_folder_exists_disk'),
-				'study_folder_missing_disk' => t('study_folder_missing_disk'),
-				'study_folder_create'     => t('study_folder_create'),
-				'repository'              => t('repository'),
-				'metadata_in_pdf'         => t('metadata_in_pdf'),
-				'generate_pdf'            => t('Generate PDF'),
-				'delete'                  => t('delete'),
-				'pdf_not_generated'       => t('pdf_not_generated'),
-				'pdf_uptodate'            => t('pdf_uptodate'),
-				'pdf_outdated'            => t('pdf_outdated'),
-				'data_access'             => t('data_access'),
-				'data_classification'     => t('data_classification'),
-				'remote_data_access_url'  => t('remote_data_access_url'),
-				'indicator_database'      => t('indicator_database'),
-				'study_website'           => t('study_website'),
-				'featured_study'          => t('featured_study'),
-				'mark_as_featured'        => t('mark_as_featured'),
-				'tags'                    => t('Tags'),
-				'add_tags_placeholder'    => 'Add tags — type and press Enter',
-				'study_collections'       => t('study_collections'),
-				'doi_label'               => t('DOI'),
-				'update'                  => t('update'),
-				'saved'                   => t('form_update_success'),
-				'fix_country'             => t('Fix country code'),
-				'loading'                 => t('loading'),
-				'save'                    => t('save'),
-				'cancel'                  => t('cancel'),
-				'study_no_data_files_assigned' => sprintf(t('study_no_data_files_assigned'), ''),
-				'data_selection_apply_to_files' => t('data_selection_apply_to_files'),
-			),
-		);
 
-		$survey_row['catalog_files_app_config'] = array(
-			'siteUrl'        => site_url(),
-			'baseUrl'        => base_url(),
-			'apiBaseUrl'     => site_url('api/admin/catalog/'),
-			'uploadsApiUrl'  => rtrim(site_url('api/uploads'), '/') . '/',
-			'assetsBase'     => base_url('frontend/dist/'),
-			'csrfToken'      => $this->security->get_csrf_hash(),
-			'csrfTokenName'  => $this->security->get_csrf_token_name(),
-			'studySid'       => (int) $id,
-			'studyIdno'      => isset($survey_row['idno']) ? $survey_row['idno'] : '',
-			'managefilesEditBase' => site_url('admin/managefiles/' . (int) $id . '/edit'),
-			'labels'         => array(
-				'name'                => t('name'),
-				'size'                => t('size'),
-				'permissions'         => t('permissions'),
-				'modified'            => t('modified'),
-				'actions'             => t('actions'),
-				'upload'              => t('batch_upload_files'),
-				'delete_selection'    => t('delete_selection'),
-				'not_linked'          => t('not_linked'),
-				'data_files'          => t('data_files'),
-				'other_resources'     => t('other_resources'),
-				'total_files'         => t('total_files_count'),
-				'microdata'           => t('data_files'),
-				'loading'             => t('loading'),
-				'ddi_locked'          => 'DDI',
-				'locked_delete'       => 'This file cannot be deleted (catalog metadata).',
-				'confirm_delete'      => t('js_confirm_delete'),
-				'confirm_batch_delete'=> t('js_confirm_delete'),
-				'no_selection'        => t('js_no_item_selected'),
-				'upload_failed'       => t('form_update_fail'),
-				'download'            => t('download'),
-				'delete'              => t('delete'),
-				'edit_resource'       => t('edit_resource'),
-				'saved'               => t('form_update_success'),
-				'resource_col'        => 'Link',
-				'upload_queue_title'  => 'Files to upload',
-				'drop_zone_hint'      => 'Drag and drop files here, or click to browse',
-				'add_files'           => t('select_upload_files'),
-				'start_upload'        => t('upload_files'),
-				'clear_queue'         => 'Clear list',
-				'remove_from_queue'   => t('delete'),
-				'queue_empty'         => 'No files queued yet.',
-				'files_queued_suffix' => 'file(s) in queue — press Upload when ready.',
-				'study_folder_title'  => 'Files in study folder',
-			),
-		);
+		$survey_row['catalog_sidebar_app_config'] = $this->_study_edit_sidebar_app_config($id, $survey_row);
 
-		$survey_row['catalog_resources_app_config'] = array(
-			'siteUrl'           => site_url(),
-			'baseUrl'           => base_url(),
-			'resourcesApiBase'  => rtrim(site_url('api/admin/resources'), '/') . '/',
-			'assetsBase'        => base_url('frontend/dist/'),
-			'csrfToken'         => $this->security->get_csrf_hash(),
-			'csrfTokenName'     => $this->security->get_csrf_token_name(),
-			'studySid'          => (int) $id,
-			'studyIdno'         => isset($survey_row['idno']) ? $survey_row['idno'] : '',
-			'legacyUrls'        => array(
-				'addUrl'       => site_url('admin/resources/add/new/' . (int) $id),
-				'importUrl'    => site_url('admin/resources/import/' . (int) $id),
-				'fixLinksUrl'  => site_url('admin/resources/fixlinks/' . (int) $id),
-				'exportRdfUrl' => site_url('admin/catalog/export_rdf/' . (int) $id),
-				'editBase'     => rtrim(site_url('admin/resources/edit'), '/'),
-			),
-			'labels'            => array(
-				'add_resource'       => t('link_add_new_resource'),
-				'import_rdf'         => t('link_import_rdf'),
-				'fix_links'          => t('link_fix_broken'),
-				'export_rdf'         => t('rdf_export'),
-				'total'              => t('total_files_count'),
-				'sort_by'            => t('sort_by'),
-				'sort_asc'           => 'Ascending',
-				'sort_desc'          => 'Descending',
-				'delete_selection'   => t('delete_selection'),
-				'col_title'          => t('title'),
-				'col_link'           => t('link'),
-				'col_type'           => t('resource_type'),
-				'col_modified'       => t('modified'),
-				'col_created'        => t('created'),
-				'col_id'             => 'ID',
-				'col_file'           => t('filename'),
-				'actions'            => t('actions'),
-				'edit'               => t('edit'),
-				'download'           => t('download'),
-				'delete'             => t('delete'),
-				'legend_ok'          => t('legend_file_exist'),
-				'legend_missing'     => t('legend_file_no_exist'),
-				'confirm_delete'     => t('js_confirm_delete'),
-				'confirm_batch_delete' => t('js_confirm_delete'),
-				'no_selection'       => t('js_no_item_selected'),
-				'saved'              => t('form_update_success'),
-			),
-		);
-
-		$survey_row['catalog_citations_app_config'] = array(
-			'siteUrl'       => site_url(),
-			'baseUrl'       => base_url(),
-			'apiBaseUrl'    => rtrim(site_url('api/admin/catalog'), '/') . '/',
-			'assetsBase'    => base_url('frontend/dist/'),
-			'csrfToken'     => $this->security->get_csrf_hash(),
-			'csrfTokenName' => $this->security->get_csrf_token_name(),
-			'studySid'      => (int) $id,
-			'studyIdno'     => isset($survey_row['idno']) ? $survey_row['idno'] : '',
-			'legacyUrls'    => array(
-				'editCitationBase'   => rtrim(site_url('admin/citations/edit'), '/'),
-			),
-			'labels'        => array(
-				'title'                => t('tab_citations'),
-				'search'               => t('search'),
-				'attach_citation'      => t('attach_citation'),
-				'attach_citations_cta' => t('attach_citations'),
-				'no_records'           => t('no_records_found'),
-				'selected'             => t('showing'),
-				'actions'              => t('actions'),
-				'edit'                 => t('edit'),
-				'remove'               => t('remove'),
-				'add'                  => t('attach'),
-				'confirm_remove'       => t('js_confirm_delete'),
-				'confirm_batch_remove' => t('js_confirm_delete'),
-				'col_attached'         => t('link'),
-				'col_link'             => t('link'),
-				'col_title'            => t('title'),
-				'col_year'             => t('year'),
-				'col_doi'              => t('DOI'),
-				'col_modified'         => t('modified'),
-				'col_actions'          => t('actions'),
-				'sort_by'              => t('sort_by'),
-				'sort_asc'             => 'Ascending',
-				'sort_desc'            => 'Descending',
-				'remove_selected'      => t('delete_selection'),
-				'no_selection'         => t('js_no_item_selected'),
-			),
-		);
-
-		$survey_row['catalog_notes_app_config'] = array(
-			'siteUrl'       => site_url(),
-			'baseUrl'       => base_url(),
-			'apiBaseUrl'    => rtrim(site_url('api/admin/catalog'), '/') . '/',
-			'assetsBase'    => base_url('frontend/dist/'),
-			'csrfToken'     => $this->security->get_csrf_hash(),
-			'csrfTokenName' => $this->security->get_csrf_token_name(),
-			'studySid'      => (int) $id,
-			'studyIdno'     => isset($survey_row['idno']) ? $survey_row['idno'] : '',
-			'labels'        => array(
-				'title'             => t('tab_notes'),
-				'compose_title'     => t('add_note'),
-				'add_note'          => t('Submit'),
-				'select_note_type'  => t('select_note_type'),
-				'admin_note'        => t('admin_note'),
-				'reviewer_note'     => t('reviewer_note'),
-				'public_note'       => t('public_note'),
-				'placeholder'       => t('Type note...'),
-				'remove'            => t('remove'),
-				'confirm_remove'    => t('js_confirm_delete'),
-				'no_records'        => t('no_records_found'),
-				'saved'             => t('form_update_success'),
-				'col_type'          => 'Type',
-				'col_when'          => 'When',
-				'col_note'          => t('notes'),
-				'col_actions'       => t('actions'),
-			),
-		);
-
-		$survey_row['catalog_related_studies_app_config'] = array(
-			'siteUrl'       => site_url(),
-			'baseUrl'       => base_url(),
-			'apiBaseUrl'    => rtrim(site_url('api/admin/catalog'), '/') . '/',
-			'assetsBase'    => base_url('frontend/dist/'),
-			'csrfToken'     => $this->security->get_csrf_hash(),
-			'csrfTokenName' => $this->security->get_csrf_token_name(),
-			'studySid'      => (int) $id,
-			'studyIdno'     => isset($survey_row['idno']) ? $survey_row['idno'] : '',
-			'legacyUrls'    => array(
-				'editStudyBase'       => rtrim(site_url('admin/catalog/edit'), '/'),
-				'fullPageAttachUrl'   => site_url('admin/catalog/attach_related_data/' . (int) $id),
-			),
-			'labels'        => array(
-				'title'               => t('tab_related_data'),
-				'attached'            => t('attach_related_data'),
-				'attach_related_cta'  => t('attach_related_data'),
-				'manage_in_legacy'    => t('manage_citations_legacy_page'),
-				'relationship_type'   => t('relationship_type'),
-				'default_rel_help'    => t('relationship_type'),
-				'search'              => t('search'),
-				'reset'               => t('reset'),
-				'add'                 => t('attach'),
-				'remove'              => t('remove'),
-				'no_records'          => t('no_records_found'),
-				'confirm_remove'      => t('js_confirm_delete'),
-				'col_title'           => t('title'),
-				'col_country_year'    => t('country'),
-				'col_relationship'    => t('relationship_type'),
-				'col_actions'         => t('actions'),
-				'col_link'            => t('link'),
-				'col_attached'        => t('link'),
-				'legacy_full_page'    => t('attach_related_data'),
-				'field_title'         => t('title'),
-				'field_nation'        => t('country'),
-				'field_idno'          => t('survey_id'),
-				'field_year_start'    => t('year'),
-				'field_authoring_entity' => t('producer'),
-				'saved'               => t('form_update_success'),
-			),
-		);
-
-		$_thumb_fn = '';
-		if (! empty($survey_row['thumbnail'])) {
-			$_thumb_fn = basename((string) $survey_row['thumbnail']);
+		switch ($tab) {
+			case 'overview':
+				$survey_row['catalog_overview_app_config'] = $this->_study_edit_overview_app_config($id, $survey_row);
+				break;
+			case 'files':
+				$survey_row['catalog_files_app_config'] = $this->_study_edit_files_app_config($id, $survey_row);
+				break;
+			case 'resources':
+				$survey_row['catalog_resources_app_config'] = $this->_study_edit_resources_app_config($id, $survey_row);
+				break;
+			case 'citations':
+				$survey_row['catalog_citations_app_config'] = $this->_study_edit_citations_app_config($id, $survey_row);
+				break;
+			case 'notes':
+				$survey_row['catalog_notes_app_config'] = $this->_study_edit_notes_app_config($id, $survey_row);
+				break;
+			case 'related-data':
+				$survey_row['catalog_related_studies_app_config'] = $this->_study_edit_related_studies_app_config($id, $survey_row);
+				break;
+			case 'analytics':
+				$survey_row['catalog_study_analytics_app_config'] = $this->_study_edit_analytics_app_config($id, $survey_row);
+				break;
+			default:
+				break;
 		}
 
-		$survey_row['catalog_sidebar_app_config'] = array(
-			'siteUrl'              => site_url(),
-			'baseUrl'              => base_url(),
-			'apiBaseUrl'           => rtrim(site_url('api/admin/catalog'), '/') . '/',
-			'assetsBase'           => base_url('frontend/dist/'),
-			'csrfToken'            => $this->security->get_csrf_hash(),
-			'csrfTokenName'        => $this->security->get_csrf_token_name(),
-			'studySid'             => (int) $id,
-			'studyIdno'            => isset($survey_row['idno']) ? $survey_row['idno'] : '',
-			'published'            => ! empty($survey_row['published']),
-			'thumbnailFilename'    => $_thumb_fn,
-			'thumbnailsPublicBase' => base_url('files/thumbnails/'),
-			'studyType'            => isset($survey_row['type']) ? $survey_row['type'] : 'survey',
-			'catalogListUrl'       => site_url('admin/catalog'),
-			'legacyUrls'           => array(
-				'browsePublic' => site_url('catalog/' . (int) $id),
-				'importRdf'    => site_url('admin/resources/import/' . (int) $id),
-				'fixLinks'     => site_url('admin/resources/fixlinks/' . (int) $id),
-				'pdfSetup'     => site_url('admin/pdf_generator/setup/' . (int) $id),
-				'replaceDdi'   => site_url('admin/catalog/replace_ddi/' . (int) $id),
-				'exportDdi'    => site_url('admin/catalog/ddi/' . (int) $id),
-				'refreshDdi'   => site_url('admin/catalog/refresh/' . (int) $id),
-				'generateDdi'  => site_url('admin/catalog/generate_ddi/' . (int) $id),
-				'transfer'     => site_url('admin/catalog/transfer/' . (int) $id),
-				'exportRdf'    => site_url('admin/catalog/export_rdf/' . (int) $id),
-				'deleteStudy'  => site_url('admin/catalog/delete/' . (int) $id),
-			),
-			'labels'               => array(
-				'status'           => t('Status'),
-				'published'      => t('published'),
-				'draft'          => t('draft'),
-				'delete_study'     => t('delete_study'),
-				'confirm_delete'   => t('js_confirm_delete'),
-				'study_warnings'   => t('study_warnings'),
-				'thumbnail'        => t('Thumbnail'),
-				'upload'               => t('upload'),
-				'remove'               => t('remove'),
-				'cancel'               => t('cancel'),
-				'upload_thumbnail_title' => t('Upload thumbnail'),
-				'survey_options'   => t('Survey options'),
-				'options'          => t('study_sidebar_options'),
-				'thumbnail_empty_hint' => t('study_sidebar_no_thumbnail'),
-				'browse_metadata'  => t('browse_metadata'),
-				'upload_rdf'       => t('upload_rdf'),
-				'link_resources'   => t('link_resources'),
-				'generate_pdf'     => t('generate_pdf'),
-				'replace_ddi'      => t('replace_ddi'),
-				'export_ddi'       => t('export_ddi'),
-				'refresh_ddi'      => t('refresh_ddi'),
-				'transfer_study'   => t('transfer_study_ownership'),
-				'export_rdf'       => t('export_rdf'),
-				'click_publish'    => t('click_to_publish_unpublish'),
-				'saved'            => t('form_update_success'),
-				'loading'          => t('loading'),
-				'confirm_generate_ddi' => 'This will overwrite the existing DDI file. Are you sure?',
-				'generate_ddi'     => t('Generate DDI'),
-			),
-		);
+		return $survey_row;
+	}
 
-		$content = $this->load->view('catalog/edit_study', $survey_row, TRUE);
+
+	/**
+	 * @param int|string $id
+	 * @param array      $survey_row
+	 * @return void
+	 */
+	private function _render_study_edit_page($id, array $survey_row)
+	{
+		$content = $this->load->view('catalog/edit_study', $survey_row, true);
 
 		$page_title = t('catalog_maintenance');
 		if (! empty($survey_row['title'])) {
@@ -1878,6 +1603,372 @@ class Catalog extends MY_Controller {
 		);
 
 		$this->load->view('layouts/admin_vue', $page);
+	}
+
+
+	private function _study_edit_analytics_app_config($id, array $survey_row)
+	{
+		$_sid_int = (int) $id;
+		return array_merge(
+			$this->_study_edit_vue_common($id, $survey_row),
+			array(
+				'analyticsApiBase' => rtrim(site_url('api/analytics'), '/') . '/',
+				'totalViews'       => (int) (isset($survey_row['total_views']) ? $survey_row['total_views'] : 0),
+				'totalDownloads'   => (int) (isset($survey_row['total_downloads']) ? $survey_row['total_downloads'] : 0),
+				'exportMonthlyStudiesCsv' => site_url('api/analytics/monthly/studies/export?study_id=' . $_sid_int . '&format=csv'),
+				'exportMonthlyStudiesJson' => site_url('api/analytics/monthly/studies/export?study_id=' . $_sid_int . '&format=json'),
+				'exportFilesCsv'   => site_url('api/analytics/monthly/files/export?study_id=' . $_sid_int . '&format=csv'),
+				'exportFilesJson'  => site_url('api/analytics/monthly/files/export?study_id=' . $_sid_int . '&format=json'),
+				'labels'           => array(
+					'title'               => t('Analytics'),
+					'loading'             => t('loading'),
+					'kpi_all_views'       => 'All-time views',
+					'kpi_all_downloads'   => 'All-time downloads',
+					'kpi_views_month'     => 'Views this month',
+					'kpi_downloads_month' => 'Downloads this month',
+					'section_trend'       => 'Monthly trend',
+					'section_monthly'     => 'Monthly breakdown',
+					'section_files'       => 'File downloads',
+					'empty_monthly'       => 'No monthly data recorded yet for this study.',
+					'empty_short'         => 'No data yet.',
+					'empty_files'         => 'No file download data yet.',
+					'col_period'          => 'Period',
+					'col_views'           => 'Views',
+					'col_unique'          => 'Unique visitors',
+					'col_downloads'       => 'Downloads',
+					'col_file'            => 'File',
+					'total'               => 'Total',
+					'chart_pageviews'     => 'Pageviews',
+					'chart_downloads'     => 'Downloads',
+				),
+			)
+		);
+	}
+
+
+	private function _study_edit_overview_app_config($id, array $survey_row)
+	{
+		$this->load->model('Configurations_model');
+		$data_classifications_enabled = $this->Configurations_model->is_data_classifications_enabled();
+
+		return array_merge(
+			$this->_study_edit_vue_common($id, $survey_row),
+			array(
+				'apiBaseUrl'                => site_url('api/admin/catalog/'),
+				'dataClassificationsApiUrl' => site_url('api/admin/catalog/data-classifications'),
+				'dataClassificationsEnabled' => (bool) $data_classifications_enabled,
+				'pdfSetupUrl'               => site_url('admin/pdf_generator/setup/' . $id),
+				'pdfDeleteUrl'              => site_url('admin/pdf_generator/delete/' . $id),
+				'countriesMappingUrl'       => site_url('admin/countries/mappings'),
+				'labels'                    => array(
+					'ref_no'                       => t('ref_no'),
+					'created'                      => t('created'),
+					'last_changed'                 => t('last_changed'),
+					'study_aliases'                => t('study_aliases'),
+					'year'                         => t('year'),
+					'country'                      => t('country'),
+					'folder'                       => t('folder'),
+					'study_folder_exists_disk'     => t('study_folder_exists_disk'),
+					'study_folder_missing_disk'  => t('study_folder_missing_disk'),
+					'study_folder_create'        => t('study_folder_create'),
+					'repository'                   => t('repository'),
+					'metadata_in_pdf'              => t('metadata_in_pdf'),
+					'generate_pdf'                 => t('Generate PDF'),
+					'delete'                       => t('delete'),
+					'pdf_not_generated'            => t('pdf_not_generated'),
+					'pdf_uptodate'                 => t('pdf_uptodate'),
+					'pdf_outdated'                 => t('pdf_outdated'),
+					'data_access'                  => t('data_access'),
+					'data_classification'          => t('data_classification'),
+					'remote_data_access_url'       => t('remote_data_access_url'),
+					'indicator_database'           => t('indicator_database'),
+					'study_website'                => t('study_website'),
+					'featured_study'               => t('featured_study'),
+					'mark_as_featured'             => t('mark_as_featured'),
+					'tags'                         => t('Tags'),
+					'add_tags_placeholder'         => 'Add tags — type and press Enter',
+					'study_collections'            => t('study_collections'),
+					'doi_label'                    => t('DOI'),
+					'update'                       => t('update'),
+					'saved'                        => t('form_update_success'),
+					'fix_country'                  => t('Fix country code'),
+					'loading'                      => t('loading'),
+					'save'                         => t('save'),
+					'cancel'                       => t('cancel'),
+					'study_no_data_files_assigned' => sprintf(t('study_no_data_files_assigned'), ''),
+					'data_selection_apply_to_files' => t('data_selection_apply_to_files'),
+				),
+			)
+		);
+	}
+
+
+	private function _study_edit_files_app_config($id, array $survey_row)
+	{
+		return array_merge(
+			$this->_study_edit_vue_common($id, $survey_row),
+			array(
+				'apiBaseUrl'          => site_url('api/admin/catalog/'),
+				'uploadsApiUrl'       => rtrim(site_url('api/uploads'), '/') . '/',
+				'managefilesEditBase' => site_url('admin/managefiles/' . (int) $id . '/edit'),
+				'labels'              => array(
+					'name'                 => t('name'),
+					'size'                 => t('size'),
+					'permissions'          => t('permissions'),
+					'modified'             => t('modified'),
+					'actions'              => t('actions'),
+					'upload'               => t('batch_upload_files'),
+					'delete_selection'     => t('delete_selection'),
+					'not_linked'           => t('not_linked'),
+					'data_files'           => t('data_files'),
+					'other_resources'      => t('other_resources'),
+					'total_files'          => t('total_files_count'),
+					'microdata'            => t('data_files'),
+					'loading'              => t('loading'),
+					'ddi_locked'           => 'DDI',
+					'locked_delete'        => 'This file cannot be deleted (catalog metadata).',
+					'confirm_delete'       => t('js_confirm_delete'),
+					'confirm_batch_delete' => t('js_confirm_delete'),
+					'no_selection'         => t('js_no_item_selected'),
+					'upload_failed'        => t('form_update_fail'),
+					'download'             => t('download'),
+					'delete'               => t('delete'),
+					'edit_resource'        => t('edit_resource'),
+					'saved'                => t('form_update_success'),
+					'resource_col'         => 'Link',
+					'upload_queue_title'   => 'Files to upload',
+					'drop_zone_hint'       => 'Drag and drop files here, or click to browse',
+					'add_files'            => t('select_upload_files'),
+					'start_upload'         => t('upload_files'),
+					'clear_queue'          => 'Clear list',
+					'remove_from_queue'    => t('delete'),
+					'queue_empty'          => 'No files queued yet.',
+					'files_queued_suffix'  => 'file(s) in queue — press Upload when ready.',
+					'study_folder_title'   => 'Files in study folder',
+				),
+			)
+		);
+	}
+
+
+	private function _study_edit_resources_app_config($id, array $survey_row)
+	{
+		return array_merge(
+			$this->_study_edit_vue_common($id, $survey_row),
+			array(
+				'resourcesApiBase' => rtrim(site_url('api/admin/resources'), '/') . '/',
+				'legacyUrls'       => array(
+					'addUrl'       => site_url('admin/resources/add/new/' . (int) $id),
+					'importUrl'    => site_url('admin/resources/import/' . (int) $id),
+					'fixLinksUrl'  => site_url('admin/resources/fixlinks/' . (int) $id),
+					'exportRdfUrl' => site_url('admin/catalog/export_rdf/' . (int) $id),
+					'editBase'     => rtrim(site_url('admin/resources/edit'), '/'),
+				),
+				'labels'           => array(
+					'add_resource'         => t('link_add_new_resource'),
+					'import_rdf'         => t('link_import_rdf'),
+					'fix_links'          => t('link_fix_broken'),
+					'export_rdf'         => t('rdf_export'),
+					'total'              => t('total_files_count'),
+					'sort_by'            => t('sort_by'),
+					'sort_asc'           => 'Ascending',
+					'sort_desc'          => 'Descending',
+					'delete_selection'   => t('delete_selection'),
+					'col_title'          => t('title'),
+					'col_link'           => t('link'),
+					'col_type'           => t('resource_type'),
+					'col_modified'       => t('modified'),
+					'col_created'        => t('created'),
+					'col_id'             => 'ID',
+					'col_file'           => t('filename'),
+					'actions'            => t('actions'),
+					'edit'               => t('edit'),
+					'download'           => t('download'),
+					'delete'             => t('delete'),
+					'legend_ok'          => t('legend_file_exist'),
+					'legend_missing'     => t('legend_file_no_exist'),
+					'confirm_delete'     => t('js_confirm_delete'),
+					'confirm_batch_delete' => t('js_confirm_delete'),
+					'no_selection'       => t('js_no_item_selected'),
+					'saved'              => t('form_update_success'),
+				),
+			)
+		);
+	}
+
+
+	private function _study_edit_citations_app_config($id, array $survey_row)
+	{
+		return array_merge(
+			$this->_study_edit_vue_common($id, $survey_row),
+			array(
+				'apiBaseUrl' => rtrim(site_url('api/admin/catalog'), '/') . '/',
+				'legacyUrls' => array(
+					'editCitationBase' => rtrim(site_url('admin/citations/edit'), '/'),
+				),
+				'labels'     => array(
+					'title'                => t('tab_citations'),
+					'search'               => t('search'),
+					'attach_citation'      => t('attach_citation'),
+					'attach_citations_cta' => t('attach_citations'),
+					'no_records'           => t('no_records_found'),
+					'selected'             => t('showing'),
+					'actions'              => t('actions'),
+					'edit'                 => t('edit'),
+					'remove'               => t('remove'),
+					'add'                  => t('attach'),
+					'confirm_remove'       => t('js_confirm_delete'),
+					'confirm_batch_remove' => t('js_confirm_delete'),
+					'col_attached'         => t('link'),
+					'col_link'             => t('link'),
+					'col_title'            => t('title'),
+					'col_year'             => t('year'),
+					'col_doi'              => t('DOI'),
+					'col_modified'         => t('modified'),
+					'col_actions'          => t('actions'),
+					'sort_by'              => t('sort_by'),
+					'sort_asc'             => 'Ascending',
+					'sort_desc'            => 'Descending',
+					'remove_selected'      => t('delete_selection'),
+					'no_selection'         => t('js_no_item_selected'),
+				),
+			)
+		);
+	}
+
+
+	private function _study_edit_notes_app_config($id, array $survey_row)
+	{
+		return array_merge(
+			$this->_study_edit_vue_common($id, $survey_row),
+			array(
+				'apiBaseUrl' => rtrim(site_url('api/admin/catalog'), '/') . '/',
+				'labels'     => array(
+					'title'            => t('tab_notes'),
+					'compose_title'    => t('add_note'),
+					'add_note'         => t('Submit'),
+					'select_note_type' => t('select_note_type'),
+					'admin_note'       => t('admin_note'),
+					'reviewer_note'    => t('reviewer_note'),
+					'public_note'      => t('public_note'),
+					'placeholder'      => t('Type note...'),
+					'remove'           => t('remove'),
+					'confirm_remove'   => t('js_confirm_delete'),
+					'no_records'       => t('no_records_found'),
+					'saved'            => t('form_update_success'),
+					'col_type'         => 'Type',
+					'col_when'         => 'When',
+					'col_note'         => t('notes'),
+					'col_actions'      => t('actions'),
+				),
+			)
+		);
+	}
+
+
+	private function _study_edit_related_studies_app_config($id, array $survey_row)
+	{
+		return array_merge(
+			$this->_study_edit_vue_common($id, $survey_row),
+			array(
+				'apiBaseUrl' => rtrim(site_url('api/admin/catalog'), '/') . '/',
+				'legacyUrls' => array(
+					'editStudyBase'     => rtrim(site_url('admin/catalog/edit'), '/'),
+					'fullPageAttachUrl' => site_url('admin/catalog/attach_related_data/' . (int) $id),
+				),
+				'labels'     => array(
+					'title'                  => t('tab_related_data'),
+					'attached'               => t('attach_related_data'),
+					'attach_related_cta'     => t('attach_related_data'),
+					'manage_in_legacy'       => t('manage_citations_legacy_page'),
+					'relationship_type'      => t('relationship_type'),
+					'default_rel_help'       => t('relationship_type'),
+					'search'                 => t('search'),
+					'reset'                  => t('reset'),
+					'add'                    => t('attach'),
+					'remove'                 => t('remove'),
+					'no_records'             => t('no_records_found'),
+					'confirm_remove'         => t('js_confirm_delete'),
+					'col_title'              => t('title'),
+					'col_country_year'       => t('country'),
+					'col_relationship'       => t('relationship_type'),
+					'col_actions'            => t('actions'),
+					'col_link'               => t('link'),
+					'col_attached'           => t('link'),
+					'legacy_full_page'       => t('attach_related_data'),
+					'field_title'            => t('title'),
+					'field_nation'           => t('country'),
+					'field_idno'             => t('survey_id'),
+					'field_year_start'       => t('year'),
+					'field_authoring_entity' => t('producer'),
+					'saved'                  => t('form_update_success'),
+				),
+			)
+		);
+	}
+
+
+	private function _study_edit_sidebar_app_config($id, array $survey_row)
+	{
+		$_thumb_fn = '';
+		if (! empty($survey_row['thumbnail'])) {
+			$_thumb_fn = basename((string) $survey_row['thumbnail']);
+		}
+
+		return array_merge(
+			$this->_study_edit_vue_common($id, $survey_row),
+			array(
+				'apiBaseUrl'           => rtrim(site_url('api/admin/catalog'), '/') . '/',
+				'published'            => ! empty($survey_row['published']),
+				'thumbnailFilename'    => $_thumb_fn,
+				'thumbnailsPublicBase' => base_url('files/thumbnails/'),
+				'studyType'            => isset($survey_row['type']) ? $survey_row['type'] : 'survey',
+				'catalogListUrl'       => site_url('admin/catalog'),
+				'legacyUrls'           => array(
+					'browsePublic' => site_url('catalog/' . (int) $id),
+					'importRdf'    => site_url('admin/resources/import/' . (int) $id),
+					'fixLinks'     => site_url('admin/resources/fixlinks/' . (int) $id),
+					'pdfSetup'     => site_url('admin/pdf_generator/setup/' . (int) $id),
+					'replaceDdi'   => site_url('admin/catalog/replace_ddi/' . (int) $id),
+					'exportDdi'    => site_url('admin/catalog/ddi/' . (int) $id),
+					'refreshDdi'   => site_url('admin/catalog/refresh/' . (int) $id),
+					'generateDdi'  => site_url('admin/catalog/generate_ddi/' . (int) $id),
+					'transfer'     => site_url('admin/catalog/transfer/' . (int) $id),
+					'exportRdf'    => site_url('admin/catalog/export_rdf/' . (int) $id),
+					'deleteStudy'  => site_url('admin/catalog/delete/' . (int) $id),
+				),
+				'labels'               => array(
+					'status'                 => t('Status'),
+					'published'              => t('published'),
+					'draft'                  => t('draft'),
+					'delete_study'           => t('delete_study'),
+					'confirm_delete'         => t('js_confirm_delete'),
+					'study_warnings'         => t('study_warnings'),
+					'thumbnail'              => t('Thumbnail'),
+					'upload'                 => t('upload'),
+					'remove'                 => t('remove'),
+					'cancel'                 => t('cancel'),
+					'upload_thumbnail_title' => t('Upload thumbnail'),
+					'survey_options'         => t('Survey options'),
+					'options'                => t('study_sidebar_options'),
+					'thumbnail_empty_hint'   => t('study_sidebar_no_thumbnail'),
+					'browse_metadata'        => t('browse_metadata'),
+					'upload_rdf'             => t('upload_rdf'),
+					'link_resources'         => t('link_resources'),
+					'generate_pdf'           => t('generate_pdf'),
+					'replace_ddi'            => t('replace_ddi'),
+					'export_ddi'             => t('export_ddi'),
+					'refresh_ddi'            => t('refresh_ddi'),
+					'transfer_study'         => t('transfer_study_ownership'),
+					'export_rdf'             => t('export_rdf'),
+					'click_publish'          => t('click_to_publish_unpublish'),
+					'saved'                  => t('form_update_success'),
+					'loading'                => t('loading'),
+					'confirm_generate_ddi'   => 'This will overwrite the existing DDI file. Are you sure?',
+					'generate_ddi'           => t('Generate DDI'),
+				),
+			)
+		);
 	}
 
 
@@ -2360,7 +2451,7 @@ class Catalog extends MY_Controller {
 	 */
 	function export_csv()
 	{
-		$this->_require_admin_catalog_access();
+		$this->acl_manager->require_catalog_access();
 		$scope = $this->acl_manager->get_admin_catalog_repository_scope();
 
 		$req = trim((string) $this->input->get('owner_repo'));

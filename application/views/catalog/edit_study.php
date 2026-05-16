@@ -87,15 +87,15 @@ $message = $this->session->flashdata('message');
 			<ul class="nav nav-tabs" role="tablist">
 				<li role="presentation" <?php echo $selected_page=='' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" aria-controls="home" role="tab" ><?php echo t('tab_overview');?></a></li>
 				<li role="presentation" <?php echo $selected_page=='metadata' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/metadata');?>" aria-controls="metadata-editor" role="tab" ><?php echo t('Metadata');?> </a></li>
-				<li role="presentation" <?php echo $selected_page=='files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/files');?>" aria-controls="profile" role="tab" ><?php echo t('tab_manage_files');?> <span class="badge badge-light"><?php echo count($files);?></span></a></li>
-				<li role="presentation" <?php echo $selected_page=='resources' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/resources');?>" aria-controls="resources" role="tab" ><?php echo t('tab_resources');?> <span class="badge badge-light"><?php echo $resources['total'];?></span></a></li>
-				<li role="presentation" <?php echo $selected_page=='citations' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/citations');?>" aria-controls="settings" role="tab" ><?php echo t('tab_citations');?> <span class="badge badge-light"><?php echo is_array($selected_citations) ? count($selected_citations) : 0;?></span></a></li>
+				<li role="presentation" <?php echo $selected_page=='files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/files');?>" aria-controls="profile" role="tab" ><?php echo t('tab_manage_files');?> <span class="badge badge-light study-edit-tab-badge" data-study-summary="files" aria-hidden="true"></span></a></li>
+				<li role="presentation" <?php echo $selected_page=='resources' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/resources');?>" aria-controls="resources" role="tab" ><?php echo t('tab_resources');?> <span class="badge badge-light study-edit-tab-badge" data-study-summary="resources" aria-hidden="true"></span></a></li>
+				<li role="presentation" <?php echo $selected_page=='citations' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/citations');?>" aria-controls="settings" role="tab" ><?php echo t('tab_citations');?> <span class="badge badge-light study-edit-tab-badge" data-study-summary="citations" aria-hidden="true"></span></a></li>
 
 				<?php /* ?>
 				<li role="presentation" <?php echo $selected_page=='data-files' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/data-files');?>" aria-controls="data-files" role="tab" ><?php echo t('tab_data_files');?> <span class="badge badge-light"><?php echo $data_files['total'];?></span></a></li>-->
 				<?php */?>
-				<li role="presentation" <?php echo $selected_page=='notes' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/notes');?>" aria-controls="settings" role="tab" ><?php echo t('tab_notes');?> <span class="badge badge-light"><?php echo is_array($study_notes) ? count($study_notes) : 0;?></span></a></li>
-				<li role="presentation" <?php echo $selected_page=='related-data' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/related-data');?>" aria-controls="settings" role="tab" ><?php echo t('tab_related_data');?> <span class="badge badge-light"><?php echo is_array($related_studies) ? count($related_studies) : '';?></span></a></li>
+				<li role="presentation" <?php echo $selected_page=='notes' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/notes');?>" aria-controls="settings" role="tab" ><?php echo t('tab_notes');?> <span class="badge badge-light study-edit-tab-badge" data-study-summary="notes" aria-hidden="true"></span></a></li>
+				<li role="presentation" <?php echo $selected_page=='related-data' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/related-data');?>" aria-controls="settings" role="tab" ><?php echo t('tab_related_data');?> <span class="badge badge-light study-edit-tab-badge" data-study-summary="related_studies" aria-hidden="true"></span></a></li>
 
 				<?php if (!empty($analytics_enabled)): ?>
 				<li role="presentation" <?php echo $selected_page=='analytics' ? 'class="active"' : '';?>><a href="<?php echo site_url('admin/catalog/edit/'.$sid.'/analytics');?>" aria-controls="analytics" role="tab"><?php echo t('Analytics');?></a></li>
@@ -111,7 +111,7 @@ $message = $this->session->flashdata('message');
 
 		<input name="tmp_id" type="hidden" id="tmp_id" value="<?php echo get_form_value('tmp_id',isset($tmp_id) ? $tmp_id: $this->uri->segment(4)); ?>"/>
 
-		<div class="study-tab-container">
+		<div class="study-tab-container<?php echo ($selected_page === 'metadata') ? ' study-tab-container--metadata' : ''; ?>">
 		<?php
 			//load tab content
 			switch($this->uri->segment(5)) {
@@ -164,6 +164,31 @@ $message = $this->session->flashdata('message');
 <!-- end container -->
 <script>
 (function () {
+  var summaryUrl = <?php echo json_encode(site_url('api/admin/catalog/' . (int) $sid . '/summary?id_format=id')); ?>;
+  fetch(summaryUrl, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (!data || data.status !== 'success' || !data.summary) return;
+      var summary = data.summary;
+      document.querySelectorAll('[data-study-summary]').forEach(function (el) {
+        var key = el.getAttribute('data-study-summary');
+        if (!key || typeof summary[key] !== 'number') {
+          el.setAttribute('aria-hidden', 'true');
+          el.textContent = '';
+          return;
+        }
+        var n = summary[key];
+        if (n <= 0) {
+          el.setAttribute('aria-hidden', 'true');
+          el.textContent = '';
+          return;
+        }
+        el.textContent = String(n);
+        el.removeAttribute('aria-hidden');
+      });
+    })
+    .catch(function () { /* badges optional */ });
+
   function applyStudyEditPublishChip(detail) {
     var el = document.getElementById('study-edit-publish-status-chip');
     if (!el || !detail || typeof detail.published !== 'boolean') return;

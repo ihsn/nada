@@ -298,24 +298,5 @@ class MY_Controller extends CI_Controller
         }
 	}
 
-	/**
-	 * User may open scoped admin catalog UIs if they have collection scope or global study.view.
-	 */
-	protected function _require_admin_catalog_access()
-	{
-		if ($this->acl_manager->get_admin_catalog_repository_scope() === false) {
-			$this->acl_manager->has_access_or_die('study', 'view');
-		}
-	}
-
-	/**
-	 * User may open admin licensed-requests UI if they have global or collection-scoped licensed_request access.
-	 */
-	protected function _require_licensed_requests_access()
-	{
-		if ($this->acl_manager->get_licensed_request_repository_scope() === false) {
-			$this->acl_manager->has_access_or_die('licensed_request', 'view');
-		}
-	}
 
 }

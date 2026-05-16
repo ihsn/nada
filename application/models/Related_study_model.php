@@ -260,6 +260,16 @@ class Related_study_model extends CI_Model {
 
 
 	/**
+	 * Count related studies linked from sid_1 (admin summary / tab badges).
+	 */
+	public function get_relationships_count($sid)
+	{
+		$this->db->where('sid_1', (int) $sid);
+		return (int) $this->db->count_all_results('survey_relationships');
+	}
+
+
+	/**
 	*
 	* Return an array of relationship types as pairs
 	**/

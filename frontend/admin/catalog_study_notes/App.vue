@@ -9,37 +9,39 @@
         <div class="text-subtitle-1 font-weight-bold">{{ lbl.title || 'Notes' }}</div>
       </div>
 
-      <v-card variant="flat" elevation="0" rounded="lg" class="csn-compose-card pa-4">
-        <div class="text-subtitle-2 font-weight-semibold mb-3">
-          {{ lbl.compose_title || 'Add note' }}
-        </div>
-        <div class="csn-compose-fields">
-          <v-select
-            v-model="noteType"
-            :items="noteTypes"
-            item-title="title"
-            item-value="value"
-            density="compact"
-            variant="outlined"
-            hide-details
-            :placeholder="lbl.select_note_type || 'Note type'"
-            class="csn-type"
-          />
-          <v-textarea
-            v-model="noteText"
-            auto-grow
-            rows="3"
-            density="compact"
-            variant="outlined"
-            hide-details
-            :placeholder="lbl.placeholder || 'Type note...'"
-          />
-        </div>
-        <div class="d-flex flex-wrap justify-end csn-compose-actions">
-          <v-btn color="primary" size="small" class="text-none" :disabled="!canSubmit || saving" :loading="saving" @click="submitNote">
-            {{ lbl.add_note || 'Submit' }}
-          </v-btn>
-        </div>
+      <v-card variant="flat" elevation="0" rounded="lg" class="csn-compose-card">
+        <v-card-text class="csn-compose-card-body">
+          <div class="text-subtitle-2 font-weight-semibold mb-3">
+            {{ lbl.compose_title || 'Add note' }}
+          </div>
+          <div class="csn-compose-fields">
+            <v-select
+              v-model="noteType"
+              :items="noteTypes"
+              item-title="title"
+              item-value="value"
+              density="compact"
+              variant="outlined"
+              hide-details
+              :placeholder="lbl.select_note_type || 'Note type'"
+              class="csn-type"
+            />
+            <v-textarea
+              v-model="noteText"
+              auto-grow
+              rows="3"
+              density="compact"
+              variant="outlined"
+              hide-details
+              :placeholder="lbl.placeholder || 'Type note...'"
+            />
+          </div>
+          <div class="d-flex flex-wrap justify-end csn-compose-actions">
+            <v-btn color="primary" size="small" class="text-none" :disabled="!canSubmit || saving" :loading="saving" @click="submitNote">
+              {{ lbl.add_note || 'Submit' }}
+            </v-btn>
+          </div>
+        </v-card-text>
       </v-card>
 
       <v-card variant="flat" elevation="0" rounded="lg" class="csn-section">
@@ -201,6 +203,10 @@ onMounted(async () => {
 .csn-compose-card {
   background-color: rgba(var(--v-theme-on-surface), 0.06);
   margin-bottom: 1.5rem;
+}
+
+.csn-compose-card-body {
+  padding: 1.25rem 1.5rem;
 }
 
 .csn-compose-fields {

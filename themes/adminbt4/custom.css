@@ -3,6 +3,20 @@
 	margin-top: calc(64px + 0.5rem);
 }
 
+/* Same dark-toolbar / text-button contrast fix as themes/adminvue/shell.css (admin5 + Vue header). */
+#admin-app-header .admin-app-bar.v-toolbar {
+	color: rgba(255, 255, 255, 0.95) !important;
+}
+
+#admin-app-header .admin-app-bar .v-btn--variant-text.admin-nav-btn,
+#admin-app-header .admin-app-bar .admin-app-bar-brand a {
+	color: #fff !important;
+}
+
+#admin-app-header .admin-app-bar .v-toolbar-title a .text-medium-emphasis {
+	color: rgba(255, 255, 255, 0.75) !important;
+}
+
 #breadcrumb{
 	margin-left:16px;
 	margin-bottom:25px;

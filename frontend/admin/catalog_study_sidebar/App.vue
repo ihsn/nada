@@ -12,6 +12,9 @@
           <div class="csb-btn-stack">
             <v-btn
               block
+              variant="flat"
+              class="csb-btn-publish"
+              :class="publishedLocal ? 'csb-btn-publish--published' : 'csb-btn-publish--draft'"
               :color="publishedLocal ? 'success' : 'warning'"
               :loading="publishBusy"
               :title="lbl.click_publish || ''"
@@ -22,6 +25,7 @@
             </v-btn>
             <v-btn
               block
+              class="csb-btn-delete"
               color="error"
               variant="tonal"
               size="small"

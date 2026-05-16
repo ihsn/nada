@@ -41,6 +41,8 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
  *
  * Study maintenance warnings: GET /api/admin/catalog/{idno}/warnings — list of `key` + translated `message` (see `Catalog_admin::get_study_warnings`).
  *
+ * Study summary aggregates: GET /api/admin/catalog/{idno}/summary — related-entity counts (`files`, `resources`, …); optional query `id_format=id`, `keys=files,resources,...`.
+ *
  * Study folder on disk: GET|POST /api/admin/catalog/{idno}/folder-status — optional query `id_format=id`.
  *   GET: JSON `exists`, `folder_path`, `folder_path_full` (read-only).
  *   POST: creates the directory on disk (and may set `surveys.dirpath` when empty, same as new-study flow); requires edit access; JSON same shape as GET.
@@ -1072,6 +1074,109 @@ class Catalog extends MY_REST_Controller
 				REST_Controller::HTTP_BAD_REQUEST
 			);
 		}
+	}
+
+
+	/**
+	 * Lightweight study aggregates (related-entity counts for admin UI).
+	 *
+	 * GET /api/admin/catalog/{idno}/summary — optional query `id_format=id`, `keys=files,resources,citations,notes,related_studies`.
+	 *
+	 * @return array{status: string, summary: array<string, int>}
+	 */
+	function summary_get($idno = null)
+	{
+		try {
+			$sid = $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view', $sid);
+
+			$summary = $this->_build_study_summary($sid, $this->_parse_summary_keys());
+
+			$this->set_response(
+				array(
+					'status'  => 'success',
+					'summary' => $summary,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array(
+					'status'  => 'failed',
+					'message' => $e->getMessage(),
+				),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
+	 * @return list<string>
+	 */
+	private function _parse_summary_keys()
+	{
+		$allowed = array('files', 'resources', 'citations', 'notes', 'related_studies');
+		$raw = $this->input->get('keys');
+		if ($raw === null || $raw === '') {
+			return $allowed;
+		}
+		$parts = array_map('trim', explode(',', (string) $raw));
+		$keys = array();
+		foreach ($parts as $part) {
+			if ($part !== '' && in_array($part, $allowed, true)) {
+				$keys[] = $part;
+			}
+		}
+		return count($keys) > 0 ? $keys : $allowed;
+	}
+
+
+	/**
+	 * @param int        $sid
+	 * @param list<string> $keys
+	 * @return array<string, int>
+	 */
+	private function _build_study_summary($sid, array $keys)
+	{
+		$summary = array();
+		$sid = (int) $sid;
+
+		foreach ($keys as $key) {
+			switch ($key) {
+				case 'files':
+					$this->load->library('catalog_admin');
+					$files = $this->catalog_admin->get_files_array($sid);
+					$summary['files'] = is_array($files) ? count($files) : 0;
+					break;
+
+				case 'resources':
+					$this->load->model('Survey_resource_model');
+					$summary['resources'] = (int) $this->Survey_resource_model->get_resources_count_by_survey($sid);
+					break;
+
+				case 'citations':
+					$summary['citations'] = (int) $this->Citation_model->get_citations_count_by_survey($sid);
+					break;
+
+				case 'notes':
+					$this->load->model('Catalog_notes_model');
+					$summary['notes'] = (int) $this->Catalog_notes_model->get_notes_count_by_study($sid);
+					break;
+
+				case 'related_studies':
+					$this->load->model('Related_study_model');
+					$summary['related_studies'] = (int) $this->Related_study_model->get_relationships_count($sid);
+					break;
+			}
+		}
+
+		return $summary;
 	}
 
 
