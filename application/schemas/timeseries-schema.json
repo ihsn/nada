@@ -1661,7 +1661,7 @@
 		"data_structure_reference": {
 			"type": "object",
 			"title": "Data structure reference",
-			"description": "Canonical link to a global catalogue DSD. This identity must include idno plus SDMX-style maintainable identity (agency, name, version). Optional uri documents where to find the artefact (e.g. external registry or documentation page); not used for import.",
+			"description": "Canonical link to a global catalogue DSD. This identity must include idno plus SDMX-style maintainable identity (agency, name, version). Optional uri documents where to find the artefact (e.g. external registry or documentation page); not used for import. Optional notes carry free-text context for editors or publication.",
 			"properties": {
 				"idno": {
 					"title": "DSD idno",
@@ -1693,6 +1693,11 @@
 					"type": "string",
 					"format": "uri",
 					"maxLength": 2048
+				},
+				"notes": {
+					"title": "Notes",
+					"description": "Optional free-text notes about this DSD link (e.g. rationale, local usage context).",
+					"type": "string"
 				}
 			},
 			"required": ["idno", "agency", "name", "version"],
