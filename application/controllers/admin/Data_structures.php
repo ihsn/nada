@@ -32,9 +32,12 @@ class Data_structures extends MY_Controller {
 			'assets_base'            => base_url('frontend/dist/'),
 		];
 
-		$content = $this->load->view('admin/data_structures/index', $view_data, true);
-		$this->template->write('content', $content, true);
-		$this->template->write('title', 'Data structures', true);
-		$this->template->render();
+		$page = [
+			'title'           => 'Data structures',
+			'content'         => $this->load->view('admin/data_structures/index', $view_data, true),
+			'hide_breadcrumb' => true,
+			'theme_folder'    => 'adminvue',
+		];
+		$this->load->view('layouts/admin_vue', $page);
 	}
 }

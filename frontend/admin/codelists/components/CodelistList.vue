@@ -4,7 +4,7 @@
       <v-sheet
         v-if="selected.length > 0"
         border
-        rounded="xl"
+        rounded="0"
         class="pa-3 px-4 mb-3 d-flex align-center flex-wrap gap-2 ga-2 bg-surface"
       >
         <span class="text-body-2 font-weight-medium">{{ selected.length }} selected</span>
@@ -15,7 +15,7 @@
       </v-sheet>
     </v-expand-transition>
 
-    <v-card rounded="xl" border class="overflow-hidden">
+    <v-card rounded="0" border class="overflow-hidden">
       <v-card-text class="pa-0">
         <v-data-table-server
           v-model="selected"

@@ -1,6 +1,7 @@
 <template>
-  <div class="admin-dashboard-page">
-    <v-container fluid class="px-4 pt-2 pb-4">
+  <v-app class="admin-dashboard-vapp">
+    <div class="admin-dashboard-page">
+      <v-container fluid class="px-4 pt-2 pb-4">
         <h1 class="admin-dashboard-page__title text-h5 font-weight-medium mb-4">
           {{ pageTitle }}
         </h1>
@@ -171,8 +172,9 @@
           </v-row>
         </template>
 
-    </v-container>
-  </div>
+      </v-container>
+    </div>
+  </v-app>
 </template>
 
 <script setup>
@@ -198,8 +200,17 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.admin-dashboard-vapp.v-application {
+  display: block;
+  min-height: 0 !important;
+  height: auto !important;
+}
+.admin-dashboard-vapp :deep(.v-application__wrap) {
+  min-height: 0 !important;
+}
 .admin-dashboard-page {
   min-height: calc(100vh - 5rem);
+  background-color: #eef2f7;
 }
 </style>
 
@@ -212,17 +223,12 @@ onMounted(async () => {
   gap: 1.5rem;
 }
 .dashboard-card .dashboard-card-title {
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: 1.0625rem;
+  font-weight: 700;
   letter-spacing: 0.015em;
   line-height: 1.4;
   padding: 12px 16px !important;
   min-height: 0 !important;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.98) 0%,
-    rgb(241, 245, 249) 100%
-  );
 }
 
 .dashboard-card .dashboard-card-title :deep(.v-btn) {

@@ -78,7 +78,7 @@ INSERT INTO `site_menu` VALUES
 (12,2,'-','-',70,1,'catalog'),
 (13,2,'Licensed requests','admin/licensed_requests',80,1,'catalog'),
 (14,2,'-','-',90,1,'catalog'),
-(15,2,'Manage collections','admin/repositories',60,1,'repositories'),
+(15,2,'Manage collections','admin/collections',60,1,'repositories'),
 (17,4,'All citations','admin/citations',100,1,'citations'),
 (18,4,'Import citations','admin/citations/import',90,1,'citations'),
 (19,4,'Export citations','admin/citations/export',80,1,'citations'),
@@ -1460,6 +1460,7 @@ INSERT INTO `configurations` VALUES ('collection_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('collection_search_weight','5',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('da_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('da_search_weight','2',NULL,NULL,NULL);
+INSERT INTO `configurations` VALUES ('data_classifications_enabled','yes','Enable data classifications',NULL,NULL);
 INSERT INTO `configurations` VALUES ('db_version','5.0.0','Database version',NULL,NULL);
 INSERT INTO `configurations` VALUES ('ddi_import_folder','imports','Survey catalog import folder',NULL,NULL);
 INSERT INTO `configurations` VALUES ('default_home_page','home','Default home page','Default home page',NULL);
@@ -1837,6 +1838,20 @@ CREATE TABLE `data_access_whitelist` (
 ) AUTO_INCREMENT=1;
 
 
+CREATE TABLE `repositories_acl` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `repository_id` int NOT NULL,
+  `permission` varchar(80) NOT NULL,
+  `created_by` int DEFAULT NULL,
+  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_repositories_acl_user_repository_permission` (`user_id`, `repository_id`, `permission`),
+  KEY `idx_repositories_acl_user_repository` (`user_id`, `repository_id`),
+  KEY `idx_repositories_acl_repository_permission` (`repository_id`, `permission`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 CREATE TABLE `survey_data_api` (
   `id` int NOT NULL AUTO_INCREMENT,
   `sid` int DEFAULT NULL,
@@ -1931,5 +1946,48 @@ CREATE TABLE `analytics_monthly_files` (
   KEY `idx_study` (`study_id`),
   KEY `idx_period` (`year`,`month`),
   KEY `idx_file` (`file_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- display templates
+-- ============================================================
+
+CREATE TABLE `display_templates` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `uid` VARCHAR(191) NOT NULL,
+  `template_type` ENUM('system','custom','imported') NOT NULL DEFAULT 'custom',
+  `data_type` VARCHAR(64) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `version` VARCHAR(50) DEFAULT NULL,
+  `organization` VARCHAR(255) DEFAULT NULL,
+  `author` VARCHAR(255) DEFAULT NULL,
+  `description` TEXT DEFAULT NULL,
+  `status` ENUM('draft','published','archived') NOT NULL DEFAULT 'draft',
+  `template_json` JSON NOT NULL,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_by` INT UNSIGNED DEFAULT NULL,
+  `changed_by` INT UNSIGNED DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_display_templates_uid` (`uid`),
+  KEY `idx_display_templates_type_status` (`data_type`,`status`),
+  KEY `idx_display_templates_template_type` (`template_type`),
+  KEY `idx_display_templates_not_deleted` (`is_deleted`,`data_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE `display_templates_default` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `data_type` VARCHAR(64) NOT NULL,
+  `template_uid` VARCHAR(191) NOT NULL,
+  `created_by` INT UNSIGNED DEFAULT NULL,
+  `updated_by` INT UNSIGNED DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_display_default_type` (`data_type`),
+  KEY `idx_display_default_template_uid` (`template_uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

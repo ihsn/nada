@@ -30,12 +30,8 @@ class Collections extends MY_Controller {
 	 */
 	function index()
 	{
-		$this->template->set_template('admin5');
+		$this->acl_manager->require_catalog_access();
 
-		$this->_require_admin_catalog_access();
-
-		// Vue collections page: access is enforced via api/admin/collections and scope; no active_repo.
-		// assets_base is the URL base for frontend/dist (from PHP base_url)
 		$this->load->helper('vite_helper');
 		$collections_view_data = [
 			'api_base_url' => site_url('api/admin/collections/'),
@@ -43,12 +39,16 @@ class Collections extends MY_Controller {
 			'base_url' => base_url(),
 			'csrf_token' => $this->security->get_csrf_hash(),
 			'assets_base' => base_url('frontend/dist/'),
-			'translations' => $this->lang->language //all loaded language strings
+			'translations' => $this->lang->language,
 		];
 
-		$content = $this->load->view('admin/collections/index', $collections_view_data, true);
-		$this->template->write('content', $content, true);
-		$this->template->render();
+		$page = [
+			'title'           => t('collections'),
+			'content'         => $this->load->view('admin/collections/index', $collections_view_data, true),
+			'hide_breadcrumb' => true,
+			'theme_folder'    => 'adminvue',
+		];
+		$this->load->view('layouts/admin_vue', $page);
 	}
 
 	/**

@@ -69,7 +69,7 @@ CREATE TABLE site_menu (
 
 set IDENTITY_INSERT site_menu ON;
 INSERT INTO site_menu(id,pid,title,url,weight,depth,module)
- VALUES (1,0,'Dashboard','admin',0,0,'admin'),(2,0,'Studies','admin/catalog',1,0,'catalog'),(4,0,'Citations','admin/citations',3,0,'citations'),(5,0,'Users','admin/users',4,0,'users'),(6,0,'Menu','admin/menu',5,0,'menu'),(7,0,'Reports','admin/reports',6,0,'reports'),(8,0,'Settings','admin/configurations',7,0,'configurations'),(12,2,'-','-',70,1,'catalog'),(13,2,'Licensed requests','admin/licensed_requests',80,1,'catalog'),(14,2,'-','-',90,1,'catalog'),(15,2,'Manage collections','admin/repositories',60,1,'repositories'),(17,4,'All citations','admin/citations',100,1,'citations'),(18,4,'Import citations','admin/citations/import',90,1,'citations'),(19,4,'Export citations','admin/citations/export',80,1,'citations'),(20,5,'All users','admin/users',100,1,'users'),(21,5,'Add user','admin/users/add',99,1,'users'),(22,5,'-','-',65,1,'users'),(27,6,'All pages','admin/menu',0,1,'menu'),(28,7,'All reports','admin/reports',0,1,'reports'),(29,8,'Settings','admin/configurations',0,1,'configurations'),(30,8,'Countries','admin/countries',0,1,'vocabularies'),(31,8,'Regions','admin/regions',0,1,'vocabularies'),(32,8,'-','-',0,1,'vocabularies'),(33,8,'Vocabularies','admin/vocabularies',-9,1,'vocabularies'),(34,2,'Manage studies','admin/catalog',100,1,'catalog'),(35,5,'Impersonate user','admin/users/impersonate',50,1,'users');
+ VALUES (1,0,'Dashboard','admin',0,0,'admin'),(2,0,'Studies','admin/catalog',1,0,'catalog'),(4,0,'Citations','admin/citations',3,0,'citations'),(5,0,'Users','admin/users',4,0,'users'),(6,0,'Menu','admin/menu',5,0,'menu'),(7,0,'Reports','admin/reports',6,0,'reports'),(8,0,'Settings','admin/configurations',7,0,'configurations'),(12,2,'-','-',70,1,'catalog'),(13,2,'Licensed requests','admin/licensed_requests',80,1,'catalog'),(14,2,'-','-',90,1,'catalog'),(15,2,'Manage collections','admin/collections',60,1,'repositories'),(17,4,'All citations','admin/citations',100,1,'citations'),(18,4,'Import citations','admin/citations/import',90,1,'citations'),(19,4,'Export citations','admin/citations/export',80,1,'citations'),(20,5,'All users','admin/users',100,1,'users'),(21,5,'Add user','admin/users/add',99,1,'users'),(22,5,'-','-',65,1,'users'),(27,6,'All pages','admin/menu',0,1,'menu'),(28,7,'All reports','admin/reports',0,1,'reports'),(29,8,'Settings','admin/configurations',0,1,'configurations'),(30,8,'Countries','admin/countries',0,1,'vocabularies'),(31,8,'Regions','admin/regions',0,1,'vocabularies'),(32,8,'-','-',0,1,'vocabularies'),(33,8,'Vocabularies','admin/vocabularies',-9,1,'vocabularies'),(34,2,'Manage studies','admin/catalog',100,1,'catalog'),(35,5,'Impersonate user','admin/users/impersonate',50,1,'users');
 set IDENTITY_INSERT site_menu OFF;
 
 insert into site_menu(pid,title,url,weight,depth,module) 
@@ -849,32 +849,6 @@ CREATE NONCLUSTERED INDEX idx_citations_url_status  ON [dbo].[citations] ([url_s
 CREATE NONCLUSTERED INDEX idx_citations_created_by  ON [dbo].[citations] ([created_by]);
 CREATE NONCLUSTERED INDEX idx_citations_changed_by  ON [dbo].[citations] ([changed_by]);
 
-
---
--- Table structure for table permission_urls
---
-
-CREATE TABLE permission_urls (
-  id int NOT NULL IDENTITY(1,1),
-  url varchar(255) DEFAULT NULL,
-  permission_id int NOT NULL,
-  PRIMARY KEY (id)
-);
-
-CREATE UNIQUE NONCLUSTERED INDEX IX_perms_url on [dbo].[permission_urls](
-	[url] ASC
-);
-
-
-
---
--- Dumping data for table permission_urls
---
-set IDENTITY_INSERT permission_urls ON;
-INSERT INTO permission_urls (id,url,permission_id)
-VALUES (1,'admin/catalog/upload',1),(4,'admin/menu',4),(5,'admin/menu/add',5),(6,'admin/menu/edit/*',6),(7,'admin/menu/add_link',7),(8,'admin/menu/menu_sort',8),(9,'admin/vocabularies',9),(10,'admin/terms/*',10),(12,'admin/users/*',12),(14,'ddibrowser',14),(16,'page/*',16),(18,'citations',18),(22,'backup*',22),(23,'access_licensed*',23),(25,'switch_language*',25),(27,'translate/*',27),(34,'admin/catalog/do_upload',1),(48,'admin/datadeposit*',40),(51,'admin/catalog/delete',42),(52,'admin/catalog/export-ddi',43),(53,'admin/catalog/import-rdf',44),(54,'admin/repositories/*',45),(55,'admin/repositories',45),(88,'admin/catalog/replace_ddi/*',46),(100,'admin/catalog/edit/*',49),(101,'admin/catalog/update/*',49),(102,'admin/catalog/update',49),(103,'admin/managefiles/*',49),(104,'admin/resources/*',49),(112,'admin/catalog',2),(113,'admin/catalog/survey/*',2),(114,'admin/catalog/search',2),(116,'access_public/*',30),(119,'admin/catalog/copy_ddi',62),(124,'admin/repositories/select',61),(125,'admin/repositories/active/*',61),(126,'admin/catalog/publish',41),(127,'admin/catalog/publish/*',41),(131,'admin/catalog/copy_study',63),(132,'admin/catalog/do_copy_study/*',63),(133,'admin/citations',64),(134,'admin/citations/edit',65),(135,'admin/citations/edit/*',65),(136,'admin/citations/delete/*',66),(137,'admin/citations/import',67),(138,'admin/citations/export',68),(141,'admin',3),(142,'admin/users/exit_impersonate',3),(143,'admin/licensed_requests',69),(145,'admin/licensed_requests/*',70),(147,'admin/users',11),(148,'admin/reports/*',71),(149,'admin/reports',71);
-set IDENTITY_INSERT permission_urls OFF;
-
 --
 -- Table structure for table survey_aliases
 --
@@ -1082,34 +1056,6 @@ CREATE TABLE survey_repos (
 
 CREATE NONCLUSTERED INDEX idx_survey_repos_repositoryid ON [dbo].[survey_repos] ([repositoryid] ASC) INCLUDE ([sid]);
 CREATE NONCLUSTERED INDEX idx_survey_repos_sid ON [dbo].[survey_repos] ([sid] ASC);
-
-
---
--- Table structure for table repo_perms_urls
---
-
-CREATE TABLE repo_perms_urls (
-  id int NOT NULL IDENTITY(1,1),
-  repo_pg_id int DEFAULT NULL,
-  url varchar(100) DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
---
--- Dumping data for table repo_perms_urls
---
-
-set IDENTITY_INSERT repo_perms_urls ON;
-INSERT INTO repo_perms_urls(id,repo_pg_id,url)
-VALUES (5,2,'admin/catalog/copy_ddi'),(6,2,'admin/catalog/copy_study'),(7,2,'admin/catalog/delete'),(8,2,'admin/catalog/do_copy_study/*'),(9,2,'admin/catalog/do_upload'),(10,2,'admin/catalog/edit/*'),(11,2,'admin/catalog/export-ddi'),(12,2,'admin/catalog/import-rdf'),(15,2,'admin/catalog/repladce_ddi/*'),(16,2,'admin/catalog/search'),(17,2,'admin/catalog/survey/*'),(18,2,'admin/catalog/update'),(19,2,'admin/catalog/update/*'),(20,2,'admin/catalog/upload'),(28,3,'admin/licensed_requests'),(29,3,'admin/licensed_requests/*'),(30,2,'admin/managefiles/*'),(41,2,'admin/resources/*'),(64,1,'admin/catalog/*'),(67,2,'admin/pdf_generator/*'),
-(68,1,'admin/pdf_generator/*'),
-(69,1,'admin/catalog/add_study'),
-(70,1,'admin/catalog/batch_import'),
-(71,1,'admin/catalog/refresh/*');
-set IDENTITY_INSERT repo_perms_urls OFF;
-
-
 
 
 --
@@ -1914,6 +1860,28 @@ CREATE TABLE data_access_whitelist (
 );
 
 
+CREATE TABLE repositories_acl (
+  id int NOT NULL IDENTITY(1,1),
+  user_id int NOT NULL,
+  repository_id int NOT NULL,
+  permission varchar(80) NOT NULL,
+  created_by int NULL,
+  created datetime2(0) NOT NULL CONSTRAINT DF_repositories_acl_created DEFAULT (SYSUTCDATETIME()),
+  CONSTRAINT PK_repositories_acl PRIMARY KEY (id),
+  CONSTRAINT UQ_repositories_acl_user_repository_permission UNIQUE (user_id, repository_id, permission)
+);
+
+CREATE NONCLUSTERED INDEX IX_repositories_acl_user_repository ON [dbo].[repositories_acl](
+  [user_id] ASC,
+  [repository_id] ASC
+);
+
+CREATE NONCLUSTERED INDEX IX_repositories_acl_repository_permission ON [dbo].[repositories_acl](
+  [repository_id] ASC,
+  [permission] ASC
+);
+
+
 CREATE TABLE widgets (
   id int NOT NULL identity(1,1),
   uuid varchar(100) NOT NULL,
@@ -2122,4 +2090,52 @@ CREATE TABLE [analytics_monthly_files] (
 CREATE NONCLUSTERED INDEX [idx_study] ON [analytics_monthly_files] ([study_id] ASC);
 CREATE NONCLUSTERED INDEX [idx_file] ON [analytics_monthly_files] ([file_name] ASC);
 CREATE NONCLUSTERED INDEX [idx_period] ON [analytics_monthly_files] ([year] ASC, [month] ASC);
+
+
+-- ============================================================
+-- display templates
+-- ============================================================
+
+CREATE TABLE [display_templates] (
+    [id] bigint NOT NULL IDENTITY(1,1),
+    [uid] nvarchar(191) NOT NULL,
+    [template_type] nvarchar(20) NOT NULL DEFAULT 'custom',
+    [data_type] nvarchar(64) NOT NULL,
+    [name] nvarchar(255) NOT NULL,
+    [version] nvarchar(50) NULL,
+    [organization] nvarchar(255) NULL,
+    [author] nvarchar(255) NULL,
+    [description] nvarchar(max) NULL,
+    [status] nvarchar(20) NOT NULL DEFAULT 'draft',
+    [template_json] nvarchar(max) NOT NULL,
+    [is_deleted] bit NOT NULL DEFAULT 0,
+    [created_by] int NULL,
+    [changed_by] int NULL,
+    [created_at] datetime2 NOT NULL DEFAULT SYSDATETIME(),
+    [updated_at] datetime2 NOT NULL DEFAULT SYSDATETIME(),
+    PRIMARY KEY ([id]),
+    CONSTRAINT [unq_display_templates_uid] UNIQUE ([uid]),
+    CONSTRAINT [ck_display_templates_template_type] CHECK ([template_type] IN ('system','custom','imported')),
+    CONSTRAINT [ck_display_templates_status] CHECK ([status] IN ('draft','published','archived')),
+    CONSTRAINT [ck_display_templates_template_json_isjson] CHECK (ISJSON([template_json])=1)
+);
+
+CREATE NONCLUSTERED INDEX [idx_display_templates_type_status] ON [display_templates] ([data_type] ASC, [status] ASC);
+CREATE NONCLUSTERED INDEX [idx_display_templates_template_type] ON [display_templates] ([template_type] ASC);
+CREATE NONCLUSTERED INDEX [idx_display_templates_not_deleted] ON [display_templates] ([is_deleted] ASC, [data_type] ASC);
+
+
+CREATE TABLE [display_templates_default] (
+    [id] bigint NOT NULL IDENTITY(1,1),
+    [data_type] nvarchar(64) NOT NULL,
+    [template_uid] nvarchar(191) NOT NULL,
+    [created_by] int NULL,
+    [updated_by] int NULL,
+    [created_at] datetime2 NOT NULL DEFAULT SYSDATETIME(),
+    [updated_at] datetime2 NOT NULL DEFAULT SYSDATETIME(),
+    PRIMARY KEY ([id]),
+    CONSTRAINT [unq_display_default_type] UNIQUE ([data_type])
+);
+
+CREATE NONCLUSTERED INDEX [idx_display_default_template_uid] ON [display_templates_default] ([template_uid] ASC);
 

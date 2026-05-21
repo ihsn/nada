@@ -1,4 +1,15 @@
 /* Minimal shell for themes/adminvue (no Bootstrap). Vuetify styles admin components. */
+
+/*
+ * Establish Vuetify CSS layer priority before any Vite-managed CSS loads.
+ * In production MPA builds the @layer declaration in base.css (bundled into each entry chunk)
+ * arrives AFTER Vuetify component chunks, so the browser's first-seen order wins instead.
+ * shell.css loads via a static <link> tag before all entry chunks, making this declaration
+ * authoritative. Without it, vuetify-utilities loses to vuetify-components → buttons get
+ * wrong text color (black on primary background).
+ */
+@layer vuetify-core, vuetify-components, vuetify-overrides, vuetify-utilities;
+
 html {
   box-sizing: border-box;
 }

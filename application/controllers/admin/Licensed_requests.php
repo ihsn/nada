@@ -46,7 +46,7 @@ class Licensed_requests extends MY_Controller {
     
     public function index()
     {
-		$this->_require_licensed_requests_access();
+		$this->acl_manager->require_licensed_requests_access();
 		$this->_render_licensed_requests_vue_shell(t('licensed_requests'));
 	}
 

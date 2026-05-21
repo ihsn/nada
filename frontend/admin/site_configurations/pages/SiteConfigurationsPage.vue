@@ -775,6 +775,7 @@ onMounted(async () => {
               <v-radio value="db" :label="tr('search_provider_db')" />
               <v-radio value="opensearch" :label="tr('search_provider_opensearch')" />
               <v-radio value="solr" :label="tr('search_provider_solr')" />
+              <v-radio value="semantic" :label="tr('search_provider_semantic')" />
             </v-radio-group>
             <div class="site-config-field__hint mt-2">{{ tr('search_provider_note') }}</div>
             </div>

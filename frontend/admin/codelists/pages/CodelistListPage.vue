@@ -1,46 +1,58 @@
 <template>
-  <div class="d-flex flex-column flex-grow-1 min-height-0 gap-5">
-    <section class="flex-shrink-0">
-      <v-sheet elevation="0" rounded="0" class="pa-2 pa-sm-3 bg-transparent">
-        <div class="d-flex flex-column flex-sm-row gap-3 align-sm-center justify-space-between flex-wrap">
-          <div class="cl-filters-row d-flex flex-column flex-sm-row align-sm-center flex-grow-1 flex-wrap">
-            <v-text-field
-              :model-value="search"
-              density="compact"
-              variant="outlined"
-              rounded="lg"
-              hide-details
-              clearable
-              prepend-inner-icon="mdi-magnify"
-              label="Search"
-              placeholder="Name, idno, agency, version…"
-              class="flex-grow-1"
-              style="max-width: 420px"
-              single-line
-              @update:model-value="onSearchInput"
-              @click:clear="clearSearch"
-            />
-            <v-select
-              v-model="statusFilter"
-              :items="statusFilterItems"
-              item-title="title"
-              item-value="value"
-              label="Status"
-              density="compact"
-              variant="outlined"
-              rounded="lg"
-              hide-details
-              clearable
-              style="max-width: 200px"
-              @update:model-value="resetPageOnStatus"
-            />
-          </div>
-          <v-chip v-if="!loading" variant="tonal" color="primary" size="small" class="font-weight-medium flex-shrink-0">
+  <div>
+    <v-breadcrumbs :items="breadcrumbItems" class="cl-breadcrumbs px-0 pt-0">
+      <template #divider>
+        <v-icon icon="mdi-chevron-right" size="16" />
+      </template>
+    </v-breadcrumbs>
+
+    <v-row align="center" class="mb-4">
+      <v-col cols="12" md="8">
+        <h1 class="text-h5 font-weight-semibold text-high-emphasis mb-0">Codelists</h1>
+      </v-col>
+      <v-col cols="12" md="4" class="d-flex justify-end">
+        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateDialog">
+          Add codelist
+        </v-btn>
+      </v-col>
+    </v-row>
+
+    <v-card class="pa-4" elevation="1" style="margin-bottom: 24px;">
+      <v-row dense align="center">
+        <v-col cols="12" md="5">
+          <v-text-field
+            :model-value="search"
+            density="compact"
+            variant="outlined"
+            hide-details
+            clearable
+            prepend-inner-icon="mdi-magnify"
+            placeholder="Name, idno, agency, version…"
+            @update:model-value="onSearchInput"
+            @click:clear="clearSearch"
+          />
+        </v-col>
+        <v-col cols="12" md="3">
+          <v-select
+            v-model="statusFilter"
+            :items="statusFilterItems"
+            item-title="title"
+            item-value="value"
+            label="Status"
+            density="compact"
+            variant="outlined"
+            hide-details
+            clearable
+            @update:model-value="resetPageOnStatus"
+          />
+        </v-col>
+        <v-col v-if="!loading" cols="auto" class="ml-auto">
+          <v-chip variant="tonal" color="primary" size="small" class="font-weight-medium">
             {{ serverTotal }} {{ serverTotal === 1 ? 'codelist' : 'codelists' }}
           </v-chip>
-        </div>
-      </v-sheet>
-    </section>
+        </v-col>
+      </v-row>
+    </v-card>
 
     <CodelistList
       ref="listRef"
@@ -57,37 +69,38 @@
     />
 
     <v-dialog v-model="deleteDialog.show" max-width="440" persistent>
-      <v-card rounded="xl">
-        <v-card-title>Delete codelist version?</v-card-title>
-        <v-card-text>
-          Delete
-          <strong>{{ deleteDialog.codelist?.name }}</strong>
-          ({{ deleteDialog.codelist?.agency }} / {{ deleteDialog.codelist?.version }})? Items, groups, and
-          translations for this version only will be removed.
+      <v-card>
+        <v-card-title class="text-h6 pa-4">Delete codelist version?</v-card-title>
+        <v-divider />
+        <v-card-text class="pa-4">
+          Delete <strong>{{ deleteDialog.codelist?.name }}</strong>
+          ({{ deleteDialog.codelist?.agency }} / {{ deleteDialog.codelist?.version }})?
+          Items, groups, and translations for this version only will be removed.
         </v-card-text>
-        <v-card-actions>
+        <v-divider />
+        <v-card-actions class="pa-3">
           <v-spacer />
           <v-btn variant="text" @click="deleteDialog.show = false">Cancel</v-btn>
-          <v-btn color="error" :loading="deleteDialog.saving" @click="doDeleteCodelist">Delete</v-btn>
+          <v-btn color="error" variant="flat" :loading="deleteDialog.saving" @click="doDeleteCodelist">Delete</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-dialog v-model="batchDeleteDialog.show" max-width="480" persistent>
-      <v-card rounded="xl">
-        <v-card-title>Delete selected codelists?</v-card-title>
-        <v-card-text>
-          This will delete
-          <strong>{{ batchDeleteDialog.rows?.length ?? 0 }}</strong>
-          {{
-            (batchDeleteDialog.rows?.length ?? 0) === 1 ? 'codelist version' : 'codelist versions'
-          }}. Items, groups, and translations for each removed version are deleted. Published versions or codelists
-          referenced by data structure (DSD) components cannot be removed.
+      <v-card>
+        <v-card-title class="text-h6 pa-4">Delete selected codelists?</v-card-title>
+        <v-divider />
+        <v-card-text class="pa-4">
+          This will delete <strong>{{ batchDeleteDialog.rows?.length ?? 0 }}</strong>
+          {{ (batchDeleteDialog.rows?.length ?? 0) === 1 ? 'codelist version' : 'codelist versions' }}.
+          Items, groups, and translations for each removed version are deleted.
+          Published versions or codelists referenced by data structure (DSD) components cannot be removed.
         </v-card-text>
-        <v-card-actions>
+        <v-divider />
+        <v-card-actions class="pa-3">
           <v-spacer />
           <v-btn variant="text" @click="batchDeleteDialog.show = false">Cancel</v-btn>
-          <v-btn color="error" :loading="batchDeleteDialog.saving" @click="doBatchDeleteCodelists">Delete</v-btn>
+          <v-btn color="error" variant="flat" :loading="batchDeleteDialog.saving" @click="doBatchDeleteCodelists">Delete</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -97,6 +110,7 @@
 <script setup>
 import { ref, reactive, inject, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAppConfig } from '@/shared/composables/useAppConfig';
 import CodelistList from '../components/CodelistList.vue';
 import { useCodelistsApi } from '../composables/useCodelistsApi';
 
@@ -104,7 +118,14 @@ defineOptions({ name: 'CodelistListPage' });
 
 const route = useRoute();
 const router = useRouter();
+const { siteUrl } = useAppConfig();
 const setMessage = inject('setMessage', () => {});
+
+const siteBaseUrl = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));
+const breadcrumbItems = computed(() => [
+  { title: 'Admin', href: `${siteBaseUrl.value}/admin` },
+  { title: 'Codelists', disabled: true },
+]);
 
 const {
   loading,
@@ -138,6 +159,10 @@ const statusFilterItems = [
 
 const hasSearch = computed(() => String(searchDebounced.value ?? '').trim().length > 0);
 
+function openCreateDialog() {
+  listRef.value?.openCreate?.();
+}
+
 function onSearchInput(val) {
   search.value = val === null || val === undefined ? '' : String(val);
   clearTimeout(searchDebounceTimer);
@@ -157,10 +182,6 @@ function clearSearch() {
 
 function resetPageOnStatus() {
   page.value = 1;
-}
-
-function openCreateDialog() {
-  listRef.value?.openCreate?.();
 }
 
 watch(
@@ -268,16 +289,10 @@ async function doBatchDeleteCodelists() {
         'success'
       );
     } else if (deletedCount > 0 && failedCount > 0) {
-      const sample = failed
-        .slice(0, 3)
-        .map((f) => `#${f.id}: ${f.message}`)
-        .join('; ');
+      const sample = failed.slice(0, 3).map((f) => `#${f.id}: ${f.message}`).join('; ');
       setMessage(`Deleted ${deletedCount}; ${failedCount} failed${sample ? `. ${sample}` : ''}`, 'warning');
     } else if (failedCount > 0) {
-      const sample = failed
-        .slice(0, 3)
-        .map((f) => `#${f.id}: ${f.message}`)
-        .join('; ');
+      const sample = failed.slice(0, 3).map((f) => `#${f.id}: ${f.message}`).join('; ');
       setMessage(`Could not delete selected codelists${sample ? `. ${sample}` : ''}`, 'error');
     } else {
       setMessage('Nothing was deleted.', 'info');
@@ -294,14 +309,13 @@ async function doBatchDeleteCodelists() {
 </script>
 
 <style scoped>
-.cl-filters-row {
-  column-gap: 0.5rem;
-  row-gap: 0.75rem;
+.cl-breadcrumbs {
+  font-size: 0.8125rem;
+  margin-bottom: 0.5rem;
 }
-@media (min-width: 600px) {
-  .cl-filters-row {
-    column-gap: 2rem;
-    row-gap: 0.5rem;
-  }
+
+.cl-breadcrumbs :deep(.v-breadcrumbs-item),
+.cl-breadcrumbs :deep(.v-breadcrumbs-divider) {
+  font-size: 0.8125rem;
 }
 </style>

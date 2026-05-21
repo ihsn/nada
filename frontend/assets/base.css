@@ -1,3 +1,10 @@
+/* Establish Vuetify CSS layer priority order.
+ * In dev mode Vite injects this before component styles, so it works here.
+ * In production the authoritative declaration is in themes/adminvue/shell.css (loaded first
+ * via a static <link> tag before any Vite entry chunks). This copy is kept for dev parity.
+ */
+@layer vuetify-core, vuetify-components, vuetify-overrides, vuetify-utilities;
+
 /**
  * Shared base styles for admin Vue apps.
  * Import in entry points: import '@/assets/base.css'

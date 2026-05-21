@@ -22,6 +22,8 @@ export function useAppConfig() {
     datasetsApiBaseUrl: computed(() => config.value?.datasetsApiBaseUrl ?? ''),
     dataStructuresApiBaseUrl: computed(() => config.value?.dataStructuresApiBaseUrl ?? ''),
     codelistsApiBaseUrl: computed(() => config.value?.codelistsApiBaseUrl ?? ''),
+    catalogApiBaseUrl: computed(() => config.value?.catalogApiBaseUrl ?? ''),
+    studyEditBaseUrl: computed(() => config.value?.studyEditBaseUrl ?? ''),
     assetsBase: computed(() => config.value?.assetsBase ?? ''),
     csrfToken: computed(() => config.value?.csrfToken ?? ''),
     csrfTokenName: computed(() => config.value?.csrfTokenName ?? 'ncsrf'),

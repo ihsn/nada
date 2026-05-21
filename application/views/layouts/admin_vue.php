@@ -17,6 +17,14 @@ $admin_header_config = $CI->site_menu->get_admin_header_config();
 $vite_dev_url_header = defined('VITE_DEV_URL') ? VITE_DEV_URL : 'http://localhost:5173';
 $use_vite_dev_header = defined('VUE_ENVIRONMENT') && VUE_ENVIRONMENT === 'development';
 $theme_folder = isset($theme_folder) ? $theme_folder : 'adminvue';
+// Pre-compute production admin-header assets; CSS goes in <head>, JS in <body>.
+$_header_css = [];
+$_header_js  = [];
+if (!$use_vite_dev_header) {
+    $_h = get_vite_entry_assets('admin_header', 'frontend/dist');
+    $_header_css = $_h['css'];
+    $_header_js  = $_h['js'];
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -35,6 +43,10 @@ $theme_folder = isset($theme_folder) ? $theme_folder : 'adminvue';
 
     <?php if (isset($_styles)) { echo $_styles; } ?>
     <?php if (isset($_scripts)) { echo $_scripts; } ?>
+
+    <?php foreach ($_header_css as $_hcss): ?>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars($_hcss, ENT_QUOTES, 'UTF-8'); ?>">
+    <?php endforeach; ?>
 
     <script>
     (function () {
@@ -61,7 +73,9 @@ window.ADMIN_HEADER_CONFIG = <?php echo json_encode($admin_header_config, JSON_H
 <?php if ($use_vite_dev_header): ?>
 <?php echo render_vite_dev_scripts('admin/header/main.js', $vite_dev_url_header); ?>
 <?php else: ?>
-<?php echo render_vite_entry_assets('admin_header', 'frontend/dist'); ?>
+<?php foreach ($_header_js as $_hjs): ?>
+<script type="module" src="<?php echo htmlspecialchars($_hjs, ENT_QUOTES, 'UTF-8'); ?>"></script>
+<?php endforeach; ?>
 <?php endif; ?>
 
 <?php if (isset($collection)): ?>

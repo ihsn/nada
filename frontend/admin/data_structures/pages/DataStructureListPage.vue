@@ -1,48 +1,62 @@
 <template>
-  <div class="d-flex flex-column flex-grow-1 min-height-0 gap-5">
-    <section class="ds-toolbar flex-shrink-0">
-      <v-sheet elevation="0" rounded="0" class="pa-2 pa-sm-3 bg-transparent">
-        <div class="d-flex flex-column flex-sm-row gap-3 align-sm-center justify-space-between flex-wrap">
-          <div class="d-flex flex-column flex-sm-row align-sm-center flex-grow-1 flex-wrap ds-toolbar-filters">
-            <v-text-field
-              :model-value="search"
-              density="compact"
-              variant="outlined"
-              rounded="lg"
-              hide-details
-              clearable
-              prepend-inner-icon="mdi-magnify"
-              label="Search"
-              placeholder="Title, name, agency…"
-              class="flex-grow-0 ds-toolbar-search"
-              single-line
-              @update:model-value="onSearchInput"
-              @click:clear="clearSearch"
-            />
-            <v-select
-              v-model="statusFilter"
-              :items="statusFilterItems"
-              item-title="title"
-              item-value="value"
-              label="Status"
-              density="compact"
-              variant="outlined"
-              rounded="lg"
-              hide-details
-              clearable
-              class="flex-grow-0 ds-toolbar-status"
-              @update:model-value="resetPageOnStatus"
-            />
-          </div>
-          <v-chip v-if="!loading" variant="tonal" color="primary" size="small" class="font-weight-medium">
+  <div>
+    <v-breadcrumbs :items="breadcrumbItems" class="ds-breadcrumbs px-0 pt-0">
+      <template #divider>
+        <v-icon icon="mdi-chevron-right" size="16" />
+      </template>
+    </v-breadcrumbs>
+
+    <v-row align="center" class="mb-4">
+      <v-col cols="12" md="7">
+        <h1 class="text-h5 font-weight-semibold text-high-emphasis mb-0">Data structures</h1>
+      </v-col>
+      <v-col cols="12" md="5" class="d-flex justify-end ga-2">
+        <v-btn variant="tonal" prepend-icon="mdi-upload" @click="openImportSdmxDialog">Import SDMX XML</v-btn>
+        <v-btn variant="tonal" prepend-icon="mdi-code-json" @click="openImportJsonDialog">Import JSON</v-btn>
+        <v-btn color="primary" prepend-icon="mdi-plus" @click="goCreate">Add data structure</v-btn>
+      </v-col>
+    </v-row>
+
+    <v-card class="pa-4" elevation="1" style="margin-bottom: 24px;">
+      <v-row dense align="center">
+        <v-col cols="12" md="5">
+          <v-text-field
+            :model-value="search"
+            density="compact"
+            variant="outlined"
+            hide-details
+            clearable
+            prepend-inner-icon="mdi-magnify"
+            placeholder="Title, name, agency…"
+            @update:model-value="onSearchInput"
+            @click:clear="clearSearch"
+          />
+        </v-col>
+        <v-col cols="12" md="3">
+          <v-select
+            v-model="statusFilter"
+            :items="statusFilterItems"
+            item-title="title"
+            item-value="value"
+            label="Status"
+            density="compact"
+            variant="outlined"
+            hide-details
+            clearable
+            @update:model-value="resetPageOnStatus"
+          />
+        </v-col>
+        <v-col v-if="!loading" cols="auto" class="ml-auto">
+          <v-chip variant="tonal" color="primary" size="small" class="font-weight-medium">
             {{ serverTotal }} {{ serverTotal === 1 ? 'structure' : 'structures' }}
           </v-chip>
-        </div>
-      </v-sheet>
-    </section>
+        </v-col>
+      </v-row>
+    </v-card>
 
     <DataStructureImportDialog v-model="importDialogSdmx" @imported="onImported" />
     <DataStructureImportJsonDialog v-model="importDialogJson" @imported="onImported" />
+
     <DataStructureList
       ref="structureListRef"
       v-model:page="page"
@@ -58,20 +72,17 @@
       @saved="onSaved"
     />
 
-    <v-dialog v-model="deleteDialog.show" max-width="440" persistent transition="dialog-bottom-transition">
-      <v-card rounded="xl">
-        <v-card-title class="d-flex align-center ga-2 pt-6 px-6">
-          <v-avatar color="error" variant="tonal" size="40">
-            <v-icon icon="mdi-delete-alert" color="error" />
-          </v-avatar>
-          <span class="text-h6 font-weight-semibold">Delete data structure?</span>
-        </v-card-title>
-        <v-card-text class="text-body-1 px-6 pb-2">
-          Delete version
-          <strong>{{ deleteDialog.row?.name }}</strong>
-          ({{ deleteDialog.row?.agency }} / {{ deleteDialog.row?.version }})? Components are removed with it.
+    <v-dialog v-model="deleteDialog.show" max-width="440" persistent>
+      <v-card>
+        <v-card-title class="text-h6 pa-4">Delete data structure?</v-card-title>
+        <v-divider />
+        <v-card-text class="pa-4">
+          Delete version <strong>{{ deleteDialog.row?.name }}</strong>
+          ({{ deleteDialog.row?.agency }} / {{ deleteDialog.row?.version }})?
+          Components are removed with it.
         </v-card-text>
-        <v-card-actions class="px-6 pb-6 pt-2">
+        <v-divider />
+        <v-card-actions class="pa-3">
           <v-spacer />
           <v-btn variant="text" @click="deleteDialog.show = false">Cancel</v-btn>
           <v-btn color="error" variant="flat" :loading="deleteDialog.saving" @click="doDelete">Delete</v-btn>
@@ -79,20 +90,18 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="batchDeleteDialog.show" max-width="480" persistent transition="dialog-bottom-transition">
-      <v-card rounded="xl">
-        <v-card-title class="d-flex align-center ga-2 pt-6 px-6">
-          <v-avatar color="error" variant="tonal" size="40">
-            <v-icon icon="mdi-delete-alert" color="error" />
-          </v-avatar>
-          <span class="text-h6 font-weight-semibold">Delete selected data structures?</span>
-        </v-card-title>
-        <v-card-text class="text-body-1 px-6 pb-2">
-          This will delete
-          <strong>{{ batchDeleteDialog.rows?.length ?? 0 }}</strong>
-          {{ (batchDeleteDialog.rows?.length ?? 0) === 1 ? 'structure' : 'structures' }} (components are removed with each row). Published or archived definitions, or structures linked to projects, cannot be removed.
+    <v-dialog v-model="batchDeleteDialog.show" max-width="480" persistent>
+      <v-card>
+        <v-card-title class="text-h6 pa-4">Delete selected data structures?</v-card-title>
+        <v-divider />
+        <v-card-text class="pa-4">
+          This will delete <strong>{{ batchDeleteDialog.rows?.length ?? 0 }}</strong>
+          {{ (batchDeleteDialog.rows?.length ?? 0) === 1 ? 'structure' : 'structures' }}
+          (components are removed with each row). Published or archived definitions, or structures
+          linked to projects, cannot be removed.
         </v-card-text>
-        <v-card-actions class="px-6 pb-6 pt-2">
+        <v-divider />
+        <v-card-actions class="pa-3">
           <v-spacer />
           <v-btn variant="text" @click="batchDeleteDialog.show = false">Cancel</v-btn>
           <v-btn color="error" variant="flat" :loading="batchDeleteDialog.saving" @click="doBatchDelete">Delete</v-btn>
@@ -105,6 +114,7 @@
 <script setup>
 import { ref, reactive, inject, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAppConfig } from '@/shared/composables/useAppConfig';
 import DataStructureList from '../components/DataStructureList.vue';
 import DataStructureImportDialog from '../components/DataStructureImportDialog.vue';
 import DataStructureImportJsonDialog from '../components/DataStructureImportJsonDialog.vue';
@@ -114,7 +124,14 @@ defineOptions({ name: 'DataStructureListPage' });
 
 const router = useRouter();
 const route = useRoute();
+const { siteUrl } = useAppConfig();
 const setMessage = inject('setMessage', () => {});
+
+const siteBaseUrl = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));
+const breadcrumbItems = computed(() => [
+  { title: 'Admin', href: `${siteBaseUrl.value}/admin` },
+  { title: 'Data structures', disabled: true },
+]);
 
 const { loading, fetchDataStructures, updateDataStructure, deleteDataStructure, deleteDataStructuresBatch } =
   useDataStructuresApi();
@@ -143,6 +160,10 @@ const statusFilterItems = [
 ];
 
 const hasSearch = computed(() => String(searchDebounced.value ?? '').trim().length > 0);
+
+function openImportSdmxDialog() { importDialogSdmx.value = true; }
+function openImportJsonDialog() { importDialogJson.value = true; }
+function goCreate() { router.push({ name: 'data-structure-create' }); }
 
 function onSearchInput(val) {
   search.value = val === null || val === undefined ? '' : String(val);
@@ -247,19 +268,10 @@ async function doBatchDelete() {
         'success'
       );
     } else if (deletedCount > 0 && failedCount > 0) {
-      const sample = failed
-        .slice(0, 3)
-        .map((f) => `#${f.id}: ${f.message}`)
-        .join('; ');
-      setMessage(
-        `Deleted ${deletedCount}; ${failedCount} failed${sample ? `. ${sample}` : ''}`,
-        'warning'
-      );
+      const sample = failed.slice(0, 3).map((f) => `#${f.id}: ${f.message}`).join('; ');
+      setMessage(`Deleted ${deletedCount}; ${failedCount} failed${sample ? `. ${sample}` : ''}`, 'warning');
     } else if (failedCount > 0) {
-      const sample = failed
-        .slice(0, 3)
-        .map((f) => `#${f.id}: ${f.message}`)
-        .join('; ');
+      const sample = failed.slice(0, 3).map((f) => `#${f.id}: ${f.message}`).join('; ');
       setMessage(`Could not delete selected structures${sample ? `. ${sample}` : ''}`, 'error');
     } else {
       setMessage('Nothing was deleted.', 'info');
@@ -308,22 +320,16 @@ watch(
   },
   { immediate: true }
 );
-
 </script>
 
 <style scoped>
-.ds-toolbar-filters {
-  row-gap: 0.75rem;
-  column-gap: 1.25rem;
+.ds-breadcrumbs {
+  font-size: 0.8125rem;
+  margin-bottom: 0.5rem;
 }
-.ds-toolbar-search {
-  width: 100%;
-  max-width: 260px;
-  min-width: 160px;
-}
-.ds-toolbar-status {
-  width: 100%;
-  max-width: 200px;
-  min-width: 140px;
+
+.ds-breadcrumbs :deep(.v-breadcrumbs-item),
+.ds-breadcrumbs :deep(.v-breadcrumbs-divider) {
+  font-size: 0.8125rem;
 }
 </style>

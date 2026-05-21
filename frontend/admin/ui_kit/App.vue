@@ -37,27 +37,53 @@
             </v-card>
           </v-col>
 
-          <v-col cols="12" md="6" lg="3">
-            <v-card rounded="lg" variant="outlined">
+          <v-col cols="12" md="6" lg="6">
+            <v-card rounded="lg" variant="outlined" height="100%">
               <v-card-title class="text-subtitle-1 font-weight-semibold">Buttons</v-card-title>
-              <v-card-text class="d-flex flex-wrap ga-2">
-                <v-btn color="primary">Primary</v-btn>
-                <v-btn variant="tonal" color="primary">Tonal</v-btn>
-                <v-btn variant="outlined">Outlined</v-btn>
-                <v-btn variant="text">Text</v-btn>
-                <v-btn color="error" variant="flat">Destructive</v-btn>
-                <v-btn icon="mdi-refresh" aria-label="Refresh" />
-              </v-card-text>
-            </v-card>
-          </v-col>
+              <v-card-text class="d-flex flex-column ga-4">
 
-          <v-col cols="12" md="6" lg="3">
-            <v-card rounded="lg" variant="outlined">
-              <v-card-title class="text-subtitle-1 font-weight-semibold">Navigation Buttons</v-card-title>
-              <v-card-text class="d-flex flex-wrap ga-2">
-                <v-btn prepend-icon="mdi-arrow-left" variant="text">Back</v-btn>
-                <v-btn append-icon="mdi-arrow-right" color="primary">Next</v-btn>
-                <v-btn prepend-icon="mdi-home-outline" variant="outlined">Go to dashboard</v-btn>
+                <div>
+                  <div class="text-overline text-medium-emphasis mb-2">Primary actions</div>
+                  <div class="d-flex flex-wrap align-center ga-2">
+                    <v-btn color="primary" prepend-icon="mdi-content-save">Save</v-btn>
+                    <v-btn color="primary" variant="tonal" prepend-icon="mdi-plus">Add new</v-btn>
+                    <v-btn color="primary" variant="outlined">Edit</v-btn>
+                    <v-btn color="primary" variant="text">View details</v-btn>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="text-overline text-medium-emphasis mb-2">Destructive</div>
+                  <div class="d-flex flex-wrap align-center ga-2">
+                    <v-btn color="error" prepend-icon="mdi-delete">Delete</v-btn>
+                    <v-btn color="error" variant="tonal">Remove access</v-btn>
+                    <v-btn color="error" variant="outlined">Unpublish</v-btn>
+                    <v-btn color="error" variant="text">Discard</v-btn>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="text-overline text-medium-emphasis mb-2">Neutral &amp; navigation</div>
+                  <div class="d-flex flex-wrap align-center ga-2">
+                    <v-btn variant="tonal" prepend-icon="mdi-content-save-outline">Save draft</v-btn>
+                    <v-btn variant="outlined" prepend-icon="mdi-home-outline">Dashboard</v-btn>
+                    <v-btn variant="text" prepend-icon="mdi-arrow-left">Back</v-btn>
+                    <v-btn append-icon="mdi-arrow-right" color="primary">Next</v-btn>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="text-overline text-medium-emphasis mb-2">Sizes &amp; icon</div>
+                  <div class="d-flex flex-wrap align-center ga-2">
+                    <v-btn color="primary" size="small">Small</v-btn>
+                    <v-btn color="primary">Default</v-btn>
+                    <v-btn color="primary" size="large">Large</v-btn>
+                    <v-btn icon="mdi-refresh" variant="tonal" aria-label="Refresh" />
+                    <v-btn icon="mdi-pencil" color="primary" variant="text" aria-label="Edit" />
+                    <v-btn icon="mdi-delete" color="error" variant="text" aria-label="Delete" />
+                  </div>
+                </div>
+
               </v-card-text>
             </v-card>
           </v-col>
@@ -68,7 +94,11 @@
               <v-card-text class="d-flex flex-column ga-2">
                 <div v-for="token in colorTokens" :key="token.name" class="color-row">
                   <span class="color-chip" :style="{ backgroundColor: token.value }" />
-                  <span class="text-caption">{{ token.name }} - {{ token.value }}</span>
+                  <div>
+                    <div class="text-caption font-weight-medium">{{ token.name }}</div>
+                    <div class="text-caption text-medium-emphasis">{{ token.value }}</div>
+                    <div class="text-caption text-disabled" style="font-size:10px">{{ token.cssVar }}</div>
+                  </div>
                 </div>
               </v-card-text>
             </v-card>
@@ -155,7 +185,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useTheme } from 'vuetify';
 
 defineOptions({ name: 'AdminUiKitApp' });
 
@@ -174,13 +205,15 @@ const tableRows = [
   { idno: 'NADA-003', title: 'Agriculture Census', status: 'Archived', statusColor: 'warning', updated: '2026-03-17' },
 ];
 
-const colorTokens = [
-  { name: 'Primary', value: '#1976d2' },
-  { name: 'Secondary', value: '#424242' },
-  { name: 'Success', value: '#4CAF50' },
-  { name: 'Warning', value: '#FFC107' },
-  { name: 'Error', value: '#FF5252' },
-];
+const theme = useTheme();
+const colorTokenNames = ['primary', 'secondary', 'success', 'warning', 'error', 'info'];
+const colorTokens = computed(() =>
+  colorTokenNames.map(name => ({
+    name: name.charAt(0).toUpperCase() + name.slice(1),
+    value: theme.current.value.colors[name],
+    cssVar: `--v-theme-${name}`,
+  }))
+);
 </script>
 
 <style scoped>

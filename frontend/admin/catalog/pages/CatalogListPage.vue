@@ -1,5 +1,11 @@
 <template>
   <div>
+    <v-breadcrumbs :items="breadcrumbItems" class="catalog-breadcrumbs px-0 pt-0">
+      <template #divider>
+        <v-icon icon="mdi-chevron-right" size="16" />
+      </template>
+    </v-breadcrumbs>
+
     <v-row align="center" class="mb-5 catalog-page-header">
       <v-col cols="12" class="pa-0">
         <div class="catalog-page-header__inner">
@@ -73,6 +79,7 @@ import AdminCatalogFilters from '../components/AdminCatalogFilters.vue';
 import AdminCatalogResults from '../components/AdminCatalogResults.vue';
 import { useCatalogApi } from '../composables/useCatalogApi';
 import { useI18n } from '@/shared/composables/useI18n';
+import { useAppConfig } from '@/shared/composables/useAppConfig';
 
 defineOptions({ name: 'CatalogListPage' });
 
@@ -81,6 +88,12 @@ const ADMIN_CATALOG_PAGE_SIZES = [15, 50, 100];
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
+const { siteUrl } = useAppConfig();
+const siteBaseUrl = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));
+const breadcrumbItems = computed(() => [
+  { title: 'Admin', href: `${siteBaseUrl.value}/admin` },
+  { title: t('catalog_maintenance', 'Manage Studies'), disabled: true },
+]);
 const { loading, search: apiSearch, updateOptions } = useCatalogApi();
 
 const studies = ref([]);
@@ -316,6 +329,16 @@ watch(
 </script>
 
 <style scoped>
+.catalog-breadcrumbs {
+  font-size: 0.8125rem;
+  margin-bottom: 0.5rem;
+}
+
+.catalog-breadcrumbs :deep(.v-breadcrumbs-item),
+.catalog-breadcrumbs :deep(.v-breadcrumbs-divider) {
+  font-size: 0.8125rem;
+}
+
 .filter-chips :deep(.v-chip__close) {
   margin-left: 6px;
 }

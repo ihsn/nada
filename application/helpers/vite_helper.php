@@ -253,7 +253,15 @@ if (!function_exists('get_vite_entry_assets')) {
                 $assets['js'][] = $file_url;
             }
         }
-        
+
+        // Deduplicate CSS across all entry calls in the same request.
+        // CI renders page views before the layout, so page CSS is claimed first;
+        // when the layout then loads admin_header, shared chunks are already tracked
+        // and stripped, eliminating duplicate <link> tags in the final HTML.
+        static $global_emitted_css = [];
+        $assets['css'] = array_values(array_diff($assets['css'], $global_emitted_css));
+        $global_emitted_css = array_merge($global_emitted_css, $assets['css']);
+
         return $assets;
     }
 } 
