@@ -107,8 +107,8 @@ class Dataset_timeseries_model extends Dataset_model {
             $this->_apply_reference_precedence_rules_to_metadata($options['metadata']);
         }
 
-        // Resolve data_structure_reference (DSD idno) -> surveys.data_structure_id (numeric FK).
-        // Keep the idno in metadata for API/transport; use the column for queries and referential integrity.
+        // Resolve data_structure_reference (DSD idno) -> surveys.data_structure_id when the DSD exists
+        // in the catalogue. Unresolved references are kept in metadata only (informational).
         if (array_key_exists('data_structure_reference', (array) ($options['metadata'] ?? []))) {
             $reference = $options['metadata']['data_structure_reference'];
             $options['data_structure_id'] = $this->_resolve_data_structure_id($options['metadata']['data_structure_reference']);
@@ -147,11 +147,10 @@ class Dataset_timeseries_model extends Dataset_model {
      * Resolve metadata.data_structure_reference (DSD idno) to data_structures.id.
      *
      * Returns:
-     *   - int  — matching data_structures.id when idno is known.
-     *   - null — when the reference is empty/null (clears any previous link).
-     *
-     * Throws ValidationException when a non-empty idno does not resolve, so typos
-     * surface at save time instead of later when observations are posted.
+     *   - int  — matching data_structures.id when idno is known in the catalogue.
+     *   - null — when the reference is empty/null, or when the idno is informational
+     *            only (not yet present in data_structures). The reference is still
+     *            stored in metadata; only the operational FK is left unset.
      */
     private function _resolve_data_structure_id($reference)
     {
@@ -170,7 +169,7 @@ class Dataset_timeseries_model extends Dataset_model {
         $this->load->model('Data_structure_model');
         $row = $this->Data_structure_model->get_structure_by_idno($idno);
         if (!$row) {
-            throw new ValidationException('VALIDATION_ERROR', "data_structure_reference '{$idno}' does not match any catalogue DSD (data_structures.idno).");
+            return null;
         }
         return (int) $row['id'];
     }
