@@ -2,7 +2,7 @@
 	"$id": "https://ihsn.org/schemas/data-structure/1.0.0",
 	"$schema": "https://json-schema.org/draft-07/schema#",
 	"title": "NADA global data structure (DSD) — create / import",
-	"description": "Payload for POST /api/admin/data_structures/import_json: create a catalogue global DSD (data_structures + components) and associated global codelists. Root shape matches the study-side DSD envelope: data_structure holds identity fields plus components[]. Optional root-level overwrite and dry_run are read only from this JSON body (not from query strings). overwrite governs destructive updates where the API applies them (matched codelists when inline items are supplied; structure-level behaviour as implemented). dry_run validates without persisting. Each component uses codelist (inline binding) and/or codelist_reference (canonical catalogue identity); when both are present, codelist_reference takes precedence. Cross-field rules are enforced by the API, not only this schema.",
+	"description": "Schemas for global catalogue DSD (data_structures) APIs. Root object: POST /api/admin/data_structures/import_json (envelope with data_structure, overwrite, dry_run). Definition data_structure_create: POST /api/admin/data_structures/create (flat identity row; components added separately or via import_json). Each component uses codelist (inline binding) and/or codelist_reference (canonical catalogue identity); when both are present, codelist_reference takes precedence. Cross-field rules are enforced by the API, not only this schema.",
 	"version": "1.0.0",
 	"definitions": {
 		"codeListItem": {
@@ -234,9 +234,9 @@
 				"$ref": "#/definitions/dsdComponent"
 			}
 		},
-		"data_structure": {
+		"data_structure_identity": {
 			"type": "object",
-			"description": "Global DSD catalogue identity plus components. idno is the handle for studies (metadata.data_structure_reference).",
+			"description": "Catalogue DSD identity and descriptive metadata.",
 			"properties": {
 				"name": {
 					"title": "Maintainable name",
@@ -253,13 +253,13 @@
 				},
 				"version": {
 					"title": "Version",
-					"description": "Defaults per API if omitted.",
+					"description": "Semantic version; defaults per API if omitted.",
 					"type": "string",
 					"maxLength": 32
 				},
 				"idno": {
 					"title": "DSD idno",
-					"description": "Stable catalogue idno; required for JSON import.",
+					"description": "Stable catalogue idno used by studies (metadata.data_structure_reference). Required for import_json; auto-generated from agency/name/version on create when omitted. Must not be a purely numeric string.",
 					"type": "string",
 					"minLength": 1,
 					"maxLength": 191
@@ -280,18 +280,64 @@
 				"notes": {
 					"title": "Notes",
 					"type": "string"
-				},
-				"components": {
-					"title": "Components",
-					"description": "Ordered DSD columns to create under this structure.",
-					"type": "array",
-					"items": {
-						"$ref": "#/definitions/dsdComponent"
-					}
 				}
-			},
-			"required": ["name", "idno", "components"],
-			"additionalProperties": false
+			}
+		},
+		"data_structure": {
+			"description": "Global DSD catalogue identity plus components. idno is the handle for studies (metadata.data_structure_reference).",
+			"allOf": [
+				{
+					"$ref": "#/definitions/data_structure_identity"
+				},
+				{
+					"type": "object",
+					"properties": {
+						"components": {
+							"title": "Components",
+							"description": "Ordered DSD columns to create under this structure.",
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/dsdComponent"
+							}
+						}
+					},
+					"required": ["name", "idno", "components"],
+					"additionalProperties": false
+				}
+			]
+		},
+		"data_structure_create": {
+			"title": "NADA global data structure (DSD) — create",
+			"description": "Flat payload for POST /api/admin/data_structures/create. Creates a catalogue DSD identity row only; add components with POST .../components/{idOrIdno}, or use import_json for a full import. Optional overwrite is a query parameter (?overwrite=true), not part of this body.",
+			"allOf": [
+				{
+					"$ref": "#/definitions/data_structure_identity"
+				},
+				{
+					"type": "object",
+					"properties": {
+						"version_seq": {
+							"title": "Version sequence",
+							"description": "Positive integer ordering versions within the agency+name family. Assigned automatically when omitted.",
+							"type": "integer",
+							"minimum": 1
+						},
+						"content_hash": {
+							"title": "Content hash",
+							"description": "Optional fingerprint of exported/canonical content.",
+							"type": "string"
+						},
+						"metadata": {
+							"title": "Metadata",
+							"description": "Optional JSON object stored on the DSD row.",
+							"type": "object",
+							"additionalProperties": true
+						}
+					},
+					"required": ["name"],
+					"additionalProperties": false
+				}
+			]
 		}
 	},
 	"type": "object",

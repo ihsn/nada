@@ -44,6 +44,8 @@ tags:
     description: Admin endpoints for codelist catalogue management and JSON import.
   - name: Timeseries Admin
     description: Admin endpoints for project-level timeseries data and DSD linking.
+  - name: Templates Admin
+    description: Admin endpoints for display templates and renderer registry listing.
 
 x-tagGroups:
   - name: Authentication
@@ -73,6 +75,7 @@ x-tagGroups:
       - Data Structures
       - Codelists Admin
       - Timeseries Admin
+      - Templates Admin
 
 security:
   - ApiKeyAuth: []
@@ -658,7 +661,8 @@ paths:
         `IDNo` is the study IDNO (or internal numeric id with query `?id_format=id`).
 
         Request body:
-        - `patches` (required): array of RFC 6902 JSON Patch operations.
+        - `patches` (required): array of JSON Patch operations.
+        - `validate` (optional): reserved for parity with the metadata editor; schema validation is always applied on save in NADA.
       operationId: patchDatasetMetadata
       parameters:
         - name: type
@@ -684,32 +688,11 @@ paths:
               properties:
                 patches:
                   type: array
-                  description: RFC 6902 JSON Patch operations to apply to the dataset metadata document.
                   items:
                     type: object
-                    required:
-                      - op
-                      - path
-                    properties:
-                      op:
-                        type: string
-                        description: JSON Patch operation.
-                        enum: [add, remove, replace, move, copy, test]
-                      path:
-                        type: string
-                        description: JSON Pointer path in the metadata document.
-                        example: /database_description/title_statement/title
-                      value:
-                        description: Value used by add/replace/test operations.
-                      from:
-                        type: string
-                        description: Source path used by move/copy operations.
-                        example: /study_desc/title_statement/title
-            example:
-              patches:
-                - op: replace
-                  path: /path/to/the/field
-                  value: value
+                validate:
+                  type: boolean
+                  description: Ignored in NADA; validation always runs on update.
       responses:
         '200':
           description: Successful operation
@@ -2905,8 +2888,11 @@ paths:
         - Data Structures
       summary: Create data structure
       description: >-
-        Create a global DSD from JSON. Optional `overwrite` updates an existing
-        DSD matched by idno or identity (agency+name+version) only when it is not locked.
+        Create a global DSD identity row from JSON (metadata only). Body schema:
+        `data-structure-schema.json#/definitions/data_structure_create`. To create
+        components and codelists in one request, use `POST /admin/data_structures/import_json`
+        (root envelope in the same schema file). Optional query `overwrite` updates an
+        existing non-locked DSD matched by idno or identity (agency+name+version).
       operationId: dataStructuresCreate
       parameters:
         - name: overwrite
@@ -2919,8 +2905,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
+              $ref: 'data-structure-schema.json#/definitions/data_structure_create'
       responses:
         '200':
           description: Existing data structure overwritten
@@ -3529,6 +3514,11 @@ paths:
       tags:
         - Timeseries Admin
       summary: Import project timeseries CSV
+      description: >
+        Replaces all indicator observations for the study in MongoDB (always overwrite).
+        Supply the CSV either as a direct multipart `file` or as a completed resumable `upload_id`
+        from `POST /uploads/init` and `POST /uploads/chunk/{upload_id}` — not both.
+        Large files from external systems (e.g. Metadata Editor DuckDB export) should use `upload_id`.
       operationId: timeseriesAdminDataImport
       requestBody:
         required: true
@@ -3536,7 +3526,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required: [idno, file]
+              required: [idno]
               properties:
                 idno:
                   type: string
@@ -3544,6 +3534,12 @@ paths:
                 file:
                   type: string
                   format: binary
+                  description: CSV file (required unless `upload_id` is provided).
+                upload_id:
+                  type: string
+                  description: >
+                    Completed resumable upload session id from `/uploads/*` (required unless `file`
+                    is provided). The assembled file must be CSV.
                 delimiter:
                   type: string
                   example: ","
@@ -3761,6 +3757,259 @@ paths:
         '403':
           $ref: '#/components/responses/AnalyticsForbidden'
 
+  # ----------------------------------------------------------------
+  # Templates Admin
+  # ----------------------------------------------------------------
+
+  /admin/templates:
+    get:
+      tags:
+        - Templates Admin
+      summary: List display templates
+      operationId: templatesAdminList
+      parameters:
+        - name: data_type
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published, archived]
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplatesListResponse'
+    post:
+      tags:
+        - Templates Admin
+      summary: Create display template
+      operationId: templatesAdminCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateWriteRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSingleResponse'
+
+  /admin/templates/{uid}:
+    get:
+      tags:
+        - Templates Admin
+      summary: Get display template by uid
+      operationId: templatesAdminGet
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSingleResponse'
+        '404':
+          description: Not found
+    post:
+      tags:
+        - Templates Admin
+      summary: Update display template by uid
+      operationId: templatesAdminUpdate
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSingleResponse'
+        '404':
+          description: Not found
+
+  /admin/templates/{uid}/delete:
+    post:
+      tags:
+        - Templates Admin
+      summary: Soft-delete display template
+      operationId: templatesAdminDelete
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+
+  /admin/templates/{uid}/duplicate:
+    post:
+      tags:
+        - Templates Admin
+      summary: Duplicate display template
+      operationId: templatesAdminDuplicate
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSingleResponse'
+
+  /admin/templates/default/{data_type}/{uid}:
+    post:
+      tags:
+        - Templates Admin
+      summary: Set default display template for data type
+      operationId: templatesAdminSetDefault
+      parameters:
+        - name: data_type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated
+        '404':
+          description: Not found
+
+  /admin/templates/import:
+    post:
+      tags:
+        - Templates Admin
+      summary: Import metadata-editor template into display template
+      operationId: templatesAdminImport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateImportRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateImportResponse'
+
+  /admin/templates/{uid}/export:
+    get:
+      tags:
+        - Templates Admin
+      summary: Export display template by uid
+      operationId: templatesAdminExport
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSingleResponse'
+        '404':
+          description: Not found
+
+  /admin/templates/validate:
+    post:
+      tags:
+        - Templates Admin
+      summary: Validate display template payload
+      operationId: templatesAdminValidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateValidateRequest'
+      responses:
+        '200':
+          description: Valid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateValidateResponse'
+        '400':
+          description: Invalid payload
+
+  /admin/templates/renderers:
+    get:
+      tags:
+        - Templates Admin
+      summary: List available renderers
+      operationId: templatesAdminRenderersList
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderersListResponse'
+
+  /admin/templates/renderers/{source_type}:
+    get:
+      tags:
+        - Templates Admin
+      summary: List renderers by source_type
+      operationId: templatesAdminRenderersByType
+      parameters:
+        - name: source_type
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderersListResponse'
+
 # ----------------------------------------------------------------
 # Security & Components
 # ----------------------------------------------------------------
@@ -3852,6 +4101,234 @@ components:
                 example: ACCESS-DENIED
 
   schemas:
+    TemplateRecord:
+      type: object
+      properties:
+        uid:
+          type: string
+        template_type:
+          type: string
+          enum: [system, custom, imported]
+        data_type:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+          nullable: true
+        organization:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, published, archived]
+        template_json:
+          type: object
+          additionalProperties: true
+        default:
+          type: boolean
+          nullable: true
+
+    TemplateWriteRequest:
+      type: object
+      required: [data_type, name, template_json]
+      properties:
+        uid:
+          type: string
+        template_type:
+          type: string
+          enum: [system, custom, imported]
+        data_type:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        organization:
+          type: string
+        author:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        template_json:
+          type: object
+          additionalProperties: true
+
+    TemplateUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        organization:
+          type: string
+        author:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        template_json:
+          type: object
+          additionalProperties: true
+
+    TemplateImportRequest:
+      type: object
+      properties:
+        uid:
+          type: string
+        template_type:
+          type: string
+          enum: [system, custom, imported]
+        data_type:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        organization:
+          type: string
+        author:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        template:
+          type: object
+          additionalProperties: true
+        template_json:
+          type: object
+          additionalProperties: true
+
+    TemplateSingleResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            template:
+              $ref: '#/components/schemas/TemplateRecord'
+
+    TemplatesListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            templates:
+              type: array
+              items:
+                $ref: '#/components/schemas/TemplateRecord'
+
+    TemplateImportResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            template:
+              $ref: '#/components/schemas/TemplateRecord'
+            import_summary:
+              type: object
+              properties:
+                total_nodes:
+                  type: integer
+                total_sections:
+                  type: integer
+                total_fields:
+                  type: integer
+                missing_renderer:
+                  type: integer
+                warnings:
+                  type: array
+                  items:
+                    type: string
+
+    TemplateValidateRequest:
+      type: object
+      required: [template_json]
+      properties:
+        template_json:
+          type: object
+          additionalProperties: true
+
+    TemplateValidateResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            valid:
+              type: boolean
+            errors:
+              type: array
+              items:
+                type: string
+
+    RendererRecord:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        supported_source_types:
+          type: array
+          items:
+            type: string
+        handler:
+          type: object
+          additionalProperties: true
+        default_params:
+          type: object
+          additionalProperties: true
+        params:
+          type: object
+          additionalProperties: true
+        supports_layout_builder:
+          type: boolean
+        status:
+          type: string
+
+    RenderersListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            renderers:
+              type: array
+              items:
+                $ref: '#/components/schemas/RendererRecord'
+
     DataStructureStatusCode:
       type: string
       description: >-

@@ -364,6 +364,7 @@ $route['api/admin/data_structures/components/(:any)']          = 'api/admin/data
 $route['api/admin/data_structures/(:any)']                      = 'api/admin/data_structures/structure_lookup/$1';
 
 // Admin Timeseries API (indicator observations / Mongo; nested paths first)
+$route['api/admin/timeseries/data/import']                         = 'api/admin/timeseries/data_import';
 $route['api/admin/timeseries/data/(:any)/import']                = 'api/admin/timeseries/data_import/$1';
 $route['api/admin/timeseries/data/(:any)/import-csv']             = 'api/admin/timeseries/data_import_csv/$1';
 $route['api/admin/timeseries/data/(:any)/clear-data']            = 'api/admin/timeseries/data_clear_data/$1';

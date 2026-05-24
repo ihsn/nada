@@ -676,6 +676,9 @@ class Data_structures extends MY_REST_Controller {
 			}
 
 			$code = !empty($opts['dry_run']) ? REST_Controller::HTTP_OK : REST_Controller::HTTP_CREATED;
+			if (empty($opts['dry_run']) && !empty($result['overwritten'])) {
+				$code = REST_Controller::HTTP_OK;
+			}
 			$this->set_response([
 				'status' => 'success',
 				'result' => $result,

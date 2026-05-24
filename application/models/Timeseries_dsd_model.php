@@ -99,7 +99,7 @@ class Timeseries_dsd_model extends CI_Model {
 	 * Canonical object reference for exports: { idno, agency, name, version } from catalogue when possible.
 	 *
 	 * @param int $sid surveys.id
-	 * @return array{idno:string,agency:string,name:string,version:string}|null
+	 * @return array{idno:string,agency:string,name:string,version:string,uri?:string,notes?:string}|null
 	 */
 	public function normalized_data_structure_reference_for_sid($sid)
 	{
@@ -121,10 +121,12 @@ class Timeseries_dsd_model extends CI_Model {
 			'agency' => '',
 			'name' => '',
 			'version' => '',
+			'uri' => '',
+			'notes' => '',
 		];
 
 		if (is_array($ref)) {
-			foreach (['idno', 'agency', 'name', 'version'] as $k) {
+			foreach (['idno', 'agency', 'name', 'version', 'uri', 'notes'] as $k) {
 				if (!empty($ref[$k])) {
 					$from_meta[$k] = trim((string) $ref[$k]);
 				}
@@ -170,24 +172,41 @@ class Timeseries_dsd_model extends CI_Model {
 		}
 
 		if ($structure_row !== null && is_array($structure_row)) {
-			return [
+			return $this->_with_optional_data_structure_reference_fields([
 				'idno' => trim((string) ($structure_row['idno'] ?? '')),
 				'agency' => trim((string) ($structure_row['agency'] ?? '')),
 				'name' => trim((string) ($structure_row['name'] ?? '')),
 				'version' => trim((string) ($structure_row['version'] ?? '')),
-			];
+			], $from_meta);
 		}
 
 		if ($from_meta['idno'] === '') {
 			return null;
 		}
 
-		return [
+		return $this->_with_optional_data_structure_reference_fields([
 			'idno' => $from_meta['idno'],
 			'agency' => $from_meta['agency'],
 			'name' => $from_meta['name'],
 			'version' => $from_meta['version'],
-		];
+		], $from_meta);
+	}
+
+	/**
+	 * Attach optional uri/notes from stored metadata to a normalized reference.
+	 *
+	 * @param array $base
+	 * @param array $from_meta
+	 * @return array
+	 */
+	private function _with_optional_data_structure_reference_fields(array $base, array $from_meta)
+	{
+		foreach (['uri', 'notes'] as $k) {
+			if (!empty($from_meta[$k])) {
+				$base[$k] = trim((string) $from_meta[$k]);
+			}
+		}
+		return $base;
 	}
 
 	/**

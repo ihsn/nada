@@ -16,11 +16,11 @@ require_once APPPATH . '/libraries/MY_REST_Controller.php';
  *   GET .../data/{idno} — paging: offset (or legacy skip), limit, sort; result: data, limit, offset, total, found.
  *        Filters: d[…], c[…], or legacy top-level (see Timeseries_mongo_model::build_observation_query_filter).
  *   POST .../data/{idno} — JSON array or { "data": [...] }
- *   POST .../data/import — multipart: required `idno` (study idno), `file` (CSV); optional `dsd_idno`
- *        (catalogue DSD idno) persists the study→DSD link like {@see data_attach_dsd_post} before import;
- *        optional `delimiter`, `mapping` (JSON string), `ensure_unique_index` (0|1). On success copies CSV
- *        into the study catalogue folder as {sid}_indicator_data.csv and upserts a {@see resources} row
- *        (resource_idno from config) pointing at that filename for catalogue / downloads API.
+ *   POST .../data/import — multipart: required `idno` (study idno); CSV via `file` or completed resumable
+ *        `upload_id` (from POST /api/uploads/*, not both). Optional `dsd_idno` (catalogue DSD idno) persists
+ *        the study→DSD link like {@see data_attach_dsd_post} before import; optional `delimiter`, `mapping`
+ *        (JSON string), `ensure_unique_index` (0|1). On success copies CSV into the study catalogue folder as
+ *        {sid}_indicator_data.csv and upserts a {@see resources} row (resource_idno from config).
  *   POST .../data/{idno}/rehash — optional JSON { "limit": n }
 	 *   GET  .../data/{idno}/duplicates
 	 *   GET  .../data/{idno}/schema
@@ -295,7 +295,7 @@ class Timeseries extends MY_REST_Controller {
 	}
 
 	/**
-	 * POST .../data/import — multipart: required `idno`, `file` (CSV); optional `dsd_idno`, `delimiter`, `mapping`, `ensure_unique_index`
+	 * POST .../data/import — multipart: required `idno`; CSV via `file` or completed `upload_id`; optional `dsd_idno`, `delimiter`, `mapping`, `ensure_unique_index`
 	 */
 	public function data_import_post()
 	{
@@ -323,9 +323,7 @@ class Timeseries extends MY_REST_Controller {
 			}
 
 			$ctx = $this->_context_from_idno($idnoIn);
-			if (empty($_FILES['file']['tmp_name']) || !is_uploaded_file($_FILES['file']['tmp_name'])) {
-				throw new Exception('Missing uploaded file field "file"');
-			}
+			$csvSource = $this->_resolve_csv_import_file_path();
 
 			$delimiter = $this->input->post('delimiter');
 			$delimiter = ($delimiter !== null && $delimiter !== '') ? (string) $delimiter : ',';
@@ -344,7 +342,7 @@ class Timeseries extends MY_REST_Controller {
 
 			$include_unique = $this->input->post('ensure_unique_index') !== '0';
 
-			$path = $_FILES['file']['tmp_name'];
+			$path = $csvSource['path'];
 			$fh   = fopen($path, 'rb');
 			if ($fh === false) {
 				throw new Exception('Could not read uploaded file');
@@ -458,10 +456,9 @@ class Timeseries extends MY_REST_Controller {
 			$this->Dataset_model->clear_indicator_ts_sync_for_survey((int) $ctx['sid'], (int) $ctx['dsd_id']);
 
 			$resourceMeta = null;
-			$tmpForCopy = isset($_FILES['file']['tmp_name']) ? (string) $_FILES['file']['tmp_name'] : '';
-			if ($tmpForCopy !== '' && is_file($tmpForCopy)) {
+			if ($path !== '' && is_file($path)) {
 				try {
-					$resourceMeta = $this->_upsert_timeseries_csv_resource($ctx, $tmpForCopy);
+					$resourceMeta = $this->_upsert_timeseries_csv_resource($ctx, $path);
 				} catch (Exception $persistEx) {
 					log_message('error', 'Timeseries CSV resource upsert failed: ' . $persistEx->getMessage());
 					$resourceMeta = null;
@@ -474,6 +471,8 @@ class Timeseries extends MY_REST_Controller {
 					'inserted' => $insertedTotal,
 					'lines_read'  => $lineNum - 1,
 					'ignored_columns' => array_values(array_unique($ignored_columns)),
+					'import_source'   => $csvSource['source'],
+					'upload_id'       => $csvSource['upload_id'],
 					'resource_id'     => $resourceMeta ? (int) $resourceMeta['resource_id'] : null,
 					'resource_idno'   => $resourceMeta ? (string) $resourceMeta['resource_idno'] : null,
 					'resource_saved'  => $resourceMeta !== null,
@@ -1072,6 +1071,61 @@ class Timeseries extends MY_REST_Controller {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Resolve CSV path for POST .../data/import from multipart file or a completed resumable upload.
+	 *
+	 * @return array{path:string,source:string,upload_id:?string}
+	 * @throws Exception
+	 */
+	private function _resolve_csv_import_file_path()
+	{
+		$upload_id_raw = $this->input->post('upload_id');
+		$upload_id     = is_string($upload_id_raw) ? trim($upload_id_raw) : '';
+		$has_file      = !empty($_FILES['file']['tmp_name']) && is_uploaded_file($_FILES['file']['tmp_name']);
+
+		if ($upload_id !== '' && $has_file) {
+			throw new Exception('Provide either upload_id or file, not both');
+		}
+
+		if ($upload_id !== '') {
+			$this->load->library('Resumable_upload', null, 'uploader');
+
+			$metadata = $this->uploader->get_upload_metadata($upload_id);
+			if (!$metadata) {
+				throw new Exception('INVALID_UPLOAD_ID');
+			}
+			if ($metadata['status'] !== 'completed') {
+				throw new Exception('UPLOAD_NOT_COMPLETED');
+			}
+
+			$final_file = $this->uploader->get_final_file_path($upload_id);
+			if (!$final_file || !is_file($final_file)) {
+				throw new Exception('FILE_NOT_FOUND_FOR_UPLOAD_ID');
+			}
+
+			$ext = strtolower(pathinfo($final_file, PATHINFO_EXTENSION));
+			if ($ext !== 'csv') {
+				throw new Exception('Only CSV files are supported for timeseries import');
+			}
+
+			return [
+				'path'      => (string) $final_file,
+				'source'    => 'upload_id',
+				'upload_id' => $upload_id,
+			];
+		}
+
+		if ($has_file) {
+			return [
+				'path'      => (string) $_FILES['file']['tmp_name'],
+				'source'    => 'file',
+				'upload_id' => null,
+			];
+		}
+
+		throw new Exception('Missing CSV: provide multipart field "file" or completed resumable upload_id');
 	}
 
 	private function _exception_chain_matches_duplicate(Exception $e)

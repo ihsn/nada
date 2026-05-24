@@ -558,6 +558,13 @@ class Datasets extends MY_REST_Controller
 				$options['link_da']=$options['data_remote_url'];
 			}
 
+			if (!empty($options['access_policy'])) {
+				$formid = $this->dataset_manager->get_data_access_type_id($options['access_policy']);
+				if ($formid) {
+					$options['formid'] = $formid;
+				}
+			}
+
 			$this->has_dataset_access('edit',null,$options['repositoryid']);
 
 			//validate & create dataset
@@ -635,6 +642,17 @@ class Datasets extends MY_REST_Controller
 
 			$options['changed_by']=$user_id;
 			$options['changed']=date("U");
+
+			if(isset($options['data_remote_url'])){
+				$options['link_da']=$options['data_remote_url'];
+			}
+
+			if (!empty($options['access_policy'])) {
+				$formid = $this->dataset_manager->get_data_access_type_id($options['access_policy']);
+				if ($formid) {
+					$options['formid'] = $formid;
+				}
+			}
 
 			//default to merge metadata and update partial metadata
 			$merge_metadata=true;
