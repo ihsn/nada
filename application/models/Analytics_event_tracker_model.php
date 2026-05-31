@@ -35,6 +35,11 @@ class Analytics_event_tracker_model extends CI_Model {
 		
 		$ip = $this->input->ip_address();
 		$hashed_ip = $this->hash_ip($ip);
+
+		if ($this->is_recent_pageview_duplicate($study_id, $hashed_ip, $data['user_agent'])) {
+			log_message('debug', "Pageview dedupe: Duplicate prevented for study {$study_id}");
+			return false;
+		}
 		
 		$event = array(
 			'ts' => date('Y-m-d H:i:s'),
@@ -157,6 +162,40 @@ class Analytics_event_tracker_model extends CI_Model {
 		return $this->db->insert('analytics_download_events', $event);
 	}
 	
+	/**
+	 * Check if a pageview was recently tracked (within deduplication window)
+	 *
+	 * Prevents duplicate tracking from:
+	 * - Page refreshes
+	 * - Direct API calls bypassing client-side dedup
+	 * - Rapid consecutive visits from the same visitor
+	 *
+	 * @param int $study_id Study identifier
+	 * @param string $hashed_ip Hashed IP address
+	 * @param string $user_agent User agent string
+	 * @return bool True if duplicate found within dedup window, false otherwise
+	 */
+	private function is_recent_pageview_duplicate($study_id, $hashed_ip, $user_agent)
+	{
+		$dedupe_window = $this->config->item('analytics_dedupe_window_minutes');
+		if (!$dedupe_window || $dedupe_window <= 0) {
+			return false;
+		}
+
+		$cutoff_time = date('Y-m-d H:i:s', strtotime("-{$dedupe_window} minutes"));
+		$user_agent_truncated = $user_agent ? substr($user_agent, 0, 200) : null;
+
+		$this->db->where('study_id', $study_id);
+		$this->db->where('hashed_ip', $hashed_ip);
+		$this->db->where('user_agent', $user_agent_truncated);
+		$this->db->where('ts >=', $cutoff_time);
+		$this->db->limit(1);
+
+		$result = $this->db->get('analytics_pageview_events')->row_array();
+
+		return !empty($result);
+	}
+
 	/**
 	 * Check if a download was recently tracked (within deduplication window)
 	 * 

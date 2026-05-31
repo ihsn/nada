@@ -40,7 +40,8 @@ CREATE TABLE `analytics_pageview_events` (
     INDEX `idx_ts` (`ts`),
     INDEX `idx_study` (`study_id`),
     INDEX `idx_session` (`session_id`),
-    INDEX `idx_ts_study` (`ts`, `study_id`)
+    INDEX `idx_ts_study` (`ts`, `study_id`),
+    INDEX `idx_dedup` (`study_id`, `hashed_ip`, `ts`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
