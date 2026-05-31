@@ -144,9 +144,15 @@
             const base = CONFIG.baseUrl || '';
             const apiUrl = base + (base.endsWith('/') ? '' : '/') + 'api/analytics/pageview';
             log('Fetching: ' + apiUrl);
+
+            const headers = {'Content-Type': 'application/json'};
+            if (CONFIG.csrfToken && CONFIG.csrfTokenName) {
+                headers['X-CSRF-TOKEN'] = CONFIG.csrfToken;
+            }
+
             const res = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: headers,
                 body: JSON.stringify(data)
             });
 

@@ -11,16 +11,7 @@ class Analytics extends MY_REST_Controller
 		$this->load->model('Analytics_model');
 		
 	}
-	
-	function _auth_override_check()
-	{
-		//session user id
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
 
-		parent::_auth_override_check();
-	}
 
 	/**
 	 * Get raw pageview events with pagination and filtering
@@ -1095,6 +1086,14 @@ class Analytics extends MY_REST_Controller
 	function pageview_post()
 	{
 		try {
+			// Validate CSRF token sent as X-CSRF-TOKEN header by the JS tracker.
+			// The api/* route is excluded from global CSRF middleware, so we check manually.
+			$csrf_header = $this->input->get_request_header('X-CSRF-TOKEN', TRUE);
+			if (empty($csrf_header) || $csrf_header !== $this->security->get_csrf_hash()) {
+				$this->set_response(array('status' => false, 'error' => 'Invalid or missing CSRF token'), REST_Controller::HTTP_FORBIDDEN);
+				return;
+			}
+
 			$options = $this->raw_json_input();
 			$study_id = $options['study_id'];
 			

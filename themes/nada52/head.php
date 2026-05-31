@@ -78,7 +78,9 @@ if ($analytics_enabled && $analytics_source === 'builtin'): ?>
                 gaEnabled: false,
                 debug: <?php echo $ci->config->item("analytics_debug_js") ? 'true' : 'false'; ?>,
                 sessionTimeoutMinutes: <?php echo $ci->config->item("analytics_session_timeout_minutes") ?: 30; ?>,
-                dedupeWindowMinutes: <?php echo $ci->config->item("analytics_dedupe_window_minutes") ?: 30; ?>
+                dedupeWindowMinutes: <?php echo $ci->config->item("analytics_dedupe_window_minutes") ?: 30; ?>,
+                csrfToken: '<?php echo $ci->security->get_csrf_hash(); ?>',
+                csrfTokenName: '<?php echo $ci->security->get_csrf_token_name(); ?>'
             });
         }
     </script>
