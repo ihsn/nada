@@ -145,10 +145,7 @@
             const apiUrl = base + (base.endsWith('/') ? '' : '/') + 'api/analytics/pageview';
             log('Fetching: ' + apiUrl);
 
-            const headers = {'Content-Type': 'application/json'};
-            if (CONFIG.csrfToken && CONFIG.csrfTokenName) {
-                headers['X-CSRF-TOKEN'] = CONFIG.csrfToken;
-            }
+        const headers = {'Content-Type': 'application/json'};
 
             const res = await fetch(apiUrl, {
                 method: 'POST',
@@ -221,6 +218,10 @@
             referrer: document.referrer || null,
             source: 'builtin'
         };
+
+        if (CONFIG.csrfToken && CONFIG.csrfTokenName) {
+            payload[CONFIG.csrfTokenName] = CONFIG.csrfToken;
+        }
 
         log('Sending pageview to: ' + CONFIG.apiUrl);
         log('Payload: ' + JSON.stringify(payload));
@@ -309,6 +310,10 @@
             referrer: document.referrer || null,
             source: 'ajax'
         };
+
+        if (CONFIG.csrfToken && CONFIG.csrfTokenName) {
+            payload[CONFIG.csrfTokenName] = CONFIG.csrfToken;
+        }
 
         console.log('[NADA Analytics] Sending AJAX pageview for section:', section);
         console.log('[NADA Analytics] AJAX Payload:', JSON.stringify(payload));

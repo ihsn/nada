@@ -1086,16 +1086,17 @@ class Analytics extends MY_REST_Controller
 	function pageview_post()
 	{
 		try {
-			// Validate CSRF token sent as X-CSRF-TOKEN header by the JS tracker.
+			// Validate CSRF token from the JSON body.
 			// The api/* route is excluded from global CSRF middleware, so we check manually.
-			$csrf_header = $this->input->get_request_header('X-CSRF-TOKEN', TRUE);
-			if (empty($csrf_header) || $csrf_header !== $this->security->get_csrf_hash()) {
+			$options = $this->raw_json_input();
+			$csrf_token_name = $this->security->get_csrf_token_name();
+			$csrf_submitted = isset($options[$csrf_token_name]) ? $options[$csrf_token_name] : null;
+			if (empty($csrf_submitted) || $csrf_submitted !== $this->security->get_csrf_hash()) {
 				$this->set_response(array('status' => false, 'error' => 'Invalid or missing CSRF token'), REST_Controller::HTTP_FORBIDDEN);
 				return;
 			}
 
-			$options = $this->raw_json_input();
-			$study_id = $options['study_id'];
+			$study_id = isset($options['study_id']) ? $options['study_id'] : null;
 			
 			if (empty($options['study_id'])) {
 				$output = array(

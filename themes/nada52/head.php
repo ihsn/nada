@@ -67,7 +67,7 @@ $analytics_enabled = $ci->config->item("analytics_enabled");
 $analytics_source = $ci->config->item("analytics_tracking_source");
 
 if ($analytics_enabled && $analytics_source === 'builtin'): ?>
-    <script src="<?php echo base_url(); ?>javascript/analytics-tracker.js"></script>
+    <script src="<?php echo base_url(); ?>javascript/analytics-tracker.js?v=<?php echo filemtime(FCPATH.'javascript/analytics-tracker.js'); ?>"></script>
     <script>
         // Initialize analytics tracker with configuration
         if (typeof NADA !== 'undefined' && NADA.Analytics) {
