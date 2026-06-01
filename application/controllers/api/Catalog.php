@@ -1676,4 +1676,40 @@ class Catalog extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
 	}
+
+	/**
+	 * Public catalog headline stats (published content only, cached 10 minutes).
+	 *
+	 * GET /api/catalog/stats
+	 */
+	function stats_get()
+	{
+		try {
+			$this->load->model('Stats_model');
+			$stats = $this->Stats_model->get_public_catalog_stats_cached();
+
+			$response = array(
+				'status' => 'success',
+				'values' => array(
+					'studies'             => (int)$stats['studies'],
+					'variables'           => (int)$stats['variables'],
+					'citations'           => (int)$stats['citations'],
+					'countries_with_data' => (int)$stats['countries_with_data'],
+					'year_range'          => array(
+						'min' => (int)$stats['min_year'],
+						'max' => (int)$stats['max_year'],
+					),
+				),
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch (Exception $e) {
+			$error_output = array(
+				'status' => 'failed',
+				'errors' => $e->getMessage(),
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 }
