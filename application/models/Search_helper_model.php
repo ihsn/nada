@@ -333,11 +333,11 @@ class Search_helper_model extends CI_Model {
 	*/
 	function get_active_countries($repositoryid=NULL, $data_type=NULL,$filter_values=array() )
 	{
-		$this->db->select('cid as id,countries.name as title, count(cid) as found');
+		$this->db->select('cid as id,countries.name as title, countries.iso as iso3, count(cid) as found');
 		$this->db->join('surveys', 'surveys.id=survey_countries.sid','inner');
 		$this->db->join('countries', 'countries.countryid=survey_countries.cid','inner');
 		$this->db->order_by('countries.name','ASC');
-		$this->db->group_by('cid,countries.name','ASC');
+		$this->db->group_by('cid,countries.name,countries.iso');
 		$this->db->where('surveys.published',1);
 		$this->db->where('survey_countries.cid >',0);
 
