@@ -57,11 +57,11 @@ class Migration_Backfill_timeseriesdb_keywords extends MY_Migration {
 		$select_metadata = $this->db->field_exists('metadata', 'surveys') ? ', metadata' : '';
 
 		if ($driver === 'sqlsrv') {
-			// DATALENGTH works for legacy text/ntext; LEN() does not (error 8116).
+			// Legacy text/ntext: no LEN() (8116) and no = '' vs varchar (402).
 			$sql = "SELECT id, [type]{$select_metadata}, keywords
 				FROM surveys
 				WHERE [type] IN ('timeseriesdb', 'timeseries-db')
-				AND (keywords IS NULL OR keywords = '' OR DATALENGTH(keywords) = 0)";
+				AND (keywords IS NULL OR DATALENGTH(keywords) = 0)";
 		} elseif (in_array($driver, array('mysql', 'mysqli'), true)) {
 			$sql = "SELECT id, type{$select_metadata}, keywords
 				FROM surveys
