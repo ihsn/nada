@@ -34,7 +34,6 @@ ALTER TABLE `lic_requests_history` ENGINE = Innodb;
 ALTER TABLE `login_attempts` ENGINE = Innodb;
 ALTER TABLE `menus` ENGINE = Innodb;
 ALTER TABLE `meta` ENGINE = Innodb;
-ALTER TABLE `permission_urls` ENGINE = Innodb;
 ALTER TABLE `permissions` ENGINE = Innodb;
 ALTER TABLE `public_requests` ENGINE = Innodb;
 ALTER TABLE `region_countries` ENGINE = Innodb;
