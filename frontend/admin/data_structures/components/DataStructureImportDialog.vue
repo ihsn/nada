@@ -3,17 +3,17 @@
     <v-card>
       <v-card-title>Import DSD from SDMX XML</v-card-title>
       <v-card-text>
-        <p class="text-body-2 text-medium-emphasis mb-3">
-          SDMX-ML structure message (same family as OECD / Eurostat <code>Structure</code> exports). Imports codelists
-          from the file, then the first <code>DataStructure</code> (or the one you specify by id).
-        </p>
+        <div class="text-caption text-medium-emphasis mb-1">Structure XML file</div>
         <v-file-input
           v-model="file"
-          label="Structure XML file"
+          variant="outlined"
+          density="compact"
           accept=".xml,text/xml,application/xml"
-          prepend-icon="mdi-file-xml-box"
+          prepend-icon=""
+          prepend-inner-icon="mdi-file-xml-box"
           show-size
-          density="comfortable"
+          hide-details
+          :disabled="saving"
         />
         <v-switch
           v-model="overwriteCodelists"
@@ -23,15 +23,19 @@
           hint="When on, replaces codes for codelists that already exist. When off, reuses them as-is."
           persistent-hint
           class="mt-2"
+          :disabled="saving"
         />
+        <div class="text-caption text-medium-emphasis mt-3 mb-1">Data structure id (optional)</div>
         <v-text-field
           v-model="dsdId"
-          label="Data structure id (optional)"
-          hint="Match DataStructure @id if the file contains more than one."
-          persistent-hint
-          density="comfortable"
-          class="mt-4"
+          variant="outlined"
+          density="compact"
+          hide-details
+          :disabled="saving"
         />
+        <div class="text-caption text-medium-emphasis mt-1">
+          Match DataStructure @id if the file contains more than one.
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-spacer />
@@ -77,10 +81,12 @@ watch(
 async function submit() {
   const f = file.value;
   if (!f) return;
+  const rawFile = Array.isArray(f) ? f[0] : f;
+  if (!rawFile) return;
   saving.value = true;
   try {
     const fd = new FormData();
-    fd.append('file', f);
+    fd.append('file', rawFile);
     fd.append('overwrite_codelists', overwriteCodelists.value ? '1' : '0');
     const id = dsdId.value?.trim();
     if (id) fd.append('dsd_id', id);

@@ -248,7 +248,7 @@ export function useDataStructuresApi() {
 
   /**
    * Import DSD + codelists from JSON (`data_structure` envelope). POST …/import_json
-   * @param {Record<string, unknown>} body Parsed JSON (overwrite / dry_run merged by caller if needed)
+   * @param {Record<string, unknown>} body Parsed JSON (overwrite merged by caller if needed)
    */
   async function importFromJson(body) {
     const { data } = await axios.post(`${base()}/import_json`, body, {

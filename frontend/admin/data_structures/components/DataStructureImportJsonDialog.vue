@@ -3,18 +3,17 @@
     <v-card>
       <v-card-title>Import DSD from JSON</v-card-title>
       <v-card-text>
-        <p class="text-body-2 text-medium-emphasis mb-3">
-          Catalogue JSON envelope (<code>data_structure</code>, optional <code>overwrite</code>,
-          <code>dry_run</code>) as used by
-          <code>POST /api/admin/data_structures/import_json</code>. Same shape as Export JSON.
-        </p>
+        <div class="text-caption text-medium-emphasis mb-1">JSON file</div>
         <v-file-input
           v-model="file"
-          label="JSON file"
+          variant="outlined"
+          density="compact"
           accept=".json,application/json"
-          prepend-icon="mdi-code-json"
+          prepend-icon=""
+          prepend-inner-icon="mdi-code-json"
           show-size
-          density="comfortable"
+          hide-details
+          :disabled="saving"
         />
         <v-switch
           v-model="overwrite"
@@ -25,15 +24,23 @@
           persistent-hint
           class="mt-2"
         />
-        <v-switch
-          v-model="dryRun"
-          color="secondary"
-          inset
-          label="Dry run (validate only)"
-          hint="When on, nothing is persisted."
-          persistent-hint
-          class="mt-2"
-        />
+        <v-alert
+          v-if="validationErrors.length"
+          type="error"
+          variant="tonal"
+          density="compact"
+          class="mt-4"
+          closable
+          @click:close="validationErrors = []"
+        >
+          <div class="font-weight-medium mb-2">Validation issues</div>
+          <ul class="pl-4 mb-0">
+            <li v-for="(err, i) in validationErrors" :key="i">
+              <span v-if="err.path" class="text-caption">{{ err.path }}:</span>
+              {{ err.message }}
+            </li>
+          </ul>
+        </v-alert>
       </v-card-text>
       <v-card-actions>
         <v-spacer />
@@ -62,8 +69,8 @@ const { importFromJson } = useDataStructuresApi();
 
 const file = ref(null);
 const overwrite = ref(false);
-const dryRun = ref(false);
 const saving = ref(false);
+const validationErrors = ref([]);
 
 watch(
   () => props.modelValue,
@@ -71,7 +78,7 @@ watch(
     if (open) {
       file.value = null;
       overwrite.value = false;
-      dryRun.value = false;
+      validationErrors.value = [];
     }
   }
 );
@@ -109,6 +116,7 @@ async function submit() {
   const rawFile = Array.isArray(f) ? f[0] : f;
   if (!rawFile) return;
   saving.value = true;
+  validationErrors.value = [];
   try {
     const text = await readFileAsText(rawFile);
     let parsed;
@@ -122,17 +130,15 @@ async function submit() {
     }
     const payload = normalizeForImportJson(parsed);
     payload.overwrite = overwrite.value;
-    payload.dry_run = dryRun.value;
     const result = await importFromJson(payload);
     emit('imported', result);
     emit('update:modelValue', false);
   } catch (e) {
     const d = e?.response?.data;
-    let msg = d?.message || e?.message || 'Import failed';
-    if (Array.isArray(d?.errors) && d.errors.length) {
-      msg = `${msg} (${d.errors.length} validation issue${d.errors.length === 1 ? '' : 's'})`;
-    }
-    setMessage(msg, 'error');
+    const errors = Array.isArray(d?.errors) ? d.errors : [];
+    const msg = d?.message || e?.message || 'Import failed';
+    validationErrors.value = errors;
+    setMessage(msg, 'error', { errors });
   } finally {
     saving.value = false;
   }

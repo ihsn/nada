@@ -55,6 +55,9 @@ class Data_structure_json_import {
 		if ($dryRun) {
 			$summary['data_structure'] = $this->_preview_structure_row($structure);
 			$summary['components_preview'] = count($components);
+			foreach ($components as $comp) {
+				$this->_append_codelist_reuse_warnings($comp, $overwrite, $summary);
+			}
 			return $summary;
 		}
 
@@ -207,12 +210,8 @@ class Data_structure_json_import {
 				} elseif ($cl === null) {
 					$errors[] = ['path' => "data_structure.components[{$idx}]", 'message' => 'dimension/geography requires codelist_reference or codelist.'];
 				} else {
-					$existingByIdno = $clIdno !== '' ? $this->CI->Codelist_model->get_codelist_by_idno($clIdno) : null;
-					if ($existingByIdno) {
-						if (!$overwrite && count($clItems) > 0) {
-							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items", 'message' => 'Cannot supply codelist.items for an existing codelist unless overwrite is true.'];
-						}
-					} else {
+					$existingCl = $this->_find_existing_codelist_binding($cl);
+					if (!$existingCl) {
 						if ($clName === '') {
 							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.name", 'message' => 'Required to create a new codelist.'];
 						}
@@ -221,16 +220,19 @@ class Data_structure_json_import {
 						}
 					}
 
-					foreach ($clItems as $j => $item) {
-						if (!is_array($item)) {
-							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items[{$j}]", 'message' => 'Must be an object.'];
-							continue;
-						}
-						$code = isset($item['code']) ? trim((string) $item['code']) : '';
-						if ($code === '') {
-							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items[{$j}].code", 'message' => 'Required.'];
-						} elseif (strlen($code) > 64) {
-							$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items[{$j}].code", 'message' => 'Code exceeds 64 characters.'];
+					$validateItems = count($clItems) > 0 && (!$existingCl || $overwrite);
+					if ($validateItems) {
+						foreach ($clItems as $j => $item) {
+							if (!is_array($item)) {
+								$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items[{$j}]", 'message' => 'Must be an object.'];
+								continue;
+							}
+							$code = isset($item['code']) ? trim((string) $item['code']) : '';
+							if ($code === '') {
+								$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items[{$j}].code", 'message' => 'Required.'];
+							} elseif (strlen($code) > 64) {
+								$errors[] = ['path' => "data_structure.components[{$idx}].codelist.items[{$j}].code", 'message' => 'Code exceeds 64 characters.'];
+							}
 						}
 					}
 				}
@@ -273,6 +275,58 @@ class Data_structure_json_import {
 		}
 
 		return $row_by_idno ?: $row_by_identity;
+	}
+
+	/**
+	 * @param array $cl inline codelist binding from import payload
+	 * @return array|null codelists row
+	 */
+	protected function _find_existing_codelist_binding(array $cl)
+	{
+		$clIdno  = isset($cl['idno']) ? trim((string) $cl['idno']) : '';
+		$clName  = isset($cl['name']) ? trim((string) $cl['name']) : '';
+		$agency  = isset($cl['agency']) && trim((string) $cl['agency']) !== '' ? trim((string) $cl['agency']) : Codelist_model::DEFAULT_AGENCY;
+		$version = isset($cl['version']) && trim((string) $cl['version']) !== '' ? trim((string) $cl['version']) : Codelist_model::DEFAULT_VERSION;
+
+		$existing = null;
+		if ($clIdno !== '') {
+			$existing = $this->CI->Codelist_model->get_codelist_by_idno($clIdno);
+		}
+		if (!$existing && $clName !== '') {
+			$existing = $this->CI->Codelist_model->get_codelist_by_name($clName, $agency, $version);
+		}
+
+		return $existing ?: null;
+	}
+
+	protected function _append_codelist_reuse_warnings(array $comp, $overwrite, array &$summary)
+	{
+		$ct = isset($comp['column_type']) ? trim((string) $comp['column_type']) : '';
+		if (!in_array($ct, ['dimension', 'geography'], true)) {
+			return;
+		}
+
+		$hasRef = !empty($comp['codelist_reference']) && is_array($comp['codelist_reference']);
+		$refIdno = $hasRef && isset($comp['codelist_reference']['idno']) ? trim((string) $comp['codelist_reference']['idno']) : '';
+		if ($hasRef && $refIdno !== '') {
+			return;
+		}
+
+		$cl = isset($comp['codelist']) && is_array($comp['codelist']) ? $comp['codelist'] : [];
+		$items = isset($cl['items']) && is_array($cl['items']) ? $cl['items'] : [];
+		if (count($items) === 0 || $overwrite) {
+			return;
+		}
+
+		$existing = $this->_find_existing_codelist_binding($cl);
+		if (!$existing) {
+			return;
+		}
+
+		$summary['warnings'][] = [
+			'message'     => 'Codelist already exists; items not applied (set overwrite=true or omit items).',
+			'codelist_id' => (int) $existing['id'],
+		];
 	}
 
 	protected function _preview_structure_row(array $structure)
@@ -327,13 +381,7 @@ class Data_structure_json_import {
 		$agency  = isset($cl['agency']) && trim((string) $cl['agency']) !== '' ? trim((string) $cl['agency']) : Codelist_model::DEFAULT_AGENCY;
 		$version = isset($cl['version']) && trim((string) $cl['version']) !== '' ? trim((string) $cl['version']) : Codelist_model::DEFAULT_VERSION;
 
-		$existing = null;
-		if ($clIdno !== '') {
-			$existing = $this->CI->Codelist_model->get_codelist_by_idno($clIdno);
-		}
-		if (!$existing && $clName !== '') {
-			$existing = $this->CI->Codelist_model->get_codelist_by_name($clName, $agency, $version);
-		}
+		$existing = $this->_find_existing_codelist_binding($cl);
 
 		if ($existing) {
 			$cid = (int) $existing['id'];

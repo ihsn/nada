@@ -186,13 +186,16 @@ function resetPageOnStatus() {
   page.value = 1;
 }
 
+function importWarningsAsList(warnings) {
+  return (Array.isArray(warnings) ? warnings : [])
+    .filter((w) => w && typeof w.message === 'string' && w.message.trim() !== '')
+    .map((w) => ({ path: w.codelist_id ? `codelist #${w.codelist_id}` : '', message: w.message }));
+}
+
 function onImported(result) {
-  if (result?.dry_run) {
-    setMessage('Dry run finished — validation passed; nothing was saved.', 'success');
-    return;
-  }
+  const warnings = importWarningsAsList(result?.warnings);
   const n = (result?.codelists_created?.length ?? 0) + (result?.codelists_reused?.length ?? 0) + (result?.codelists_updated?.length ?? 0);
-  setMessage(`Import finished. Codelists touched: ${n}.`, 'success');
+  setMessage(`Import finished. Codelists touched: ${n}.`, warnings.length ? 'warning' : 'success', { errors: warnings });
   const id = result?.data_structure?.id;
   if (id != null) {
     router.push({ name: 'data-structure-detail', params: { id: String(id) } });
