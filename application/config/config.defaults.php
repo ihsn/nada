@@ -18,6 +18,7 @@ $config['catalog_show_abstract']='yes';
 $config['catalog_default_sort_by']='';
 $config['catalog_default_sort_order']='';
 $config['guests_hide_microdata_tab']='no';
+$config['data_classifications_enabled']='yes';
 $config['data_types_nav_bar']='no';
 $config['max_resource_upload_size']='3000';
 $config['admin_header_background']='#212121';
