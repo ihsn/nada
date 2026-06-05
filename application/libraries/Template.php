@@ -54,6 +54,8 @@ class Template {
    var $base_url = '';
    
    var $version='v41';
+   var $template_group = 'default';
+   var $builtin_analytics_injected = FALSE;
 
    //variables to be passed to the template	
    var $globals=array();
@@ -126,6 +128,7 @@ class Template {
       if (isset($this->config[$group]))
       {
          $this->template = $this->config[$group];
+         $this->template_group = $group;
       }
       else
       {
@@ -524,6 +527,53 @@ class Template {
       
       return $success;
    }
+
+   // --------------------------------------------------------------------
+
+   /**
+    * Inject built-in analytics tracker into the _scripts region for public pages.
+    *
+    * Skips admin/API routes and admin template groups. The client tracker only
+    * records study pageviews when a study id is present on the page.
+    *
+    * @return bool
+    */
+   function inject_builtin_analytics()
+   {
+      if ($this->builtin_analytics_injected) {
+         return FALSE;
+      }
+
+      if (php_sapi_name() === 'cli') {
+         return FALSE;
+      }
+
+      $first_segment = strtolower((string) $this->CI->uri->segment(1));
+      if (in_array($first_segment, array('admin', 'api'), TRUE)) {
+         return FALSE;
+      }
+
+      $admin_template_groups = array('admin', 'admin5', 'admin_blank', 'member', 'installer');
+      if (in_array($this->template_group, $admin_template_groups, TRUE)) {
+         return FALSE;
+      }
+
+      $this->CI->load->config('analytics');
+      if (!$this->CI->config->item('analytics_enabled')
+         || $this->CI->config->item('analytics_tracking_source') !== 'builtin') {
+         return FALSE;
+      }
+
+      $html = $this->CI->load->view('partials/builtin_analytics_tracker', null, TRUE);
+      if ($html === '' || $html === FALSE) {
+         return FALSE;
+      }
+
+      $this->add_js(trim($html), 'inline');
+      $this->builtin_analytics_injected = TRUE;
+
+      return TRUE;
+   }
    
    // --------------------------------------------------------------------
    
@@ -687,6 +737,8 @@ class Template {
       // Build the output array
       else
       {
+         $this->inject_builtin_analytics();
+
 	     foreach ($this->regions as $name => $region)
          {
             $this->output[$name] = $this->_build_content($region);
