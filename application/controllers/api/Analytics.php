@@ -1096,8 +1096,6 @@ class Analytics extends MY_REST_Controller
 				return;
 			}
 
-			$study_id = isset($options['study_id']) ? $options['study_id'] : null;
-			
 			if (empty($options['study_id'])) {
 				$output = array(
 					'status' => false,
@@ -1106,7 +1104,8 @@ class Analytics extends MY_REST_Controller
 				$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 				return;
 			}
-			
+
+			$study_id = $this->resolve_analytics_study_id($options['study_id']);
 			$session_id = $options['session_id'] ?? null;
 			
 			$result = $this->analytics_tracker->track_pageview($study_id, $session_id, $options);
@@ -1170,6 +1169,8 @@ class Analytics extends MY_REST_Controller
 				$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 				return;
 			}
+
+			$study_id = $this->resolve_analytics_study_id($study_id);
 			
 			$file_type = $this->input->post('file_type');
 			$user_agent = $this->input->post('user_agent');
@@ -1207,6 +1208,29 @@ class Analytics extends MY_REST_Controller
 			);
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * Resolve a client study identifier to numeric surveys.id for analytics events.
+	 *
+	 * Accepts numeric sid (from study page URLs / data-id) or survey idno strings.
+	 *
+	 * @param mixed $study_id
+	 * @return int
+	 * @throws Exception
+	 */
+	private function resolve_analytics_study_id($study_id)
+	{
+		$s = is_scalar($study_id) ? trim((string) $study_id) : '';
+		if ($s === '') {
+			throw new Exception('study_id is required');
+		}
+
+		if (ctype_digit($s) && (int) $s > 0) {
+			return (int) $s;
+		}
+
+		return $this->get_sid_from_idno($s);
 	}
 	
 }
