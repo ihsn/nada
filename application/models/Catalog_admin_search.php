@@ -261,16 +261,40 @@ class Catalog_admin_search extends CI_Model
 	/**
 	 * Apply keyword search filter
 	 *
+	 * Uses query builder like()/or_like() so SQL Server gets ESCAPE on LIKE patterns.
+	 * Single-token queries also match surveys.idno exactly (same idea as public catalog).
+	 *
 	 * @param string $keywords Search keywords
 	 */
 	protected function _apply_keyword_filter($keywords)
 	{
-		$like_str = '%' . $this->db->escape_like_str($keywords) . '%';
-		$this->db->where(
-			"(surveys.title LIKE '$like_str' OR surveys.idno LIKE '$like_str' OR surveys.authoring_entity LIKE '$like_str')",
-			null,
-			false
-		);
+		$keywords = trim((string) $keywords);
+		if ($keywords === '') {
+			return;
+		}
+
+		$this->db->group_start();
+		$this->db->like('surveys.title', $keywords, 'both');
+		$this->db->or_like('surveys.idno', $keywords, 'both');
+		$this->db->or_like('surveys.authoring_entity', $keywords, 'both');
+
+		if ($this->_is_single_keyword_token($keywords)) {
+			$this->db->or_where('LOWER(surveys.idno)', strtolower($keywords));
+		}
+
+		$this->db->group_end();
+	}
+
+	/**
+	 * True when keywords are a single non-empty token (no whitespace).
+	 *
+	 * @param string $keywords
+	 * @return bool
+	 */
+	protected function _is_single_keyword_token($keywords)
+	{
+		$tokens = preg_split('/\s+/', trim((string) $keywords), -1, PREG_SPLIT_NO_EMPTY);
+		return count($tokens) === 1;
 	}
 
 	/**
@@ -319,16 +343,28 @@ class Catalog_admin_search extends CI_Model
 	 */
 	protected function _apply_multi_field_filter($field, $values)
 	{
-		$where_parts = array();
+		$field = preg_replace('/[^a-z_]/', '', (string) $field);
+		if ($field === '') {
+			return;
+		}
+
+		$first = true;
 		foreach ($values as $value) {
-			if (trim($value)) {
-				$like_str = '%' . $this->db->escape_like_str($value) . '%';
-				$where_parts[] = "surveys.$field LIKE '$like_str'";
+			$value = trim((string) $value);
+			if ($value === '') {
+				continue;
+			}
+			if ($first) {
+				$this->db->group_start();
+				$this->db->like("surveys.$field", $value, 'both');
+				$first = false;
+			} else {
+				$this->db->or_like("surveys.$field", $value, 'both');
 			}
 		}
 
-		if (!empty($where_parts)) {
-			$this->db->where('(' . implode(' OR ', $where_parts) . ')', null, false);
+		if (! $first) {
+			$this->db->group_end();
 		}
 	}
 
