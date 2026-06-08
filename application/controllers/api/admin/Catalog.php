@@ -335,7 +335,8 @@ class Catalog extends MY_REST_Controller
 	 * GET /api/admin/catalog
 	 * GET /api/admin/catalog/{idno}
 	 *
-	 * Path `{idno}` is passed as `$idno` (REST remap); optional query `idno` when no path segment.
+	 * Path `{idno}` is passed as `$idno` (REST remap) for single-study fetch.
+	 * Query `idno` on the list endpoint is a prefix filter only (see list params below).
 	 * Resolution: `get_sid_from_idno()`, query `id_format=id` for numeric `surveys.id`.
 	 * Query `exclude_metadata=1` (or `true`) omits the embedded metadata blob (same row as api/datasets otherwise).
 	 *
@@ -366,16 +367,11 @@ class Catalog extends MY_REST_Controller
 			return $this->data_access_codelist_get();
 		}
 
-		$legacy_list_path = ($idno !== null && strcasecmp((string) $idno, 'search') === 0);
-		if ($legacy_list_path) {
+		if ($idno !== null && strcasecmp((string) $idno, 'search') === 0) {
 			$idno = null;
 		}
 
-		$qid = $this->input->get('idno');
-		if (! $legacy_list_path && ($idno === null || $idno === '') && $qid !== null && trim((string) $qid) !== '') {
-			$idno = trim((string) $qid);
-		}
-
+		// Single study only via path segment; ?idno= is a list filter (Catalog_admin_search).
 		if ($idno) {
 			return $this->_get_study_info($idno);
 		}
