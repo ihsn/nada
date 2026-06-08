@@ -64,6 +64,11 @@ class Migration_Dctypes_code_and_translations extends MY_Migration {
 
 	private function add_code_column($is_mysql)
 	{
+		if ($this->db->field_exists('code', 'dctypes')) {
+			log_message('info', 'dctypes.code already exists, skipping add column');
+			return;
+		}
+
 		if ($is_mysql) {
 			$this->db->query('ALTER TABLE `dctypes` ADD COLUMN `code` VARCHAR(64) NULL DEFAULT NULL AFTER `id`');
 		} else {
@@ -74,27 +79,146 @@ class Migration_Dctypes_code_and_translations extends MY_Migration {
 
 	private function replace_dctypes_content()
 	{
-		$this->db->truncate('dctypes');
+		$this->upgrade_legacy_dctype_rows();
+
+		$inserted = 0;
+		$updated = 0;
 
 		foreach ($this->dctypes_data as $title => $code) {
-			$this->db->insert('dctypes', [
+			$existing = $this->db->where('code', $code)->get('dctypes')->row_array();
+			if ($existing) {
+				if ($existing['title'] !== $title) {
+					$this->db->where('id', (int)$existing['id'])->update('dctypes', array('title' => $title));
+					$updated++;
+				}
+				continue;
+			}
+
+			$by_title = $this->db->where('title', $title)->get('dctypes')->row_array();
+			if ($by_title) {
+				$this->db->where('id', (int)$by_title['id'])->update('dctypes', array('code' => $code));
+				$updated++;
+				continue;
+			}
+
+			$this->db->insert('dctypes', array(
 				'title' => $title,
 				'code'  => $code,
-			]);
+			));
+			$inserted++;
 		}
-		log_message('info', 'Replaced dctypes content with clean title + code');
+
+		log_message('info', 'Ensured canonical dctypes content (inserted=' . $inserted . ', updated=' . $updated . ')');
+	}
+
+	/**
+	 * Convert legacy titles like "Document, Questionnaire [doc/qst]" in place.
+	 */
+	private function upgrade_legacy_dctype_rows()
+	{
+		$rows = $this->db->get('dctypes')->result_array();
+		$upgraded = 0;
+
+		foreach ($rows as $row) {
+			$title = isset($row['title']) ? (string)$row['title'] : '';
+			$code = isset($row['code']) ? trim((string)$row['code']) : '';
+
+			if ($code !== '' || !preg_match('/\[([^\]]+)\]\s*$/', $title, $matches)) {
+				continue;
+			}
+
+			$extracted_code = strtolower(trim($matches[1]));
+			$clean_title = trim(preg_replace('/\s*\[[^\]]+\]\s*$/', '', $title));
+			if ($extracted_code === '' || $clean_title === '') {
+				continue;
+			}
+
+			$this->db->where('id', (int)$row['id'])->update('dctypes', array(
+				'title' => $clean_title,
+				'code'  => $extracted_code,
+			));
+			$upgraded++;
+		}
+
+		if ($upgraded > 0) {
+			log_message('info', 'Upgraded legacy dctype rows: ' . $upgraded);
+		}
 	}
 
 	private function constrain_code_column($is_mysql)
 	{
 		if ($is_mysql) {
-			$this->db->query('ALTER TABLE `dctypes` MODIFY COLUMN `code` VARCHAR(64) NOT NULL');
-			$this->db->query('ALTER TABLE `dctypes` ADD UNIQUE KEY `unq_dctypes_code` (`code`)');
+			if ($this->mysql_column_allows_null('dctypes', 'code')) {
+				$this->db->query('ALTER TABLE `dctypes` MODIFY COLUMN `code` VARCHAR(64) NOT NULL');
+				log_message('info', 'Set dctypes.code NOT NULL (MySQL)');
+			}
+
+			if (!$this->mysql_index_exists('dctypes', 'unq_dctypes_code')) {
+				$this->db->query('ALTER TABLE `dctypes` ADD UNIQUE KEY `unq_dctypes_code` (`code`)');
+				log_message('info', 'Added unq_dctypes_code (MySQL)');
+			}
 		} else {
-			$this->db->query('ALTER TABLE dctypes ALTER COLUMN code VARCHAR(64) NOT NULL');
-			$this->db->query('CREATE UNIQUE INDEX unq_dctypes_code ON dctypes (code)');
+			if ($this->sqlsrv_column_allows_null('dctypes', 'code')) {
+				$this->db->query('ALTER TABLE dctypes ALTER COLUMN code VARCHAR(64) NOT NULL');
+				log_message('info', 'Set dctypes.code NOT NULL (SQLSRV)');
+			}
+
+			if (!$this->sqlsrv_index_exists('dctypes', 'unq_dctypes_code')) {
+				$this->db->query('CREATE UNIQUE INDEX unq_dctypes_code ON dctypes (code)');
+				log_message('info', 'Added unq_dctypes_code (SQLSRV)');
+			}
 		}
-		log_message('info', 'Set dctypes.code NOT NULL and UNIQUE');
+	}
+
+	private function mysql_column_allows_null($table, $column)
+	{
+		$_r = $this->db->query(
+			'SELECT is_nullable FROM information_schema.columns
+			 WHERE table_schema = DATABASE()
+			   AND table_name = ?
+			   AND column_name = ?',
+			array($table, $column)
+		);
+		$row = $_r ? $_r->row_array() : null;
+
+		return $row && strtoupper((string)$row['is_nullable']) === 'YES';
+	}
+
+	private function mysql_index_exists($table, $index_name)
+	{
+		$_r = $this->db->query(
+			'SELECT 1 FROM information_schema.statistics
+			 WHERE table_schema = DATABASE()
+			   AND table_name = ?
+			   AND index_name = ?',
+			array($table, $index_name)
+		);
+
+		return $_r && $_r->row_array();
+	}
+
+	private function sqlsrv_column_allows_null($table, $column)
+	{
+		$_r = $this->db->query(
+			'SELECT c.is_nullable
+			 FROM sys.columns c
+			 INNER JOIN sys.tables t ON c.object_id = t.object_id
+			 WHERE t.name = ? AND c.name = ?',
+			array($table, $column)
+		);
+		$row = $_r ? $_r->row_array() : null;
+
+		return $row && (int)$row['is_nullable'] === 1;
+	}
+
+	private function sqlsrv_index_exists($table, $index_name)
+	{
+		$_r = $this->db->query(
+			'SELECT 1 FROM sys.indexes WHERE name = ? AND object_id = OBJECT_ID(?)',
+			array($index_name, $table)
+		);
+
+		return $_r && $_r->row_array();
 	}
 
 	private function create_dctype_translations_table($is_mysql)
@@ -136,20 +260,34 @@ class Migration_Dctypes_code_and_translations extends MY_Migration {
 
 	private function seed_dctype_translations_en()
 	{
+		if (!$this->db->table_exists('dctype_translations')) {
+			return;
+		}
+
 		$_r = $this->db->select('id, title')->get('dctypes');
 		$rows = $_r ? $_r->result_array() : [];
-		$inserts = [];
+		$inserted = 0;
+
 		foreach ($rows as $row) {
-			$inserts[] = [
-				'dctype_id' => $row['id'],
+			$exists = $this->db
+				->where('dctype_id', (int)$row['id'])
+				->where('lang', 'en')
+				->get('dctype_translations')
+				->row_array();
+
+			if ($exists) {
+				continue;
+			}
+
+			$this->db->insert('dctype_translations', array(
+				'dctype_id' => (int)$row['id'],
 				'lang'      => 'en',
 				'title'     => $row['title'],
-			];
+			));
+			$inserted++;
 		}
-		if (!empty($inserts)) {
-			$this->db->insert_batch('dctype_translations', $inserts);
-		}
-		log_message('info', 'Seeded dctype_translations with lang=en from dctypes.title');
+
+		log_message('info', 'Seeded dctype_translations with lang=en (inserted=' . $inserted . ')');
 	}
 
 	public function down()

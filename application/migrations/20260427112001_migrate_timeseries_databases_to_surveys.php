@@ -31,11 +31,23 @@ class Migration_Migrate_timeseries_databases_to_surveys extends MY_Migration {
 
 		$this->db->trans_start();
 		$idno_map = array(); // old_idno => new_idno when conflicts are renamed
+		$inserted = 0;
+		$skipped = 0;
 
 		foreach ($rows as $row) {
 			$source_idno = isset($row['idno']) ? trim((string)$row['idno']) : '';
 			if ($source_idno === '') {
 				throw new Exception('ts_databases row has empty idno');
+			}
+
+			$existing = $this->find_existing_migrated_survey($source_idno);
+			if ($existing) {
+				if ($existing['idno'] !== $source_idno) {
+					$idno_map[$source_idno] = $existing['idno'];
+				}
+				$skipped++;
+				log_message('info', 'Skipping ts_databases idno already migrated: ' . $source_idno);
+				continue;
 			}
 
 			$idno = $this->resolve_unique_idno($source_idno);
@@ -72,6 +84,7 @@ class Migration_Migrate_timeseries_databases_to_surveys extends MY_Migration {
 				$error = $this->db->error();
 				throw new Exception('Failed migrating ts_databases row: ' . implode(', ', (array)$error));
 			}
+			$inserted++;
 		}
 
 		$this->rewrite_timeseries_series_database_links($idno_map);
@@ -82,6 +95,44 @@ class Migration_Migrate_timeseries_databases_to_surveys extends MY_Migration {
 		if ($this->db->trans_status() === false) {
 			throw new Exception('Failed migrating ts_databases to surveys');
 		}
+
+		log_message('info', 'Migrated ts_databases to surveys: inserted=' . $inserted . ', skipped=' . $skipped);
+	}
+
+	/**
+	 * Detect surveys already created by a prior run of this migration.
+	 *
+	 * @return array|null Row with at least idno key, or null
+	 */
+	private function find_existing_migrated_survey($source_idno)
+	{
+		$exact = $this->db
+			->select('id, idno')
+			->where('idno', $source_idno)
+			->where('type', 'timeseriesdb')
+			->get('surveys')
+			->row_array();
+
+		if ($exact) {
+			return $exact;
+		}
+
+		$pattern = '/^' . preg_quote($source_idno, '/') . '-tsdb(-\d+)?$/';
+		$candidates = $this->db
+			->select('id, idno')
+			->where('type', 'timeseriesdb')
+			->like('idno', $source_idno . '-tsdb', 'after')
+			->get('surveys')
+			->result_array();
+
+		foreach ($candidates as $candidate) {
+			$idno = isset($candidate['idno']) ? (string)$candidate['idno'] : '';
+			if ($idno !== '' && preg_match($pattern, $idno)) {
+				return $candidate;
+			}
+		}
+
+		return null;
 	}
 
 	private function ensure_survey_type_exists()
