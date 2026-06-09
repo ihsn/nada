@@ -751,6 +751,11 @@ class Catalog_model extends CI_Model {
 			$this->db->where('sid', $id); 
 			$this->db->delete('survey_notes');
 
+			if ($this->db->table_exists('study_admin_metadata')) {
+				$this->db->where('sid', $id);
+				$this->db->delete('study_admin_metadata');
+			}
+
 		}		
 	}
 

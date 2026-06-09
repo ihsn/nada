@@ -46,6 +46,10 @@ tags:
     description: Admin endpoints for project-level timeseries data and DSD linking.
   - name: Templates Admin
     description: Admin endpoints for display templates and renderer registry listing.
+  - name: Study admin metadata
+    description: |
+      Attach admin-only custom JSON metadata to catalog studies via the API.
+      Data is stored separately from published study metadata (`surveys.metadata`) and is not exposed on public catalog endpoints.
 
 x-tagGroups:
   - name: Authentication
@@ -76,6 +80,7 @@ x-tagGroups:
       - Codelists Admin
       - Timeseries Admin
       - Templates Admin
+      - Study admin metadata
 
 security:
   - ApiKeyAuth: []
@@ -4010,6 +4015,146 @@ paths:
               schema:
                 $ref: '#/components/schemas/RenderersListResponse'
 
+  # ----------------------------------------------------------------
+  # Study admin metadata
+  # ----------------------------------------------------------------
+
+  /admin/catalog/{idno}/admin-metadata:
+    get:
+      tags:
+        - Study admin metadata
+      summary: Get study admin metadata
+      description: >-
+        Returns admin-only metadata attached to a study. When no record exists, `metadata` is an empty object.
+        Study reference is the dataset IDNO by default; pass query `id_format=id` to use numeric `surveys.id`.
+      operationId: studyAdminMetadataGet
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataResponse'
+        '400':
+          $ref: '#/components/responses/StudyAdminMetadataBadRequest'
+        '403':
+          $ref: '#/components/responses/StudyAdminMetadataForbidden'
+    post:
+      tags:
+        - Study admin metadata
+      summary: Create study admin metadata
+      description: >-
+        Creates admin metadata for a study. Request body must include a `metadata` object.
+        If metadata already exists for the study, the request fails with `409` unless `overwrite` is set
+        (in the JSON body or query string), in which case the stored document is replaced.
+      operationId: studyAdminMetadataCreate
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+        - $ref: '#/components/parameters/StudyAdminMetadataOverwrite'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudyAdminMetadataSaveRequest'
+      responses:
+        '200':
+          description: Created or replaced (when overwrite is set)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataResponse'
+        '400':
+          $ref: '#/components/responses/StudyAdminMetadataBadRequest'
+        '403':
+          $ref: '#/components/responses/StudyAdminMetadataForbidden'
+        '409':
+          description: Metadata already exists and overwrite was not set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataErrorResponse'
+              example:
+                status: failed
+                message: METADATA_ALREADY_EXISTS
+    delete:
+      tags:
+        - Study admin metadata
+      summary: Delete study admin metadata
+      description: Removes the admin metadata record for a study (no-op if none exists).
+      operationId: studyAdminMetadataDelete
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataDeleteResponse'
+        '400':
+          $ref: '#/components/responses/StudyAdminMetadataBadRequest'
+        '403':
+          $ref: '#/components/responses/StudyAdminMetadataForbidden'
+
+  /admin/catalog/{idno}/admin-metadata/update:
+    post:
+      tags:
+        - Study admin metadata
+      summary: Replace study admin metadata
+      description: >-
+        Replaces the entire admin metadata document for a study (inserts if none exists).
+        POST alias for environments that cannot send PUT. Same JSON body as create.
+      operationId: studyAdminMetadataUpdate
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudyAdminMetadataSaveRequest'
+      responses:
+        '200':
+          description: Replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataResponse'
+        '400':
+          $ref: '#/components/responses/StudyAdminMetadataBadRequest'
+        '403':
+          $ref: '#/components/responses/StudyAdminMetadataForbidden'
+
+  /admin/catalog/{idno}/admin-metadata/delete:
+    post:
+      tags:
+        - Study admin metadata
+      summary: Delete study admin metadata (POST alias)
+      description: >-
+        Same as `DELETE /admin/catalog/{idno}/admin-metadata`. Provided for environments that cannot send DELETE.
+      operationId: studyAdminMetadataDeletePost
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataDeleteResponse'
+        '400':
+          $ref: '#/components/responses/StudyAdminMetadataBadRequest'
+        '403':
+          $ref: '#/components/responses/StudyAdminMetadataForbidden'
+
 # ----------------------------------------------------------------
 # Security & Components
 # ----------------------------------------------------------------
@@ -4078,6 +4223,29 @@ components:
         type: string
         enum: [csv, json]
         default: csv
+    AdminCatalogStudyIdno:
+      name: idno
+      in: path
+      required: true
+      description: Study IDNO (default) or numeric `surveys.id` when `id_format=id`
+      schema:
+        type: string
+    AdminCatalogStudyIdFormat:
+      name: id_format
+      in: query
+      description: Set to `id` to use numeric `surveys.id` instead of IDNO in the path
+      schema:
+        type: string
+        enum: [id]
+    StudyAdminMetadataOverwrite:
+      name: overwrite
+      in: query
+      description: >-
+        When true, replace existing admin metadata instead of failing with `409`.
+        May also be sent in the JSON request body.
+      schema:
+        type: boolean
+        default: false
 
   responses:
     AnalyticsBadRequest:
@@ -4099,6 +4267,21 @@ components:
               message:
                 type: string
                 example: ACCESS-DENIED
+    StudyAdminMetadataBadRequest:
+      description: Invalid request (e.g. `METADATA_REQUIRED`, `METADATA_MUST_BE_OBJECT`, `METADATA_TOO_LARGE`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StudyAdminMetadataErrorResponse'
+    StudyAdminMetadataForbidden:
+      description: Admin or study edit access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StudyAdminMetadataErrorResponse'
+          example:
+            status: failed
+            message: ACCESS_DENIED
 
   schemas:
     TemplateRecord:
@@ -5153,3 +5336,70 @@ components:
           type: integer
           minimum: 0
           description: Total all-time downloads to store for this file
+
+    StudyAdminMetadataSaveRequest:
+      type: object
+      required: [metadata]
+      properties:
+        metadata:
+          type: object
+          description: Admin-only custom metadata (JSON object; not merged on create)
+          additionalProperties: true
+          example:
+            workflow_status: reviewed
+            source_system: crm
+            internal_ref: INT-12345
+        overwrite:
+          type: boolean
+          description: >-
+            When true on `POST /admin/catalog/{idno}/admin-metadata`, replace existing metadata
+            instead of returning `409`. Ignored on `/update`.
+
+    StudyAdminMetadataResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        sid:
+          type: integer
+          description: Numeric study id (`surveys.id`)
+        metadata:
+          type: object
+          additionalProperties: true
+        created:
+          type: string
+          format: date-time
+          nullable: true
+        changed:
+          type: string
+          format: date-time
+          nullable: true
+        created_by:
+          type: integer
+          nullable: true
+        changed_by:
+          type: integer
+          nullable: true
+
+    StudyAdminMetadataDeleteResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        sid:
+          type: integer
+        deleted:
+          type: boolean
+          example: true
+
+    StudyAdminMetadataErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: failed
+        message:
+          type: string
+          description: Error code (e.g. `METADATA_ALREADY_EXISTS`, `METADATA_REQUIRED`, `ACCESS_DENIED`)
