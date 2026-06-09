@@ -50,6 +50,17 @@ tags:
     description: |
       Attach admin-only custom JSON metadata to catalog studies via the API.
       Data is stored separately from published study metadata (`surveys.metadata`) and is not exposed on public catalog endpoints.
+  - name: Catalog import
+    description: |
+      Import studies into the admin catalog from DDI/XML, dataset JSON/JSONL, or study package ZIP files.
+
+      **One-shot import** — `POST /admin/catalog/import` accepts a single uploaded file (multipart) and runs the full import in one request. Suitable for smaller files.
+
+      **Staged package import** — for large package ZIP files, upload via [Resumable uploads](#tag/Resumable-uploads) (`metadata.purpose` = `package_import`, `metadata.allowed_types` = `zip`), then run tasks in order:
+      `unzip` → `create` → `datafile` (repeat until no pending data files) → `finalize`.
+      Progress is stored on the `upload_id` (no separate job id). Use `GET /admin/catalog/import_package/status` to resume after interruption.
+
+      Package ZIP layout matches `GET /admin/catalog/{idno}/package` export: `info.json`, `{idno}.jsonl`, optional DDI/XML, `external_resources.json`, `documentation/*`, thumbnail.
 
 x-tagGroups:
   - name: Authentication
@@ -81,6 +92,7 @@ x-tagGroups:
       - Timeseries Admin
       - Templates Admin
       - Study admin metadata
+      - Catalog import
 
 security:
   - ApiKeyAuth: []
@@ -2121,7 +2133,11 @@ paths:
       tags:
         - Resumable uploads
       summary: Initialize resumable upload
-      description: Start a new resumable upload session and get an upload_id.
+      description: >-
+        Start a new resumable upload session and get an upload_id.
+
+        For staged package import, set `metadata.purpose` to `package_import` and `metadata.allowed_types` to `zip`
+        (see [Catalog import](#tag/Catalog-import)).
       requestBody:
         required: true
         content:
@@ -4016,6 +4032,263 @@ paths:
                 $ref: '#/components/schemas/RenderersListResponse'
 
   # ----------------------------------------------------------------
+  # Catalog import
+  # ----------------------------------------------------------------
+
+  /admin/catalog/ddi_upload_collections:
+    get:
+      tags:
+        - Catalog import
+      summary: List collections available for study import
+      description: >-
+        Returns collections (repositories) the authenticated user may import into, based on admin catalog scope
+        and `study.create` permission. Used by the admin upload UI; optional for API clients that already know `repositoryid`.
+      operationId: catalogDdiUploadCollections
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogDdiUploadCollectionsResponse'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import:
+    post:
+      tags:
+        - Catalog import
+      summary: Import study from file (one-shot)
+      description: >-
+        Upload a metadata file and create or update a study in one request. Format is auto-detected:
+
+        - `.xml` with root `codeBook` — DDI microdata (`DDI2_import`)
+        - `.xml` with root `MD_Metadata` / `MI_Metadata` — geospatial
+        - `.json` — dataset metadata document (`Catalog_dataset_import`)
+        - `.jsonl` — line 1 = study document, further lines = variables
+        - `.zip` — study package (same layout as package export); full import in one request
+
+        For large package ZIP files, prefer staged import via `/admin/catalog/import_package/*` after a resumable upload.
+
+        Optional multipart field `rdf` — RDF file imported after DDI survey XML import.
+      operationId: catalogImportOneShot
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, repositoryid]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Metadata file (`.xml`, `.json`, `.jsonl`, or `.zip`)
+                repositoryid:
+                  type: string
+                  description: Target collection id (e.g. `central`)
+                  default: central
+                overwrite:
+                  type: string
+                  enum: [yes, no]
+                  description: Replace existing study with same IDNO when `yes`
+                published:
+                  type: integer
+                  enum: [0, 1]
+                  description: Published flag; only applied when sent
+                access_policy:
+                  type: string
+                  description: Data access form/model code; sets `formid` when it resolves
+                data_remote_url:
+                  type: string
+                  description: Remote data access URL (`link_da`)
+                rdf:
+                  type: string
+                  format: binary
+                  description: Optional RDF file (survey DDI import only)
+      responses:
+        '200':
+          description: Import succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportOneShotResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportValidationError'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import_package/status:
+    get:
+      tags:
+        - Catalog import
+      summary: Get staged package import status
+      description: >-
+        Returns import progress for a completed resumable upload. Use `next_task` to determine the next endpoint to call.
+        Safe to call after page reload or API client restart.
+      operationId: catalogImportPackageStatus
+      parameters:
+        - name: upload_id
+          in: query
+          required: true
+          description: Resumable upload session id (`/uploads/*`)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Import status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportPackageStatusResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportBadRequest'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import_package/unzip:
+    post:
+      tags:
+        - Catalog import
+      summary: Staged package import — extract ZIP
+      description: >-
+        Extract the uploaded package ZIP to a server temp directory, read `info.json` and JSONL, and prepare per–data-file
+        variable sidecar files (survey/microdata). Idempotent if already extracted for this `upload_id`.
+      operationId: catalogImportPackageUnzip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogImportPackageUploadRequest'
+      responses:
+        '200':
+          description: Extract completed or already done
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportPackageStatusResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportBadRequest'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import_package/create:
+    post:
+      tags:
+        - Catalog import
+      summary: Staged package import — create study metadata
+      description: >-
+        Create the study from JSONL line 1 (study-level metadata, data file definitions, variable groups).
+        Does **not** import variables; use `datafile` for that. Uses the same validation and type resolution as one-shot JSON import.
+      operationId: catalogImportPackageCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogImportPackageCreateRequest'
+      responses:
+        '200':
+          description: Study created or already exists for this import
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportPackageStatusResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportValidationError'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import_package/datafile:
+    post:
+      tags:
+        - Catalog import
+      summary: Staged package import — import next data file
+      description: >-
+        Import **one** data file and **all** variables for that `file_id` atomically (no partial variable import).
+        Call repeatedly until `data_files_pending` is empty. Survey/microdata only; non-survey packages skip this step.
+      operationId: catalogImportPackageDatafile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogImportPackageUploadRequest'
+      responses:
+        '200':
+          description: Data file imported, or all data files already complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportPackageStatusResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportValidationError'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import_package/finalize:
+    post:
+      tags:
+        - Catalog import
+      summary: Staged package import — finalize
+      description: >-
+        Copy package assets (DDI/XML, documentation, external resources, thumbnail, RDF), rebuild search indexes,
+        and remove temp extract files. Returns `sid` and `package_stats` when complete.
+      operationId: catalogImportPackageFinalize
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogImportPackageUploadRequest'
+      responses:
+        '200':
+          description: Import completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportPackageFinalizeResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportBadRequest'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/{idno}/package:
+    get:
+      tags:
+        - Catalog import
+      summary: Export study package ZIP
+      description: >-
+        Download a study package ZIP produced by `Package_Exporter`. Import via one-shot `/admin/catalog/import`
+        or staged `/admin/catalog/import_package/*` after resumable upload.
+
+        ZIP contents: `info.json`, `{idno}.jsonl`, optional DDI/XML, `external_resources.json`, `documentation/*`, thumbnail.
+      operationId: catalogExportPackage
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+        - name: dsd_export
+          in: query
+          description: Timeseries DSD export mode in JSONL (`reference` default, or `inline`)
+          schema:
+            type: string
+            enum: [reference, inline]
+            default: reference
+      responses:
+        '200':
+          description: Package ZIP file
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/CatalogImportBadRequest'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  # ----------------------------------------------------------------
   # Study admin metadata
   # ----------------------------------------------------------------
 
@@ -4267,6 +4540,27 @@ components:
               message:
                 type: string
                 example: ACCESS-DENIED
+    CatalogImportForbidden:
+      description: Admin catalog access denied or upload not owned by caller
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CatalogImportErrorResponse'
+          example:
+            status: error
+            message: ACCESS_DENIED
+    CatalogImportBadRequest:
+      description: Invalid request (e.g. `UPLOAD_ID_REQUIRED`, `UPLOAD_NOT_COMPLETE_OR_MISSING`, `PACKAGE_NOT_UNZIPPED`, `DATAFILES_NOT_COMPLETE`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CatalogImportErrorResponse'
+    CatalogImportValidationError:
+      description: Validation failed (e.g. `VALIDATION_ERROR`, `INVALID_TYPE`, variable schema errors)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CatalogImportValidationErrorResponse'
     StudyAdminMetadataBadRequest:
       description: Invalid request (e.g. `METADATA_REQUIRED`, `METADATA_MUST_BE_OBJECT`, `METADATA_TOO_LARGE`)
       content:
@@ -5354,6 +5648,171 @@ components:
           description: >-
             When true on `POST /admin/catalog/{idno}/admin-metadata`, replace existing metadata
             instead of returning `409`. Ignored on `/update`.
+
+    CatalogImportErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [error, failed]
+        message:
+          type: string
+
+    CatalogImportValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/CatalogImportErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties: true
+              description: Validation error details (shape varies by failure)
+
+    CatalogDdiUploadCollectionsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        collections:
+          type: array
+          items:
+            type: object
+            properties:
+              repositoryid:
+                type: string
+              title:
+                type: string
+
+    CatalogImportOneShotResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        detected_type:
+          type: string
+          description: Detected import kind (`survey_xml`, `geospatial_xml`, `dataset_json`, `dataset_jsonl`, `package_zip`)
+        sid:
+          type: integer
+          description: Numeric study id (`surveys.id`)
+        idno:
+          type: string
+        study_type:
+          type: string
+          description: Resolved dataset type (JSON/JSONL/ZIP imports)
+        dataset:
+          type: object
+          additionalProperties: true
+        package_stats:
+          $ref: '#/components/schemas/CatalogImportPackageStats'
+
+    CatalogImportPackageUploadRequest:
+      type: object
+      required: [upload_id]
+      properties:
+        upload_id:
+          type: string
+          description: Completed resumable upload id from `/uploads/*`
+
+    CatalogImportPackageCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/CatalogImportPackageUploadRequest'
+        - type: object
+          properties:
+            repositoryid:
+              type: string
+              default: central
+            overwrite:
+              oneOf:
+                - type: boolean
+                - type: string
+                  enum: [yes, no]
+              description: Replace existing study with same IDNO when true/`yes`
+            published:
+              type: integer
+              enum: [0, 1]
+            access_policy:
+              type: string
+              description: Data access form/model code
+            data_remote_url:
+              type: string
+              description: Remote data access URL (`link_da`)
+
+    CatalogImportPackageStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        upload_id:
+          type: string
+        phase:
+          type: string
+          description: >-
+            Current phase (`uploaded`, `unzipped`, `study_created`, `importing_datafiles`, `datafiles_done`, `completed`)
+        next_task:
+          type: string
+          nullable: true
+          enum: [unzip, create, datafile, finalize]
+          description: Next endpoint to call; omitted or null when `done` is true
+        action:
+          type: string
+          nullable: true
+          description: Result of the last task invocation (e.g. `unzipped`, `datafile_imported`)
+        sid:
+          type: integer
+          nullable: true
+        idno:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+          description: Resolved dataset type
+        data_files_total:
+          type: integer
+        data_files_done:
+          type: integer
+        data_files_pending:
+          type: array
+          items:
+            type: string
+          description: Data file ids not yet imported
+        last_datafile:
+          type: object
+          nullable: true
+          properties:
+            file_id:
+              type: string
+            variables_count:
+              type: integer
+        finalize_stats:
+          $ref: '#/components/schemas/CatalogImportPackageStats'
+        done:
+          type: boolean
+
+    CatalogImportPackageFinalizeResponse:
+      allOf:
+        - $ref: '#/components/schemas/CatalogImportPackageStatusResponse'
+        - type: object
+          properties:
+            package_stats:
+              $ref: '#/components/schemas/CatalogImportPackageStats'
+
+    CatalogImportPackageStats:
+      type: object
+      properties:
+        documentation_files:
+          type: integer
+        resources:
+          type: integer
+        thumbnail:
+          type: boolean
+        xml_copied:
+          type: boolean
+        rdf_imported:
+          type: boolean
 
     StudyAdminMetadataResponse:
       type: object
