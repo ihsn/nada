@@ -53,10 +53,11 @@ class JSON_Writer
 
         $metadata = $this->ci->Dataset_model->get_metadata($sid);
         $basic_info = array(
-            'type' => $dataset['type']
+            'type' => $dataset['type'],
         );
 
-        $output = array_merge($basic_info, $metadata);
+        // Metadata first so export-only keys (e.g. schematype) cannot overwrite dataset type.
+        $output = array_merge($metadata, $basic_info);
 
         if ($this->_dataset_is_timeseries($dataset)) {
             $this->_apply_timeseries_dsd_export((int) $sid, $output, $dsd_export);

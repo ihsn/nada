@@ -59,7 +59,7 @@ class Package_Exporter
             $this->add_external_resources_json($zip, $sid, $resources);
             $this->add_documentation_files($zip, $study_path, $resources);
             $this->add_thumbnail($zip, $dataset);
-            $this->add_info_json($zip, $sid, $dataset, $study_path);
+            $this->add_info_json($zip, $sid, $dataset, $study_path, $dsd_export);
         } finally {
             $zip->close();
             $this->cleanup_temp_files();
@@ -173,7 +173,7 @@ class Package_Exporter
     /**
      * Add info.json file with study/survey info
      */
-    private function add_info_json($zip, $sid, $dataset, $study_path)
+    private function add_info_json($zip, $sid, $dataset, $study_path, $dsd_export = 'reference')
     {
         $info = array(
             'idno' => $dataset['idno'],
@@ -190,6 +190,10 @@ class Package_Exporter
         }
 
         $info['json_file'] = $dataset['idno'] . '.jsonl';
+        if ($dataset['type'] === 'timeseries'
+            && strtolower((string) $dsd_export) === 'inline') {
+            $info['json_file'] = $dataset['idno'] . '.inline.jsonl';
+        }
 
         $rdf_xml_file = $study_path . '/' . $dataset['idno'] . '.rdf';
         if (file_exists($rdf_xml_file)) {

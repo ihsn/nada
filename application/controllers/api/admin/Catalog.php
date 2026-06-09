@@ -32,6 +32,7 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
  * Data classifications: GET /api/admin/catalog/data-classifications — same controller as `/api/admin/data-classifications` (route alias).
  *
  * Study package ZIP: GET /api/admin/catalog/{idno}/package — same behaviour as GET api/datasets/{idno}/package (optional query `dsd_export=inline|reference`).
+ * Staged package import (large ZIP): api/uploads then POST api/admin/catalog/import_package/{unzip|create|datafile|finalize}; GET import_package/status?upload_id=…
  *
  * IDNO utilities: GET /api/admin/catalog/check_idno/{idno} (existence); POST /api/admin/catalog/replace_idno — JSON `{ "old_idno", "new_idno" }` (same as api/datasets/replace_idno).
  *
@@ -117,7 +118,7 @@ class Catalog extends MY_REST_Controller
 
 			$dataset = $this->dataset_manager->get_row($dataset_id);
 
-			$dataset['dirpath'] = $this->dataset_manager->setup_folder($repositoryid = 'central', $folder_name = md5($dataset['idno']));
+			$dataset['dirpath'] = $this->dataset_manager->setup_folder($options['repositoryid'], md5($dataset['idno']));
 
 			$update_options = array(
 				'dirpath' => $dataset['dirpath'],
@@ -2220,6 +2221,8 @@ class Catalog extends MY_REST_Controller
 				throw new AclAccessDeniedException('ACCESS-DENIED');
 			}
 
+			$this->lang->load('general');
+
 			$scope = $this->acl_manager->get_admin_catalog_repository_scope($user);
 			$output = array();
 
@@ -2278,7 +2281,7 @@ class Catalog extends MY_REST_Controller
 	 * POST /api/admin/catalog/import
 	 *
 	 * Multipart form fields:
-	 *   file           (required) .xml or .json
+	 *   file           (required) .xml, .json, .jsonl, or study package .zip
 	 *   repositoryid   (required) target collection
 	 *   overwrite      optional yes|no (default no)
 	 *   published      optional 0|1 — only applied when sent
@@ -2288,7 +2291,8 @@ class Catalog extends MY_REST_Controller
 	 */
 	function import_post()
 	{
-		$saved_path = null;
+		$saved_path       = null;
+		$package_importer = null;
 		try {
 			$user = $this->api_user();
 			if (!$user) {
@@ -2400,55 +2404,46 @@ class Catalog extends MY_REST_Controller
 					'idno'          => isset($result['idno']) ? $result['idno'] : null,
 				);
 			}
-			elseif ($kind === 'dataset_json') {
-				$full = file_get_contents($saved_path);
-				$options = json_decode($full, true);
-				if (! is_array($options)) {
-					throw new Exception('INVALID_JSON');
+			elseif ($kind === 'dataset_json' || $kind === 'dataset_jsonl') {
+				$this->load->library('Catalog_dataset_import');
+				if ($kind === 'dataset_jsonl') {
+					$this->load->library('JSON_Reader');
+					$options = $this->json_reader->parse_jsonl_file($saved_path);
 				}
-				$type = isset($options['type']) ? $options['type'] : 'survey';
-				if (! $this->dataset_manager->is_valid_type($type)) {
-					throw new Exception('INVALID_TYPE');
-				}
-				unset($options['type']);
-				$options['repositoryid'] = $repositoryid;
-				$options['overwrite']    = $overwrite_yes ? 'yes' : 'no';
-				if (isset($options['data_remote_url'])) {
-					$options['link_da'] = $options['data_remote_url'];
-				}
-				$data_remote_url = $this->input->post('data_remote_url');
-				if ($data_remote_url !== null && trim((string) $data_remote_url) !== '') {
-					$options['link_da'] = $data_remote_url;
-				}
-				$form_post = $this->input->post('access_policy');
-				if ($form_post !== null && trim((string) $form_post) !== '') {
-					$fid = $this->dataset_manager->get_data_access_type_id($form_post);
-					if ($fid) {
-						$options['formid'] = $fid;
+				else {
+					$options = json_decode(file_get_contents($saved_path), true);
+					if (! is_array($options)) {
+						throw new Exception('INVALID_JSON');
 					}
 				}
-				if ($published_post !== null) {
-					$options['published'] = $published_post;
-				}
-				$options['created_by']  = $this->get_api_user_id();
-				$options['changed_by']  = $this->get_api_user_id();
-				$options['created']     = date('U');
-				$options['changed']    = date('U');
-
-				$dataset_id = $this->dataset_manager->create_dataset($type, $options);
-				if (! $dataset_id) {
-					throw new Exception('FAILED_TO_CREATE_DATASET');
-				}
-				$result = $this->dataset_manager->get_row($dataset_id);
-				$dirpath = $this->dataset_manager->setup_folder('central', md5($result['idno']));
-				$this->dataset_manager->update_options($dataset_id, array('dirpath' => $dirpath));
-				$this->events->emit('db.after.update', 'surveys', $dataset_id, 'import');
+				$imported = $this->catalog_dataset_import->create_from_options(
+					$options,
+					$this->_catalog_import_params_from_request($repositoryid, $overwrite_yes, $published_post)
+				);
 				$response = array(
 					'status'        => 'success',
 					'detected_type' => $detected_type,
-					'dataset'       => $result,
-					'sid'           => (int) $dataset_id,
-					'idno'          => isset($result['idno']) ? $result['idno'] : null,
+					'dataset'       => $imported['dataset'],
+					'sid'           => $imported['sid'],
+					'idno'          => $imported['idno'],
+					'study_type'    => $imported['type'],
+				);
+			}
+			elseif ($kind === 'package_zip') {
+				$this->load->library('Package_Importer');
+				$package_importer = $this->package_importer;
+				$imported         = $this->package_importer->import(
+					$saved_path,
+					$this->_catalog_import_params_from_request($repositoryid, $overwrite_yes, $published_post)
+				);
+				$response = array(
+					'status'        => 'success',
+					'detected_type' => $detected_type,
+					'dataset'       => $imported['dataset'],
+					'sid'           => $imported['sid'],
+					'idno'          => $imported['idno'],
+					'study_type'    => $imported['type'],
+					'package_stats' => $imported['package_stats'],
 				);
 			}
 			else {
@@ -2474,10 +2469,297 @@ class Catalog extends MY_REST_Controller
 			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
 		}
 		finally {
+			if ($package_importer) {
+				$package_importer->cleanup();
+			}
 			if ($saved_path && is_string($saved_path) && is_file($saved_path)) {
 				@unlink($saved_path);
 			}
 		}
+	}
+
+
+	/**
+	 * Build shared import params from the multipart import request.
+	 *
+	 * @param string   $repositoryid
+	 * @param bool     $overwrite_yes
+	 * @param int|null $published_post
+	 * @return array
+	 */
+	private function _catalog_import_params_from_request($repositoryid, $overwrite_yes, $published_post)
+	{
+		$params = array(
+			'repositoryid' => $repositoryid,
+			'overwrite'    => $overwrite_yes,
+			'published'    => $published_post,
+			'user_id'      => $this->get_api_user_id(),
+		);
+
+		$data_remote_url = $this->input->post('data_remote_url');
+		if ($data_remote_url !== null && trim((string) $data_remote_url) !== '') {
+			$params['link_da'] = $data_remote_url;
+		}
+
+		$form_post = $this->input->post('access_policy');
+		if ($form_post !== null && trim((string) $form_post) !== '') {
+			$fid = $this->dataset_manager->get_data_access_type_id($form_post);
+			if ($fid) {
+				$params['formid'] = $fid;
+			}
+		}
+
+		return $params;
+	}
+
+
+	/**
+	 * Staged package import — poll progress (resume after page reload).
+	 *
+	 * GET /api/admin/catalog/import_package/status?upload_id={uuid}
+	 */
+	function import_package_status_get()
+	{
+		try {
+			$user = $this->_import_package_user_or_die();
+			$upload_id = $this->_import_package_upload_id_from_request(true);
+			$this->load->library('Package_import_staged');
+			$response = $this->package_import_staged->get_status($upload_id, (int) $this->get_api_user_id());
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch (AclAccessDeniedException $e) {
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * Staged package import — extract uploaded ZIP.
+	 *
+	 * POST /api/admin/catalog/import_package/unzip  JSON: { upload_id }
+	 */
+	function import_package_unzip_post()
+	{
+		try {
+			$user = $this->_import_package_user_or_die();
+			$upload_id = $this->_import_package_upload_id_from_request(true);
+			$this->load->library('Package_import_staged');
+			$response = $this->package_import_staged->unzip($upload_id, (int) $this->get_api_user_id());
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch (AclAccessDeniedException $e) {
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * Staged package import — create study (metadata only, no variables).
+	 *
+	 * POST /api/admin/catalog/import_package/create
+	 * JSON: upload_id, repositoryid, overwrite, published?, access_policy?, data_remote_url?
+	 */
+	function import_package_create_post()
+	{
+		try {
+			$user      = $this->_import_package_user_or_die();
+			$payload   = $this->_import_package_json_payload();
+			$upload_id = $this->_import_package_upload_id_from_request(true, $payload);
+
+			$repositoryid = isset($payload['repositoryid']) ? trim((string) $payload['repositoryid']) : '';
+			if ($repositoryid === '') {
+				$repositoryid = 'central';
+			}
+			$this->_import_package_assert_repository_acl($user, $repositoryid);
+
+			$overwrite = false;
+			if (isset($payload['overwrite'])) {
+				$ow = $payload['overwrite'];
+				$overwrite = ($ow === true || $ow === 1 || $ow === '1' || $ow === 'yes');
+			}
+
+			$published_post = null;
+			if (isset($payload['published']) && in_array($payload['published'], array(0, 1, '0', '1'), true)) {
+				$published_post = (int) $payload['published'];
+			}
+
+			$params = array(
+				'repositoryid' => $repositoryid,
+				'overwrite'    => $overwrite,
+				'published'    => $published_post,
+				'user_id'      => $this->get_api_user_id(),
+			);
+
+			if (isset($payload['access_policy']) && trim((string) $payload['access_policy']) !== '') {
+				$fid = $this->dataset_manager->get_data_access_type_id($payload['access_policy']);
+				if ($fid) {
+					$params['formid'] = $fid;
+				}
+			}
+			if (isset($payload['data_remote_url']) && trim((string) $payload['data_remote_url']) !== '') {
+				$params['link_da'] = $payload['data_remote_url'];
+			}
+
+			$this->load->library('Package_import_staged');
+			$response = $this->package_import_staged->create_study(
+				$upload_id,
+				(int) $this->get_api_user_id(),
+				$params
+			);
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch (AclAccessDeniedException $e) {
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (ValidationException $e) {
+			$this->set_response(
+				array(
+					'status'  => 'failed',
+					'message' => $e->getMessage(),
+					'errors'  => $e->GetValidationErrors(),
+				),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * Staged package import — next data file and all its variables.
+	 *
+	 * POST /api/admin/catalog/import_package/datafile  JSON: { upload_id }
+	 */
+	function import_package_datafile_post()
+	{
+		try {
+			$user = $this->_import_package_user_or_die();
+			$upload_id = $this->_import_package_upload_id_from_request(true);
+			$this->load->library('Package_import_staged');
+			$response = $this->package_import_staged->import_datafile($upload_id, (int) $this->get_api_user_id());
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch (AclAccessDeniedException $e) {
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (ValidationException $e) {
+			$this->set_response(
+				array(
+					'status'  => 'failed',
+					'message' => $e->getMessage(),
+					'errors'  => $e->GetValidationErrors(),
+				),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * Staged package import — assets, search index, cleanup.
+	 *
+	 * POST /api/admin/catalog/import_package/finalize  JSON: { upload_id }
+	 */
+	function import_package_finalize_post()
+	{
+		try {
+			$user = $this->_import_package_user_or_die();
+			$upload_id = $this->_import_package_upload_id_from_request(true);
+			$this->load->library('Package_import_staged');
+			$response = $this->package_import_staged->finalize($upload_id, (int) $this->get_api_user_id());
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch (AclAccessDeniedException $e) {
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * @return object
+	 */
+	private function _import_package_user_or_die()
+	{
+		$user = $this->api_user();
+		if (! $user) {
+			throw new AclAccessDeniedException('ACCESS-DENIED');
+		}
+		if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
+			throw new AclAccessDeniedException('ACCESS-DENIED');
+		}
+		return $user;
+	}
+
+
+	/**
+	 * @param object $user
+	 * @param string $repositoryid
+	 * @return void
+	 */
+	private function _import_package_assert_repository_acl($user, $repositoryid)
+	{
+		$scope = $this->acl_manager->get_admin_catalog_repository_scope($user);
+		if (! $this->_repositoryid_allowed_for_ddi_upload($user, $scope, $repositoryid)) {
+			throw new AclAccessDeniedException('ACCESS-DENIED');
+		}
+		if (! $this->_user_has_study_acl_on_repository($user, $repositoryid, 'create')) {
+			throw new AclAccessDeniedException('ACCESS-DENIED');
+		}
+	}
+
+
+	/**
+	 * @param bool       $required
+	 * @param array|null $payload
+	 * @return string
+	 */
+	private function _import_package_upload_id_from_request($required = true, $payload = null)
+	{
+		if ($payload === null) {
+			$payload = $this->_import_package_json_payload();
+		}
+		$upload_id = '';
+		if (isset($payload['upload_id'])) {
+			$upload_id = preg_replace('/[^a-zA-Z0-9\-]/', '', (string) $payload['upload_id']);
+		}
+		if ($upload_id === '' && $this->input->get('upload_id')) {
+			$upload_id = preg_replace('/[^a-zA-Z0-9\-]/', '', (string) $this->input->get('upload_id'));
+		}
+		if ($upload_id === '' && $required) {
+			throw new Exception('UPLOAD_ID_REQUIRED');
+		}
+		return $upload_id;
+	}
+
+
+	/**
+	 * @return array
+	 */
+	private function _import_package_json_payload()
+	{
+		$raw = $this->input->raw_input_stream;
+		if ($raw !== null && trim($raw) !== '') {
+			$decoded = json_decode(trim($raw), true);
+			if (is_array($decoded)) {
+				return $decoded;
+			}
+		}
+		$post = $this->input->post(null, true);
+		return is_array($post) ? $post : array();
 	}
 
 
@@ -3266,7 +3548,116 @@ class Catalog extends MY_REST_Controller
 
 
 	/**
-	 * Move multipart field "file" to a temp path; allow .xml and .json only.
+	 * Normalize a raw type string from import JSON (aliases, casing).
+	 *
+	 * @param mixed $raw
+	 * @return string|null canonical type slug or null
+	 */
+	private function _normalize_catalog_import_type($raw)
+	{
+		if (! is_string($raw)) {
+			return null;
+		}
+		$t = strtolower(trim($raw));
+		if ($t === '') {
+			return null;
+		}
+		$aliases = array(
+			'microdata'      => 'survey',
+			'timeseries-db'  => 'timeseriesdb',
+		);
+		if (isset($aliases[$t])) {
+			return $aliases[$t];
+		}
+		return $t;
+	}
+
+
+	/**
+	 * Infer dataset type from well-known metadata section keys.
+	 *
+	 * @param array $options
+	 * @return string|null
+	 */
+	private function _infer_catalog_import_dataset_type(array $options)
+	{
+		$section_map = array(
+			'database_description'       => 'timeseriesdb',
+			'series_description'         => 'timeseries',
+			'study_desc'                 => 'survey',
+			'document_description'       => 'document',
+			'project_desc'               => 'script',
+			'table_description'          => 'table',
+			'image_description'          => 'image',
+			'video_description'          => 'video',
+			'visualization_description'  => 'visualization',
+		);
+		foreach ($section_map as $section => $type) {
+			if (! empty($options[$section]) && is_array($options[$section])) {
+				return $type;
+			}
+		}
+		if (! empty($options['description']) && is_array($options['description'])) {
+			return 'geospatial';
+		}
+		return null;
+	}
+
+
+	/**
+	 * Resolve dataset type for JSON catalog import.
+	 *
+	 * Accepts type, schema_type, schematype, datatype (export / JSONL variants),
+	 * normalizes aliases, then infers from metadata sections, defaulting to survey.
+	 *
+	 * @param array $options decoded JSON (by reference not required)
+	 * @return string
+	 */
+	private function _resolve_catalog_import_dataset_type(array $options)
+	{
+		$last_invalid = null;
+		foreach (array('type', 'schema_type', 'schematype', 'datatype') as $key) {
+			if (! isset($options[$key]) || ! is_string($options[$key]) || trim($options[$key]) === '') {
+				continue;
+			}
+			$normalized = $this->_normalize_catalog_import_type($options[$key]);
+			if ($normalized !== null && $this->dataset_manager->is_valid_type($normalized)) {
+				return $normalized;
+			}
+			if ($normalized !== null) {
+				$last_invalid = $normalized;
+			}
+		}
+
+		$inferred = $this->_infer_catalog_import_dataset_type($options);
+		if ($inferred !== null && $this->dataset_manager->is_valid_type($inferred)) {
+			return $inferred;
+		}
+
+		if ($last_invalid !== null) {
+			throw new Exception('INVALID_TYPE: ' . $last_invalid);
+		}
+
+		return 'survey';
+	}
+
+
+	/**
+	 * Remove export-only top-level keys before create_dataset.
+	 *
+	 * @param array $options
+	 * @return void
+	 */
+	private function _strip_catalog_import_export_fields(array &$options)
+	{
+		foreach (array('type', 'schema_type', 'schematype', 'datatype', 'id') as $key) {
+			unset($options[$key]);
+		}
+	}
+
+
+	/**
+	 * Move multipart field "file" to a temp path; allow .xml, .json, .jsonl, .zip.
 	 *
 	 * @param string $temp_base
 	 * @return string absolute path
@@ -3278,7 +3669,7 @@ class Catalog extends MY_REST_Controller
 		}
 		$name = isset($_FILES['file']['name']) ? $_FILES['file']['name'] : '';
 		$ext  = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-		if (! in_array($ext, array('xml', 'json'), true)) {
+		if (! in_array($ext, array('xml', 'json', 'jsonl', 'zip'), true)) {
 			throw new Exception('INVALID_FILE_EXTENSION');
 		}
 		$dest = $temp_base . '/' . md5(uniqid('', true)) . '.' . $ext;
@@ -3291,10 +3682,18 @@ class Catalog extends MY_REST_Controller
 
 	/**
 	 * @param string $path
-	 * @return string survey_xml|geospatial_xml|dataset_json
+	 * @return string survey_xml|geospatial_xml|dataset_json|dataset_jsonl|package_zip
 	 */
 	private function _detect_catalog_import_kind($path)
 	{
+		$ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+		if ($ext === 'zip') {
+			return 'package_zip';
+		}
+		if ($ext === 'jsonl') {
+			return 'dataset_jsonl';
+		}
+
 		$head = file_get_contents($path, false, null, 0, 65536);
 		$trim = ltrim($head);
 		if ($trim !== '' && ($trim[0] === '{' || $trim[0] === '[')) {

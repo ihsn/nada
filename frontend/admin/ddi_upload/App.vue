@@ -72,6 +72,16 @@
           </v-alert>
 
           <v-alert
+            v-if="importProgress"
+            type="info"
+            variant="tonal"
+            rounded="xl"
+            class="mb-3"
+          >
+            {{ importProgress }}
+          </v-alert>
+
+          <v-alert
             v-if="apiError"
             type="error"
             variant="tonal"
@@ -82,7 +92,7 @@
             <template #prepend>
               <v-icon icon="mdi-upload-off-outline" size="large" />
             </template>
-            {{ apiError }}
+            <pre class="api-error-json text-body-2 mb-0">{{ apiError }}</pre>
           </v-alert>
         </div>
 
@@ -163,9 +173,9 @@
                     <v-file-input
                       :id="fieldIds.mainFile"
                       v-model="mainFileModel"
-                      :hint="`${tr('max_upload_limit')} ${maxUploadMb} MB`"
+                      :hint="mainFileHint"
                       persistent-hint
-                      accept=".xml,.json,text/xml,application/xml,application/json"
+                      accept=".xml,.json,.jsonl,.zip,text/xml,application/xml,application/json,application/zip,application/x-zip-compressed"
                       variant="outlined"
                       density="comfortable"
                       :prepend-icon="false"
@@ -177,7 +187,7 @@
                     />
                   </div>
 
-                  <div class="admin-upload-labeled-field">
+                  <div v-if="showRdfField" class="admin-upload-labeled-field">
                     <label class="admin-upload-field-label" :for="fieldIds.rdfFile">
                       {{ tr('msg_select_rdf') }}
                     </label>
@@ -361,7 +371,9 @@ const fieldIds = {
 };
 
 const { config } = useAppConfig();
-const { fetchCollectionsForUpload, postImport } = useDdiUploadApi();
+const { fetchCollectionsForUpload, postImport, uploadPackageZip, runPackageImport } = useDdiUploadApi();
+
+const importProgress = ref('');
 
 const mainFileModel = ref(null);
 const rdfFileModel = ref(null);
@@ -397,6 +409,43 @@ const createTypeItems = computed(() => [
   { value: 'image', label: 'Image' },
 ]);
 
+/** Human-readable collection title (API may return an untranslated lang key for central). */
+function resolveCollectionTitle(title, repositoryid) {
+  const lang = config.value?.translations || {};
+  if (repositoryid === 'central' && lang.central_data_catalog) {
+    return lang.central_data_catalog;
+  }
+  const raw = title || repositoryid || '';
+  if (raw && lang[raw]) {
+    return lang[raw];
+  }
+  return raw;
+}
+
+function collectionDisplayLabel(c) {
+  const rid = c.repositoryid;
+  const title = resolveCollectionTitle(c.title, rid);
+  if (rid === 'central') {
+    return title;
+  }
+  if (title && String(title).toLowerCase() !== String(rid).toLowerCase()) {
+    return `${title} (${rid})`;
+  }
+  return title || rid;
+}
+
+function formatImportApiError(err) {
+  const payload = err?.importResponse ?? err?.response?.data;
+  if (payload && typeof payload === 'object') {
+    try {
+      return JSON.stringify(payload, null, 2);
+    } catch {
+      // fall through
+    }
+  }
+  return err?.message || 'Import failed';
+}
+
 function tr(key) {
   const lang = config.value?.translations || {};
   if (lang[key]) return lang[key];
@@ -405,7 +454,8 @@ function tr(key) {
     collection: 'Collection',
     create_new_study: 'Create new study',
     select_data_type: 'Select data type',
-    msg_metadata_file: 'Metadata file (DDI, Geospatial/XML, JSON)',
+    msg_metadata_file: 'Metadata file (DDI/XML, Geospatial/XML, JSON, JSONL, or package ZIP)',
+    max_upload_limit: 'Maximum upload size:',
     msg_select_rdf: 'RDF / resources (optional)',
     back_to_catalog: 'Back',
     catalog_manage: 'Manage studies',
@@ -416,6 +466,9 @@ function tr(key) {
       'You need access to at least one collection with create permission, or collections must exist in the system.',
     browse_collections: 'View collections',
     alert_error_title: 'Something went wrong',
+    central_data_catalog: 'Central Data Catalog',
+    package_zip_hint: 'Package ZIP should match export from Manage studies (info.json, JSONL, optional XML and documentation).',
+    jsonl_hint: 'JSONL: first line is the study document; further lines are variables.',
   };
   return map[key] || key;
 }
@@ -435,6 +488,29 @@ function normalizeFile(val) {
 
 const mainFileForSubmit = computed(() => normalizeFile(mainFileModel.value));
 
+function mainFileExtension(file) {
+  if (!file?.name) return '';
+  const dot = file.name.lastIndexOf('.');
+  return dot >= 0 ? file.name.slice(dot + 1).toLowerCase() : '';
+}
+
+const showRdfField = computed(() => {
+  const ext = mainFileExtension(mainFileForSubmit.value);
+  return ext !== 'zip' && ext !== 'jsonl' && ext !== 'json';
+});
+
+const mainFileHint = computed(() => {
+  const base = `${tr('max_upload_limit')} ${maxUploadMb.value} MB`;
+  const ext = mainFileExtension(mainFileForSubmit.value);
+  if (ext === 'zip') {
+    return `${base}. ${tr('package_zip_hint')}`;
+  }
+  if (ext === 'jsonl') {
+    return `${base}. ${tr('jsonl_hint')}`;
+  }
+  return base;
+});
+
 const canSubmit = computed(
   () => selectedRepo.value && collectionItems.value.length > 0 && !!mainFileForSubmit.value
 );
@@ -443,12 +519,58 @@ const canCreateStudy = computed(
   () => !!selectedRepo.value && collectionItems.value.length > 0 && !loadingCollections.value
 );
 
+function formatPackageProgress(ev) {
+  if (!ev) return '';
+  if (ev.phase === 'upload' && ev.total) {
+    const pct = Math.round((ev.loaded / ev.total) * 100);
+    return `Uploading package… ${pct}%`;
+  }
+  if (ev.next_task === 'datafile' || ev.phase === 'importing_datafiles') {
+    const done = ev.data_files_done ?? 0;
+    const total = ev.data_files_total ?? 0;
+    return total > 0 ? `Importing data files… ${done} / ${total}` : 'Importing study package…';
+  }
+  if (ev.next_task === 'unzip' || ev.phase === 'unzipped') return 'Extracting package…';
+  if (ev.next_task === 'create' || ev.phase === 'study_created') return 'Creating study metadata…';
+  if (ev.next_task === 'finalize' || ev.phase === 'completed') return 'Finalizing package…';
+  return 'Importing study package…';
+}
+
 async function onSubmit() {
   const main = mainFileForSubmit.value;
   if (!canSubmit.value || !main) return;
   submitting.value = true;
   apiError.value = '';
+  importProgress.value = '';
   try {
+    const ext = mainFileExtension(main);
+
+    if (ext === 'zip') {
+      importProgress.value = 'Uploading package…';
+      const uploadId = await uploadPackageZip(main, (ev) => {
+        importProgress.value = formatPackageProgress(ev);
+      });
+      try {
+        const u = new URL(window.location.href);
+        u.searchParams.set('upload_id', uploadId);
+        window.history.replaceState({}, '', u.toString());
+      } catch {
+        /* ignore */
+      }
+      const res = await runPackageImport(
+        uploadId,
+        { repositoryid: selectedRepo.value, overwrite: overwrite.value },
+        (ev) => {
+          importProgress.value = formatPackageProgress(ev);
+        }
+      );
+      const sid = res.sid;
+      if (sid) {
+        window.location.href = catalogEditBase.value + encodeURIComponent(sid);
+      }
+      return;
+    }
+
     const fd = new FormData();
     fd.append('repositoryid', selectedRepo.value);
     if (overwrite.value) fd.append('overwrite', 'yes');
@@ -461,11 +583,10 @@ async function onSubmit() {
       window.location.href = catalogEditBase.value + encodeURIComponent(sid);
     }
   } catch (e) {
-    const d = e?.response?.data;
-    apiError.value =
-      (d && (d.message || (d.errors && JSON.stringify(d.errors)))) || e?.message || 'Import failed';
+    apiError.value = formatImportApiError(e);
   } finally {
     submitting.value = false;
+    importProgress.value = '';
   }
 }
 
@@ -476,10 +597,7 @@ async function loadCollections() {
     const rows = await fetchCollectionsForUpload();
     collections.value = rows.map(c => ({
       repositoryid: c.repositoryid,
-      displayLabel:
-        c.title && String(c.title).toLowerCase() !== String(c.repositoryid).toLowerCase()
-          ? `${c.title} (${c.repositoryid})`
-          : (c.title || c.repositoryid),
+      displayLabel: collectionDisplayLabel(c),
     }));
     const def = defaultRepositoryid.value;
     const ids = new Set(collections.value.map(c => c.repositoryid));
@@ -507,6 +625,12 @@ onMounted(() => {
   margin: 0;
   font-family: inherit;
   font-size: 0.875rem;
+}
+
+.api-error-json {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 @media (min-width: 1280px) {

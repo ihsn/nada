@@ -7,6 +7,7 @@ $use_vite_dev = defined('VUE_ENVIRONMENT') && VUE_ENVIRONMENT === 'development';
 <script>
 window.APP_CONFIG = {
     siteUrl: "<?php echo addslashes($site_url); ?>",
+    uploadsApiUrl: "<?php echo addslashes(isset($uploads_api_url) ? $uploads_api_url : site_url('api/uploads')); ?>",
     baseUrl: "<?php echo addslashes($base_url); ?>",
     apiBaseUrl: "<?php echo addslashes($api_base_url); ?>",
     assetsBase: "<?php echo addslashes(isset($assets_base) ? $assets_base : base_url('frontend/dist/')); ?>",

@@ -343,6 +343,76 @@ class Dataset_microdata_model extends Dataset_model {
         $this->Variable_model->update_survey_timestamp($dataset_id);
     }
 
+
+    /**
+     * Import all variables for one data file (atomic — no partial import).
+     *
+     * @param int    $dataset_id
+     * @param string $file_id
+     * @param array  $variables
+     * @return int number of variables imported
+     */
+    public function import_variables_for_datafile($dataset_id, $file_id, array $variables)
+    {
+        $valid_data_files = (array) $this->Data_file_model->list_fileid($dataset_id);
+        if (! in_array($file_id, $valid_data_files, true)) {
+            throw new Exception("variable import failed. Data file not found: " . $file_id);
+        }
+
+        $this->Dataset_model->remove_datafile_variables($dataset_id, $file_id);
+
+        if ($variables === array()) {
+            $this->update_varcount($dataset_id);
+            $this->Variable_model->update_survey_timestamp($dataset_id);
+            return 0;
+        }
+
+        foreach ($variables as $variable) {
+            if (! isset($variable['file_id'])) {
+                $variable['file_id'] = $file_id;
+            }
+            if ((string) $variable['file_id'] !== (string) $file_id) {
+                throw new Exception("variable file_id mismatch for data file: " . $file_id);
+            }
+
+            $variable['fid'] = $file_id;
+
+            try {
+                $this->validate_schema($type = 'variable', $variable);
+                $this->Variable_model->validate_variable($variable);
+            }
+            catch (ValidationException $e) {
+                $error_details = $e->GetValidationErrors();
+                if (isset($error_details[0])) {
+                    $error_details = $error_details[0];
+                }
+                $error_details['variable_file_id'] = $file_id;
+                $error_details['variable_name']   = isset($variable['name']) ? $variable['name'] : 'unknown';
+                $error_details['variable_vid']      = isset($variable['vid']) ? $variable['vid'] : 'unknown';
+                throw new ValidationException(
+                    'VALIDATION_ERROR: VARIABLE: ' . (isset($variable['vid']) ? $variable['vid'] : 'unknown') . ': ',
+                    $error_details
+                );
+            }
+        }
+
+        $rows = array();
+        foreach ($variables as $variable) {
+            $variable['fid']   = $file_id;
+            $variable['qstn']  = $this->variable_question_to_str($variable);
+            $variable_categories = isset($variable['var_catgry']) ? $variable['var_catgry'] : null;
+            $variable['catgry'] = $this->variable_categories_to_str($variable_categories);
+            $variable['metadata'] = $variable;
+            $rows[] = $variable;
+        }
+
+        $this->Variable_model->batch_insert($dataset_id, $rows);
+        $this->update_varcount($dataset_id);
+        $this->Variable_model->update_survey_timestamp($dataset_id);
+
+        return count($rows);
+    }
+
     /*private function variable_keywords_to_str($variable)
     {
         $fields=array(
