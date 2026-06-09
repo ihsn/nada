@@ -56,13 +56,20 @@ class Study extends MY_Controller {
 
 		$survey['metadata']=(array)$this->dataset_manager->get_metadata($sid,$survey['type']);
 		$survey['metadata']['iframe_embeds']=$this->Widget_model->widgets_by_study($sid);
+		$survey['schema_org_description']=$this->Dataset_model->get_schema_org_description(
+			$survey['metadata'],
+			$survey['type']
+		);
+		$survey['schema_org_json_ld']=$this->Dataset_model->build_schema_org_json_ld($survey);
 
 		$this->template->add_js('javascript/linkify.min.js');
 		$this->template->add_js('javascript/linkify-jquery.min.js');		
 		$this->template->add_js('javascript/pym.v1.min.js');
 
-		$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
-		$this->template->add_js($json_ld,'inline');
+		if (!empty($survey['schema_org_json_ld'])) {
+			$json_ld=$this->load->view('survey_info/dataset_json_ld',$survey,true);
+			$this->template->add_js($json_ld,'inline');
+		}
 
 		$survey['resources']=$this->Survey_resource_model->get_survey_resources_group_by_filename($sid);
 
@@ -72,14 +79,6 @@ class Study extends MY_Controller {
 		else{		
 			$this->metadata_template->initialize($survey['type'],$survey);
 			$output=$this->metadata_template->render_html();
-
-			//set page description meta tag
-			$meta_description=$this->generate_survey_abstract($survey['metadata']);
-
-			if(!empty($meta_description)){
-				$this->template->add_meta($name="description", $meta_description,$type='pair');
-			}
-		
 			$output=$this->load->view('survey_info/metadata', array('content'=>$output), TRUE);
 		}
 
@@ -620,6 +619,10 @@ class Study extends MY_Controller {
         );
 
 		$dataset=$this->Dataset_model->get_row($sid);
+		$study_abstract = isset($dataset['abstract'])
+			? trim(strip_tags((string) $dataset['abstract']))
+			: '';
+		$this->add_study_description_meta($study_abstract !== '' ? $study_abstract : null);
 		$dataset_type=$dataset['type'];
         $data_access_type=$dataset['data_access_type'];
 		$published=$dataset['published'];
@@ -1150,20 +1153,22 @@ class Study extends MY_Controller {
 	}
 
 
-	private function generate_survey_abstract($survey_metadata=null)
-	{	
-		$meta_fields=array(
-			'study_desc/study_info/abstract',
-			'study_desc/series_statement/series_info',
-			'study_desc/study_info/notes'
-		);
-		
-		foreach($meta_fields as $meta_field){
-			$abstract=get_array_nested_value($survey_metadata,$meta_field);
-			if (!empty($abstract)){
-				return str_replace(array('"',"\r\n","\r","\n"), " ", $abstract);
-			}
+	/**
+	 * Set meta description from surveys.abstract when non-empty.
+	 *
+	 * @param string|null $abstract
+	 */
+	private function add_study_description_meta($abstract)
+	{
+		if ($abstract === null || $abstract === '') {
+			return;
 		}
+
+		$this->template->add_meta(
+			'description',
+			htmlspecialchars($abstract, ENT_QUOTES, 'UTF-8'),
+			'pair'
+		);
 	}
 
 
