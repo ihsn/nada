@@ -109,6 +109,13 @@
           <v-alert v-if="uploadStatus" :type="uploadAlertType" variant="tonal" density="compact" class="mt-4">
             <div class="font-weight-medium mb-1">{{ uploadStatus.message }}</div>
             <div v-if="uploadStatus.file_path" class="text-caption">File: {{ uploadStatus.file_path }}</div>
+            <v-progress-linear
+              v-if="uploadStatus.progress_percent !== undefined && uploading"
+              :model-value="uploadStatus.progress_percent"
+              height="20"
+              rounded
+              class="mt-2"
+            />
           </v-alert>
           <v-alert v-if="deleting" type="info" variant="tonal" density="compact" class="mt-4">
             Deleting existing data…
@@ -288,17 +295,16 @@ async function uploadData() {
     return;
   }
   uploading.value = true;
-  uploadStatus.value = null;
+  uploadStatus.value = { status: 'in_progress', message: 'Uploading file…', progress_percent: 0 };
   importStatus.value = null;
   try {
-    const formData = new FormData();
-    formData.append('file', file);
-    const uploadResponse = await fetch(`${base()}/upload/${props.dbId}/${props.tableId}`, {
-      method: 'POST',
-      body: formData,
-      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    const uploadResult = await api.uploadTableFile(props.dbId, props.tableId, file, ({ loaded, total }) => {
+      uploadStatus.value = {
+        status: 'in_progress',
+        message: `Uploading file… ${Math.round((loaded / total) * 100)}%`,
+        progress_percent: Math.round((loaded / total) * 100),
+      };
     });
-    const uploadResult = await uploadResponse.json();
     if (uploadResult.status === 'success') {
       uploadStatus.value = {
         status: 'success',

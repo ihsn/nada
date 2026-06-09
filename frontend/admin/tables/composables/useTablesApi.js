@@ -1,9 +1,11 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useResumableUpload } from '@/shared/composables/useResumableUpload';
 
 export function useTablesApi() {
-  const { apiBaseUrl, catalogApiBaseUrl } = useAppConfig();
+  const { apiBaseUrl, catalogApiBaseUrl, csrfToken, csrfTokenName } = useAppConfig();
+  const resumable = useResumableUpload();
   const loading = ref(false);
   const error = ref(null);
 
@@ -11,6 +13,50 @@ export function useTablesApi() {
   const catalogBase = () =>
     (catalogApiBaseUrl.value || apiBaseUrl.value?.replace(/\/api\/tables\/?$/, '/api/catalog') || '')
       .replace(/\/$/, '');
+
+  function csrfHeaders() {
+    const name = csrfTokenName.value || 'ncsrf';
+    const tok = csrfToken.value || '';
+    if (!tok) return {};
+    return {
+      [name]: tok,
+      'X-CSRF-TOKEN': tok,
+      'X-Requested-With': 'XMLHttpRequest',
+    };
+  }
+
+  /**
+   * Upload CSV/ZIP via resumable chunks, then register with tables upload endpoint.
+   *
+   * @param {string} dbId
+   * @param {string} tableId
+   * @param {File} file
+   * @param {(ev: { loaded: number, total: number }) => void} [onProgress]
+   */
+  async function uploadTableFile(dbId, tableId, file, onProgress) {
+    const completed = await resumable.uploadFile(file, {
+      metadata: {
+        source: 'tables',
+        allowed_types: 'csv,zip,txt',
+        db_id: dbId,
+        table_id: tableId,
+      },
+      onProgress,
+    });
+
+    const { data } = await axios.post(
+      `${base()}/upload/${dbId}/${tableId}`,
+      { upload_id: completed.upload_id },
+      {
+        withCredentials: true,
+        headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
+      }
+    );
+    if (data.status !== 'success') {
+      throw new Error(data.message || 'TABLE_UPLOAD_FAILED');
+    }
+    return data;
+  }
 
   async function fetchTables({ limit = 15, offset = 0 } = {}) {
     loading.value = true;
@@ -254,5 +300,7 @@ export function useTablesApi() {
     detachStudy,
     apiUrl,
     exportDefinitionUrl,
+    uploadTableFile,
+    csrfHeaders,
   };
 }
