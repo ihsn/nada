@@ -107,6 +107,12 @@ $route['api/datasets/(:any)/files/(.*)'] = "api/files/$1/$2";
 $route['api/datasets/(:any)/download/(.*)'] = "api/files/download/$1/$2";
 
 $route['api/datasets/(:any)/thumbnail'] = "api/datasets/thumbnail/$1";
+$route['api/admin/search-metadata-extract/status']              = 'api/admin/search_metadata_extract/status';
+$route['api/admin/search-metadata-extract/studies/(:any)']      = 'api/admin/search_metadata_extract/studies/$1';
+$route['api/admin/search-metadata-extract/studies']             = 'api/admin/search_metadata_extract/studies';
+$route['api/admin/search-metadata-extract/citations/(:num)']    = 'api/admin/search_metadata_extract/citations/$1';
+$route['api/admin/search-metadata-extract/variables/(:any)']     = 'api/admin/search_metadata_extract/variables/$1';
+
 $route['api/admin/catalog/data-access-codelist']         = 'api/admin/catalog/data_access_codelist';
 $route['api/admin/catalog/data-access-options']          = 'api/admin/catalog/data_access_options';
 $route['api/admin/catalog/data-classifications']         = 'api/admin/data_classifications';
