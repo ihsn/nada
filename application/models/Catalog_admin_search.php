@@ -263,6 +263,7 @@ class Catalog_admin_search extends CI_Model
 	 *
 	 * Uses query builder like()/or_like() so SQL Server gets ESCAPE on LIKE patterns.
 	 * Single-token queries also match surveys.idno exactly (same idea as public catalog).
+	 * Also matches survey_aliases.alternate_id (partial and exact for single token).
 	 *
 	 * @param string $keywords Search keywords
 	 */
@@ -278,8 +279,16 @@ class Catalog_admin_search extends CI_Model
 		$this->db->or_like('surveys.idno', $keywords, 'both');
 		$this->db->or_like('surveys.authoring_entity', $keywords, 'both');
 
+		$alias_like = $this->db->escape('%' . $this->db->escape_like_str($keywords) . '%');
+		$this->db->or_where($this->_surveys_matching_alias_like_sql($alias_like), null, false);
+
 		if ($this->_is_single_keyword_token($keywords)) {
 			$this->db->or_where('LOWER(surveys.idno)', strtolower($keywords));
+			$this->db->or_where(
+				$this->_surveys_matching_alias_exact_sql(strtolower($keywords)),
+				null,
+				false
+			);
 		}
 
 		$this->db->group_end();
@@ -295,6 +304,48 @@ class Catalog_admin_search extends CI_Model
 	{
 		$tokens = preg_split('/\s+/', trim((string) $keywords), -1, PREG_SPLIT_NO_EMPTY);
 		return count($tokens) === 1;
+	}
+
+	/**
+	 * Prefix filter: surveys.idno or survey_aliases.alternate_id.
+	 *
+	 * @param string $value Idno prefix
+	 */
+	protected function _apply_idno_or_alias_prefix_filter($value)
+	{
+		$value = trim((string) $value);
+		if ($value === '') {
+			return;
+		}
+
+		$like_str = $this->db->escape($value . '%');
+		$this->db->group_start();
+		$this->db->where("surveys.idno LIKE $like_str", null, false);
+		$this->db->or_where($this->_surveys_matching_alias_like_sql($like_str), null, false);
+		$this->db->group_end();
+	}
+
+	/**
+	 * Subquery SQL: surveys whose alias matches a LIKE pattern (already escaped).
+	 *
+	 * @param string $like_str
+	 * @return string
+	 */
+	protected function _surveys_matching_alias_like_sql($like_str)
+	{
+		return 'surveys.id IN (SELECT sid FROM survey_aliases WHERE alternate_id LIKE ' . $like_str . ')';
+	}
+
+	/**
+	 * Subquery SQL: surveys whose alias matches exactly (case-insensitive).
+	 *
+	 * @param string $idno_lower Lowercase alternate id
+	 * @return string
+	 */
+	protected function _surveys_matching_alias_exact_sql($idno_lower)
+	{
+		$exact = $this->db->escape((string) $idno_lower);
+		return 'surveys.id IN (SELECT sid FROM survey_aliases WHERE LOWER(alternate_id) = ' . $exact . ')';
 	}
 
 	/**
@@ -314,17 +365,10 @@ class Catalog_admin_search extends CI_Model
 			$value = $options[$field];
 
 			if ($field === 'idno') {
-				// Use $this->db->escape for LIKE, allow wildcards
-				if (is_array($value)) {
-					foreach ($value as $v) {
-						if (trim($v)) {
-							$like_str = $this->db->escape($v . '%');
-							$this->db->where("surveys.idno LIKE $like_str", null, false);
-						}
-					}
-				} else {
-					$like_str = $this->db->escape($value . '%');
-					$this->db->where("surveys.idno LIKE $like_str", null, false);
+				// Prefix match on surveys.idno and survey_aliases.alternate_id
+				$values = is_array($value) ? $value : array($value);
+				foreach ($values as $v) {
+					$this->_apply_idno_or_alias_prefix_filter($v);
 				}
 			} else if (is_array($value)) {
 				$this->_apply_multi_field_filter($field, $value);
