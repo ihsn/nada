@@ -51,14 +51,6 @@ class Timeseries extends MY_REST_Controller {
 		$this->config->load('indicator_timeseries');
 	}
 
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-		return parent::_auth_override_check();
-	}
-
 	// ---------------------------------------------------------------------
 	// Study-scoped: /api/admin/timeseries/data/{idno}/...
 	// ---------------------------------------------------------------------

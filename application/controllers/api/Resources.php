@@ -642,14 +642,4 @@ class Resources extends MY_REST_Controller
 		}	
 	}	
 
-
-	//override authentication to support both session authentication + api keys
-	function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
-		parent::_auth_override_check();
-	}
-
 }

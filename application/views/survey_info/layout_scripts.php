@@ -247,8 +247,35 @@ if($this->config->item("guests_hide_microdata_tab")=='yes' && !$this->ion_auth->
 		$("#"+element_id).toggle();
 	}
 	
+	function bind_pdf_preview_behaviours() {
+		if (!$("#pdf-preview-modal").length) {
+			return;
+		}
+
+		$(document).off("click.nadaPdfPreview", ".pdf-preview-btn").on("click.nadaPdfPreview", ".pdf-preview-btn", function(e) {
+			e.preventDefault();
+
+			var previewUrl = $(this).attr("data-preview-url");
+			var title = $(this).attr("data-title") || "PDF preview";
+			var $modal = $("#pdf-preview-modal");
+			var $frame = $("#pdf-preview-frame");
+
+			$("#pdf-preview-modal-title").text(title);
+			$frame.attr("src", "about:blank");
+
+			$modal.off("shown.bs.modal.nadaPdfPreview").one("shown.bs.modal.nadaPdfPreview", function() {
+				$frame.attr("src", previewUrl);
+			}).modal("show");
+		});
+
+		$("#pdf-preview-modal").off("hidden.bs.modal.nadaPdfPreview").on("hidden.bs.modal.nadaPdfPreview", function() {
+			$("#pdf-preview-frame").attr("src", "about:blank");
+		});
+	}
+
 	$(document).ready(function () { 
 		bind_behaviours();
+		bind_pdf_preview_behaviours();
 		
 		$(".show-datafiles").click(function(){
 			$(".data-files .hidden").removeClass("hidden");

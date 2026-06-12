@@ -159,7 +159,7 @@ class Managefiles extends MY_Controller {
 	 */
 	private function _encoded_path_token()
 	{
-		$t = $this->input->get('t');
+		$t = $this->input->get_post('t');
 		return (is_string($t) && $t !== '') ? $t : '';
 	}
 
@@ -207,6 +207,12 @@ class Managefiles extends MY_Controller {
 			$filepath = '';
 		} else {
 			$filepath = $this->_decode_managefiles_relpath($this->_encoded_path_token());
+			if (($filepath === false || $filepath === '') && $this->input->method() === 'post') {
+				$posted = $this->_clean_filepath($this->input->post('filename'));
+				if ($posted !== '') {
+					$filepath = $posted;
+				}
+			}
 			if ($filepath === false || $filepath === '') {
 				show_error('INVALID_PATH', 400);
 			}
@@ -307,6 +313,7 @@ class Managefiles extends MY_Controller {
 		
 		//use the unified resource form with simple mode
 		$data['simple_mode'] = true; // Use simple text field instead of URL/File picker
+		$data['path_token'] = $this->_encoded_path_token();
 		$data['back_link'] = 'admin/catalog/edit/'.$surveyid;
 		$data['back_text'] = t('link_resource_home');
 		$data['form_title'] = $data['page_title'];

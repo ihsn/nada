@@ -25,15 +25,6 @@ class Study_admin_metadata extends MY_REST_Controller
 		$this->load->model('Study_admin_metadata_model');
 	}
 
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-
-		return parent::_auth_override_check();
-	}
-
 	public function index_get($idno = null)
 	{
 		try {

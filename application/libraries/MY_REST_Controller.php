@@ -296,4 +296,14 @@ abstract class MY_REST_Controller extends REST_Controller {
         }
     }
 
+    public function _auth_override_check()
+    {
+        if ($this->session->userdata('user_id')){
+            return TRUE;
+        }
+
+        $result = parent::_auth_override_check();
+        return $result === TRUE;
+    }
+
 }

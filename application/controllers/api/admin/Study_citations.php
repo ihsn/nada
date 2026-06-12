@@ -25,15 +25,6 @@ class Study_citations extends MY_REST_Controller
 		$this->load->model('Citation_model');
 	}
 
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-
-		return parent::_auth_override_check();
-	}
-
 	/**
 	 * List attached citations for one study.
 	 */

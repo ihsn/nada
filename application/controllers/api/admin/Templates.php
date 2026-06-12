@@ -17,14 +17,6 @@ class Templates extends MY_REST_Controller {
 		$this->load->model('Display_template_model');
 	}
 
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-		return parent::_auth_override_check();
-	}
-
 	/**
 	 * GET /api/admin/templates
 	 */

@@ -35,15 +35,6 @@ class Microdata extends MY_REST_Controller
 		$this->load->library('Dataset_manager');
 	}
 
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-
-		return parent::_auth_override_check();
-	}
-
 
 	/**
 	 * Resolve surveys.id then enforce ACL on its owner repo (avoid central fallback).

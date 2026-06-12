@@ -871,12 +871,4 @@ class Db_logs extends MY_REST_Controller {
         return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[floor($base)];
     }
 
-    public function _auth_override_check()
-    {
-        if ($this->session->userdata('user_id')){
-            return true;
-        }
-        parent::_auth_override_check();
-    }
-
 }

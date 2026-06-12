@@ -41,16 +41,6 @@ class Configurations extends MY_REST_Controller
 		$this->is_authenticated_or_die();
 	}
 
-	function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id'))
-		{
-			return TRUE;
-		}
-
-		return parent::_auth_override_check();
-	}
-
 	protected function require_configurations_edit()
 	{
 		$this->has_access('configurations', 'edit');

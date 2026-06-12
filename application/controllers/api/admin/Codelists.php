@@ -21,14 +21,6 @@ class Codelists extends MY_REST_Controller {
 		$this->load->model('Codelist_group_model');
 	}
 
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-		return parent::_auth_override_check();
-	}
-
 	/**
 	 * GET /api/admin/codelists — list codelists (with optional item_count; group_count omitted on catalogue rows).
 	 *

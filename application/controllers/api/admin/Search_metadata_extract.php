@@ -24,14 +24,6 @@ class Search_metadata_extract extends MY_REST_Controller
 		$this->load->library('catalog_search_metadata_extract');
 	}
 
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-		return parent::_auth_override_check();
-	}
-
 	/**
 	 * GET /api/admin/search-metadata-extract/status
 	 */

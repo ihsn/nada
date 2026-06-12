@@ -25,15 +25,6 @@ class Study_related_studies extends MY_REST_Controller
 		$this->load->model('Catalog_admin_search');
 	}
 
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-
-		return parent::_auth_override_check();
-	}
-
 	public function index_get($idno = null)
 	{
 		try {

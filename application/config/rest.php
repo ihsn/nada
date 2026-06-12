@@ -453,7 +453,7 @@ $config['rest_logs_table'] = 'api_logs';
 | Example: $config['rest_logging_exclude_controllers'] = array('api_logs', 'db_logs');
 |
 */
-$config['rest_logging_exclude_controllers'] = array('api_logs');
+$config['rest_logging_exclude_controllers'] = array('api_logs', 'analytics');
 
 /*
 |--------------------------------------------------------------------------

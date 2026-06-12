@@ -71,13 +71,6 @@ class Catalog extends MY_REST_Controller
 	/**
 	 * Support both session auth and API key auth
 	 */
-	function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-		return parent::_auth_override_check();
-	}
 
 
 	/**

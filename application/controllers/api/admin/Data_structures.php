@@ -63,14 +63,6 @@ class Data_structures extends MY_REST_Controller {
 		$this->load->model('Codelist_group_model');
 	}
 
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-		return parent::_auth_override_check();
-	}
-
 	/**
 	 * GET /api/admin/data_structures — list structures (default: one row per DSD family).
 	 * Use query flat=1 for one row per stored version (full table projection).

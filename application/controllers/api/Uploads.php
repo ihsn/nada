@@ -583,15 +583,5 @@ class Uploads extends MY_REST_Controller
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
-
-
-
-    function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
-		parent::_auth_override_check();
-	}
 }
 

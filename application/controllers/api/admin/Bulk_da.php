@@ -24,14 +24,6 @@ class Bulk_da extends MY_REST_Controller
 	/**
 	 * Session auth (same as other admin JSON APIs).
 	 */
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-
-		return parent::_auth_override_check();
-	}
 
 	/**
 	 * User must be allowed to use admin catalog (bulk DA UI).

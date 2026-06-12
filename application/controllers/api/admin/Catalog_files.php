@@ -31,15 +31,6 @@ class Catalog_files extends MY_REST_Controller
 		$this->load->model('Survey_resource_model');
 	}
 
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-
-		return parent::_auth_override_check();
-	}
-
 	/**
 	 * List files under the study catalog folder (recursive), with resource linkage when present.
 	 */

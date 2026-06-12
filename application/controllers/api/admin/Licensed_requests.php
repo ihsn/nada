@@ -24,14 +24,6 @@ class Licensed_requests extends MY_REST_Controller
 	/**
 	 * Session auth and API key auth (same pattern as api/admin/catalog).
 	 */
-	public function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')) {
-			return true;
-		}
-
-		return parent::_auth_override_check();
-	}
 
 	/**
 	 * GET /api/admin/licensed_requests/search

@@ -2041,15 +2041,4 @@ class Tables extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
-
-	
-
-	public function _auth_override_check()
-    {
-        if ($this->session->userdata('user_id')){
-            return TRUE;
-        }
-        parent::_auth_override_check();
-    }
-
 }	

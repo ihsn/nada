@@ -670,15 +670,5 @@ class Collections extends MY_REST_Controller
 			'user_search'          => $user_search,
 		);
 	}
-
-
-	//override authentication to support both session authentication + api keys
-	function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
-		parent::_auth_override_check();
-	}
 	
 }

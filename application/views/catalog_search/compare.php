@@ -48,7 +48,7 @@ function update_compare_variable_list(action,value){
 		
 		case 'remove':
 			var index_matched=$.inArray(value, sel_items);
-			if(index_matched>0){
+			if(index_matched>-1){
 				sel_items.splice(index_matched,1);
 			}			
 			break;

@@ -208,14 +208,5 @@ class Filestore extends MY_REST_Controller
 	}
 
 
-	public function _auth_override_check()
-    {
-        if ($this->session->userdata('user_id')){
-            return true;
-        }
-        parent::_auth_override_check();
-    }
-
-
 
 }	
