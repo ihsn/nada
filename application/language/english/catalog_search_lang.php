@@ -180,6 +180,7 @@ $lang['By Income']="By income";
 $lang['By Region']="By region";
 $lang['cancel']="Cancel";
 $lang['apply_filter']="Apply filter";
+$lang['selected']="selected";
 $lang['selected_itesm']="selected";
 $lang['clear']="Clear";
 $lang['select_collections']="Select Collections";
@@ -329,6 +330,31 @@ $lang['read_more']='Read more';
 $lang['read_less']='Read less';
 $lang['Show abstract']='Show abstract';
 $lang['tab_more_types']='More';
+
+$lang['Relevance']="Relevance";
+$lang['Popularity']="Popularity";
+$lang['Year (Recent &uarr;)']="Year (Recent ↑)";
+$lang['Year (Oldest &darr;)']="Year (Oldest ↓)";
+$lang['Title (A-Z)']="Title (A-Z)";
+$lang['Title (Z-A)']="Title (Z-A)";
+$lang['Country (A-Z)']="Country (A-Z)";
+$lang['Country (Z-A)']="Country (Z-A)";
+
+$lang['dimensions']="Dimensions";
+$lang['id']="ID";
+$lang['file']="File";
+$lang['results_count_studies']="%s–%s of %s datasets";
+$lang['results_count_variables']="%s–%s of %s variables";
+$lang['image_details_view']="Details view";
+$lang['image_gallery_view']="Gallery view";
+$lang['semantic_pdf_match_count']="Matched in PDF — %d page(s)";
+$lang['pdf_page_of']="Page %d of %d";
+$lang['pdf_page']="Page %d";
+$lang['RESOURCE_NOT_PDF_STREAMABLE']="No local PDF resource available for this study.";
+$lang['compare_variables_summary']="%d variables from %d studies";
+$lang['You have selected the maximum variables to compare']="You have selected the maximum variables to compare";
+$lang['Select two or more variables to compare']="Select two or more variables to compare";
+$lang['catalog_search_empty_hint']="Try different keywords, or clear your filters to browse all datasets.";
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

@@ -11,10 +11,10 @@
       @update:model-value="emit('update:modelValue', $event)"
     >
       <v-btn value="study" size="small" class="text-none">
-        {{ t('Study view', 'Study view') }}
+        {{ t('switch_to_study_view') }}
       </v-btn>
       <v-btn value="variable" size="small" class="text-none">
-        {{ t('Variable view', 'Variable view') }}
+        {{ t('switch_to_variable_view') }}
       </v-btn>
     </v-btn-toggle>
   </div>

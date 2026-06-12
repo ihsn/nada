@@ -156,6 +156,7 @@ $lang['By Region']="按地区";
 $lang['cancel']="取消";
 $lang['apply_filter']="应用筛选";
 $lang['selected_itesm']="选择";
+$lang['selected']="选择";
 $lang['clear']="清除";
 $lang['select_collections']="选择集合";
 $lang['select_topics']="选择主题";

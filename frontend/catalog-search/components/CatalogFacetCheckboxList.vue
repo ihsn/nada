@@ -37,7 +37,7 @@
       </template>
 
       <div v-if="!hasVisibleItems" class="text-caption text-medium-emphasis py-2">
-        {{ t('no_results_found', 'No matches') }}
+        {{ t('no_records_found') }}
       </div>
     </div>
   </div>

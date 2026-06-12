@@ -19,7 +19,7 @@
     <div v-if="expanded" class="study-variable-matches__panel">
       <div v-if="loading" class="study-variable-matches__loading text-caption text-medium-emphasis">
         <v-progress-circular indeterminate size="16" width="2" class="me-2" />
-        {{ t('loading', 'Loading...') }}
+        {{ t('js_loading') }}
       </div>
 
       <v-alert
@@ -46,10 +46,10 @@
                   :title="t('compare_selected_variables', 'Compare selected variables')"
                   @click.stop="onCompareClick"
                 >
-                  {{ t('compare', 'Compare') }}
+                  {{ t('compare') }}
                 </button>
               </th>
-              <th v-if="hasFileColumn">{{ t('File') }}</th>
+              <th v-if="hasFileColumn">{{ t('file') }}</th>
               <th>{{ t('name') }}</th>
               <th>{{ t('label') }}</th>
             </tr>
@@ -94,7 +94,7 @@
       </div>
 
       <div v-else class="study-variable-matches__empty text-caption text-medium-emphasis">
-        {{ t('no_records_found', 'No records found') }}
+        {{ t('no_records_found') }}
       </div>
     </div>
 
@@ -106,7 +106,7 @@
         class="study-variable-matches__compare-btn"
         @click.stop="onCompareClick"
       >
-        {{ t('Compare variables', 'Compare variables') }}
+        {{ t('title_compare_variables') }}
       </v-btn>
       <span class="study-variable-matches__compare-summary text-caption text-medium-emphasis">
         {{ compareSummary }}
@@ -180,7 +180,7 @@ const hasFileColumn = computed(() =>
 
 const compareSummary = computed(() => {
   if (!count.value) {
-    return t('To compare, select two or more variables', 'To compare, select two or more variables');
+    return t('To compare, select two or more variables');
   }
   return summaryText(t);
 });
@@ -254,7 +254,7 @@ async function loadVariables() {
     variables.value = Array.isArray(json.variables) ? json.variables : [];
   } catch (err) {
     if (err.name === 'AbortError') return;
-    error.value = err.message || t('error', 'Error');
+    error.value = err.message || t('error_invalid_parameters');
     variables.value = [];
   } finally {
     loading.value = false;

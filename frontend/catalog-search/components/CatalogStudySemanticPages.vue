@@ -30,7 +30,7 @@
         <v-icon size="14" class="study-semantic-pages-block__preview-link-icon">
           mdi-eye-outline
         </v-icon>
-        {{ t('preview_pdf', 'Preview PDF') }}
+        {{ `${t('preview')} ${t('download_pdf')}` }}
       </button>
     </div>
 
@@ -90,21 +90,17 @@ const pages = computed(() => {
 
 const topPageHit = computed(() => pages.value[0] ?? null);
 
-const summaryLabel = computed(() => {
-  const n = pages.value.length;
-  if (n === 1) {
-    return t('matched_in_pdf_one', 'Matched in PDF — 1 page');
-  }
-  return t('matched_in_pdf_many', 'Matched in PDF — %d pages', n);
-});
+const summaryLabel = computed(() =>
+  t('semantic_pdf_match_count', 'Matched in PDF — %d page(s)', pages.value.length)
+);
 
 function pageTitle(pageHit) {
   const n = pageHit?.page;
-  if (n == null || Number.isNaN(Number(n))) return t('pdf_preview', 'PDF preview');
+  if (n == null || Number.isNaN(Number(n))) return t('pdf_preview');
   if (pageHit.total_pages > 0) {
-    return t('page_n_of_m', 'Page %d of %d', n, pageHit.total_pages);
+    return t('pdf_page_of', 'Page %d of %d', n, pageHit.total_pages);
   }
-  return t('page_n', 'Page %d', n);
+  return t('pdf_page', 'Page %d', n);
 }
 
 function normalizeExcerpt(text) {

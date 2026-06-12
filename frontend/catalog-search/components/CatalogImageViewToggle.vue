@@ -12,11 +12,11 @@
     >
       <v-btn value="details" size="small" class="text-none">
         <v-icon start size="16">mdi-format-list-bulleted</v-icon>
-        {{ t('Details view', 'Details view') }}
+        {{ t('image_details_view', 'Details view') }}
       </v-btn>
       <v-btn value="gallery" size="small" class="text-none">
         <v-icon start size="16">mdi-view-grid</v-icon>
-        {{ t('Gallery view', 'Gallery view') }}
+        {{ t('image_gallery_view', 'Gallery view') }}
       </v-btn>
     </v-btn-toggle>
   </div>

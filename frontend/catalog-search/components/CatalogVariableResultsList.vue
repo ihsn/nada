@@ -2,10 +2,7 @@
   <div class="catalog-variable-results-list">
     <div class="results-toolbar d-flex align-center flex-wrap mb-4" style="gap: 12px;">
       <div class="text-body-2 text-medium-emphasis flex-shrink-0">
-        <strong class="text-high-emphasis">{{ fromNum.toLocaleString() }}–{{ toNum.toLocaleString() }}</strong>
-        {{ t('of', 'of') }}
-        <strong class="text-high-emphasis">{{ displayTotal.toLocaleString() }}</strong>
-        {{ t('variables', 'variables') }}
+        {{ resultsCountLabel }}
       </div>
 
       <v-spacer />
@@ -19,7 +16,7 @@
         @click="onCompareClick"
       >
         <span class="variable-results-compare-btn__inner">
-          <span>{{ t('compare', 'Compare') }}</span>
+          <span>{{ t('compare') }}</span>
           <v-chip
             v-if="count > 0"
             size="x-small"
@@ -54,7 +51,7 @@
 
       <div
         class="variable-row__icon"
-        :title="t('variable', 'Variable')"
+        :title="t('variable_info')"
       >
         <v-icon size="18" class="variable-row__icon-glyph">{{ VARIABLE_ROW_ICON }}</v-icon>
       </div>
@@ -85,7 +82,7 @@
         </div>
 
         <div v-if="row.fid" class="variable-row__file">
-          <span class="variable-row__file-label">{{ t('File') }}:</span>
+          <span class="variable-row__file-label">{{ t('file') }}:</span>
           {{ row.fid }}
         </div>
 
@@ -173,6 +170,16 @@ const range = computed(() => catalogResultsRange(props.results, props.query));
 const fromNum = computed(() => range.value.from);
 const toNum = computed(() => range.value.to);
 const displayTotal = computed(() => range.value.total);
+
+const resultsCountLabel = computed(() =>
+  t(
+    'results_count_variables',
+    '%s–%s of %s variables',
+    fromNum.value.toLocaleString(),
+    toNum.value.toLocaleString(),
+    displayTotal.value.toLocaleString()
+  )
+);
 
 function variableTitle(row) {
   const parts = [row.name, row.labl].filter(Boolean);

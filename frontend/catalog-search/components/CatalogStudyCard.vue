@@ -3,8 +3,6 @@
     variant="outlined"
     class="study-card"
     :class="{ 'study-card--featured': row.featured }"
-    hover
-    @click="onCardClick"
   >
     <v-card-text class="pa-4">
       <v-chip
@@ -15,7 +13,7 @@
         class="mb-2 font-weight-medium"
         prepend-icon="mdi-star"
       >
-        {{ t('Featured') }}
+        {{ t('featured_study') }}
       </v-chip>
 
       <div class="study-card-inner">
@@ -56,7 +54,7 @@
           </div>
 
           <div class="study-card-heading">
-            <a :href="row.url" class="study-title text-body-1 font-weight-semibold" @click.stop>
+            <a :href="row.url" class="study-title text-body-1 font-weight-semibold">
               {{ row.title }}
             </a>
             <div v-if="row.subtitle" class="study-subtitle text-caption text-medium-emphasis">
@@ -80,7 +78,7 @@
           </div>
 
           <div v-if="timeseriesDimensions.length" class="study-dimensions">
-            <span class="study-dimensions__label">{{ t('Dimensions', 'Dimensions') }}:</span>
+            <span class="study-dimensions__label">{{ t('dimensions') }}:</span>
             <v-chip
               v-for="dimension in timeseriesDimensions"
               :key="dimension"
@@ -120,7 +118,7 @@
               :href="collectionUrl(col.repositoryid)"
               tag="a"
               class="collection-chip"
-              @click.stop.prevent="goToCollection(col.repositoryid)"
+              @click.prevent="goToCollection(col.repositoryid)"
             >
               {{ col.title }}
             </v-chip>
@@ -128,7 +126,7 @@
 
           <div class="study-card-footer">
             <span v-if="row.idno" class="study-card-footer__item study-card-footer__idno">
-              <span class="study-card-footer__label">{{ t('ID') }}:</span>
+              <span class="study-card-footer__label">{{ t('id') }}:</span>
               <span class="study-card-footer__value">{{ row.idno }}</span>
             </span>
             <span v-if="changedLabel" class="study-card-footer__item">
@@ -149,7 +147,6 @@
                 :href="citationsUrl"
                 class="study-card-footer__link"
                 :title="t('related_citations', 'Related citations')"
-                @click.stop
               >
                 {{ citationCount.toLocaleString() }}
               </a>
@@ -157,11 +154,9 @@
           </div>
         </div>
 
-        <a
+        <div
           v-if="thumbnailSrc && !thumbnailFailed"
-          :href="row.url"
           class="study-card-media flex-shrink-0"
-          @click.stop
         >
           <v-img
             :src="thumbnailSrc"
@@ -171,7 +166,7 @@
             class="rounded-lg study-thumbnail"
             @error="thumbnailFailed = true"
           />
-        </a>
+        </div>
       </div>
     </v-card-text>
 
@@ -194,6 +189,7 @@ import { resolveStudyThumbnailUrl } from '../catalogThumbnail';
 import { datasetTypeIcon } from '../catalogDatasetTypeIcons';
 import { joinSiteUrl, catalogSearchUrl } from '../catalogUrls';
 import CatalogStudySemanticPages from './CatalogStudySemanticPages.vue';
+import { catalogDatasetTypeLabel } from '../catalogDatasetTypeLabel';
 import CatalogStudyVariableMatches from './CatalogStudyVariableMatches.vue';
 
 defineOptions({ name: 'CatalogStudyCard' });
@@ -249,8 +245,7 @@ const datasetTypeIconName = computed(() => datasetTypeIcon(datasetType.value));
 
 const typeLabel = computed(() => {
   if (!props.row.type && !props.row.dtype) return '';
-  const key = 'dataset_type_' + datasetType.value;
-  return t(key, '');
+  return catalogDatasetTypeLabel(t, datasetType.value);
 });
 
 const timeseriesDimensions = computed(() => parseTimeseriesDimensions(props.row));
@@ -261,7 +256,8 @@ const dataClassBadge = computed(() => {
   if (id == null || id === '' || !props.dataClassifications) return null;
   const item = props.dataClassifications[id] ?? props.dataClassifications[String(id)];
   if (!item?.code || !item?.title) return null;
-  return { code: String(item.code).toLowerCase(), title: item.title };
+  const code = String(item.code).toLowerCase();
+  return { code, title: t('data_class_' + code, item.title) };
 });
 
 const citationCount = computed(() => {
@@ -305,13 +301,6 @@ function collectionUrl(repositoryid) {
   return catalogSearchUrl(siteUrl.value, repositoryid);
 }
 
-function onCardClick(event) {
-  if (event.target.closest('a, button, [role="button"], .v-chip')) return;
-  if (props.row.url) {
-    window.location.assign(props.row.url);
-  }
-}
-
 function goToCollection(repositoryid) {
   window.location.assign(collectionUrl(repositoryid));
 }
@@ -321,7 +310,6 @@ function goToCollection(repositoryid) {
 .study-card {
   --catalog-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
   --catalog-shadow-hover: 0 4px 12px rgba(15, 23, 42, 0.1);
-  cursor: pointer;
   transition: box-shadow 0.18s ease, border-color 0.18s ease;
   border-radius: 10px !important;
   background: var(--catalog-surface, #fff) !important;
@@ -340,7 +328,7 @@ function goToCollection(repositoryid) {
   box-shadow: var(--catalog-shadow-hover) !important;
 }
 
-.study-card :deep(a) {
+.study-card :deep(a:not(.study-title)) {
   text-decoration: none;
   color: inherit;
 }
@@ -537,15 +525,15 @@ function goToCollection(repositoryid) {
   margin: 0;
   font-size: 1.0625rem;
   line-height: 1.4;
-  color: var(--catalog-text, #1a2332);
+  color: #1565c0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.study-card:hover .study-title {
-  color: #1565c0;
+.study-title:hover {
+  text-decoration: underline;
 }
 
 .study-subtitle {

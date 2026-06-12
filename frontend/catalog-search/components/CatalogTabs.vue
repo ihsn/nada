@@ -2,7 +2,7 @@
   <div v-if="typeList.length" ref="outerRef" class="catalog-tabs-outer">
     <nav
       class="catalog-tabs-wrap"
-      :aria-label="t('data_types', 'Data types')"
+      :aria-label="t('filter_by_type')"
     >
       <button
         type="button"
@@ -10,7 +10,7 @@
         :class="{ 'catalog-tab--active': modelValue === '' }"
         @click="onTab('')"
       >
-        {{ t('All', 'All') }}
+        {{ t('any') }}
         <span v-if="grandTotal !== null" class="tab-count">{{ grandTotal.toLocaleString() }}</span>
       </button>
 
@@ -80,7 +80,7 @@
     <!-- Off-screen sizing for responsive fold into "More". -->
     <div class="catalog-tabs-measure" aria-hidden="true">
       <button ref="measureAllRef" type="button" class="catalog-tab" tabindex="-1">
-        {{ t('All', 'All') }}
+        {{ t('any') }}
         <span v-if="grandTotal !== null" class="tab-count">{{ grandTotal.toLocaleString() }}</span>
       </button>
       <button
@@ -122,6 +122,7 @@
 <script setup>
 import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
+import { catalogDatasetTypeLabel } from '../catalogDatasetTypeLabel';
 
 defineOptions({ name: 'CatalogTabs' });
 
@@ -152,7 +153,11 @@ const typeList = computed(() => {
       : null;
     return {
       code,
-      label: (typeof item === 'object' ? item.title : item) || code,
+      label: catalogDatasetTypeLabel(
+        t,
+        code,
+        typeof item === 'object' ? item.title : item
+      ),
       found: searchCount != null ? searchCount : catalogTotal,
     };
   });

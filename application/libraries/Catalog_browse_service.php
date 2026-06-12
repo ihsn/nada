@@ -34,6 +34,7 @@ class Catalog_browse_service {
 		$this->CI->load->model('Data_classification_model');
 		$this->CI->load->model('Facet_model');
 		$this->CI->load->config('facets');
+		$this->CI->lang->load('catalog_search');
 		$this->filters_list = array_keys($this->CI->Facet_model->select_all());
 		$this->regional_search = ($this->CI->config->item('regional_search') === false) ? 'no' : $this->CI->config->item('regional_search');
 		$this->collection_search = ($this->CI->config->item('collection_search') === false) ? 'no' : $this->CI->config->item('collection_search');

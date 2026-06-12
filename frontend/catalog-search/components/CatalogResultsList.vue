@@ -3,10 +3,7 @@
     <!-- View options + sort bar -->
     <div class="results-toolbar d-flex align-center flex-wrap mb-4" style="gap: 12px;">
       <div class="text-body-2 text-medium-emphasis flex-shrink-0">
-        <strong class="text-high-emphasis">{{ fromNum.toLocaleString() }}–{{ toNum.toLocaleString() }}</strong>
-        {{ t('of', 'of') }}
-        <strong class="text-high-emphasis">{{ displayTotal.toLocaleString() }}</strong>
-        {{ t('datasets', 'datasets') }}
+        {{ resultsCountLabel }}
       </div>
 
       <v-spacer />
@@ -108,6 +105,16 @@ const range = computed(() => catalogResultsRange(props.results, props.query));
 const fromNum = computed(() => range.value.from);
 const toNum = computed(() => range.value.to);
 const displayTotal = computed(() => range.value.total);
+
+const resultsCountLabel = computed(() =>
+  t(
+    'results_count_studies',
+    '%s–%s of %s datasets',
+    fromNum.value.toLocaleString(),
+    toNum.value.toLocaleString(),
+    displayTotal.value.toLocaleString()
+  )
+);
 
 const isImageTab = computed(() => checkImageTab(props.query.tab_type));
 const isGalleryMode = computed(() => isImageGalleryMode(props.query.image_view));

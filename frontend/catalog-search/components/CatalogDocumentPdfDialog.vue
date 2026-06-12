@@ -28,7 +28,7 @@
             size="x-small"
             density="compact"
             class="catalog-pdf-dialog__close"
-            :aria-label="t('Close')"
+            :aria-label="t('cancel')"
             @click="close"
           >
             <v-icon size="18">mdi-close</v-icon>
@@ -39,7 +39,7 @@
       <div class="catalog-pdf-dialog__body">
         <div v-if="loading" class="catalog-pdf-dialog__loading">
           <v-progress-circular indeterminate color="primary" />
-          <div class="text-caption text-medium-emphasis mt-2">{{ t('loading', 'Loading...') }}</div>
+          <div class="text-caption text-medium-emphasis mt-2">{{ t('js_loading') }}</div>
         </div>
 
         <v-alert
@@ -124,7 +124,7 @@ function resetState() {
 
 async function loadViewer() {
   if (!props.row) {
-    error.value = t('pdf_preview', 'PDF preview');
+    error.value = t('pdf_preview');
     return;
   }
 
@@ -141,7 +141,7 @@ async function loadViewer() {
     });
 
     if (!resolved) {
-      error.value = t('RESOURCE_NOT_PDF_STREAMABLE', 'No local PDF resource available for this study.');
+      error.value = t('RESOURCE_NOT_PDF_STREAMABLE');
       return;
     }
 

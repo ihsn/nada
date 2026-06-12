@@ -54,7 +54,7 @@
 <script setup>
 import { computed, onUnmounted } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
-import { searchDriverGroup, searchDriverLabel } from '../catalogSearchDriver';
+import { searchDriverGroup } from '../catalogSearchDriver';
 
 defineOptions({ name: 'CatalogSearchBar' });
 
@@ -84,17 +84,9 @@ const submitDriverClass = computed(() =>
   driverGroup.value === 'db' ? null : `search-shell__submit--${driverGroup.value}`
 );
 
-const submitTitle = computed(() => {
-  if (driverGroup.value === 'db') return undefined;
-  const label = searchDriverLabel(props.searchProvider);
-  return t('search_driver_tooltip', 'Search · %s', label);
-});
+const submitTitle = computed(() => undefined);
 
-const submitAriaLabel = computed(() => {
-  if (driverGroup.value === 'db') return t('search');
-  const label = searchDriverLabel(props.searchProvider);
-  return t('search_driver_aria', 'Search (%s)', label);
-});
+const submitAriaLabel = computed(() => t('search'));
 
 function scheduleSearch() {
   clearTimeout(debounceTimer);

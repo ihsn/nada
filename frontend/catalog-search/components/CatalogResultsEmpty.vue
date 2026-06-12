@@ -2,13 +2,13 @@
   <div class="empty-state text-center pa-12">
     <v-icon size="72" color="grey-lighten-2" class="mb-4">mdi-text-search-variant</v-icon>
     <div class="text-h6 font-weight-medium mb-2">
-      {{ keyword ? t('search_no_results_title', 'No results found') : t('no_results_found', 'No results found') }}
+      {{ t('no_records_found') }}
     </div>
     <div v-if="keyword" class="text-body-2 text-medium-emphasis mb-1">
-      {{ t('search_no_keyword_hint', 'No datasets matched') }} <strong>&ldquo;{{ keyword }}&rdquo;</strong>
+      <strong>&ldquo;{{ keyword }}&rdquo;</strong>
     </div>
     <div class="text-body-2 text-medium-emphasis mb-6">
-      {{ t('search_suggestions', 'Try different keywords, or clear your filters to browse all datasets.') }}
+      {{ t('catalog_search_empty_hint') }}
     </div>
     <v-btn
       color="primary"

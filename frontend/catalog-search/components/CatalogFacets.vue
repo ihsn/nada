@@ -169,6 +169,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
+import { catalogDatasetTypeLabel } from '../catalogDatasetTypeLabel';
 import CatalogFacetBox from './CatalogFacetBox.vue';
 import CatalogFacetCheckboxList from './CatalogFacetCheckboxList.vue';
 import { normalizeYearRange } from '../catalogQuery';
@@ -279,7 +280,7 @@ const collectionItems = computed(() =>
 const typeItems = computed(() =>
   dictToItems(
     props.facets?.types,
-    (i, key) => t(i.title, key),
+    (i, key) => catalogDatasetTypeLabel(t, key, i?.title),
     (i, key) => String(key)
   )
 );

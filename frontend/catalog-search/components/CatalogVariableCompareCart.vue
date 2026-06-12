@@ -11,7 +11,7 @@
         @click="collapsed = !collapsed"
       >
         <span class="variable-compare-cart__header-title">
-          {{ t('Compare variables', 'Compare variables') }}
+          {{ t('title_compare_variables') }}
           <v-chip size="x-small" variant="flat" color="white" rounded class="variable-compare-cart__count text-primary">
             {{ count }}
           </v-chip>
@@ -22,7 +22,7 @@
       <div v-show="!collapsed" class="variable-compare-cart__body">
         <div v-if="cartLoading" class="variable-compare-cart__loading text-caption">
           <v-progress-circular indeterminate size="18" width="2" class="me-2" />
-          {{ t('loading', 'Loading...') }}
+          {{ t('js_loading') }}
         </div>
 
         <div v-else-if="cartItems.length" class="variable-compare-cart__list">
@@ -48,7 +48,7 @@
               variant="text"
               size="x-small"
               density="compact"
-              :aria-label="t('remove', 'Remove')"
+              :aria-label="t('remove')"
               @click="onRemove(item)"
             >
               <v-icon size="18">mdi-close</v-icon>
@@ -57,7 +57,7 @@
         </div>
 
         <div v-else class="variable-compare-cart__empty text-caption text-medium-emphasis pa-3">
-          {{ t('no_records_found', 'No records found') }}
+          {{ t('no_records_found') }}
         </div>
       </div>
 
@@ -76,7 +76,7 @@
           append-icon="mdi-open-in-new"
           @click="onCompare"
         >
-          {{ t('Compare', 'Compare') }}
+          {{ t('compare') }}
         </v-btn>
       </div>
 

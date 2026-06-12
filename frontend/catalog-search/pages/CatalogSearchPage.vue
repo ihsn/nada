@@ -104,7 +104,7 @@
                   density="compact"
                   hide-details
                   color="primary"
-                  :label="t('Show debug', 'Show debug')"
+                  label="Show debug"
                   class="results-option-switch flex-shrink-0"
                 />
               </div>

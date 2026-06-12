@@ -154,6 +154,7 @@ $lang['By Region']="По региону";
 $lang['cancel']="Отменить";
 $lang['apply_filter']="Применить поиск";
 $lang['selected_itesm']="выбранный";
+$lang['selected']="выбранный";
 $lang['clear']="Очистить";
 $lang['select_collections']="Выбрать Коллекции";
 $lang['select_topics']="Выбрать Темы";

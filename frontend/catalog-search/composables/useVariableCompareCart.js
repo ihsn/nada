@@ -126,12 +126,7 @@ export function useVariableCompareCart() {
   function toggleSelection(sid, vid, checked, t) {
     const result = setSelected(sid, vid, checked);
     if (!result.ok && result.reason === 'max' && typeof t === 'function') {
-      window.alert(
-        t(
-          'js_compare_variable_max_limit',
-          'You have selected the maximum variables to compare'
-        )
-      );
+      window.alert(t('You have selected the maximum variables to compare'));
     }
     return result;
   }
@@ -139,12 +134,7 @@ export function useVariableCompareCart() {
   function tryOpenCompare(siteUrl, t) {
     const result = openCompare(siteUrl);
     if (!result.ok && result.reason === 'min' && typeof t === 'function') {
-      window.alert(
-        t(
-          'js_compare_variable_select_atleast_2',
-          'Select two or more variables to compare'
-        )
-      );
+      window.alert(t('Select two or more variables to compare'));
     }
     return result;
   }
@@ -196,14 +186,14 @@ export function useVariableCompareCart() {
    */
   function summaryText(t) {
     if (!count.value) {
-      return t(
-        'js_compare_variable_select_atleast_2',
-        'Select two or more variables to compare'
-      );
+      return t('Select two or more variables to compare');
     }
-    const varsLabel = t('variables selected from', 'variables selected from');
-    const studiesLabel = t('studies', 'studies');
-    return `${count.value} ${varsLabel} ${studyCount.value} ${studiesLabel}`;
+    return t(
+      'compare_variables_summary',
+      '%d variables from %d studies',
+      count.value,
+      studyCount.value
+    );
   }
 
   return {

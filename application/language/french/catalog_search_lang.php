@@ -169,6 +169,7 @@ $lang['By Region']="Par région";
 $lang['cancel']="Annuler";
 $lang['apply_filter']="Appliquer filtre";
 $lang['selected_itesm']="sélectionnés";
+$lang['selected']="sélectionnés";
 $lang['clear']="Effacer";
 $lang['select_collections']="Sélectionner des collections";
 $lang['select_topics']="Sélectionner des thèmes";

@@ -172,6 +172,7 @@ $lang['By Region']="حسب المنطقة";
 $lang['cancel']="إلغاء";
 $lang['apply_filter']="تطبيق الفلتر/التصفية";
 $lang['selected_itesm']="المحدد";
+$lang['selected']="المحدد";
 $lang['clear']="إلغاء/مسح";
 $lang['select_collections']="حدد المجموعات";
 $lang['select_topics']="حدد المواضيع";

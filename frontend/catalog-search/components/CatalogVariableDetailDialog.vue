@@ -27,7 +27,7 @@
           size="x-small"
           density="compact"
           class="variable-detail-dialog__close"
-          :aria-label="t('Close')"
+          :aria-label="t('cancel')"
           @click="close"
         >
           <v-icon size="18">mdi-close</v-icon>
@@ -39,7 +39,7 @@
       <v-card-text class="variable-detail-dialog__body">
         <div v-if="loading" class="variable-detail-dialog__loading text-center">
           <v-progress-circular indeterminate size="22" width="2" />
-          <div class="text-caption text-medium-emphasis mt-2">{{ t('loading', 'Loading...') }}</div>
+          <div class="text-caption text-medium-emphasis mt-2">{{ t('js_loading') }}</div>
         </div>
 
         <v-alert
@@ -87,9 +87,9 @@ let fetchController = null;
 
 const dialogTitle = computed(() => {
   const v = props.variable;
-  if (!v) return t('variable', 'Variable');
+  if (!v) return t('variable_info');
   if (v.labl && v.name) return `${v.labl} (${v.name})`;
-  return v.labl || v.name || t('variable', 'Variable');
+  return v.labl || v.name || t('variable_info');
 });
 
 const fullPageUrl = computed(() => {
@@ -147,7 +147,7 @@ async function loadHtml() {
     htmlContent.value = await res.text();
   } catch (err) {
     if (err.name === 'AbortError') return;
-    error.value = err.message || t('error', 'Error');
+    error.value = err.message || t('error_invalid_parameters');
   } finally {
     loading.value = false;
     fetchController = null;
