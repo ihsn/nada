@@ -121,6 +121,15 @@ class catalog_search_opensearch
      */
     public function search(int $limit = 15, int $offset = 0): array
     {
+        if (!class_exists('Catalog_study_idno_lookup', false)) {
+            require_once APPPATH . 'libraries/Catalog_study_idno_lookup.php';
+        }
+        $params = $this->search_params_for_db_lookup();
+        $idno_result = Catalog_study_idno_lookup::try_search_from_params($params, $limit, $offset);
+        if ($idno_result !== null) {
+            return $idno_result;
+        }
+
         $t0   = microtime(true);
         $body = $this->build_survey_query($limit, $offset);
 
@@ -919,5 +928,30 @@ class catalog_search_opensearch
             $counts[(int)$bucket['key']] = (int)$bucket['doc_count'];
         }
         return $counts;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function search_params_for_db_lookup(): array
+    {
+        $props = [
+            'study_keywords', 'variable_keywords', 'countries', 'regions',
+            'from', 'to', 'repo', 'type', 'data_class', 'collections',
+            'dtype', 'sid', 'created', 'country_iso3', 'sort_by', 'sort_order',
+        ];
+        $params = [];
+        foreach ($props as $p) {
+            if (property_exists($this, $p)) {
+                $params[$p] = $this->$p;
+            }
+        }
+        foreach ($this->user_facets as $fc) {
+            $name = $fc['name'] ?? '';
+            if ($name !== '' && property_exists($this, $name)) {
+                $params[$name] = $this->$name;
+            }
+        }
+        return $params;
     }
 }

@@ -105,7 +105,15 @@ class Catalog_search_mysql{
 
 	//perform the search
 	public function search($limit=15, $offset=0)
-	{		
+	{
+		if (!class_exists('Catalog_study_idno_lookup', false)) {
+			require_once dirname(__FILE__) . '/Catalog_study_idno_lookup.php';
+		}
+		$idno_result = Catalog_study_idno_lookup::try_search($this, $limit, $offset);
+		if ($idno_result !== null) {
+			return $idno_result;
+		}
+
 		$type=$this->_build_dataset_type_query();
 		$study=$this->_build_study_query();
 		$topics=$this->_build_topics_query();
@@ -492,6 +500,76 @@ class Catalog_search_mysql{
 
 	
 	/**
+	 * Resolve published survey IDs matching an exact IDNO or alias (case-insensitive),
+	 * within current sidebar filters (no keyword/fulltext constraint).
+	 *
+	 * @param string $keyword Single search token
+	 * @return int[]
+	 */
+	public function resolve_idno_alias_survey_ids($keyword)
+	{
+		$token_lower = strtolower(trim((string) $keyword));
+		if ($token_lower === '') {
+			return array();
+		}
+
+		$saved_kw = $this->study_keywords;
+		$this->study_keywords = '';
+		$where = $this->_build_search_where_sql(true, false);
+		$this->study_keywords = $saved_kw;
+
+		$exact = $this->ci->db->escape($token_lower);
+		$idno_clause = '(LOWER(surveys.idno) = ' . $exact
+			. ' OR surveys.id IN (SELECT sid FROM survey_aliases WHERE LOWER(alternate_id) = ' . $exact . '))';
+
+		$this->ci->db->select('surveys.id');
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms', 'surveys.formid=forms.formid', 'left');
+		$this->ci->db->join('repositories', 'surveys.repositoryid=repositories.repositoryid', 'left');
+		$this->ci->db->where('surveys.published', 1);
+		$this->ci->db->where($idno_clause, null, false);
+		if ($where !== '') {
+			$this->ci->db->where($where, null, false);
+		}
+
+		$rows = $this->ci->db->get()->result_array();
+
+		return array_values(array_unique(array_map('intval', array_column($rows, 'id'))));
+	}
+
+	/**
+	 * Study search limited to a set of survey IDs (filters preserved, no keyword search).
+	 *
+	 * @param int[] $ids
+	 * @param int $limit
+	 * @param int $offset
+	 * @return array
+	 */
+	public function search_for_survey_ids(array $ids, $limit, $offset)
+	{
+		$ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+		if (empty($ids)) {
+			return array(
+				'found' => 0,
+				'total' => 0,
+				'limit' => $limit,
+				'offset' => $offset,
+				'rows' => array(),
+				'citations' => array(),
+				'search_counts_by_type' => array(),
+			);
+		}
+
+		$params = is_array($this->params) ? $this->params : array();
+		$params['study_keywords'] = '';
+		$params['variable_keywords'] = '';
+		$params['sid'] = implode(',', $ids);
+
+		$scoped = new catalog_search_mysql($params);
+		return $scoped->search($limit, $offset);
+	}
+
+	/**
 	* Build study search
 	*/
 	protected function _build_study_query()
@@ -508,8 +586,17 @@ class Catalog_search_mysql{
 		$keywords=explode(" ",$study_keywords);
 		$study_keywords=$this->parse_fulltext_keywords($study_keywords);
 
-		if(count($keywords)==1){//search for keywords + idno
-			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE) or idno=%s)',$study_fulltext_index,$this->ci->db->escape($study_keywords), $this->ci->db->escape($this->study_keywords));
+		if(count($keywords)==1){//search for keywords + idno/alias (exact, case-insensitive)
+			$token_lower = strtolower(trim((string) $this->study_keywords));
+			$exact = $this->ci->db->escape($token_lower);
+			$alias_sql = 'surveys.id IN (SELECT sid FROM survey_aliases WHERE LOWER(alternate_id) = ' . $exact . ')';
+			$sql=sprintf(
+				'( MATCH(%s) AGAINST(%s IN BOOLEAN MODE) OR LOWER(surveys.idno)=%s OR %s)',
+				$study_fulltext_index,
+				$this->ci->db->escape($study_keywords),
+				$exact,
+				$alias_sql
+			);
 		}else{
 			$sql=sprintf('( MATCH(%s) AGAINST(%s IN BOOLEAN MODE))',$study_fulltext_index,$this->ci->db->escape($study_keywords));
 		}

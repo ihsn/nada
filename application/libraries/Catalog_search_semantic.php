@@ -135,6 +135,18 @@ class catalog_search_semantic
             return $this->db_fallback()->search($limit, $offset);
         }
 
+        if (!class_exists('Catalog_study_idno_lookup', false)) {
+            require_once dirname(__FILE__) . '/Catalog_study_idno_lookup.php';
+        }
+        $idno_result = Catalog_study_idno_lookup::try_search_from_params(
+            $this->search_params_for_db_lookup(),
+            $limit,
+            $offset
+        );
+        if ($idno_result !== null) {
+            return $idno_result;
+        }
+
         $t0 = microtime(true);
 
         $body     = $this->build_request($limit, $offset);
@@ -769,10 +781,11 @@ class catalog_search_semantic
         return $rows;
     }
 
-    private function db_fallback(): catalog_search_mysql
+    /**
+     * @return array<string, mixed>
+     */
+    private function search_params_for_db_lookup(): array
     {
-        require_once dirname(__FILE__) . '/Catalog_search_mysql.php';
-
         $props = [
             'study_keywords', 'variable_keywords', 'countries', 'regions',
             'from', 'to', 'repo', 'type', 'data_class', 'collections',
@@ -788,7 +801,13 @@ class catalog_search_semantic
                 $params[$name] = $this->params[$name];
             }
         }
-        return new catalog_search_mysql($params);
+        return $params;
+    }
+
+    private function db_fallback(): catalog_search_mysql
+    {
+        require_once dirname(__FILE__) . '/Catalog_search_mysql.php';
+        return new catalog_search_mysql($this->search_params_for_db_lookup());
     }
 
     private function normalise_array($value): array

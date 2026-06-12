@@ -235,6 +235,15 @@ class Catalog_search_sqlsrv{
 	//perform the search
 	function search($limit=15, $offset=0)
     {
+		if (!class_exists('Catalog_study_idno_lookup', false)) {
+			require_once APPPATH . 'libraries/Catalog_study_idno_lookup.php';
+		}
+		$params = is_array($this->params) ? $this->params : array();
+		$idno_result = Catalog_study_idno_lookup::try_search_from_params($params, $limit, $offset);
+		if ($idno_result !== null) {
+			return $idno_result;
+		}
+
 		$type=$this->_build_dataset_type_query();
 		$dtype = $this->_build_dtype_query();
         $study = $this->_build_study_query();
