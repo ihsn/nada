@@ -43,7 +43,7 @@
                     <span class="badge badge-pill badge-secondary"><?php echo $surveys['total'];?> <?php echo t('studies');?></span>
                     */?>
                     <a href="<?php echo site_url('collections/'.$active_repo['repositoryid'].'/about');?>" class="badge badge-pill badge-light"><?php echo t('about');?></a>
-                    <a href="<?php echo site_url('catalog');?>" class="badge badge-pill badge-light"><i class="fas fa-long-arrow-alt-left"></i> <?php echo t('central_data_catalog');?></a>
+                    <a href="<?php echo catalog_search_url();?>" class="badge badge-pill badge-light"><i class="fas fa-long-arrow-alt-left"></i> <?php echo t('central_data_catalog');?></a>
                 </div>
                 <p>
                     <?php echo $active_repo['short_text'];?>                    

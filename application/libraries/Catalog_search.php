@@ -18,7 +18,7 @@ class Catalog_search{
     function __construct($params=array()){
 
         $ci =& get_instance();
-        $valid_search_providers=array('solr','db','opensearch');
+        $valid_search_providers=array('solr','db','opensearch','semantic');
 
         $search_provider = null;
         
@@ -40,6 +40,8 @@ class Catalog_search{
             $driver = 'solr';
         } elseif ($search_provider === 'opensearch') {
             $driver = 'opensearch';
+        } elseif ($search_provider === 'semantic') {
+            $driver = 'semantic';
         } else {
             $driver = $ci->db->dbdriver;
         }
@@ -63,7 +65,11 @@ class Catalog_search{
             case 'opensearch';
                 require_once dirname(__FILE__) . '/OpenSearch/Catalog_search_opensearch.php';
                 $this->search_obj= new catalog_search_opensearch($params);
-                break;    
+                break;
+            case 'semantic';
+                require_once dirname(__FILE__) . '/Catalog_search_semantic.php';
+                $this->search_obj= new catalog_search_semantic($params);
+                break;
             default:
                 throw new exception(sprintf("DRIVER [%s] NOT SUPPORTED",$driver));
         }

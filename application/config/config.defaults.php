@@ -15,6 +15,7 @@ $config['catalog_root']='datafiles';
 $config['ddi_import_folder']='imports';
 $config['catalog_variable_view']='yes';
 $config['catalog_show_abstract']='yes';
+$config['catalog_public_search_ui']='classic';
 $config['catalog_default_sort_by']='';
 $config['catalog_default_sort_order']='';
 $config['guests_hide_microdata_tab']='no';

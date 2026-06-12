@@ -1,278 +1,326 @@
 <template>
   <div class="catalog-facets">
-    <div class="d-flex align-center justify-space-between mb-3">
-      <span class="text-subtitle-2 font-weight-bold">{{ t('filter_by_type', 'Filters') }}</span>
-      <v-btn v-if="hasActive" size="x-small" variant="text" color="error" @click="clearAll">
-        {{ t('reset_search', 'Clear all') }}
-      </v-btn>
-    </div>
-
-    <v-expansion-panels
-      v-model="openPanels"
-      multiple
-      variant="accordion"
-      class="facet-panels"
+    <!-- Year -->
+    <CatalogFacetBox
+      v-if="facetEnabled('year') && facets?.years"
+      :title="t('filter_by_year', 'Year')"
+      :selected-count="yearSelectedCount"
+      @clear="clearYear"
     >
-      <!-- Year range -->
-      <v-expansion-panel v-if="facets?.years">
-        <v-expansion-panel-title class="facet-title">
-          {{ t('filter_by_year', 'Year') }}
-          <v-chip v-if="query.from || query.to" size="x-small" color="primary" variant="tonal" class="ms-2">
-            {{ [query.from, query.to].filter(Boolean).join('–') }}
-          </v-chip>
-        </v-expansion-panel-title>
-        <v-expansion-panel-text>
-          <v-row dense>
-            <v-col cols="6">
-              <v-text-field
-                :model-value="query.from"
-                :placeholder="facets.years.min_year ? String(facets.years.min_year) : t('from')"
-                density="compact" variant="outlined" hide-details type="number"
-                @update:model-value="v => (query.from = v ?? '')"
-                @change="emit('change')"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                :model-value="query.to"
-                :placeholder="facets.years.max_year ? String(facets.years.max_year) : t('to')"
-                density="compact" variant="outlined" hide-details type="number"
-                @update:model-value="v => (query.to = v ?? '')"
-                @change="emit('change')"
-              />
-            </v-col>
-          </v-row>
-        </v-expansion-panel-text>
-      </v-expansion-panel>
-
-      <!-- Countries — shown when regional_search=yes -->
-      <v-expansion-panel v-if="showCountries && countryItems.length">
-        <v-expansion-panel-title class="facet-title">
-          {{ t('filter_by_country', 'Country') }}
-          <v-chip v-if="query.country" size="x-small" color="primary" variant="tonal" class="ms-2">1</v-chip>
-        </v-expansion-panel-title>
-        <v-expansion-panel-text>
-          <v-autocomplete
-            :model-value="query.country"
-            :items="countryItems"
-            item-title="label" item-value="value"
-            density="compact" variant="outlined" hide-details clearable
-            :placeholder="t('select_countries', 'Select country')"
-            @update:model-value="v => onFilter('country', v)"
-          />
-        </v-expansion-panel-text>
-      </v-expansion-panel>
-
-      <!-- Regions -->
-      <v-expansion-panel v-if="regionItems.length">
-        <v-expansion-panel-title class="facet-title">
-          {{ t('filter_by_region', 'Region') }}
-          <v-chip v-if="query.region" size="x-small" color="primary" variant="tonal" class="ms-2">1</v-chip>
-        </v-expansion-panel-title>
-        <v-expansion-panel-text>
+      <v-row dense>
+        <v-col cols="6">
+          <div class="text-caption text-medium-emphasis mb-1">{{ t('from') }}</div>
           <v-select
-            :model-value="query.region"
-            :items="regionItems"
-            item-title="label" item-value="value"
-            density="compact" variant="outlined" hide-details clearable
-            :placeholder="t('filter_by_region', 'Select region')"
-            @update:model-value="v => onFilter('region', v)"
+            :model-value="query.from || null"
+            :items="yearOptions"
+            density="compact"
+            variant="outlined"
+            hide-details
+            clearable
+            @update:model-value="v => onYear('from', v)"
           />
-        </v-expansion-panel-text>
-      </v-expansion-panel>
-
-      <!-- Collections — shown when collection_search=yes -->
-      <v-expansion-panel v-if="showCollections && collectionItems.length">
-        <v-expansion-panel-title class="facet-title">
-          {{ t('filter_by_collection', 'Collection') }}
-          <v-chip v-if="query.collection" size="x-small" color="primary" variant="tonal" class="ms-2">1</v-chip>
-        </v-expansion-panel-title>
-        <v-expansion-panel-text>
-          <v-autocomplete
-            :model-value="query.collection"
-            :items="collectionItems"
-            item-title="label" item-value="value"
-            density="compact" variant="outlined" hide-details clearable
-            :placeholder="t('select_collections', 'Select collection')"
-            @update:model-value="v => onFilter('collection', v)"
-          />
-        </v-expansion-panel-text>
-      </v-expansion-panel>
-
-      <!-- Data access type -->
-      <v-expansion-panel v-if="dtypeItems.length">
-        <v-expansion-panel-title class="facet-title">
-          {{ t('filter_by_dtype', 'Data Access') }}
-          <v-chip v-if="query.dtype" size="x-small" color="primary" variant="tonal" class="ms-2">1</v-chip>
-        </v-expansion-panel-title>
-        <v-expansion-panel-text>
+        </v-col>
+        <v-col cols="6">
+          <div class="text-caption text-medium-emphasis mb-1">{{ t('to') }}</div>
           <v-select
-            :model-value="query.dtype"
-            :items="dtypeItems"
-            item-title="label" item-value="value"
-            density="compact" variant="outlined" hide-details clearable
-            :placeholder="t('filter_by_dtype', 'Select access type')"
-            @update:model-value="v => onFilter('dtype', v)"
+            :model-value="query.to || null"
+            :items="yearOptions"
+            density="compact"
+            variant="outlined"
+            hide-details
+            clearable
+            @update:model-value="v => onYear('to', v)"
           />
-        </v-expansion-panel-text>
-      </v-expansion-panel>
+        </v-col>
+      </v-row>
+    </CatalogFacetBox>
 
-      <!-- Data classification -->
-      <v-expansion-panel v-if="dataClassItems.length">
-        <v-expansion-panel-title class="facet-title">
-          {{ t('data_classification', 'Classification') }}
-          <v-chip v-if="query.data_class" size="x-small" color="primary" variant="tonal" class="ms-2">1</v-chip>
-        </v-expansion-panel-title>
-        <v-expansion-panel-text>
-          <v-select
-            :model-value="query.data_class"
-            :items="dataClassItems"
-            item-title="label" item-value="value"
-            density="compact" variant="outlined" hide-details clearable
-            :placeholder="t('data_classification', 'Select classification')"
-            @update:model-value="v => onFilter('data_class', v)"
-          />
-        </v-expansion-panel-text>
-      </v-expansion-panel>
+    <!-- Country -->
+    <CatalogFacetBox
+      v-if="facetEnabled('country') && countryItems.length"
+      :title="t('filter_by_country', 'Country')"
+      :selected-count="countSelected(query.country)"
+      @clear="clearFacet('country')"
+    >
+      <CatalogFacetCheckboxList
+        filter-key="country"
+        :items="countryItems"
+        :model-value="query.country"
+        @update:model-value="v => setFacet('country', v)"
+        @change="emit('change')"
+      />
+    </CatalogFacetBox>
 
-      <!-- Tags -->
-      <v-expansion-panel v-if="tagItems.length">
-        <v-expansion-panel-title class="facet-title">
-          {{ t('filter_by_tag', 'Tag') }}
-          <v-chip v-if="query.tag" size="x-small" color="primary" variant="tonal" class="ms-2">1</v-chip>
-        </v-expansion-panel-title>
-        <v-expansion-panel-text>
-          <v-autocomplete
-            :model-value="query.tag"
-            :items="tagItems"
-            item-title="label" item-value="value"
-            density="compact" variant="outlined" hide-details clearable
-            :placeholder="t('filter_by_tag', 'Select tag')"
-            @update:model-value="v => onFilter('tag', v)"
-          />
-        </v-expansion-panel-text>
-      </v-expansion-panel>
+    <!-- Region -->
+    <CatalogFacetBox
+      v-if="facetEnabled('region') && regionItems.length"
+      :title="t('filter_by_region', 'Region')"
+      :selected-count="countSelected(query.region)"
+      @clear="clearFacet('region')"
+    >
+      <CatalogFacetCheckboxList
+        filter-key="region"
+        :items="regionItems"
+        :model-value="query.region"
+        @update:model-value="v => setFacet('region', v)"
+        @change="emit('change')"
+      />
+    </CatalogFacetBox>
 
-      <!-- User-defined facets -->
-      <v-expansion-panel v-for="facet in userFacets" :key="facet.key">
-        <v-expansion-panel-title class="facet-title">
-          {{ facet.title }}
-          <v-chip v-if="query[facet.key]" size="x-small" color="primary" variant="tonal" class="ms-2">1</v-chip>
-        </v-expansion-panel-title>
-        <v-expansion-panel-text>
-          <v-autocomplete
-            :model-value="query[facet.key]"
-            :items="facet.items"
-            item-title="label" item-value="value"
-            density="compact" variant="outlined" hide-details clearable
-            :placeholder="facet.title"
-            @update:model-value="v => onFilter(facet.key, v)"
-          />
-        </v-expansion-panel-text>
-      </v-expansion-panel>
-    </v-expansion-panels>
+    <!-- Collection (central catalog only — matches legacy Catalog.php) -->
+    <CatalogFacetBox
+      v-if="facetEnabled('collection') && centralCatalog && collectionItems.length"
+      :title="t('filter_by_collection', 'Collection')"
+      :selected-count="countSelected(query.collection)"
+      @clear="clearFacet('collection')"
+    >
+      <CatalogFacetCheckboxList
+        filter-key="collection"
+        :items="collectionItems"
+        :model-value="query.collection"
+        @update:model-value="v => setFacet('collection', v)"
+        @change="emit('change')"
+      />
+    </CatalogFacetBox>
+
+    <!-- Data type (all-tab sidebar only — matches legacy Catalog.php load_facets_html) -->
+    <CatalogFacetBox
+      v-if="facetEnabled('type') && showTypeFacet && typeItems.length"
+      :title="t('filter_by_type', 'Data type')"
+      :selected-count="countSelected(query.type)"
+      @clear="clearFacet('type')"
+    >
+      <CatalogFacetCheckboxList
+        filter-key="type"
+        :items="typeItems"
+        :model-value="query.type"
+        @update:model-value="v => setFacet('type', v)"
+        @change="emit('change')"
+      />
+    </CatalogFacetBox>
+
+    <!-- Data access -->
+    <CatalogFacetBox
+      v-if="facetEnabled('dtype') && dtypeItems.length"
+      :title="t('filter_by_dtype', 'Data Access')"
+      :selected-count="countSelected(query.dtype)"
+      @clear="clearFacet('dtype')"
+    >
+      <CatalogFacetCheckboxList
+        filter-key="dtype"
+        :items="dtypeItems"
+        :model-value="query.dtype"
+        @update:model-value="v => setFacet('dtype', v)"
+        @change="emit('change')"
+      />
+    </CatalogFacetBox>
+
+    <!-- Classification -->
+    <CatalogFacetBox
+      v-if="facetEnabled('data_class') && dataClassItems.length"
+      :title="t('data_classification', 'Classification')"
+      :selected-count="countSelected(query.data_class)"
+      @clear="clearFacet('data_class')"
+    >
+      <CatalogFacetCheckboxList
+        filter-key="data_class"
+        :items="dataClassItems"
+        :model-value="query.data_class"
+        @update:model-value="v => setFacet('data_class', v)"
+        @change="emit('change')"
+      />
+    </CatalogFacetBox>
+
+    <!-- Tags -->
+    <CatalogFacetBox
+      v-if="facetEnabled('tag') && tagItems.length"
+      :title="t('filter_by_tag', 'Tag')"
+      :selected-count="countSelected(query.tag)"
+      @clear="clearFacet('tag')"
+    >
+      <CatalogFacetCheckboxList
+        filter-key="tag"
+        :items="tagItems"
+        :model-value="query.tag"
+        @update:model-value="v => setFacet('tag', v)"
+        @change="emit('change')"
+      />
+    </CatalogFacetBox>
+
+    <!-- User-defined facets -->
+    <CatalogFacetBox
+      v-for="facet in userFacets"
+      :key="facet.key"
+      :title="facet.title"
+      :selected-count="countSelected(query[facet.key])"
+      @clear="clearFacet(facet.key)"
+    >
+      <CatalogFacetCheckboxList
+        :filter-key="facet.key"
+        :items="facet.items"
+        :model-value="query[facet.key]"
+        @update:model-value="v => setFacet(facet.key, v)"
+        @change="emit('change')"
+      />
+    </CatalogFacetBox>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
-import { useAppConfig } from '@/shared/composables/useAppConfig';
+import CatalogFacetBox from './CatalogFacetBox.vue';
+import CatalogFacetCheckboxList from './CatalogFacetCheckboxList.vue';
+import { normalizeYearRange } from '../catalogQuery';
 
 defineOptions({ name: 'CatalogFacets' });
 
 const props = defineProps({
-  facets: { type: Object, default: null },
-  query:  { type: Object, required: true },
+  facets:         { type: Object, default: null },
+  query:          { type: Object, required: true },
+  enabledFilters: { type: Array,  default: () => [] },
+  /** True on central catalog (no active repository), like legacy !active_repo_id */
+  centralCatalog: { type: Boolean, default: true },
 });
 const emit = defineEmits(['change']);
 
-const { t }          = useI18n();
-const { siteConfig } = useAppConfig();
+const { t } = useI18n();
 
-// Open all panels by default
-const openPanels = ref([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+function facetEnabled(name) {
+  if (!props.enabledFilters.length) return true;
+  return props.enabledFilters.includes(name);
+}
 
-const showCountries  = computed(() => siteConfig.value?.regional_search   === 'yes');
-const showCollections = computed(() => siteConfig.value?.collection_search === 'yes');
+/** Legacy catalog shows dataset-type facet on "All" tab, or always in variable view. */
+const showTypeFacet = computed(() => {
+  if (props.query.view === 'v') return true;
+  return !props.query.tab_type;
+});
 
-const hasActive = computed(() =>
-  ['country', 'region', 'dtype', 'data_class', 'tag', 'from', 'to', 'collection'].some(
-    (k) => props.query[k] !== '' && props.query[k] != null
-  ) || userFacets.value.some((f) => props.query[f.key])
+function countSelected(val) {
+  if (!val) return 0;
+  return String(val).split(',').map((s) => s.trim()).filter(Boolean).length;
+}
+
+const yearSelectedCount = computed(() =>
+  (props.query.from ? 1 : 0) + (props.query.to ? 1 : 0)
 );
 
-function onFilter(key, value) {
+const yearOptions = computed(() => {
+  const min = props.facets?.years?.min_year;
+  const max = props.facets?.years?.max_year;
+  if (min == null || max == null) return [];
+  const out = [];
+  for (let y = max; y >= min; y--) {
+    out.push({ title: String(y), value: String(y) });
+  }
+  return out;
+});
+
+function setFacet(key, value) {
   props.query[key] = value ?? '';
+}
+
+function clearFacet(key) {
+  props.query[key] = '';
   emit('change');
 }
 
-function clearAll() {
-  ['country', 'region', 'dtype', 'data_class', 'tag', 'from', 'to', 'collection'].forEach(
-    (k) => { props.query[k] = ''; }
-  );
-  userFacets.value.forEach((f) => { props.query[f.key] = ''; });
+function clearYear() {
+  props.query.from = '';
+  props.query.to   = '';
   emit('change');
 }
 
-/** Convert a dict-keyed facet to a [{label, value}] array */
+function onYear(field, value) {
+  props.query[field] = value ?? '';
+  const { from, to } = normalizeYearRange(props.query.from, props.query.to);
+  props.query.from = from;
+  props.query.to = to;
+  emit('change');
+}
+
 function dictToItems(dict, labelFn, valueFn) {
   if (!dict || typeof dict !== 'object') return [];
-  return Object.values(dict)
-    .map((item) => {
-      const label = labelFn(item);
-      const value = valueFn(item);
-      const count = item.found != null ? ` (${item.found})` : '';
-      return { label: label + count, value };
-    })
+  return Object.entries(dict)
+    .map(([key, item]) => ({
+      label: labelFn(item, key),
+      value: valueFn(item, key),
+      count: item.found != null ? item.found : null,
+      groupName: item.group_name || '',
+    }))
     .filter((i) => i.label && i.value != null && i.value !== '');
 }
 
 const countryItems = computed(() =>
-  dictToItems(props.facets?.countries, (i) => i.title, (i) => i.title)
+  dictToItems(
+    props.facets?.countries,
+    (i) => i.title,
+    (i, key) => String(key)
+  )
 );
 
 const regionItems = computed(() =>
-  dictToItems(props.facets?.regions, (i) => i.title, (i) => String(i.id))
+  dictToItems(
+    props.facets?.regions,
+    (i) => i.title,
+    (i) => String(i.id)
+  )
 );
 
 const collectionItems = computed(() =>
-  dictToItems(props.facets?.repositories, (i) => i.title, (i) => i.repositoryid)
+  dictToItems(
+    props.facets?.repositories,
+    (i) => i.title,
+    (i) => i.repositoryid
+  )
+);
+
+const typeItems = computed(() =>
+  dictToItems(
+    props.facets?.types,
+    (i, key) => t(i.title, key),
+    (i, key) => String(key)
+  )
 );
 
 const dtypeItems = computed(() =>
   dictToItems(
     props.facets?.da_types,
-    (i) => t(i.title, i.code),   // title is a translation key
-    (i) => i.code
+    (i) => t(i.title, i.code),
+    (i, key) => String(key)
   )
 );
 
 const dataClassItems = computed(() =>
   dictToItems(
     props.facets?.data_class,
-    (i) => t(i.title, i.code),   // title is a translation key
+    (i) => t(i.title, i.code),
     (i) => String(i.id)
   )
 );
 
 const tagItems = computed(() =>
-  dictToItems(props.facets?.tags, (i) => i.title, (i) => i.title)
+  dictToItems(
+    props.facets?.tags,
+    (i) => i.title,
+    (i) => i.title
+  )
 );
-
-/** User-defined facets: { type:'user', title, values:{id:{id,title,found},...} } */
-const USER_STANDARD_KEYS = new Set([
-  'years','repositories','regions','da_types','data_class','countries','tags','types',
-]);
 
 const userFacets = computed(() => {
   if (!props.facets) return [];
   return Object.entries(props.facets)
     .filter(([, v]) => v && typeof v === 'object' && v.type === 'user')
+    .filter(([key]) => facetEnabled(key))
     .map(([key, facet]) => ({
       key,
       title: facet.title || key,
-      items: dictToItems(facet.values, (i) => i.title, (i) => String(i.id)),
+      items: dictToItems(
+        facet.values,
+        (i) => i.title,
+        (i) => String(i.id)
+      ),
     }))
     .filter((f) => f.items.length > 0);
 });
@@ -282,25 +330,5 @@ const userFacets = computed(() => {
 .catalog-facets {
   position: sticky;
   top: 56px;
-}
-
-.facet-panels :deep(.v-expansion-panel-title.facet-title) {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  min-height: 44px;
-  padding: 8px 16px;
-  color: rgba(0, 0, 0, 0.75);
-}
-
-.facet-panels :deep(.v-expansion-panel-text__wrapper) {
-  padding: 0 16px 14px;
-}
-
-.facet-panels :deep(.v-expansion-panel) {
-  border-radius: 0 !important;
-}
-
-.facet-panels :deep(.v-expansion-panel + .v-expansion-panel) {
-  border-top: 1px solid rgba(0, 0, 0, 0.07);
 }
 </style>

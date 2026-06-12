@@ -53,6 +53,7 @@ export default defineConfig(({ command }) => {
           admin_test: path.resolve(__dirname, 'admin/test/main.js'),
           admin_tables: path.resolve(__dirname, 'admin/tables/main.js'),
           catalog_search: path.resolve(__dirname, 'catalog-search/main.js'),
+          pdf_viewer: path.resolve(__dirname, 'pdf-viewer/main.js'),
         },
       },
       outDir: 'dist',

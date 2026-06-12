@@ -606,6 +606,8 @@ class Catalog_search_sqlsrv{
 	
 	function _build_years_query()
 	{
+		$this->_normalize_year_range();
+
 		$from=(integer)$this->from;
 		$to=(integer)$this->to;
 

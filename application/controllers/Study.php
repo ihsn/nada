@@ -1002,6 +1002,26 @@ class Study extends MY_Controller {
 
 
 	/**
+	 * Stream a local PDF resource inline (for in-page preview).
+	 */
+	function pdf_stream($survey_id, $resource_id)
+	{
+		if (! is_numeric($resource_id) || ! is_numeric($survey_id)) {
+			show_404();
+		}
+
+		$this->load->model('Survey_resource_model');
+
+		try {
+			$this->Survey_resource_model->stream_pdf_inline($this->user, $survey_id, $resource_id);
+		}
+		catch (Exception $e) {
+			show_error($e->getMessage());
+		}
+	}
+
+
+	/**
 	*
 	* Return Language info with language file (.xml) path
 	**/

@@ -674,6 +674,13 @@ onMounted(async () => {
                 <div class="site-config-field__hint">{{ tr('catalog_show_abstract_note') }}</div>
               </v-col>
               <v-col cols="12">
+                <label class="site-config-field__label">{{ tr('catalog_public_search_ui') }}</label>
+                <v-radio-group v-model="settings.catalog_public_search_ui" class="mt-1" hide-details>
+                  <v-radio value="classic" :label="tr('catalog_public_search_ui_classic')" />
+                  <v-radio value="vue" :label="tr('catalog_public_search_ui_vue')" />
+                </v-radio-group>
+              </v-col>
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('data_types_nav_bar') }}</label>
                 <div class="d-flex align-center ga-3 mt-1 flex-wrap">
                   <v-switch

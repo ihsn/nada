@@ -46,6 +46,7 @@ class Catalog extends MY_Controller {
 		//language files
 		$this->lang->load('general');
 		$this->lang->load('catalog_search');
+		$this->load->helper('catalog');
 
 		//configuration settings
 		//$this->topic_search=true;//($this->config->item("topic_search")===FALSE) ? 'no' : $this->config->item("topic_search");
@@ -305,7 +306,7 @@ class Catalog extends MY_Controller {
 
 		//user defined facets
 		foreach($this->facets as $facet_key=>$facet){
-			if(isset($facet['type']) && isset($facet['type'])=='user'){
+			if(isset($facet['type']) && $facet['type'] === 'user'){
 				$filters[$facet_key]=$this->load->view('search/facet', 
 				array(
 					'items'=>$facet['values'],
@@ -352,6 +353,12 @@ class Catalog extends MY_Controller {
 	 */
 	function index()
     {
+		if ($this->_vue_public_search_ui_active()) {
+			$this->load->library('catalog_public_search_vue');
+			$this->catalog_public_search_vue->render($this, $this->active_repo_id, $this->active_repo);
+			return;
+		}
+
 		$this->active_tab = $this->validate_tab_type((string)$this->input->get("tab_type"));
 		$dataset_view=$this->get_type_pageview($this->active_tab);
 		
@@ -415,6 +422,11 @@ class Catalog extends MY_Controller {
 	 */
 	function search()
 	{
+		if ($this->_vue_public_search_ui_active()) {
+			show_404();
+			return;
+		}
+
 		$this->active_tab = $this->validate_tab_type($this->input->get("tab_type"));
 		$dataset_view=$this->get_type_pageview($this->active_tab);
 		//$this->load_facets_data();
@@ -435,174 +447,24 @@ class Catalog extends MY_Controller {
 
 	function _search()
 	{
-		$this->load->helper('security');
-		$this->set_enabled_filters();
+		$this->load->library('catalog_browse_service');
 
-		//load data for facets
-		$this->load_facets_data();
-
-		//get year min/max
-		//$data['min_year']=$this->facets['years']['min_year'];
-		//$data['max_year']=$this->facets['years']['max_year'];
-
-		$search_options=new StdClass;
-		$limit=$this->get_page_size();
-
-		//page parameters
-		$search_options->collection		=xss_clean($this->input->get("collection"));
-		if (!is_array($search_options->collection)) {
-			if ($search_options->collection === false || $search_options->collection === null || $search_options->collection === '') {
-				$search_options->collection = array();
-			} else {
-				$search_options->collection = array($search_options->collection);
-			}
-		}
-		$search_options->sk				=trim(xss_clean($this->input->get("sk")));
-		$search_options->vk				=trim(xss_clean($this->input->get("vk")));
-		$search_options->vf				=xss_clean($this->input->get("vf"));
-		$search_options->country		=xss_clean($this->input->get("country"));
-		$search_options->region			=xss_clean($this->input->get("region"));
-		$search_options->view			=xss_clean($this->input->get("view"));
-		$search_options->image_view		=xss_clean($this->input->get("image_view"));
-		$search_options->topic			=xss_clean($this->input->get("topic"));
-		$search_options->from			=(int)xss_clean($this->input->get("from"));
-		$search_options->to				=(int)xss_clean($this->input->get("to"));
-		$search_options->sort_by		=xss_clean($this->input->get("sort_by"));
-		$search_options->sort_order		=xss_clean($this->input->get("sort_order"));
-		$search_options->page			=(int)xss_clean($this->input->get("page"));
-		$search_options->page			=($search_options->page >0) ? $search_options->page : 1;		
-		$search_options->dtype			=xss_clean($this->input->get("dtype"));
-		$search_options->data_class		=xss_clean($this->input->get("data_class"));
-		$search_options->tag			=xss_clean($this->input->get("tag"));
-		$search_options->sid			=$this->is_numeric_array(xss_clean($this->input->get("sid")));
-		$search_options->type			=xss_clean($this->input->get("type"));
-		$search_options->country_iso3	=xss_clean($this->input->get("country_iso3"));
-		$search_options->tab_type		= $this->validate_tab_type(xss_clean($this->input->get("tab_type")));
-		$search_options->repo			=xss_clean($this->active_repo_id);
-		$search_options->ps				=$limit;
-		$offset=						($search_options->page-1)*$limit;
-
-
-		if ($this->config->item("catalog_variable_view")!='yes' && $search_options->view=='v'){
-			show_error("Page is not available");
-		}
-
-		foreach($this->facets as $facet_key=>$facet){
-			if(isset($facet['type']) && isset($facet['type'])=='user'){
-				$search_options->{$facet_key}=xss_clean($this->input->get($facet_key));
-			}
-		}
-
-		//allowed fields for sort_by and sort_order
-		$allowed_fields = array('year','title','nation','country','popularity','rank', 'relevance');
-		$allowed_order=array('asc','desc');
-
-		//set default sort options, if passed values are not valid
-		if (!in_array(trim($search_options->sort_by),$allowed_fields)){
-			$search_options->sort_by='';
-		}
-
-		//default for sort order if no valid values found
-		if (!in_array($search_options->sort_order,$allowed_order)){
-			$search_options->sort_order='';
-		}
-
-		//log
-		if ($this->input->get('sk')){		
-			$this->db_logger->write_log('search',$this->input->get("sk").'/'.$this->input->get("vk"),'sk-vk');
-		}
-
-		//get list of all repositories
-		$data['repositories']=$this->Search_helper_model->get_repositories_list($published=1);
-
-		//country int code + name
-		if (is_array($search_options->country) && count($search_options->country)>0){						
-			$data['countries']=$this->Search_helper_model->get_countries_list($search_options->country);//$this->Search_helper_model->get_active_countries($this->active_repo['repositoryid']);
-		}
-
-		$data['tags']=array();//$this->Search_helper_model->get_active_tags($this->active_repo['repositoryid']);
-
-		$data['active_repo']=$this->active_repo;
-		$data['active_repo_id']=$this->active_repo_id;
-
-		if($search_options->tab_type!=''){
-			$search_options->type=$search_options->tab_type;
-		} else {
-			$search_options->type = $this->Search_helper_model->filter_catalog_type_param($search_options->type);
-		}
-
-		$variable_keywords = $search_options->sk;
-		if ($search_options->view === 'v' && $search_options->vk !== '') {
-			$variable_keywords = $search_options->vk;
-		}
-
-		$this->load->library('catalog_study_sort');
-		$ft_for_sort = ($search_options->view === 'v')
-			? trim((string) $variable_keywords)
-			: trim((string) $search_options->sk);
-		list($search_options->sort_by, $search_options->sort_order) = Catalog_study_sort::resolve(
-			$ft_for_sort,
-			$search_options->sort_by,
-			$search_options->sort_order,
-			$this->config->item('catalog_default_sort_by'),
-			$this->config->item('catalog_default_sort_order')
+		$repo = $this->active_repo_id ? $this->active_repo_id : 'central';
+		$this->catalog_browse_service->set_active_repo($repo);
+		$this->catalog_browse_service->active_tab = $this->validate_tab_type(
+			xss_clean((string) $this->input->get('tab_type'))
 		);
 
-		$params=array(
-			'collections'=>$search_options->collection,
-			'study_keywords'=>$search_options->sk,
-			'variable_keywords'=>$variable_keywords,
-			'variable_fields'=>$search_options->vf,
-			'countries'=>$search_options->country,
-			'regions'=>$search_options->region,
-			'from'=>$search_options->from,
-			'to'=>$search_options->to,
-			'tags'=>$search_options->tag,
-			'sort_by'=>$search_options->sort_by,
-			'sort_order'=>$search_options->sort_order,
-			'repo'=>$search_options->repo,
-			'dtype'=>$search_options->dtype,
-			'data_class'=>$search_options->data_class,
-			'sid'=>$search_options->sid,
-			'type'=>$search_options->type,
-            'country_iso3'=>$search_options->country_iso3,
-		);
-
-		foreach($this->facets as $facet_key=>$facet){
-			if(isset($facet['type']) && isset($facet['type'])=='user'){
-				$params[$facet_key]=xss_clean($this->input->get($facet_key));
-			}
+		try {
+			$data = $this->catalog_browse_service->run_search(true);
+		} catch (RuntimeException $e) {
+			show_error($e->getMessage());
+			return array();
 		}
 
-		$this->load->library('catalog_search',$params);
-		$data['is_regional_search']=$this->regional_search;
-		
-		if($search_options->view=='v'){			
-			$data['variables']=$this->catalog_search->vsearch($limit,$offset);
-			$data['search_type']='variable';
-		}else{
-			$data['surveys']=$this->catalog_search->search($limit,$offset);
-			$data['search_type']='study';
-		}
+		$this->facets = $this->catalog_browse_service->facets;
+		$this->enabled_filters = $this->catalog_browse_service->enabled_filters;
 
-		$data['current_page'] = $search_options->page;
-		$data['search_options'] = $search_options;
-		$data['data_access_types']=$this->facets['da_types'];//$this->Form_model->get_form_list();
-		$data['data_classifications']=$this->facets['data_class'];//$this->Data_classification_model->get_list();
-		$data['regions']=$this->facets['regions'];
-		$data['sid']=$search_options->sid;
-
-		//show featured only if no filters or search 
-		if (isset($data['surveys']['found']) && isset($data['surveys']['total']) && $data['surveys']['found']==$data['surveys']['total']){
-			$data['featured_studies']=$this->get_featured_studies_by_repo ($this->active_repo_id,$this->active_tab);
-		}
-
-		//attach related collections
-		if (isset($data['surveys']['rows'])){
-			$sid_arr=array_values(array_column($data['surveys']['rows'],'id'));			
-			$related_collections=$this->Search_helper_model->related_collections($sid_arr);
-			$data['related_collections']=$related_collections;
-		}
 		return $data;
 	}
 
@@ -768,26 +630,6 @@ class Catalog extends MY_Controller {
 	}
 
 
-	/**
-	 * 
-	 * Get page size
-	 * 
-	 */
-	private function get_page_size()
-	{
-		$page_size_min=15;
-		$page_size_max=100;
-
-		$page_size=(int)$this->input->get('ps');
-
-		if($page_size>=$page_size_min && $page_size<=$page_size_max){
-			return $page_size;
-		}
-
-		return 15;//default page size
-	}
-
-
 	function _remap($method)
 	{
 		$method=strtolower($method);
@@ -827,6 +669,11 @@ class Catalog extends MY_Controller {
 		}
 	  }
 	  
+
+	private function _vue_public_search_ui_active()
+	{
+		return catalog_public_search_ui() === 'vue';
+	}
 
 	private function _set_active_repo($repo)
 	{
@@ -882,12 +729,17 @@ class Catalog extends MY_Controller {
 		$this->load->model("Data_file_model");
 		$this->load->helper("metadata_view");		
 
-		$items=explode(",",$this->input->cookie('variable-compare', TRUE));
-		$list=array();
-
-		if (!$items){
-			return false;
+		$cookie_value = $this->input->cookie('variable-compare', TRUE);
+		$items = array();
+		if ($cookie_value !== false && $cookie_value !== null && $cookie_value !== '') {
+			foreach (explode(',', (string) $cookie_value) as $value) {
+				$value = trim($value);
+				if ($value !== '' && strpos($value, '/') !== false) {
+					$items[] = $value;
+				}
+			}
 		}
+		$list=array();
 
 		//JSON /CSV export
 		if ($option=='export'){
@@ -1057,28 +909,4 @@ class Catalog extends MY_Controller {
 		return $featured_study;
 	}
 
-	private function get_featured_studies_by_repo($repository_id=null,$study_type=null)
-	{
-		return $this->Repository_model->get_featured_study($repository_id,$study_type);
-	}
-
-	/**
-	 * 
-	 * 
-	 * check if all values are numeric, if not return empty string
-	 * 
-	 */
-	private function is_numeric_array($arr_str)
-	{		
-		$arr=explode(",",$arr_str);
-		$numeric_arr=array();
-
-		foreach($arr as $val){
-			if(!is_numeric($val)){
-				return '';
-			}
-		}
-
-		return $arr_str;
-	}
 }    

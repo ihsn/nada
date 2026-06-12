@@ -217,6 +217,12 @@ class Catalog extends MY_REST_Controller
 	 */
 	function search_get()
 	{
+		$include_facets = $this->input->get('include_facets');
+		$catalog_browse = $this->input->get('catalog_browse');
+		if ($include_facets === '1' || $include_facets === 1 || $catalog_browse === '1' || $catalog_browse === 1) {
+			return $this->_browse_search_get($include_facets === '1' || $include_facets === 1);
+		}
+
 		$search_options=new StdClass;
 		$limit=$this->get_page_size();
 
@@ -399,30 +405,19 @@ class Catalog extends MY_REST_Controller
 					'result'=>$result,
 					'params'=>$params
 				);
+
+				if (!empty($result['semantic_note'])) {
+					$response['semantic_note'] = $result['semantic_note'];
+				}
+				if (!empty($result['semantic_fallback'])) {
+					$response['semantic_fallback'] = $result['semantic_fallback'];
+				}
 			}
 			else{
 				$response=array(
 					'status' => 'success',
 					'found'=>0,
 					'rows'=>array()
-				);
-			}
-
-			// Optional: include facets, tabs, and site config for Vue UI (?include_facets=1)
-			if ($this->input->get('include_facets')) {
-				$this->load->library('catalog_vue_service');
-				$repo = $this->input->get('repo');
-				$this->catalog_vue_service->set_active_repo($repo ? $repo : 'central');
-				$tab_type = (string) $this->input->get('tab_type');
-				$this->catalog_vue_service->active_tab = $this->catalog_vue_service->validate_tab_type($tab_type);
-				$this->catalog_vue_service->set_enabled_filters();
-				$this->catalog_vue_service->load_facets_data();
-				$surveys_for_tabs = isset($result['rows']) ? array('rows' => $result['rows'], 'found' => isset($result['found']) ? $result['found'] : 0) : array();
-				$response['facets'] = $this->catalog_vue_service->facets;
-				$response['tabs']   = $this->catalog_vue_service->build_tabs(array('surveys' => $surveys_for_tabs));
-				$response['site']   = array(
-					'data_types_nav_bar'     => $this->catalog_vue_service->data_types_nav_bar,
-					'search_box_orientation' => $this->catalog_vue_service->search_box_orientation,
 				);
 			}
 
@@ -433,8 +428,121 @@ class Catalog extends MY_REST_Controller
 				'status'=>'failed',
 				'errors'=>$e->getMessage()
 			);
+			$error_output = array_merge($error_output, $this->semantic_search_debug_for_exception($e));
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
+	}
+
+	/**
+	 * Interactive catalog browse/search (Vue UI): same behavior as legacy HTML catalog.
+	 * GET /api/catalog/search?include_facets=1  — results + sidebar facets
+	 * GET /api/catalog/search?catalog_browse=1 — results only (facets cached client-side)
+	 */
+	private function _browse_search_get($load_facets = true)
+	{
+		$this->load->library('catalog_browse_service');
+
+		$repo = $this->input->get('repo');
+		$this->catalog_browse_service->set_active_repo($repo ? $repo : 'central');
+		$this->catalog_browse_service->active_tab = $this->catalog_browse_service->validate_tab_type(
+			(string) $this->input->get('tab_type')
+		);
+
+		try {
+			$data = $this->catalog_browse_service->run_search($load_facets);
+
+			if ($data['search_type'] === 'variable') {
+				$result = isset($data['variables']) ? $data['variables'] : array('found' => 0, 'rows' => array());
+			} else {
+				$result = isset($data['surveys']) ? $data['surveys'] : array('found' => 0, 'rows' => array());
+			}
+
+			if (isset($result['rows'])) {
+				$result['page'] = $data['current_page'];
+				array_walk($result['rows'], 'unix_date_to_gmt', array('created', 'changed'));
+				foreach ($result['rows'] as $idx => $row) {
+					$result['rows'][$idx]['url'] = site_url('catalog/' . $row['id']);
+				}
+			}
+
+			if (isset($result['semantic_facets'])) {
+				unset($result['semantic_facets']);
+			}
+			if (isset($result['facet_mode'])) {
+				unset($result['facet_mode']);
+			}
+
+			$this->load->helper('catalog');
+			$result = catalog_browse_sanitize_search_result($result);
+
+			$response = array(
+				'status' => 'success',
+				'result' => $result,
+				'search_type' => $data['search_type'],
+				'tab_type' => $this->catalog_browse_service->active_tab,
+				'tabs' => $this->catalog_browse_service->build_tabs($data),
+				'site' => $this->catalog_browse_service->site_config_for_client(),
+				'enabled_filters' => $this->catalog_browse_service->enabled_filters,
+			);
+
+			if ($load_facets) {
+				$response['facets'] = $this->catalog_browse_service->facets;
+			}
+
+			if (isset($data['featured_studies'])) {
+				$featured = $data['featured_studies'];
+				if (is_array($featured)) {
+					foreach ($featured as $idx => $study) {
+						$featured[$idx]['url'] = site_url('catalog/' . $study['id']);
+						if (!isset($featured[$idx]['form_model']) && isset($study['model'])) {
+							$featured[$idx]['form_model'] = $study['model'];
+						}
+						array_walk($featured[$idx], 'unix_date_to_gmt_row', array('created', 'changed'));
+					}
+				}
+				$response['featured_studies'] = $featured;
+			}
+			if (isset($data['related_collections'])) {
+				$response['related_collections'] = $data['related_collections'];
+			}
+			if (!empty($result['semantic_note'])) {
+				$response['semantic_note'] = $result['semantic_note'];
+			}
+			if (!empty($result['semantic_fallback'])) {
+				$response['semantic_fallback'] = $result['semantic_fallback'];
+			}
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		} catch (RuntimeException $e) {
+			$response = array('status' => 'failed', 'message' => $e->getMessage());
+			$response = array_merge($response, $this->semantic_search_debug_for_exception($e));
+			$this->set_response($response, REST_Controller::HTTP_BAD_REQUEST);
+		} catch (Exception $e) {
+			$response = array('status' => 'failed', 'message' => $e->getMessage());
+			$response = array_merge($response, $this->semantic_search_debug_for_exception($e));
+			$this->set_response($response, REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * When semantic_search_debug is enabled, attach API request/response to error payloads.
+	 *
+	 * @param Exception $e
+	 * @return array<string, mixed>
+	 */
+	private function semantic_search_debug_for_exception($e)
+	{
+		$this->config->load('semantic_search');
+		if (!$this->config->item('semantic_search_debug')) {
+			return array();
+		}
+
+		require_once APPPATH . 'libraries/Semantic_search_api_exception.php';
+		if (!($e instanceof Semantic_search_api_exception)) {
+			return array();
+		}
+
+		return array('semantic_debug' => $e->debug_payload());
 	}
 
 	
@@ -1549,6 +1657,54 @@ class Catalog extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
+	}
+
+
+	/**
+	 * Stream a local PDF resource inline for in-app viewing (e.g. PDF.js).
+	 *
+	 * GET /api/catalog/{idno}/resources/{resource_id}/pdf-stream
+	 *
+	 * Rejects external URL resources. Same access rules as file download.
+	 */
+	function pdf_stream_get($idno = null, $resource_id = null)
+	{
+		try {
+			if (! $resource_id) {
+				throw new Exception('RESOURCE_ID_NOT_PROVIDED');
+			}
+
+			$sid = $this->get_sid_from_idno($idno);
+			$this->load->model('Survey_resource_model');
+			$this->load->library('Downloads_service');
+
+			$user = $this->api_user();
+			$resource = $this->downloads_service->get_resource_info($sid, $resource_id);
+
+			if (! $resource) {
+				throw new Exception('RESOURCE_NOT_FOUND');
+			}
+
+			if (in_array($resource['data_access_type'], array('public', 'licensed')) && ! $user) {
+				throw new Exception('LOGIN_REQUIRED');
+			}
+
+			$allow_download = $this->Survey_resource_model->user_has_download_access($user ? $user->id : false, $sid, $resource);
+
+			if ($allow_download === false) {
+				throw new Exception("You don't have permissions to access the file.");
+			}
+
+			$this->Survey_resource_model->stream_pdf_inline($user, $sid, $resource_id);
+			die();
+		}
+		catch (Exception $e) {
+			$error_output = array(
+				'status'  => 'failed',
+				'errors'  => $e->getMessage(),
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
 	}
 
 

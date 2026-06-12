@@ -1052,8 +1052,110 @@ class Survey_resource_model extends CI_Model {
 			'file_type' => $is_microdata ? 'microdata' : 'doc'
 		));
 		force_download2($resource_path);
+		exit;
 	}
-	
+
+
+	/**
+	 * True when the resource is a local (non-URL) PDF file on disk.
+	 */
+	function is_local_pdf_resource($resource)
+	{
+		if (empty($resource) || ! is_array($resource)) {
+			return false;
+		}
+
+		if (! empty($resource['is_url']) && (int) $resource['is_url'] === 1) {
+			return false;
+		}
+
+		$filename = isset($resource['filename']) ? trim((string) $resource['filename']) : '';
+		if ($filename === '') {
+			return false;
+		}
+
+		if ($this->form_validation->valid_url($filename)) {
+			return false;
+		}
+
+		$dcformat = strtolower(trim((string) ($resource['dcformat'] ?? '')));
+		if ($dcformat === 'application/pdf') {
+			return true;
+		}
+
+		return strtolower(pathinfo($filename, PATHINFO_EXTENSION)) === 'pdf';
+	}
+
+
+	/**
+	 * Stream a local PDF inline (Content-Disposition: inline). Same ACL as download().
+	 */
+	function stream_pdf_inline($user, $survey_id, $resource_id)
+	{
+		$resource = $this->select_single($resource_id);
+
+		if (! $resource) {
+			throw new Exception('RESOURCE_NOT_FOUND');
+		}
+
+		if ((int) $resource['survey_id'] !== (int) $survey_id) {
+			throw new Exception('RESOURCE_NOT_FOUND');
+		}
+
+		if (! $this->is_local_pdf_resource($resource)) {
+			throw new Exception('RESOURCE_NOT_PDF_STREAMABLE');
+		}
+
+		$user_id = isset($user->id) ? $user->id : false;
+
+		$this->whitelist_stream_pdf($user_id, $survey_id, $resource);
+
+		$download_req = $this->get_user_download_access_info($user_id, $survey_id, $resource);
+
+		if (! $download_req) {
+			throw new Exception('FILE_NOT_AVAILABLE');
+		}
+
+		if ($download_req['is_microdata'] === true && $download_req['license'] == 'public') {
+			if (! $user_id) {
+				throw new Exception(t('USER_NOT_LOGGED_IN'));
+			}
+		}
+
+		$resource_path = $this->get_resource_download_path($resource_id);
+
+		if (! file_exists($resource_path)) {
+			throw new Exception('RESOURCE_FILE_NOT_FOUND');
+		}
+
+		$this->load->helper('download');
+		log_message('info', 'Streaming PDF inline <em>'.$resource_path.'</em>');
+		force_download_inline($resource_path, null, true);
+		throw new Exception('RESOURCE_STREAM_FAILED');
+	}
+
+
+	function whitelist_stream_pdf($user_id, $survey_id, $resource)
+	{
+		$this->load->model('Data_access_whitelist_model');
+		$user_whitelisted = $this->Data_access_whitelist_model->has_access($user_id, $survey_id);
+
+		if (! $user_whitelisted) {
+			return false;
+		}
+
+		$resource_path = $this->get_resource_download_path($resource['resource_id']);
+
+		if (! file_exists($resource_path)) {
+			throw new Exception('RESOURCE_FILE_NOT_FOUND');
+		}
+
+		$this->load->helper('download');
+		log_message('info', 'Streaming PDF inline (whitelist) <em>'.$resource_path.'</em>');
+		force_download_inline($resource_path, null, true);
+		throw new Exception('RESOURCE_STREAM_FAILED');
+	}
+
 
 	function download($user,$survey_id,$resource_id)
 	{
@@ -1103,7 +1205,8 @@ class Survey_resource_model extends CI_Model {
 		$this->analytics_tracker->track_download($survey_id, basename($resource_path), array(
 			'file_type' => $download_req['is_microdata'] ? 'microdata' : 'resource'
 		));
-		force_download2($resource_path);		
+		force_download2($resource_path);
+		exit;
 	}
 	
 	

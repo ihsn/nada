@@ -1,76 +1,56 @@
 <template>
   <div class="catalog-results-list">
-    <!-- Sort + count + page-size bar -->
+    <!-- View options + sort bar -->
     <div class="results-toolbar d-flex align-center flex-wrap mb-4" style="gap: 12px;">
-      <!-- Count -->
       <div class="text-body-2 text-medium-emphasis flex-shrink-0">
         <strong class="text-high-emphasis">{{ fromNum.toLocaleString() }}–{{ toNum.toLocaleString() }}</strong>
         {{ t('of', 'of') }}
-        <strong class="text-high-emphasis">{{ results.found.toLocaleString() }}</strong>
+        <strong class="text-high-emphasis">{{ displayTotal.toLocaleString() }}</strong>
         {{ t('datasets', 'datasets') }}
       </div>
 
       <v-spacer />
 
-      <!-- Sort dropdown -->
-      <div class="d-flex align-center flex-shrink-0" style="gap: 8px;">
-        <span class="text-caption text-medium-emphasis">{{ t('sort_results_by') }}:</span>
-        <v-select
-          :model-value="activeSortBy"
-          :items="sortOptions"
-          item-title="label"
-          item-value="value"
-          density="compact"
-          variant="outlined"
-          hide-details
-          style="min-width: 130px; font-size: 0.75rem;"
-          class="sort-select"
-          @update:model-value="onSortSelect"
-        >
-          <template #append-inner>
-            <v-icon
-              size="16"
-              class="ms-n1"
-              :title="query.sort_order === 'asc' ? 'Ascending' : 'Descending'"
-              style="cursor:pointer;"
-              @click.stop="toggleOrder"
-            >
-              {{ query.sort_order === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
-            </v-icon>
-          </template>
-        </v-select>
-      </div>
+      <CatalogImageViewToggle
+        v-if="isImageTab"
+        :model-value="imageViewMode"
+        @update:model-value="onImageViewChange"
+      />
 
-      <!-- Page size -->
-      <div class="d-flex align-center flex-shrink-0" style="gap: 4px;">
-        <span class="text-caption text-medium-emphasis me-1">{{ t('select_number_of_records_per_page', 'Per page') }}:</span>
-        <v-btn
-          v-for="size in [15, 30, 50]"
-          :key="size"
-          :variant="query.ps === size ? 'tonal' : 'text'"
-          :color="query.ps === size ? 'primary' : 'default'"
-          size="x-small"
-          density="comfortable"
-          class="sort-btn"
-          @click="emit('page-size', size)"
-        >
-          {{ size }}
-        </v-btn>
-      </div>
+      <CatalogSortSelect :query="query" @sort="(by, order) => emit('sort', by, order)" />
+
     </div>
 
-    <!-- Study cards -->
-    <CatalogStudyCard
-      v-for="row in results.rows"
-      :key="row.id"
-      :row="row"
-      class="mb-3"
+    <CatalogImageGallery
+      v-if="isImageTab && isGalleryMode"
+      :rows="results.rows"
     />
 
-    <!-- Pagination -->
+    <template v-else>
+      <div
+        v-for="row in results.rows"
+        :key="`${row.id}-${row.featured ? 'f' : 'r'}`"
+        class="study-card-wrap mb-3"
+      >
+        <CatalogStudyCard
+          :row="row"
+          :collections="collectionsForRow(row)"
+          :citations="citations"
+          :data-classifications="dataClassifications"
+          :show-abstract="showAbstract"
+          :search-keyword="query.sk"
+          :class="{ 'study-card--with-debug': showDebug && results.debug && row.semantic_hit }"
+        />
+        <SemanticHitDebug
+          v-if="showDebug && results.debug"
+          :hit="row.semantic_hit"
+        />
+      </div>
+    </template>
+
     <div v-if="totalPages > 1" class="d-flex justify-space-between align-center mt-6 flex-wrap" style="gap: 12px;">
       <div class="text-caption text-medium-emphasis">
-        {{ t('showing_pages', 'Page') }} {{ query.page }} / {{ totalPages.toLocaleString() }}
+        {{ t('showing_pages', 'Page %s of %s', query.page, totalPages.toLocaleString()) }}
       </div>
       <v-pagination
         :model-value="query.page"
@@ -81,6 +61,11 @@
         @update:model-value="onPage"
       />
     </div>
+
+    <CatalogPageSizeSelect
+      :model-value="query.ps"
+      @update:model-value="(size) => emit('page-size', size)"
+    />
   </div>
 </template>
 
@@ -88,14 +73,30 @@
 import { computed } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import CatalogStudyCard from './CatalogStudyCard.vue';
+import CatalogSortSelect from './CatalogSortSelect.vue';
+import SemanticHitDebug from './SemanticHitDebug.vue';
+import CatalogPageSizeSelect from './CatalogPageSizeSelect.vue';
+import CatalogImageViewToggle from './CatalogImageViewToggle.vue';
+import CatalogImageGallery from './CatalogImageGallery.vue';
+import { catalogResultsRange } from '../catalogResultsRange';
+import {
+  isImageTab as checkImageTab,
+  isImageGalleryMode,
+  imageViewToggleValue,
+} from '../catalogImageView';
 
 defineOptions({ name: 'CatalogResultsList' });
 
 const props = defineProps({
-  results: { type: Object, required: true },
-  query:   { type: Object, required: true },
+  results:              { type: Object, required: true },
+  query:                { type: Object, required: true },
+  relatedCollections:   { type: Object, default: () => ({}) },
+  citations:            { type: Object, default: null },
+  dataClassifications:  { type: Object, default: null },
+  showAbstract:         { type: Boolean, default: false },
+  showDebug:            { type: Boolean, default: false },
 });
-const emit = defineEmits(['sort', 'page', 'page-size']);
+const emit = defineEmits(['sort', 'page', 'page-size', 'image-view']);
 
 const { t } = useI18n();
 
@@ -103,28 +104,29 @@ const totalPages = computed(() =>
   props.results.found > 0 ? Math.ceil(props.results.found / props.query.ps) : 1
 );
 
-const fromNum = computed(() => (props.query.page - 1) * props.query.ps + 1);
-const toNum   = computed(() =>
-  Math.min(props.query.page * props.query.ps, props.results.found)
-);
+const range = computed(() => catalogResultsRange(props.results, props.query));
+const fromNum = computed(() => range.value.from);
+const toNum = computed(() => range.value.to);
+const displayTotal = computed(() => range.value.total);
 
-const activeSortBy = computed(() => props.query.sort_by || 'relevance');
+const isImageTab = computed(() => checkImageTab(props.query.tab_type));
+const isGalleryMode = computed(() => isImageGalleryMode(props.query.image_view));
+const imageViewMode = computed(() => imageViewToggleValue(props.query.image_view));
 
-const sortOptions = computed(() => [
-  { value: 'relevance', label: t('Relevance', 'Relevance') },
-  { value: 'title',     label: t('title',     'Title')     },
-  { value: 'proddate',  label: t('year',      'Year')      },
-  { value: 'nation',    label: t('country',   'Country')   },
-  { value: 'popularity',label: t('popularity','Popularity')},
-]);
-
-function onSortSelect(by) {
-  emit('sort', by, props.query.sort_order || 'desc');
+function onImageViewChange(mode) {
+  emit('image-view', mode);
 }
 
-function toggleOrder() {
-  const newOrder = props.query.sort_order === 'asc' ? 'desc' : 'asc';
-  emit('sort', activeSortBy.value, newOrder);
+function collectionsForRow(row) {
+  const out = [];
+  if (row.repo_title && row.repositoryid) {
+    out.push({ repositoryid: row.repositoryid, title: row.repo_title, type: 'owner' });
+  }
+  const related = props.relatedCollections[row.id];
+  if (Array.isArray(related)) {
+    out.push(...related);
+  }
+  return out;
 }
 
 function onPage(p) {
@@ -133,19 +135,13 @@ function onPage(p) {
 </script>
 
 <style scoped>
-.sort-select :deep(.v-field__input) {
-  font-size: 0.75rem;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  min-height: unset;
-}
-
-.sort-select :deep(.v-field) {
-  min-height: 28px;
-}
-
 .results-toolbar {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--catalog-border-subtle, rgba(15, 23, 42, 0.11));
   padding-bottom: 12px;
+}
+
+:deep(.study-card.study-card--with-debug) {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 </style>

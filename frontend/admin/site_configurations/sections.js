@@ -24,6 +24,7 @@ export const SECTION_DEFS = [
       'catalog_records_per_page',
       'catalog_variable_view',
       'catalog_show_abstract',
+      'catalog_public_search_ui',
       'data_types_nav_bar',
       'guests_hide_microdata_tab',
       'data_classifications_enabled',

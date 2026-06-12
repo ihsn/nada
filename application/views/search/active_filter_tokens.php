@@ -25,7 +25,7 @@ $facet_bg=array(
 $bg=0;
 ?>
    <?php foreach($facets as $facet_key=>$facet):?>
-		<?php if(isset($facet['type']) && isset($facet['type'])=='user'):?>
+		<?php if(isset($facet['type']) && $facet['type'] === 'user'):?>
                 <?php if (isset($search_options->{$facet_key}) && is_array($search_options->{$facet_key})):?>
                     <?php foreach($search_options->{$facet_key} as $facet_value):?>
                         <?php if (array_key_exists($facet_value,$facets[$facet_key]['values'])):?>

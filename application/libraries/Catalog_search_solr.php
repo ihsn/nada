@@ -428,6 +428,9 @@ class Catalog_search_solr
     {
         $from = (int)$this->from;
         $to   = (int)$this->to;
+        if ($from > 0 && $to > 0 && $from > $to) {
+            [$from, $to] = [$to, $from];
+        }
         if ($from === 0 && $to === 0) return false;
         $f = $from > 0 ? $from : '*';
         $t = $to   > 0 ? $to   : '*';
@@ -438,6 +441,9 @@ class Catalog_search_solr
     {
         $from = (int)$this->from;
         $to   = (int)$this->to;
+        if ($from > 0 && $to > 0 && $from > $to) {
+            [$from, $to] = [$to, $from];
+        }
         if ($from === 0 && $to === 0) return false;
         $f = $from > 0 ? $from : '*';
         $t = $to   > 0 ? $to   : '*';

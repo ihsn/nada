@@ -195,6 +195,8 @@ $route['api/catalog/(:any)/variable'] = "api/catalog/variable/$1";
 $route['api/catalog/(:any)/variable/(.*)'] = "api/catalog/variable/$1/$2";
 
 $route['api/catalog/pdf_documentation/(:any)'] = 'api/catalog/pdf_documentation/$1';
+$route['api/catalog/(:any)/resources/(:num)/pdf-stream'] = 'api/catalog/pdf_stream/$1/$2';
+$route['api/catalog/(:any)/resources'] = 'api/catalog/resources/$1';
 
 
 //Collections
@@ -269,6 +271,8 @@ $route['catalog/(:num)/datafile/(.*)'] = "study/data_file/$1/$2";
 $route['catalog/(:num)/data-file/(.*)'] = "study/data_file/$1/$2";
 
 //download
+$route['viewer/pdf'] = 'pdfviewer/index';
+$route['catalog/(:num)/pdf-stream/(:num)'] = "study/pdf_stream/$1/$2";
 $route['catalog/(:num)/download/(.*)'] = "study/download/$1/$2";
 
 //variable info page
@@ -483,6 +487,7 @@ $route['admin/catalog/attach_related_data/(:num)'] = "admin/attach_related_data/
 //Downloads API
 $route['api/downloads/(:any)/files'] = "api/downloads/files/$1";
 $route['api/downloads/(:any)/info/(:any)'] = "api/downloads/info/$1/$2";
+$route['api/downloads/download/(:any)/(:num)'] = "api/downloads/download/$1/$2";
 
 //Analytics API
 $route['api/analytics/pageview'] = "api/analytics/pageview";

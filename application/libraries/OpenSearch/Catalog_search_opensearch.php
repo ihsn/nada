@@ -287,8 +287,10 @@ class catalog_search_opensearch
         ];
 
         // Year range
-        $from = (int)($this->from ?? 0);
-        $to   = (int)($this->to   ?? 0);
+        [$from, $to] = $this->normalize_year_bounds(
+            (int)($this->from ?? 0),
+            (int)($this->to ?? 0)
+        );
         if ($from > 0 || $to > 0) {
             $range = [];
             if ($from > 0) $range['gte'] = $from;
@@ -589,8 +591,10 @@ class catalog_search_opensearch
         }
 
         // Year range
-        $from = (int)($this->from ?? 0);
-        $to   = (int)($this->to   ?? 0);
+        [$from, $to] = $this->normalize_year_bounds(
+            (int)($this->from ?? 0),
+            (int)($this->to ?? 0)
+        );
         if ($from > 0 || $to > 0) {
             $range = [];
             if ($from > 0) $range['gte'] = $from;
@@ -848,6 +852,18 @@ class catalog_search_opensearch
     {
         $arr = $this->normalise_array($value);
         return array_values(array_filter(array_map('intval', $arr)));
+    }
+
+    /**
+     * @return array{0: int, 1: int}
+     */
+    private function normalize_year_bounds(int $from, int $to): array
+    {
+        if ($from > 0 && $to > 0 && $from > $to) {
+            return [$to, $from];
+        }
+
+        return [$from, $to];
     }
 
     /**

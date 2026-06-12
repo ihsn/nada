@@ -272,6 +272,105 @@ class Catalog_search_mysql{
 		return $result;
 	}
 
+	/**
+	 * Count published surveys matching current sidebar filters (no keyword constraint).
+	 * Includes the active dataset-type tab filter when set.
+	 */
+	public function count_filter_universe()
+	{
+		return $this->count_surveys_with_filters(true, false);
+	}
+
+	/**
+	 * Total published surveys in the active repository (or entire catalog when central).
+	 */
+	public function count_total_published()
+	{
+		$repository = $this->_build_repository_query();
+
+		$this->ci->db->select('count(*) as rowcount');
+		$this->ci->db->where('published', 1);
+
+		if ($repository !== '' && $repository !== FALSE) {
+			$this->ci->db->where($repository, FALSE, FALSE);
+		}
+
+		$row = $this->ci->db->get('surveys')->row_array();
+
+		return (int) ($row['rowcount'] ?? 0);
+	}
+
+	/**
+	 * @param bool $include_type Apply active dataset-type tab filter
+	 * @param bool $include_study Apply keyword/fulltext filter
+	 */
+	protected function count_surveys_with_filters($include_type = true, $include_study = true)
+	{
+		$where = $this->_build_search_where_sql($include_type, $include_study);
+
+		$this->ci->db->select('count(*) as rowcount', FALSE);
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms', 'surveys.formid=forms.formid', 'left');
+		$this->ci->db->join('repositories', 'surveys.repositoryid=repositories.repositoryid', 'left');
+		$this->ci->db->where('surveys.published', 1);
+
+		if ($where !== '') {
+			$this->ci->db->where($where, NULL, FALSE);
+		}
+
+		$row = $this->ci->db->get()->row_array();
+
+		return (int) ($row['rowcount'] ?? 0);
+	}
+
+	/**
+	 * @param bool $include_type
+	 * @param bool $include_study
+	 * @return string Combined SQL WHERE fragment (without leading WHERE)
+	 */
+	protected function _build_search_where_sql($include_type = true, $include_study = true)
+	{
+		$type = $include_type ? $this->_build_dataset_type_query() : false;
+		$study = $include_study ? $this->_build_study_query() : false;
+		$topics = $this->_build_topics_query();
+		$countries = $this->_build_countries_query();
+		$regions = $this->_build_regions_query();
+		$tags = $this->_build_tags_query();
+		$collections = $this->_build_collections_query();
+		$years = $this->_build_years_query();
+		$repository = $this->_build_repository_query();
+		$dtype = $this->_build_dtype_query();
+		$data_classification = $this->_build_data_classification_query();
+		$sid = $this->_build_sid_query();
+		$created = $this->_build_created_query();
+		$countries_iso3 = $this->_build_countries_iso3_query();
+
+		$where_list = array(
+			$study, $topics, $countries, $years, $repository, $collections, $dtype,
+			$sid, $countries_iso3, $created, $data_classification, $tags, $type, $regions,
+		);
+
+		foreach ($this->user_facets as $fc) {
+			if (array_key_exists($fc['name'], $this->params)) {
+				$facet_query = $this->_build_facet_query($fc['name'], $this->params[$fc['name']]);
+				if ($facet_query) {
+					$where_list[] = $facet_query;
+				}
+			}
+		}
+
+		$where = '';
+
+		foreach ($where_list as $stmt) {
+			if ($stmt === FALSE || $stmt === '') {
+				continue;
+			}
+			$where .= ($where === '' ? '' : "\r\n AND ") . $stmt;
+		}
+
+		return $where;
+	}
+
 
 	/**
 	 * 
@@ -280,49 +379,7 @@ class Catalog_search_mysql{
 	 */
 	public function search_counts_by_type()
 	{		
-		$type=false;//$this->_build_dataset_type_query();
-		$study=$this->_build_study_query();
-		$topics=$this->_build_topics_query();
-		$countries=$this->_build_countries_query();
-		$regions=$this->_build_regions_query();
-		$tags=$this->_build_tags_query();
-		$collections=$this->_build_collections_query();
-		$years=$this->_build_years_query();		
-		$repository=$this->_build_repository_query();
-		$dtype=$this->_build_dtype_query();
-		$data_classification=$this->_build_data_classification_query();
-		$sid=$this->_build_sid_query();
-        $countries_iso3=$this->_build_countries_iso3_query();
-		
-		//array of all options
-		$where_list=array($tags,$study,$topics,$countries,$years,$repository,$collections,$dtype,$data_classification,$sid,$countries_iso3,$regions,$type);
-
-		foreach($this->user_facets as $fc){
-			if (array_key_exists($fc['name'],$this->params)){
-				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
-				if($facet_query){
-					$where_list[]=$facet_query;
-				}
-			}
-		}
-		
-		//create combined where clause
-		$where='';
-		
-		foreach($where_list as $stmt)
-		{
-			if ($stmt===FALSE || $stmt==='') {
-				continue;
-			}
-			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
-		}
-		
-		//study fields returned by the select statement
-		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno,surveys.title,surveys.subtitle,nation,authoring_entity,forms.model as form_model,data_class_id,surveys.year_start,surveys.year_end';
-		$study_fields.=', surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads';
-
-		//build final search sql query
-		$sql='';
+		$where = $this->_build_search_where_sql(false, true);
 			
 		//study search
 		$this->ci->db->select("surveys.type, count(surveys.type) as total",FALSE);
@@ -761,8 +818,21 @@ class Catalog_search_mysql{
         return FALSE;
     }
 	
+	protected function _normalize_year_range()
+	{
+		$from = (int) $this->from;
+		$to   = (int) $this->to;
+
+		if ($from > 0 && $to > 0 && $from > $to) {
+			$this->from = $to;
+			$this->to   = $from;
+		}
+	}
+
 	protected function _build_years_query()
 	{
+		$this->_normalize_year_range();
+
 		$from=(integer)$this->from;
 		$to=(integer)$this->to;
 
@@ -1042,7 +1112,12 @@ class Catalog_search_mysql{
 		}
 
 		$this->ci->db->limit($limit, $offset);
-		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.qstn, v.vid, surveys.title as title,surveys.idno, surveys.nation, v.sid",FALSE);
+		$this->ci->db->select(
+			'SQL_CALC_FOUND_ROWS v.uid, v.name, v.labl, v.qstn, v.vid, v.fid, v.sid,'
+			. ' surveys.title AS title, surveys.idno, surveys.nation,'
+			. ' surveys.year_start, surveys.year_end, surveys.authoring_entity',
+			FALSE
+		);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');
 		if ($dtype !== FALSE && $dtype !== '') {
 			$this->ci->db->join('forms', 'surveys.formid = forms.formid', 'left');
