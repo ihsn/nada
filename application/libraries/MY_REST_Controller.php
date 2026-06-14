@@ -104,6 +104,19 @@ abstract class MY_REST_Controller extends REST_Controller {
 			return $this->rest->user_id;
 		}
 
+        // Some admin API controllers can skip early API-key detection due to auth overrides.
+        // Attempt on-demand key detection only for /api/admin controllers to avoid broad side effects.
+        $router_dir = isset($this->router->directory) ? strtolower((string) $this->router->directory) : '';
+        if (strpos($router_dir, 'api/admin') === 0 && $this->_detect_api_key() === TRUE) {
+            if (isset($this->_apiuser) && isset($this->_apiuser->user_id)) {
+                return $this->_apiuser->user_id;
+            }
+
+            if (isset($this->rest->user_id) && $this->rest->user_id) {
+                return $this->rest->user_id;
+            }
+        }
+
 		return false;
     }
 
