@@ -471,6 +471,7 @@ class Study extends MY_Controller {
 		}
 
 		$page   = max(1, (int)$this->input->get('page'));
+		$view   = $this->input->get('view') === 'list' ? 'list' : 'card';
 		$limit  = 20;
 		$offset = ($page - 1) * $limit;
 
@@ -482,7 +483,9 @@ class Study extends MY_Controller {
 			'total'       => $total,
 			'page'        => $page,
 			'limit'       => $limit,
+			'view'        => $view,
 			'db_title'    => $survey['title'],
+			'db_idno'     => $survey['idno'],
 		), true);
 
 		$this->render_page($sid, $output, 'related_series');
@@ -801,7 +804,7 @@ class Study extends MY_Controller {
 				break;
 			case 'timeseriesdb':
 			case 'timeseries-db':
-				$ts_series_count = $this->Timeseries_db_model->count_series_by_db_idno($survey['idno']);
+				$ts_series_count = $this->Timeseries_db_model->count_series_by_db_idno($dataset['idno']);
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>'Dataset description',

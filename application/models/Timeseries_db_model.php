@@ -228,7 +228,7 @@ class Timeseries_db_model extends CI_Model {
 	 */
 	function get_series_by_db_idno($db_idno, $limit = 20, $offset = 0)
 	{
-		$this->db->select('s.id, s.idno, s.title, s.published');
+		$this->db->select('s.id, s.idno, s.title, s.published, s.nation, s.year_start, s.year_end, s.authoring_entity, s.abstract, s.thumbnail, s.changed');
 		$this->db->from('surveys s');
 		$this->db->join('timeseries_db_links l', 'l.series_id = s.id');
 		$this->db->where('l.db_idno', $db_idno);

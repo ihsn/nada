@@ -259,6 +259,7 @@ $route['catalog/(:num)/indicator-structure'] = "study/indicator_structure/$1";
 // Legacy URL: redirects to indicator-chart (or observations/structure) with query preserved.
 $route['catalog/(:num)/indicator-data'] = "study/indicator_data/$1";
 $route['catalog/(:num)/timeseries-db'] = "study/timeseries_db/$1";
+$route['catalog/(:num)/related-series'] = "study/related_series/$1";
 
 $route['catalog/(:num)/variable-groups/(.*)'] = "study/variable_groups/$1/$2";
 $route['catalog/(:num)/variable_groups/(.*)'] = "study/variable_groups/$1/$2";
