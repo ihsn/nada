@@ -409,6 +409,7 @@ CREATE TABLE timeseries_db_links (
 );
 CREATE NONCLUSTERED INDEX idx_tsdbl_series_primary ON [dbo].[timeseries_db_links] ([series_id] ASC, [is_primary] ASC);
 CREATE NONCLUSTERED INDEX idx_tsdbl_db_idno         ON [dbo].[timeseries_db_links] ([db_idno] ASC);
+CREATE UNIQUE NONCLUSTERED INDEX idx_surveys_idno ON [dbo].[surveys] ([idno] ASC);
 
 
 --

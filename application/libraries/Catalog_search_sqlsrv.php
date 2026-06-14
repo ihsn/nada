@@ -23,6 +23,7 @@ class Catalog_search_sqlsrv{
 	var $type=array();
 	var $data_class=array();
 	var $dtype=array();//data access type
+	var $database=array();//timeseries database filter (db_idno values)
 	var $sid=''; //comma separated list of survey IDs
 	var $collections=array();
 	var $created='';
@@ -259,6 +260,7 @@ class Catalog_search_sqlsrv{
 		$tags=$this->_build_tags_query();
 		$created=$this->_build_created_query();
 		$regions=$this->_build_regions_query();
+		$database=$this->_build_database_query();
 
         // RANK / relevance sort only when study keywords
         if (! trim($this->study_keywords)) {
@@ -285,7 +287,7 @@ class Catalog_search_sqlsrv{
         }
 
 		//array of all options
-		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$repository,$dtype,$collections,$created,$tags,$data_class,$countries_iso3,$regions,$type);
+		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$repository,$dtype,$collections,$created,$tags,$data_class,$countries_iso3,$regions,$type,$database);
 
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -315,6 +317,7 @@ class Catalog_search_sqlsrv{
 		$study_fields='surveys.id as id,surveys.idno,surveys.doi,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,data_class_id, year_start,year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount, surveys.thumbnail';
 		$study_fields.=', surveys.ts_dimensions';
+		$study_fields.=',tsdb.id as ts_db_study_id, tsdb.title as ts_db_title';
 		$study_fields.=', surveys.abstract';
 
 		//add ranking if keywords are not empty
@@ -327,6 +330,8 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->from('surveys');
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+		$this->ci->db->join('timeseries_db_links tdbl','tdbl.series_id=surveys.id AND tdbl.is_primary=1','left');
+		$this->ci->db->join('surveys tsdb','tsdb.idno=tdbl.db_idno AND tsdb.type=\'timeseriesdb\' AND tsdb.published=1','left');
 		$this->ci->db->where('surveys.published',1);
 
 		if ($repository!='')
@@ -1275,6 +1280,29 @@ class Catalog_search_sqlsrv{
 		}
 
 		return FALSE;
+	}
+
+
+	protected function _build_database_query()
+	{
+		$idnos = (array) $this->database;
+
+		$escaped = array();
+		foreach ($idnos as $idno) {
+			$idno = trim((string) $idno);
+			if ($idno !== '') {
+				$escaped[] = $this->ci->db->escape($idno);
+			}
+		}
+
+		if (empty($escaped)) {
+			return FALSE;
+		}
+
+		return sprintf(
+			'surveys.id IN (SELECT series_id FROM timeseries_db_links WHERE db_idno IN (%s))',
+			implode(',', $escaped)
+		);
 	}
 
 
