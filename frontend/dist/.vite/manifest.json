@@ -1600,7 +1600,7 @@
     ]
   },
   "catalog-search/main.js": {
-    "file": "assets/catalog_search-rkHoXQrg.js",
+    "file": "assets/catalog_search-DXdBrHek.js",
     "name": "catalog_search",
     "src": "catalog-search/main.js",
     "isEntry": true,
@@ -1639,7 +1639,7 @@
       "_VSheet-CYsIh_Rx.js"
     ],
     "css": [
-      "assets/catalog_search-BJuFMY3q.css",
+      "assets/catalog_search-Cxm0d79l.css",
       "assets/base-BKMxH8S4.css"
     ]
   },

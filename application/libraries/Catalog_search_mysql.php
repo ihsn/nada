@@ -40,15 +40,15 @@ class Catalog_search_mysql{
 	var $sort_allowed_fields=array(
 						'rank'=>'rank_',
 						'relevance'=>'rank_',
-						'title'=>'title',
-						'country'=>'nation',
-						'nation'=>'nation',
-						'year'=>'year_start',
-						'proddate'=>'year_start',
-						'popularity'=>'total_views',
-						'total_views'=>'total_views',
-						'created'=>'created',
-						'changed'=>'changed'
+						'title'=>'surveys.title',
+						'country'=>'surveys.nation',
+						'nation'=>'surveys.nation',
+						'year'=>'surveys.year_start',
+						'proddate'=>'surveys.year_start',
+						'popularity'=>'surveys.total_views',
+						'total_views'=>'surveys.total_views',
+						'created'=>'surveys.created',
+						'changed'=>'surveys.changed'
 					);
 	var	$sort_allowed_order=array('asc','desc');
 	
@@ -130,43 +130,43 @@ class Catalog_search_mysql{
         $countries_iso3=$this->_build_countries_iso3_query();
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
-		$sort_by='title';
+		$sort_by='surveys.title';
 		if (array_key_exists($this->sort_by,$this->sort_allowed_fields))
 		{
 			$sort_by=$this->sort_allowed_fields[$this->sort_by];
-		} 
+		}
 		else
 		{
 			if ($this->ci->config->item("regional_search")=='yes')
 			{
-				$sort_by='nation';
-			}		
+				$sort_by='surveys.nation';
+			}
 		}
 
 		if(empty($study) && $sort_by=='rank_'){
-			$sort_by='title';
+			$sort_by='surveys.title';
 		}
 
 		$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 		
 		//multi-column sort
-		if ($sort_by=='nation')
+		if ($sort_by=='surveys.nation')
 		{
-			$sort_options[1]=array('sort_by'=>'year_start', 'sort_order'=>'desc');
-			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
-            $sort_options[3]=array('sort_by'=>'total_views', 'sort_order'=>'desc');
+			$sort_options[1]=array('sort_by'=>'surveys.year_start', 'sort_order'=>'desc');
+			$sort_options[2]=array('sort_by'=>'surveys.title', 'sort_order'=>'asc');
+            $sort_options[3]=array('sort_by'=>'surveys.total_views', 'sort_order'=>'desc');
 		}
-		elseif ($sort_by=='title')
+		elseif ($sort_by=='surveys.title')
 		{
-			$sort_options[1]=array('sort_by'=>'year_start', 'sort_order'=>'desc');
-			$sort_options[2]=array('sort_by'=>'nation', 'sort_order'=>'asc');
-            $sort_options[3]=array('sort_by'=>'total_views', 'sort_order'=>'desc');
+			$sort_options[1]=array('sort_by'=>'surveys.year_start', 'sort_order'=>'desc');
+			$sort_options[2]=array('sort_by'=>'surveys.nation', 'sort_order'=>'asc');
+            $sort_options[3]=array('sort_by'=>'surveys.total_views', 'sort_order'=>'desc');
 		}
-		if ($sort_by=='year_start')
+		if ($sort_by=='surveys.year_start')
 		{
-			$sort_options[1]=array('sort_by'=>'nation', 'sort_order'=>'asc');
-			$sort_options[2]=array('sort_by'=>'title', 'sort_order'=>'asc');
-            $sort_options[3]=array('sort_by'=>'total_views', 'sort_order'=>'desc');
+			$sort_options[1]=array('sort_by'=>'surveys.nation', 'sort_order'=>'asc');
+			$sort_options[2]=array('sort_by'=>'surveys.title', 'sort_order'=>'asc');
+            $sort_options[3]=array('sort_by'=>'surveys.total_views', 'sort_order'=>'desc');
 		}
 
 		//array of all options
@@ -193,11 +193,12 @@ class Catalog_search_mysql{
 		}
 		
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno, surveys.doi, surveys.title,surveys.subtitle,nation,authoring_entity';
-		$study_fields.=',forms.model as form_model, data_class_id, surveys.year_start,surveys.year_end, surveys.thumbnail';
-		$study_fields.=',surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount';
+		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno, surveys.doi, surveys.title,surveys.subtitle,surveys.nation,surveys.authoring_entity';
+		$study_fields.=',forms.model as form_model, surveys.data_class_id, surveys.year_start,surveys.year_end, surveys.thumbnail';
+		$study_fields.=',surveys.repositoryid as repositoryid, surveys.link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,surveys.varcount';
 		$study_fields.=',surveys.ts_dimensions';
 		$study_fields.=',surveys.abstract';
+		$study_fields.=',tsdb.id as ts_db_study_id, tsdb.title as ts_db_title';
 
 		//add ranking if keywords are not empty
 		if(!empty($study)){
@@ -209,6 +210,8 @@ class Catalog_search_mysql{
 		$this->ci->db->from('surveys');
 		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+		$this->ci->db->join('timeseries_db_links tdbl','tdbl.series_id=surveys.id AND tdbl.is_primary=1','left');
+		$this->ci->db->join('surveys tsdb','tsdb.idno=tdbl.db_idno AND tsdb.type=\'timeseriesdb\' AND tsdb.published=1','left');
 		$this->ci->db->where('surveys.published',1);
 
 		//multi-sort

@@ -91,6 +91,12 @@
             </v-chip>
           </div>
 
+          <div v-if="timeseriesDatabase" class="study-ts-database study-meta-line">
+            <span class="study-ts-database__label">{{ t('dataset') }}:</span>
+            <a v-if="timeseriesDatabase.url" :href="timeseriesDatabase.url" class="study-ts-database__link">{{ timeseriesDatabase.title }}</a>
+            <span v-else>{{ timeseriesDatabase.title }}</span>
+          </div>
+
           <div v-if="showAbstract && row.abstract" class="study-abstract text-body-2 text-medium-emphasis">
             <template v-if="abstractExpanded || !abstractNeedsTruncation">
               {{ row.abstract }}
@@ -250,6 +256,15 @@ const typeLabel = computed(() => {
 
 const timeseriesDimensions = computed(() => parseTimeseriesDimensions(props.row));
 
+const timeseriesDatabase = computed(() => {
+  if (props.row?.type !== 'timeseries') return null;
+  const title = props.row?.ts_db_title;
+  if (!title) return null;
+  const dbId = props.row?.ts_db_study_id;
+  const url = dbId ? joinSiteUrl(siteUrl.value, `catalog/${dbId}`) : null;
+  return { title, url };
+});
+
 const dataClassBadge = computed(() => {
   if (props.row?.type !== 'survey') return null;
   const id = props.row?.data_class_id;
@@ -331,6 +346,15 @@ function goToCollection(repositoryid) {
 .study-card :deep(a:not(.study-title)) {
   text-decoration: none;
   color: inherit;
+}
+
+.study-ts-database__link {
+  color: rgb(var(--v-theme-primary)) !important;
+  text-decoration: none;
+}
+
+.study-ts-database__link:hover {
+  text-decoration: underline;
 }
 
 .collection-chip {

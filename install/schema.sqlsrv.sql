@@ -407,8 +407,8 @@ CREATE TABLE timeseries_db_links (
   PRIMARY KEY (id),
   CONSTRAINT uq_series_db UNIQUE (series_id, db_idno)
 );
-CREATE NONCLUSTERED INDEX idx_tsdbl_series_id ON [dbo].[timeseries_db_links] ([series_id] ASC);
-CREATE NONCLUSTERED INDEX idx_tsdbl_db_idno   ON [dbo].[timeseries_db_links] ([db_idno] ASC);
+CREATE NONCLUSTERED INDEX idx_tsdbl_series_primary ON [dbo].[timeseries_db_links] ([series_id] ASC, [is_primary] ASC);
+CREATE NONCLUSTERED INDEX idx_tsdbl_db_idno         ON [dbo].[timeseries_db_links] ([db_idno] ASC);
 
 
 --

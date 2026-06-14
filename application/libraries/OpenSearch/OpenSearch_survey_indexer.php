@@ -200,6 +200,11 @@ class OpenSearch_survey_indexer
             'thumbnail'       => $row['thumbnail']  ?? null,
             'link_da'         => $row['link_da']    ?? null,
             'data_class_id'   => isset($row['data_class_id']) ? (int)$row['data_class_id'] : null,
+
+            // --- Timeseries-specific ---
+            'ts_dimensions'   => $row['ts_dimensions'] ?? null,
+            'ts_db_study_id'  => isset($row['ts_db_study_id']) ? (int)$row['ts_db_study_id'] : null,
+            'ts_db_title'     => $row['ts_db_title'] ?? null,
         ];
     }
 
@@ -237,12 +242,17 @@ class OpenSearch_survey_indexer
              surveys.thumbnail,
              surveys.link_da,
              surveys.data_class_id,
+             surveys.ts_dimensions,
              forms.model          AS form_model,
-             repositories.title   AS repo_title',
+             repositories.title   AS repo_title,
+             tsdb.id              AS ts_db_study_id,
+             tsdb.title           AS ts_db_title',
             false
         );
         $this->ci->db->join('forms',        'surveys.formid = forms.formid',                    'left');
         $this->ci->db->join('repositories', 'surveys.repositoryid = repositories.repositoryid', 'left');
+        $this->ci->db->join('timeseries_db_links tdbl', 'tdbl.series_id=surveys.id AND tdbl.is_primary=1', 'left');
+        $this->ci->db->join('surveys tsdb', "tsdb.idno=tdbl.db_idno AND tsdb.type='timeseriesdb' AND tsdb.published=1", 'left');
 
         if ($survey_id !== null) {
             $this->ci->db->where('surveys.id', $survey_id);

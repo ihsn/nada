@@ -385,9 +385,9 @@ CREATE TABLE `timeseries_db_links` (
   `db_idno`    VARCHAR(255) NOT NULL,
   `is_primary` TINYINT(1)   NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_series_db` (`series_id`, `db_idno`),
-  KEY `idx_series_id` (`series_id`),
-  KEY `idx_db_idno`   (`db_idno`)
+  UNIQUE KEY `uq_series_db`    (`series_id`, `db_idno`),
+  KEY `idx_series_primary`     (`series_id`, `is_primary`),
+  KEY `idx_db_idno`            (`db_idno`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 

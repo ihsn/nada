@@ -33,9 +33,9 @@ class Migration_Create_timeseries_db_links extends MY_Migration {
 					`db_idno`    VARCHAR(255) NOT NULL,
 					`is_primary` TINYINT(1)   NOT NULL DEFAULT 0,
 					PRIMARY KEY (`id`),
-					UNIQUE KEY `uq_series_db` (`series_id`, `db_idno`),
-					KEY `idx_series_id` (`series_id`),
-					KEY `idx_db_idno`   (`db_idno`)
+					UNIQUE KEY `uq_series_db`    (`series_id`, `db_idno`),
+					KEY `idx_series_primary`     (`series_id`, `is_primary`),
+					KEY `idx_db_idno`            (`db_idno`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 			");
 			return;
@@ -51,8 +51,8 @@ class Migration_Create_timeseries_db_links extends MY_Migration {
 					CONSTRAINT uq_series_db UNIQUE (series_id, db_idno)
 				)
 			");
-			$this->db->query('CREATE INDEX idx_series_id ON timeseries_db_links (series_id)');
-			$this->db->query('CREATE INDEX idx_db_idno   ON timeseries_db_links (db_idno)');
+			$this->db->query('CREATE NONCLUSTERED INDEX idx_tsdbl_series_primary ON timeseries_db_links (series_id ASC, is_primary ASC)');
+			$this->db->query('CREATE NONCLUSTERED INDEX idx_tsdbl_db_idno       ON timeseries_db_links (db_idno ASC)');
 		}
 	}
 
