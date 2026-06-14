@@ -2,7 +2,6 @@
 -- Table structure for table `repositories`
 --
 
-DROP TABLE IF EXISTS `repositories`;
 CREATE TABLE `repositories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pid` int(11) DEFAULT NULL,
@@ -26,7 +25,7 @@ CREATE TABLE `repositories` (
   `group_da_licensed` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `Ind_unq` (`repositoryid`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -34,7 +33,6 @@ CREATE TABLE `repositories` (
 -- Table structure for table `lic_files`
 --
 
-DROP TABLE IF EXISTS `lic_files`;
 CREATE TABLE `lic_files` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `surveyid` int(11) NOT NULL,
@@ -42,14 +40,13 @@ CREATE TABLE `lic_files` (
   `file_path` varchar(255) NOT NULL,
   `changed` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 
 --
 -- Table structure for table `site_menu`
 --
 
-DROP TABLE IF EXISTS `site_menu`;
 CREATE TABLE `site_menu` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pid` int(11) DEFAULT NULL,
@@ -59,7 +56,7 @@ CREATE TABLE `site_menu` (
   `depth` int(11) DEFAULT NULL,
   `module` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=36 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `site_menu`
@@ -109,7 +106,6 @@ UNLOCK TABLES;
 -- Table structure for table `vocabularies`
 --
 
-DROP TABLE IF EXISTS `vocabularies`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `vocabularies` (
@@ -117,7 +113,7 @@ CREATE TABLE `vocabularies` (
   `title` varchar(255) NOT NULL,
   PRIMARY KEY (`vid`),
   UNIQUE KEY `idx_voc_title` (`title`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -126,7 +122,6 @@ CREATE TABLE `vocabularies` (
 -- Table structure for table `variables`
 --
 
-DROP TABLE IF EXISTS `variables`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `variables` (
@@ -145,7 +140,7 @@ CREATE TABLE `variables` (
   KEY `idxsurveyidfk` (`sid`),
   FULLTEXT KEY `idx_nm_lbl_qstn` (`name`,`labl`,`qstn`,`catgry`),
   FULLTEXT KEY `idx_nm_lbl_cat_qstn` (`name`,`labl`,`catgry`,`qstn`,`keywords`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -156,7 +151,6 @@ CREATE TABLE `variables` (
 -- Table structure for table `variable_groups`
 --
 
-DROP TABLE IF EXISTS `variable_groups`;
 
 CREATE TABLE `variable_groups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -171,7 +165,7 @@ CREATE TABLE `variable_groups` (
   `txt` varchar(500) DEFAULT NULL,
   `definition` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -179,7 +173,6 @@ CREATE TABLE `variable_groups` (
 -- Table structure for table `survey_relationships`
 --
 
-DROP TABLE IF EXISTS `survey_relationships`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_relationships` (
@@ -190,7 +183,7 @@ CREATE TABLE `survey_relationships` (
   `pair_id` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_pair` (`pair_id`)
-) DEFAULT CHARSET=utf8 COMMENT='related surveys e.g. parent, child, sibling, related';
+) DEFAULT CHARSET=utf8mb4 COMMENT='related surveys e.g. parent, child, sibling, related';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -198,7 +191,6 @@ CREATE TABLE `survey_relationships` (
 -- Table structure for table `survey_tags`
 --
 
-DROP TABLE IF EXISTS `survey_tags`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_tags` (
@@ -207,7 +199,7 @@ CREATE TABLE `survey_tags` (
   `tag` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_tag` (`sid`,`tag`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -215,7 +207,6 @@ CREATE TABLE `survey_tags` (
 -- Table structure for table `meta`
 --
 
-DROP TABLE IF EXISTS `meta`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `meta` (
@@ -227,7 +218,7 @@ CREATE TABLE `meta` (
   `phone` varchar(20) DEFAULT NULL,
   `country` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -235,7 +226,6 @@ CREATE TABLE `meta` (
 -- Table structure for table `login_attempts`
 --
 
-DROP TABLE IF EXISTS `login_attempts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `login_attempts` (
@@ -244,7 +234,7 @@ CREATE TABLE `login_attempts` (
   `login` varchar(100) NOT NULL,
   `time` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -252,15 +242,14 @@ CREATE TABLE `login_attempts` (
 -- Table structure for table `repository_sections`
 --
 
-DROP TABLE IF EXISTS `repository_sections`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `repository_sections` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `title` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+  `title` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `weight` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -277,7 +266,6 @@ UNLOCK TABLES;
 -- Table structure for table `survey_topics`
 --
 
-DROP TABLE IF EXISTS `survey_topics`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_topics` (
@@ -286,7 +274,7 @@ CREATE TABLE `survey_topics` (
   `uid` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`uid`),
   UNIQUE KEY `Idx_uniq` (`tid`,`sid`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -294,7 +282,6 @@ CREATE TABLE `survey_topics` (
 -- Table structure for table `survey_citations`
 --
 
-DROP TABLE IF EXISTS `survey_citations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_citations` (
@@ -304,7 +291,7 @@ CREATE TABLE `survey_citations` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `Idx_s_c` (`sid`,`citationid`),
   KEY `idx_survey_citations_citationid` (`citationid`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -312,14 +299,13 @@ CREATE TABLE `survey_citations` (
 -- Table structure for table `dcformats`
 --
 
-DROP TABLE IF EXISTS `dcformats`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `dcformats` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -336,7 +322,6 @@ UNLOCK TABLES;
 -- Table structure for table `surveys`
 --
 
-DROP TABLE IF EXISTS `surveys`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 
@@ -387,15 +372,29 @@ CREATE TABLE `surveys` (
   KEY `idx_surveys_ts_db_id` (`ts_db_id`),
   FULLTEXT KEY `ft_titl` (`title`),
   FULLTEXT KEY `ft_keywords` (`keywords`,`var_keywords`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `timeseries_db_links`
+--
+
+CREATE TABLE `timeseries_db_links` (
+  `id`         INT(11)      NOT NULL AUTO_INCREMENT,
+  `series_id`  INT(11)      NOT NULL,
+  `db_idno`    VARCHAR(255) NOT NULL,
+  `is_primary` TINYINT(1)   NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_series_db` (`series_id`, `db_idno`),
+  KEY `idx_series_id` (`series_id`),
+  KEY `idx_db_idno`   (`db_idno`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 --
 -- Table structure for table `dctypes`
 --
 
-DROP TABLE IF EXISTS `dctypes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `dctypes` (
@@ -404,7 +403,7 @@ CREATE TABLE `dctypes` (
   `title` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unq_dctypes_code` (`code`)
-) AUTO_INCREMENT=20 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -440,7 +439,6 @@ UNLOCK TABLES;
 -- Table structure for table `dctype_translations`
 --
 
-DROP TABLE IF EXISTS `dctype_translations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `dctype_translations` (
@@ -452,7 +450,7 @@ CREATE TABLE `dctype_translations` (
   UNIQUE KEY `unq_dctype_lang` (`dctype_id`,`lang`),
   KEY `idx_dctype_translations_lang` (`lang`),
   CONSTRAINT `fk_dctype_translations_dctype` FOREIGN KEY (`dctype_id`) REFERENCES `dctypes` (`id`) ON DELETE CASCADE
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -488,14 +486,6 @@ UNLOCK TABLES;
 -- Table structure for table `codelists`
 --
 
-DROP TABLE IF EXISTS `codelist_group_translation`;
-DROP TABLE IF EXISTS `codelist_group_item`;
-DROP TABLE IF EXISTS `codelist_group`;
-DROP TABLE IF EXISTS `codelist_item_translation`;
-DROP TABLE IF EXISTS `codelist_item`;
-DROP TABLE IF EXISTS `data_structure_components`;
-DROP TABLE IF EXISTS `data_structures`;
-DROP TABLE IF EXISTS `codelists`;
 
 CREATE TABLE `codelists` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -516,7 +506,7 @@ CREATE TABLE `codelists` (
   KEY `idx_codelists_agency_name` (`agency`,`name`),
   KEY `idx_codelists_pid` (`pid`),
   CONSTRAINT `fk_codelists_pid` FOREIGN KEY (`pid`) REFERENCES `codelists` (`id`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `codelist_item` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -531,7 +521,7 @@ CREATE TABLE `codelist_item` (
   KEY `idx_codelist_item_sort` (`codelist_id`,`sort_order`),
   CONSTRAINT `fk_codelist_item_codelist` FOREIGN KEY (`codelist_id`) REFERENCES `codelists` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_codelist_item_parent` FOREIGN KEY (`parent_id`) REFERENCES `codelist_item` (`id`) ON DELETE SET NULL
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `codelist_item_translation` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -542,7 +532,7 @@ CREATE TABLE `codelist_item_translation` (
   UNIQUE KEY `unq_codelist_item_trans` (`codelist_item_id`,`lang`),
   KEY `idx_codelist_item_trans_lang` (`lang`),
   CONSTRAINT `fk_codelist_item_trans_item` FOREIGN KEY (`codelist_item_id`) REFERENCES `codelist_item` (`id`) ON DELETE CASCADE
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `codelist_group` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -553,7 +543,7 @@ CREATE TABLE `codelist_group` (
   UNIQUE KEY `unq_codelist_group_name` (`codelist_id`,`name`),
   KEY `idx_codelist_group_sort` (`codelist_id`,`sort_order`),
   CONSTRAINT `fk_codelist_group_codelist` FOREIGN KEY (`codelist_id`) REFERENCES `codelists` (`id`) ON DELETE CASCADE
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `codelist_group_item` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -564,7 +554,7 @@ CREATE TABLE `codelist_group_item` (
   UNIQUE KEY `unq_codelist_group_item` (`codelist_group_id`,`codelist_item_id`),
   CONSTRAINT `fk_codelist_grp_item_grp` FOREIGN KEY (`codelist_group_id`) REFERENCES `codelist_group` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_codelist_grp_item_item` FOREIGN KEY (`codelist_item_id`) REFERENCES `codelist_item` (`id`) ON DELETE CASCADE
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `codelist_group_translation` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -575,7 +565,7 @@ CREATE TABLE `codelist_group_translation` (
   UNIQUE KEY `unq_codelist_group_trans` (`codelist_group_id`,`lang`),
   KEY `idx_codelist_group_trans_lang` (`lang`),
   CONSTRAINT `fk_codelist_group_trans_grp` FOREIGN KEY (`codelist_group_id`) REFERENCES `codelist_group` (`id`) ON DELETE CASCADE
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 --
 -- Global data structures (DSD catalogue; one row per version)
@@ -715,7 +705,6 @@ INSERT INTO `codelist_group_item` (`codelist_group_id`,`codelist_item_id`,`sort_
 -- Table structure for table `da_collections`
 --
 
-DROP TABLE IF EXISTS `da_collections`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `da_collections` (
@@ -723,7 +712,7 @@ CREATE TABLE `da_collections` (
   `title` varchar(255) DEFAULT NULL,
   `description` varchar(1000) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8 COMMENT='data access by collection/set';
+) DEFAULT CHARSET=utf8mb4 COMMENT='data access by collection/set';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -732,7 +721,6 @@ CREATE TABLE `da_collections` (
 -- Table structure for table `forms`
 --
 
-DROP TABLE IF EXISTS `forms`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `forms` (
@@ -742,7 +730,7 @@ CREATE TABLE `forms` (
   `path` varchar(255) DEFAULT '',
   `iscustom` char(2) DEFAULT '0',
   PRIMARY KEY (`formid`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -793,7 +781,7 @@ CREATE TABLE `lic_requests` (
   `expiry_date` int(11) DEFAULT NULL,
   `additional_info` text,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -801,7 +789,6 @@ CREATE TABLE `lic_requests` (
 -- Table structure for table `citations`
 --
 
-DROP TABLE IF EXISTS `citations`;
 CREATE TABLE `citations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uuid` varchar(50) NOT NULL,
@@ -854,7 +841,7 @@ CREATE TABLE `citations` (
   KEY `idx_citations_url_status` (`url_status`),
   KEY `idx_citations_created_by` (`created_by`),
   KEY `idx_citations_changed_by` (`changed_by`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -862,16 +849,15 @@ CREATE TABLE `citations` (
 -- Table structure for table `survey_aliases`
 --
 
-DROP TABLE IF EXISTS `survey_aliases`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_aliases` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `sid` int(10)  NOT NULL,
-  `alternate_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `alternate_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `survey_id` (`alternate_id`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -880,7 +866,6 @@ CREATE TABLE `survey_aliases` (
 -- Table structure for table `resources`
 --
 
-DROP TABLE IF EXISTS `resources`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `resources` (
@@ -927,7 +912,6 @@ CREATE TABLE `resources` (
 -- Table structure for table `lic_files_log`
 --
 
-DROP TABLE IF EXISTS `lic_files_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lic_files_log` (
@@ -938,7 +922,7 @@ CREATE TABLE `lic_files_log` (
   `created` int(11) NOT NULL,
   `username` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8 COMMENT='licensed files download log';
+) DEFAULT CHARSET=utf8mb4 COMMENT='licensed files download log';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -947,7 +931,6 @@ CREATE TABLE `lic_files_log` (
 -- Table structure for table `terms`
 --
 
-DROP TABLE IF EXISTS `terms`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `terms` (
@@ -956,7 +939,7 @@ CREATE TABLE `terms` (
   `pid` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   PRIMARY KEY (`tid`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -965,7 +948,6 @@ CREATE TABLE `terms` (
 -- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `users` (
@@ -989,7 +971,7 @@ CREATE TABLE `users` (
   `authtype` varchar(40) DEFAULT NULL,
   `authtype_id` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -998,7 +980,6 @@ CREATE TABLE `users` (
 -- Table structure for table `survey_countries`
 --
 
-DROP TABLE IF EXISTS `survey_countries`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_countries` (
@@ -1008,7 +989,7 @@ CREATE TABLE `survey_countries` (
   `country_name` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sid_iso_UNIQUE` (`sid`,`country_name`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1017,7 +998,6 @@ CREATE TABLE `survey_countries` (
 -- Table structure for table `country_aliases`
 --
 
-DROP TABLE IF EXISTS `country_aliases`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `country_aliases` (
@@ -1026,7 +1006,7 @@ CREATE TABLE `country_aliases` (
   `alias` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ix_alias_uniq` (`countryid`,`alias`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1034,7 +1014,6 @@ CREATE TABLE `country_aliases` (
 -- Table structure for table `survey_repos`
 --
 
-DROP TABLE IF EXISTS `survey_repos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_repos` (
@@ -1043,7 +1022,7 @@ CREATE TABLE `survey_repos` (
   `repositoryid` varchar(255) NOT NULL,
   `isadmin` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1063,7 +1042,6 @@ UNLOCK TABLES;
 -- Table structure for table `menus`
 --
 
-DROP TABLE IF EXISTS `menus`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `menus` (
@@ -1079,7 +1057,7 @@ CREATE TABLE `menus` (
   `pid` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_url` (`url`)
-) AUTO_INCREMENT=58 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=58 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1099,7 +1077,6 @@ UNLOCK TABLES;
 -- Table structure for table `url_mappings`
 --
 
-DROP TABLE IF EXISTS `url_mappings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `url_mappings` (
@@ -1107,7 +1084,7 @@ CREATE TABLE `url_mappings` (
   `source` varchar(255) DEFAULT NULL,
   `target` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1117,7 +1094,6 @@ CREATE TABLE `url_mappings` (
 -- Table structure for table `survey_relationship_types`
 --
 
-DROP TABLE IF EXISTS `survey_relationship_types`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_relationship_types` (
@@ -1127,7 +1103,7 @@ CREATE TABLE `survey_relationship_types` (
   `rel_dir` tinyint(4) DEFAULT NULL,
   `rel_cordinality` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1144,7 +1120,6 @@ UNLOCK TABLES;
 -- Table structure for table `lic_requests_history`
 --
 
-DROP TABLE IF EXISTS `lic_requests_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lic_requests_history` (
@@ -1156,7 +1131,7 @@ CREATE TABLE `lic_requests_history` (
   `description` text,
   `created` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1165,7 +1140,6 @@ CREATE TABLE `lic_requests_history` (
 -- Table structure for table `da_collection_surveys`
 --
 
-DROP TABLE IF EXISTS `da_collection_surveys`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `da_collection_surveys` (
@@ -1174,7 +1148,7 @@ CREATE TABLE `da_collection_surveys` (
   `sid` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unq_coll_sid` (`cid`,`sid`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1183,7 +1157,6 @@ CREATE TABLE `da_collection_surveys` (
 -- Table structure for table `tags`
 --
 
-DROP TABLE IF EXISTS `tags`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `tags` (
@@ -1191,7 +1164,7 @@ CREATE TABLE `tags` (
   `tag` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `tag_UNIQUE` (`tag`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1200,7 +1173,6 @@ CREATE TABLE `tags` (
 -- Table structure for table `survey_years`
 --
 
-DROP TABLE IF EXISTS `survey_years`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_years` (
@@ -1210,7 +1182,7 @@ CREATE TABLE `survey_years` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_sid_year` (`sid`,`data_coll_year`),
   KEY `idx_sid` (`sid`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1219,7 +1191,6 @@ CREATE TABLE `survey_years` (
 -- Table structure for table `region_countries`
 --
 
-DROP TABLE IF EXISTS `region_countries`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `region_countries` (
@@ -1227,7 +1198,7 @@ CREATE TABLE `region_countries` (
   `region_id` int(11) DEFAULT NULL,
   `country_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1245,7 +1216,6 @@ UNLOCK TABLES;
 -- Table structure for table `survey_notes`
 --
 
-DROP TABLE IF EXISTS `survey_notes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_notes` (
@@ -1257,7 +1227,7 @@ CREATE TABLE `survey_notes` (
   `created` int(11) DEFAULT NULL,
   `changed` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -1265,7 +1235,6 @@ CREATE TABLE `survey_notes` (
 -- Table structure for table `citation_authors`
 --
 
-DROP TABLE IF EXISTS `citation_authors`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `citation_authors` (
@@ -1277,7 +1246,7 @@ CREATE TABLE `citation_authors` (
   `author_type` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_cit_auth` (`cid`,`author_type`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1285,7 +1254,6 @@ CREATE TABLE `citation_authors` (
 -- Table structure for table `countries`
 --
 
-DROP TABLE IF EXISTS `countries`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `countries` (
@@ -1294,7 +1262,7 @@ CREATE TABLE `countries` (
   `iso` varchar(3) NOT NULL,
   PRIMARY KEY (`countryid`),
   UNIQUE KEY `iso_UNIQUE` (`iso`)
-) AUTO_INCREMENT=241 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=241 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1313,7 +1281,6 @@ UNLOCK TABLES;
 -- Table structure for table `lic_file_downloads`
 --
 
-DROP TABLE IF EXISTS `lic_file_downloads`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lic_file_downloads` (
@@ -1325,7 +1292,7 @@ CREATE TABLE `lic_file_downloads` (
   `lastdownloaded` int(11) DEFAULT NULL,
   `requestid` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1333,7 +1300,6 @@ CREATE TABLE `lic_file_downloads` (
 -- Table structure for table `regions`
 --
 
-DROP TABLE IF EXISTS `regions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `regions` (
@@ -1342,7 +1308,7 @@ CREATE TABLE `regions` (
   `title` varchar(45) DEFAULT NULL,
   `weight` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1359,7 +1325,6 @@ UNLOCK TABLES;
 -- Table structure for table `ci_sessions`
 --
 
-DROP TABLE IF EXISTS `ci_sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ci_sessions` (
@@ -1377,7 +1342,6 @@ CREATE TABLE `ci_sessions` (
 -- Table structure for table `public_requests`
 --
 
-DROP TABLE IF EXISTS `public_requests`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `public_requests` (
@@ -1390,14 +1354,13 @@ CREATE TABLE `public_requests` (
   `request_type` varchar(45) DEFAULT 'study',
   `collectionid` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 
 --
 -- Table structure for table `sitelogs`
 --
 
-DROP TABLE IF EXISTS `sitelogs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `sitelogs` (
@@ -1421,7 +1384,7 @@ CREATE TABLE `sitelogs` (
   KEY `idx_section` (`section`),
   KEY `idx_logtime_logtype` (`logtime`, `logtype`),
   KEY `idx_surveyid_logtime` (`surveyid`, `logtime`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -1430,7 +1393,6 @@ CREATE TABLE `sitelogs` (
 -- Table structure for table `configurations`
 --
 
-DROP TABLE IF EXISTS `configurations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `configurations` (
@@ -1440,7 +1402,7 @@ CREATE TABLE `configurations` (
   `helptext` varchar(255) DEFAULT NULL,
   `item_group` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`name`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1508,7 +1470,7 @@ CREATE TABLE `featured_surveys` (
   `weight` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `survey_repo` (`repoid`,`sid`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -1525,7 +1487,7 @@ CREATE TABLE `survey_types` (
   `weight` int DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `title_UNIQUE` (`code`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(1,'survey','Survey',100);
 INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(2,'geospatial','Geospatial',90);
@@ -1549,7 +1511,7 @@ CREATE TABLE `survey_lic_requests` (
   `sid` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `uq_survey_requests` (`request_id`,`sid`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -1573,7 +1535,7 @@ CREATE TABLE `data_files` (
   `metadata` varchar(5000) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `survey_file` (`sid`,`file_id`)  
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -1602,7 +1564,7 @@ CREATE TABLE `api_keys` (
   KEY `idx_key_hash` (`key_hash`),
   KEY `idx_expires_at` (`expires_at`),
   KEY `idx_user_revoked` (`user_id`, `revoked_at`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 --
 -- API Logs table
@@ -1630,7 +1592,7 @@ CREATE TABLE `api_logs` (
   KEY `idx_api_logs_ip_address` (`ip_address`),
   KEY `idx_api_logs_time_method` (`time`, `method`),
   KEY `idx_api_logs_time_response_code` (`time`, `response_code`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -1652,7 +1614,7 @@ CREATE TABLE `survey_locations` (
   `location` geometry NOT NULL,
   PRIMARY KEY (`id`),
   SPATIAL KEY `idx_location` (`location`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 
 CREATE TABLE `filestore` (
@@ -1664,23 +1626,8 @@ CREATE TABLE `filestore` (
   `changed` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_filestore_file` (`file_name`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
-
-CREATE TABLE `ts_databases` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `idno` varchar(150) DEFAULT NULL,
-  `title` varchar(300) DEFAULT NULL,
-  `abstract` text,
-  `published` tinyint(4) DEFAULT NULL,
-  `created` varchar(45) DEFAULT NULL,
-  `changed` varchar(45) DEFAULT NULL,
-  `created_by` int(11) DEFAULT NULL,
-  `changed_by` int(11) DEFAULT NULL,
-  `metadata` text,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idno_UNIQUE` (`idno`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `data_classifications` (
@@ -1689,7 +1636,7 @@ CREATE TABLE `data_classifications` (
   `title` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `code_UNIQUE` (`code`)
-) DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8mb4;
 
 
 LOCK TABLES `data_classifications` WRITE;
@@ -1710,7 +1657,7 @@ CREATE TABLE `roles` (
   `is_admin` tinyint(4) DEFAULT '0',
   `is_locked` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
@@ -1727,7 +1674,7 @@ CREATE TABLE `role_permissions` (
   `resource` varchar(45) DEFAULT NULL,
   `permissions` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 CREATE TABLE `user_roles` (
@@ -1735,7 +1682,7 @@ CREATE TABLE `user_roles` (
   `user_id` int(11) DEFAULT NULL,
   `role_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 --
@@ -1763,7 +1710,7 @@ CREATE TABLE `widgets` (
   `options` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid_UNIQUE` (`uuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -1774,7 +1721,7 @@ CREATE TABLE `survey_widgets` (
   `url` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sid_uuid` (`sid`,`widget_uuid`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 --
@@ -1790,7 +1737,7 @@ CREATE TABLE `survey_widgets` (
   `mappings` mediumtext,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 insert into facets(name,title,facet_type,enabled)
@@ -1813,7 +1760,7 @@ CREATE TABLE `facet_terms` (
   `value` varchar(300) DEFAULT NULL,
   `weight` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 --
@@ -1826,7 +1773,7 @@ CREATE TABLE `survey_facets` (
   `facet_id` int(11) DEFAULT NULL,
   `term_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -1860,7 +1807,7 @@ CREATE TABLE `survey_data_api` (
   `db_id` varchar(45) DEFAULT NULL,
   `table_id` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-)AUTO_INCREMENT=1;
+) AUTO_INCREMENT=1;
 
 
 --

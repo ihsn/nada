@@ -31,7 +31,7 @@ class Study extends MY_Controller {
 		$this->lang->load('resource_manager');
 		$this->load->helper("markdown");
 		//$this->load->helper('catalog');
-		//$this->output->enable_profiler(TRUE);
+		$this->output->enable_profiler(TRUE);
 
 		if ($this->ion_auth->logged_in()){
 			$this->user=$this->ion_auth->current_user();
@@ -72,6 +72,21 @@ class Study extends MY_Controller {
 		}
 
 		$survey['resources']=$this->Survey_resource_model->get_survey_resources_group_by_filename($sid);
+
+		// Pre-resolve databases[] catalog links for the display template renderer
+		if ($survey['type'] === 'timeseries') {
+			$databases = isset($survey['metadata']['series_description']['databases'])
+				? $survey['metadata']['series_description']['databases']
+				: array();
+			foreach ($databases as $i => $db) {
+				$idno = isset($db['id']) ? trim((string)$db['id']) : '';
+				$resolved = $idno !== '' ? $this->Timeseries_db_model->get_row_by_idno($idno) : null;
+				$databases[$i]['catalog_url'] = $resolved
+					? site_url('catalog/' . $resolved['id'] . '/study-description')
+					: null;
+			}
+			$survey['metadata']['series_description']['databases'] = $databases;
+		}
 
 		if (in_array($survey['type'], array('script','survey','timeseries','timeseriesdb','timeseries-db'))){
 			$output=$this->render_metadata_html($survey);
@@ -424,16 +439,55 @@ class Study extends MY_Controller {
 
 	public function timeseries_db($sid)
 	{
-		$database=$this->Timeseries_db_model->get_database_by_series_id($sid);
-
-		if (empty($database)){
-			show_error("Timeseries database does not exist");
+		$survey = $this->Dataset_model->get_row($sid);
+		if (!$survey || $survey['type'] !== 'timeseries') {
+			show_404();
 		}
 
-		$this->metadata_template->initialize('timeseriesdb',$database);
-		$output=$this->metadata_template->render_html();
-		$this->render_page($sid, $output,'timeseries_db');
+		$databases_meta = isset($survey['metadata']['series_description']['databases'])
+			? $survey['metadata']['series_description']['databases']
+			: array();
+
+		$databases = array();
+		foreach ((array)$databases_meta as $db) {
+			$idno = isset($db['id']) ? trim((string)$db['id']) : '';
+			$resolved = $idno !== '' ? $this->Timeseries_db_model->get_row_by_idno($idno) : null;
+			$databases[] = array(
+				'meta'     => $db,
+				'resolved' => $resolved,
+			);
+		}
+
+		$output = $this->load->view('survey_info/timeseries_databases', array('databases' => $databases), true);
+		$this->render_page($sid, $output, 'timeseries_db');
 	}
+
+
+	public function related_series($sid)
+	{
+		$survey = $this->Dataset_model->get_row($sid);
+		if (!$survey || !in_array($survey['type'], array('timeseriesdb', 'timeseries-db'))) {
+			show_404();
+		}
+
+		$page   = max(1, (int)$this->input->get('page'));
+		$limit  = 20;
+		$offset = ($page - 1) * $limit;
+
+		$series = $this->Timeseries_db_model->get_series_by_db_idno($survey['idno'], $limit, $offset);
+		$total  = $this->Timeseries_db_model->count_series_by_db_idno($survey['idno']);
+
+		$output = $this->load->view('survey_info/timeseries_db_series', array(
+			'series'      => $series,
+			'total'       => $total,
+			'page'        => $page,
+			'limit'       => $limit,
+			'db_title'    => $survey['title'],
+		), true);
+
+		$this->render_page($sid, $output, 'related_series');
+	}
+
 
 	/**
 	 * Legacy catalog URL catalog/{sid}/indicator-data — redirects to indicator-chart / indicator-data-api / indicator-structure.
@@ -650,13 +704,6 @@ class Study extends MY_Controller {
 		//formatted related studies
 		$related_studies_formatted=$this->load->view('survey_info/related_studies',array('related_studies'=>$related_studies),true);
 
-		//timeseries database
-		$timeseries_db=null;
-
-		if($dataset_type=='timeseries'){
-			$timeseries_db=$this->Timeseries_db_model->get_database_by_series_id($sid);
-		}
-
 		//data api
 		$has_data_api=$this->Survey_data_api_model->get_by_sid($sid);
 
@@ -745,11 +792,6 @@ class Study extends MY_Controller {
 						'url'=>site_url("catalog/$sid/indicator-structure"),
 						'show_tab'=>$has_indicator_mongo ? 1 : 0
 					),
-					'timeseries_db'=>array(
-						'label'=>t('timeseries_db'),
-						'url'=>site_url("catalog/$sid/timeseries-db"),
-						'show_tab'=>!empty($timeseries_db)
-					),
 					'related_materials'=>array(
 						'label'=>t('related_materials'),
 						'url'=>site_url("catalog/$sid/related-materials"),
@@ -759,11 +801,17 @@ class Study extends MY_Controller {
 				break;
 			case 'timeseriesdb':
 			case 'timeseries-db':
+				$ts_series_count = $this->Timeseries_db_model->count_series_by_db_idno($survey['idno']);
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>'Dataset description',
 						'url'=>site_url("catalog/$sid/study-description"),
 						'show_tab'=>1
+					),
+					'related_series'=>array(
+						'label'=>t('related_series'),
+						'url'=>site_url("catalog/$sid/related-series"),
+						'show_tab'=>$ts_series_count > 0 ? 1 : 0
 					),
 					'related_materials'=>array(
 						'label'=>t('related_materials'),
@@ -829,11 +877,29 @@ class Study extends MY_Controller {
 				show_error('DATASET-TYPE-NOT-SUPPORTED: '. $dataset_type);
 		}
 
+		$survey_info = $this->get_survey_info($sid);
+
+		// Resolve databases[] for the info panel (timeseries only)
+		if ($dataset_type === 'timeseries' && isset($survey_info['metadata'])) {
+			$this->Dataset_timeseries_model->normalize_databases_metadata($survey_info['metadata']);
+			$databases = isset($survey_info['metadata']['series_description']['databases'])
+				? $survey_info['metadata']['series_description']['databases']
+				: array();
+			foreach ($databases as $i => $db) {
+				$idno = isset($db['id']) ? trim((string)$db['id']) : '';
+				$resolved = $idno !== '' ? $this->Timeseries_db_model->get_row_by_idno($idno) : null;
+				$databases[$i]['catalog_url'] = $resolved
+					? site_url('catalog/' . $resolved['id'] . '/study-description')
+					: null;
+			}
+			$survey_info['resolved_databases'] = $databases;
+		}
+
 		$options=array(
 			'published'=>$published,
 			'sid'=>$sid,
 			'dataset_type'=>$dataset['type'],
-			'survey'=>$this->get_survey_info($sid),
+			'survey'=>$survey_info,
 			'page_tabs'=>$page_tabs,
 			'active_tab'=>$active_tab,
 			'data_access_type'=>$data_access_type,
@@ -887,17 +953,6 @@ class Study extends MY_Controller {
 			$survey['owner_repo']=$this->Repository_model->get_central_catalog_array();
 		}
 
-		if($survey['type']=='timeseries'){
-			$survey['timeseries_db']=$this->Timeseries_db_model->get_database_by_series_id($id);
-
-			if (!empty($survey['timeseries_db'])){
-				$survey['timeseries_db_title']=null;
-				if (isset($survey['timeseries_db']['metadata']['database_description']['title_statement']['title'])){
-					$survey['timeseries_db_title']=$survey['timeseries_db']['metadata']['database_description']['title_statement']['title'];
-				}
-			}
-
-		}
 
 		return $survey;
 	}

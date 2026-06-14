@@ -395,6 +395,21 @@ CREATE NONCLUSTERED INDEX idx_surveys_total_views ON [dbo].[surveys] ([total_vie
 CREATE NONCLUSTERED INDEX idx_surveys_changed ON [dbo].[surveys] ([changed] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_created ON [dbo].[surveys] ([created] ASC);
 
+--
+-- Table structure for table timeseries_db_links
+--
+
+CREATE TABLE timeseries_db_links (
+  id         INT          NOT NULL IDENTITY(1,1),
+  series_id  INT          NOT NULL,
+  db_idno    NVARCHAR(255) NOT NULL,
+  is_primary TINYINT      NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  CONSTRAINT uq_series_db UNIQUE (series_id, db_idno)
+);
+CREATE NONCLUSTERED INDEX idx_tsdbl_series_id ON [dbo].[timeseries_db_links] ([series_id] ASC);
+CREATE NONCLUSTERED INDEX idx_tsdbl_db_idno   ON [dbo].[timeseries_db_links] ([db_idno] ASC);
+
 
 --
 -- Table structure for table dctypes

@@ -99,7 +99,7 @@ class Datasets extends MY_REST_Controller
 
 			array_walk($result, 'unix_date_to_gmt_row',array('created','changed'));
 
-			$result['metadata']=$this->dataset_manager->get_metadata($sid);
+			$result['metadata']=$this->dataset_manager->get_metadata($sid, isset($result['type']) ? $result['type'] : null);
 			
 			$response=array(
 				'status'=>'success',
@@ -746,7 +746,7 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("TYPE_MISMATCH: dataset type is [".$dataset['type']."] but URL type is [".$type."]");
 			}
 
-			$metadata=$this->dataset_manager->get_metadata($sid);
+			$metadata=$this->dataset_manager->get_metadata($sid, $type);
 
 			if (!is_array($metadata)){
 				throw new Exception("METADATA_NOT_AVAILABLE");

@@ -84,6 +84,9 @@ class Dataset_timeseriesdb_model extends Dataset_model {
         $this->update_filters($dataset_id,$options['metadata']);
         $this->db->trans_complete();
 
+        $this->load->model('Timeseries_db_model');
+        $this->Timeseries_db_model->sync_series_links($core_fields['idno'], $options['metadata']);
+
         return $dataset_id;
     }
 

@@ -100,6 +100,11 @@ class Dataset_timeseries_model extends Dataset_model {
             }
         }
 
+        // Normalize legacy database_id/database_name -> databases[] array
+        if (is_array($options['metadata'] ?? null)) {
+            $this->normalize_databases_metadata($options['metadata']);
+        }
+
         // Canonical reference precedence for legacy or mixed payloads:
         // - when data_structure_reference is set, drop any inline metadata.data_structure (not part of the public schema)
         // - within an inline DSD snapshot, codelist_reference wins over codelist per component
@@ -139,8 +144,54 @@ class Dataset_timeseries_model extends Dataset_model {
 		//complete transaction
 		$this->db->trans_complete();
 
+		$this->sync_db_links($dataset_id, $options['metadata']);
+
 		return $dataset_id;
     }
+
+
+	/**
+	 * Rebuild timeseries_db_links rows for this series from series_description.databases[].
+	 */
+	function sync_db_links($sid, $metadata)
+	{
+		$sid = (int)$sid;
+		if ($sid <= 0 || !is_array($metadata)) {
+			return;
+		}
+
+		$databases = isset($metadata['series_description']['databases'])
+			? $metadata['series_description']['databases']
+			: array();
+
+		$this->db->where('series_id', $sid)->delete('timeseries_db_links');
+
+		if (!is_array($databases)) {
+			return;
+		}
+
+		foreach ($databases as $db) {
+			$idno = isset($db['id']) ? trim((string)$db['id']) : '';
+			if ($idno === '') {
+				continue;
+			}
+			$is_primary = !empty($db['is_primary']) ? 1 : 0;
+			$this->db->query(
+				'INSERT IGNORE INTO timeseries_db_links (series_id, db_idno, is_primary) VALUES (?, ?, ?)',
+				array($sid, $idno, $is_primary)
+			);
+		}
+	}
+
+
+	/**
+	 * Delete pivot rows when a timeseries series is deleted.
+	 */
+	function delete($id)
+	{
+		$this->db->where('series_id', (int)$id)->delete('timeseries_db_links');
+		return parent::delete($id);
+	}
 
 
     /**
@@ -407,6 +458,67 @@ class Dataset_timeseries_model extends Dataset_model {
                 $metadata['data_structure']['components'][$i] = $component;
             }
         }
+    }
+
+
+    /**
+     * Override: normalize legacy database_id/database_name -> databases[] on every read
+     * so exports and display always receive the canonical format regardless of when the
+     * record was last saved.
+     */
+    function get_metadata($sid)
+    {
+        $metadata = parent::get_metadata($sid);
+        if (is_array($metadata)) {
+            $this->normalize_databases_metadata($metadata);
+        }
+        return $metadata;
+    }
+
+
+    public function normalize_databases_metadata(array &$metadata)
+    {
+        $sd = isset($metadata['series_description']) && is_array($metadata['series_description'])
+            ? $metadata['series_description']
+            : null;
+
+        if ($sd === null) {
+            return;
+        }
+
+        $legacy_id   = isset($sd['database_id'])   ? trim((string)$sd['database_id'])   : '';
+        $legacy_name = isset($sd['database_name'])  ? trim((string)$sd['database_name']) : '';
+
+        // Remove legacy fields regardless — databases[] is canonical going forward
+        unset($metadata['series_description']['database_id']);
+        unset($metadata['series_description']['database_name']);
+
+        if ($legacy_id === '') {
+            return;
+        }
+
+        $databases = isset($sd['databases']) && is_array($sd['databases'])
+            ? $sd['databases']
+            : array();
+
+        // Check if already present in databases[]
+        foreach ($databases as $entry) {
+            $existing_id = isset($entry['id']) ? trim((string)$entry['id']) : '';
+            if ($existing_id === $legacy_id) {
+                // Already represented — ensure name is filled if missing
+                return;
+            }
+        }
+
+        // Prepend entry so the legacy primary database appears first
+        $new_entry = array(
+            'id'         => $legacy_id,
+            'name'       => $legacy_name !== '' ? $legacy_name : $legacy_id,
+            'is_primary' => true,
+        );
+
+        array_unshift($databases, $new_entry);
+        $metadata['series_description']['databases'] = $databases;
     }
 
 }
