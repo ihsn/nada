@@ -1972,7 +1972,8 @@ values
 ('country','Countries','core',1),
 ('collection','Collections','core',1),
 ('type','Data types','core',1),
-('tag','Tags','core',1);
+('tag','Tags','core',1),
+('ts_database','Dataset','core',1);
 
 
 CREATE TABLE facet_terms (
@@ -2001,6 +2002,7 @@ CREATE NONCLUSTERED INDEX idx_survey_facets_sid ON [dbo].[survey_facets] ([sid] 
 
 INSERT INTO configurations VALUES ('facets_all','["year","data_class","dtype","country"]',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('facets_microdata','["year","data_class","dtype","country"]',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('facets_timeseries','["ts_database","country"]',NULL,NULL,NULL);
 
 
 CREATE TABLE survey_data_api (

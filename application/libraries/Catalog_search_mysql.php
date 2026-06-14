@@ -27,6 +27,7 @@ class Catalog_search_mysql{
 	var $data_class=array();
 	var $collections=array();
 	var $dtype=array();//data access type
+	var $database=array();//timeseries database filter (db_idno values)
     var $sid=''; //comma separated list of survey IDs
 	var $country_iso3=''; //comma seperated list country iso3 codes	
 	var $created='';
@@ -121,10 +122,11 @@ class Catalog_search_mysql{
 		$regions=$this->_build_regions_query();
 		$tags=$this->_build_tags_query();
 		$collections=$this->_build_collections_query();
-		$years=$this->_build_years_query();		
+		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
 		$dtype=$this->_build_dtype_query();
 		$data_classification=$this->_build_data_classification_query();
+		$database=$this->_build_database_query();
 		$sid=$this->_build_sid_query();
 		$created=$this->_build_created_query();
         $countries_iso3=$this->_build_countries_iso3_query();
@@ -170,7 +172,7 @@ class Catalog_search_mysql{
 		}
 
 		//array of all options
-		$where_list=array($study,$topics,$countries,$years,$repository,$collections,$dtype,$sid,$countries_iso3,$created,$data_classification,$tags,$type,$regions);
+		$where_list=array($study,$topics,$countries,$years,$repository,$collections,$dtype,$database,$sid,$countries_iso3,$created,$data_classification,$tags,$type,$regions);
 		
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -1353,6 +1355,29 @@ class Catalog_search_mysql{
 		}
 		
 		return FALSE;
+	}
+
+
+	protected function _build_database_query()
+	{
+		$idnos = (array) $this->database;
+
+		$escaped = array();
+		foreach ($idnos as $idno) {
+			$idno = trim((string) $idno);
+			if ($idno !== '') {
+				$escaped[] = $this->ci->db->escape($idno);
+			}
+		}
+
+		if (empty($escaped)) {
+			return FALSE;
+		}
+
+		return sprintf(
+			'surveys.id IN (SELECT series_id FROM timeseries_db_links WHERE db_idno IN (%s))',
+			implode(',', $escaped)
+		);
 	}
 
 

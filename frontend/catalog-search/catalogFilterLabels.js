@@ -42,6 +42,10 @@ function resolveDatasetType(id, facets, translate) {
   return translate ? translate(item.title, id) : item.title;
 }
 
+function resolveDatabase(id, facets) {
+  return facets?.databases?.[id]?.title ?? null;
+}
+
 function resolveUserFacet(facetKey, id, facets) {
   const facet = facets?.[facetKey];
   if (!facet?.values) return null;
@@ -56,6 +60,7 @@ const RESOLVERS = {
   data_class: (id, facets, translate) => resolveDataClass(id, facets, translate),
   type: (id, facets, translate) => resolveDatasetType(id, facets, translate),
   tag: (id) => id,
+  database: (id, facets) => resolveDatabase(id, facets),
 };
 
 /**

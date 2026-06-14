@@ -169,6 +169,11 @@ class Catalog_browse_service {
 
 		$this->facets['data_class'] = $this->CI->Search_helper_model->get_active_data_classifications($repo_id);
 
+		$this->facets['databases'] = $this->CI->Search_helper_model->get_active_databases(
+			$repo_id,
+			$this->active_tab
+		);
+
 		$this->facets['countries'] = $this->CI->Search_helper_model->get_active_countries(
 			$repo_id,
 			$this->active_tab,
@@ -295,6 +300,7 @@ class Catalog_browse_service {
 		$search_options->page = ($search_options->page > 0) ? $search_options->page : 1;
 		$search_options->dtype = xss_clean($this->CI->input->get('dtype'));
 		$search_options->data_class = xss_clean($this->CI->input->get('data_class'));
+		$search_options->ts_database = xss_clean($this->CI->input->get('database'));
 		$search_options->tag = xss_clean($this->CI->input->get('tag'));
 		$search_options->sid = $this->is_numeric_array(xss_clean($this->CI->input->get('sid')));
 		$search_options->type = xss_clean($this->CI->input->get('type'));
@@ -375,6 +381,7 @@ class Catalog_browse_service {
 			'repo' => $search_options->repo,
 			'dtype' => $this->parse_multi_value_param($search_options->dtype),
 			'data_class' => $this->parse_multi_value_param($search_options->data_class),
+			'database' => $this->parse_multi_value_param($search_options->ts_database),
 			'sid' => $search_options->sid,
 			'type' => $search_options->type,
 			'country_iso3' => $search_options->country_iso3,
@@ -408,6 +415,7 @@ class Catalog_browse_service {
 		$data['search_options'] = $search_options;
 		$data['data_access_types'] = $this->facets['da_types'];
 		$data['data_classifications'] = $this->facets['data_class'];
+		$data['databases'] = $this->facets['databases'];
 		$data['regions'] = $this->facets['regions'];
 		$data['sid'] = $search_options->sid;
 

@@ -18,7 +18,7 @@ import {
   parseMultiFilterValue,
 } from '../catalogFilterLabels';
 
-const FILTER_KEYS = ['country', 'region', 'dtype', 'data_class', 'type', 'tag', 'from', 'to', 'collection', 'sk'];
+const FILTER_KEYS = ['country', 'region', 'dtype', 'data_class', 'type', 'tag', 'from', 'to', 'collection', 'sk', 'database'];
 
 /** Merge featured studies at top and dedupe, matching legacy surveys.php behavior. */
 function mergeFeaturedRows(result, featuredStudies) {
@@ -97,7 +97,7 @@ export function useCatalogSearch() {
   }
 
   const hasActiveFilters = computed(() =>
-    ['country', 'region', 'dtype', 'data_class', 'type', 'tag', 'from', 'to', 'collection'].some(
+    ['country', 'region', 'dtype', 'data_class', 'database', 'type', 'tag', 'from', 'to', 'collection'].some(
       (k) => query[k] !== '' && query[k] != null
     )
   );
@@ -129,6 +129,7 @@ export function useCatalogSearch() {
       region: t('filter_by_region', 'Region'),
       dtype: t('filter_by_dtype', 'Data access'),
       data_class: t('data_classification', 'Classification'),
+      database: t('filter_by_database', 'Dataset'),
       type: t('filter_by_type', 'Data type'),
       tag: t('filter_by_tag', 'Tag'),
       collection: t('filter_by_collection', 'Collection'),
@@ -229,7 +230,7 @@ export function useCatalogSearch() {
   }
 
   function clearAllFilters() {
-    ['country', 'region', 'dtype', 'data_class', 'type', 'tag', 'collection', 'from', 'to', 'view', 'vk', 'vf'].forEach(
+    ['country', 'region', 'dtype', 'data_class', 'database', 'type', 'tag', 'collection', 'from', 'to', 'view', 'vk', 'vf'].forEach(
       (k) => { query[k] = ''; }
     );
     for (const key of Object.keys(query)) {
@@ -292,7 +293,7 @@ export function useCatalogSearch() {
     }
 
     const strKeys = [
-      'sk', 'tab_type', 'type', 'collection', 'region', 'dtype', 'data_class',
+      'sk', 'tab_type', 'type', 'collection', 'region', 'dtype', 'data_class', 'database',
       'country', 'tag', 'from', 'to', 'sort_by', 'sort_order',
       'view', 'vk', 'vf', 'image_view',
     ];

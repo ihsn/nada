@@ -25,6 +25,7 @@ export const DEFAULT_QUERY = {
   region: '',
   dtype: '',
   data_class: '',
+  database: '',
   country: '',
   tag: '',
   from: '',

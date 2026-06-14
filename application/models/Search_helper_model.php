@@ -616,15 +616,58 @@ class Search_helper_model extends CI_Model {
 		
 		return $types;
 	}
-	
-	
 
-	
-	
+
 	/**
-	* 
+	 * Returns timeseries databases (timeseriesdb entries) that have at least one
+	 * published timeseries series linked via timeseries_db_links.
+	 * Keyed by db_idno; value contains id (survey id), title, and found count.
+	 */
+	function get_active_databases($repositoryid = null, $data_type = null, $filter_values = array())
+	{
+		$this->db->select('tsdb.id as id, tdbl.db_idno as idno, tsdb.title as title, COUNT(tdbl.series_id) as found');
+		$this->db->from('timeseries_db_links tdbl');
+		$this->db->join('surveys s',    's.id = tdbl.series_id AND s.published = 1', 'inner');
+		$this->db->join('surveys tsdb', 'tsdb.idno = tdbl.db_idno AND tsdb.type = \'timeseriesdb\' AND tsdb.published = 1', 'inner');
+		$this->db->group_by('tdbl.db_idno, tsdb.id, tsdb.title');
+		$this->db->order_by('tsdb.title', 'ASC');
+
+		if ($repositoryid != null) {
+			$this->db->join('survey_repos sr', 'sr.sid = s.id', 'left');
+			$subquery = sprintf(
+				'(s.repositoryid = %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid)
+			);
+			$this->db->where($subquery, null, false);
+		}
+
+		if ($data_type != null) {
+			$this->db->where('s.type', $data_type);
+		}
+
+		$query = $this->db->get();
+		if (!$query) {
+			return array();
+		}
+
+		$result = array();
+		foreach ($query->result_array() as $row) {
+			$result[$row['idno']] = array(
+				'id'    => (int) $row['id'],
+				'idno'  => $row['idno'],
+				'title' => $row['title'],
+				'found' => (int) $row['found'],
+			);
+		}
+		return $result;
+	}
+
+
+	/**
+	*
 	* Returns a list of collections
-	*/	
+	*/
 	function get_collections($repositoryid)
 	{
 		$this->db->select('sc.tid as tid, collections.title as title, count(collections.id) as found');

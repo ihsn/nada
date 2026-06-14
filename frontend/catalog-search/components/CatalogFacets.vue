@@ -147,6 +147,22 @@
       />
     </CatalogFacetBox>
 
+    <!-- Dataset (timeseries database) -->
+    <CatalogFacetBox
+      v-if="facetEnabled('database') && databaseItems.length"
+      :title="t('filter_by_database', 'Dataset')"
+      :selected-count="countSelected(query.database)"
+      @clear="clearFacet('database')"
+    >
+      <CatalogFacetCheckboxList
+        filter-key="database"
+        :items="databaseItems"
+        :model-value="query.database"
+        @update:model-value="v => setFacet('database', v)"
+        @change="emit('change')"
+      />
+    </CatalogFacetBox>
+
     <!-- User-defined facets -->
     <CatalogFacetBox
       v-for="facet in userFacets"
@@ -298,6 +314,14 @@ const dataClassItems = computed(() =>
     props.facets?.data_class,
     (i) => t(i.title, i.code),
     (i) => String(i.id)
+  )
+);
+
+const databaseItems = computed(() =>
+  dictToItems(
+    props.facets?.databases,
+    (i) => i.title,
+    (i) => i.idno
   )
 );
 

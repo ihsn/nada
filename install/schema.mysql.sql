@@ -1455,6 +1455,7 @@ INSERT INTO `configurations` VALUES ('year_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('year_search_weight','1',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('facets_all','["year","data_class","dtype","country"]',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('facets_microdata','["year","data_class","dtype","country"]',NULL,NULL,NULL);
+INSERT INTO `configurations` VALUES ('facets_timeseries','["ts_database","country"]',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `configurations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1741,14 +1742,15 @@ CREATE TABLE `survey_widgets` (
 
 
 insert into facets(name,title,facet_type,enabled)
-values 
+values
 ('year','Years','core',1),
 ('data_class','Data classifications','core',1),
 ('dtype','License','core',1),
 ('country','Countries','core',1),
 ('collection','Collections','core',1),
 ('type','Data types','core',1),
-('tag','Tags','core',1);
+('tag','Tags','core',1),
+('ts_database','Dataset','core',1);
 
 --
 -- Facet terms
