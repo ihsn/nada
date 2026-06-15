@@ -316,7 +316,7 @@ class Catalog_search_sqlsrv{
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id,surveys.idno,surveys.doi,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,data_class_id, year_start,year_end';
 		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount, surveys.thumbnail';
-		$study_fields.=', surveys.ts_dimensions, surveys.ts_frequency';
+		$study_fields.=', surveys.ts_dimensions, surveys.ts_frequency, surveys.ts_data_count';
 		$study_fields.=',tsdb.id as ts_db_study_id, tsdb.title as ts_db_title';
 		$study_fields.=', surveys.abstract';
 
@@ -618,6 +618,17 @@ class Catalog_search_sqlsrv{
 	}
 	
 	
+	protected function _normalize_year_range()
+	{
+		$from = (int) $this->from;
+		$to   = (int) $this->to;
+
+		if ($from > 0 && $to > 0 && $from > $to) {
+			$this->from = $to;
+			$this->to   = $from;
+		}
+	}
+
 	function _build_years_query()
 	{
 		$this->_normalize_year_range();

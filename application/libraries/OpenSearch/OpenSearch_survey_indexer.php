@@ -202,8 +202,9 @@ class OpenSearch_survey_indexer
             'data_class_id'   => isset($row['data_class_id']) ? (int)$row['data_class_id'] : null,
 
             // --- Timeseries-specific ---
-            'ts_dimensions'   => $row['ts_dimensions'] ?? null,
-            'ts_frequency'    => $row['ts_frequency']  ?? null,
+            'ts_dimensions'   => $row['ts_dimensions']  ?? null,
+            'ts_frequency'    => $row['ts_frequency']   ?? null,
+            'ts_data_count'   => isset($row['ts_data_count']) ? (int)$row['ts_data_count'] : null,
             'ts_db_study_id'  => isset($row['ts_db_study_id']) ? (int)$row['ts_db_study_id'] : null,
             'ts_db_title'     => $row['ts_db_title'] ?? null,
         ];
@@ -245,6 +246,7 @@ class OpenSearch_survey_indexer
              surveys.data_class_id,
              surveys.ts_dimensions,
              surveys.ts_frequency,
+             surveys.ts_data_count,
              forms.model          AS form_model,
              repositories.title   AS repo_title,
              tsdb.id              AS ts_db_study_id,
