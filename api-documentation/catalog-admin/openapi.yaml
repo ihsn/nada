@@ -4508,6 +4508,12 @@ paths:
           schema:
             type: boolean
             default: false
+        - name: include_resources
+          in: query
+          description: Include external resources array in each study document (default false)
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Success
@@ -4547,6 +4553,12 @@ paths:
         - name: include_admin_metadata
           in: query
           description: Include admin-only metadata (default false)
+          schema:
+            type: boolean
+            default: false
+        - name: include_resources
+          in: query
+          description: Include external resources array (default false)
           schema:
             type: boolean
             default: false
@@ -6115,6 +6127,63 @@ components:
           nullable: true
           description: Admin-only metadata — only present when `include_admin_metadata=1`
           additionalProperties: true
+        resources:
+          type: array
+          nullable: true
+          description: External resources — only present when `include_resources=1`
+          items:
+            type: object
+            properties:
+              resource_id:
+                type: integer
+              survey_id:
+                type: integer
+              title:
+                type: string
+              dctype:
+                type: string
+              dcformat:
+                type: string
+                nullable: true
+              filename:
+                type: string
+                nullable: true
+              is_url:
+                type: integer
+                enum: [0, 1]
+              resource_type:
+                type: string
+                nullable: true
+              resource_idno:
+                type: string
+                nullable: true
+              abstract:
+                type: string
+                nullable: true
+              author:
+                type: string
+                nullable: true
+              dcdate:
+                type: string
+                nullable: true
+              created:
+                type: string
+                nullable: true
+              changed:
+                type: string
+                nullable: true
+              _links:
+                type: object
+                nullable: true
+                description: Present when a downloadable file or URL exists
+                properties:
+                  download:
+                    type: string
+                    description: Absolute URL to download or access the resource file
+                  type:
+                    type: string
+                    description: "`download` for local files, `link` for external URLs"
+                    enum: [download, link]
 
     SearchMetadataExtractStudySingleResponse:
       type: object

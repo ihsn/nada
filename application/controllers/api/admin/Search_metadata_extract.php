@@ -243,6 +243,11 @@ class Search_metadata_extract extends MY_REST_Controller
 			$options['include_admin_metadata'] = $raw;
 		}
 
+		$raw = $this->input->get('include_resources');
+		if ($raw !== false && $raw !== null && $raw !== '') {
+			$options['include_resources'] = $raw;
+		}
+
 		return $options;
 	}
 }

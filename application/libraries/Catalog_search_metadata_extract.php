@@ -21,6 +21,7 @@ class Catalog_search_metadata_extract
         $this->ci->load->model('Dataset_model');
         $this->ci->load->model('Facet_model');
         $this->ci->load->model('Catalog_tags_model');
+        $this->ci->load->model('Survey_resource_model');
     }
 
     /**
@@ -382,6 +383,11 @@ class Catalog_search_metadata_extract
             $include_admin_metadata = filter_var($options['include_admin_metadata'], FILTER_VALIDATE_BOOLEAN);
         }
 
+        $include_resources = false;
+        if (array_key_exists('include_resources', $options)) {
+            $include_resources = filter_var($options['include_resources'], FILTER_VALIDATE_BOOLEAN);
+        }
+
         $doc = array(
             'core_fields'   => $core_fields,
             'filters'       => $filters,
@@ -393,6 +399,18 @@ class Catalog_search_metadata_extract
 
         if ($include_admin_metadata) {
             $doc['admin_metadata'] = $this->load_admin_metadata($sid);
+        }
+
+        if ($include_resources) {
+            $resources = $this->ci->Survey_resource_model->get_survey_resources($sid);
+            $idno = $row['idno'] ?? null;
+            if ($idno !== null) {
+                foreach ($resources as &$r) {
+                    $r['dataset_idno'] = $idno;
+                }
+                unset($r);
+            }
+            $doc['resources'] = $this->ci->Survey_resource_model->generate_api_download_link($resources, true);
         }
 
         return $doc;
