@@ -52,6 +52,7 @@ export default defineConfig(({ command }) => {
           admin_ui_kit: path.resolve(__dirname, 'admin/ui_kit/main.js'),
           admin_test: path.resolve(__dirname, 'admin/test/main.js'),
           admin_tables: path.resolve(__dirname, 'admin/tables/main.js'),
+          admin_facets: path.resolve(__dirname, 'admin/facets/main.js'),
           catalog_search: path.resolve(__dirname, 'catalog-search/main.js'),
           pdf_viewer: path.resolve(__dirname, 'pdf-viewer/main.js'),
         },
