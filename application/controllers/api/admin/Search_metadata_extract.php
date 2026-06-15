@@ -10,7 +10,7 @@ require APPPATH . '/libraries/MY_REST_Controller.php';
  * Routes:
  *   GET /api/admin/search-metadata-extract/status
  *   GET /api/admin/search-metadata-extract/studies/{idno}?include_metadata=1&include_admin_metadata=1
- *   GET /api/admin/search-metadata-extract/studies?offset=0&limit=15
+ *   GET /api/admin/search-metadata-extract/studies?offset=0&limit=15&type=timeseries,survey
  *   GET /api/admin/search-metadata-extract/citations/{id}
  *   GET /api/admin/search-metadata-extract/variables/{idno} — not implemented
  */
@@ -166,7 +166,7 @@ class Search_metadata_extract extends MY_REST_Controller
 		$batch = $this->catalog_search_metadata_extract->build_study_batch(
 			$offset,
 			$limit,
-			$this->_study_extract_options()
+			$this->_study_extract_options() + $this->_study_batch_filters()
 		);
 
 		$this->set_response(
@@ -206,6 +206,24 @@ class Search_metadata_extract extends MY_REST_Controller
 		if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
 			throw new AclAccessDeniedException('ACCESS_DENIED');
 		}
+	}
+
+	/**
+	 * @return array
+	 */
+	private function _study_batch_filters()
+	{
+		$filters = array();
+
+		$raw = $this->input->get('type');
+		if ($raw !== false && $raw !== null && $raw !== '') {
+			$types = array_filter(array_map('trim', explode(',', (string) $raw)));
+			if (!empty($types)) {
+				$filters['types'] = $types;
+			}
+		}
+
+		return $filters;
 	}
 
 	/**

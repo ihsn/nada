@@ -63,17 +63,25 @@ class Catalog_search_metadata_extract
     /**
      * @param int   $offset
      * @param int   $limit
-     * @param array $options
+     * @param array $options  include_metadata, include_admin_metadata, types (array of survey type strings)
      * @return array{studies: array, offset: int, limit: int, total: int, has_more: bool}
      */
     public function build_study_batch(int $offset, int $limit, array $options = array())
     {
-        $total = (int) $this->ci->db->count_all('surveys');
+        $types = !empty($options['types']) ? (array) $options['types'] : array();
+
+        if (!empty($types)) {
+            $this->ci->db->where_in('type', $types);
+        }
+        $total = (int) $this->ci->db->count_all_results('surveys');
 
         $this->ci->db->select($this->study_select_fields(), false);
         $this->ci->db->from('surveys');
         $this->ci->db->join('forms', 'surveys.formid = forms.formid', 'left');
         $this->ci->db->join('repositories', 'surveys.repositoryid = repositories.repositoryid', 'left');
+        if (!empty($types)) {
+            $this->ci->db->where_in('surveys.type', $types);
+        }
         $this->ci->db->order_by('surveys.id', 'ASC');
         $this->ci->db->limit($limit, $offset);
         $rows = $this->ci->db->get()->result_array();

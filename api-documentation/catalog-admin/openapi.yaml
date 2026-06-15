@@ -50,6 +50,10 @@ tags:
     description: |
       Attach admin-only custom JSON metadata to catalog studies via the API.
       Data is stored separately from published study metadata (`surveys.metadata`) and is not exposed on public catalog endpoints.
+  - name: Search metadata extract
+    description: |
+      Admin endpoints that expose catalog study and citation metadata in a canonical shape for external indexers (OpenSearch, Solr, etc.).
+      All endpoints require an admin API key (`X-API-KEY`).
   - name: Catalog import
     description: |
       Import studies into the admin catalog from DDI/XML, dataset JSON/JSONL, or study package ZIP files.
@@ -93,6 +97,7 @@ x-tagGroups:
       - Templates Admin
       - Study admin metadata
       - Catalog import
+      - Search metadata extract
 
 security:
   - ApiKeyAuth: []
@@ -4429,6 +4434,161 @@ paths:
           $ref: '#/components/responses/StudyAdminMetadataForbidden'
 
 # ----------------------------------------------------------------
+# Search metadata extract
+# ----------------------------------------------------------------
+
+  /admin/search-metadata-extract/status:
+    get:
+      tags:
+        - Search metadata extract
+      summary: Indexer status / counts
+      description: Returns total study and citation counts for external indexer bootstrapping.
+      operationId: searchMetadataExtractStatus
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMetadataExtractStatusResponse'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+
+  /admin/search-metadata-extract/studies:
+    get:
+      tags:
+        - Search metadata extract
+      summary: Batch list studies
+      description: |
+        Returns a paginated list of study documents for external indexing.
+
+        Use `offset` + `limit` to page through the full catalog.
+        Filter by one or more dataset types with the `type` parameter.
+      operationId: searchMetadataExtractStudiesList
+      parameters:
+        - name: offset
+          in: query
+          description: Number of records to skip (default 0)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: limit
+          in: query
+          description: Page size (default 50, max 100)
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+            minimum: 1
+        - name: type
+          in: query
+          description: |
+            Filter by dataset type. Comma-separated list of one or more values.
+            When omitted, all types are returned.
+          schema:
+            type: string
+            example: timeseries,survey
+          examples:
+            single:
+              summary: Single type
+              value: timeseries
+            multiple:
+              summary: Multiple types
+              value: survey,timeseries,geospatial
+        - name: include_metadata
+          in: query
+          description: Include full raw metadata JSON in each study document (default false)
+          schema:
+            type: boolean
+            default: false
+        - name: include_admin_metadata
+          in: query
+          description: Include admin-only metadata in each study document (default false)
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMetadataExtractStudiesBatchResponse'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+
+  /admin/search-metadata-extract/studies/{idno}:
+    get:
+      tags:
+        - Search metadata extract
+      summary: Get single study
+      description: Returns the full extract document for a single study by IDNO (or numeric ID when `id_format=id`).
+      operationId: searchMetadataExtractStudyGet
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          description: Study IDNO (default) or numeric `surveys.id` when `id_format=id`
+          schema:
+            type: string
+        - name: id_format
+          in: query
+          description: Set to `id` to use numeric `surveys.id` instead of IDNO
+          schema:
+            type: string
+            enum: [id]
+        - name: include_metadata
+          in: query
+          description: Include full raw metadata JSON (default false)
+          schema:
+            type: boolean
+            default: false
+        - name: include_admin_metadata
+          in: query
+          description: Include admin-only metadata (default false)
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMetadataExtractStudySingleResponse'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+        '404':
+          $ref: '#/components/responses/SearchMetadataExtractNotFound'
+
+  /admin/search-metadata-extract/citations/{id}:
+    get:
+      tags:
+        - Search metadata extract
+      summary: Get single citation
+      description: Returns the extract document for a single citation by numeric ID.
+      operationId: searchMetadataExtractCitationGet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Numeric `citations.id`
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMetadataExtractCitationResponse'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+        '404':
+          $ref: '#/components/responses/SearchMetadataExtractNotFound'
+
+# ----------------------------------------------------------------
 # Security & Components
 # ----------------------------------------------------------------
 
@@ -4576,6 +4736,24 @@ components:
           example:
             status: failed
             message: ACCESS_DENIED
+    SearchMetadataExtractForbidden:
+      description: Admin catalog access required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SearchMetadataExtractErrorResponse'
+          example:
+            status: failed
+            message: ACCESS_DENIED
+    SearchMetadataExtractNotFound:
+      description: Study or citation not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SearchMetadataExtractErrorResponse'
+          example:
+            status: failed
+            message: STUDY_NOT_FOUND
 
   schemas:
     TemplateRecord:
@@ -5862,3 +6040,147 @@ components:
         message:
           type: string
           description: Error code (e.g. `METADATA_ALREADY_EXISTS`, `METADATA_REQUIRED`, `ACCESS_DENIED`)
+
+
+    SearchMetadataExtractErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: failed
+        message:
+          type: string
+          description: Error code (e.g. `ACCESS_DENIED`, `STUDY_NOT_FOUND`, `CITATION_NOT_FOUND`)
+
+    SearchMetadataExtractStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        counts:
+          type: object
+          properties:
+            studies:
+              type: integer
+              description: Total studies in catalog
+            studies_published:
+              type: integer
+              description: Published studies
+            citations:
+              type: integer
+              description: Total citations
+
+    SearchMetadataExtractStudyDocument:
+      type: object
+      description: Canonical study document for external indexers
+      properties:
+        id:
+          type: integer
+          description: Numeric `surveys.id`
+        idno:
+          type: string
+        title:
+          type: string
+        dataset_type:
+          type: string
+          description: Survey type code
+          enum:
+            - survey
+            - geospatial
+            - timeseries
+            - document
+            - table
+            - image
+            - script
+            - visualization
+            - video
+            - timeseriesdb
+        published:
+          type: integer
+          enum: [0, 1]
+        created:
+          type: string
+          format: date-time
+        changed:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          nullable: true
+          description: Full raw metadata JSON — only present when `include_metadata=1`
+          additionalProperties: true
+        admin_metadata:
+          type: object
+          nullable: true
+          description: Admin-only metadata — only present when `include_admin_metadata=1`
+          additionalProperties: true
+
+    SearchMetadataExtractStudySingleResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        study:
+          $ref: '#/components/schemas/SearchMetadataExtractStudyDocument'
+
+    SearchMetadataExtractStudiesBatchResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        offset:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+          description: Total matching records (respects `type` filter)
+        has_more:
+          type: boolean
+        studies:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchMetadataExtractStudyDocument'
+
+    SearchMetadataExtractCitationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        citation:
+          type: object
+          properties:
+            id:
+              type: integer
+            uuid:
+              type: string
+            title:
+              type: string
+            subtitle:
+              type: string
+              nullable: true
+            authors:
+              type: string
+              nullable: true
+            ctype:
+              type: string
+              nullable: true
+            abstract:
+              type: string
+              nullable: true
+            keywords:
+              type: string
+              nullable: true
+            doi:
+              type: string
+              nullable: true
+            published:
+              type: integer
+              enum: [0, 1]
+            pub_year:
+              type: integer
+              nullable: true
