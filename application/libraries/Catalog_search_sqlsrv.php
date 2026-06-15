@@ -38,15 +38,15 @@ class Catalog_search_sqlsrv{
 	
 	//allowed sort options
 	var $sort_allowed_fields=array(
-        'title'=>'title',
-        'nation'=>'nation',
-        'year'=>'year_start',
-        'popularity'=>'total_views',
+        'title'=>'surveys.title',
+        'nation'=>'surveys.nation',
+        'year'=>'surveys.year_start',
+        'popularity'=>'surveys.total_views',
         'collection'=>'repositories.repositoryid',
         'rank'=>'k.rank',
         'relevance'=>'k.rank',
-		'created'=>'created',
-		'changed'=>'changed'
+		'created'=>'surveys.created',
+		'changed'=>'surveys.changed'
         );
 
 	var	$sort_allowed_order=array('asc','desc');
@@ -267,22 +267,22 @@ class Catalog_search_sqlsrv{
             unset($this->sort_allowed_fields['rank'], $this->sort_allowed_fields['relevance']);
         }
 
-        $sort_by = array_key_exists($this->sort_by, $this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';
+        $sort_by = array_key_exists($this->sort_by, $this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'surveys.nation';
         $sort_order = in_array($this->sort_order, $this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
         //set sort
         $sort_options[0] = $sort_options[0] = array('sort_by' => $sort_by, 'sort_order' => $sort_order);
 
         //multi-column sort
-        if ($sort_by == 'nation') {
-            $sort_options[1] = array('sort_by' => 'year_start', 'sort_order' => 'desc');
+        if ($sort_by == 'surveys.nation') {
+            $sort_options[1] = array('sort_by' => 'surveys.year_start', 'sort_order' => 'desc');
             $sort_options[2] = array('sort_by' => 'surveys.title', 'sort_order' => 'asc');
-        } elseif ($sort_by == 'title') {
-            $sort_options[1] = array('sort_by' => 'year_start', 'sort_order' => 'desc');
-            $sort_options[2] = array('sort_by' => 'nation', 'sort_order' => 'asc');
+        } elseif ($sort_by == 'surveys.title') {
+            $sort_options[1] = array('sort_by' => 'surveys.year_start', 'sort_order' => 'desc');
+            $sort_options[2] = array('sort_by' => 'surveys.nation', 'sort_order' => 'asc');
         }
-        if ($sort_by == 'year') {
-            $sort_options[1] = array('sort_by' => 'nation', 'sort_order' => 'asc');
+        if ($sort_by == 'surveys.year_start') {
+            $sort_options[1] = array('sort_by' => 'surveys.nation', 'sort_order' => 'asc');
             $sort_options[2] = array('sort_by' => 'surveys.title', 'sort_order' => 'asc');
         }
 
@@ -314,8 +314,8 @@ class Catalog_search_sqlsrv{
 
 
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id,surveys.idno,surveys.doi,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,data_class_id, year_start,year_end';
-		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount, surveys.thumbnail';
+		$study_fields='surveys.id as id,surveys.idno,surveys.doi,surveys.type,surveys.title,surveys.nation,surveys.authoring_entity, f.model as form_model,surveys.data_class_id, surveys.year_start,surveys.year_end';
+		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,surveys.varcount, surveys.thumbnail';
 		$study_fields.=', surveys.ts_dimensions, surveys.ts_frequency, surveys.ts_data_count';
 		$study_fields.=',tsdb.id as ts_db_study_id, tsdb.title as ts_db_title';
 		$study_fields.=', surveys.abstract';
