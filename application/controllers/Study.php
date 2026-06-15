@@ -31,7 +31,7 @@ class Study extends MY_Controller {
 		$this->lang->load('resource_manager');
 		$this->load->helper("markdown");
 		//$this->load->helper('catalog');
-		$this->output->enable_profiler(TRUE);
+		//$this->output->enable_profiler(TRUE);
 
 		if ($this->ion_auth->logged_in()){
 			$this->user=$this->ion_auth->current_user();
