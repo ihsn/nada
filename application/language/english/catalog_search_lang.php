@@ -253,6 +253,7 @@ $lang['view_toggle']="Toggle view";
 $lang['nation']="Country";
 $lang['years']="Years";
 $lang['browse_all_indicators_in_catalog']="Browse all indicators in catalog";
+$lang['showing_x_to_y_of_z_indicators']="Showing %d–%d of %d indicators";
 $lang['no_databases_found']="No databases listed for this series.";
 $lang['tab_indicator_data']="Indicator data";
 $lang['tab_indicator_chart']="Chart & data";
@@ -353,6 +354,7 @@ $lang['Country (A-Z)']="Country (A-Z)";
 $lang['Country (Z-A)']="Country (Z-A)";
 
 $lang['dimensions']="Dimensions";
+$lang['frequency']="Frequency";
 $lang['id']="ID";
 $lang['file']="File";
 $lang['results_count_studies']="%s–%s of %s datasets";

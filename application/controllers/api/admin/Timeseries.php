@@ -853,8 +853,11 @@ class Timeseries extends MY_REST_Controller {
 
 		$row = $row_by_id ?: $row_by_ref;
 		return [
-			'id' => (int) $row['id'],
-			'idno' => (string) $row['idno'],
+			'id'      => (int)    $row['id'],
+			'idno'    => (string) $row['idno'],
+			'agency'  => (string) ($row['agency']  ?? ''),
+			'name'    => (string) ($row['name']    ?? ''),
+			'version' => (string) ($row['version'] ?? ''),
 		];
 	}
 
@@ -889,7 +892,12 @@ class Timeseries extends MY_REST_Controller {
 		if ($link === null) {
 			$metadata['data_structure_reference'] = null;
 		} else {
-			$metadata['data_structure_reference'] = (string) $link['idno'];
+			$metadata['data_structure_reference'] = [
+				'idno'    => (string) ($link['idno']    ?? ''),
+				'agency'  => (string) ($link['agency']  ?? ''),
+				'name'    => (string) ($link['name']    ?? ''),
+				'version' => (string) ($link['version'] ?? ''),
+			];
 		}
 
 		$update = [
@@ -899,9 +907,11 @@ class Timeseries extends MY_REST_Controller {
 		];
 		if ($link === null) {
 			$update['ts_dimensions'] = null;
+			$update['ts_frequency']  = null;
 			$update['ts_sync_required'] = 0;
 		} else {
 			$update['ts_dimensions'] = $this->Dataset_model->build_ts_dimensions_csv_for_structure_id((int) $link['id']);
+			$update['ts_frequency']  = $this->Dataset_model->build_ts_frequency_for_structure_id((int) $link['id']);
 			$update['ts_sync_required'] = 1;
 		}
 

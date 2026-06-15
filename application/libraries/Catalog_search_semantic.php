@@ -93,7 +93,7 @@ class catalog_search_semantic
          surveys.thumbnail,
          surveys.repositoryid as repositoryid, link_da, repositories.title as repo_title,
          surveys.created, surveys.changed, surveys.total_views, surveys.total_downloads, varcount,
-         surveys.ts_dimensions, surveys.abstract';
+         surveys.ts_dimensions, surveys.ts_frequency, surveys.abstract';
 
     public function __construct(array $params = [])
     {

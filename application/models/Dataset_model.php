@@ -41,6 +41,7 @@ class Dataset_model extends CI_Model {
 		'data_structure_id',
 		'ts_db_id',
 		'ts_dimensions',
+		'ts_frequency',
 		'ts_sync_required',
 		'formid',
 		'metadata',
@@ -3279,6 +3280,51 @@ class Dataset_model extends CI_Model {
 	}
 
 	/**
+	 * Comma-separated titles of codelist items from the DSD's periodicity component.
+	 * Returns null when no periodicity component or its codelist has no items.
+	 *
+	 * @param array $components Data_structure_component_model rows
+	 * @return string|null e.g. "Annual" or "Annual, Quarterly"
+	 */
+	public function build_ts_frequency_from_components(array $components)
+	{
+		$periodicity = null;
+		foreach ($components as $c) {
+			if (is_array($c) && !empty($c['column_type']) && $c['column_type'] === 'periodicity') {
+				$periodicity = $c;
+				break;
+			}
+		}
+		if (!$periodicity || empty($periodicity['codelist_id'])) {
+			return null;
+		}
+		$this->load->model('Codelist_item_model');
+		$items = $this->Codelist_item_model->get_items_by_codelist((int) $periodicity['codelist_id'], false);
+		$titles = [];
+		foreach ($items as $item) {
+			if (!empty($item['title'])) {
+				$titles[] = (string) $item['title'];
+			}
+		}
+		return $titles !== [] ? implode(', ', $titles) : null;
+	}
+
+	/**
+	 * @param int $data_structure_id data_structures.id
+	 * @return string|null
+	 */
+	public function build_ts_frequency_for_structure_id($data_structure_id)
+	{
+		$data_structure_id = (int) $data_structure_id;
+		if ($data_structure_id <= 0) {
+			return null;
+		}
+		$this->load->model('Data_structure_component_model');
+		$components = $this->Data_structure_component_model->get_components_by_structure_id($data_structure_id);
+		return $this->build_ts_frequency_from_components($components);
+	}
+
+	/**
 	 * Canonical on-disk CSV name for indicator timeseries import (one file per study folder).
 	 *
 	 * @param int $sid surveys.id
@@ -3322,11 +3368,13 @@ class Dataset_model extends CI_Model {
 		}
 		$q = $this->db->select('id')->from('surveys')->where('data_structure_id', $dsd_id)->get();
 		$sids = $q ? array_map('intval', array_column($q->result_array(), 'id')) : [];
-		$csv = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$csv  = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$freq = $this->build_ts_frequency_for_structure_id($dsd_id);
 		$this->db->where('data_structure_id', $dsd_id);
 		$this->db->update('surveys', [
 			'ts_sync_required' => 1,
 			'ts_dimensions'    => $csv,
+			'ts_frequency'     => $freq,
 			'changed'          => date('U'),
 		]);
 		$this->_emit_survey_refresh_events_for_sids($sids);
@@ -3345,12 +3393,14 @@ class Dataset_model extends CI_Model {
 		if ($sid <= 0 || $dsd_id <= 0) {
 			return;
 		}
-		$csv = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$csv  = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$freq = $this->build_ts_frequency_for_structure_id($dsd_id);
 		$this->db->where('id', $sid);
 		$this->db->where('data_structure_id', $dsd_id);
 		$this->db->update('surveys', [
 			'ts_sync_required' => 0,
 			'ts_dimensions'    => $csv,
+			'ts_frequency'     => $freq,
 			'changed'          => date('U'),
 		]);
 		$this->_emit_survey_refresh_events_for_sids([$sid]);
@@ -3369,11 +3419,13 @@ class Dataset_model extends CI_Model {
 		}
 		$q = $this->db->select('id')->from('surveys')->where('data_structure_id', $dsd_id)->get();
 		$sids = $q ? array_map('intval', array_column($q->result_array(), 'id')) : [];
-		$csv = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$csv  = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$freq = $this->build_ts_frequency_for_structure_id($dsd_id);
 		$this->db->where('data_structure_id', $dsd_id);
 		$this->db->update('surveys', [
 			'ts_sync_required' => 0,
 			'ts_dimensions'    => $csv,
+			'ts_frequency'     => $freq,
 			'changed'          => date('U'),
 		]);
 		$this->_emit_survey_refresh_events_for_sids($sids);

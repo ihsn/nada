@@ -356,8 +356,16 @@ class Data_structure_json_import {
 	protected function _resolve_codelist_for_component(array $comp, $overwrite, array &$summary)
 	{
 		$ct = isset($comp['column_type']) ? trim((string) $comp['column_type']) : '';
-		$needs = in_array($ct, ['dimension', 'geography'], true);
-		if (!$needs) {
+		// dimension/geography require a codelist; periodicity supports an optional one
+		$required  = in_array($ct, ['dimension', 'geography'], true);
+		$supported = $required || $ct === 'periodicity';
+		if (!$supported) {
+			return null;
+		}
+		// If periodicity and no codelist provided, skip gracefully
+		$hasInline = !empty($comp['codelist']) && is_array($comp['codelist']);
+		$hasRef    = !empty($comp['codelist_reference']) && is_array($comp['codelist_reference']);
+		if (!$required && !$hasInline && !$hasRef) {
 			return null;
 		}
 

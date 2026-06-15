@@ -460,24 +460,79 @@ class Timeseries_mongo_model extends CI_Model {
 	public function build_observation_query_filter($sid, array $components, array $query)
 	{
 		$filter = ['sid' => (int) $sid];
-		$from   = isset($query['from']) ? $query['from'] : null;
-		$to     = isset($query['to']) ? $query['to'] : null;
-		if ($from !== null && $from !== '') {
-			$y = $this->_parse_observation_query_reporting_year($from);
-			if ($y !== null) {
-				$filter['_ts_year'] = array_merge(
-					isset($filter['_ts_year']) ? $filter['_ts_year'] : [],
-					['$gte' => $y]
+		$from    = isset($query['from']) ? $query['from'] : null;
+		$to      = isset($query['to']) ? $query['to'] : null;
+		$fromSub = ($from !== null && $from !== '') ? $this->_parse_sub_period($from) : null;
+		$toSub   = ($to   !== null && $to   !== '') ? $this->_parse_sub_period($to)   : null;
+
+		if ($fromSub !== null || $toSub !== null) {
+			// Sub-period mode: filter on _ts_period_start (datetime) for precise quarterly/monthly ranges.
+			$tz = new \DateTimeZone('UTC');
+			if ($fromSub !== null) {
+				$startDt = new \DateTime(
+					sprintf('%04d-%02d-01 00:00:00', $fromSub['year'], $fromSub['month']),
+					$tz
 				);
+				$filter['_ts_period_start'] = array_merge(
+					isset($filter['_ts_period_start']) ? $filter['_ts_period_start'] : [],
+					['$gte' => new UTCDateTime($startDt->getTimestamp() * 1000)]
+				);
+			} elseif ($from !== null && $from !== '') {
+				$y = $this->_parse_observation_query_reporting_year($from);
+				if ($y !== null) {
+					$startDt = new \DateTime(sprintf('%04d-01-01 00:00:00', $y), $tz);
+					$filter['_ts_period_start'] = array_merge(
+						isset($filter['_ts_period_start']) ? $filter['_ts_period_start'] : [],
+						['$gte' => new UTCDateTime($startDt->getTimestamp() * 1000)]
+					);
+				}
 			}
-		}
-		if ($to !== null && $to !== '') {
-			$y = $this->_parse_observation_query_reporting_year($to);
-			if ($y !== null) {
-				$filter['_ts_year'] = array_merge(
-					isset($filter['_ts_year']) ? $filter['_ts_year'] : [],
-					['$lte' => $y]
+			if ($toSub !== null) {
+				// Exclusive upper bound = start of first period after the to-period.
+				$endMonth = $toSub['month'] + $toSub['quarter_span'];
+				$endYear  = $toSub['year'];
+				if ($endMonth > 12) {
+					$endMonth -= 12;
+					$endYear  += 1;
+				}
+				$endDt = new \DateTime(
+					sprintf('%04d-%02d-01 00:00:00', $endYear, $endMonth),
+					$tz
 				);
+				$filter['_ts_period_start'] = array_merge(
+					isset($filter['_ts_period_start']) ? $filter['_ts_period_start'] : [],
+					['$lt' => new UTCDateTime($endDt->getTimestamp() * 1000)]
+				);
+			} elseif ($to !== null && $to !== '') {
+				$y = $this->_parse_observation_query_reporting_year($to);
+				if ($y !== null) {
+					// Exclusive: start of next year
+					$endDt = new \DateTime(sprintf('%04d-01-01 00:00:00', $y + 1), $tz);
+					$filter['_ts_period_start'] = array_merge(
+						isset($filter['_ts_period_start']) ? $filter['_ts_period_start'] : [],
+						['$lt' => new UTCDateTime($endDt->getTimestamp() * 1000)]
+					);
+				}
+			}
+		} else {
+			// Year-only mode: filter on _ts_year integer (existing behaviour).
+			if ($from !== null && $from !== '') {
+				$y = $this->_parse_observation_query_reporting_year($from);
+				if ($y !== null) {
+					$filter['_ts_year'] = array_merge(
+						isset($filter['_ts_year']) ? $filter['_ts_year'] : [],
+						['$gte' => $y]
+					);
+				}
+			}
+			if ($to !== null && $to !== '') {
+				$y = $this->_parse_observation_query_reporting_year($to);
+				if ($y !== null) {
+					$filter['_ts_year'] = array_merge(
+						isset($filter['_ts_year']) ? $filter['_ts_year'] : [],
+						['$lte' => $y]
+					);
+				}
 			}
 		}
 
@@ -702,6 +757,36 @@ class Timeseries_mongo_model extends CI_Model {
 	 * @param string $value e.g. "2010", "2010-01-01", ISO datetime
 	 * @return int|null
 	 */
+	/**
+	 * Parse a sub-period string: "2006-Q3" → ['type'=>'quarter','year'=>2006,'month'=>7]
+	 *                            "2006-09" → ['type'=>'month','year'=>2006,'month'=>9]
+	 * Returns null if value is not a sub-period format (e.g. plain "2006").
+	 *
+	 * @param string $value
+	 * @return array|null
+	 */
+	private function _parse_sub_period($value)
+	{
+		$value = trim((string) $value);
+		if ($value === '') {
+			return null;
+		}
+		if (preg_match('/^(\d{4})-Q([1-4])$/i', $value, $m)) {
+			$year    = (int) $m[1];
+			$quarter = (int) $m[2];
+			$month   = ($quarter - 1) * 3 + 1;
+			return ['type' => 'quarter', 'year' => $year, 'month' => $month, 'quarter_span' => 3];
+		}
+		if (preg_match('/^(\d{4})-(\d{2})$/', $value, $m)) {
+			$year  = (int) $m[1];
+			$month = (int) $m[2];
+			if ($month >= 1 && $month <= 12) {
+				return ['type' => 'month', 'year' => $year, 'month' => $month, 'quarter_span' => 1];
+			}
+		}
+		return null;
+	}
+
 	private function _parse_observation_query_reporting_year($value)
 	{
 		$value = trim((string) $value);

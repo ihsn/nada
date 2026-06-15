@@ -137,6 +137,64 @@
                               </v-expansion-panel-text>
                             </v-expansion-panel>
 
+                            <v-expansion-panel v-if="periodicityFilterVisible" value="period">
+                              <v-expansion-panel-title class="filter-expansion-panel-title">
+                                {{ facetLabel(periodicityComponent) }}
+                              </v-expansion-panel-title>
+                              <v-expansion-panel-text class="filter-expansion-panel-text">
+                                <div
+                                  v-if="filterDraft.dPeriodicity.length > 0"
+                                  class="facet-filter-subheader d-flex align-center flex-wrap gap-1"
+                                >
+                                  <span class="facet-filter-subheader__count facet-filter-subheader__suffix">
+                                    {{ (codelistSelectItems[periodicityComponent.name] ?? []).find(o => o.value === filterDraft.dPeriodicity[0])?.title ?? filterDraft.dPeriodicity[0] }}
+                                  </span>
+                                  <v-spacer />
+                                  <v-btn
+                                    variant="text"
+                                    density="compact"
+                                    size="x-small"
+                                    class="text-none facet-filter-subheader__clear"
+                                    prepend-icon="mdi-close"
+                                    aria-label="Clear periodicity selection"
+                                    @click="clearFacetPeriodicity"
+                                  >
+                                    Clear
+                                  </v-btn>
+                                </div>
+                                <div v-if="codelistSelectItems[periodicityComponent.name]?.length" class="px-2 py-1">
+                                  <v-radio-group
+                                    :model-value="filterDraft.dPeriodicity[0] ?? ''"
+                                    density="compact"
+                                    hide-details
+                                    class="freq-radio-group"
+                                    @update:model-value="onPeriodicityRadioChange"
+                                  >
+                                    <v-radio
+                                      v-for="opt in codelistSelectItems[periodicityComponent.name]"
+                                      :key="opt.value"
+                                      :label="opt.title"
+                                      :value="opt.value"
+                                      density="compact"
+                                      class="freq-radio-item"
+                                    />
+                                  </v-radio-group>
+                                </div>
+                                <div v-else class="px-2 pb-2">
+                                  <v-text-field
+                                    :model-value="filterDraft.dPeriodicity[0] ?? ''"
+                                    density="compact"
+                                    variant="solo-filled"
+                                    flat
+                                    hide-details
+                                    placeholder="Frequency code"
+                                    class="rounded-lg"
+                                    @update:model-value="onPeriodicityRadioChange"
+                                  />
+                                </div>
+                              </v-expansion-panel-text>
+                            </v-expansion-panel>
+
                             <v-expansion-panel value="time">
                               <v-expansion-panel-title class="filter-expansion-panel-title">
                                 {{ timePeriodFilterSectionLabel }}
@@ -148,7 +206,7 @@
                                 >
                                   <span class="facet-filter-subheader__count">{{ timeFacetSummaryCount }}</span>
                                   <span class="facet-filter-subheader__suffix">
-                                    {{ canUseYearSlider ? 'years in range' : 'fields set' }}
+                                    {{ subPeriodMode ? 'periods set' : canUseYearSlider ? 'years in range' : 'fields set' }}
                                   </span>
                                   <v-spacer />
                                   <v-btn
@@ -164,7 +222,51 @@
                                   </v-btn>
                                 </div>
                                 <div class="filter-expansion-time-body">
-                                  <template v-if="canUseYearSlider">
+                                  <template v-if="subPeriodMode">
+                                    <div class="sub-period-row mb-2">
+                                      <span class="sub-period-label">From</span>
+                                      <v-select
+                                        v-model="subPeriodDraft.fromYear"
+                                        :items="subPeriodYearOptions"
+                                        density="compact"
+                                        variant="solo-filled"
+                                        flat
+                                        hide-details
+                                        class="sub-period-select sub-period-select--year"
+                                      />
+                                      <v-select
+                                        v-model="subPeriodDraft.fromSub"
+                                        :items="subPeriodMode === 'quarterly' ? quarterOptions : monthOptions"
+                                        density="compact"
+                                        variant="solo-filled"
+                                        flat
+                                        hide-details
+                                        class="sub-period-select sub-period-select--sub"
+                                      />
+                                    </div>
+                                    <div class="sub-period-row">
+                                      <span class="sub-period-label">To</span>
+                                      <v-select
+                                        v-model="subPeriodDraft.toYear"
+                                        :items="subPeriodYearOptions"
+                                        density="compact"
+                                        variant="solo-filled"
+                                        flat
+                                        hide-details
+                                        class="sub-period-select sub-period-select--year"
+                                      />
+                                      <v-select
+                                        v-model="subPeriodDraft.toSub"
+                                        :items="subPeriodMode === 'quarterly' ? quarterOptions : monthOptions"
+                                        density="compact"
+                                        variant="solo-filled"
+                                        flat
+                                        hide-details
+                                        class="sub-period-select sub-period-select--sub"
+                                      />
+                                    </div>
+                                  </template>
+                                  <template v-else-if="canUseYearSlider">
                                     <v-chip variant="tonal" color="primary" size="small" class="year-chip mb-2 font-weight-medium">
                                       {{ yearSliderLocal[0] }} – {{ yearSliderLocal[1] }}
                                     </v-chip>
@@ -200,102 +302,6 @@
                                       class="rounded-lg"
                                     />
                                   </template>
-                                </div>
-                              </v-expansion-panel-text>
-                            </v-expansion-panel>
-
-                            <v-expansion-panel v-if="periodicityFilterVisible" value="period">
-                              <v-expansion-panel-title class="filter-expansion-panel-title">
-                                {{ facetLabel(periodicityComponent) }}
-                              </v-expansion-panel-title>
-                              <v-expansion-panel-text class="filter-expansion-panel-text">
-                                <div
-                                  v-if="filterDraft.dPeriodicity.length > 0"
-                                  class="facet-filter-subheader d-flex align-center flex-wrap gap-1"
-                                >
-                                  <span class="facet-filter-subheader__count">{{ filterDraft.dPeriodicity.length }}</span>
-                                  <span class="facet-filter-subheader__suffix">selected</span>
-                                  <v-spacer />
-                                  <v-btn
-                                    variant="text"
-                                    density="compact"
-                                    size="x-small"
-                                    class="text-none facet-filter-subheader__clear"
-                                    prepend-icon="mdi-close"
-                                    aria-label="Clear periodicity selection"
-                                    @click="clearFacetPeriodicity"
-                                  >
-                                    Clear
-                                  </v-btn>
-                                </div>
-                                <div v-if="codelistSelectItems[periodicityComponent.name]?.length" class="facet-checkbox-panel">
-                                  <div
-                                    v-if="facetListNeedsSearch(codelistSelectItems[periodicityComponent.name])"
-                                    class="facet-checkbox-search-wrap"
-                                  >
-                                    <v-text-field
-                                      v-model="facetListSearch[periodicityComponent.name]"
-                                      density="compact"
-                                      variant="solo-filled"
-                                      flat
-                                      hide-details
-                                      prepend-inner-icon="mdi-magnify"
-                                      placeholder="Search codes…"
-                                      clearable
-                                      class="facet-checkbox-search rounded-lg"
-                                    />
-                                  </div>
-                                  <div class="facet-checkbox-scroll">
-                                    <v-list density="compact" class="facet-checkbox-list bg-transparent py-0">
-                                      <v-list-item
-                                        v-for="opt in facetListItemsFiltered(
-                                          periodicityComponent.name,
-                                          codelistSelectItems[periodicityComponent.name]
-                                        )"
-                                        :key="periodicityComponent.name + '-' + opt.value"
-                                        class="facet-checkbox-row py-0"
-                                        @click="facetToggleCode(filterDraft.dPeriodicity, opt.value)"
-                                      >
-                                        <template #prepend>
-                                          <v-checkbox
-                                            :model-value="facetCodesInclude(filterDraft.dPeriodicity, opt.value)"
-                                            hide-details
-                                            density="compact"
-                                            class="facet-checkbox-control"
-                                            @click.stop
-                                            @update:model-value="(on) => facetSetCodeSelected(filterDraft.dPeriodicity, opt.value, on)"
-                                          />
-                                        </template>
-                                        <v-list-item-title class="facet-checkbox-item-title text-wrap">
-                                          {{ opt.title }}
-                                        </v-list-item-title>
-                                      </v-list-item>
-                                    </v-list>
-                                    <p
-                                      v-if="
-                                        !facetListItemsFiltered(
-                                          periodicityComponent.name,
-                                          codelistSelectItems[periodicityComponent.name]
-                                        ).length
-                                      "
-                                      class="facet-checkbox-empty text-medium-emphasis mb-0"
-                                    >
-                                      No matching codes.
-                                    </p>
-                                  </div>
-                                </div>
-                                <div v-else class="px-2 pb-2">
-                                  <v-combobox
-                                    v-model="filterDraft.dPeriodicity"
-                                    multiple
-                                    chips
-                                    closable-chips
-                                    density="compact"
-                                    variant="solo-filled"
-                                    flat
-                                    hide-details
-                                    class="rounded-lg"
-                                  />
                                 </div>
                               </v-expansion-panel-text>
                             </v-expansion-panel>
@@ -823,6 +829,7 @@ const chartRecords = ref([]);
 const chartMetadata = ref({});
 /** [lowYear, highYear] for v-range-slider; independent until the user moves the slider or edits From/To. */
 const yearSliderLocal = ref([2000, 2020]);
+const subPeriodDraft = reactive({ fromYear: null, fromSub: null, toYear: null, toSub: null });
 const chartType = ref('line');
 
 /** URL query `chart_bg`: light | dark (`white` is accepted for older URLs and mapped to light) */
@@ -962,6 +969,11 @@ function clearFacetPeriodicity() {
   filterDraft.dPeriodicity.splice(0, filterDraft.dPeriodicity.length);
 }
 
+function onPeriodicityRadioChange(val) {
+  filterDraft.dPeriodicity.splice(0);
+  if (val) filterDraft.dPeriodicity.push(String(val));
+}
+
 function clearFacetDimension(colName) {
   const arr = filterDraft.c[colName];
   if (Array.isArray(arr)) {
@@ -971,6 +983,14 @@ function clearFacetDimension(colName) {
 
 function clearFacetTime() {
   const b = chartTimeBoundsYears.value;
+  if (subPeriodMode.value && b) {
+    subPeriodDraft.fromYear = b.min;
+    subPeriodDraft.fromSub  = 1;
+    subPeriodDraft.toYear   = b.max;
+    subPeriodDraft.toSub    = subPeriodMode.value === 'quarterly' ? 4 : 12;
+    subPeriodDraftToFromTo();
+    return;
+  }
   if (canUseYearSlider.value && b) {
     yearSliderLocal.value = [b.min, b.max];
     filterDraft.from = String(b.min);
@@ -1064,8 +1084,8 @@ function syncChartFilterExpandedPanelsOpen() {
   }
   const keys = [];
   if (geographyFilterVisible.value) keys.push('geo');
-  keys.push('time');
   if (periodicityFilterVisible.value) keys.push('period');
+  keys.push('time');
   for (const col of facetComponentsForCVisible.value) {
     keys.push(`dim:${col.name}`);
   }
@@ -1237,7 +1257,13 @@ function applyDefaultChartFiltersIfBlank() {
   }
 
   const b = chartTimeBoundsYears.value;
-  if (b && canUseYearSlider.value) {
+  if (b && subPeriodMode.value) {
+    subPeriodDraft.fromYear = b.min;
+    subPeriodDraft.fromSub  = 1;
+    subPeriodDraft.toYear   = b.max;
+    subPeriodDraft.toSub    = subPeriodMode.value === 'quarterly' ? 4 : 12;
+    subPeriodDraftToFromTo();
+  } else if (b && canUseYearSlider.value) {
     yearSliderLocal.value = [b.min, b.max];
     filterDraft.from = String(b.min);
     filterDraft.to = String(b.max);
@@ -2017,6 +2043,9 @@ const canUseYearSlider = computed(() => {
 
 /** Time facet differs from full schema/chart year span (slider) or has From/To text. */
 const timeFacetShowSummary = computed(() => {
+  if (subPeriodMode.value) {
+    return !!(String(filterDraft.from ?? '').trim() || String(filterDraft.to ?? '').trim());
+  }
   if (canUseYearSlider.value) {
     const b = chartTimeBoundsYears.value;
     if (!b) return false;
@@ -2030,6 +2059,12 @@ const timeFacetShowSummary = computed(() => {
 
 /** Count: years in selected span (slider) or number of non-empty From/To fields (text). */
 const timeFacetSummaryCount = computed(() => {
+  if (subPeriodMode.value) {
+    let n = 0;
+    if (String(filterDraft.from ?? '').trim()) n += 1;
+    if (String(filterDraft.to ?? '').trim()) n += 1;
+    return n;
+  }
   if (canUseYearSlider.value) {
     const lo = Number(yearSliderLocal.value[0]);
     const hi = Number(yearSliderLocal.value[1]);
@@ -2085,6 +2120,90 @@ function onYearSliderInput(val) {
   yearSliderLocal.value = [lo, hi];
   filterDraft.from = String(lo);
   filterDraft.to = String(hi);
+}
+
+const subPeriodMode = computed(() => {
+  const selected = filterDraft.dPeriodicity[0];
+  if (!selected) return null;
+  const code = String(selected).toUpperCase();
+  if (code === 'M') return 'monthly';
+  if (code === 'Q') return 'quarterly';
+  return null;
+});
+
+const subPeriodYearOptions = computed(() => {
+  const b = chartTimeBoundsYears.value;
+  if (!b) return [];
+  const arr = [];
+  for (let y = b.min; y <= b.max; y++) arr.push({ title: String(y), value: y });
+  return arr;
+});
+
+const quarterOptions = [
+  { title: 'Q1', value: 1 }, { title: 'Q2', value: 2 },
+  { title: 'Q3', value: 3 }, { title: 'Q4', value: 4 },
+];
+
+const monthOptions = [
+  { title: 'Jan', value: 1 },  { title: 'Feb', value: 2 },  { title: 'Mar', value: 3 },
+  { title: 'Apr', value: 4 },  { title: 'May', value: 5 },  { title: 'Jun', value: 6 },
+  { title: 'Jul', value: 7 },  { title: 'Aug', value: 8 },  { title: 'Sep', value: 9 },
+  { title: 'Oct', value: 10 }, { title: 'Nov', value: 11 }, { title: 'Dec', value: 12 },
+];
+
+function parseSubPeriodStr(value, mode) {
+  const s = String(value ?? '').trim();
+  if (!s) return { year: null, sub: null };
+  if (mode === 'quarterly') {
+    const m = s.match(/^(\d{4})-Q([1-4])$/i);
+    if (m) return { year: Number(m[1]), sub: Number(m[2]) };
+  }
+  if (mode === 'monthly') {
+    const m = s.match(/^(\d{4})-(\d{2})$/);
+    if (m) { const sub = Number(m[2]); if (sub >= 1 && sub <= 12) return { year: Number(m[1]), sub }; }
+  }
+  const yr = s.match(/^(\d{4})/);
+  if (yr) return { year: Number(yr[1]), sub: null };
+  return { year: null, sub: null };
+}
+
+function syncSubPeriodDraftFromFilterDraft() {
+  const mode = subPeriodMode.value;
+  if (!mode) return;
+  const b = chartTimeBoundsYears.value;
+  const fr = parseSubPeriodStr(filterDraft.from, mode);
+  const to = parseSubPeriodStr(filterDraft.to, mode);
+  const newFromYear = fr.year ?? (b?.min ?? null);
+  const newFromSub  = fr.sub  ?? 1;
+  const newToYear   = to.year ?? (b?.max ?? null);
+  const newToSub    = to.sub  ?? (mode === 'quarterly' ? 4 : 12);
+  if (subPeriodDraft.fromYear !== newFromYear) subPeriodDraft.fromYear = newFromYear;
+  if (subPeriodDraft.fromSub  !== newFromSub)  subPeriodDraft.fromSub  = newFromSub;
+  if (subPeriodDraft.toYear   !== newToYear)   subPeriodDraft.toYear   = newToYear;
+  if (subPeriodDraft.toSub    !== newToSub)    subPeriodDraft.toSub    = newToSub;
+}
+
+function subPeriodDraftToFromTo() {
+  const mode = subPeriodMode.value;
+  if (!mode) return;
+  let newFrom = '';
+  let newTo   = '';
+  if (subPeriodDraft.fromYear != null && subPeriodDraft.fromSub != null) {
+    newFrom = mode === 'quarterly'
+      ? `${subPeriodDraft.fromYear}-Q${subPeriodDraft.fromSub}`
+      : `${subPeriodDraft.fromYear}-${String(subPeriodDraft.fromSub).padStart(2, '0')}`;
+  } else if (subPeriodDraft.fromYear != null) {
+    newFrom = String(subPeriodDraft.fromYear);
+  }
+  if (subPeriodDraft.toYear != null && subPeriodDraft.toSub != null) {
+    newTo = mode === 'quarterly'
+      ? `${subPeriodDraft.toYear}-Q${subPeriodDraft.toSub}`
+      : `${subPeriodDraft.toYear}-${String(subPeriodDraft.toSub).padStart(2, '0')}`;
+  } else if (subPeriodDraft.toYear != null) {
+    newTo = String(subPeriodDraft.toYear);
+  }
+  if (filterDraft.from !== newFrom) filterDraft.from = newFrom;
+  if (filterDraft.to   !== newTo)   filterDraft.to   = newTo;
 }
 
 /** Pivot server chart `records` into Chart.js datasets (same shape as Metadata Editor client transform). */
@@ -2554,9 +2673,12 @@ watch(
     schema.value?.reporting_year_bounds?.min,
     schema.value?.reporting_year_bounds?.max,
     canUseYearSlider.value,
+    subPeriodMode.value,
   ],
   () => {
-    if (canUseYearSlider.value) {
+    if (subPeriodMode.value) {
+      syncSubPeriodDraftFromFilterDraft();
+    } else if (canUseYearSlider.value) {
       syncYearSliderLocalFromFilters();
     }
   }
@@ -2565,11 +2687,19 @@ watch(
 watch(
   () => [filterDraft.from, filterDraft.to],
   () => {
-    if (canUseYearSlider.value) {
+    if (subPeriodMode.value) {
+      syncSubPeriodDraftFromFilterDraft();
+    } else if (canUseYearSlider.value) {
       syncYearSliderLocalFromFilters();
     }
   }
 );
+
+watch(subPeriodDraft, () => {
+  if (subPeriodMode.value) {
+    subPeriodDraftToFromTo();
+  }
+});
 
 watch(
   () => [
@@ -2735,7 +2865,9 @@ async function loadAll() {
     applyDefaultChartFiltersIfBlank();
     ensureSingleOptionFacetDrafts();
     syncChartFilterExpandedPanelsOpen();
-    if (canUseYearSlider.value) {
+    if (subPeriodMode.value) {
+      syncSubPeriodDraftFromFilterDraft();
+    } else if (canUseYearSlider.value) {
       syncYearSliderLocalFromFilters();
     }
     if (catalogSliceRequired.value) {
@@ -2911,6 +3043,50 @@ onMounted(() => {
 
 .year-chip {
   border-radius: 999px !important;
+}
+
+.freq-radio-group :deep(.v-selection-control-group) {
+  gap: 0;
+}
+
+.freq-radio-item :deep(.v-label) {
+  font-size: 0.75rem;
+}
+
+.freq-radio-item :deep(.v-selection-control) {
+  min-height: 32px;
+}
+
+.sub-period-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sub-period-label {
+  flex: 0 0 28px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgba(var(--v-theme-on-surface), 0.6);
+  letter-spacing: 0.02em;
+}
+
+.sub-period-select--year {
+  flex: 2 1 0;
+}
+
+.sub-period-select--sub {
+  flex: 1 1 0;
+}
+
+.sub-period-select :deep(.v-field) {
+  font-size: 0.75rem;
+}
+
+.sub-period-select :deep(.v-field__input) {
+  min-height: 28px;
+  padding-block: 2px;
+  font-size: 0.75rem;
 }
 
 .main-panel {

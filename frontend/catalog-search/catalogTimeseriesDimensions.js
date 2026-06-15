@@ -12,3 +12,15 @@ export function parseTimeseriesDimensions(row) {
     .map((part) => part.trim())
     .filter(Boolean);
 }
+
+/**
+ * Parse surveys.ts_frequency for timeseries study cards.
+ * @param {{ type?: string, ts_frequency?: string }} row
+ * @returns {string} e.g. "Annual" or "Annual, Quarterly" or ""
+ */
+export function parseTimeseriesFrequency(row) {
+  if (row?.type !== 'timeseries') return '';
+  const raw = row?.ts_frequency;
+  if (raw == null || String(raw).trim() === '') return '';
+  return String(raw).trim();
+}

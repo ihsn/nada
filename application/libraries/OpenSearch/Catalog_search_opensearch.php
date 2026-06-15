@@ -756,6 +756,7 @@ class catalog_search_opensearch
                 'total_downloads' => isset($s['total_downloads'])? (int)$s['total_downloads']:0,
                 'varcount'        => isset($s['var_count'])      ? (int)$s['var_count']     : 0,
                 'ts_dimensions'   => $s['ts_dimensions']         ?? null,
+                'ts_frequency'    => $s['ts_frequency']          ?? null,
                 'ts_db_study_id'  => isset($s['ts_db_study_id']) ? (int)$s['ts_db_study_id'] : null,
                 'ts_db_title'     => $s['ts_db_title']           ?? null,
             ];
@@ -827,7 +828,7 @@ class catalog_search_opensearch
             'thumbnail', 'link_da',
             'created', 'changed',
             'total_views', 'total_downloads', 'var_count',
-            'ts_dimensions', 'ts_db_study_id', 'ts_db_title',
+            'ts_dimensions', 'ts_frequency', 'ts_db_study_id', 'ts_db_title',
         ];
     }
 

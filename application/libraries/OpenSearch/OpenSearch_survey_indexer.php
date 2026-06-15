@@ -203,6 +203,7 @@ class OpenSearch_survey_indexer
 
             // --- Timeseries-specific ---
             'ts_dimensions'   => $row['ts_dimensions'] ?? null,
+            'ts_frequency'    => $row['ts_frequency']  ?? null,
             'ts_db_study_id'  => isset($row['ts_db_study_id']) ? (int)$row['ts_db_study_id'] : null,
             'ts_db_title'     => $row['ts_db_title'] ?? null,
         ];
@@ -243,6 +244,7 @@ class OpenSearch_survey_indexer
              surveys.link_da,
              surveys.data_class_id,
              surveys.ts_dimensions,
+             surveys.ts_frequency,
              forms.model          AS form_model,
              repositories.title   AS repo_title,
              tsdb.id              AS ts_db_study_id,

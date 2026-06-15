@@ -405,9 +405,11 @@ class Dataset_timeseries_model extends Dataset_model {
 		}
 		if ($newId === null) {
 			$options['ts_dimensions'] = null;
+			$options['ts_frequency']  = null;
 			$options['ts_sync_required'] = 0;
 		} else {
 			$options['ts_dimensions'] = $this->build_ts_dimensions_csv_for_structure_id($newId);
+			$options['ts_frequency']  = $this->build_ts_frequency_for_structure_id($newId);
 			$options['ts_sync_required'] = 1;
 		}
 	}

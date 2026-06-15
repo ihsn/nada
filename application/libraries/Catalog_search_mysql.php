@@ -198,7 +198,7 @@ class Catalog_search_mysql{
 		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno, surveys.doi, surveys.title,surveys.subtitle,surveys.nation,surveys.authoring_entity';
 		$study_fields.=',forms.model as form_model, surveys.data_class_id, surveys.year_start,surveys.year_end, surveys.thumbnail';
 		$study_fields.=',surveys.repositoryid as repositoryid, surveys.link_da, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,surveys.varcount';
-		$study_fields.=',surveys.ts_dimensions';
+		$study_fields.=',surveys.ts_dimensions,surveys.ts_frequency';
 		$study_fields.=',surveys.abstract';
 		$study_fields.=',tsdb.id as ts_db_study_id, tsdb.title as ts_db_title';
 

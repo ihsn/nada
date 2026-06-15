@@ -77,6 +77,11 @@
             </div>
           </div>
 
+          <div v-if="timeseriesFrequency" class="study-frequency">
+            <span class="study-frequency__label">{{ t('frequency') }}:</span>
+            <v-chip size="x-small" variant="tonal" class="mr-1 mb-1">{{ timeseriesFrequency }}</v-chip>
+          </div>
+
           <div v-if="timeseriesDimensions.length" class="study-dimensions">
             <span class="study-dimensions__label">{{ t('dimensions') }}:</span>
             <v-chip
@@ -190,7 +195,7 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { formatCatalogDate, formatStudyYearRange } from '../catalogDate';
-import { parseTimeseriesDimensions } from '../catalogTimeseriesDimensions';
+import { parseTimeseriesDimensions, parseTimeseriesFrequency } from '../catalogTimeseriesDimensions';
 import { resolveStudyThumbnailUrl } from '../catalogThumbnail';
 import { datasetTypeIcon } from '../catalogDatasetTypeIcons';
 import { joinSiteUrl, catalogSearchUrl } from '../catalogUrls';
@@ -255,6 +260,7 @@ const typeLabel = computed(() => {
 });
 
 const timeseriesDimensions = computed(() => parseTimeseriesDimensions(props.row));
+const timeseriesFrequency  = computed(() => parseTimeseriesFrequency(props.row));
 
 const timeseriesDatabase = computed(() => {
   if (props.row?.type !== 'timeseries') return null;
