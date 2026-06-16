@@ -30,6 +30,17 @@
                 >
                   Download JSON
                 </v-btn>
+                <v-btn
+                  size="x-small"
+                  variant="text"
+                  color="primary"
+                  prepend-icon="mdi-download"
+                  density="compact"
+                  class="font-weight-medium"
+                  @click="downloadDataStructureXml"
+                >
+                  Download SDMX/XML
+                </v-btn>
               </div>
               <v-sheet rounded="lg" border class="data-shell overflow-hidden">
                 <v-data-table
@@ -184,6 +195,19 @@ function downloadDataStructureJson() {
   const baseName = studyIdno.value || 'data-structure';
   const filename = `${String(baseName).replace(/[^\w.-]+/g, '_')}-dsd.json`;
   const endpointUrl = `${dataPath()}/export?_nocache=${Date.now()}`;
+  const link = document.createElement('a');
+  link.href = endpointUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function downloadDataStructureXml() {
+  if (!studyIdno.value) return;
+  const baseName = studyIdno.value || 'data-structure';
+  const filename = `${String(baseName).replace(/[^\w.-]+/g, '_')}-dsd.xml`;
+  const endpointUrl = `${dataPath()}/export-xml?_nocache=${Date.now()}`;
   const link = document.createElement('a');
   link.href = endpointUrl;
   link.download = filename;

@@ -10,7 +10,8 @@ require_once APPPATH . '/libraries/MY_REST_Controller.php';
  *
  * Study data (catalogue dataset idno; must be published OR caller has dataset view access):
  *   GET .../data/{idno}/schema
- *   GET .../data/{idno}/export — canonical JSON export (data_structure + components + codelist summary)
+ *   GET .../data/{idno}/export     — canonical JSON export (data_structure + components + codelist summary)
+ *   GET .../data/{idno}/export-xml — SDMX-ML 2.1 Structure message (application/xml); ?include_codelists=0 for Ref-only stubs
  *   GET .../data/{idno}/count
  *   GET .../data/{idno} — d[role] / c[COMPONENT] / legacy; paging: offset (or skip), limit, sort (asc|desc), sort_by (optional API column: sid, period_start, period_end, reporting_year, reporting_freq, or DSD component name); result includes total, found, offset; row JSON strips internal fields and adds period_start / period_end (ISO 8601 UTC), reporting_year / reporting_freq from _ts_year / _ts_freq (see strip_public_observation_fields + append_public_observation_timeseries_fields).
  *   GET .../data/{idno}/chart — same filters as data list (from/to on _ts_year, d[…], c[…]); optional limit (capped); returns chart-ready records (time_period, observation_value, series_key, plus series-dimension fields) aggregated server-side from Mongo rows (see Timeseries_mongo_model::build_catalog_chart_records). Metadata includes time_bounds (min/max time_period among returned chart rows).
@@ -217,6 +218,37 @@ class Timeseries_public extends MY_REST_Controller {
 					],
 				],
 			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->_error_response($e);
+		}
+	}
+
+	/**
+	 * GET .../data/{idno}/export-xml?include_codelists=1
+	 *
+	 * Returns an SDMX-ML 2.1 Structure message (application/xml download) for the
+	 * dataset-linked DSD. include_codelists defaults to 1; pass 0 for Ref-only stubs.
+	 */
+	public function data_export_xml_get($idno = null)
+	{
+		try {
+			$ctx              = $this->_context_from_idno_public($idno);
+			$includeCodelists = $this->get('include_codelists') !== '0';
+			$components       = isset($ctx['components']) && is_array($ctx['components']) ? $ctx['components'] : [];
+
+			$this->load->library('Sdmx_structure_xml_export');
+			$xml = $this->sdmx_structure_xml_export->build_xml(
+				$ctx['structure'],
+				$components,
+				['include_codelists' => $includeCodelists]
+			);
+
+			$filename = preg_replace('/[^A-Za-z0-9._-]/', '_', $ctx['idno']) . '_dsd.xml';
+			header('Content-Type: application/xml; charset=UTF-8');
+			header('Content-Disposition: attachment; filename="' . $filename . '"');
+			header('Cache-Control: no-cache, no-store');
+			echo $xml;
+			exit;
 		} catch (Exception $e) {
 			$this->_error_response($e);
 		}

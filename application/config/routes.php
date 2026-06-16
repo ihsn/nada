@@ -402,6 +402,7 @@ $route['api/admin/timeseries/data-structures/(:num)/stats']    = 'api/admin/time
 
 // Public Timeseries API (read-only; nested paths first)
 $route['api/timeseries/data/(:any)/count']                      = 'api/timeseries_public/data_count/$1';
+$route['api/timeseries/data/(:any)/export-xml']                 = 'api/timeseries_public/data_export_xml/$1';
 $route['api/timeseries/data/(:any)/export']                     = 'api/timeseries_public/data_export/$1';
 $route['api/timeseries/data/(:any)']                            = 'api/timeseries_public/data/$1';
 $route['api/timeseries/data/(:any)/filter-options']             = 'api/timeseries_public/data_filter_options/$1';
