@@ -8,7 +8,7 @@ info:
     [http://nada.ihsn.org](http://nada.ihsn.org).  
 
     
-  version: 5.3
+  version: 5.5
   title: NADA API
   x-logo:
     url: ""
@@ -87,94 +87,207 @@ paths:
       tags:
         - Catalog
       summary: Search catalog
-      description: Search catalog
+      description: >-
+        Search and filter published studies in the catalog. Returns paginated results with
+        study-level metadata. For indicator/timeseries datasets, results include additional
+        fields (`ts_dimensions`, `ts_frequency`, `ts_data_count`) describing the DSD structure.
+
+
+        Pass `include_facets=1` (or `catalog_browse=1`) to receive facet counts alongside results.
       operationId: CatalogSearch
-      consumes:
-        - application/json
       produces:
         - application/json
       parameters:
         - name: sk
           in: query
-          description: Keywords for searching study level metadata
+          description: Keywords for full-text search across study-level metadata
+          type: string
+        - name: type
+          in: query
+          description: >-
+            Filter by dataset type. Common values: `survey`, `geospatial`, `document`,
+            `table`, `timeseries`, `script`, `image`, `video`, `visualization`.
+            Separate multiple values with a comma.
           type: string
         - name: from
           in: query
-          description: Starting year for the data collection
+          description: Starting year for the data collection period (inclusive)
           type: integer
         - name: to
           in: query
-          description: End year for the data collection
+          description: End year for the data collection period (inclusive)
           type: integer
         - name: country
           in: query
-          description: "Provide country name or ISO 3 code. For country names and codes, see endpoint `/api/catalog/country_codes`. For searching multiple countries, provide names separated by pipe(|). \n \n Example `Afghanistan|Indonesia` or `afg|ind` or `afghanistan|ind`"
+          description: >-
+            Filter by country name or ISO 3 code. See `/api/catalog/country_codes` for
+            valid values. Separate multiple values with a pipe: `Afghanistan|Indonesia`
+            or `afg|ind`.
+          type: string
+        - name: country_iso3
+          in: query
+          description: >-
+            Filter by one or more ISO 3 country codes. Separate multiple codes with a
+            pipe: `afg|ind`.
           type: string
         - name: inc_iso
           in: query
-          description: Set the parameter value to true to include the ISO3 country codes for the results
-          type: boolean
+          description: >-
+            Set to `1` to include ISO3 country codes (`iso3` field) on each result row.
+          type: integer
+          enum:
+            - 0
+            - 1
+        - name: inc_countries
+          in: query
+          description: Set to `1` to include a `countries` array of country names on each result row.
+          type: integer
+          enum:
+            - 0
+            - 1
         - name: collection
           in: query
-          description: Filter results by one or more collections. For filtering multiples, use format `collection1, collection2`
+          description: >-
+            Filter by collection repository ID. Separate multiple values with a comma:
+            `col1,col2`. Also accepts repeated parameters: `collection[]=col1&collection[]=col2`.
+          type: string
+        - name: topic
+          in: query
+          description: Filter by topic ID or name. Separate multiple values with a pipe.
+          type: string
+        - name: tag
+          in: query
+          description: Filter by tag. Separate multiple values with a pipe.
+          type: string
+        - name: region
+          in: query
+          description: >-
+            Filter by region ID(s). Separate multiple IDs with a comma or pipe.
+          type: string
+        - name: data_class
+          in: query
+          description: Filter by data classification ID(s). Separate multiple IDs with a comma or pipe.
+          type: string
+        - name: dtype
+          in: query
+          description: Filter by data access type. Separate multiple values with a comma.
+          type: string
+          enum:
+            - open
+            - direct
+            - public
+            - licensed
+            - enclave
+            - remote
+            - other
+        - name: sid
+          in: query
+          description: Filter by internal study ID (numeric). Returns the single matching study.
+          type: integer
+        - name: repo
+          in: query
+          description: Filter by repository ID (same as `collection` but for single-value tab filtering).
+          type: string
+        - name: varcount
+          in: query
+          description: >-
+            Filter by number of variables. Supports comparison operators:
+            `>100`, `<50`, `=200`, or a plain integer for exact match.
           type: string
         - name: created
           in: query
-          description: Filter results by date of creation. Use the date format YYYY-MM-DD. Examples, `2020/04/01` returns records created on and after that date. To specify a date range, use the format `2020/04/01-2020/04/20`
-          type: string  
-        - name: dtype
+          description: >-
+            Filter by creation date. Use format `YYYY/MM/DD` for on-or-after, or
+            `YYYY/MM/DD-YYYY/MM/DD` for a date range. Example: `2023/01/01-2023/12/31`.
+          type: string
+        - name: include_resources
           in: query
-          description: Filter by data access types. For multiple values, use comma e.g. `open, direct, remote`
+          description: Set to `true` to include a `resources` array of external resource links on each result row.
           type: string
           enum:
-          - open
-          - direct
-          - public
-          - licensed
-          - enclave
-          - remote
-          - other 
+            - "true"
+            - "false"
+        - name: include_facets
+          in: query
+          description: Set to `1` to include facet counts (dataset types, countries, topics, etc.) alongside the results.
+          type: integer
+          enum:
+            - 0
+            - 1
         - name: ps
           in: query
-          description: Number of results per page. Default is 15 records per page
+          description: Number of results per page. Default is 15.
           type: integer
         - name: page
           in: query
-          description: Page to return for the search result
+          description: Page number to return (1-based). Default is 1.
           type: integer
-        
         - name: sort_by
           in: query
-          description: Sort search results. Valid options are `rank`,`title`,`year`,`nation`
+          description: >-
+            Field to sort results by. `rank`/`relevance` sorts by full-text relevance score
+            (only meaningful when `sk` is provided). `popularity` sorts by total views.
           type: string
           enum:
-          - rank
-          - title
-          - nation
-          - year
+            - rank
+            - relevance
+            - title
+            - nation
+            - country
+            - year
+            - created
+            - changed
+            - popularity
+            - total_views
         - name: sort_order
           in: query
-          description: Set results sort order. Ascending = `asc`, Descending= `desc`
+          description: Sort direction.
           type: string
           enum:
-          - asc
-          - desc
+            - asc
+            - desc
         - name: format
           in: query
-          description: Supported formats are `json`, `xml`
-          type: string     
-
-            
-        - in: "body"
-          name: "body"
-          required: true
-          schema:
-            $ref: "#/definitions/Catalog"
+          description: Response format. Default is `json`.
+          type: string
+          enum:
+            - json
+            - xml
       responses:
         "200":
-          description: successful operation
+          description: Successful search response
           schema:
-            $ref: "#/definitions/ApiResponse"
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+              result:
+                type: object
+                properties:
+                  found:
+                    type: integer
+                    description: Total number of studies matching the query
+                    example: 142
+                  limit:
+                    type: integer
+                    description: Page size used for this response
+                    example: 15
+                  offset:
+                    type: integer
+                    description: Zero-based offset of the first result
+                    example: 0
+                  page:
+                    type: integer
+                    description: Current page number
+                    example: 1
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/CatalogSearchRow"
+              params:
+                type: object
+                description: Echo of the search parameters used
         "400":
           description: Bad input
   
@@ -1038,6 +1151,224 @@ definitions:
   
   
   
+  CatalogSearchRow:
+    type: object
+    description: >-
+      A single study returned by the catalog search endpoint. All fields are present
+      for every dataset type; indicator/timeseries-specific fields (`ts_dimensions`,
+      `ts_frequency`, `ts_data_count`, `ts_db_study_id`, `ts_db_title`) are `null`
+      for non-timeseries types.
+    properties:
+      id:
+        type: integer
+        description: Internal numeric study ID
+        example: 47
+      idno:
+        type: string
+        description: Study unique identifier (IDNO)
+        example: "WDI_2024"
+      type:
+        type: string
+        description: Dataset type
+        example: "timeseries"
+      doi:
+        type: string
+        description: Digital Object Identifier, if assigned
+        example: "10.1234/wdi.2024"
+        nullable: true
+      title:
+        type: string
+        description: Study title
+        example: "World Development Indicators 2024"
+      subtitle:
+        type: string
+        description: Study subtitle
+        nullable: true
+        example: null
+      nation:
+        type: string
+        description: Primary country or region name
+        example: "World"
+      authoring_entity:
+        type: string
+        description: Organisation(s) responsible for producing the dataset
+        example: "World Bank"
+      abstract:
+        type: string
+        description: Study abstract or description
+        nullable: true
+        example: "Annual time series on development indicators for 217 economies."
+      year_start:
+        type: integer
+        description: Start year of the data collection period
+        example: 1960
+        nullable: true
+      year_end:
+        type: integer
+        description: End year of the data collection period
+        example: 2023
+        nullable: true
+      repositoryid:
+        type: string
+        description: Repository (collection) ID the study belongs to
+        example: "central"
+      repo_title:
+        type: string
+        description: Human-readable title of the repository
+        example: "Central Data Catalog"
+      thumbnail:
+        type: string
+        description: Relative path to the study thumbnail image
+        nullable: true
+        example: "/files/thumbnails/wdi_2024.png"
+      link_da:
+        type: string
+        description: External data access URL, if applicable
+        nullable: true
+        example: null
+      created:
+        type: string
+        format: date-time
+        description: ISO 8601 timestamp when the record was created
+        example: "2024-01-15T08:30:00Z"
+      changed:
+        type: string
+        format: date-time
+        description: ISO 8601 timestamp when the record was last modified
+        example: "2024-06-01T12:00:00Z"
+      total_views:
+        type: integer
+        description: Cumulative page view count
+        example: 4821
+      total_downloads:
+        type: integer
+        description: Cumulative file download count
+        example: 312
+      varcount:
+        type: integer
+        description: Number of variables associated with the study
+        nullable: true
+        example: 1400
+      data_class_id:
+        type: integer
+        description: Internal ID of the data classification assigned to this study
+        nullable: true
+        example: 2
+      form_model:
+        type: string
+        description: Metadata schema / form model used (e.g. `survey`, `timeseries`)
+        nullable: true
+        example: "timeseries"
+      url:
+        type: string
+        description: Absolute URL to the study detail page
+        example: "http://catalog.example.org/catalog/47"
+      ts_dimensions:
+        type: string
+        description: >-
+          **Timeseries/indicator datasets only.** Comma-separated list of DSD dimension
+          component names (sorted alphabetically) derived from the linked Data Structure
+          Definition. These are the axes along which indicator values are disaggregated
+          (e.g. country, year, sex). `null` for non-timeseries types or when no DSD
+          is linked.
+        nullable: true
+        example: "country,freq,indicator,sex,year"
+      ts_frequency:
+        type: string
+        description: >-
+          **Timeseries/indicator datasets only.** Comma-separated list of periodicity
+          codelist titles from the DSD's periodicity component (e.g. `Annual`,
+          `Quarterly`). `null` when not applicable or no codelist is defined.
+        nullable: true
+        example: "Annual"
+      ts_data_count:
+        type: integer
+        description: >-
+          **Timeseries/indicator datasets only.** Total number of data observation
+          rows stored for this dataset. `null` for non-timeseries types.
+        nullable: true
+        example: 98420
+      ts_db_study_id:
+        type: integer
+        description: >-
+          **Timeseries/indicator datasets only.** Internal ID of the linked timeseries
+          database (parent study), if this study belongs to one. `null` otherwise.
+        nullable: true
+        example: 12
+      ts_db_title:
+        type: string
+        description: >-
+          **Timeseries/indicator datasets only.** Title of the linked timeseries
+          database (parent study). `null` otherwise.
+        nullable: true
+        example: "World Bank Open Data"
+      iso3:
+        type: string
+        description: >-
+          Comma-separated ISO 3 country codes for countries associated with this study.
+          Only present when `inc_iso=1` is passed in the request.
+        example: "AFG,IND,KEN"
+      countries:
+        type: array
+        description: >-
+          Array of country name objects for countries associated with this study.
+          Only present when `inc_countries=1` is passed in the request.
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Afghanistan"
+      resources:
+        type: array
+        description: >-
+          External resource links attached to this study. Only present when
+          `include_resources=true` is passed in the request.
+        items:
+          type: object
+          properties:
+            resource_id:
+              type: integer
+              example: 101
+            link:
+              type: string
+              example: "https://databank.worldbank.org/source/world-development-indicators"
+            ext:
+              type: string
+              example: "url"
+            title:
+              type: string
+              example: "WDI Online Data Portal"
+    example:
+      id: 47
+      idno: "WDI_2024"
+      type: "timeseries"
+      doi: null
+      title: "World Development Indicators 2024"
+      subtitle: null
+      nation: "World"
+      authoring_entity: "World Bank"
+      abstract: "Annual time series on development indicators for 217 economies, covering health, education, economy, environment and more."
+      year_start: 1960
+      year_end: 2023
+      repositoryid: "central"
+      repo_title: "Central Data Catalog"
+      thumbnail: "/files/thumbnails/wdi_2024.png"
+      link_da: null
+      created: "2024-01-15T08:30:00Z"
+      changed: "2024-06-01T12:00:00Z"
+      total_views: 4821
+      total_downloads: 312
+      varcount: 1400
+      data_class_id: 2
+      form_model: "timeseries"
+      url: "http://catalog.example.org/catalog/47"
+      ts_dimensions: "country,freq,indicator,sex,year"
+      ts_frequency: "Annual"
+      ts_data_count: 98420
+      ts_db_study_id: 12
+      ts_db_title: "World Bank Open Data"
+
   ApiResponse:
     type: object
     properties:
