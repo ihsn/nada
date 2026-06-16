@@ -38,7 +38,7 @@
             :items="statusFilterItems"
             item-title="title"
             item-value="value"
-            label="Status"
+            placeholder="Status"
             density="compact"
             variant="outlined"
             hide-details

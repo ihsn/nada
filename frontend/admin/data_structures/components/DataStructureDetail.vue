@@ -1,47 +1,47 @@
 <template>
   <div class="dsd-detail-page d-flex flex-column">
-    <div class="d-flex flex-wrap align-center gap-2 mb-3 flex-shrink-0">
-      <v-btn variant="text" prepend-icon="mdi-arrow-left" @click="$emit('back')">Back</v-btn>
-      <div class="mr-2" style="min-width: 0">
-        <div class="text-h6 text-truncate">{{ structure.title || structure.name || 'Data structure' }}</div>
-        <div class="text-body-2 text-medium-emphasis text-truncate">
+    <div class="flex-shrink-0 mb-6">
+      <v-btn variant="text" prepend-icon="mdi-arrow-left" class="pa-0 mb-2" @click="$emit('back')">Back to data structures</v-btn>
+      <h2 class="text-h5 font-weight-medium mb-4">{{ structure.title || structure.name || 'Data structure' }}</h2>
+      <div class="d-flex flex-wrap align-center ga-2">
+        <div class="text-body-2 text-medium-emphasis">
           <code v-if="structure.idno">{{ structure.idno }}</code>
           <span v-else>ID {{ structure.id }}</span>
           <span class="mx-1">·</span>
           {{ structure.agency }} {{ structure.version }}
         </div>
+        <v-select
+          v-if="versionPickerItems.length > 1"
+          :model-value="Number(structure.id)"
+          :items="versionPickerItems"
+          :loading="versionsLoading"
+          item-title="title"
+          item-value="value"
+          label="Version"
+          density="compact"
+          variant="outlined"
+          hide-details
+          style="max-width: 320px"
+          class="flex-grow-0"
+          @update:model-value="onVersionPick"
+        />
+        <v-btn
+          v-if="isNonLatest && latestVersionId != null"
+          variant="tonal"
+          color="primary"
+          size="small"
+          prepend-icon="mdi-history"
+          @click="goToLatestVersion"
+        >
+          Latest
+        </v-btn>
+        <v-spacer />
+        <div class="d-flex ga-3">
+          <v-btn variant="tonal" size="small" prepend-icon="mdi-check-decagram" :loading="validateLoading" @click="runValidate">Validate</v-btn>
+          <v-btn variant="tonal" size="small" prepend-icon="mdi-download" :loading="exportLoading" @click="downloadExport">Export JSON</v-btn>
+          <v-btn color="error" variant="tonal" size="small" prepend-icon="mdi-delete" :disabled="isLocked" @click="deleteConfirm.show = true">Delete</v-btn>
+        </div>
       </div>
-      <v-select
-        v-if="versionPickerItems.length > 1"
-        :model-value="Number(structure.id)"
-        :items="versionPickerItems"
-        :loading="versionsLoading"
-        item-title="title"
-        item-value="value"
-        label="Version"
-        density="compact"
-        variant="outlined"
-        hide-details
-        style="max-width: 320px"
-        class="flex-grow-0"
-        @update:model-value="onVersionPick"
-      />
-      <v-btn
-        v-if="isNonLatest && latestVersionId != null"
-        variant="tonal"
-        color="primary"
-        size="small"
-        prepend-icon="mdi-history"
-        @click="goToLatestVersion"
-      >
-        Latest
-      </v-btn>
-      <v-spacer />
-      <v-btn variant="tonal" prepend-icon="mdi-check-decagram" :loading="validateLoading" @click="runValidate">
-        Validate
-      </v-btn>
-      <v-btn color="primary" prepend-icon="mdi-download" :loading="exportLoading" @click="downloadExport">Export JSON</v-btn>
-      <v-btn color="error" variant="tonal" prepend-icon="mdi-delete" :disabled="isLocked" @click="deleteConfirm.show = true">Delete</v-btn>
     </div>
 
     <v-alert v-if="isNonLatest" type="info" variant="tonal" density="compact" class="mb-3 flex-shrink-0">
@@ -72,7 +72,7 @@
     <div
       ref="splitRoot"
       class="dsd-split-root d-flex rounded elevation-1 flex-grow-1 flex-shrink-1"
-      style="min-height: 0; overflow: hidden; border: 1px solid rgb(var(--v-theme-outline-variant))"
+      style="margin-top: 16px; min-height: 0; overflow: hidden; border: 1px solid rgb(var(--v-theme-outline-variant))"
     >
       <!-- Left: data structure info + Components section -->
       <div
@@ -90,6 +90,7 @@
             value="structure-info"
             :active="selectedComponentKey === null"
             color="primary"
+            style="margin-top: 8px"
             @click="goDataStructureInfo"
           >
             <template #prepend>
@@ -210,7 +211,7 @@
 
           <!-- Catalogue fields with read-only identity -->
           <template v-if="selectedComponentKey === null">
-            <v-row dense>
+            <v-row :gy="4">
               <v-col cols="12" md="6">
                 <div class="text-caption text-medium-emphasis mb-1">ID</div>
                 <v-text-field :model-value="structure.id" readonly density="compact" variant="outlined" hide-details />
@@ -249,58 +250,68 @@
                 />
               </v-col>
             </v-row>
-            <div class="text-caption text-medium-emphasis mt-3 mb-1">IDNO</div>
-            <v-text-field
-              v-model="structureDraft.idno"
-              hint="Leave blank and save to regenerate from agency, name, and version."
-              persistent-hint
-              :disabled="structureSaving"
-              :readonly="isLocked"
-              density="compact"
-              variant="outlined"
-            />
-            <div class="text-caption text-medium-emphasis mt-3 mb-1">Title</div>
-            <v-text-field
-              v-model="structureDraft.title"
-              :disabled="structureSaving"
-              :readonly="isLocked"
-              density="compact"
-              variant="outlined"
-              hide-details
-            />
-            <div class="text-caption text-medium-emphasis mt-3 mb-1">Status</div>
-            <v-select
-              v-model="structureDraft.status"
-              :items="statusOptions"
-              item-title="title"
-              item-value="value"
-              :disabled="structureSaving"
-              :readonly="isLocked"
-              density="compact"
-              variant="outlined"
-              hide-details
-            />
-            <div class="text-caption text-medium-emphasis mt-3 mb-1">Description</div>
-            <v-textarea
-              v-model="structureDraft.description"
-              :disabled="structureSaving"
-              :readonly="isLocked"
-              rows="3"
-              density="compact"
-              variant="outlined"
-              auto-grow
-              hide-details
-            />
-            <div class="text-caption text-medium-emphasis mt-3 mb-1">Notes</div>
-            <v-textarea
-              v-model="structureDraft.notes"
-              :disabled="structureSaving"
-              :readonly="isLocked"
-              rows="2"
-              density="compact"
-              variant="outlined"
-              auto-grow
-            />
+            <div style="margin-top: 16px">
+              <div class="text-caption text-medium-emphasis mb-1">IDNO</div>
+              <v-text-field
+                v-model="structureDraft.idno"
+                hint="Leave blank and save to regenerate from agency, name, and version."
+                persistent-hint
+                :disabled="structureSaving"
+                :readonly="isLocked"
+                density="compact"
+                variant="outlined"
+              />
+            </div>
+            <div style="margin-top: 16px">
+              <div class="text-caption text-medium-emphasis mb-1">Title</div>
+              <v-text-field
+                v-model="structureDraft.title"
+                :disabled="structureSaving"
+                :readonly="isLocked"
+                density="compact"
+                variant="outlined"
+                hide-details
+              />
+            </div>
+            <div style="margin-top: 16px">
+              <div class="text-caption text-medium-emphasis mb-1">Status</div>
+              <v-select
+                v-model="structureDraft.status"
+                :items="statusOptions"
+                item-title="title"
+                item-value="value"
+                :disabled="structureSaving"
+                :readonly="isLocked"
+                density="compact"
+                variant="outlined"
+                hide-details
+              />
+            </div>
+            <div style="margin-top: 16px">
+              <div class="text-caption text-medium-emphasis mb-1">Description</div>
+              <v-textarea
+                v-model="structureDraft.description"
+                :disabled="structureSaving"
+                :readonly="isLocked"
+                rows="3"
+                density="compact"
+                variant="outlined"
+                auto-grow
+                hide-details
+              />
+            </div>
+            <div style="margin-top: 16px">
+              <div class="text-caption text-medium-emphasis mb-1">Notes</div>
+              <v-textarea
+                v-model="structureDraft.notes"
+                :disabled="structureSaving"
+                :readonly="isLocked"
+                rows="2"
+                density="compact"
+                variant="outlined"
+                auto-grow
+              />
+            </div>
             <div class="d-flex justify-end mt-4">
               <v-btn color="primary" :loading="structureSaving" :disabled="isLocked" @click="saveStructureCatalogue">Save catalogue</v-btn>
             </div>

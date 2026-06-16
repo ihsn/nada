@@ -11,9 +11,9 @@
         density="compact"
         variant="outlined"
       />
-      <div class="text-caption text-medium-emphasis mt-3 mb-1">Label</div>
+      <div style="margin-top: 16px" class="text-caption text-medium-emphasis mb-1">Label</div>
       <v-text-field v-model="form.label" :disabled="readOnly" density="compact" variant="outlined" hide-details />
-      <div class="text-caption text-medium-emphasis mt-3 mb-1">Column type</div>
+      <div style="margin-top: 16px" class="text-caption text-medium-emphasis mb-1">Column type</div>
       <v-select
         v-model="form.column_type"
         :items="columnTypeItems"
@@ -24,7 +24,7 @@
         density="compact"
         variant="outlined"
       />
-      <div class="text-caption text-medium-emphasis mt-3 mb-1">Data type</div>
+      <div style="margin-top: 16px" class="text-caption text-medium-emphasis mb-1">Data type</div>
       <v-select
         v-model="form.data_type"
         :items="dataTypeItems"
@@ -37,13 +37,12 @@
         density="compact"
         variant="outlined"
       />
-      <div v-if="form.column_type === 'time_period'" class="text-caption text-medium-emphasis mt-3 mb-1">
+      <div v-if="form.column_type === 'time_period'" style="margin-top: 16px" class="text-caption text-medium-emphasis mb-1">
         Time period format
       </div>
       <v-text-field
         v-if="form.column_type === 'time_period'"
         v-model="form.time_period_format"
-        class="mt-3"
         hint="ISO-8601-style or SDMX pattern for this period column"
         persistent-hint
         :disabled="readOnly"
@@ -51,7 +50,7 @@
         variant="outlined"
       />
 
-      <div class="mt-3">
+      <div style="margin-top: 16px">
         <div class="text-caption text-medium-emphasis mb-1">Codelist</div>
         <v-autocomplete
           v-model="form.codelist_id"
@@ -74,13 +73,13 @@
           @update:model-value="initEntryList"
         />
 
-        <p class="text-caption text-medium-emphasis mt-3 mb-1">Codes (flat value / label from the item row)</p>
+        <p style="margin-top: 16px" class="text-caption text-medium-emphasis mb-1">Codes (flat value / label from the item row)</p>
         <div class="text-caption text-medium-emphasis mb-1">Filter codes</div>
         <v-text-field
           v-model="entrySearchDraft"
           placeholder="Value or label…"
           prepend-inner-icon="mdi-magnify"
-          density="comfortable"
+          density="compact"
           variant="outlined"
           hide-details
           class="mb-2"
@@ -140,7 +139,7 @@
         </div>
       </div>
 
-      <div class="text-caption text-medium-emphasis mt-3 mb-1">Sort order</div>
+      <div style="margin-top: 16px" class="text-caption text-medium-emphasis mb-1">Sort order</div>
       <v-text-field
         v-model.number="form.sort_order"
         type="number"
@@ -149,7 +148,7 @@
         variant="outlined"
         hide-details
       />
-      <div class="text-caption text-medium-emphasis mt-3 mb-1">Description</div>
+      <div style="margin-top: 16px" class="text-caption text-medium-emphasis mb-1">Description</div>
       <v-textarea
         v-model="form.description"
         rows="2"

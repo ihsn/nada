@@ -3,6 +3,7 @@
     <v-btn variant="text" prepend-icon="mdi-arrow-left" class="pa-0 mb-3" @click="emit('back')">
       Back to codelists
     </v-btn>
+    <h2 v-if="codelist?.name" class="text-h5 font-weight-medium mb-4">{{ codelist.name }}</h2>
     <v-tabs v-if="codelist?.id" v-model="tab" class="mb-4">
       <v-tab value="details">Codelist details</v-tab>
       <v-tab value="items">Codelist items</v-tab>
@@ -37,47 +38,47 @@
             />
             <v-row dense>
               <v-col cols="12" md="4">
+                <div class="text-body-2 mb-1 text-medium-emphasis">Name</div>
                 <v-text-field
                   :model-value="codelist.name"
-                  label="Name"
                   readonly
                   variant="outlined"
                   density="comfortable"
                 />
               </v-col>
               <v-col cols="6" md="2">
+                <div class="text-body-2 mb-1 text-medium-emphasis">Agency</div>
                 <v-text-field
                   :model-value="codelist.agency"
-                  label="Agency"
                   readonly
                   variant="outlined"
                   density="comfortable"
                 />
               </v-col>
               <v-col cols="6" md="2">
+                <div class="text-body-2 mb-1 text-medium-emphasis">Version</div>
                 <v-text-field
                   :model-value="codelist.version"
-                  label="Version"
                   readonly
                   variant="outlined"
                   density="comfortable"
                 />
               </v-col>
               <v-col cols="12" md="4">
+                <div class="text-body-2 mb-1 text-medium-emphasis">Status</div>
                 <v-select
                   v-model="metaForm.status"
                   :items="statusItems"
                   item-title="title"
                   item-value="value"
-                  label="Status"
                   variant="outlined"
                   density="comfortable"
                 />
               </v-col>
               <v-col cols="12" md="6">
+                <div class="text-body-2 mb-1 text-medium-emphasis">IDNO</div>
                 <v-text-field
                   v-model="metaForm.idno"
-                  label="IDNO"
                   variant="outlined"
                   density="comfortable"
                   :disabled="isLocked"
@@ -97,9 +98,9 @@
                 </v-text-field>
               </v-col>
               <v-col cols="12" md="6">
+                <div class="text-body-2 mb-1 text-medium-emphasis">Description</div>
                 <v-text-field
                   v-model="metaForm.description"
-                  label="Description"
                   variant="outlined"
                   density="comfortable"
                   :disabled="isLocked"
