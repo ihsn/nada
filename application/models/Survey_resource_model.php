@@ -1457,6 +1457,7 @@ class Survey_resource_model extends CI_Model {
     {
         $this->db->select('count(resource_id) as total');
         $this->db->where('survey_id', $sid);
+        $this->db->where_not_in('resource_type', $this->_get_microdata_resource_type_codes());
         $result=$this->db->get('resources')->row_array();
         return $result['total'];
 	}
