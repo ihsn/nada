@@ -1,4 +1,6 @@
 <?php
+$this->load->helper('menu');
+
 if (empty($menus) || !is_array($menus)) {
 	return;
 }
