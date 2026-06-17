@@ -752,7 +752,13 @@ class Search_helper_model extends CI_Model {
 			return '';
 		}
 
-		$items = is_array($raw) ? $raw : array($raw);
+		if (is_array($raw)) {
+			$items = $raw;
+		} elseif (is_string($raw) && strpos($raw, ',') !== false) {
+			$items = array_values(array_filter(array_map('trim', explode(',', $raw)), 'strlen'));
+		} else {
+			$items = array($raw);
+		}
 		$candidates = array();
 
 		foreach ($items as $t) {

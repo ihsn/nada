@@ -271,14 +271,7 @@ class Catalog_browse_service {
 		$search_options = new StdClass();
 		$limit = $this->get_page_size();
 
-		$search_options->collection = xss_clean($this->CI->input->get('collection'));
-		if ( ! is_array($search_options->collection)) {
-			if ($search_options->collection === false || $search_options->collection === null || $search_options->collection === '') {
-				$search_options->collection = array();
-			} else {
-				$search_options->collection = array($search_options->collection);
-			}
-		}
+		$search_options->collection = $this->parse_multi_value_param(xss_clean($this->CI->input->get('collection')));
 		$search_options->sk = $keywords;
 		$search_options->vk = trim(xss_clean($this->CI->input->get('vk')));
 		$search_options->vf = xss_clean($this->CI->input->get('vf'));

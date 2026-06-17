@@ -587,7 +587,7 @@ class Catalog_search_mysql{
 		}
 
 		//fulltext index name
-                $study_fulltext_index='keywords, var_keywords';
+		$study_fulltext_index='surveys.keywords, surveys.var_keywords';
 		$keywords=explode(" ",$study_keywords);
 		$study_keywords=$this->parse_fulltext_keywords($study_keywords);
 
