@@ -66,11 +66,16 @@ export function useStudyResourcesApi() {
    */
   async function deleteResource(resourceId) {
     const rid = encodeURIComponent(String(resourceId));
-    const { data } = await axios.delete(`${resourcesPrefix()}${studyRefSegment()}/resources/${rid}`, {
-      params: studyRefParams(),
-      withCredentials: true,
-      headers: csrfHeaders(),
-    });
+    // POST …/resources/delete/{id}: same as DELETE …/resources/{id} when DELETE is blocked.
+    const { data } = await axios.post(
+      `${resourcesPrefix()}${studyRefSegment()}/resources/delete/${rid}`,
+      {},
+      {
+        params: studyRefParams(),
+        withCredentials: true,
+        headers: csrfHeaders(),
+      }
+    );
     if (data.status !== 'success') throw new Error(data.message || data.errors || 'DELETE_FAILED');
     return data;
   }
