@@ -238,9 +238,7 @@ function formatDate(ts) {
 function menuItemHref(item) {
   const url = String(item?.url || '').trim();
   if (!url) return '#';
-  if (Number(item.linktype) === 1) {
-    return /^https?:\/\//i.test(url) ? url : `https://${url}`;
-  }
+  if (/^https?:\/\//i.test(url)) return url;
   const base = siteBaseUrl.value.replace(/\/$/, '');
   return `${base}/${url.replace(/^\//, '')}`;
 }

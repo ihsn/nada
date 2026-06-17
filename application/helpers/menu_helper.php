@@ -9,11 +9,7 @@ if ( ! function_exists('menu_item_url'))
 			return '#';
 		}
 
-		if (isset($item['linktype']) && (int) $item['linktype'] === 1) {
-			return preg_match('/^https?:\/\//i', $url) ? $url : 'https://' . $url;
-		}
-
-		if (function_exists('is_url') && is_url($url)) {
+		if (preg_match('/^https?:\/\//i', $url)) {
 			return $url;
 		}
 

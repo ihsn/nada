@@ -1428,17 +1428,17 @@
     ]
   },
   "admin/menu/main.js": {
-    "file": "assets/admin_menu-C-w4udRr.js",
+    "file": "assets/admin_menu-Bxi-PPQj.js",
     "name": "admin_menu",
     "src": "admin/menu/main.js",
     "isEntry": true,
     "imports": [
       "_router-DBsC8NAy.js",
+      "_index-BOeqtr82.js",
       "_runtime-dom.esm-bundler-Cg1w4xVq.js",
       "_useAppConfig-zOAqSvpQ.js",
       "_vue-router-CzNAuimd.js",
       "_sortable.esm-BzJVkfZx.js",
-      "_index-BOeqtr82.js",
       "__plugin-vue_export-helper-DlAUqK2U.js",
       "_VBreadcrumbs-DmQcQ-DC.js",
       "_VRow-Bw6zli8X.js",
@@ -1446,6 +1446,7 @@
       "_VSnackbar-pNjMU35U.js",
       "_VCard-D3O8DZFv.js",
       "_VList-B__Rug_Y.js",
+      "_VTooltip-BGbpp6CZ.js",
       "_VChip-BF-DUY4l.js",
       "_VMenu-Cy9DmQwn.js",
       "_VAlert-BcoV2j7i.js",
@@ -1460,7 +1461,7 @@
       "_dialog-transition-CQ7K12vL.js"
     ],
     "css": [
-      "assets/admin_menu-DrbVXqas.css",
+      "assets/admin_menu-BWU4Iauy.css",
       "assets/base-BKMxH8S4.css"
     ]
   },
