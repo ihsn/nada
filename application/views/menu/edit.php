@@ -67,8 +67,8 @@
         </div>
         <?php endif; ?>
         
-        <!-- Hidden field to store actual content -->
-				<textarea id="body" name="body" class="<?php echo ($this->config->item("use_html_editor") !== "no") ? 'editor-hidden' : ''; ?>"><?php echo get_form_value('body', isset($body) ? $body : ''); ?></textarea>
+        <!-- Hidden field to store actual content (plain textarea when HTML editor is off) -->
+				<textarea id="body" name="body" class="<?php echo ($this->config->item("use_html_editor") !== "no") ? 'editor-hidden' : 'form-control body-plain-textarea'; ?>"><?php echo get_form_value('body', isset($body) ? $body : ''); ?></textarea>
     </div>
 
 	<div class="form-group form-inline form-inline-with-spacing">
@@ -97,6 +97,16 @@
 	</div>
 	</div>
 </div>
+
+<?php if ($this->config->item("use_html_editor") === "no"): ?>
+<style>
+.body-plain-textarea {
+	width: 100%;
+	height: 500px;
+	resize: vertical;
+}
+</style>
+<?php endif; ?>
 
 <!-- Image Selector Modal -->
 <?php if ($this->config->item("use_html_editor") !== "no"): ?>
