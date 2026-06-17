@@ -65,5 +65,8 @@ $lang['upload_failed_prefix']="Upload failed: ";
 $lang['network_error_upload']="Network error during upload.";
 $lang['close']="Close";
 
+$lang['parent_page']="Parent Page";
+$lang['none_top_level']="None (top-level)";
+
 /* End of file menu_lang.php */
 /* Location: ./application/language/english/menu_lang.php */

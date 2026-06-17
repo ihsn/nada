@@ -84,9 +84,67 @@ class Menu_model extends CI_Model {
 		return $this->db->get('menus')->row_array();
 	}
 	
+	/**
+	 * Published menu tree for public site navigation (two levels).
+	 */
+	function get_published_menu_tree()
+	{
+		$this->db->select('id,url,title,target,linktype,pid,weight');
+		$this->db->where('pid', 0);
+		$this->db->where('published', 1);
+		$this->db->order_by('weight', 'ASC');
+		$parents = $this->db->get('menus')->result_array();
+
+		foreach ($parents as &$item) {
+			$this->db->select('id,url,title,target,linktype,pid,weight');
+			$this->db->where('pid', $item['id']);
+			$this->db->where('published', 1);
+			$this->db->order_by('weight', 'ASC');
+			$item['children'] = $this->db->get('menus')->result_array();
+		}
+		unset($item);
+
+		return $parents;
+	}
+
+	/**
+	 * Returns all menus as a nested tree (parents with children array).
+	 * Two levels only: pid=0 are parents, pid>0 are children.
+	 */
+	function get_menu_tree_array()
+	{
+		$this->db->select('id,url,title,target,linktype,published,weight,pid,changed');
+		$this->db->where('pid', 0);
+		$this->db->order_by('weight', 'ASC');
+		$parents = $this->db->get('menus')->result_array();
+
+		foreach ($parents as &$item) {
+			$this->db->select('id,url,title,target,linktype,published,weight,pid,changed');
+			$this->db->where('pid', $item['id']);
+			$this->db->order_by('weight', 'ASC');
+			$item['children'] = $this->db->get('menus')->result_array();
+		}
+		return $parents;
+	}
+
+	/**
+	 * Returns top-level menu items (pid=0) for use as parent options.
+	 * Optionally excludes an item by ID (to prevent self-parenting).
+	 */
+	function get_top_level_items($exclude_id = NULL)
+	{
+		$this->db->select('id,title');
+		$this->db->where('pid', 0);
+		if (is_numeric($exclude_id)) {
+			$this->db->where('id !=', (int) $exclude_id);
+		}
+		$this->db->order_by('weight', 'ASC');
+		return $this->db->get('menus')->result_array();
+	}
+
 	function select_all($sort_by='weight', $sort_order='ASC')
 	{
-		$this->db->select('id,url,title,target,linktype');	
+		$this->db->select('id,url,title,target,linktype,pid,weight');
 		$this->db->order_by($sort_by, $sort_order);
 		$this->db->where('published', 1); 
 		$query=$this->db->get('menus');
@@ -152,12 +210,12 @@ class Menu_model extends CI_Model {
 		//add date modified
 		$options['changed']=date("U");
 		
-		if (!is_numeric($options['pid']))
+		if (array_key_exists('pid', $options) && !is_numeric($options['pid']))
 		{
 			$options['pid']=0;
 		}
-	
-		if (!is_numeric($options['weight']))
+
+		if (array_key_exists('weight', $options) && !is_numeric($options['weight']))
 		{
 			$options['weight']=0;
 		}

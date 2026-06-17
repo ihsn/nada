@@ -24,7 +24,19 @@
     <div class="form-group mt-3">
         <label for="title"><?php echo t('title'); ?><span class="required">*</span></label>
 				<input class="form-control" name="title" type="text" id="title" value="<?php echo get_form_value('title', isset($title) ? $title : ''); ?>"/>
-        <input type="hidden" name="pid" value="<?php echo get_form_value('pid', isset($pid) ? $pid : ''); ?>"/>
+    </div>
+
+    <div class="form-group">
+        <label for="pid"><?php echo t('parent_page'); ?></label>
+        <?php
+        $current_pid = get_form_value('pid', isset($pid) ? $pid : 0);
+        $parent_items = isset($parent_options) ? $parent_options : array();
+        $pid_options = array(0 => '— ' . t('none_top_level') . ' —');
+        foreach ($parent_items as $opt) {
+            $pid_options[$opt['id']] = $opt['title'];
+        }
+        echo form_dropdown('pid', $pid_options, $current_pid, array('class' => 'form-control', 'id' => 'pid'));
+        ?>
     </div>
 
 			<div class="form-group">

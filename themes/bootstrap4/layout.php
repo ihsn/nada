@@ -5,8 +5,9 @@ $menu_horizontal=TRUE;
 $bootstrap_theme = 'themes/'.$this->template->theme();
 
 $data=array();
+$this->load->helper('menu');
 //side menu
-$data['menus']= $this->Menu_model->select_all();
+$data['menus']= $this->Menu_model->get_published_menu_tree();
 $sidebar=$this->load->view('default_menu', $data,true);
 
 //default page content wrapper class

@@ -22,18 +22,25 @@ class Menu extends MY_Controller {
 	}
 	
 	function index()
-	{			
+	{
 		$this->acl_manager->has_access_or_die('menu', 'view');
+		$this->load->helper('vite_helper');
 
-		//get array of db rows		
-		$result['rows']=$this->_search();
-		
-		//load the contents of the page into a variable
-		$content=$this->load->view('menu/index', $result,true);
-	
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('menu_management'),true);
-	  	$this->template->render();	
+		$view_data = array(
+			'site_url'    => site_url(),
+			'base_url'    => base_url(),
+			'api_base_url'=> site_url('api/admin/menu/'),
+			'assets_base' => base_url('frontend/dist/'),
+			'csrf_token'  => $this->security->get_csrf_hash(),
+		);
+
+		$page = array(
+			'title'           => t('menu_management'),
+			'content'         => $this->load->view('admin/menu/index', $view_data, true),
+			'hide_breadcrumb' => true,
+			'theme_folder'    => 'adminvue',
+		);
+		$this->load->view('layouts/admin_vue', $page);
 	}
 	
 	/**
@@ -175,7 +182,6 @@ class Menu extends MY_Controller {
 															
 			if ($id==NULL)
 			{
-				$options['pid']=0;
 				$db_result=$this->Menu_model->insert($options);
 			}
 			else
@@ -219,8 +225,13 @@ class Menu extends MY_Controller {
 				}
 		}
 
+		//pass parent options for the parent selector dropdown
+		$parent_options = $this->Menu_model->get_top_level_items(is_numeric($id) ? $id : NULL);
+		$view_data = $menu ? (array)$menu : array();
+		$view_data['parent_options'] = $parent_options;
+
 		//show form
-		$content=$this->load->view('menu/edit',$menu,true);									
+		$content=$this->load->view('menu/edit', $view_data, true);									
 				
 		//pass data to the site's template
 		$this->template->write('content', $content,true);
@@ -332,8 +343,10 @@ class Menu extends MY_Controller {
 			
 			//flash data message
 	        $this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
-			
-			//load form			
+
+			$data['parent_options'] = $this->Menu_model->get_top_level_items(is_numeric($id) ? $id : NULL);
+
+			//load form
             $content=$this->load->view('menu/edit_page_link', $data,TRUE);
 			
 			//render page
@@ -474,35 +487,12 @@ class Menu extends MY_Controller {
 
 	/**
 	* Change the order of menu items
-	*
+	* Now delegates to the Vue SPA (hash router handles /reorder).
 	*/
 	function menu_sort()
-	{		
+	{
 		$this->acl_manager->has_access_or_die('menu', 'edit');
-		$id_list=$this->input->post('id');
-		
-		if (is_array($id_list))
-		{
-			//update database
-			$result=$this->Menu_model->update_weight($id_list);
-			
-			if ($result===TRUE)
-			{
-				redirect('admin/menu','refresh');
-			}
-		}
-
-		//load javascript/css for the JQuery Sortable
-		$this->template->add_css('javascript/jquery/ui/themes/base/jquery-ui.css');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.js');
-
-		//get array of all published menu items
-		$data['rows']=$this->Menu_model->select_all('weight','ASC');
-		
-		//show page sorted by weight
-		$content=$this->load->view('menu/menu_sort', $data,TRUE);			
-		$this->template->write('content', $content,true);
-		$this->template->render();		
+		$this->index();
 	}
 	
 	/**

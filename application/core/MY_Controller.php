@@ -237,7 +237,8 @@ class MY_Controller extends CI_Controller
 	//get public site menu
 	function _menu()
 	{
-		$data['menus']= $this->Menu_model->select_all();		
+		$this->load->helper('menu');
+		$data['menus']= $this->Menu_model->get_published_menu_tree();
 		$content=$this->load->view('default_menu', $data,true);
 		return $content;
 	}

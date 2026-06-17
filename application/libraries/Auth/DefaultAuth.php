@@ -731,8 +731,8 @@ class DefaultAuth implements AuthInterface
 	//get public site menu
 	function _menu()
 	{
-		$this->ci->load->model('menu_model');
-		$data['menus']= $this->ci->menu_model->select_all();
+		$this->ci->load->helper('menu');
+		$data['menus']= $this->ci->Menu_model->get_published_menu_tree();
 		$content=$this->ci->load->view('default_menu', $data,true);
 		return $content;
 	}
