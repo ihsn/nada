@@ -50,14 +50,12 @@
           :text="error"
         />
 
-        <PdfViewerCore
-          v-else-if="context"
+        <iframe
+          v-else-if="iframeUrl"
           :key="viewerKey"
-          embedded
-          :stream-url="context.streamUrl"
-          :initial-page="context.initialPage"
-          :page-chips="context.pageChips"
-          :title="displayTitle"
+          :src="iframeUrl"
+          :title="displayTitle || t('pdf_preview', 'PDF preview')"
+          class="catalog-pdf-dialog__iframe"
         />
       </div>
     </v-card>
@@ -68,7 +66,6 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
-import PdfViewerCore from '@/shared/pdf-viewer/PdfViewerCore.vue';
 import { resolvePdfViewerTitle } from '@/shared/pdf-viewer/resolvePdfViewerTitle';
 import { joinSiteUrl } from '../catalogUrls';
 import {
@@ -102,6 +99,10 @@ function catalogApiBaseUrl() {
   }
   return joinSiteUrl(siteUrl.value, 'api/catalog/');
 }
+
+const iframeUrl = computed(() =>
+  buildPdfViewerUrlFromContext(siteUrl.value, context.value, { embed: true })
+);
 
 const fullViewerUrl = computed(() =>
   buildPdfViewerUrlFromContext(siteUrl.value, context.value)
@@ -182,6 +183,7 @@ watch(
         ...context.value,
         initialPage: page,
       };
+      viewerKey.value += 1;
     }
   }
 );
@@ -249,5 +251,14 @@ watch(
   justify-content: center;
   flex: 1;
   padding: 32px;
+}
+
+.catalog-pdf-dialog__iframe {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  display: block;
+  background: #525659;
 }
 </style>

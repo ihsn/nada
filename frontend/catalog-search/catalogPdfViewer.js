@@ -55,12 +55,13 @@ export async function resolveSemanticPdfContext({ row, pageHit, siteUrl, apiBase
 }
 
 /**
- * Full-page viewer URL (open in new tab).
+ * Viewer URL for catalog semantic PDF preview.
  * @param {string} siteUrl
  * @param {Awaited<ReturnType<typeof resolveSemanticPdfContext>>} context
+ * @param {{ embed?: boolean }} [options]
  * @returns {string}
  */
-export function buildPdfViewerUrlFromContext(siteUrl, context) {
+export function buildPdfViewerUrlFromContext(siteUrl, context, options = {}) {
   if (!context) return '';
   return buildPdfViewerUrl(siteUrl, {
     source: 'resource',
@@ -68,5 +69,6 @@ export function buildPdfViewerUrlFromContext(siteUrl, context) {
     resourceId: context.resourceId,
     page: context.initialPage,
     pages: context.pageChips,
+    embed: options.embed === true,
   });
 }

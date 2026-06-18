@@ -61,3 +61,271 @@ function catalog_browse_sanitize_search_result(array $result)
 	}
 	return $result;
 }
+
+/**
+ * Default catalog browse query values (mirrors frontend catalogQuery.js).
+ *
+ * @return array<string, int|string>
+ */
+function catalog_browse_default_query()
+{
+	return array(
+		'sk' => '',
+		'tab_type' => '',
+		'type' => '',
+		'collection' => '',
+		'region' => '',
+		'dtype' => '',
+		'data_class' => '',
+		'database' => '',
+		'country' => '',
+		'tag' => '',
+		'from' => '',
+		'to' => '',
+		'sort_by' => '',
+		'sort_order' => '',
+		'page' => 1,
+		'ps' => 15,
+		'view' => '',
+		'vk' => '',
+		'vf' => '',
+		'image_view' => '',
+	);
+}
+
+/**
+ * Parse current request query into normalized catalog browse state.
+ *
+ * @return array<string, int|string>
+ */
+function catalog_browse_parse_request_query()
+{
+	$CI =& get_instance();
+	$defaults = catalog_browse_default_query();
+	$out = $defaults;
+
+	foreach ($defaults as $key => $def) {
+		$raw = $CI->input->get($key);
+		if ($raw === false || $raw === null || $raw === '') {
+			continue;
+		}
+		if ($key === 'page') {
+			$out['page'] = max(1, (int) $raw);
+		} elseif ($key === 'ps') {
+			$out['ps'] = (int) $raw ?: 15;
+		} else {
+			$out[$key] = (string) $raw;
+		}
+	}
+
+	$from = (int) $out['from'];
+	$to = (int) $out['to'];
+	if ($from > 0 && $to > 0 && $from > $to) {
+		$out['from'] = (string) $to;
+		$out['to'] = (string) $from;
+	}
+
+	$CI->load->model('Facet_model');
+	foreach ($CI->Facet_model->select_all() as $facet) {
+		if (($facet['facet_type'] ?? '') !== 'user') {
+			continue;
+		}
+		$name = $facet['name'] ?? '';
+		if ($name === '') {
+			continue;
+		}
+		$raw = $CI->input->get($name);
+		if ($raw !== false && $raw !== null && $raw !== '') {
+			$out[$name] = (string) $raw;
+		}
+	}
+
+	return $out;
+}
+
+/**
+ * Serialize browse query omitting defaults (mirrors serializeRouteQuery).
+ *
+ * @param array<string, int|string>|null $query
+ * @return array<string, string>
+ */
+function catalog_browse_serialize_query($query = null)
+{
+	$query = $query ?? catalog_browse_parse_request_query();
+	$defaults = catalog_browse_default_query();
+	$out = array();
+
+	foreach ($defaults as $key => $def) {
+		$val = isset($query[$key]) ? $query[$key] : $def;
+		if ($val !== $def && $val !== '' && $val !== null) {
+			$out[$key] = (string) $val;
+		}
+	}
+
+	foreach ($query as $key => $val) {
+		if (array_key_exists($key, $defaults)) {
+			continue;
+		}
+		if ($val !== '' && $val !== null) {
+			$out[$key] = (string) $val;
+		}
+	}
+
+	ksort($out);
+	return $out;
+}
+
+/**
+ * Stable fingerprint for matching SSR bootstrap to the current URL query.
+ */
+function catalog_browse_query_fingerprint($query = null)
+{
+	$serialized = catalog_browse_serialize_query($query);
+	if ($serialized === array()) {
+		return '{}';
+	}
+	return json_encode($serialized, JSON_UNESCAPED_UNICODE);
+}
+
+/**
+ * Build query string for catalog pagination links.
+ *
+ * @param int $page
+ * @param array<string, int|string>|null $query
+ * @return string
+ */
+function catalog_browse_pagination_query_string($page, $query = null)
+{
+	$params = catalog_browse_serialize_query($query);
+	if ($page > 1) {
+		$params['page'] = (string) $page;
+	} else {
+		unset($params['page']);
+	}
+	if ($params === array()) {
+		return '';
+	}
+	return http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+}
+
+/**
+ * Full catalog browse URL for a pagination page.
+ *
+ * @param int $page
+ * @param string|null $repositoryid
+ * @return string
+ */
+function catalog_browse_page_url($page, $repositoryid = null)
+{
+	$qs = catalog_browse_pagination_query_string($page);
+	$base = catalog_search_url($repositoryid);
+	return $qs === '' ? $base : $base . '?' . $qs;
+}
+
+/**
+ * Merge featured studies ahead of result rows (mirrors Vue mergeFeaturedRows).
+ *
+ * @param array<string, mixed> $bootstrap
+ * @return array<int, array<string, mixed>>
+ */
+function catalog_browse_merge_featured_rows(array $bootstrap)
+{
+	$result = isset($bootstrap['result']) && is_array($bootstrap['result']) ? $bootstrap['result'] : array();
+	$rows = isset($result['rows']) && is_array($result['rows']) ? $result['rows'] : array();
+	$featured = isset($bootstrap['featured_studies']) && is_array($bootstrap['featured_studies'])
+		? $bootstrap['featured_studies']
+		: array();
+
+	if (($bootstrap['search_type'] ?? '') === 'variable' || $featured === array()) {
+		return $rows;
+	}
+
+	$featured_ids = array();
+	foreach ($featured as $study) {
+		if (isset($study['id'])) {
+			$featured_ids[$study['id']] = true;
+		}
+	}
+
+	$merged = array();
+	foreach ($featured as $study) {
+		$study['featured'] = true;
+		$merged[] = $study;
+	}
+	foreach ($rows as $row) {
+		$id = isset($row['id']) ? $row['id'] : null;
+		if ($id === null || !isset($featured_ids[$id])) {
+			$merged[] = $row;
+		}
+	}
+
+	return $merged;
+}
+
+/**
+ * Simple year range label for SSR study cards.
+ *
+ * @param array<string, mixed> $row
+ * @return string
+ */
+function catalog_browse_ssr_year_range(array $row)
+{
+	$start = isset($row['year_start']) ? trim((string) $row['year_start']) : '';
+	$end = isset($row['year_end']) ? trim((string) $row['year_end']) : '';
+	if ($start === '' && $end === '') {
+		return '';
+	}
+	if ($start !== '' && $end !== '' && $start !== $end) {
+		return $start . '–' . $end;
+	}
+	return $start !== '' ? $start : $end;
+}
+
+/**
+ * Variable label for SSR (mirrors CatalogVariableResultsList variableTitle).
+ *
+ * @param array<string, mixed> $row
+ * @return string
+ */
+function catalog_browse_ssr_variable_title(array $row)
+{
+	$parts = array();
+	if (!empty($row['name'])) {
+		$parts[] = trim((string) $row['name']);
+	}
+	if (!empty($row['labl'])) {
+		$labl = trim((string) $row['labl']);
+		if ($labl !== '' && !in_array($labl, $parts, true)) {
+			$parts[] = $labl;
+		}
+	}
+	if ($parts !== array()) {
+		return implode(' - ', $parts);
+	}
+	return !empty($row['labl']) ? (string) $row['labl'] : (!empty($row['name']) ? (string) $row['name'] : '');
+}
+
+/**
+ * Study metadata line for variable SSR rows.
+ *
+ * @param array<string, mixed> $row
+ * @return string
+ */
+function catalog_browse_ssr_variable_study_meta(array $row)
+{
+	$parts = array();
+	if (!empty($row['nation'])) {
+		$parts[] = trim((string) $row['nation']);
+	}
+	$years = catalog_browse_ssr_year_range($row);
+	if ($years !== '') {
+		$parts[] = $years;
+	}
+	if (!empty($row['idno'])) {
+		$parts[] = trim((string) $row['idno']);
+	}
+	if (!empty($row['authoring_entity'])) {
+		$parts[] = trim((string) $row['authoring_entity']);
+	}
+	return implode(' · ', $parts);
+}

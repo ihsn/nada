@@ -21,4 +21,5 @@ app.provide(APP_CONFIG_KEY, window.APP_CONFIG || {});
 
 router.isReady().then(() => {
   app.mount('#public-catalog-vue-app');
+  document.getElementById('catalog-ssr')?.remove();
 });

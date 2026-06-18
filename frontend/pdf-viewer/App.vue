@@ -7,6 +7,7 @@
       :initial-page="viewerParams.page"
       :page-chips="viewerParams.pageChips"
       :title="displayTitle"
+      :embedded="embedded"
     />
   </v-app>
 </template>
@@ -27,6 +28,11 @@ const displayTitle = ref('');
 const viewerParams = computed(() =>
   parseViewerParams(typeof window !== 'undefined' ? window.location.search : '')
 );
+
+const embedded = computed(() => {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('embed') === '1';
+});
 
 const configError = computed(() => validateViewerParams(viewerParams.value));
 

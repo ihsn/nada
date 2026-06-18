@@ -129,3 +129,19 @@ export function serializeRouteQuery(query) {
 
   return out;
 }
+
+/**
+ * Stable fingerprint for matching SSR bootstrap to the current route query.
+ * @param {import('vue-router').LocationQuery} routeQuery
+ * @returns {string}
+ */
+export function catalogQueryFingerprint(routeQuery) {
+  const parsed = parseRouteQuery(routeQuery);
+  const serialized = serializeRouteQuery(parsed);
+  const keys = Object.keys(serialized).sort();
+  const sorted = {};
+  for (const key of keys) {
+    sorted[key] = serialized[key];
+  }
+  return JSON.stringify(sorted);
+}

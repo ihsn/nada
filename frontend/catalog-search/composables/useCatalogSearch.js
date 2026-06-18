@@ -8,6 +8,7 @@ import {
   STANDARD_QUERY_KEYS,
   parseRouteQuery,
   serializeRouteQuery,
+  catalogQueryFingerprint,
   normalizeYearRange,
   isVariableViewTab,
   isCatalogVariableViewEnabled,
@@ -52,7 +53,7 @@ function facetsContextKey(activeRepo, tabType) {
 export function useCatalogSearch() {
   const route = useRoute();
   const router = useRouter();
-  const { apiBaseUrl, siteUrl, siteConfig } = useAppConfig();
+  const { apiBaseUrl, siteUrl, siteConfig, config } = useAppConfig();
   const { activeRepo } = usePublicCatalogConfig();
   const { t } = useI18n();
 
@@ -71,6 +72,7 @@ export function useCatalogSearch() {
   const hasSearched        = ref(false);
   const semanticDebug      = ref(null);
   let cachedFacetsContextKey = null;
+  let initialBootstrapConsumed = false;
 
   function applyRouteToQuery() {
     const parsed = parseRouteQuery(route.query);
@@ -269,16 +271,84 @@ export function useCatalogSearch() {
     return navigateFromState(false);
   }
 
-  async function fetchSearch() {
+  function applyBrowseResponse(json, { updateResults = true } = {}) {
+    if (!json || json.status !== 'success') {
+      return false;
+    }
+
+    let result = json.result ?? { rows: [], found: 0, total: 0, page: 1 };
+    searchType.value = json.search_type ?? 'study';
+    if (updateResults && json.featured_studies && searchType.value !== 'variable') {
+      result = mergeFeaturedRows(result, json.featured_studies);
+    }
+
+    if (updateResults) {
+      results.value = result;
+      semanticDebug.value = result.debug ?? null;
+      relatedCollections.value = json.related_collections ?? {};
+    }
+
+    site.value = json.site ?? site.value;
+
+    if (json.facets != null) {
+      facets.value = json.facets;
+      cachedFacetsContextKey = facetsContextKey(activeRepo.value, query.tab_type);
+    }
+
+    if (Array.isArray(json.enabled_filters)) {
+      enabledFilters.value = json.enabled_filters;
+    }
+
+    const searchTabs = json.tabs ?? {};
+    tabs.value = {
+      types: searchTabs.types ?? facets.value?.types ?? tabs.value?.types,
+      search_counts_by_type: searchTabs.search_counts_by_type ?? {},
+      active_tab: searchTabs.active_tab ?? json.tab_type ?? query.tab_type ?? '',
+    };
+
+    return true;
+  }
+
+  function tryConsumeInitialBootstrap() {
+    if (initialBootstrapConsumed) {
+      return false;
+    }
+
+    const bootstrap = config.value?.initialSearch;
+    const expectedKey = config.value?.initialSearchQueryKey;
+    if (!bootstrap || bootstrap.status !== 'success' || !expectedKey) {
+      return false;
+    }
+
+    const currentKey = catalogQueryFingerprint(route.query);
+    const bootstrapKey = bootstrap.queryKey ?? expectedKey;
+    if (currentKey !== bootstrapKey && currentKey !== expectedKey) {
+      return false;
+    }
+
+    initialBootstrapConsumed = true;
+    error.value = null;
+    semanticDebug.value = null;
+    applyBrowseResponse(bootstrap, { updateResults: true });
+    loading.value = false;
+    hasSearched.value = true;
+    return true;
+  }
+
+  async function fetchSearch({ silent = false, facetsOnly = false } = {}) {
     if (activeAbortController) {
       activeAbortController.abort();
     }
     activeAbortController = new AbortController();
     const { signal } = activeAbortController;
 
-    loading.value = true;
+    if (!silent) {
+      loading.value = true;
+    }
     error.value   = null;
-    semanticDebug.value = null;
+    if (!facetsOnly) {
+      semanticDebug.value = null;
+    }
 
     const apiParams = new URLSearchParams();
     apiParams.set('catalog_browse', '1');
@@ -324,38 +394,15 @@ export function useCatalogSearch() {
         throw new Error(msg);
       }
 
-      let result = json.result ?? { rows: [], found: 0, total: 0, page: 1 };
-      searchType.value = json.search_type ?? 'study';
-      if (json.featured_studies && searchType.value !== 'variable') {
-        result = mergeFeaturedRows(result, json.featured_studies);
-      }
-
-      results.value = result;
-      semanticDebug.value = result.debug ?? null;
-      relatedCollections.value = json.related_collections ?? {};
-      site.value = json.site ?? site.value;
-
-      if (json.facets != null) {
-        facets.value = json.facets;
-        cachedFacetsContextKey = contextKey;
-      }
-
-      if (Array.isArray(json.enabled_filters)) {
-        enabledFilters.value = json.enabled_filters;
-      }
-
-      const searchTabs = json.tabs ?? {};
-      tabs.value = {
-        types: searchTabs.types ?? facets.value?.types ?? tabs.value?.types,
-        search_counts_by_type: searchTabs.search_counts_by_type ?? {},
-        active_tab: searchTabs.active_tab ?? json.tab_type ?? query.tab_type ?? '',
-      };
+      applyBrowseResponse(json, { updateResults: !facetsOnly });
     } catch (e) {
       if (e.name === 'AbortError') return;
       error.value = e.message;
     } finally {
       if (!signal.aborted) {
-        loading.value = false;
+        if (!silent) {
+          loading.value = false;
+        }
         hasSearched.value = true;
       }
     }
@@ -363,12 +410,15 @@ export function useCatalogSearch() {
 
   /**
    * URL is the source of truth: any change (including back/forward) re-runs search.
-   * Results are never restored from cache.
+   * SSR bootstrap is used once when it matches the current query.
    */
   watch(
     () => route.query,
     async () => {
       applyRouteToQuery();
+      if (tryConsumeInitialBootstrap()) {
+        return;
+      }
       await fetchSearch();
     },
     { deep: true, immediate: true }

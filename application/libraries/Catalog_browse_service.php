@@ -476,4 +476,80 @@ class Catalog_browse_service {
 			'catalog_search_debug' => catalog_search_debug_enabled(),
 		);
 	}
+
+	/**
+	 * Build the JSON shape consumed by the Vue catalog browse UI (same as api/catalog/search browse mode).
+	 *
+	 * @param array<string, mixed> $data Output from run_search()
+	 * @param bool $include_facets
+	 * @return array<string, mixed>
+	 */
+	public function build_browse_client_response(array $data, $include_facets = false)
+	{
+		$this->CI->load->helper('catalog');
+		$this->CI->load->helper('date');
+
+		if (($data['search_type'] ?? '') === 'variable') {
+			$result = isset($data['variables']) ? $data['variables'] : array('found' => 0, 'rows' => array());
+		} else {
+			$result = isset($data['surveys']) ? $data['surveys'] : array('found' => 0, 'rows' => array());
+		}
+
+		if (isset($result['rows']) && is_array($result['rows'])) {
+			$result['page'] = isset($data['current_page']) ? $data['current_page'] : 1;
+			array_walk($result['rows'], 'unix_date_to_gmt', array('created', 'changed'));
+			$is_variable = (($data['search_type'] ?? '') === 'variable');
+			foreach ($result['rows'] as $idx => $row) {
+				if ($is_variable) {
+					$sid = isset($row['sid']) ? $row['sid'] : '';
+					$vid = isset($row['vid']) ? $row['vid'] : '';
+					$result['rows'][$idx]['variable_url'] = site_url('catalog/' . $sid . '/variable/' . $vid);
+					$result['rows'][$idx]['study_url'] = site_url('catalog/' . $sid);
+				} else {
+					$result['rows'][$idx]['url'] = site_url('catalog/' . $row['id']);
+				}
+			}
+		}
+
+		unset($result['semantic_facets'], $result['facet_mode']);
+		$result = catalog_browse_sanitize_search_result($result);
+
+		$response = array(
+			'status' => 'success',
+			'result' => $result,
+			'search_type' => $data['search_type'] ?? 'study',
+			'tab_type' => $this->active_tab,
+			'tabs' => $this->build_tabs($data),
+			'site' => $this->site_config_for_client(),
+			'enabled_filters' => $this->enabled_filters,
+		);
+
+		if ($include_facets) {
+			$response['facets'] = $this->facets;
+		}
+
+		if (isset($data['featured_studies']) && is_array($data['featured_studies'])) {
+			$featured = $data['featured_studies'];
+			foreach ($featured as $idx => $study) {
+				$featured[$idx]['url'] = site_url('catalog/' . $study['id']);
+				if (!isset($featured[$idx]['form_model']) && isset($study['model'])) {
+					$featured[$idx]['form_model'] = $study['model'];
+				}
+				array_walk($featured[$idx], 'unix_date_to_gmt_row', array('created', 'changed'));
+			}
+			$response['featured_studies'] = $featured;
+		}
+
+		if (isset($data['related_collections'])) {
+			$response['related_collections'] = $data['related_collections'];
+		}
+		if (!empty($result['semantic_note'])) {
+			$response['semantic_note'] = $result['semantic_note'];
+		}
+		if (!empty($result['semantic_fallback'])) {
+			$response['semantic_fallback'] = $result['semantic_fallback'];
+		}
+
+		return $response;
+	}
 }
