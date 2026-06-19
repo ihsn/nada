@@ -15,7 +15,6 @@ class Study extends MY_Controller {
 		$this->load->model("Related_study_model");
 		$this->load->model("Variable_model");
 		$this->load->model("Timeseries_db_model");
-		$this->load->model("Timeseries_mongo_model");
 		$this->load->model("Timeseries_dsd_model");
 		$this->load->model("Survey_data_api_model");
 		$this->load->model("Widget_model");
