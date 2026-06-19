@@ -334,5 +334,26 @@ class MY_Migration extends CI_Migration {
         
         return APPPATH . '../install/' . $filename . '-' . $db_driver . '.sql';
     }
+
+    /**
+     * Throw if a database query returned FALSE (db_debug off does not raise).
+     *
+     * @param mixed  $result      Return value from $this->db->query()
+     * @param string $description Short context for the error message
+     * @return void
+     */
+    protected function assert_db_query($result, $description)
+    {
+        if ($result !== FALSE) {
+            return;
+        }
+
+        $error = $this->db->error();
+        $code = isset($error['code']) ? $error['code'] : '';
+        $message = isset($error['message']) ? $error['message'] : 'unknown error';
+        $detail = $code !== '' && $code !== 0 ? "{$description} (error {$code}): {$message}" : "{$description}: {$message}";
+
+        throw new Exception($detail);
+    }
 }
 
