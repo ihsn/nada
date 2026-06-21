@@ -610,11 +610,8 @@ class Catalog_model extends CI_Model {
 			return FALSE;
 		}
 		
-		//get datasets folder path
-		$catalog_root=$this->config->item("catalog_root");
-		
-		//join to create full path
-		$survey_folder=unix_path($catalog_root.'/'.$survey_rel);
+		//join to create full path (same root resolution as Managefiles / get_catalog_root)
+		$survey_folder=unix_path(get_catalog_root().'/'.$survey_rel);
 		
 		return $survey_folder;
 	}
@@ -633,12 +630,7 @@ class Catalog_model extends CI_Model {
 		$data=(object)$data;
 		
 		//get datasets folder path
-		$catalog_root=$this->config->item("catalog_root");
-		
-		//join to create full path
-		$ddi_file=$catalog_root.'/'.$data->dirpath.'/'.$data->metafile;
-
-		$ddi_file=unix_path($ddi_file);
+		$ddi_file=unix_path(get_catalog_root().'/'.$data->dirpath.'/'.$data->metafile);
 		
 		if (file_exists($ddi_file) && is_file($ddi_file))
 		{

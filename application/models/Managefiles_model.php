@@ -34,10 +34,10 @@ class Managefiles_model extends CI_Model {
 		
 		if (($survey))
 		{
-			$path=$this->config->item("catalog_root");
+			$path=get_catalog_root();
 			
 			//throw an exception if catalog_root setting is not set
-			if($path===FALSE)
+			if($path===FALSE || $path==='')
 			{
 				throw new exception("CATALOG_ROOT not defined.");
 			}
@@ -65,12 +65,7 @@ class Managefiles_model extends CI_Model {
 					$candidates[]=(string)(int)$surveyid;
 				}
 
-				// Convert catalog root to absolute path if needed.
-				$catalog_root_full=$path;
-				if (!file_exists($catalog_root_full)){
-					$catalog_root_full=FCPATH.$catalog_root_full;
-				}
-				$catalog_root_full=unix_path($catalog_root_full);
+				$catalog_root_full=unix_path($path);
 
 				foreach($candidates as $candidate){
 					$candidate_path=unix_path($catalog_root_full.'/'.$candidate);
@@ -106,6 +101,11 @@ class Managefiles_model extends CI_Model {
 			
 			$path.='/'.$survey['dirpath'];
 			$path=unix_path($path);
+
+			$resolved = unix_realpath($path);
+			if ($resolved !== false && is_dir($resolved)) {
+				return $resolved;
+			}
 
 			return $path;
 		}

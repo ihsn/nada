@@ -308,13 +308,60 @@ if ( ! function_exists('get_catalog_root'))
 		if(!$catalog_root || trim($catalog_root)==''){
 			throw new Exception("CATALOG_ROOT-NOT_SET");
 		}
-		
-		//if not fixed path, use a relative path
-		if (!file_exists($catalog_root) ){
-			$catalog_root=FCPATH.$catalog_root;
+
+		$catalog_root = unix_path($catalog_root);
+		$candidates = array();
+
+		// Prefer FCPATH for relative roots — Apache CWD is unreliable (especially for ../ paths).
+		if ($catalog_root[0] !== '/' && ! preg_match('/^[A-Za-z]:/', $catalog_root)) {
+			$candidates[] = unix_path(FCPATH . $catalog_root);
+		}
+		$candidates[] = $catalog_root;
+
+		foreach ($candidates as $candidate) {
+			$resolved = realpath($candidate);
+			if ($resolved !== false && is_dir($resolved)) {
+				return unix_path($resolved);
+			}
 		}
 
 		return $catalog_root;
+	}
+}
+
+
+/**
+ * Resolve a path under catalog_root to an absolute, canonical path.
+ *
+ * @param string $path absolute or relative to catalog_root
+ * @return string|false
+ */
+if ( ! function_exists('resolve_catalog_path'))
+{
+	function resolve_catalog_path($path)
+	{
+		$path = unix_path((string) $path);
+		if ($path === '') {
+			return false;
+		}
+
+		$resolved = realpath($path);
+		if ($resolved !== false) {
+			return unix_path($resolved);
+		}
+
+		$root = get_catalog_root();
+		$root = unix_path($root);
+		if ($path[0] === '/' || preg_match('/^[A-Za-z]:/', $path)) {
+			return false;
+		}
+
+		$resolved = realpath($root . '/' . ltrim($path, '/'));
+		if ($resolved !== false) {
+			return unix_path($resolved);
+		}
+
+		return false;
 	}
 }
 

@@ -48,7 +48,7 @@ class Catalog_files extends MY_REST_Controller
 			$sid = $this->get_sid_from_idno($idno);
 			$this->has_dataset_access('view', $sid);
 
-			$folderpath = $this->Managefiles_model->get_survey_path($sid);
+			$folderpath = $this->_study_folder_path($sid);
 			if ($folderpath === false || ! is_dir($folderpath)) {
 				throw new Exception('SURVEY_FOLDER_NOT_FOUND');
 			}
@@ -150,8 +150,8 @@ class Catalog_files extends MY_REST_Controller
 			$sid = $this->get_sid_from_idno($idno);
 			$this->has_dataset_access('view', $sid);
 
-			$survey_folder = $this->Catalog_model->get_survey_path_full($sid);
-			if (! $survey_folder || ! file_exists($survey_folder)) {
+			$survey_folder = $this->_study_folder_path($sid);
+			if (! $survey_folder || ! is_dir($survey_folder)) {
 				throw new Exception('SURVEY_FOLDER_NOT_FOUND');
 			}
 
@@ -196,8 +196,8 @@ class Catalog_files extends MY_REST_Controller
 			$sid = $this->get_sid_from_idno($idno);
 			$this->has_dataset_access('edit', $sid);
 
-			$survey_folder = $this->Catalog_model->get_survey_path_full($sid);
-			if (! $survey_folder || ! file_exists($survey_folder)) {
+			$survey_folder = $this->_study_folder_path($sid);
+			if (! $survey_folder || ! is_dir($survey_folder)) {
 				throw new Exception('SURVEY_FOLDER_NOT_FOUND');
 			}
 
@@ -283,15 +283,14 @@ class Catalog_files extends MY_REST_Controller
 
 			$this->_assert_catalog_upload_extension_allowed($basename);
 
-			$survey_folder = $this->Catalog_model->get_survey_path_full($sid);
+			$survey_folder = $this->_study_folder_path($sid);
 			if (! $survey_folder || ! is_dir($survey_folder)) {
 				throw new Exception('SURVEY_FOLDER_NOT_FOUND');
 			}
 
 			$dest = unix_path($survey_folder . '/' . $basename);
-			$survey_real = unix_realpath($survey_folder);
-			$dest_parent   = unix_realpath(dirname($dest));
-			if ($survey_real === false || $dest_parent === false || strpos($dest_parent, $survey_real) !== 0) {
+			$dest_dir = unix_realpath(dirname($dest));
+			if ($dest_dir === false || ! $this->_path_is_within($dest_dir, $survey_folder)) {
 				throw new Exception('PATH_OUTSIDE_SURVEY_FOLDER');
 			}
 
@@ -421,6 +420,78 @@ class Catalog_files extends MY_REST_Controller
 
 	// --- helpers ---
 
+	/**
+	 * Absolute study folder path — same resolver as index_get / Managefiles.
+	 *
+	 * @param int $sid
+	 * @return string|false
+	 */
+	private function _study_folder_path($sid)
+	{
+		$path = $this->Managefiles_model->get_survey_path($sid);
+		if ($path === false || $path === '') {
+			return false;
+		}
+
+		return resolve_catalog_path($path);
+	}
+
+	/**
+	 * True when $path_real is $root_real or a descendant (uses realpath parent walk).
+	 *
+	 * @param string $path_real canonical path from realpath()
+	 * @param string $root_real canonical survey folder from realpath()
+	 */
+	private function _path_is_within($path_real, $root_real)
+	{
+		$path_real = rtrim(unix_path($path_real), '/');
+		$root_real = rtrim(unix_path($root_real), '/');
+
+		if ($path_real === $root_real) {
+			return true;
+		}
+
+		$current = $path_real;
+		while ($current !== '' && $current !== dirname($current)) {
+			if ($current === $root_real) {
+				return true;
+			}
+			$current = dirname($current);
+		}
+
+		return false;
+	}
+
+	/**
+	 * File token from route arg, ?t= query, or URI tail (handles base64 "/" splits).
+	 *
+	 * @param mixed $encoded
+	 * @return string
+	 */
+	private function _extract_file_token($encoded)
+	{
+		if (is_array($encoded)) {
+			$encoded = implode('/', $encoded);
+		}
+
+		$encoded = trim((string) $encoded);
+		if ($encoded !== '') {
+			return rawurldecode($encoded);
+		}
+
+		$t = $this->input->get('t');
+		if (is_string($t) && trim($t) !== '') {
+			return trim($t);
+		}
+
+		$uri = (string) $this->uri->uri_string();
+		if (preg_match('#/files/download/([^?]+)#', $uri, $matches)) {
+			return rawurldecode($matches[1]);
+		}
+
+		throw new Exception('PATH_NOT_SET');
+	}
+
 	private function _upload_capabilities_payload($idno)
 	{
 		$qs = '';
@@ -511,24 +582,50 @@ class Catalog_files extends MY_REST_Controller
 
 	private function _resolve_study_file_path($sid, $survey_folder, $encoded)
 	{
-		if ($encoded === null || $encoded === '') {
-			throw new Exception('PATH_NOT_SET');
+		$survey_real = resolve_catalog_path($survey_folder);
+		if ($survey_real === false || ! is_dir($survey_real)) {
+			throw new Exception('SURVEY_FOLDER_NOT_FOUND');
 		}
 
-		$filepath = urldecode(base64_decode((string) $encoded));
-		$filepath = $this->_clean_relative_filepath($filepath);
-		$fullpath = unix_path($survey_folder . '/' . $filepath);
+		$token = $this->_extract_file_token($encoded);
+		$filepath = $this->_clean_relative_filepath($this->_decode_managefiles_token($token));
+		if ($filepath === '' || preg_match('#(^/|[A-Za-z]:[\\\\/])#', $filepath)) {
+			throw new Exception('INVALID_RELATIVE_PATH');
+		}
 
-		$survey_real = unix_realpath($survey_folder);
-		$file_real   = unix_realpath($fullpath);
-		if ($survey_real === false || $file_real === false) {
+		$candidate = unix_path($survey_real . '/' . $filepath);
+		$file_real = unix_realpath($candidate);
+		if ($file_real === false || ! is_file($file_real)) {
 			throw new Exception('FILE_NOT_FOUND');
 		}
-		if (strpos($file_real, $survey_real) !== 0) {
+		if (! $this->_path_is_within($file_real, $survey_real)) {
 			throw new Exception('PATH_OUTSIDE_SURVEY_FOLDER');
 		}
 
-		return $fullpath;
+		return $file_real;
+	}
+
+	/**
+	 * Decode base64(urlencode(relative/path)) token from managefiles / list API.
+	 *
+	 * @param string $token
+	 * @return string
+	 */
+	private function _decode_managefiles_token($token)
+	{
+		$token = trim((string) $token);
+		// Query strings may turn "+" into space; restore for base64.
+		$token = str_replace(' ', '+', $token);
+
+		$bin = base64_decode($token, true);
+		if ($bin === false || $bin === '') {
+			$bin = base64_decode($token);
+		}
+		if ($bin === false || $bin === '') {
+			throw new Exception('INVALID_FILE_TOKEN');
+		}
+
+		return urldecode($bin);
 	}
 
 	private function _relative_key_from_fullpath($survey_folder, $fullpath)

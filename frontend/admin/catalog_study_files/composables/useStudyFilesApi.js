@@ -166,7 +166,8 @@ export function useStudyFilesApi() {
   }
 
   function downloadHref(token) {
-    return `${catalogBase()}${sidPart()}/files/download/${encodeURIComponent(token)}?id_format=id`;
+    const params = new URLSearchParams({ id_format: 'id', t: token });
+    return `${catalogBase()}${sidPart()}/files/download?${params.toString()}`;
   }
 
   return {

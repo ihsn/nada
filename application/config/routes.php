@@ -155,6 +155,7 @@ $route['api/admin/catalog/(:any)/refresh_ddi'] = 'api/admin/catalog/refresh_ddi/
 $route['api/admin/catalog/(:any)/generate_ddi'] = 'api/admin/catalog/generate_ddi/$1';
 $route['api/admin/catalog/(:any)/transfer_ownership'] = 'api/admin/catalog/transfer_ownership/$1';
 // Study folder files — explicit segments before generic files/(.*)
+$route['api/admin/catalog/(:any)/files/download']       = 'api/admin/catalog_files/download/$1';
 $route['api/admin/catalog/(:any)/files/download/(.*)'] = 'api/admin/catalog_files/download/$1/$2';
 $route['api/admin/catalog/(:any)/files/commit']       = 'api/admin/catalog_files/commit_resumable/$1';
 $route['api/admin/catalog/(:any)/files/upload']       = 'api/admin/catalog_files/process_batch_uploads/$1';
@@ -176,6 +177,7 @@ $route['api/admin/data-classifications']              = 'api/admin/data_classifi
 $route['api/admin/data-classifications/(.*)']        = 'api/admin/data_classifications/$1';
 
 // Admin catalog study folder files — Catalog_files controller (not api/admin/files)
+$route['api/admin/catalog-files/(:any)/download']       = 'api/admin/catalog_files/download/$1';
 $route['api/admin/catalog-files/(:any)/download/(.*)'] = 'api/admin/catalog_files/download/$1/$2';
 $route['api/admin/catalog-files/(:any)/commit']       = 'api/admin/catalog_files/commit_resumable/$1';
 $route['api/admin/catalog-files/(:any)/upload']       = 'api/admin/catalog_files/process_batch_uploads/$1';
