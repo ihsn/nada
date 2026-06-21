@@ -12,9 +12,90 @@ class DDI_Utils
     function __construct() 
 	{
 		$this->ci =& get_instance();
-		$this->ci->load->model("Catalog_model");
+		// Catalog_model is loaded lazily by strip_ddi_parts() / reload_ddi() so
+		// static helpers (e.g. split_file_ids) work without that dependency.
     }
-	
+
+
+	/**
+	 * Split a DDI <var> @files attribute value into individual file ID tokens.
+	 *
+	 * Per DDI 2.x, @files is declared as IDREFS (whitespace-separated list of
+	 * file IDs) so a single variable can reference multiple files (e.g. shared
+	 * household/person columns in hierarchical IPUMS datasets).
+	 *
+	 * @param string|null $value Raw @files attribute value, e.g. "H P" or "F1".
+	 * @return array Ordered list of non-empty tokens. Empty input returns [].
+	 */
+	public static function split_file_ids($value)
+	{
+		if ($value === null || $value === '') {
+			return array();
+		}
+
+		$tokens = preg_split('/\s+/', trim((string)$value), -1, PREG_SPLIT_NO_EMPTY);
+		return is_array($tokens) ? $tokens : array();
+	}
+
+
+	/**
+	 * NADA variable ID for a DDI @ID within a specific data file.
+	 *
+	 * When @files lists multiple files, prefix with "{fid}_" so (vid, sid) stays
+	 * unique while still fanning out one row per file.
+	 *
+	 * @param string $ddi_var_id Original DDI variable @ID (e.g. COUNTRY).
+	 * @param string $fid_token  Data file ID token (e.g. H).
+	 * @param bool   $multi_file True when the source @files had multiple tokens.
+	 * @return string NADA vid stored in variables.vid.
+	 */
+	public static function variable_vid_for_file($ddi_var_id, $fid_token, $multi_file)
+	{
+		$ddi_var_id = trim((string)$ddi_var_id);
+		$fid_token = trim((string)$fid_token);
+
+		if ($ddi_var_id === '') {
+			return $ddi_var_id;
+		}
+
+		if ($multi_file && $fid_token !== '') {
+			return $fid_token . '_' . $ddi_var_id;
+		}
+
+		return $ddi_var_id;
+	}
+
+
+	/**
+	 * Expand a whitespace-separated list of DDI variable @IDs to NADA vids.
+	 *
+	 * Used for varGrp @var lists after import has built a DDI-to-NADA vid map.
+	 *
+	 * @param string|null $ddi_var_ids Whitespace-separated DDI @IDs.
+	 * @param array       $ddi_to_nada_vids map of ddi @ID => list of NADA vids.
+	 * @return string Whitespace-separated NADA vids.
+	 */
+	public static function remap_ddi_var_ids_list($ddi_var_ids, $ddi_to_nada_vids)
+	{
+		if ($ddi_var_ids === null || trim((string)$ddi_var_ids) === '') {
+			return '';
+		}
+
+		$tokens = preg_split('/\s+/', trim((string)$ddi_var_ids), -1, PREG_SPLIT_NO_EMPTY);
+		$nada_vids = array();
+
+		foreach ($tokens as $ddi_id) {
+			if (isset($ddi_to_nada_vids[$ddi_id]) && is_array($ddi_to_nada_vids[$ddi_id])) {
+				foreach ($ddi_to_nada_vids[$ddi_id] as $nada_vid) {
+					$nada_vids[] = $nada_vid;
+				}
+			} else {
+				$nada_vids[] = $ddi_id;
+			}
+		}
+
+		return implode(' ', $nada_vids);
+	}
 
 
 	/**
@@ -152,7 +233,8 @@ class DDI_Utils
 	 * 
      */
 	function strip_ddi_parts($sid, $xpath_array=array(),$keep_original=true)
-	{		
+	{
+		$this->ci->load->model("Catalog_model");
 		$ddi_file=$this->ci->Catalog_model->get_survey_ddi_path($sid);
 
 		if 	(!file_exists($ddi_file)){

@@ -405,43 +405,90 @@ class Metadata_Import{
         //delete existing variables + variables metadata
         $this->ci->Variable_model->remove_all_variables($sid);
 
+        $this->ci->load->library('DDI_Utils');
+
+        $var_objects=array();
+        foreach($variable_iterator as $var_obj){
+            if ($var_obj){
+                $var_objects[]=$var_obj;
+            }
+        }
+
+        $ddi_multi_file=array();
+        foreach($var_objects as $var_obj){
+            $base_variable=$var_obj->get_metadata_array();
+            $file_id_tokens=DDI_Utils::split_file_ids($base_variable['file_id']);
+            if (count($file_id_tokens) > 1) {
+                $ddi_multi_file[$var_obj->get_id()]=true;
+            }
+        }
+
         $batch_inserts=true; //enable or disable batch inserts
         $batch_insert_size=100; //rows inserted at once
-        $batch_insert_count=0;
         $batch_options=array();
         $k=0;
 
-        //@var_obj is an instance of the interfaceVariable e.g. DdiVariable
-        foreach($variable_iterator as $var_obj)
+        foreach($var_objects as $var_obj)
         {
-            $core_options=array(
-                'fid'   		=> $data_files[$var_obj->get_file_id()]['id'],
-                'vid'		    =>$var_obj->get_id(),
-                'name'			=>$var_obj->get_name(),
-                'labl'			=>$var_obj->get_label(),
-                'qstn'			=>$var_obj->get_question(),
-                'catgry'		=>$var_obj->get_categories_str(),
-                'sid'	        =>$sid,
-                'metadata'      =>$this->encode_metadata($var_obj->get_metadata_array())
-            );
+            $base_variable=$var_obj->get_metadata_array();
+            $ddi_var_id=$var_obj->get_id();
+            $file_id_tokens=DDI_Utils::split_file_ids($base_variable['file_id']);
+            $multi_file=count($file_id_tokens) > 1;
 
-            if ($batch_inserts){
-                $batch_options[$k]=$core_options;
+            if (empty($file_id_tokens)){
+                continue;
             }
-            else {
-                //insert variable and get the pk id
-                $variable_id = $this->ci->Variable_model->add_variable_row($sid, $core_options);
 
-                if (!$variable_id) {
-                    throw new Exception("variable not created " . $this->ci->db->last_query());
+            foreach($file_id_tokens as $fid_token){
+                if (!isset($data_files[$fid_token])){
+                    continue;
                 }
-            }
 
-            $k++;
+                $nada_vid=DDI_Utils::variable_vid_for_file($ddi_var_id, $fid_token, $multi_file);
+
+                $variable=$base_variable;
+                $variable['file_id']=$fid_token;
+                $variable['fid']=$fid_token;
+                $variable['vid']=$ddi_var_id;
+
+                if (!empty($variable['var_wgt'])) {
+                    $wgt_ddi=trim((string)$variable['var_wgt']);
+                    if ($wgt_ddi !== '') {
+                        $variable['var_wgt']=DDI_Utils::variable_vid_for_file(
+                            $wgt_ddi,
+                            $fid_token,
+                            !empty($ddi_multi_file[$wgt_ddi])
+                        );
+                    }
+                }
+
+                $core_options=array(
+                    'fid'   		=> $fid_token,
+                    'vid'		    => $nada_vid,
+                    'name'			=> $var_obj->get_name(),
+                    'labl'			=> $var_obj->get_label(),
+                    'qstn'			=> $var_obj->get_question(),
+                    'catgry'		=> $var_obj->get_categories_str(),
+                    'sid'	        => $sid,
+                    'metadata'      => $this->encode_metadata($variable)
+                );
+
+                if ($batch_inserts){
+                    $batch_options[$k]=$core_options;
+                }
+                else {
+                    $variable_id = $this->ci->Variable_model->add_variable_row($sid, $core_options);
+
+                    if (!$variable_id) {
+                        throw new Exception("variable not created " . $this->ci->db->last_query());
+                    }
+                }
+
+                $k++;
+            }
        }
 
         if($batch_inserts){
-            //echo ("variables in batch insert:" .count($batch_options));
             $this->ci->Variable_model->batch_insert($sid,$batch_options);
         }
 

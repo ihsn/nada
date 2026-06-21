@@ -17,6 +17,9 @@ class DDI2_Import{
     private $catalog_root; //storage folder path
     private $overwrite=false;
 
+    /** @var array DDI @ID => list of NADA vids created during import (for varGrp remapping) */
+    private $ddi_to_nada_vids=array();
+
     //which field to use for country name - nation | geog_coverage
     private $geog_coverage_field='nation'; 
 
@@ -417,6 +420,12 @@ class DDI2_Import{
         
         if(is_array($variable_groups)){
 			foreach($variable_groups as $vgroup){
+                if (isset($vgroup['variables']) && trim((string)$vgroup['variables']) !== '') {
+                    $vgroup['variables'] = DDI_Utils::remap_ddi_var_ids_list(
+                        $vgroup['variables'],
+                        $this->ddi_to_nada_vids
+                    );
+                }
 				$this->ci->Variable_group_model->insert($sid,$vgroup);
 			}
 		}
@@ -513,6 +522,7 @@ class DDI2_Import{
     {
         //delete existing variables + variables metadata
         $this->ci->Variable_model->remove_all_variables($sid);
+        $this->ddi_to_nada_vids=array();
 
         if(!$data_files){
             return 0;
@@ -522,82 +532,116 @@ class DDI2_Import{
             return 0;
         }
 
+        $this->ci->load->library('DDI_Utils');
+
+        $var_objects=array();
+        foreach($variable_iterator as $var_obj){
+            if($var_obj){
+                $var_objects[]=$var_obj;
+            }
+        }
+
+        $ddi_multi_file=array();
+        foreach($var_objects as $var_obj){
+            $base_variable=$var_obj->get_metadata_array();
+            $file_id_tokens=DDI_Utils::split_file_ids($base_variable['file_id']);
+            if (count($file_id_tokens) > 1) {
+                $ddi_multi_file[$var_obj->get_id()]=true;
+            }
+        }
+
         $batch_inserts=true; //enable or disable batch inserts
         $batch_insert_size=200; //rows inserted at once
-        $batch_insert_count=0;
         $batch_options=array();
         $k=0;
 
-        //@var_obj is an instance of the interfaceVariable e.g. DdiVariable
-        foreach($variable_iterator as $var_obj)
+        foreach($var_objects as $var_obj)
         {
-            $fid=null;
-            
-            if(!$var_obj){
+            $base_variable=$var_obj->get_metadata_array();
+            $ddi_var_id=$var_obj->get_id();
+
+            // DDI 2.x @files is IDREFS (whitespace-separated list). Fan out one
+            // row per file; prefix vid with fid when multiple files (e.g. H_COUNTRY).
+            $file_id_tokens=DDI_Utils::split_file_ids($base_variable['file_id']);
+            $multi_file=count($file_id_tokens) > 1;
+
+            if (empty($file_id_tokens)){
+                log_message('warning', 'DDI2_IMPORT: Variable has no @files attribute; skipped vid='. $ddi_var_id);
                 continue;
             }
 
-            if (isset($data_files[$var_obj->get_file_id()])){
-                //get file id
-                $fid=$data_files[$var_obj->get_file_id()]['id'];    
-            }            
-            
-            if(!$fid){
-                throw new exception("var @files attribute not set. ". $var_obj->get_file_id());
-            }
-            
-            //transform fields to map to variable fields and validate
-            //$variable=$this->map_variable_fields($var_obj->get_metadata_array());
-            $variable=$var_obj->get_metadata_array();
-            $variable['fid']=$variable['file_id'];   
-            
-            try{
-                $this->ci->Variable_model->validate_variable($variable);
-            }
-            catch(ValidationException $e){                
-                throw new ValidationException("VALIDATION_ERROR: ".$e->getMessage(), $variable);
-                
-            }
-            catch(Exception $e){
-                throw new Exception('DDI2_IMPORT::VARIABLE-IMPORT: '.$e->getMessage());
-            }
-
-
-            //fid = auto generated numeric id for file
-            //file_id = user defined .e.g. F1, F2
-            
-            $options=array(
-                //'file_id'   	=> $var_obj->get_file_id(),
-                //'fid'   		=> $fid,
-                'fid'           =>$var_obj->get_file_id(), //F1, F2
-                'vid'		    => $var_obj->get_id(),
-                'name'			=> $var_obj->get_name(),
-                'labl'			=> $var_obj->get_label(),
-                'qstn'			=> $var_obj->get_question(),
-                'catgry'		=> $var_obj->get_categories_str(),
-                'keywords'      => $var_obj->get_notes(),
-                'sid'	        => $sid,
-                'metadata'      => $variable
-            );
-
-            if(!$batch_inserts){
-                // Must pass $options (fid, vid, labl, metadata, …); $variable alone omits nested metadata encoding.
-                $variable_id=$this->ci->Variable_model->insert($sid,$options);
-
-                if (!$variable_id) {
-                    throw new Exception("variable not created " . $this->ci->db->last_query());
+            foreach($file_id_tokens as $fid_token){
+                if (!isset($data_files[$fid_token])){
+                    log_message('warning', 'DDI2_IMPORT: Variable references unknown data file "'.$fid_token.'"; skipped vid='. $ddi_var_id);
+                    continue;
                 }
-            }
 
-            if ($batch_inserts){
-                $batch_options[$k]=$options;
+                $nada_vid=DDI_Utils::variable_vid_for_file($ddi_var_id, $fid_token, $multi_file);
 
-                if(count($batch_options)==$batch_insert_size){                    
-                    $this->ci->Variable_model->batch_insert($sid,$batch_options);
-                    $batch_options=[];
+                $variable=$base_variable;
+                $variable['file_id']=$fid_token;
+                $variable['fid']=$fid_token;
+                $variable['vid']=$ddi_var_id;
+
+                if (!empty($variable['var_wgt'])) {
+                    $wgt_ddi=trim((string)$variable['var_wgt']);
+                    if ($wgt_ddi !== '') {
+                        $variable['var_wgt']=DDI_Utils::variable_vid_for_file(
+                            $wgt_ddi,
+                            $fid_token,
+                            !empty($ddi_multi_file[$wgt_ddi])
+                        );
+                    }
                 }
-            }            
-            $k++;
+
+                $validate_row=$variable;
+                $validate_row['vid']=$nada_vid;
+
+                try{
+                    $this->ci->Variable_model->validate_variable($validate_row);
+                }
+                catch(ValidationException $e){
+                    throw new ValidationException("VALIDATION_ERROR: ".$e->getMessage(), $variable);
+                }
+                catch(Exception $e){
+                    throw new Exception('DDI2_IMPORT::VARIABLE-IMPORT: '.$e->getMessage());
+                }
+
+                if (!isset($this->ddi_to_nada_vids[$ddi_var_id])) {
+                    $this->ddi_to_nada_vids[$ddi_var_id]=array();
+                }
+                $this->ddi_to_nada_vids[$ddi_var_id][]=$nada_vid;
+
+                $options=array(
+                    'fid'           => $fid_token,
+                    'vid'		    => $nada_vid,
+                    'name'			=> $var_obj->get_name(),
+                    'labl'			=> $var_obj->get_label(),
+                    'qstn'			=> $var_obj->get_question(),
+                    'catgry'		=> $var_obj->get_categories_str(),
+                    'keywords'      => $var_obj->get_notes(),
+                    'sid'	        => $sid,
+                    'metadata'      => $variable
+                );
+
+                if(!$batch_inserts){
+                    $variable_id=$this->ci->Variable_model->insert($sid,$options);
+
+                    if (!$variable_id) {
+                        throw new Exception("variable not created " . $this->ci->db->last_query());
+                    }
+                }
+
+                if ($batch_inserts){
+                    $batch_options[$k]=$options;
+
+                    if(count($batch_options)==$batch_insert_size){
+                        $this->ci->Variable_model->batch_insert($sid,$batch_options);
+                        $batch_options=[];
+                    }
+                }
+                $k++;
+            }
        }
 
         if(count($batch_options)>0){
