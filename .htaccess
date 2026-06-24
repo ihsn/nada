@@ -1,5 +1,7 @@
 Options -Indexes
 
+AddType application/javascript .mjs
+
 <ifModule mod_headers.c>
     Header set X-Frame-Options "SAMEORIGIN"
     Header set X-XSS-Protection "1; mode=block"

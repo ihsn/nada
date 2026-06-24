@@ -1,9 +1,10 @@
 <template>
-  <v-app class="pdf-viewer-app">
+  <v-app class="pdf-viewer-app" :class="{ 'pdf-viewer-app--embedded': embedded }">
     <v-alert v-if="configError" type="error" class="ma-4">{{ configError }}</v-alert>
     <PdfViewerCore
       v-else
       :stream-url="streamUrl"
+      :download-url="downloadUrl"
       :initial-page="viewerParams.page"
       :page-chips="viewerParams.pageChips"
       :title="displayTitle"
@@ -17,7 +18,7 @@ import { computed, ref, watch } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import PdfViewerCore from '@/shared/pdf-viewer/PdfViewerCore.vue';
 import { parseViewerParams, validateViewerParams } from '@/shared/pdf-viewer/pdfViewerParams';
-import { buildPdfStreamUrl } from '@/shared/pdf-viewer/pdfStreamUrl';
+import { buildPdfStreamUrl, buildResourceDownloadUrl } from '@/shared/pdf-viewer/pdfStreamUrl';
 import { resolvePdfViewerTitle } from '@/shared/pdf-viewer/resolvePdfViewerTitle';
 
 defineOptions({ name: 'PdfViewerApp' });
@@ -40,6 +41,17 @@ const streamUrl = computed(() => {
   if (configError.value) return '';
   const p = viewerParams.value;
   return buildPdfStreamUrl(siteUrl.value, {
+    source: p.source,
+    sid: p.sid,
+    idno: p.idno,
+    resourceId: p.resourceId,
+  });
+});
+
+const downloadUrl = computed(() => {
+  if (configError.value) return '';
+  const p = viewerParams.value;
+  return buildResourceDownloadUrl(siteUrl.value, {
     source: p.source,
     sid: p.sid,
     idno: p.idno,
@@ -82,5 +94,21 @@ html, body, #pdf-viewer-app {
 
 .pdf-viewer-app {
   background: #525659 !important;
+}
+
+/* Embedded in catalog search iframe: constrain Vuetify shell so inner scroll works */
+.pdf-viewer-app--embedded {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.pdf-viewer-app--embedded .v-application__wrap {
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 </style>

@@ -326,6 +326,7 @@ $lang['related_citations']="Related Publications";
 $lang['study_resources']="Download related resources";
 $lang['preview']="Preview";
 $lang['pdf_preview']="PDF preview";
+$lang['view_full_pdf']="View full PDF";
 $lang['study_microdata_resources']="Download microdata";
 $lang['Total variables(s)']="Total variables(s)";
 $lang['download_study_rdf']="Download study resource descriptions (e.g. reports, questionnaires, technical documents) in Dublin Core RDF format";

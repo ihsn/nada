@@ -2,6 +2,7 @@
   <v-dialog
     :model-value="modelValue"
     fullscreen
+    scroll-strategy="none"
     content-class="catalog-pdf-dialog-overlay"
     @update:model-value="onDialogToggle"
   >
