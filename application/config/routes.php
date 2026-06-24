@@ -314,8 +314,7 @@ $route['switch_language/(.*)'] = "page/switch_language/$1";
 //forms {pubic,direct, etc}
 $route['forms/(.*)'] = "forms";
 
-//$route['embed/(.*)'] = "embed/index/$1";
-//$route['embed/(.*)'] = "embed/index/$1";
+$route['embed/catalog/(:num)/chart'] = 'embed/catalog_chart/$1';
 
 //admin paths
 $route['admin'] = "admin/admin";
