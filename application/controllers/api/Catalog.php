@@ -532,8 +532,7 @@ class Catalog extends MY_REST_Controller
 	 */
 	private function semantic_search_debug_for_exception($e)
 	{
-		$this->config->load('semantic_search');
-		if (!$this->config->item('semantic_search_debug')) {
+		if (!filter_var($this->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN)) {
 			return array();
 		}
 

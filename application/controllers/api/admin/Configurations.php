@@ -31,6 +31,7 @@ class Configurations extends MY_REST_Controller
 		'smtp_pass',
 		'sendgrid_api_key',
 		'microsoft_graph_client_secret',
+		'semantic_search_api_key',
 	);
 
 	public function __construct()
@@ -503,6 +504,32 @@ class Configurations extends MY_REST_Controller
 					throw new Exception('INVALID_VALUE:data_classifications_enabled');
 				}
 				$value = $v;
+			}
+
+			if ($key === 'semantic_search_url')
+			{
+				$value = rtrim(trim((string) $value), '/');
+				if ($value !== '' && filter_var($value, FILTER_VALIDATE_URL) === FALSE)
+				{
+					throw new Exception('INVALID_URL:semantic_search_url');
+				}
+			}
+
+			if ($key === 'semantic_search_debug')
+			{
+				$v = strtolower(trim((string) $value));
+				if (in_array($v, array('1', 'true', 'yes', 'on'), true))
+				{
+					$value = 'true';
+				}
+				elseif (in_array($v, array('0', 'false', 'no', 'off', ''), true))
+				{
+					$value = 'false';
+				}
+				else
+				{
+					throw new Exception('INVALID_VALUE:semantic_search_debug');
+				}
 			}
 		}
 		unset($value);

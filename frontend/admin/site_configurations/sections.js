@@ -32,7 +32,11 @@ export const SECTION_DEFS = [
       'catalog_default_sort_order',
     ],
   },
-  { id: 'search', titleKey: 'fulltext_search', keys: ['search_provider'] },
+  {
+    id: 'search',
+    titleKey: 'fulltext_search',
+    keys: ['search_provider', 'semantic_search_url', 'semantic_search_api_key', 'semantic_search_debug'],
+  },
   {
     id: 'login',
     titleKey: 'site_login',

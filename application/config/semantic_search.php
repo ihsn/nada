@@ -10,14 +10,9 @@
  * POST /search; local dev default is http://localhost:8020 (no trailing slash).
  *
  * Enable semantic search in NADA via Site configurations → search_provider = semantic.
- * Set semantic_search_url below to your nada-ai API base URL before use.
+ * Set semantic_search_url, semantic_search_api_key, and semantic_search_debug
+ * in Site configurations → Fulltext search.
  */
-
-// Base URL of the nada-ai search API (no trailing slash). Leave empty until nada-ai is deployed.
-$config['semantic_search_url']     = '';
-
-// Bearer token — set if your nada-ai deployment requires auth on /search
-$config['semantic_search_api_key'] = '';
 
 // Search mode sent to nada-ai POST /search: hybrid | vector | keyword
 $config['semantic_search_mode']    = 'vector';
@@ -33,6 +28,3 @@ $config['semantic_search_query_prompt'] = "Instruct: Retrieve texts that help an
 
 // collapse_inner_hits.size in the search request body
 $config['semantic_search_collapse_inner_hits_size'] = 15;
-
-// Log API request/response body for debugging; keep false in production
-$config['semantic_search_debug'] = false;

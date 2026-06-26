@@ -109,7 +109,7 @@ class catalog_search_semantic
             self::API_MAX_TIMEOUT_SEC
         );
         $this->knn_k   = (int)   $this->ci->config->item('semantic_search_knn_k')   ?: 50;
-        $this->debug   = (bool)  $this->ci->config->item('semantic_search_debug');
+        $this->debug   = filter_var($this->ci->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN);
         $this->query_prompt = (string) $this->ci->config->item('semantic_search_query_prompt');
         $collapse_size = (int) $this->ci->config->item('semantic_search_collapse_inner_hits_size');
         $this->collapse_inner_hits_size = $collapse_size > 0 ? $collapse_size : 15;

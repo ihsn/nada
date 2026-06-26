@@ -161,6 +161,9 @@ async function reloadAll() {
   if (s.data_classifications_enabled === undefined || s.data_classifications_enabled === '') {
     s.data_classifications_enabled = 'yes';
   }
+  if (s.semantic_search_debug === undefined || s.semantic_search_debug === '') {
+    s.semantic_search_debug = 'false';
+  }
   settings.value = { ...s };
   meta.value = { ...m };
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
@@ -785,6 +788,45 @@ onMounted(async () => {
               <v-radio value="semantic" :label="tr('search_provider_semantic')" />
             </v-radio-group>
             <div class="site-config-field__hint mt-2">{{ tr('search_provider_note') }}</div>
+
+            <div v-show="settings.search_provider === 'semantic'" class="mt-6">
+              <v-row dense>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('semantic_search_url') }}</label>
+                  <v-text-field
+                    v-model="settings.semantic_search_url"
+                    variant="outlined"
+                    density="comfortable"
+                    placeholder="https://ai.example.org"
+                    hide-details
+                  />
+                  <div class="site-config-field__hint mt-2">{{ tr('semantic_search_url_note') }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('semantic_search_api_key') }}</label>
+                  <v-text-field
+                    v-model="settings.semantic_search_api_key"
+                    variant="outlined"
+                    density="comfortable"
+                    type="password"
+                    autocomplete="new-password"
+                    hide-details
+                  />
+                  <div class="site-config-field__hint mt-2">{{ tr('semantic_search_api_key_note') }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('semantic_search_debug') }}</label>
+                  <v-switch
+                    v-model="settings.semantic_search_debug"
+                    true-value="true"
+                    false-value="false"
+                    color="primary"
+                    hide-details
+                  />
+                  <div class="site-config-field__hint mt-2">{{ tr('semantic_search_debug_note') }}</div>
+                </v-col>
+              </v-row>
+            </div>
             </div>
           </v-card>
 
