@@ -329,3 +329,54 @@ function catalog_browse_ssr_variable_study_meta(array $row)
 	}
 	return implode(' · ', $parts);
 }
+
+/**
+ * Thumbnail URL for a repository/collection card.
+ *
+ * @param array<string, mixed> $repo
+ * @return string
+ */
+function collection_card_thumbnail_url($repo)
+{
+	if (!empty($repo['thumbnail'])) {
+		return base_url() . $repo['thumbnail'];
+	}
+	return base_url() . 'files/icon-blank.png';
+}
+
+/**
+ * Collection card (home page, collections index, etc.).
+ *
+ * @param array<string, mixed>|object $repo
+ * @return void
+ */
+function render_collection_card($repo)
+{
+	if (is_object($repo)) {
+		$repo = (array) $repo;
+	}
+
+	$repo_url = site_url('catalog/' . $repo['repositoryid']);
+	$short_text = isset($repo['short_text']) ? trim(strip_tags($repo['short_text'])) : '';
+	?>
+	<div class="col-md-6 mb-4">
+		<a class="home-featured-card home-featured-card--collection" href="<?php echo $repo_url; ?>" title="<?php echo html_escape($repo['title']); ?>">
+			<span class="home-featured-card-media">
+				<img src="<?php echo collection_card_thumbnail_url($repo); ?>" alt="" loading="lazy">
+			</span>
+			<div class="home-featured-card-content">
+				<h3 class="home-featured-card-title"><?php echo html_escape($repo['title']); ?></h3>
+				<?php if ($short_text !== ''): ?>
+					<p class="home-featured-card-desc"><?php echo html_escape($short_text); ?></p>
+				<?php endif; ?>
+				<?php if (isset($repo['surveys_found']) && $repo['surveys_found'] > 0): ?>
+					<span class="home-card-chip">
+						<i class="fas fa-database" aria-hidden="true"></i>
+						<?php echo number_format($repo['surveys_found']); ?> datasets
+					</span>
+				<?php endif; ?>
+			</div>
+		</a>
+	</div>
+	<?php
+}

@@ -702,13 +702,13 @@ class Repository_model extends CI_Model {
 	
 	public function get_repositories_with_survey_counts()
 	{
-		$this->db->select('r.id,r.pid,r.title,r.repositoryid,count(sr.sid) as surveys_found');
+		$this->db->select('r.id,r.pid,r.title,r.repositoryid,r.short_text,count(sr.sid) as surveys_found');
 		$this->db->join('survey_repos sr', 'r.repositoryid= sr.repositoryid','INNER');
 		$this->db->join('surveys', 'sr.sid= surveys.id','INNER');
 		$this->db->where('r.ispublished',1);
 		$this->db->where('surveys.published',1);
 		//$this->db->where('r.pid >',0);
-		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid,r.weight');
+		$this->db->group_by('r.id,r.pid,r.title,r.repositoryid,r.short_text,r.weight');
 		$this->db->order_by('r.weight');		
 		$query=$this->db->get('repositories r');
 		
