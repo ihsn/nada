@@ -187,7 +187,17 @@ $config['auth_library_function'] = '';
 //no authentication required
 $config['auth_override_class_method']['catalog']['*'] = 'none';
 $config['auth_override_class_method']['auth']['*'] = 'none';
-$config['auth_override_class_method']['tables']['*'] = 'none';
+
+// Tables API: public read endpoints only
+$config['auth_override_class_method']['tables']['index'] = 'none';
+$config['auth_override_class_method']['tables']['list'] = 'none';
+$config['auth_override_class_method']['tables']['collection_tables'] = 'none';
+$config['auth_override_class_method']['tables']['info'] = 'none';
+$config['auth_override_class_method']['tables']['databases'] = 'none';
+$config['auth_override_class_method']['tables']['data'] = 'none';
+$config['auth_override_class_method']['tables']['download'] = 'none';
+$config['auth_override_class_method']['tables']['aggregate'] = 'none';
+$config['auth_override_class_method']['tables']['data_dictionary'] = 'none';
 
 $config['auth_override_class_method']['downloads']['*'] = 'none';
 $config['auth_override_class_method']['analytics']['*'] = 'none';
@@ -213,6 +223,12 @@ $config['auth_override_class_method']['timeseries_public']['*'] = 'none';
 // ---Uncomment list line for the wildard unit test
 // $config['auth_override_class_method_http']['wildcard_test_cases']['*']['options'] = 'basic';
 $config['auth_override_class_method_http']['widgets']['*']['get'] = 'none';
+
+// Tables: public GET endpoints
+$config['auth_override_class_method_http']['tables']['indexes']['get'] = 'none';
+$config['auth_override_class_method_http']['tables']['fields']['get'] = 'none';
+$config['auth_override_class_method_http']['tables']['field']['get'] = 'none';
+$config['auth_override_class_method_http']['tables']['*']['options'] = 'none';
 
 /*
 |--------------------------------------------------------------------------
