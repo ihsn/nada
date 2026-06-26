@@ -86,6 +86,20 @@ $route['api/datasets/(:any)/resources/delete/(:num)'] = "api/resources/delete/$1
 $route['api/datasets/(:any)/resources/delete_all'] = "api/resources/delete_all/$1";
 $route['api/datasets/(:any)/resources/import_rdf'] = "api/resources/import_rdf/$1";
 $route['api/datasets/(:any)/resources/download/(:num)'] = "api/resources/download/$1/$2";
+$route['api/datasets/(:any)/resources/(:num)/fix_links'] = 'api/resources/fix_links/$1';
+$route['api/datasets/(:any)/resources/fix_links'] = 'api/resources/fix_links/$1';
+
+// Admin external resources API — mirror of api/resources (same handlers); study ref + /resources/...
+$route['api/admin/resources/(:any)/resources'] = 'api/admin/resources/$1';
+$route['api/admin/resources/(:any)/resources/(:num)'] = 'api/admin/resources/$1/$2';
+$route['api/admin/resources/(:any)/resources/delete/(:num)'] = 'api/admin/resources/delete/$1/$2';
+$route['api/admin/resources/(:any)/resources/delete_all'] = 'api/admin/resources/delete_all/$1';
+$route['api/admin/resources/(:any)/resources/import_rdf'] = 'api/admin/resources/import_rdf/$1';
+$route['api/admin/resources/(:any)/resources/export_rdf'] = 'api/admin/resources/export_rdf/$1';
+$route['api/admin/resources/(:any)/resources/download/(:num)'] = 'api/admin/resources/download/$1/$2';
+$route['api/admin/resources/(:any)/resources/(:num)/fix_links'] = 'api/admin/resources/fix_links/$1';
+$route['api/admin/resources/(:any)/resources/fix_links'] = 'api/admin/resources/fix_links/$1';
+$route['api/admin/resources/download_links'] = 'api/admin/resources/download_links';
 
 //dataset files
 $route['api/datasets/(:any)/files'] = "api/files/$1";
@@ -93,6 +107,83 @@ $route['api/datasets/(:any)/files/(.*)'] = "api/files/$1/$2";
 $route['api/datasets/(:any)/download/(.*)'] = "api/files/download/$1/$2";
 
 $route['api/datasets/(:any)/thumbnail'] = "api/datasets/thumbnail/$1";
+$route['api/admin/search-metadata-extract/status']              = 'api/admin/search_metadata_extract/status';
+$route['api/admin/search-metadata-extract/studies/(:any)']      = 'api/admin/search_metadata_extract/studies/$1';
+$route['api/admin/search-metadata-extract/studies']             = 'api/admin/search_metadata_extract/studies';
+$route['api/admin/search-metadata-extract/citations/(:num)']    = 'api/admin/search_metadata_extract/citations/$1';
+$route['api/admin/search-metadata-extract/variables/(:any)']     = 'api/admin/search_metadata_extract/variables/$1';
+
+$route['api/admin/catalog/data-access-codelist']         = 'api/admin/catalog/data_access_codelist';
+$route['api/admin/catalog/data-access-options']          = 'api/admin/catalog/data_access_options';
+$route['api/admin/catalog/data-classifications']         = 'api/admin/data_classifications';
+$route['api/admin/catalog/data-classifications/(.*)']   = 'api/admin/data_classifications/$1';
+$route['api/admin/catalog/check_idno/(:any)']           = 'api/admin/catalog/check_idno/$1';
+$route['api/admin/catalog/replace_idno']                = 'api/admin/catalog/replace_idno';
+$route['api/admin/catalog/import_package/status']       = 'api/admin/catalog/import_package_status';
+$route['api/admin/catalog/import_package/unzip']        = 'api/admin/catalog/import_package_unzip';
+$route['api/admin/catalog/import_package/create']       = 'api/admin/catalog/import_package_create';
+$route['api/admin/catalog/import_package/datafile']     = 'api/admin/catalog/import_package_datafile';
+$route['api/admin/catalog/import_package/finalize']     = 'api/admin/catalog/import_package_finalize';
+$route['api/admin/catalog/(:any)/warnings']            = 'api/admin/catalog/warnings/$1';
+$route['api/admin/catalog/(:any)/summary']             = 'api/admin/catalog/summary/$1';
+$route['api/admin/catalog/(:any)/folder-status']      = 'api/admin/catalog/folder_status/$1';
+$route['api/admin/catalog/(:any)/aliases/delete']       = 'api/admin/catalog/aliases_delete/$1';
+$route['api/admin/catalog/(:any)/aliases_delete']       = 'api/admin/catalog/aliases_delete/$1';
+$route['api/admin/catalog/(:any)/aliases']              = 'api/admin/catalog/aliases/$1';
+$route['api/admin/catalog/(:any)/collections'] = 'api/admin/catalog/collections/$1';
+$route['api/admin/catalog/(:any)/doi']         = 'api/admin/catalog/doi/$1';
+$route['api/admin/catalog/(:any)/package']     = 'api/admin/catalog/package/$1';
+$route['api/admin/catalog/(:any)/thumbnail'] = 'api/admin/catalog/thumbnail/$1';
+$route['api/admin/catalog/(:any)/tags/delete'] = 'api/admin/catalog/tags_delete/$1';
+$route['api/admin/catalog/(:any)/tags_delete'] = 'api/admin/catalog/tags_delete/$1';
+$route['api/admin/catalog/(:any)/tags']       = 'api/admin/catalog/tags/$1';
+// Microdata (DDI data files + variables) — `api/admin/microdata` controller; literal `microdata` before generic catalog/(:any)/… routes
+$route['api/admin/catalog/(:any)/microdata/variable_delete/(:any)/(:any)'] = 'api/admin/microdata/variable_delete/$1/$2/$3';
+$route['api/admin/catalog/(:any)/microdata/variables_delete/(:any)'] = 'api/admin/microdata/variables_delete/$1/$2';
+$route['api/admin/catalog/(:any)/microdata/datafiles_delete/(:any)'] = 'api/admin/microdata/datafiles_delete/$1/$2';
+$route['api/admin/catalog/(:any)/microdata/variable/(:any)/(:any)'] = 'api/admin/microdata/variable/$1/$2/$3';
+$route['api/admin/catalog/(:any)/microdata/variable/(:any)']     = 'api/admin/microdata/variable/$1/$2';
+$route['api/admin/catalog/(:any)/microdata/variables/(:any)']    = 'api/admin/microdata/variables/$1/$2';
+$route['api/admin/catalog/(:any)/microdata/variables']           = 'api/admin/microdata/variables/$1';
+$route['api/admin/catalog/(:any)/microdata/datafiles/(:any)']    = 'api/admin/microdata/datafiles/$1/$2';
+$route['api/admin/catalog/(:any)/microdata/datafiles']           = 'api/admin/microdata/datafiles/$1';
+$route['api/admin/catalog/(:any)/generate_pdf'] = 'api/admin/catalog/generate_pdf/$1';
+$route['api/admin/catalog/delete_pdf/(:any)'] = 'api/admin/catalog/delete_pdf/$1';
+$route['api/admin/catalog/(:any)/replace_ddi'] = 'api/admin/catalog/replace_ddi/$1';
+$route['api/admin/catalog/(:any)/export_ddi'] = 'api/admin/catalog/export_ddi/$1';
+$route['api/admin/catalog/(:any)/refresh_ddi'] = 'api/admin/catalog/refresh_ddi/$1';
+$route['api/admin/catalog/(:any)/generate_ddi'] = 'api/admin/catalog/generate_ddi/$1';
+$route['api/admin/catalog/(:any)/transfer_ownership'] = 'api/admin/catalog/transfer_ownership/$1';
+// Study folder files — explicit segments before generic files/(.*)
+$route['api/admin/catalog/(:any)/files/download']       = 'api/admin/catalog_files/download/$1';
+$route['api/admin/catalog/(:any)/files/download/(.*)'] = 'api/admin/catalog_files/download/$1/$2';
+$route['api/admin/catalog/(:any)/files/commit']       = 'api/admin/catalog_files/commit_resumable/$1';
+$route['api/admin/catalog/(:any)/files/upload']       = 'api/admin/catalog_files/process_batch_uploads/$1';
+$route['api/admin/catalog/(:any)/files/(.*)/delete']  = 'api/admin/catalog_files/files_delete/$1/$2';
+$route['api/admin/catalog/(:any)/files/(.*)']        = 'api/admin/catalog_files/$1/$2';
+$route['api/admin/catalog/(:any)/files']              = 'api/admin/catalog_files/$1';
+$route['api/admin/catalog/(:any)/citations/search']   = 'api/admin/study_citations/search/$1';
+$route['api/admin/catalog/(:any)/citations/(:num)']   = 'api/admin/study_citations/$1/$2';
+$route['api/admin/catalog/(:any)/citations']          = 'api/admin/study_citations/$1';
+$route['api/admin/catalog/(:any)/admin-metadata/delete']  = 'api/admin/study_admin_metadata/delete_post/$1';
+$route['api/admin/catalog/(:any)/admin-metadata/update']  = 'api/admin/study_admin_metadata/update_post/$1';
+$route['api/admin/catalog/(:any)/admin-metadata']         = 'api/admin/study_admin_metadata/$1';
+$route['api/admin/catalog/(:any)/notes/(.*)']         = 'api/admin/study_notes/$1/$2';
+$route['api/admin/catalog/(:any)/notes']              = 'api/admin/study_notes/$1';
+$route['api/admin/catalog/(:any)/related-studies/search']   = 'api/admin/study_related_studies/search/$1';
+$route['api/admin/catalog/(:any)/related-studies/(:num)']   = 'api/admin/study_related_studies/$1/$2';
+$route['api/admin/catalog/(:any)/related-studies']          = 'api/admin/study_related_studies/$1';
+$route['api/admin/data-classifications']              = 'api/admin/data_classifications';
+$route['api/admin/data-classifications/(.*)']        = 'api/admin/data_classifications/$1';
+
+// Admin catalog study folder files — Catalog_files controller (not api/admin/files)
+$route['api/admin/catalog-files/(:any)/download']       = 'api/admin/catalog_files/download/$1';
+$route['api/admin/catalog-files/(:any)/download/(.*)'] = 'api/admin/catalog_files/download/$1/$2';
+$route['api/admin/catalog-files/(:any)/commit']       = 'api/admin/catalog_files/commit_resumable/$1';
+$route['api/admin/catalog-files/(:any)/upload']       = 'api/admin/catalog_files/process_batch_uploads/$1';
+$route['api/admin/catalog-files/(:any)/(.*)/delete']  = 'api/admin/catalog_files/files_delete/$1/$2';
+$route['api/admin/catalog-files/(:any)/(.*)']        = 'api/admin/catalog_files/$1/$2';
+$route['api/admin/catalog-files/(:any)']              = 'api/admin/catalog_files/$1';
 
 //public api
 $route['api/catalog/(:any)/data_files/(.*)/variables'] = "api/catalog/data_file_variables/$1/$2";
@@ -104,6 +195,10 @@ $route['api/catalog/(:any)/variables'] = "api/catalog/variables/$1";
 
 $route['api/catalog/(:any)/variable'] = "api/catalog/variable/$1";
 $route['api/catalog/(:any)/variable/(.*)'] = "api/catalog/variable/$1/$2";
+
+$route['api/catalog/pdf_documentation/(:any)'] = 'api/catalog/pdf_documentation/$1';
+$route['api/catalog/(:any)/resources/(:num)/pdf-stream'] = 'api/catalog/pdf_stream/$1/$2';
+$route['api/catalog/(:any)/resources'] = 'api/catalog/resources/$1';
 
 
 //Collections
@@ -158,7 +253,15 @@ $route['catalog/(:num)/variable_groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/vargrp'] = "study/variable_groups/$1";
 
 //timeseries db info page
+$route['catalog/(:num)/indicator-chart'] = "study/indicator_chart/$1";
+$route['catalog/(:num)/indicator-data-api'] = "study/indicator_observations/$1";
+// Legacy slug (301-style redirect in controller).
+$route['catalog/(:num)/indicator-observations'] = "study/redirect_indicator_observations/$1";
+$route['catalog/(:num)/indicator-structure'] = "study/indicator_structure/$1";
+// Legacy URL: redirects to indicator-chart (or observations/structure) with query preserved.
+$route['catalog/(:num)/indicator-data'] = "study/indicator_data/$1";
 $route['catalog/(:num)/timeseries-db'] = "study/timeseries_db/$1";
+$route['catalog/(:num)/related-series'] = "study/related_series/$1";
 
 $route['catalog/(:num)/variable-groups/(.*)'] = "study/variable_groups/$1/$2";
 $route['catalog/(:num)/variable_groups/(.*)'] = "study/variable_groups/$1/$2";
@@ -171,6 +274,8 @@ $route['catalog/(:num)/datafile/(.*)'] = "study/data_file/$1/$2";
 $route['catalog/(:num)/data-file/(.*)'] = "study/data_file/$1/$2";
 
 //download
+$route['viewer/pdf'] = 'pdfviewer/index';
+$route['catalog/(:num)/pdf-stream/(:num)'] = "study/pdf_stream/$1/$2";
 $route['catalog/(:num)/download/(.*)'] = "study/download/$1/$2";
 
 //variable info page
@@ -209,11 +314,11 @@ $route['switch_language/(.*)'] = "page/switch_language/$1";
 //forms {pubic,direct, etc}
 $route['forms/(.*)'] = "forms";
 
-//$route['embed/(.*)'] = "embed/index/$1";
-//$route['embed/(.*)'] = "embed/index/$1";
+$route['embed/catalog/(:num)/chart'] = 'embed/catalog_chart/$1';
 
 //admin paths
 $route['admin'] = "admin/admin";
+$route['admin/ui-kit'] = "admin/admin/ui_kit";
 $route['admin/logs/cleanup'] = "admin/logs/cleanup";
 
 // DB Logs API
@@ -226,7 +331,23 @@ $route['api/db_logs/api_logs/files']         = "api/db_logs/api_logs_files";
 // Dashboard API
 $route['api/dashboard/stats'] = "api/dashboard/stats";
 
+// Admin Site Configurations API — REST_Controller::_remap handles GET/PUT/PATCH/DELETE on
+// api/admin/configurations and POST aliases api/admin/configurations/save|patch|remove.
+
+// Admin Display Templates API
+$route['api/admin/templates/import']                          = 'api/admin/templates/import';
+$route['api/admin/templates/validate']                        = 'api/admin/templates/validate';
+$route['api/admin/templates/default/(:any)/(:any)']           = 'api/admin/templates/default/$1/$2';
+$route['api/admin/templates/(:any)/export']                   = 'api/admin/templates/export/$1';
+$route['api/admin/templates/(:any)/duplicate']                = 'api/admin/templates/duplicate/$1';
+$route['api/admin/templates/(:any)/delete']                   = 'api/admin/templates/delete/$1';
+$route['api/admin/templates/renderers/(:any)']                = 'api/admin/templates/renderers_by_type/$1';
+$route['api/admin/templates/renderers']                       = 'api/admin/templates/renderers';
+$route['api/admin/templates/(:any)']                          = 'api/admin/templates/item/$1';
+
 // Admin Codelists API (nested routes first)
+// REST_Controller::_remap: map to versions/$1 (not versions_get/$1) so versions_get is invoked.
+$route['api/admin/codelists/versions/(:any)']             = 'api/admin/codelists/versions/$1';
 $route['api/admin/codelists/item/(:num)/restore']         = 'api/admin/codelists/item_restore/$1';
 $route['api/admin/codelists/item/(:num)/items']           = 'api/admin/codelists/item_items/$1';
 $route['api/admin/codelists/item/(:num)/groups']          = 'api/admin/codelists/item_groups/$1';
@@ -236,9 +357,66 @@ $route['api/admin/codelists/groups/(:num)/items/(:num)']   = 'api/admin/codelist
 $route['api/admin/codelists/groups/(:num)/items']         = 'api/admin/codelists/groups_items/$1';
 $route['api/admin/codelists/groups/(:num)/translations/(:any)'] = 'api/admin/codelists/groups_translation/$1/$2';
 $route['api/admin/codelists/groups/(:num)/translations'] = 'api/admin/codelists/groups_translations/$1';
+$route['api/admin/codelists/import_json']               = 'api/admin/codelists/import_json';
+$route['api/admin/codelists/batch_delete']              = 'api/admin/codelists/batch_delete';
 $route['api/admin/codelists/item/(:num)']                = 'api/admin/codelists/item/$1';
 $route['api/admin/codelists/items/(:num)']                = 'api/admin/codelists/items/$1';
 $route['api/admin/codelists/groups/(:num)']               = 'api/admin/codelists/groups/$1';
+
+// Admin Data Structures API (DSD catalogue; nested routes first)
+$route['api/admin/data_structures/import_json']                  = 'api/admin/data_structures/import_json';
+$route['api/admin/data_structures/import']                       = 'api/admin/data_structures/import';
+$route['api/admin/data_structures/create']                       = 'api/admin/data_structures/create';
+$route['api/admin/data_structures/update/(:any)']                = 'api/admin/data_structures/update/$1';
+$route['api/admin/data_structures/status/(:any)']                = 'api/admin/data_structures/status/$1';
+// versions/{id-or-idno}: second segment maps to versions_get($1); must precede catch-all …/(:any).
+$route['api/admin/data_structures/versions/(:any)']             = 'api/admin/data_structures/versions/$1';
+$route['api/admin/data_structures/projects/(:any)']             = 'api/admin/data_structures/projects/$1';
+$route['api/admin/data_structures/by_identity']                  = 'api/admin/data_structures/by_identity';
+$route['api/admin/data_structures/validate']                    = 'api/admin/data_structures/validate';
+$route['api/admin/data_structures/export/(:any)']               = 'api/admin/data_structures/export/$1';
+$route['api/admin/data_structures/batch_delete']                = 'api/admin/data_structures/batch_delete';
+$route['api/admin/data_structures/delete/(:any)']              = 'api/admin/data_structures/delete/$1';
+$route['api/admin/data_structures/components_update/(:num)']   = 'api/admin/data_structures/components_update/$1';
+$route['api/admin/data_structures/components_delete/(:num)']   = 'api/admin/data_structures/components_delete/$1';
+$route['api/admin/data_structures/components/(:any)']          = 'api/admin/data_structures/components/$1';
+// Single structure: GET/DELETE …/{id_or_idno}; register after all named paths above
+$route['api/admin/data_structures/(:any)']                      = 'api/admin/data_structures/structure_lookup/$1';
+
+// Admin Timeseries API (indicator observations / Mongo; nested paths first)
+$route['api/admin/timeseries/data/import']                         = 'api/admin/timeseries/data_import';
+$route['api/admin/timeseries/data/(:any)/import']                = 'api/admin/timeseries/data_import/$1';
+$route['api/admin/timeseries/data/(:any)/import-csv']             = 'api/admin/timeseries/data_import_csv/$1';
+$route['api/admin/timeseries/data/(:any)/clear-data']            = 'api/admin/timeseries/data_clear_data/$1';
+$route['api/admin/timeseries/data/(:any)/count']                 = 'api/admin/timeseries/data_count/$1';
+$route['api/admin/timeseries/data/(:any)']                       = 'api/admin/timeseries/data/$1';
+$route['api/admin/timeseries/data/(:any)/sync-counts']          = 'api/admin/timeseries/data_sync_counts/$1';
+$route['api/admin/timeseries/data/(:any)/value-counts-summary'] = 'api/admin/timeseries/data_value_counts_summary/$1';
+$route['api/admin/timeseries/data/(:any)/attach-dsd']          = 'api/admin/timeseries/data_attach_dsd/$1';
+$route['api/admin/timeseries/data/(:any)/rehash']              = 'api/admin/timeseries/data_rehash/$1';
+$route['api/admin/timeseries/data/(:any)/duplicates']          = 'api/admin/timeseries/data_duplicates/$1';
+$route['api/admin/timeseries/data/(:any)/schema']              = 'api/admin/timeseries/data_schema/$1';
+$route['api/admin/timeseries/data-structures/(:num)/indexes']  = 'api/admin/timeseries/structure_indexes/$1';
+$route['api/admin/timeseries/data-structures/(:num)/rehash']   = 'api/admin/timeseries/structure_rehash/$1';
+$route['api/admin/timeseries/data-structures/(:num)/duplicates'] = 'api/admin/timeseries/structure_duplicates/$1';
+$route['api/admin/timeseries/data-structures/(:num)/stats']    = 'api/admin/timeseries/structure_stats/$1';
+
+// Public Timeseries API (read-only; nested paths first)
+$route['api/timeseries/data/(:any)/count']                      = 'api/timeseries_public/data_count/$1';
+$route['api/timeseries/data/(:any)/export-xml']                 = 'api/timeseries_public/data_export_xml/$1';
+$route['api/timeseries/data/(:any)/export']                     = 'api/timeseries_public/data_export/$1';
+$route['api/timeseries/data/(:any)']                            = 'api/timeseries_public/data/$1';
+$route['api/timeseries/data/(:any)/filter-options']             = 'api/timeseries_public/data_filter_options/$1';
+$route['api/timeseries/data/(:any)/chart']                      = 'api/timeseries_public/data_chart/$1';
+$route['api/timeseries/data/(:any)/schema']                     = 'api/timeseries_public/data_schema/$1';
+$route['api/timeseries/data-structures/by_idno/(:any)']        = 'api/timeseries_public/structure_by_idno/$1';
+$route['api/timeseries/data-structures/by_identity/(:any)']    = 'api/timeseries_public/structure_by_identity/$1';
+$route['api/timeseries/data-structures/versions/(:any)']       = 'api/timeseries_public/structure_versions/$1';
+$route['api/timeseries/data-structures/item/(:num)']         = 'api/timeseries_public/structure_item/$1';
+$route['api/timeseries/codelists/by_idno/(:any)']              = 'api/timeseries_public/codelist_by_idno/$1';
+$route['api/timeseries/codelists/by_name/(:any)']             = 'api/timeseries_public/codelist_by_name/$1';
+$route['api/timeseries/codelists/item/(:num)/items']          = 'api/timeseries_public/codelist_item_items/$1';
+$route['api/timeseries/codelists/item/(:num)']                = 'api/timeseries_public/codelist_item/$1';
 
 // API Logs Admin Page
 $route['admin/api_logs'] = "admin/logs/api_logs";
@@ -249,6 +427,9 @@ $route['admin/filestore/upload'] = "admin/filestore";
 
 //catalog/resources
 $route['admin/clear_cache'] = "admin/admin/clear_cache";
+$route['admin/catalog/batch-import'] = 'admin/catalog/batch_import_page';
+$route['admin/catalog/batch-refresh'] = 'admin/catalog/batch_refresh_page';
+$route['admin/catalog/batch-generate'] = 'admin/catalog/batch_generate_page';
 $route['admin/catalog/(:num)/resources'] = "admin/resources";
 $route['admin/catalog/(:num)/resources/(:num)'] = "admin/resources/view/$2";
 $route['admin/catalog/(:num)/resources/add'] = "admin/resources/add";
@@ -309,6 +490,7 @@ $route['admin/catalog/attach_related_data/(:num)'] = "admin/attach_related_data/
 //Downloads API
 $route['api/downloads/(:any)/files'] = "api/downloads/files/$1";
 $route['api/downloads/(:any)/info/(:any)'] = "api/downloads/info/$1/$2";
+$route['api/downloads/download/(:any)/(:num)'] = "api/downloads/download/$1/$2";
 
 //Analytics API
 $route['api/analytics/pageview'] = "api/analytics/pageview";
@@ -340,6 +522,16 @@ $route['api/analytics/studies'] = "api/analytics/studies";
 $route['api/analytics/aggregate/run_all'] = "api/analytics/aggregate_run_all";
 $route['api/analytics/legacy/studies'] = "api/analytics/legacy_studies";
 $route['api/analytics/legacy/files'] = "api/analytics/legacy_files";
+
+// Admin licensed requests API (hyphen alias → controller)
+$route['api/admin/bulk-data-access'] = 'api/admin/bulk_da';
+$route['api/admin/bulk-data-access/(.*)'] = 'api/admin/bulk_da/$1';
+
+$route['api/admin/licensed-requests'] = 'api/admin/licensed_requests';
+$route['api/admin/licensed-requests/(.*)'] = 'api/admin/licensed_requests/$1';
+$route['api/admin/licensed_requests/item/(:num)'] = 'api/admin/licensed_requests/item/$1';
+$route['api/admin/licensed_requests/send_mail/(:num)'] = 'api/admin/licensed_requests/send_mail/$1';
+$route['api/admin/licensed_requests/forward/(:num)'] = 'api/admin/licensed_requests/forward/$1';
 
 
 /* End of file routes.php */

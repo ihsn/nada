@@ -51,7 +51,7 @@ if (!isset($_GET['collection']))
         <?php if (is_array($search_options->country)):?>
             <?php foreach($search_options->country as $country):?>
                 <?php if (array_key_exists($country,$countries)):?>
-                    <span class="badge badge-default wb-badge-close remove-filter country" data-type="country" data-value="<?php echo $country;?>"><?php echo $countries[$country]['nation'];?><i class="fas fa-times"></i></span>
+                    <span class="badge badge-default wb-badge-close remove-filter country" data-type="country" data-value="<?php echo html_escape($country);?>"><?php echo html_escape($countries[$country]['nation']);?><i class="fas fa-times"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>
@@ -59,12 +59,12 @@ if (!isset($_GET['collection']))
         <?php if (is_array($search_options->topic)):?>
             <?php foreach($search_options->topic as $topic):?>
                 <?php if (array_key_exists($topic,$topics)):?>
-                    <span class="badge badge-default wb-badge-close country remove-filter topic" data-type="topic" data-value="<?php echo $topic;?>">
+                    <span class="badge badge-default wb-badge-close country remove-filter topic" data-type="topic" data-value="<?php echo html_escape($topic);?>">
                 <?php $brac_pos=strpos($topics[$topic]['title'],'[',0);?>
                         <?php if ($brac_pos):?>
-                            <?php echo substr($topics[$topic]['title'],0,strpos($topics[$topic]['title'],'[',0)); ?>
+                            <?php echo html_escape(substr($topics[$topic]['title'],0,strpos($topics[$topic]['title'],'[',0))); ?>
                         <?php else: ?>
-                            <?php echo $topics[$topic]['title']; ?>
+                            <?php echo html_escape($topics[$topic]['title']); ?>
                         <?php endif;?>
                         <i class="fas fa-times"></i></span>
                 <?php endif;?>
@@ -74,7 +74,7 @@ if (!isset($_GET['collection']))
         <?php if (is_array($search_options->collection)):?>
             <?php foreach($search_options->collection as $collection):?>
                 <?php if (array_key_exists($collection,$repositories)):?>
-                    <span class="badge badge-default wb-badge-close country remove-filter collection" data-type="collection" data-value="<?php echo $collection;?>"><?php echo $repositories[$collection]['title'];?><i class="fas fa-times"></i></span>
+                    <span class="badge badge-default wb-badge-close country remove-filter collection" data-type="collection" data-value="<?php echo html_escape($collection);?>"><?php echo html_escape($repositories[$collection]['title']);?><i class="fas fa-times"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>
@@ -82,7 +82,7 @@ if (!isset($_GET['collection']))
         <?php if (isset($search_options->dtype) && is_array($search_options->dtype)):?>
             <?php foreach($search_options->dtype as $dtype):?>
                 <?php if (array_key_exists($dtype,$data_access_types)):?>
-                    <span class="badge badge-default wb-badge-close remove-filter dtype" data-type="dtype" data-value="<?php echo $dtype;?>"><?php echo $data_access_types[$dtype];?><i class="fas fa-times"></i></span>
+                    <span class="badge badge-default wb-badge-close remove-filter dtype" data-type="dtype" data-value="<?php echo html_escape($dtype);?>"><?php echo html_escape($data_access_types[$dtype]);?><i class="fas fa-times"></i></span>
                 <?php endif;?>
             <?php endforeach;?>
         <?php endif;?>

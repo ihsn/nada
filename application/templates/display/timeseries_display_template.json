@@ -1,0 +1,412 @@
+{
+    "version": "1.0",
+    "title": "Timeseries",
+    "items": [
+        {
+            "key": "timeseries",
+            "title": "Timeseries",
+            "type": "section_container",
+            "items": [
+                {
+                    "type": "section",
+                    "key": "timeseries.overview",
+                    "title": "overview",
+                    "items": [
+                        { "key": "series_description.idno", "title": "ID", "type": "string" },
+                        { "key": "series_description.name", "title": "Name", "type": "string" },
+                        {
+                            "key": "series_description.databases",
+                            "title": "Databases",
+                            "type": "array",
+                            "display_options": { "field_template": "field_ts_databases" }
+                        },
+                        { "key": "series_description.measurement_unit", "title": "Measurement unit", "type": "string" },
+                        { "key": "series_description.periodicity", "title": "Periodicity", "type": "string" },
+                        { "key": "series_description.base_period", "title": "Base period", "type": "string" },
+                        {
+                            "key": "iframe_embeds",
+                            "title": "Embedded widgets",
+                            "type": "widget",
+                            "widget_options": {
+                                "data_key": "iframe_embeds",
+                                "widget_field": "widget_default"
+                            }
+                        },
+                        { "key": "series_description.definition_short", "title": "Short definition", "type": "string" },
+                        { "key": "series_description.definition_long", "title": "Long definition", "type": "string" },
+                        { "key": "series_description.statistical_concept", "title": "Statistical concept", "type": "string" },
+                        { "key": "series_description.methodology", "title": "Methodology", "type": "string" },
+                        { "key": "series_description.derivation", "title": "Derivation", "type": "string" },
+                        { "key": "series_description.imputation", "title": "Imputation", "type": "string" },
+                        { "key": "series_description.missing", "title": "Missing data", "type": "string" },
+                        { "key": "series_description.quality_checks", "title": "Quality checks", "type": "string" },
+                        { "key": "series_description.quality_note", "title": "Quality note", "type": "string" },
+                        { "key": "series_description.sources_discrepancies", "title": "Sources discrepancies", "type": "string" },
+                        { "key": "series_description.series_break", "title": "Series break", "type": "string" },
+                        { "key": "series_description.limitation", "title": "Limitation", "type": "string" },
+                        { "key": "series_description.relevance", "title": "Relevance", "type": "string" },
+                        { "key": "series_description.aggregation_method", "title": "Aggregation method", "type": "string" },
+                        { "key": "series_description.disaggregation", "title": "Disaggregation", "type": "string" },
+                        { "key": "series_description.sources_note", "title": "Sources note", "type": "string" },
+                        {
+                            "key": "series_description.aliases",
+                            "title": "Aliases",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.aliases.name" },
+                                { "key": "value", "title": "Value", "type": "string", "prop_key": "series_description.aliases.value" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.alternate_identifiers",
+                            "title": "Alternate identifiers",
+                            "type": "array",
+                            "props": [
+                                { "key": "type", "title": "Type", "type": "string", "prop_key": "series_description.alternate_identifiers.type" },
+                                { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.alternate_identifiers.id" },
+                                { "key": "identifier", "title": "Identifier", "type": "string", "prop_key": "series_description.alternate_identifiers.identifier" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.languages",
+                            "title": "Languages",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.languages.name" },
+                                { "key": "code", "title": "Code", "type": "string", "prop_key": "series_description.languages.code" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.dimensions",
+                            "title": "Dimensions",
+                            "type": "array",
+                            "props": [
+                                { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.dimensions.id" },
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.dimensions.name" },
+                                { "key": "label", "title": "Label", "type": "string", "prop_key": "series_description.dimensions.label" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.definition_references",
+                            "title": "Definition references",
+                            "type": "array",
+                            "props": [
+                                { "key": "title", "title": "Title", "type": "string", "prop_key": "series_description.definition_references.title" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.definition_references.uri", "display_options": { "is_uri": true } }
+                            ]
+                        },
+                        {
+                            "key": "series_description.concepts",
+                            "title": "Concepts",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.concepts.name" },
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.concepts.description" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.themes",
+                            "title": "Themes",
+                            "type": "array",
+                            "props": [
+                                { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.themes.id" },
+                                { "key": "name", "title": "Theme", "type": "string", "prop_key": "series_description.themes.name" },
+                                { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "series_description.themes.vocabulary" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.topics",
+                            "title": "Topics",
+                            "type": "array",
+                            "props": [
+                                { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.topics.id" },
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.topics.name" },
+                                { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "series_description.topics.vocabulary" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.disciplines",
+                            "title": "Disciplines",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.disciplines.name" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.time_periods",
+                            "title": "Time periods",
+                            "type": "array",
+                            "props": [
+                                { "key": "start", "title": "Start", "type": "string", "prop_key": "series_description.time_periods.start" },
+                                { "key": "end", "title": "End", "type": "string", "prop_key": "series_description.time_periods.end" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.authoring_entity",
+                            "title": "Authoring entity",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.authoring_entity.name" },
+                                { "key": "role", "title": "Role", "type": "string", "prop_key": "series_description.authoring_entity.role" },
+                                { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "series_description.authoring_entity.affiliation" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.sources",
+                            "title": "Sources",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.sources.name" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.sources.uri", "display_options": { "is_uri": true } }
+                            ]
+                        },
+                        {
+                            "key": "series_description.keywords",
+                            "title": "Keywords",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.keywords.name" },
+                                { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "series_description.keywords.vocabulary" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.acronyms",
+                            "title": "Acronyms",
+                            "type": "array",
+                            "props": [
+                                { "key": "acronym", "title": "Acronym", "type": "string", "prop_key": "series_description.acronyms.acronym" },
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.acronyms.description" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.errata",
+                            "title": "Errata",
+                            "type": "array",
+                            "props": [
+                                { "key": "date", "title": "Date", "type": "string", "prop_key": "series_description.errata.date" },
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.errata.description" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.notes",
+                            "title": "Notes",
+                            "type": "array",
+                            "props": [
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.notes.note" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.related_indicators",
+                            "title": "Related indicators",
+                            "type": "array",
+                            "props": [
+                                { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.related_indicators.id" },
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.related_indicators.name" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.related_indicators.uri", "display_options": { "is_uri": true } }
+                            ]
+                        },
+                        {
+                            "key": "series_description.compliance",
+                            "title": "Compliance",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.compliance.name" },
+                                { "key": "status", "title": "Status", "type": "string", "prop_key": "series_description.compliance.status" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.framework",
+                            "title": "Framework",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.framework.name" },
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.framework.description" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.framework.uri", "display_options": { "is_uri": true } }
+                            ]
+                        },
+                        {
+                            "key": "series_description.series_groups",
+                            "title": "Series groups",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.series_groups.name" },
+                                { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.series_groups.id" }
+                            ]
+                        },
+                        {
+                            "key": "tags",
+                            "title": "Tags",
+                            "type": "array",
+                            "props": [
+                                { "key": "tag", "title": "Tag", "type": "string", "prop_key": "tags.tag" },
+                                { "key": "tag_group", "title": "Tag group", "type": "string", "prop_key": "tags.tag_group" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "section",
+                    "key": "timeseries.data_structure",
+                    "title": "data_structure",
+                    "items": [
+                        { "key": "series_description.data_structure", "title": "Data structure", "type": "string" }
+                    ]
+                },
+                {
+                    "type": "section",
+                    "key": "timeseries.geographic_units",
+                    "title": "geographic_units",
+                    "items": [
+                        {
+                            "key": "series_description.geographic_units",
+                            "title": "Geographic units",
+                            "type": "array",
+                            "display_options": { "scrollable": true },
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.geographic_units.name" },
+                                { "key": "code", "title": "Code", "type": "string", "prop_key": "series_description.geographic_units.code" },
+                                { "key": "type", "title": "Type", "type": "string", "prop_key": "series_description.geographic_units.type" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.bbox",
+                            "title": "Bounding box",
+                            "type": "array",
+                            "display_options": { "field_template": "field_bounding_box" }
+                        },
+                        {
+                            "key": "series_description.ref_country",
+                            "title": "Reference country",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.ref_country.name" },
+                                { "key": "code", "title": "Code", "type": "string", "prop_key": "series_description.ref_country.code" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "section",
+                    "key": "timeseries.api_documentation",
+                    "title": "api_documentation",
+                    "items": [
+                        {
+                            "key": "series_description.api_documentation",
+                            "title": "API documentation",
+                            "type": "array",
+                            "props": [
+                                { "key": "title", "title": "Title", "type": "string", "prop_key": "series_description.api_documentation.title" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.api_documentation.uri", "display_options": { "is_uri": true } },
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.api_documentation.description" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "section",
+                    "key": "timeseries.links",
+                    "title": "links",
+                    "items": [
+                        {
+                            "key": "series_description.series_links",
+                            "title": "Series links",
+                            "type": "array",
+                            "props": [
+                                { "key": "title", "title": "Title", "type": "string", "prop_key": "series_description.series_links.title" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.series_links.uri", "display_options": { "is_uri": true } },
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.series_links.description" }
+                            ]
+                        },
+                        {
+                            "key": "series_description.links",
+                            "title": "Links",
+                            "type": "array",
+                            "props": [
+                                { "key": "title", "title": "Title", "type": "string", "prop_key": "series_description.links.title" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.links.uri", "display_options": { "is_uri": true } },
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.links.description" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "section",
+                    "key": "timeseries.license_rights",
+                    "title": "license_rights",
+                    "items": [
+                        {
+                            "key": "series_description.license",
+                            "title": "License",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.license.name" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.license.uri", "display_options": { "is_uri": true } },
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.license.note" }
+                            ]
+                        },
+                        { "key": "series_description.confidentiality", "title": "Confidentiality", "type": "string" },
+                        { "key": "series_description.confidentiality_status", "title": "Confidentiality status", "type": "string" },
+                        { "key": "series_description.confidentiality_note", "title": "Confidentiality note", "type": "string" }
+                    ]
+                },
+                {
+                    "type": "section",
+                    "key": "timeseries.lda_topics",
+                    "title": "lda_topics",
+                    "items": [
+                        {
+                            "key": "lda_topics.model_info",
+                            "title": "Model info",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "lda_topics.model_info.name" },
+                                { "key": "value", "title": "Value", "type": "string", "prop_key": "lda_topics.model_info.value" }
+                            ]
+                        },
+                        {
+                            "key": "lda_topics.topic_description",
+                            "title": "Topic description",
+                            "type": "array",
+                            "props": [
+                                { "key": "topic", "title": "Topic", "type": "string", "prop_key": "lda_topics.topic_description.topic" },
+                                { "key": "label", "title": "Label", "type": "string", "prop_key": "lda_topics.topic_description.label" },
+                                { "key": "score", "title": "Score", "type": "string", "prop_key": "lda_topics.topic_description.score" }
+                            ]
+                        },
+                        {
+                            "key": "embeddings",
+                            "title": "Embeddings",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "embeddings.name" },
+                                { "key": "model", "title": "Model", "type": "string", "prop_key": "embeddings.model" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "section",
+                    "key": "timeseries.metadata_production",
+                    "title": "metadata_production",
+                    "items": [
+                        { "key": "series_description.title", "title": "Document title", "type": "string" },
+                        { "key": "series_description.idno", "title": "Document ID", "type": "string" },
+                        {
+                            "key": "series_description.producers",
+                            "title": "Producers",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.producers.name" },
+                                { "key": "abbr", "title": "Abbreviation", "type": "string", "prop_key": "series_description.producers.abbr" },
+                                { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "series_description.producers.affiliation" },
+                                { "key": "role", "title": "Role", "type": "string", "prop_key": "series_description.producers.role" }
+                            ]
+                        },
+                        { "key": "series_description.prod_date", "title": "Date of production", "type": "string" },
+                        { "key": "series_description.version", "title": "Version", "type": "string" }
+                    ]
+                }
+            ]
+        }
+    ]
+}

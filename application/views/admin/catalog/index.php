@@ -9,10 +9,12 @@ window.APP_CONFIG = {
     siteUrl: "<?php echo addslashes($site_url); ?>",
     baseUrl: "<?php echo addslashes($base_url); ?>",
     apiBaseUrl: "<?php echo addslashes($api_base_url); ?>",
+    datasetsApiBaseUrl: "<?php echo addslashes($datasets_api_url); ?>",
     assetsBase: "<?php echo addslashes(isset($assets_base) ? $assets_base : base_url('frontend/dist/')); ?>",
-    activeRepo: "<?php echo isset($active_repo) ? addslashes($active_repo) : ''; ?>",
     csrfToken: "<?php echo addslashes($csrf_token); ?>",
-    translations: <?php echo json_encode($translations, JSON_HEX_APOS); ?>
+    csrfTokenName: "<?php echo addslashes(isset($csrf_token_name) ? $csrf_token_name : 'ncsrf'); ?>",
+    routerPathBase: "<?php echo addslashes(isset($router_path_base) ? $router_path_base : ''); ?>",
+    translations: <?php echo json_encode($translations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>
 };
 </script>
 <?php if ($use_vite_dev): ?>

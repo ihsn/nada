@@ -3,13 +3,13 @@
     <CodelistDetail
       v-if="codelist"
       :codelist="codelist"
-      :loading="loading"
+      :reload-tick="reloadTick"
       :enabled-languages="enabledLanguages"
       @back="goBack"
-      @refresh="loadCodelist"
+      @refresh="onDetailRefresh"
       @error="setMessage($event, 'error')"
     />
-    <v-progress-linear v-else-if="loading" indeterminate color="primary" class="mb-4" />
+    <v-progress-linear v-else-if="pageLoading" indeterminate color="primary" class="mb-4" />
     <v-alert v-else type="error" class="mb-4">
       Codelist not found.
       <v-btn variant="text" class="ml-2" @click="goBack">Back to codelists</v-btn>
@@ -39,8 +39,10 @@ const enabledLanguages = computed(() => {
   return Array.isArray(list) ? list : [];
 });
 
-const { loading, fetchCodelist } = useCodelistsApi();
+const { fetchCodelist } = useCodelistsApi();
 const codelist = ref(null);
+const reloadTick = ref(0);
+const pageLoading = ref(false);
 
 async function loadCodelist() {
   const id = props.id != null ? Number(props.id) : NaN;
@@ -48,13 +50,21 @@ async function loadCodelist() {
     codelist.value = null;
     return;
   }
+  pageLoading.value = true;
   try {
-    const data = await fetchCodelist(id);
+    const data = await fetchCodelist(id, { includeItems: false, includeGroups: false });
     codelist.value = data;
   } catch (e) {
     setMessage(e?.response?.data?.message || e?.message || 'Failed to load codelist', 'error');
     codelist.value = null;
+  } finally {
+    pageLoading.value = false;
   }
+}
+
+async function onDetailRefresh() {
+  await loadCodelist();
+  reloadTick.value += 1;
 }
 
 function goBack() {

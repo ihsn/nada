@@ -25,6 +25,18 @@ class Collections extends MY_Controller {
 		if ($repositoryid=='central'){
 			
 			$collections=$this->repository_model->get_repositories($published=TRUE, $system=FALSE);
+			$survey_counts = $this->repository_model->get_repositories_with_survey_counts();
+			if (is_array($survey_counts)) {
+				$count_map = array();
+				foreach ($survey_counts as $row) {
+					$count_map[$row['repositoryid']] = $row['surveys_found'];
+				}
+				foreach ($collections as $repo_id => $collection) {
+					if (isset($count_map[$repo_id])) {
+						$collections[$repo_id]['surveys_found'] = $count_map[$repo_id];
+					}
+				}
+			}
 			$sections=array();
 
 			foreach($collections as $key=>$collection){

@@ -54,7 +54,8 @@ const emit = defineEmits(['update:modelValue', 'add-item', 'remove-item']);
 const allItems = computed(() => props.items || []);
 
 function isInGroup(itemId) {
-  return (props.groupItemIds || []).includes(itemId);
+  const n = Number(itemId);
+  return (props.groupItemIds || []).some((id) => Number(id) === n);
 }
 
 function toggleItem(item) {

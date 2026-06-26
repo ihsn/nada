@@ -13,18 +13,18 @@ export function useI18n() {
   );
 
   /**
-   * Translate a key. Supports %s placeholders when extra args are passed.
+   * Translate a key. Supports %s and %d placeholders when extra args are passed.
    * @param {string} key - Language key (e.g. 'published', 'idno')
    * @param {string} [fallback] - Fallback when key is missing
-   * @param {...*} replacements - Values to replace %s in order
+   * @param {...*} replacements - Values to replace placeholders in order
    * @returns {string}
    */
   function t(key, fallback, ...replacements) {
     const str = translations.value[key] ?? fallback ?? key;
     if (replacements.length === 0) return str;
     let i = 0;
-    return String(str).replace(/%s/g, () =>
-      replacements[i++] !== undefined ? replacements[i - 1] : '%s'
+    return String(str).replace(/%(?:s|d)/g, (match) =>
+      replacements[i] !== undefined ? String(replacements[i++]) : match
     );
   }
 

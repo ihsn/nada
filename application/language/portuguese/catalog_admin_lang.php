@@ -1,5 +1,6 @@
 <?php 
 $lang['catalog_maintenance']="Administração do Catálogo";
+$lang['admin_add_study_title']="Adicionar estudo";
 $lang['upload_ddi']="Carregar IDD";
 $lang['upload_ddi_hover']="Carregar um ficheiro IDD";
 $lang['import_ddi']="Importar IDD";
@@ -16,6 +17,7 @@ $lang['folder']="Directório";
 $lang['file_manager']="Administrador de Arquivos";
 $lang['resource_manager']="Administrador de Recursos";
 $lang['browse_metadata']="Navegar Metadados";
+$lang['preview_study']="Pré-visualizar estudo";
 $lang['share_ddi_w_harvester']="Deseja partilhar o IDD com Harvester?";
 $lang['msg_select_ddi']="Seleccionar um ficheiro IDD xml:";
 $lang['ddi_overwrite_exist']="Gostaria de substituir caso a operação estatística já exista?";
@@ -30,6 +32,7 @@ $lang['import_completed']="Importação finalizada!";
 $lang['indicator_database']="Indicador de base de dados";
 $lang['study_website']=" WebSite del Estudio";
 $lang['catalog_home']="Página principal";
+$lang['catalog_crumb']="Catálogo";
 $lang['ddi_import_success']="O ficheiro IDD foi importado com éxito!";
 $lang['authenty']="Editor";
 $lang['missing']="Falta";
@@ -40,6 +43,9 @@ $lang['select_number_of_records_per_page']="Seleccione o número de registros a 
 $lang['study_already_exists']="O estudo estatístico já existe. Por favor seleccione a opção de substituir para sustituir o estudo estatístico existente.";
 $lang['invalid_ddi_file']="Archivo IDD no válido: ";
 $lang['nothing_to_process']="Nada para procesar";
+$lang['tab_timeseries_data']="Dados de indicadores";
+$lang['attach_citations']="Anexar citações";
+$lang['manage_citations_legacy_page']="Gerir na versão antiga";
 
 
 /* End of file catalog_admin_lang.php */

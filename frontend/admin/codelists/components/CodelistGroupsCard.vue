@@ -1,22 +1,43 @@
 <template>
   <v-card>
-    <v-card-title class="d-flex align-center">
-      Groups
+    <v-card-title class="d-flex flex-wrap align-center ga-2">
+      <span>Groups</span>
+      <v-chip v-if="serverTotal >= 0" size="small" variant="tonal" class="font-weight-medium">
+        {{ serverTotal }} total
+      </v-chip>
       <v-spacer />
-      <v-btn small variant="outlined" color="primary" density="comfortable" @click="openCreateGroup">
+      <v-text-field
+        v-model="search"
+        density="compact"
+        variant="outlined"
+        hide-details
+        clearable
+        placeholder="Search group name"
+        prepend-inner-icon="mdi-magnify"
+        class="cl-groups-search"
+        style="max-width: 280px"
+        @click:clear="clearSearch"
+      />
+      <v-btn small variant="outlined" color="primary" density="comfortable" :disabled="readOnly" @click="openCreateGroup">
         <v-icon size="small" icon="mdi-plus" />
         <span class="text-caption">Add group</span>
       </v-btn>
     </v-card-title>
-    <v-card-text>
-      <v-data-table
-        v-if="groups.length"
+    <v-card-text class="pa-0">
+      <v-data-table-server
+        v-if="serverTotal > 0 || tableLoading || searchDebounced"
         :headers="headers"
         :items="groups"
-        :items-per-page="-1"
+        :items-length="serverTotal"
+        :page="page"
+        :items-per-page="itemsPerPage"
+        :items-per-page-options="[10, 25, 50, 100]"
+        :loading="tableLoading"
         item-value="id"
         class="elevation-0 codelist-groups-table"
-        hide-default-footer
+        hover
+        @update:page="onUpdatePage"
+        @update:items-per-page="onUpdateItemsPerPage"
       >
         <template #item.name="{ item: grp }">
           <strong>{{ grp.name }}</strong>
@@ -26,12 +47,18 @@
             type="number"
             :value="grp.sort_order ?? ''"
             class="sort-input"
-            @change="emit('update-group-sort', { groupId: grp.id, sort_order: $event.target.value === '' ? null : Number($event.target.value) })"
+            :disabled="readOnly"
+            @change="
+              emit('update-group-sort', {
+                groupId: grp.id,
+                sort_order: $event.target.value === '' ? null : Number($event.target.value),
+              })
+            "
           />
         </template>
         <template #item.translations="{ item: grp }">
           <div class="text-body-2 d-flex flex-column gap-1">
-            <template v-for="(title, lang) in (grp.translations || {})" :key="lang">
+            <template v-for="(title, lang) in grp.translations || {}" :key="lang">
               <div class="d-flex align-center gap-1">
                 <v-chip size="small" variant="tonal" density="compact">{{ (lang || '').toUpperCase() }}</v-chip>
                 <span>{{ title }}</span>
@@ -42,7 +69,7 @@
         </template>
         <template #item.items="{ item: grp }">
           <div class="text-body-2 d-flex flex-column gap-1">
-            <template v-for="itemId in (grp.item_ids || [])" :key="itemId">
+            <template v-for="itemId in grp.item_ids || []" :key="itemId">
               <div v-if="itemForId(itemId)">
                 {{ itemLabel(itemForId(itemId)) }}
               </div>
@@ -52,9 +79,9 @@
           </div>
         </template>
         <template #item.actions="{ item: grp }">
-          <v-menu location="bottom end">
+          <v-menu location="bottom end" :disabled="readOnly">
             <template #activator="{ props: menuProps }">
-              <v-btn icon size="small" variant="text" density="compact" v-bind="menuProps" title="Actions">
+              <v-btn icon size="small" variant="text" density="compact" v-bind="menuProps" title="Actions" :disabled="readOnly">
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
@@ -66,8 +93,8 @@
             </v-list>
           </v-menu>
         </template>
-      </v-data-table>
-      <p v-else class="text-medium-emphasis">No groups. Add a group to organize items.</p>
+      </v-data-table-server>
+      <p v-else class="text-medium-emphasis pa-4">No groups. Add a group to organize items.</p>
     </v-card-text>
 
     <GroupFormDialog
@@ -78,7 +105,7 @@
     <GroupItemsDialog
       v-model="groupItemsDialog.show"
       :group="groupItemsDialog.group"
-      :items="items"
+      :items="pickerItems"
       :group-item-ids="groupItemsDialog.group?.item_ids || []"
       @add-item="(id) => $emit('add-group-item', groupItemsDialog.group?.id, id)"
       @remove-item="(id) => $emit('remove-group-item', groupItemsDialog.group?.id, id)"
@@ -95,17 +122,19 @@
 </template>
 
 <script setup>
-import { reactive, computed } from 'vue';
+import { reactive, computed, ref, watch } from 'vue';
 import GroupFormDialog from './GroupFormDialog.vue';
 import GroupItemsDialog from './GroupItemsDialog.vue';
 import GroupTranslationsDialog from './GroupTranslationsDialog.vue';
+import { useCodelistsApi } from '../composables/useCodelistsApi';
 
 defineOptions({ name: 'CodelistGroupsCard' });
 
 const props = defineProps({
-  groups: { type: Array, default: () => [] },
-  items: { type: Array, default: () => [] },
+  codelistId: { type: [Number, String], required: true },
+  reloadTick: { type: Number, default: 0 },
   enabledLanguages: { type: Array, default: () => [] },
+  readOnly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits([
@@ -118,13 +147,114 @@ const emit = defineEmits([
   'update-group-sort',
 ]);
 
+const { fetchGroupsPage, fetchItems } = useCodelistsApi();
+
+const groups = ref([]);
+const serverTotal = ref(0);
+const page = ref(1);
+const itemsPerPage = ref(25);
+const search = ref('');
+const searchDebounced = ref('');
+const tableLoading = ref(false);
+/** Full item list for group row labels and GroupItemsDialog (same as legacy detail payload). */
+const pickerItems = ref([]);
+
+let searchDebounceTimer;
+
+watch(
+  () => props.codelistId,
+  (n, o) => {
+    if (n !== o) {
+      page.value = 1;
+      search.value = '';
+      searchDebounced.value = '';
+      clearTimeout(searchDebounceTimer);
+    }
+  }
+);
+
+watch(
+  [() => props.codelistId, () => props.reloadTick],
+  async () => {
+    const cid = props.codelistId;
+    pickerItems.value = [];
+    if (cid == null || cid === '') return;
+    try {
+      pickerItems.value = await fetchItems(cid);
+    } catch {
+      pickerItems.value = [];
+    }
+  },
+  { immediate: true }
+);
+
+watch(search, (val) => {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    searchDebounced.value = typeof val === 'string' ? val.trim() : '';
+    page.value = 1;
+  }, 350);
+});
+
+function clearSearch() {
+  search.value = '';
+  searchDebounced.value = '';
+  page.value = 1;
+}
+
+async function loadGroups() {
+  const cid = props.codelistId;
+  if (cid == null || cid === '') {
+    groups.value = [];
+    serverTotal.value = 0;
+    return;
+  }
+  tableLoading.value = true;
+  try {
+    const r = await fetchGroupsPage(cid, {
+      page: page.value,
+      per_page: itemsPerPage.value,
+      search: searchDebounced.value,
+    });
+    groups.value = r.groups;
+    serverTotal.value = r.total;
+    const maxPage = Math.max(1, Math.ceil(r.total / r.per_page) || 1);
+    if (r.groups.length === 0 && r.total > 0 && page.value > maxPage) {
+      page.value = maxPage;
+      return;
+    }
+  } catch {
+    groups.value = [];
+    serverTotal.value = 0;
+  } finally {
+    tableLoading.value = false;
+  }
+}
+
+watch(
+  [() => props.codelistId, () => props.reloadTick, page, itemsPerPage, searchDebounced],
+  () => {
+    loadGroups();
+  },
+  { immediate: true }
+);
+
+function onUpdatePage(p) {
+  page.value = p;
+}
+
+function onUpdateItemsPerPage(n) {
+  itemsPerPage.value = n;
+  page.value = 1;
+}
+
 const groupForm = reactive({ show: false, group: null });
 const groupItemsDialog = reactive({ show: false, group: null });
 const groupTranslationsDialog = reactive({ show: false, groupId: null });
 
 const groupTranslationsDialogGroup = computed(() =>
   groupTranslationsDialog.groupId != null
-    ? props.groups.find((g) => g.id === groupTranslationsDialog.groupId) || null
+    ? groups.value.find((g) => g.id === groupTranslationsDialog.groupId) || null
     : null
 );
 
@@ -139,7 +269,7 @@ const headers = [
 function itemForId(id) {
   const numId = Number(id);
   if (Number.isNaN(numId)) return null;
-  return props.items.find((i) => Number(i.id) === numId) || null;
+  return pickerItems.value.find((i) => Number(i.id) === numId) || null;
 }
 
 function itemLabel(item) {
@@ -190,7 +320,7 @@ defineExpose({ openCreateGroup, openEditGroup, openGroupItems, openGroupTranslat
   vertical-align: top;
 }
 .sort-input {
-  margin-top:2px;
+  margin-top: 2px;
   width: 60px;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 4px;
@@ -201,5 +331,8 @@ defineExpose({ openCreateGroup, openEditGroup, openGroupItems, openGroupTranslat
 .sort-input:focus {
   outline: none;
   border-color: rgba(var(--v-theme-primary), 0.8);
+}
+.cl-groups-search :deep(.v-field) {
+  border-radius: 10px;
 }
 </style>

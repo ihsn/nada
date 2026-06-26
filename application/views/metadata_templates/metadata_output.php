@@ -19,7 +19,7 @@ if (!isset($exclude_sidebar_items)){
             <?php if(in_array($key,$exclude_sidebar_items)){continue;}?>
             <?php if(trim($value)!==""):?>        
             <li class="nav-item">
-                <a class="nav-link" href="<?php //echo current_url();?>#metadata-<?php echo $key;?>"><?php echo t($key);?></a>
+                <a class="nav-link" href="<?php //echo current_url();?>#metadata-<?php echo $key;?>"><?php echo tt($key, $key);?></a>
             </li>
             <?php endif;?>
         <?php endforeach;?>

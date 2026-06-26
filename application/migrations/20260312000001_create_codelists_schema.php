@@ -62,6 +62,8 @@ class Migration_Create_codelists_schema extends MY_Migration {
 			");
 		}
 		log_message('info', 'Created codelists table');
+		// SDMX-style identity columns (agency, version, idno) and indexes
+		// are added by the later migration: 20260416000001_upgrade_codelists_sdmx_identity.
 	}
 
 	private function create_codelist_item_table($is_mysql)

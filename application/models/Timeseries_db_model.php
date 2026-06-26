@@ -42,17 +42,21 @@ class Timeseries_db_model extends CI_Model {
 	function get_all()
 	{
 		$this->db->select('id,idno,title,created,changed,published');
-		$result= $this->db->get("ts_databases")->result_array();
+		$this->db->where('type','timeseriesdb');
+		$result= $this->db->get("surveys")->result_array();
         return $result;
 	}
 
     function get_row($id) 
 	{
-        $this->db->select('id,idno,title,created,changed,published,metadata');
+        $this->db->select('id,idno,title,created,changed,published,metadata,type');
         $this->db->where('id', $id);
-		$result= $this->db->get("ts_databases")->row_array();
+		$result= $this->db->get("surveys")->row_array();
 
 		if($result){
+			if (!in_array($result['type'], array('timeseriesdb','timeseries-db'))){
+				return false;
+			}
 			$result=$this->decode_encoded_fields($result);
 		}
 
@@ -63,7 +67,8 @@ class Timeseries_db_model extends CI_Model {
 	{
 		$this->db->select('*');
         $this->db->where('idno', $idno);
-		$result= $this->db->get("ts_databases")->row_array();
+		$this->db->where_in('type', array('timeseriesdb','timeseries-db'));
+		$result= $this->db->get("surveys")->row_array();
 
 		if($result){
 			$result=$this->decode_encoded_fields($result);
@@ -80,7 +85,11 @@ class Timeseries_db_model extends CI_Model {
 		if (empty($database_id)){
 			return false;
 		}
-		
+
+		if (is_numeric($database_id)){
+			return $this->get_row((int)$database_id);
+		}
+
 		return $this->get_row_by_idno($database_id);
 	}
 	
@@ -89,7 +98,8 @@ class Timeseries_db_model extends CI_Model {
 	{
 		$this->db->select('id');
 		$this->db->where('idno', $idno); 
-		$query=$this->db->get('ts_databases')->row_array();
+		$this->db->where_in('type', array('timeseriesdb','timeseries-db'));
+		$query=$this->db->get('surveys')->row_array();
 		
 		if ($query){
 			return $query['id'];
@@ -169,7 +179,76 @@ class Timeseries_db_model extends CI_Model {
         }
 
 		$this->db->trans_complete();
-		return $database_id;    
+
+		return $database_id;
+	}
+
+
+	/**
+	 * Upsert timeseries_db_links rows from database_description.indicators[].
+	 * Called when a timeseriesdb entry is created or updated.
+	 * Only adds rows — never removes (series saves manage their own rows).
+	 */
+	function sync_series_links($db_idno, $metadata)
+	{
+		$db_idno = trim((string)$db_idno);
+		if ($db_idno === '' || !is_array($metadata)) {
+			return;
+		}
+
+		$indicators = isset($metadata['database_description']['indicators'])
+			? $metadata['database_description']['indicators']
+			: array();
+
+		if (!is_array($indicators) || count($indicators) === 0) {
+			return;
+		}
+
+		foreach ($indicators as $indicator) {
+			$idno = isset($indicator['id']) ? trim((string)$indicator['id']) : '';
+			if ($idno === '') {
+				continue;
+			}
+
+			$row = $this->db->select('id')->where('idno', $idno)->where('type', 'timeseries')->get('surveys')->row_array();
+			if (!$row) {
+				continue;
+			}
+
+			$this->db->query(
+				'INSERT IGNORE INTO timeseries_db_links (series_id, db_idno, is_primary) VALUES (?, ?, 0)',
+				array((int)$row['id'], $db_idno)
+			);
+		}
+	}
+
+
+	/**
+	 * Get timeseries series linked to a database, with pagination.
+	 */
+	function get_series_by_db_idno($db_idno, $limit = 20, $offset = 0)
+	{
+		$this->db->select('s.id, s.idno, s.title, s.published, s.nation, s.year_start, s.year_end, s.authoring_entity, s.abstract, s.thumbnail, s.changed, s.ts_dimensions');
+		$this->db->from('surveys s');
+		$this->db->join('timeseries_db_links l', 'l.series_id = s.id');
+		$this->db->where('l.db_idno', $db_idno);
+		$this->db->where('s.type', 'timeseries');
+		$this->db->order_by('s.title', 'ASC');
+		$this->db->limit((int)$limit, (int)$offset);
+		return $this->db->get()->result_array();
+	}
+
+
+	/**
+	 * Count timeseries series linked to a database.
+	 */
+	function count_series_by_db_idno($db_idno)
+	{
+		$this->db->from('surveys s');
+		$this->db->join('timeseries_db_links l', 'l.series_id = s.id');
+		$this->db->where('l.db_idno', $db_idno);
+		$this->db->where('s.type', 'timeseries');
+		return $this->db->count_all_results();
 	}
 
 
@@ -195,20 +274,22 @@ class Timeseries_db_model extends CI_Model {
 			}
 		}
 		
+		$data['type'] = 'timeseriesdb';
+
 		//encode json fields
 		foreach ($this->encoded_fields as $field){
 			if(isset($data[$field])){
 				$data[$field]=$this->encode_metadata($data[$field]);
 			}
-		}		
+		}
 
-		$result=$this->db->insert('ts_databases', $data); 
+		$result=$this->db->insert('surveys', $data);
 
 		if ($result===false){
 			$error=$this->db->error();
-			throw new Exception(implode(", ",$error));			
+			throw new Exception(implode(", ",$error));
 		}
-		
+
 		//newly created dataset id
 		$id= $this->db->insert_id();
 
@@ -241,16 +322,17 @@ class Timeseries_db_model extends CI_Model {
 			}
 		}		
 
-		$this->db->where('id',$id);
-		$result=$this->db->update('ts_databases', $data); 
+		$this->db->where('id', $id);
+		$this->db->where_in('type', array('timeseriesdb', 'timeseries-db'));
+		$result=$this->db->update('surveys', $data);
 
 		if ($result===false){
 			$error=$this->db->error();
-			throw new Exception(implode(", ",$error));			
+			throw new Exception(implode(", ",$error));
 		}
-		
+
 		return $id;
-    }
+	}
     
 
     /**
@@ -259,9 +341,9 @@ class Timeseries_db_model extends CI_Model {
 	 * 
 	 */
 	function delete_by_idno($idno)
-	{		
+	{
 		//get internal ID by IDNO
-		$sid=$this->get_id_by_idno($idno);
+		$sid=$this->find_by_idno($idno);
 
 		if($sid){
 			return $this->delete($sid);
@@ -279,7 +361,8 @@ class Timeseries_db_model extends CI_Model {
 	function delete($id)
 	{
 		$this->db->where('id', $id); 
-        $deleted=$this->db->delete('ts_databases');
+        $this->db->where_in('type', array('timeseriesdb','timeseries-db'));
+        $deleted=$this->db->delete('surveys');
 
         return $deleted;
     }

@@ -2,7 +2,7 @@
 $lang['Home']="Accueil";
 $lang['edit_study']="Editer l'enquête";
 $lang['Citations']="Bibliographie";
-$lang['add_study']="Ajouter une enquête";
+$lang['add_study']="Ajouter une étude";
 $lang['bulk_import']="Importer en batch";
 $lang['transfer_study_ownership']="Transférer le contrôle";
 $lang['delete']="Supprimer";

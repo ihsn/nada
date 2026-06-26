@@ -164,6 +164,12 @@ $lang['local_mode_login_message']="Click the button below to sign in. No passwor
 $lang['local_mode_no_forgot_password']="Password recovery is not available in local mode.";
 $lang['local_mode_no_registration']="User registration is not available in local mode.";
 
+$lang['auth0_login_message']="Sign in with your Auth0 account to access the catalog.";
+$lang['auth0_login_button']="Sign in with Auth0";
+$lang['auth0_alternate_login']="Sign in with email and password";
+$lang['auth0_alternate_login_message']="Sign in with your catalog email address and password.";
+$lang['auth0_back_to_sso']="Sign in with Auth0 instead";
+
 
 
 /* End of file users_lang.php */

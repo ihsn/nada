@@ -1,73 +1,94 @@
 <template>
-  <div>
+  <div class="logs-health">
+    <div v-if="!logsHealth" class="logs-health__muted py-1">
+      Loading log health…
+    </div>
+
     <!-- Server Info -->
-    <div v-if="serverInfo" class="mb-4">
-      <div class="text-subtitle-2 mb-2">Server</div>
-      <v-list density="compact" class="py-0">
+    <div v-if="serverInfo" class="logs-health__server" :class="{ 'mt-2': !logsHealth }">
+      <div class="logs-health__section-title mb-2">Server</div>
+      <v-list density="compact" class="bg-transparent py-0">
         <v-list-item class="px-0">
-          <template #title><span class="text-body-2">PHP Version</span></template>
+          <template #title>
+            <span class="logs-health__row-title">PHP version</span>
+          </template>
           <template #append>
-            <v-chip size="x-small" label color="blue-grey-lighten-4" style="font-family:monospace;">{{ serverInfo.php_version }}</v-chip>
+            <span class="logs-health__php">{{ serverInfo.php_version }}</span>
           </template>
         </v-list-item>
+        <v-divider class="my-1" />
         <v-list-item class="px-0">
-          <template #title><span class="text-body-2">Server Time</span></template>
+          <template #title>
+            <span class="logs-health__row-title">Server time</span>
+          </template>
           <template #append>
-            <span class="text-caption text-medium-emphasis">{{ serverInfo.server_time }} {{ serverInfo.server_tz }}</span>
+            <span class="logs-health__time-wrap logs-health__row-meta text-end d-block">
+              {{ serverInfo.server_time }} {{ serverInfo.server_tz }}
+            </span>
           </template>
         </v-list-item>
       </v-list>
     </div>
 
-    <!-- Log Row Counts -->
-    <div class="text-subtitle-2 mb-2">Log Tables</div>
+    <div v-if="logsHealth" class="logs-health__log-section">
+      <div class="logs-health__section-title mb-2">Log tables</div>
 
-    <v-list density="compact" class="py-0">
-      <v-list-item class="px-0">
-        <template #title>
-          <span class="text-body-2">Site Logs</span>
-          <div class="text-caption text-medium-emphasis">
-            <span v-if="sitelogsStatus === 'unknown'">Count unavailable</span>
-            <span v-else>{{ formatCount(logsHealth.sitelogs) }} rows</span>
-          </div>
-        </template>
-        <template #append>
-          <v-icon v-if="sitelogsStatus === 'ok'" color="success" size="small">mdi-check-circle</v-icon>
-          <v-icon v-else-if="sitelogsStatus === 'warning'" color="warning" size="small">mdi-alert</v-icon>
-          <v-icon v-else color="grey" size="small">mdi-help-circle-outline</v-icon>
-        </template>
-      </v-list-item>
+      <v-list density="compact" class="bg-transparent py-0">
+        <v-list-item class="px-0" lines="two">
+          <template #title>
+            <span class="logs-health__row-title">Site logs</span>
+          </template>
+          <template #subtitle>
+            <span class="logs-health__row-meta">
+              <span v-if="sitelogsStatus === 'unknown'">Count unavailable</span>
+              <span v-else>{{ formatCount(logsHealth.sitelogs) }} rows</span>
+            </span>
+          </template>
+          <template #append>
+            <v-icon v-if="sitelogsStatus === 'ok'" color="success" size="small">mdi-check-circle</v-icon>
+            <v-icon v-else-if="sitelogsStatus === 'warning'" color="warning" size="small">mdi-alert</v-icon>
+            <v-icon v-else color="grey" size="small">mdi-help-circle-outline</v-icon>
+          </template>
+        </v-list-item>
 
-      <v-list-item class="px-0">
-        <template #title>
-          <span class="text-body-2">API Logs</span>
-          <div class="text-caption text-medium-emphasis">
-            <span v-if="apiLogsStatus === 'unknown'">Count unavailable</span>
-            <span v-else>{{ formatCount(logsHealth.api_logs) }} rows</span>
-          </div>
-        </template>
-        <template #append>
-          <v-icon v-if="apiLogsStatus === 'ok'" color="success" size="small">mdi-check-circle</v-icon>
-          <v-icon v-else-if="apiLogsStatus === 'warning'" color="warning" size="small">mdi-alert</v-icon>
-          <v-icon v-else color="grey" size="small">mdi-help-circle-outline</v-icon>
-        </template>
-      </v-list-item>
-    </v-list>
+        <v-divider class="my-1" />
 
-    <v-alert
-      v-if="sitelogsStatus === 'warning' || apiLogsStatus === 'warning'"
-      type="warning"
-      density="compact"
-      variant="tinted"
-      class="mt-2 text-caption"
-    >
-      One or more log tables have exceeded the row count threshold.
-    </v-alert>
+        <v-list-item class="px-0" lines="two">
+          <template #title>
+            <span class="logs-health__row-title">API logs</span>
+          </template>
+          <template #subtitle>
+            <span class="logs-health__row-meta">
+              <span v-if="apiLogsStatus === 'unknown'">Count unavailable</span>
+              <span v-else>{{ formatCount(logsHealth.api_logs) }} rows</span>
+            </span>
+          </template>
+          <template #append>
+            <v-icon v-if="apiLogsStatus === 'ok'" color="success" size="small">mdi-check-circle</v-icon>
+            <v-icon v-else-if="apiLogsStatus === 'warning'" color="warning" size="small">mdi-alert</v-icon>
+            <v-icon v-else color="grey" size="small">mdi-help-circle-outline</v-icon>
+          </template>
+        </v-list-item>
+      </v-list>
 
-    <div v-if="!logsHealth" class="text-medium-emphasis text-caption">Loading log health…</div>
+      <v-alert
+        v-if="sitelogsStatus === 'warning' || apiLogsStatus === 'warning'"
+        type="warning"
+        density="compact"
+        variant="tinted"
+        class="mt-3 logs-health__alert"
+      >
+        One or more log tables have exceeded the row count threshold.
+      </v-alert>
+    </div>
 
-    <div class="mt-2 text-right">
-      <a :href="siteUrl + '/admin/logs/cleanup'" class="text-caption text-decoration-none">Cleanup &amp; Archiving →</a>
+    <div class="mt-3 text-end">
+      <a
+        :href="siteUrl + '/admin/logs/cleanup'"
+        class="logs-health__link text-decoration-none text-primary"
+      >
+        Cleanup &amp; archiving →
+      </a>
     </div>
   </div>
 </template>
@@ -96,3 +117,76 @@ function formatCount(n) {
   return Number(n).toLocaleString();
 }
 </script>
+
+<style scoped>
+/* Primary lines: .recent-study-title; secondary / muted: .recent-study-date; subheads: Users “Recent logins”. */
+.logs-health__section-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  line-height: 1.4;
+  color: rgba(var(--v-theme-on-surface), 0.65);
+}
+
+.logs-health__row-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.logs-health__row-meta {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: rgba(var(--v-theme-on-surface), 0.55);
+}
+
+.logs-health__muted {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: rgba(var(--v-theme-on-surface), 0.55);
+}
+
+.logs-health__server {
+  margin-bottom: 0;
+}
+
+.logs-health__log-section {
+  padding-top: 0.75rem;
+}
+
+.logs-health__php {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgb(var(--v-theme-on-surface));
+  background-color: rgba(var(--v-theme-on-surface), 0.06);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.14);
+  border-radius: 6px;
+  padding: 4px 10px;
+  line-height: 1.35;
+}
+
+.logs-health__time-wrap {
+  max-width: 14rem;
+}
+
+.logs-health__alert {
+  font-size: 0.75rem !important;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+
+.logs-health__link {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+</style>

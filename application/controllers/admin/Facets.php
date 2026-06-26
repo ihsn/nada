@@ -28,72 +28,68 @@ class Facets extends MY_Controller {
  
 	function index()
 	{
-		$data['rows']=$this->Facet_model->select_terms_counts_detailed();		
-		$content=$this->load->view('facets/index', $data,TRUE);
-		
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('Facets'),true);
-	  	$this->template->render();
+		$this->load->library("Schema_util");
+		$this->load->helper('vite_helper');
+
+		$fields = array();
+		foreach ($this->data_types as $type) {
+			if ($type === 'geospatial') {
+				$fields[$type] = json_decode($this->load->view('facets/geospatial.json', null, true));
+			} else {
+				$fields[$type] = $this->schema_util->get_schema_elements($type);
+			}
+		}
+
+		$view_data = array(
+			'site_url'          => site_url(),
+			'base_url'          => base_url(),
+			'api_base_url'      => site_url('api/facets/'),
+			'assets_base'       => base_url('frontend/dist/'),
+			'csrf_token'        => $this->security->get_csrf_hash(),
+			'translations'      => $this->lang->language,
+			'data_types'        => $this->data_types,
+			'reorder_data_types'=> array('all','microdata','geospatial','document','table','image','video','timeseries','script'),
+			'fields'            => $fields,
+			'facet'             => null,
+		);
+
+		$page = array(
+			'title'           => t('Facets'),
+			'content'         => $this->load->view('admin/facets/index', $view_data, true),
+			'hide_breadcrumb' => true,
+			'theme_folder'    => 'adminvue',
+		);
+		$this->load->view('layouts/admin_vue', $page);
 	}
 	
 
 	function create()
 	{
-		$this->load->library("Schema_util");
-
-		$data_types=$this->data_types;
-		$data=array();
-		$data['data_types']=$data_types;
-
-		foreach($data_types as $type){
-			if ($type=='geospatial'){
-				$data['fields'][$type]=json_decode($this->load->view('facets/geospatial.json',null,true));
-			}else{
-				$data['fields'][$type]=$this->schema_util->get_schema_elements($type);
-			}
-		}
-
-		$content=$this->load->view('facets/create_vue', $data,TRUE);
-		
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('Facets'),true);
-	  	$this->template->render();
+		redirect(site_url('admin/facets') . '#/new');
 	}
 
 	function edit($facet_name=null)
 	{
-		$this->load->library("Schema_util");
+		redirect(site_url('admin/facets') . '#/edit/' . rawurlencode($facet_name));
+	}
 
-		$data_types=$this->data_types;
-		$data=array();
-		$data['data_types']=$data_types;
+	function reorder()
+	{
+		redirect(site_url('admin/facets') . '#/reorder');
+	}
 
-		foreach($data_types as $type){
-			if ($type=='geospatial'){
-				$data['fields'][$type]=json_decode($this->load->view('facets/geospatial.json',null,true));
-			}else{
-				$data['fields'][$type]=$this->schema_util->get_schema_elements($type);
-			}
-		}
+	function terms($facet_id=null)
+	{
+		redirect(site_url('admin/facets') . '#/terms/' . rawurlencode($facet_id));
+	}
 
-		$data['facet']=$this->Facet_model->get_facet_by_name($facet_name);
-
-		if($data['facet']){
-			if ($data['facet']['facet_type']=='core'){
-				show_error('Core facets cannot be edited!');
-			}
-		}
-
-		$content=$this->load->view('facets/create_vue', $data,TRUE);
-		
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('Facets'),true);
-	  	$this->template->render();
+	function indexer()
+	{
+		redirect(site_url('admin/facets') . '#/indexer');
 	}
 
 
-
-	function reorder()
+	function reorder_legacy()
 	{
 		$options['facets']=$this->Facet_model->select_all();
 		$options['data_types']=array(
@@ -150,36 +146,6 @@ class Facets extends MY_Controller {
 	  	$this->template->render();
 	}
 
-
-	function terms($facet_id=null)
-	{
-		$facet=$this->Facet_model->select_single($facet_id);
-		
-		if(empty($facet)){
-			show_error("FACET not found");
-		}
-		
-		$data['facet']=$facet;
-		$data['rows']=$this->Facet_model->get_facet_terms($facet_id);
-		
-		$content=$this->load->view('facets/terms', $data,TRUE);
-		
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('Facets'),true);
-	  	$this->template->render();
-	}
-
-
-	function indexer()
-	{
-		$data['rows']=$this->Facet_model->select_term_value_counts($facet_type='user');
-		$data['studies_count']=$this->Dataset_model->get_total_count();
-		$content=$this->load->view('facets/indexer', $data,TRUE);
-		
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('Facets'),true);
-	  	$this->template->render();
-	}
 
 
 

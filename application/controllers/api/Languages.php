@@ -17,14 +17,6 @@ class Languages extends MY_REST_Controller
 		$this->api_user=$this->api_user();
 		$this->user_id=$this->get_api_user_id();
 	}
-
-	function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
-		parent::_auth_override_check();
-	}
 	
 	
 	/**

@@ -1,17 +1,23 @@
 import '@mdi/font/css/materialdesignicons.css';
 import 'vuetify/styles';
 import '@/assets/base.css';
+import './catalog-layout.css';
 import { createApp } from 'vue';
 import { createVuetify } from 'vuetify';
 import { appTheme } from '@/theme';
 import { APP_CONFIG_KEY } from '@/shared/composables/useAppConfig';
 import App from './App.vue';
+import { createAdminCatalogRouter } from './router';
 
 const vuetify = createVuetify({
   theme: appTheme,
 });
 const app = createApp(App);
+const router = createAdminCatalogRouter();
 app.use(vuetify);
+app.use(router);
 // Config from PHP view (window.APP_CONFIG); provide for inject in composables
 app.provide(APP_CONFIG_KEY, window.APP_CONFIG || {});
-app.mount('#admin-catalog-app');
+router.isReady().then(() => {
+  app.mount('#admin-catalog-app');
+});

@@ -154,9 +154,69 @@ class Managefiles extends MY_Controller {
 		return FALSE;		
 	}
     
-	function edit($surveyid, $filepath)
-	{		
-		$filepath=$this->_clean_filepath(urldecode(base64_decode($filepath)));
+	/**
+	 * Encoded path token from query string only (?t=), same encoding as catalog files API.
+	 */
+	private function _encoded_path_token()
+	{
+		$t = $this->input->get_post('t');
+		return (is_string($t) && $t !== '') ? $t : '';
+	}
+
+	/**
+	 * Decode base64(urlencode(relative/path)) used by managefiles and catalog files API.
+	 *
+	 * @param string $token
+	 * @return string|false relative path or false on failure
+	 */
+	private function _decode_managefiles_relpath($token)
+	{
+		$token = trim((string) $token);
+		if ($token === '') {
+			return false;
+		}
+
+		// Query strings may turn "+" into space; restore for base64.
+		$token = str_replace(' ', '+', $token);
+
+		$bin = base64_decode($token, true);
+		if ($bin === false || $bin === '') {
+			return false;
+		}
+
+		$path = urldecode($bin);
+		if (! is_string($path) || $path === '') {
+			return false;
+		}
+
+		// Strip C0 controls (avoids MySQL utf8mb4 conversion errors on garbage tokens).
+		$path = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $path);
+		if (function_exists('iconv')) {
+			$clean = @iconv('UTF-8', 'UTF-8//IGNORE', $path);
+			if (is_string($clean) && $clean !== '') {
+				$path = $clean;
+			}
+		}
+
+		return $this->_clean_filepath($path);
+	}
+
+	function edit($surveyid, $skip_path_token = false)
+	{
+		if ($skip_path_token === true) {
+			$filepath = '';
+		} else {
+			$filepath = $this->_decode_managefiles_relpath($this->_encoded_path_token());
+			if (($filepath === false || $filepath === '') && $this->input->method() === 'post') {
+				$posted = $this->_clean_filepath($this->input->post('filename'));
+				if ($posted !== '') {
+					$filepath = $posted;
+				}
+			}
+			if ($filepath === false || $filepath === '') {
+				show_error('INVALID_PATH', 400);
+			}
+		}
 
 		//check if a resource matches the filepath
 		$resource=$this->managefiles_model->get_resources_by_filepath($surveyid,$filepath);
@@ -253,6 +313,7 @@ class Managefiles extends MY_Controller {
 		
 		//use the unified resource form with simple mode
 		$data['simple_mode'] = true; // Use simple text field instead of URL/File picker
+		$data['path_token'] = $this->_encoded_path_token();
 		$data['back_link'] = 'admin/catalog/edit/'.$surveyid;
 		$data['back_text'] = t('link_resource_home');
 		$data['form_title'] = $data['page_title'];
@@ -268,11 +329,12 @@ class Managefiles extends MY_Controller {
 	
 	function _clean_filepath($str)
 	{
-		$str=unix_path($str);
-		
-		if (substr($str,0,1)=='/')
-		{
-			$str=substr($str,1,strlen($str));
+		$str = (string) $str;
+		$str = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $str);
+		$str = unix_path($str);
+
+		if (substr($str, 0, 1) == '/') {
+			$str = substr($str, 1, strlen($str));
 		}
 		return $str;
 	}
@@ -318,7 +380,7 @@ class Managefiles extends MY_Controller {
 	
 	function add()
 	{
-		$this->edit(NULL);
+		$this->edit($this->uri->segment(3), true);
 	}
 		
 	
@@ -433,15 +495,15 @@ class Managefiles extends MY_Controller {
 			break;
 			
 			case 'edit':
-				$this->edit($this->uri->segment(3),$this->uri->segment(5));
+				$this->edit($this->uri->segment(3));
 			break;
 
 			case 'download':
-				$this->download($this->uri->segment(3),$this->uri->segment(5));
+				$this->download($this->uri->segment(3));
 			break;
 
 			case 'delete':
-				$this->delete($this->uri->segment(3),$this->uri->segment(5));
+				$this->delete($this->uri->segment(3));
 			break;
 
 			case 'batch_delete':
@@ -571,7 +633,7 @@ class Managefiles extends MY_Controller {
 	* Download a file
 	*
 	*/
-	function download($surveyid, $base64_filepath)
+	function download($surveyid)
 	{
 		if(!is_numeric($surveyid))
 		{
@@ -580,8 +642,11 @@ class Managefiles extends MY_Controller {
 
 		//get survey folder path
 		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
-		
-		$filepath=$this->_clean_filepath(urldecode(base64_decode($base64_filepath)));
+
+		$filepath = $this->_decode_managefiles_relpath($this->_encoded_path_token());
+		if ($filepath === false || $filepath === '') {
+			show_error('Invalid parameters supplied');
+		}
 		$filepath=basename($filepath);
 		
 		$fullpath=unix_path($folderpath.'/'.$filepath);
@@ -618,7 +683,7 @@ class Managefiles extends MY_Controller {
 	* Delete a single file
 	*
 	*/
-	function delete($surveyid, $base64_filepath)
+	function delete($surveyid, $posted_token = null)
 	{
 		if(!is_numeric($surveyid))
 		{
@@ -630,8 +695,15 @@ class Managefiles extends MY_Controller {
 
 		//get survey folder path
 		$folderpath=$this->managefiles_model->get_survey_path($surveyid);
-		
-		$filepath=$this->_clean_filepath(urldecode(base64_decode($base64_filepath)));
+
+		$token = (is_string($posted_token) && $posted_token !== '')
+			? $posted_token
+			: $this->_encoded_path_token();
+
+		$filepath = $this->_decode_managefiles_relpath($token);
+		if ($filepath === false || $filepath === '') {
+			show_error('Invalid parameters supplied');
+		}
 		$filepath=basename($filepath);
 		
 		$fullpath=unix_path($folderpath.'/'.$filepath);

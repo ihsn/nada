@@ -1,25 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $title ?? 'Analytics Reports'; ?></title>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    <link href="<?php echo base_url('javascript/mdi/css/materialdesignicons.min.css'); ?>" rel="stylesheet">
-    
-    <!-- Vuetify CSS -->
-    <link href="<?php echo base_url('javascript/vuetify.min.css'); ?>" rel="stylesheet">
-    
-    <!-- Vue.js and Axios -->
-    <script src="<?php echo base_url('javascript/vue.min.js'); ?>"></script>
-    <script src="<?php echo base_url('javascript/axios.min.js'); ?>"></script>
-    <script src="<?php echo base_url('javascript/vuetify.min.js'); ?>"></script>
-    <!-- Chart.js for charts -->
-    <script src="<?php echo base_url('javascript/chart.min.js'); ?>"></script>
-    
-    <style>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+<link href="<?php echo base_url('javascript/mdi/css/materialdesignicons.min.css'); ?>" rel="stylesheet">
+
+<!-- Vuetify 2 (load after admin header Vuetify 3 bundle) -->
+<link href="<?php echo base_url('javascript/vuetify.min.css'); ?>" rel="stylesheet">
+
+<!-- Vue.js and Axios -->
+<script src="<?php echo base_url('javascript/vue.min.js'); ?>"></script>
+<script src="<?php echo base_url('javascript/axios.min.js'); ?>"></script>
+<script src="<?php echo base_url('javascript/vuetify.min.js'); ?>"></script>
+<!-- Chart.js for charts -->
+<script src="<?php echo base_url('javascript/chart.min.js'); ?>"></script>
+
+<style>
+        /* Contain Vuetify inside admin5 template without full-page takeover */
+        #analytics-app .v-application--wrap { min-height: unset; }
+        #analytics-app { margin-top: 8px; }
+
+        /*
+         * Admin header loads Vuetify 3 CSS globally; this page uses Vuetify 2.
+         * V3 rules can set on-primary text color without matching V2 backgrounds.
+         */
+        #analytics-app .v-btn.primary:not(.v-btn--outlined):not(.v-btn--text):not(.v-btn--flat) {
+            background-color: #1976D2 !important;
+            border-color: #1976D2 !important;
+            color: #fff !important;
+        }
+        #analytics-app .v-btn.primary.v-btn--outlined {
+            background-color: transparent !important;
+            color: #1976D2 !important;
+            border-color: currentColor !important;
+        }
+        #analytics-app .v-btn.secondary:not(.v-btn--outlined):not(.v-btn--text):not(.v-btn--flat) {
+            background-color: #424242 !important;
+            border-color: #424242 !important;
+            color: #fff !important;
+        }
+        #analytics-app .v-btn:not(.primary):not(.secondary):not(.error):not(.success):not(.warning):not(.info):not(.v-btn--outlined):not(.v-btn--text):not(.v-btn--flat) {
+            background-color: #f5f5f5 !important;
+            color: rgba(0, 0, 0, 0.87) !important;
+        }
+        #analytics-app .v-btn.v-btn--outlined:not(.primary):not(.secondary) {
+            background-color: transparent !important;
+            color: rgba(0, 0, 0, 0.87) !important;
+        }
         .v-list-item--active {
             background-color: rgba(25, 118, 210, 0.08) !important;
             border-left: 3px solid #1976D2;
@@ -77,9 +101,9 @@
         .ff-input.ff-studyid { width: 90px; }
         .ff-input.ff-view    { width: 100px; }
         .ff-input.ff-month   { width: 130px; }
-    </style>
-</head>
-<body>
+</style>
+
+<div id="analytics-app">
     <v-app id="app">
         <v-container fluid class="pa-0">
             <v-row no-gutters>
@@ -1640,5 +1664,4 @@
             }
         });
     </script>
-</body>
-</html>
+</div>

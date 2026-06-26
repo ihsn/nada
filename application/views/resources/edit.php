@@ -53,6 +53,9 @@ foreach($option_formats as $key=>$value)
 <?php echo form_open_multipart(current_url(), array('class'=>'form') ); ?>
 <input name="survey_id" type="hidden" id="survey_id" value="<?php echo get_form_value('survey_id',isset($survey_id) ? $survey_id: ''); ?>"/>
 <input name="resource_id" type="hidden" id="resource_id" value="<?php echo get_form_value('resource_id',isset($resource_id) ? $resource_id: ''); ?>"/>
+<?php if (!empty($path_token)): ?>
+<input type="hidden" name="t" value="<?php echo htmlspecialchars($path_token, ENT_QUOTES, 'UTF-8'); ?>" />
+<?php endif; ?>
 <div class="form-group">
 	<label for="dctype"><?php echo t('type');?></label> 
     <?php echo form_dropdown('dctype', $option_types, get_form_value("dctype",isset($dctype) ? $dctype : ''),'class="form-control" id="dctype"'); ?>

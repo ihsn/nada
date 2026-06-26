@@ -718,14 +718,15 @@ class Tables extends MY_REST_Controller
 	 * 
 	 * @db_id - database id
 	 * @table_id - table id	 
-	 * @file - [FILE] - CSV file to upload
+	 * @file - [FILE] - CSV or ZIP file (multipart/form-data)
+	 * @upload_id - [String] - completed resumable upload id (application/json or form field)
 	 * 
 	 * Form data for table definition (optional):
 	 * @title - [String] - table title (optional, defaults to "{db_id} - {table_id}")
 	 * @description - [String] - table description (optional, defaults to "N/A")
-	 * @delimiter - [String] - CSV delimiter (optional, defaults to comma)
-	 * @indicators - [JSON] - indicators array (optional)
-	 * @feature_1 to @feature_9 - [JSON] - feature objects (optional)
+	 * 
+	 * Large files: use POST /api/uploads/init + /api/uploads/chunk/{id}, then pass upload_id here.
+	 * Provide either file or upload_id, not both.
 	 * 
 	 * Note: This function only uploads files and creates table definitions
 	 * Note: Use import_post to import CSV data into the table
@@ -741,54 +742,37 @@ class Tables extends MY_REST_Controller
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 
-			$uploaded_file=$this->upload_file('datafiles/'.$db_id);
-			$uploaded_file_path=$uploaded_file['full_path'];
+			$json_input = $this->_read_json_body_if_present();
+			$source = $this->_resolve_table_upload_source($db_id, $json_input);
+			$form_data = $this->_resolve_table_upload_form_data($json_input);
 
-			$user_id=$this->get_api_user_id();			
-
-			if (!file_exists($uploaded_file_path)){
-				throw new Exception("file was not uploaded");
-			}
-
-			$table_dir = 'datafiles/'.$db_id.'/'.$table_id;
-			$is_zip = $this->is_zip_file($uploaded_file_path);
-			
-			if($is_zip){
-				//extract zip to table folder
-				$uploaded_file_path = $this->get_file_from_zip($uploaded_file_path, $table_dir);
-			} else {
-				//move csv to table folder
-				$this->move_csv_to_table_dir($uploaded_file_path, $table_dir);
-				$uploaded_file_path = $table_dir.'/'.basename($uploaded_file_path);
-			}
-
-			$partial_file_path = str_replace('datafiles/', '', $uploaded_file_path);
-			
-			// Collect form data (title and description only)
-			$form_data = array(
-				'title' => $this->input->post('title', true),
-				'description' => $this->input->post('description', true)
+			$result = $this->_finalize_table_file_upload(
+				$db_id,
+				$table_id,
+				$source['path'],
+				$form_data,
+				$source['is_zip'],
+				$source['staging_path']
 			);
 
-			//delete original uploaded zip file, keep csv
-			if($is_zip && file_exists($uploaded_file['full_path'])){
-				unlink($uploaded_file['full_path']);				
+			if (!empty($source['upload_id'])) {
+				$this->load->library('Resumable_upload', null, 'uploader');
+				$this->uploader->delete_upload($source['upload_id']);
 			}
-						
-			$definition_result = $this->Data_table_mongo_model->upsert_table_type($db_id, $table_id, $partial_file_path, $form_data);			
 
 			$response=array(
                 'status'=>'success',
-				'file_path'=>$partial_file_path,  // Partial path for import_post
-				'definition_updated' => $definition_result['was_existing'] ? $definition_result['result'] : 0,
-				'definition_created' => $definition_result['was_existing'] ? 0 : $definition_result['result'],
-				'action' => $definition_result['action'],
+				'file_path'=>$result['partial_file_path'],
+				'upload_source' => $source['source'],
+				'definition_updated' => $result['definition_result']['was_existing'] ? $result['definition_result']['result'] : 0,
+				'definition_created' => $result['definition_result']['was_existing'] ? 0 : $result['definition_result']['result'],
+				'action' => $result['definition_result']['action'],
 				'csv_uploaded_at' => date('Y-m-d H:i:s'),
 				'import_status' => 'ready',
 				'links' => array(
 					'import' => site_url() . '/api/tables/import/' . $db_id . '/' . $table_id
 				),
-				'message' => 'File uploaded and table definition ' . $definition_result['action'] . ' - import progress reset, ready for new import'
+				'message' => 'File uploaded and table definition ' . $result['definition_result']['action'] . ' - import progress reset, ready for new import'
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -1384,6 +1368,173 @@ class Tables extends MY_REST_Controller
 
 
 	/**
+	 * Read JSON request body when Content-Type is application/json.
+	 *
+	 * @return array
+	 */
+	private function _read_json_body_if_present()
+	{
+		$content_type = $this->input->server('CONTENT_TYPE');
+		if (!$content_type || stripos($content_type, 'application/json') === false) {
+			return array();
+		}
+
+		try {
+			$input = $this->raw_json_input();
+			return is_array($input) ? $input : array();
+		} catch (Exception $e) {
+			return array();
+		}
+	}
+
+	/**
+	 * Resolve title/description from JSON body or multipart form fields.
+	 *
+	 * @param array $json_input
+	 * @return array{title:?string,description:?string}
+	 */
+	private function _resolve_table_upload_form_data($json_input = array())
+	{
+		if (!is_array($json_input)) {
+			$json_input = array();
+		}
+
+		$title = isset($json_input['title']) ? $json_input['title'] : $this->input->post('title', true);
+		$description = isset($json_input['description']) ? $json_input['description'] : $this->input->post('description', true);
+
+		return array(
+			'title' => $title !== null && $title !== '' ? $title : null,
+			'description' => $description !== null && $description !== '' ? $description : null,
+		);
+	}
+
+	/**
+	 * Resolve uploaded file from multipart field or a completed resumable upload.
+	 *
+	 * @param string $db_id
+	 * @param array $json_input
+	 * @return array{path:string,source:string,upload_id:?string,is_zip:bool,staging_path:?string}
+	 */
+	private function _resolve_table_upload_source($db_id, $json_input = array())
+	{
+		if (!is_array($json_input)) {
+			$json_input = array();
+		}
+
+		$upload_id = '';
+		if (isset($json_input['upload_id'])) {
+			$upload_id = preg_replace('/[^a-zA-Z0-9\-]/', '', trim((string) $json_input['upload_id']));
+		}
+		if ($upload_id === '') {
+			$post_upload_id = $this->input->post('upload_id', true);
+			if ($post_upload_id !== null && $post_upload_id !== '') {
+				$upload_id = preg_replace('/[^a-zA-Z0-9\-]/', '', trim((string) $post_upload_id));
+			}
+		}
+
+		$has_file = !empty($_FILES['file']['tmp_name']) && is_uploaded_file($_FILES['file']['tmp_name']);
+
+		if ($upload_id !== '' && $has_file) {
+			throw new Exception('Provide either upload_id or file, not both');
+		}
+
+		if ($upload_id !== '') {
+			$this->load->library('Resumable_upload', null, 'uploader');
+
+			$metadata = $this->uploader->get_upload_metadata($upload_id);
+			if (!$metadata) {
+				throw new Exception('INVALID_UPLOAD_ID');
+			}
+			if ($metadata['status'] !== 'completed') {
+				throw new Exception('UPLOAD_NOT_COMPLETED');
+			}
+
+			$owner = isset($metadata['metadata']['_upload_owner_user_id'])
+				? (int) $metadata['metadata']['_upload_owner_user_id']
+				: 0;
+			$current_user = (int) $this->get_api_user_id();
+			if ($owner <= 0 || $owner !== $current_user) {
+				throw new Exception('UPLOAD_ACCESS_DENIED');
+			}
+
+			$final_file = $this->uploader->get_final_file_path($upload_id);
+			if (!$final_file || !is_file($final_file)) {
+				throw new Exception('FILE_NOT_FOUND_FOR_UPLOAD_ID');
+			}
+
+			$ext = strtolower(pathinfo($final_file, PATHINFO_EXTENSION));
+			if (!in_array($ext, array('csv', 'zip', 'txt'), true)) {
+				throw new Exception('FILE_TYPE_NOT_ALLOWED: Only csv, zip, and txt files are supported');
+			}
+
+			$staging_dir = 'datafiles/' . $db_id;
+			if (!file_exists($staging_dir)) {
+				mkdir($staging_dir, 0777, true);
+			}
+			$staging_path = unix_path($staging_dir . '/' . basename($final_file));
+			if (!@copy($final_file, $staging_path)) {
+				throw new Exception('Failed to copy resumable upload to table staging directory');
+			}
+
+			return array(
+				'path' => $staging_path,
+				'source' => 'upload_id',
+				'upload_id' => $upload_id,
+				'is_zip' => $this->is_zip_file($staging_path),
+				'staging_path' => $staging_path,
+			);
+		}
+
+		if ($has_file) {
+			$uploaded_file = $this->upload_file('datafiles/' . $db_id);
+			$uploaded_file_path = $uploaded_file['full_path'];
+
+			if (!file_exists($uploaded_file_path)) {
+				throw new Exception('file was not uploaded');
+			}
+
+			return array(
+				'path' => $uploaded_file_path,
+				'source' => 'file',
+				'upload_id' => null,
+				'is_zip' => $this->is_zip_file($uploaded_file_path),
+				'staging_path' => $uploaded_file_path,
+			);
+		}
+
+		throw new Exception('Missing file: provide multipart field "file" or completed resumable upload_id');
+	}
+
+	/**
+	 * Move/extract uploaded file into table directory and upsert table definition.
+	 *
+	 * @return array{partial_file_path:string,definition_result:array}
+	 */
+	private function _finalize_table_file_upload($db_id, $table_id, $uploaded_file_path, $form_data, $is_zip, $staging_path)
+	{
+		$table_dir = 'datafiles/' . $db_id . '/' . $table_id;
+
+		if ($is_zip) {
+			$uploaded_file_path = $this->get_file_from_zip($uploaded_file_path, $table_dir);
+			if ($staging_path && file_exists($staging_path)) {
+				unlink($staging_path);
+			}
+		} else {
+			$this->move_csv_to_table_dir($uploaded_file_path, $table_dir);
+			$uploaded_file_path = $table_dir . '/' . basename($uploaded_file_path);
+		}
+
+		$partial_file_path = str_replace('datafiles/', '', $uploaded_file_path);
+		$definition_result = $this->Data_table_mongo_model->upsert_table_type($db_id, $table_id, $partial_file_path, $form_data);
+
+		return array(
+			'partial_file_path' => $partial_file_path,
+			'definition_result' => $definition_result,
+		);
+	}
+
+
+	/**
 	 * 
 	 * upload file
 	 * 
@@ -1890,15 +2041,4 @@ class Tables extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
-
-	
-
-	public function _auth_override_check()
-    {
-        if ($this->session->userdata('user_id')){
-            return TRUE;
-        }
-        parent::_auth_override_check();
-    }
-
 }	

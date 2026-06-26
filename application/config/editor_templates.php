@@ -38,6 +38,13 @@ $config['timeseries-db'][]=array(
     'name'=>'Database IHSN Schema 1.0 EN'
 ); 
 
+$config['timeseriesdb'][]=array(
+    'template' => 'editor_templates/timeseries-db_form_template.json',
+    'lang'=>'en',
+    'uid'=>'timeseries-db-system-en',
+    'name'=>'Database IHSN Schema 1.0 EN'
+);
+
 
 $config['script'][]=array(
     'template' => 'editor_templates/script_form_template.json',

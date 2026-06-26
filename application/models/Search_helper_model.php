@@ -333,11 +333,11 @@ class Search_helper_model extends CI_Model {
 	*/
 	function get_active_countries($repositoryid=NULL, $data_type=NULL,$filter_values=array() )
 	{
-		$this->db->select('cid as id,countries.name as title, count(cid) as found');
+		$this->db->select('cid as id,countries.name as title, countries.iso as iso3, count(cid) as found');
 		$this->db->join('surveys', 'surveys.id=survey_countries.sid','inner');
 		$this->db->join('countries', 'countries.countryid=survey_countries.cid','inner');
 		$this->db->order_by('countries.name','ASC');
-		$this->db->group_by('cid,countries.name','ASC');
+		$this->db->group_by('cid,countries.name,countries.iso');
 		$this->db->where('surveys.published',1);
 		$this->db->where('survey_countries.cid >',0);
 
@@ -580,10 +580,8 @@ class Search_helper_model extends CI_Model {
 	 */
 	function get_active_data_classifications($repositoryid=null)
 	{
-		$this->config->load('data_access');
-		$data_classifications_enabled=(bool)$this->config->item("data_classifications_enabled");
-
-		if($data_classifications_enabled==false){
+		$this->load->model('Configurations_model');
+		if (! $this->Configurations_model->is_data_classifications_enabled()) {
 			return false;
 		}
 		
@@ -618,15 +616,58 @@ class Search_helper_model extends CI_Model {
 		
 		return $types;
 	}
-	
-	
 
-	
-	
+
 	/**
-	* 
+	 * Returns timeseries databases (timeseriesdb entries) that have at least one
+	 * published timeseries series linked via timeseries_db_links.
+	 * Keyed by db_idno; value contains id (survey id), title, and found count.
+	 */
+	function get_active_databases($repositoryid = null, $data_type = null, $filter_values = array())
+	{
+		$this->db->select('tsdb.id as id, tdbl.db_idno as idno, tsdb.title as title, COUNT(tdbl.series_id) as found');
+		$this->db->from('timeseries_db_links tdbl');
+		$this->db->join('surveys s',    's.id = tdbl.series_id AND s.published = 1', 'inner');
+		$this->db->join('surveys tsdb', 'tsdb.idno = tdbl.db_idno AND tsdb.type = \'timeseriesdb\' AND tsdb.published = 1', 'inner');
+		$this->db->group_by('tdbl.db_idno, tsdb.id, tsdb.title');
+		$this->db->order_by('tsdb.title', 'ASC');
+
+		if ($repositoryid != null) {
+			$this->db->join('survey_repos sr', 'sr.sid = s.id', 'left');
+			$subquery = sprintf(
+				'(s.repositoryid = %s OR sr.repositoryid = %s)',
+				$this->db->escape($repositoryid),
+				$this->db->escape($repositoryid)
+			);
+			$this->db->where($subquery, null, false);
+		}
+
+		if ($data_type != null) {
+			$this->db->where('s.type', $data_type);
+		}
+
+		$query = $this->db->get();
+		if (!$query) {
+			return array();
+		}
+
+		$result = array();
+		foreach ($query->result_array() as $row) {
+			$result[$row['idno']] = array(
+				'id'    => (int) $row['id'],
+				'idno'  => $row['idno'],
+				'title' => $row['title'],
+				'found' => (int) $row['found'],
+			);
+		}
+		return $result;
+	}
+
+
+	/**
+	*
 	* Returns a list of collections
-	*/	
+	*/
 	function get_collections($repositoryid)
 	{
 		$this->db->select('sc.tid as tid, collections.title as title, count(collections.id) as found');
@@ -696,6 +737,99 @@ class Search_helper_model extends CI_Model {
 			}
 			
 			return $output;
+	}
+
+	/**
+	 * Keep only "type" / "type[]" values that exist in survey_types (reference table).
+	 * One cheap query scoped to the submitted tokens only — no joins or counts over surveys.
+	 *
+	 * @param string|string[]|false|null $raw Value(s) after XSS cleaning
+	 * @return string|array Empty string if none valid; otherwise canonical codes from the database
+	 */
+	function filter_catalog_type_param($raw)
+	{
+		if ($raw === false || $raw === null || $raw === '') {
+			return '';
+		}
+
+		if (is_array($raw)) {
+			$items = $raw;
+		} elseif (is_string($raw) && strpos($raw, ',') !== false) {
+			$items = array_values(array_filter(array_map('trim', explode(',', $raw)), 'strlen'));
+		} else {
+			$items = array($raw);
+		}
+		$candidates = array();
+
+		foreach ($items as $t) {
+			if ( ! is_string($t) && ! is_numeric($t)) {
+				continue;
+			}
+			$k = strtolower(trim((string) $t));
+			if ($k !== '') {
+				$candidates[$k] = true;
+			}
+		}
+
+		$candidates = array_keys($candidates);
+		$max = 32;
+		if (count($candidates) > $max) {
+			$candidates = array_slice($candidates, 0, $max);
+		}
+
+		if (empty($candidates)) {
+			return '';
+		}
+
+		$code_col = $this->db->protect_identifiers('code');
+		$escaped = array();
+		foreach ($candidates as $c) {
+			$escaped[] = $this->db->escape($c);
+		}
+
+		$this->db->select('code');
+		$this->db->from('survey_types');
+		$this->db->where('LOWER(' . $code_col . ') IN (' . implode(',', $escaped) . ')', null, false);
+
+		$rows = $this->db->get()->result_array();
+		if (empty($rows)) {
+			return '';
+		}
+
+		$out = array();
+		foreach ($rows as $row) {
+			if ( ! empty($row['code'])) {
+				$out[$row['code']] = true;
+			}
+		}
+
+		return array_keys($out);
+	}
+
+	/**
+	 * Validate catalog tab_type / dataset tab (same rules as web Catalog controller).
+	 *
+	 * @param string|false|null $tab_type Raw tab_type query value
+	 * @param string|null $repositoryid Repository id or null/central for all published types
+	 * @return string Normalized tab code or '' if invalid
+	 */
+	public function validate_catalog_tab_type($tab_type, $repositoryid = null)
+	{
+		if ($tab_type === false || $tab_type === null || trim((string) $tab_type) === '') {
+			return '';
+		}
+
+		$allowed_types = $this->get_dataset_types($repositoryid);
+		$allowed_type_codes = array_keys($allowed_types);
+		$allowed_type_codes[] = 'all';
+		$tab_type_lower = strtolower(trim((string) $tab_type));
+		$allowed_type_codes = array_map('strtolower', $allowed_type_codes);
+
+		if (in_array($tab_type_lower, $allowed_type_codes, true)) {
+			return $tab_type_lower;
+		}
+
+		return '';
 	}
 
 

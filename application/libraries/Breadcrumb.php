@@ -365,11 +365,13 @@ class Breadcrumb
 	}
 
 	function generate_admin_breadcrumbs(&$breadcrumbs)
-	{	
-		$breadcrumbs=array();
-		$breadcrumbs['admin']=t('Dashboard');		
-		$segments=$this->ci->uri->segment_array();
-		
+	{
+		$home = isset($breadcrumbs['']) ? $breadcrumbs[''] : t('Home');
+		$breadcrumbs = array();
+		$breadcrumbs['']     = $home;
+		$breadcrumbs['admin'] = t('Dashboard');
+		$segments = $this->ci->uri->segment_array();
+
 		if (!isset($segments[2]))
 		{
 			return;
@@ -384,11 +386,11 @@ class Breadcrumb
 		}
 		
 		//section to hide the collection link
-		$excluded_sections=array('users','repositories','citations','reports','configurations','countries','regions','terms','vocabularies','menu');
+		$excluded_sections=array('users','repositories','collections','citations','reports','configurations','countries','regions','terms','vocabularies','menu');
 		
 		/*if (!in_array($segments[2],$excluded_sections))
 		{
-			$breadcrumbs['admin/repositories/active/'.$active_repo->id.'?destination=admin/catalog']=$active_repo->title;
+			$breadcrumbs['admin/collections/active/'.$active_repo->id.'?destination=admin/catalog']=$active_repo->title;
 		}*/	
 		
 		switch ($segments[2])
@@ -397,8 +399,12 @@ class Breadcrumb
 				$breadcrumbs['admin/catalog']=t('manage_studies');
 			break;
 			
+			case 'collections':
+				$breadcrumbs['admin/collections']=t('repositories');
+			break;
+
 			case 'repositories':
-				$breadcrumbs['admin/repositories']=t('repositories');
+				$breadcrumbs['admin/collections']=t('repositories');
 			break;
 			
 			case 'licensed_requests':
@@ -471,12 +477,16 @@ class Breadcrumb
 					$breadcrumbs['admin/catalog/upload']=t('add_study');
 				break;
 
-				case 'copy_study':
-					$breadcrumbs['admin/catalog/upload']=t('copy_studies_to');
+				case 'batch-import':
+					$breadcrumbs['admin/catalog/batch-import'] = t('bulk_import');
 				break;
 
-				case 'batch_import':
-					$breadcrumbs['admin/catalog/batch_import']=t('bulk_import');
+				case 'batch-refresh':
+					$breadcrumbs['admin/catalog/batch-refresh'] = t('ddi_batch_refresh_title');
+				break;
+
+				case 'batch-generate':
+					$breadcrumbs['admin/catalog/batch-generate'] = t('batch_generate_ddi_title');
 				break;
 				
 				case 'transfer':
@@ -563,16 +573,26 @@ class Breadcrumb
 			}
 		}
 		
+		if ($segments[2]=='collections')
+		{
+			switch ($segments[3])
+			{
+				case 'active':
+					$breadcrumbs['admin/catalog']=t('manage_studies');
+				break;
+			}
+		}
+		
 		if ($segments[2]=='repositories')
 		{
 			switch ($segments[3])
 			{
 				case 'edit':
-					$breadcrumbs['admin/repositories/edit/'.$segments[4]]=t('edit');
+					$breadcrumbs['admin/collections']=t('repositories');
 				break;
 
 				case 'add':
-					$breadcrumbs['admin/repositories/add/']=t('add');
+					$breadcrumbs['admin/collections']=t('repositories');
 				break;
 
 			}
@@ -646,7 +666,53 @@ class Breadcrumb
 	{
 		return $this->generate();
 	}
-	
+
+	/**
+	 * Breadcrumb trail for Vuetify v-breadcrumbs (items with title, optional href, disabled on last).
+	 *
+	 * @return array<int, array{title: string, href?: string, disabled?: bool}>
+	 */
+	function to_vue_items()
+	{
+		$crumbs = $this->to_array();
+		if ($crumbs === false || !is_array($crumbs) || count($crumbs) === 0) {
+			return [];
+		}
+		$items = array();
+		$paths = array_keys($crumbs);
+		$n = count($paths);
+		$i = 0;
+		foreach ($crumbs as $path => $title) {
+			$title_plain = strip_tags((string) $title);
+			$is_last = ($i === $n - 1);
+			$row = array('title' => $title_plain);
+			if ($is_last) {
+				$row['disabled'] = true;
+			} else {
+				if (!is_numeric($path)) {
+					$row['href'] = $this->_breadcrumb_key_to_url($path);
+				}
+			}
+			$items[] = $row;
+			$i++;
+		}
+		return $items;
+	}
+
+	/**
+	 * Site URL for a breadcrumb path key (mirrors views/breadcrumbs.php link targets).
+	 *
+	 * @param string|int $path
+	 * @return string
+	 */
+	private function _breadcrumb_key_to_url($path)
+	{
+		if ($path === '' || $path === null) {
+			return rtrim(site_url(), '/') . '/';
+		}
+		return rtrim(site_url(), '/') . '/' . ltrim((string) $path, '/');
+	}
+
 	//Helper functions
 	
 	/**

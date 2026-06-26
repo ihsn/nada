@@ -18,20 +18,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $config['licensed_access']['dataset_access'] = false;
 
 
-
-/**
- *
- *  Data classifications and Licenses
- *
+/*
+ * Data classifications on/off is stored in the `configurations` table
+ * (key `data_classifications_enabled`, yes/no) and edited under
+ * Admin → Site configurations → Catalog.
  */
-
-/**
- * 
- * 
- * Enable or disable data classifications
- * 
- */
-$config['data_classifications_enabled']=false;
 
 
 /*

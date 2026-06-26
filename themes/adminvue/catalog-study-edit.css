@@ -1,0 +1,774 @@
+/**
+ * Study edit page (admin/catalog/edit/...) — layout + Bootstrap-compat utilities
+ * after removing themes/adminbt Bootstrap from the shell.
+ * Scoped under .study-edit-page where practical; grid helpers also apply inside tab panes (e.g. analytics).
+ */
+
+.study-edit-page {
+  width: 100%;
+  max-width: 100%;
+  /* Horizontal/top/bottom gutter lives on .admin-vue-shell > div (shell.css); avoid double padding */
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Vuetify breadcrumbs mount (admin/catalog_study_edit_breadcrumbs) */
+.catalog-study-edit-breadcrumbs-mount {
+  display: block;
+  margin: 0 0 1.25rem;
+}
+
+/* Catalog study sidebar (Vue mini-VApp in #catalog-study-sidebar-app):
+   Vuetify sets .v-application__wrap { min-height: 100dvh } so the column is always viewport-tall;
+   padding on .right-sidebar then sits below the fold. Shrink wrap + main to content so space
+   below the cards is visible (unlayered theme wins over @layer vuetify-components). */
+.study-edit-page #catalog-study-sidebar-app .v-application__wrap {
+  min-height: auto;
+}
+
+.study-edit-page #catalog-study-sidebar-app .v-main.catalog-study-sidebar-root {
+  flex: 0 0 auto;
+}
+
+/* Sidebar column + Vue shell: transparent so page canvas shows in gaps (Vuetify defaults to surface) */
+.study-edit-page .right-sidebar {
+  margin-top: 30px;
+  padding-bottom: 20px;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.study-edit-page #catalog-study-sidebar-app,
+.study-edit-page #catalog-study-sidebar-app .v-application,
+.study-edit-page #catalog-study-sidebar-app .v-application__wrap,
+.study-edit-page #catalog-study-sidebar-app .v-main {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/*
+ * Sidebar status buttons: in production builds, @layer vuetify-components (.v-btn--variant-elevated
+ * { background: surface }) can win over @layer utilities (.bg-success), so Published/Draft look white.
+ * Unlayered rules (same approach as #admin-app-header in shell.css).
+ */
+.study-edit-page #catalog-study-sidebar-app .csb-btn-publish--published.v-btn {
+  background: #4caf50 !important;
+  background-color: #4caf50 !important;
+  color: #fff !important;
+}
+
+.study-edit-page #catalog-study-sidebar-app .csb-btn-publish--draft.v-btn {
+  background: #ffc107 !important;
+  background-color: #ffc107 !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.study-edit-page #catalog-study-sidebar-app .csb-btn-delete.v-btn {
+  background-color: rgba(244, 67, 54, 0.12) !important;
+  color: #c62828 !important;
+}
+
+/* ---- Bootstrap-like grid (fluid row + columns) ---- */
+.study-edit-page .row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -8px;
+  margin-right: -8px;
+}
+
+.study-edit-page .row > [class*="col-"] {
+  padding-left: 8px;
+  padding-right: 8px;
+  box-sizing: border-box;
+}
+
+.study-edit-page .col-md-12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+.study-edit-page .col-md-11 {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.study-edit-page .col-md-10 {
+  flex: 0 0 83.333333%;
+  max-width: 83.333333%;
+}
+
+.study-edit-page .col-md-9 {
+  flex: 0 0 75%;
+  max-width: 75%;
+}
+
+.study-edit-page .col-md-2 {
+  flex: 0 0 16.666667%;
+  max-width: 16.666667%;
+}
+
+.study-edit-page .col-md-3 {
+  flex: 0 0 25%;
+  max-width: 25%;
+}
+
+@media (max-width: 991px) {
+  .study-edit-page .col-md-10,
+  .study-edit-page .col-md-9,
+  .study-edit-page .col-md-2,
+  .study-edit-page .col-md-3 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+/* Analytics tab nested grid */
+#study-analytics-app .row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -8px;
+  margin-right: -8px;
+}
+
+#study-analytics-app .row > [class*="col-"] {
+  padding-left: 8px;
+  padding-right: 8px;
+  box-sizing: border-box;
+}
+
+#study-analytics-app .col-sm-6 {
+  flex: 0 0 50%;
+  max-width: 50%;
+}
+
+#study-analytics-app .col-md-3 {
+  flex: 0 0 25%;
+  max-width: 25%;
+}
+
+#study-analytics-app .col-md-12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 991px) {
+  #study-analytics-app .col-md-3 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 767px) {
+  #study-analytics-app .col-sm-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  #study-analytics-app .col-md-3 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+#study-analytics-app .sa-section-title .btn + .btn {
+  margin-left: 6px;
+}
+
+/* ---- Tabs ---- */
+.study-edit-page .nav-tabs {
+  list-style: none;
+  margin: 0 0 -1px;
+  padding: 0;
+  border-bottom: 1px solid #ddd;
+  overflow: hidden;
+}
+
+.study-edit-page .nav-tabs > li {
+  float: left;
+  margin-bottom: -2px;
+}
+
+.study-edit-page .nav-tabs > li > a {
+  display: block;
+  padding: 8px 12px;
+  margin-right: 2px;
+  text-decoration: none;
+  color: #337ab7;
+  border: 1px solid transparent;
+  border-radius: 4px 4px 0 0;
+}
+
+.study-edit-page .nav-tabs > li.active > a,
+.study-edit-page .nav-tabs > li.active > a:focus,
+.study-edit-page .nav-tabs > li.active > a:hover {
+  font-weight: bold;
+  color: #555;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-bottom-color: transparent;
+  cursor: default;
+}
+
+.study-edit-page .study-edit-tab-icon {
+  margin-right: 4px;
+  opacity: 0.85;
+}
+
+/* ---- Badges ---- */
+.study-edit-page .badge {
+  display: inline-block;
+  min-width: 10px;
+  padding: 3px 7px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 10px;
+}
+
+.study-edit-page .badge-light {
+  background-color: #5bc0de;
+}
+
+/* Tab counts from GET …/summary — hidden until a positive count is applied */
+.study-edit-page .study-edit-tab-badge[aria-hidden="true"] {
+  display: none !important;
+}
+
+/* Metadata tab — match other study tabs (white panel + padding) */
+.study-edit-page .study-tab-container--metadata {
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 1.5rem 1.25rem 2rem;
+  box-sizing: border-box;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab {
+  margin: 0;
+  background-color: #fff;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab #app,
+.study-edit-page .study-metadata-editor-embed--tab #body-row,
+.study-edit-page .study-metadata-editor-embed--tab .main-content {
+  background-color: #fff;
+}
+
+.study-edit-page .study-metadata-editor-embed #app {
+  min-height: 480px;
+}
+
+.study-edit-page .study-metadata-editor-embed #sidebar-container {
+  display: none !important;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab > .border-bottom,
+.study-edit-page .study-metadata-editor-embed--tab .border-bottom.py-2 {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab .metadata-form-container .field-type-section {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: none !important;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab .form-section {
+  background: #f6f8fa;
+  color: #1a1a1a;
+}
+
+.study-edit-page .study-metadata-editor-embed--tab .grid-component {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ---- Flash / alerts ---- */
+.study-edit-flash {
+  margin-top: 15px;
+  padding: 12px 40px 12px 14px;
+  border-radius: 4px;
+  position: relative;
+  border: 1px solid #d6e9c6;
+  background: #dff0d8;
+  color: #3c763d;
+}
+
+.study-edit-flash-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  font-size: 20px;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.6;
+}
+
+.study-edit-flash-close:hover {
+  opacity: 1;
+}
+
+.study-edit-flash--error {
+  border-color: #ebccd1;
+  background: #f2dede;
+  color: #a94442;
+}
+
+.study-edit-page > .error {
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  background: #f2dede;
+  border: 1px solid #ebccd1;
+  color: #a94442;
+}
+
+/* ---- Tables (analytics + legacy) ---- */
+.table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  background-color: transparent;
+}
+
+.table th,
+.table td {
+  padding: 8px;
+  border-top: 1px solid #ddd;
+  text-align: left;
+}
+
+.table-condensed th,
+.table-condensed td {
+  padding: 4px 6px;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* ---- Buttons (analytics export links) ---- */
+.btn {
+  display: inline-block;
+  padding: 4px 10px;
+  margin-bottom: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  color: #333;
+  background-color: #fff;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background-color: #e6e6e6;
+  border-color: #adadad;
+}
+
+.btn-xs {
+  padding: 2px 6px;
+  font-size: 11px;
+}
+
+.btn-default {
+  border-color: #ccc;
+}
+
+/* ---- Legacy overview widgets (collapsible boxes / filters) kept until overview drops markup ---- */
+.collapse {
+  display: none;
+}
+
+.collapsible .box-caption .glyphicon {
+  color: #337ab7;
+}
+
+td.active {
+  background: gainsboro;
+}
+
+.box {
+  border: 1px solid gainsboro;
+  margin-right: 5px;
+  line-height: 150%;
+  margin-bottom: 10px;
+  clear: right;
+}
+
+.box-header {
+  font-weight: normal;
+  padding: 5px;
+  font-size: 14px;
+  background: #f1f1f1;
+  background-image: linear-gradient(to top, #ececec, #f9f9f9);
+  border-bottom: 1px solid #dfdfdf;
+  position: relative;
+  cursor: pointer;
+}
+
+.box-body {
+  margin: 5px;
+  padding-bottom: 10px;
+}
+
+.box-close,
+.box-open {
+  color: gray;
+}
+
+.box-header .box-close {
+  display: none;
+}
+
+.iscollapsed .box-open {
+  display: none;
+}
+
+.iscollapsed .box-close {
+  display: block;
+}
+
+.label-tag-error {
+  background: red;
+  color: white;
+}
+
+.label-tag-error a {
+  color: white;
+}
+
+.alert-warning {
+  border: 2px solid #ff0000;
+  color: red;
+}
+
+.warnings {
+  margin-top: 5px;
+}
+
+.red {
+  color: red;
+}
+
+.no-microdata .study-microdata {
+  display: none;
+}
+
+/* ---- Remaining legacy overview/filter/collection styles (from edit_study inline CSS) ---- */
+.filter-box {
+  margin: 5px 20px 5px 5px;
+}
+
+.filter-box li {
+  font-size: 11px;
+}
+
+.filter-box a {
+  text-decoration: none;
+  color: black;
+  display: block;
+  padding: 3px 3px 3px 15px;
+  background: url("images/bullet_green.png") left top no-repeat;
+}
+
+.filter-box a:hover {
+  background: black;
+  color: white;
+}
+
+.filter-field {
+  border: 1px solid gainsboro;
+  border-radius: 5px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.filter-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  padding: 5px;
+  background: gainsboro;
+}
+
+span.active-repo {
+  font-size: smaller;
+  color: gray;
+}
+
+span.link-change {
+  font-size: 10px;
+  padding-left: 5px;
+}
+
+.unlink-study .linked {
+  padding-left: 20px;
+}
+
+.width-80 {
+  width: 80%;
+}
+
+.sh {
+  float: right;
+  display: block;
+}
+
+.box-caption:hover {
+  cursor: pointer;
+  color: maroon;
+}
+
+#terms input {
+  float: left;
+  width: 15px;
+  margin-right: 4px;
+}
+
+#terms label {
+  float: left;
+  width: 80%;
+  font-size: smaller;
+}
+
+#terms {
+  clear: both;
+}
+
+#terms .term {
+  clear: both;
+  overflow: auto;
+  margin-bottom: 5px;
+}
+
+.survey-tag {
+  margin-right: 5px;
+  text-transform: uppercase;
+}
+
+.collapsible .box-caption {
+  line-height: 150%;
+}
+
+#survey .field label {
+  font-weight: bold;
+  display: block;
+}
+
+#survey .field {
+  margin-bottom: 10px;
+}
+
+#survey a {
+  font-size: small;
+}
+
+#survey .actions {
+  margin-right: 20px;
+}
+
+.box-header .sh {
+  position: absolute;
+  right: 3px;
+  top: 5px;
+  background: url("images/blue-remove.png") no-repeat left top;
+  display: block;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.iscollapsed .sh {
+  background: url("images/blue-add.png") no-repeat left top;
+}
+
+.box-body .input-flex {
+  width: 85%;
+}
+
+.info-box {
+  position: fixed;
+  top: 20%;
+  left: 0;
+  width: 100%;
+}
+
+.info-box .error {
+  background: red;
+  margin-left: 200px;
+  margin-right: 200px;
+  color: white;
+  display: none;
+}
+
+.admin-notes-container .input-flex,
+.reviewer-notes-container .input-flex,
+.tags-container .input-flex,
+.survey-other-ids .input-flex {
+  width: 85%;
+}
+
+.remove {
+  cursor: pointer;
+}
+
+.tag {
+  font-size: 11px;
+}
+
+.vscroll {
+  overflow: auto;
+  overflow-x: hidden;
+}
+
+.survey-tabs .count {
+  font-size: smaller;
+}
+
+.grid-table .header {
+  font-weight: bold;
+}
+
+.sub-text {
+  font-size: smaller;
+  color: gray;
+}
+
+.no-microdata-assigned {
+  color: red;
+  border: 1px solid red;
+  padding: 5px;
+  margin-bottom: 10px;
+  background: white;
+}
+
+.microdata-applies-to {
+  font-weight: bold;
+}
+
+.label-repo-text {
+  font-size: small;
+}
+
+.study-attached-collections {
+  max-height: 300px;
+  overflow: auto;
+}
+
+.alias {
+  text-transform: uppercase;
+  font-size: 12px;
+  color: gray;
+}
+
+.featured_survey label {
+  font-weight: normal;
+}
+
+.label-tag {
+  color: black;
+  background: transparent;
+  border: 1px solid gainsboro;
+  margin-right: 2px;
+  font-weight: normal;
+}
+
+.study-title {
+  padding: 0;
+  margin: 0;
+}
+
+/* Status + public catalog link under study title */
+.study-edit-title-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.study-edit-status-chip {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.study-edit-status-chip--published {
+  background: #4caf50;
+  color: #fff;
+  border-color: #43a047;
+}
+
+.study-edit-status-chip--draft {
+  background: #ffc107;
+  color: rgba(0, 0, 0, 0.87);
+  border-color: #ffb300;
+}
+
+.study-edit-type-chip {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.study-edit-public-link {
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: #337ab7;
+}
+
+.study-edit-public-link--with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.study-edit-public-link__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+  color: inherit;
+}
+
+.study-edit-public-link__icon svg {
+  display: block;
+}
+
+.study-edit-public-link:hover {
+  text-decoration: underline;
+}
+
+.edit-page-header {
+  margin-bottom: 15px;
+}

@@ -95,20 +95,24 @@ form{margin:10px;padding:0px;}
 						$resource_type='resource-file';
 					}
 				}
+				$mf_rel = unix_path(trim($file['relative'].'/'.$file['name'], '/'));
+				$mf_tok = base64_encode(urlencode($mf_rel));
+				$mf_q = 't='.rawurlencode($mf_tok);
+				$mf_root = site_url('admin/managefiles/'.$survey_id);
 		?>
         <tr valign="top" class="unknown <?php echo $resource_type;?>-tr">
 	        <?php if ($file['name'] ==$ddi_file_name):?>
     		<td><input type="checkbox" disabled="disabled"/></td>
-            <td><?php echo anchor('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file locked-file '.$resource_type ));?></td>
+            <td><?php echo anchor($mf_root.'/edit?'.$mf_q,$file["name"],array('class'=>'file locked-file '.$resource_type ));?></td>
             <td><?php echo $file['size'];?></td>
             <td><?php echo $file['fileperms'];?></td>
             <td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
             <td>
-							<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+							<a href="<?php echo htmlspecialchars($mf_root.'/edit?'.$mf_q, ENT_QUOTES, 'UTF-8'); ?>">
 								<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
 							</a>
 
-							<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+							<a href="<?php echo htmlspecialchars($mf_root.'/download?'.$mf_q, ENT_QUOTES, 'UTF-8'); ?>">
 								<span class="glyphicon glyphicon-download" aria-hidden="true"></span>
 							</a>
 
@@ -116,21 +120,21 @@ form{margin:10px;padding:0px;}
 
             </td>
             <?php else:?>
-				<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo base64_encode(urlencode($file["relative"].'/'.$file["name"]));?>"/></td>
-				<td><?php echo anchor('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])),$file["name"],array('class'=>'file '.$resource_type ));?></td>
+				<td><input type="checkbox" name="filename[]" class="chk" value="<?php echo htmlspecialchars($mf_tok, ENT_QUOTES, 'UTF-8'); ?>"/></td>
+				<td><?php echo anchor($mf_root.'/edit?'.$mf_q,$file["name"],array('class'=>'file '.$resource_type ));?></td>
 				<td><?php echo $file['size'];?></td>
 				<td><?php echo $file['fileperms'];?></td>
 				<td><?php echo date("m/d/Y: H:i:s",$file['date']);?></td>
 				<td>
-					<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/edit/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+					<a href="<?php echo htmlspecialchars($mf_root.'/edit?'.$mf_q, ENT_QUOTES, 'UTF-8'); ?>">
 						<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
 					</a>
 
-					<a href="<?php echo site_url('admin/managefiles/'.$survey_id.'/download/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+					<a href="<?php echo htmlspecialchars($mf_root.'/download?'.$mf_q, ENT_QUOTES, 'UTF-8'); ?>">
 						<span class="glyphicon glyphicon-download" aria-hidden="true"></span>
 					</a>
 
-					<a class="delete-file" href="<?php echo site_url('admin/managefiles/'.$survey_id.'/delete/'.base64_encode(urlencode($file["relative"].'/'.$file["name"])));?>">
+					<a class="delete-file" href="<?php echo htmlspecialchars($mf_root.'/delete?'.$mf_q, ENT_QUOTES, 'UTF-8'); ?>">
 						<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
 					</a>
 				</td>

@@ -60,9 +60,12 @@ class Codelists extends MY_Controller {
 			'enabled_languages'  => $enabled_languages,
 		];
 
-		$content = $this->load->view('admin/codelists/index', $view_data, true);
-		$this->template->write('content', $content, true);
-		$this->template->write('title', 'Codelists', true);
-		$this->template->render();
+		$page = [
+			'title'           => 'Codelists',
+			'content'         => $this->load->view('admin/codelists/index', $view_data, true),
+			'hide_breadcrumb' => true,
+			'theme_folder'    => 'adminvue',
+		];
+		$this->load->view('layouts/admin_vue', $page);
 	}
 }

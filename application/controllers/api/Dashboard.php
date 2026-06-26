@@ -20,13 +20,6 @@ class Dashboard extends MY_REST_Controller {
     /**
      * Allow session-authenticated admin users through without an API key.
      */
-    public function _auth_override_check()
-    {
-        if ($this->session->userdata('user_id')) {
-            return true;
-        }
-        return parent::_auth_override_check();
-    }
 
     // -------------------------------------------------------------------------
     // GET  api/dashboard/stats

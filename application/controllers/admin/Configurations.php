@@ -20,79 +20,47 @@ class Configurations extends MY_Controller {
 		$this->acl_manager->has_access_or_die('configurations', 'edit');
 	}
 	
-	private function _skip_field($field) {
-		return form_error($field) !== '';
-	}
-	
 	function index()
-	{	
-		$this->form_validation->set_rules('catalog_root', t('catalog_folder'), 'xss_clean|trim|max_length[255]');
-		$this->form_validation->set_rules('ddi_import_folder', t('ddi_import_folder'), 'xss_clean|trim|max_length[255]');		
-		$this->form_validation->set_rules('ddi_import_folder', t('ddi_import_folder'), 'xss_clean|trim|max_length[255]|callback_check_folder_exists');
-		$this->form_validation->set_rules('catalog_root', t('catalog_folder'), 'xss_clean|trim|max_length[255]|callback_check_folder_exists');
-		$this->form_validation->set_rules('website_title', t('website_title'), 'xss_clean|trim|max_length[255]');
-		$this->form_validation->set_rules('language', t('language'), 'xss_clean|trim|max_length[255]');
-		$this->form_validation->set_rules('cache_default_expires', t('cache_expiry'), 'xss_clean|trim|max_length[10]|numeric');
-		$this->form_validation->set_rules('catalog_records_per_page', t('catalog_records_per_page'), 'xss_clean|trim|max_length[10]|numeric');
-			
-		$settings=NULL;
-		if ($this->form_validation->run() === TRUE){
-			$this->update();
-			$settings=$this->Configurations_model->get_config_array();
-		}
-		else
-		{
-			if ($this->input->post("submit")!==false)
-			{			
-				// changed:
-				// Do the same as if all validation returned true, to prevent possibly deleted data
-				// HOWEVER: erroneous fields will NOT be saved
-				$check_if_failed = array(
-					'catalog_root',
-					'ddi_import_folder',
-					'ddi_import_folder',
-					'catalog_root',
-					'website_title',
-					'language',
-					'cache_default_expires',
-					'catalog_records_per_page',
-				);
-				
-				// Check, and unset if failed validation test
-				foreach($check_if_failed as $test) {
-					if ($this->_skip_field($test)) {
-						if (isset($_POST[$test])) {
-							unset($_POST[$test]);
-						}
-					}
-				}
-				$settings=$this->Configurations_model->get_config_array();	
-			}
-			else
-			{
-				$settings=$this->Configurations_model->get_config_array();//array('title','url','html_folder');
-			}	
-		}
+	{
+		$this->load->helper('vite_helper');
+		$this->lang->load('general');
+		$this->lang->load('catalog_search');
 
-		// Language settings for the view: available folders, current mapping, ISO list
-		$this->load->library('translator');
-		$settings['available_folders'] = $this->translator->get_languages_array();
-		$settings['lang_mapping']       = $this->config->item('language_codes');
-		if (!is_array($settings['lang_mapping']))
-		{
-			$settings['lang_mapping'] = array();
-		}
-		$this->config->load('iso_languages');
-		$settings['iso_languages'] = $this->config->item('iso_languages');
-		if (!is_array($settings['iso_languages']))
-		{
-			$settings['iso_languages'] = array();
-		}
+		$catalog_sort_by_options = array(
+			array('value' => '', 'label' => t('sort_default')),
+			array('value' => 'relevance', 'label' => t('Relevance')),
+			array('value' => 'popularity', 'label' => t('Popularity')),
+			array('value' => 'year', 'label' => t('year')),
+			array('value' => 'title', 'label' => t('title')),
+			array('value' => 'country', 'label' => t('country')),
+		);
+		$catalog_sort_order_options = array(
+			array('value' => '', 'label' => t('sort_default')),
+			array('value' => 'desc', 'label' => t('sort_desc')),
+			array('value' => 'asc', 'label' => t('sort_asc')),
+		);
 
-		$content=$this->load->view('site_configurations/index', $settings,true);
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('Site configurations'),true);
-	  	$this->template->render();
+		$view_data = array(
+			'site_url'       => site_url(),
+			'base_url'       => base_url(),
+			'api_base_url'   => site_url('api/admin/configurations/'),
+			'csrf_token'     => $this->security->get_csrf_hash(),
+			'assets_base'    => base_url('frontend/dist/'),
+			'translations'   => $this->lang->language,
+			'ui'             => array(
+				'catalog_sort_by_options'    => $catalog_sort_by_options,
+				'catalog_sort_order_options'   => $catalog_sort_order_options,
+			),
+		);
+
+		$page = array(
+			'title'             => t('site_configurations'),
+			'content'           => $this->load->view('admin/site_configurations/index', $view_data, true),
+			'hide_breadcrumb'   => true,
+			'theme_folder'      => 'adminvue',
+		);
+
+		$this->load->view('layouts/admin_vue', $page);
 	}
 
 	/**
@@ -257,76 +225,20 @@ class Configurations extends MY_Controller {
 
 
 	/**
-	 * 
-	 * Test email configurations form
-	 * 
+	 * Legacy URL — redirect into Vue site configurations (test email section).
 	 */
 	function test_email()
 	{
-		$this->config->load('email');
-
-		$email_config=array(
-			'smtp_host'=>$this->config->item('smtp_host'),
-			'smtp_auth'=>$this->config->item('smtp_auth'),
-			'smtp_crypto'=>$this->config->item('smtp_crypto'),
-			'smtp_user'=>$this->config->item('smtp_user'),
-			'mail_from'=>$this->config->item('smtp_user'),
-			'smtp_pass'=>'',
-			'smtp_port'=>$this->config->item('smtp_port'),
-			'useragent'=>$this->config->item('useragent')
+		$target = site_url('admin/configurations').'#/test_email';
+		$this->output->set_content_type('text/html', 'UTF-8');
+		$this->output->set_output(
+			'<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+			.'<title>'.htmlspecialchars(t('test_email_configurations'), ENT_QUOTES, 'UTF-8').'</title></head><body>'
+			.'<script>window.location.replace('.json_encode($target).');</script>'
+			.'<p><a href="'.htmlspecialchars($target, ENT_QUOTES, 'UTF-8').'">'
+			.htmlspecialchars(t('site_configurations'), ENT_QUOTES, 'UTF-8').' — '.htmlspecialchars(t('test_email_configurations'), ENT_QUOTES, 'UTF-8')
+			.'</a></p></body></html>'
 		);
-
-		$content=$this->load->view('site_configurations/test_email', $email_config,true);
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('Site configurations'),true);
-	  	$this->template->render();	
-	}
-
-	/**
-	 * 
-	 * Send test email
-	 * 
-	 * @input = $_POST
-	 * 
-	 */
-	function send_test_email()
-	{	
-		$this->config->load('email');
-		$this->load->library('email');		
-
-		$config = Array(
-			'protocol'  => 'smtp',
-			'useragent' =>$this->input->post('useragent'),
-			'smtp_host' => $this->input->post('smtp_host'),
-			'smtp_port' => $this->input->post('smtp_port'),
-			'smtp_user' => $this->input->post('smtp_user'),
-			'smtp_pass' => $this->input->post('smtp_pass'),
-			'mailtype'  => 'html',
-			'smtp_debug'  => 2,
-			'smtp_auth' =>$this->input->post('smtp_auth'),
-			'smtp_crypto' =>$this->input->post('smtp_crypto'),
-		);
-
-		//password
-		if($config['smtp_pass']==''){
-			//use password from the config file
-			$config['smtp_pass']=$this->config->item("smtp_pass");
-		}
-
-		// Initialize email with test config
-		$this->email->initialize($config);
-		
-		// Override FROM if provided
-		$email_sender = $this->input->post("mail_from");
-		if (!empty($email_sender)) {
-			$this->email->from($email_sender);
-		}
-		
-		$this->email->to($this->input->post('mail_to'));		
-		$this->email->subject('NADA test email');
-		$this->email->message('NADA test email message body');
-		$this->email->send();
-		echo $this->email->print_debugger();
 	}
 	
 }

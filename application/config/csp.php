@@ -102,7 +102,7 @@ $config['csp_policy'] = array(
         "https://data.crosscite.org"
     ),
     
-    // Frame embedding control
+    // Frame embedding control (relaxed per-URI for chart iframe embed — see csp_embed_* below)
     'frame-ancestors' => "'self'",
     
     // Plugin sources (blocked for security)
@@ -176,6 +176,22 @@ $config['csp_exclude_paths'] = array(
     // 'api/.*',           // Exclude API endpoints
     // 'auth/.*',          // Exclude auth pages
     // 'admin/legacy/.*'   // Exclude legacy admin pages
+);
+
+/*
+|--------------------------------------------------------------------------
+| CSP overrides for iframe embed routes (Embed controller)
+|--------------------------------------------------------------------------
+| URI patterns match application/controllers/Embed.php routes (uri_string, no leading slash).
+| Merged into base policy so only listed directives change — keep the rest of CSP intact.
+|
+| frame-ancestors * allows any parent page to embed; restrict to specific origins in production if needed.
+*/
+$config['csp_embed_uri_patterns'] = array(
+    'embed/catalog/[0-9]+/chart',
+);
+$config['csp_embed_policy_override'] = array(
+    'frame-ancestors' => '*',
 );
 
 /*

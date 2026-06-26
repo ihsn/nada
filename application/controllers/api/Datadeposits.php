@@ -15,14 +15,6 @@ class Datadeposits extends MY_REST_Controller
 		$this->is_admin_or_die();
 	}
 
-	function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
-		parent::_auth_override_check();
-	}
-
 	/** 
 	 * 
 	 * List all projects or return a single project if @pid is provided

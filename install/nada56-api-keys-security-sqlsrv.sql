@@ -17,26 +17,13 @@ ALTER TABLE api_keys ADD revoked_at INT NULL;
 ALTER TABLE api_keys ADD created_by INT NULL;
 
 -- Create indexes for performance
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_key_prefix' AND object_id = OBJECT_ID('api_keys'))
-BEGIN
-    CREATE NONCLUSTERED INDEX idx_key_prefix ON api_keys(key_prefix);
-END;
+-- Note: These are NON-UNIQUE indexes to allow NULL values for legacy keys
+-- and to support multiple keys with same expiration times
+CREATE NONCLUSTERED INDEX IX_api_keys_key_prefix ON api_keys(key_prefix);
+CREATE NONCLUSTERED INDEX IX_api_keys_key_hash ON api_keys(key_hash);
+CREATE NONCLUSTERED INDEX IX_api_keys_expires_at ON api_keys(expires_at);
+CREATE NONCLUSTERED INDEX IX_api_keys_user_revoked ON api_keys(user_id, revoked_at);
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_key_hash' AND object_id = OBJECT_ID('api_keys'))
-BEGIN
-    CREATE NONCLUSTERED INDEX idx_key_hash ON api_keys(key_hash);
-END;
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_expires_at' AND object_id = OBJECT_ID('api_keys'))
-BEGIN
-    CREATE NONCLUSTERED INDEX idx_expires_at ON api_keys(expires_at);
-END;
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_user_revoked' AND object_id = OBJECT_ID('api_keys'))
-BEGIN
-    CREATE NONCLUSTERED INDEX idx_user_revoked ON api_keys(user_id, revoked_at);
-END;
-
--- Note: Legacy keys (where key_hash IS NULL) will not work with the new system
--- Users will need to generate new keys after this migration
+-- Note: Legacy keys (where key_hash IS NULL) will continue to work
+-- They will be automatically migrated to secure format on first use
 

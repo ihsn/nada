@@ -36,15 +36,6 @@ class OpenSearch extends MY_REST_Controller
         $this->manager = new OpenSearch_manager();
     }
 
-    // Allow session-based auth in addition to API key
-    function _auth_override_check()
-    {
-        if ($this->session->userdata('user_id')) {
-            return true;
-        }
-        return parent::_auth_override_check();
-    }
-
     // =========================================================================
     // Connectivity
     // =========================================================================

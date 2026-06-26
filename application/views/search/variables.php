@@ -60,9 +60,9 @@
     $compare_items=explode(",",(string)$this->input->cookie('variable-compare', TRUE));
 ?>
 
-<input type="hidden" name="sort_by" id="sort_by" value="<?php echo $sort_by;?>"/>
-<input type="hidden" name="sort_order" id="sort_order" value="<?php echo $sort_order;?>"/>
-<input type="hidden" name="ps" id="ps" value="<?php echo $search_options->ps;?>"/>
+<input type="hidden" name="sort_by" id="sort_by" value="<?php echo html_escape((string) $sort_by);?>"/>
+<input type="hidden" name="sort_order" id="sort_order" value="<?php echo html_escape((string) $sort_order);?>"/>
+<input type="hidden" name="ps" id="ps" value="<?php echo html_escape((string) $search_options->ps);?>"/>
 <input type="hidden" name="repo" id="repo" value="<?php echo html_escape($active_repo_id);?>"/>
     
 <div id="variables">

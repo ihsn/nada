@@ -257,13 +257,14 @@ class Bulk_data_access
 		
 		foreach($search_options as $key=>$value)
 		{
-			if ($key=='keywords' && trim($value)!="" )
+			if ($key=='keywords' && $value !== null && trim((string) $value) !== '')
 			{
+				$kw = (string) $value;
 				$where[]=sprintf(" (surveys.title like %s OR surveys.idno=%s OR surveys.nation like %s or survey_repos.repositoryid like %s)",
-						$this->ci->db->escape('%'.$value.'%'),
-						$this->ci->db->escape($value),
-						$this->ci->db->escape('%'.$value.'%'),
-						$this->ci->db->escape('%'.$value.'%')
+						$this->ci->db->escape('%'.$kw.'%'),
+						$this->ci->db->escape($kw),
+						$this->ci->db->escape('%'.$kw.'%'),
+						$this->ci->db->escape('%'.$kw.'%')
 						);
 			}
 			else if ($key=='selected_only' && is_array($value))//attached studies only

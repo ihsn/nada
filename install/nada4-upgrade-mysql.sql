@@ -214,16 +214,7 @@ ADD COLUMN `ihsn_id` VARCHAR(50) NULL DEFAULT NULL;
 ALTER TABLE `citations` COLLATE = utf8_general_ci , 
 ADD COLUMN `country` VARCHAR(100) NULL DEFAULT NULL  ;
 
-CREATE  TABLE IF NOT EXISTS `permission_urls` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT ,
-  `url` VARCHAR(255) NULL DEFAULT NULL ,
-  `permission_id` INT(11) NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `url_UNIQUE` (`url` ASC) )
-ENGINE = InnoDB
-AUTO_INCREMENT = 150
-DEFAULT CHARACTER SET = utf8
-COLLATE = utf8_general_ci;
+DROP TABLE IF EXISTS `permission_urls`;
 
 CREATE  TABLE IF NOT EXISTS `survey_aliases` (
   `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
@@ -536,21 +527,6 @@ INSERT INTO `permissions` VALUES (1,'Upload DDI file','this is a test descriptio
 /*!40000 ALTER TABLE `permissions` ENABLE KEYS */;
 UNLOCK TABLES;
 
-
-
---
--- Dumping data for table `permission_urls`
---
-
-truncate table permission_urls;
-
-LOCK TABLES `permission_urls` WRITE;
-/*!40000 ALTER TABLE `permission_urls` DISABLE KEYS */;
-INSERT INTO `permission_urls` VALUES (1,'admin/catalog/upload',1),(4,'admin/menu',4),(5,'admin/menu/add',5),(6,'admin/menu/edit/*',6),(7,'admin/menu/add_link',7),(8,'admin/menu/menu_sort',8),(9,'admin/vocabularies',9),(10,'admin/terms/*',10),(12,'admin/users/*',12),(14,'ddibrowser',14),(16,'page/*',16),(18,'citations',18),(22,'backup*',22),(23,'access_licensed*',23),(25,'switch_language*',25),(27,'translate/*',27),(34,'admin/catalog/do_upload',1),(48,'admin/datadeposit*',40),(51,'admin/catalog/delete',42),(52,'admin/catalog/export-ddi',43),(53,'admin/catalog/import-rdf',44),(54,'admin/repositories/*',45),(55,'admin/repositories',45),(88,'admin/catalog/replace_ddi/*',46),(100,'admin/catalog/edit/*',49),(101,'admin/catalog/update/*',49),(102,'admin/catalog/update',49),(103,'admin/managefiles/*',49),(104,'admin/resources/*',49),(112,'admin/catalog',2),(113,'admin/catalog/survey/*',2),(114,'admin/catalog/search',2),(116,'access_public/*',30),(119,'admin/catalog/copy_ddi',62),(124,'admin/repositories/select',61),(125,'admin/repositories/active/*',61),(126,'admin/catalog/publish',41),(127,'admin/catalog/publish/*',41),(131,'admin/catalog/copy_study',63),(132,'admin/catalog/do_copy_study/*',63),(133,'admin/citations',64),(134,'admin/citations/edit',65),(135,'admin/citations/edit/*',65),(136,'admin/citations/delete/*',66),(137,'admin/citations/import',67),(138,'admin/citations/export',68),(141,'admin',3),(142,'admin/users/exit_impersonate',3),(143,'admin/licensed_requests',69),(145,'admin/licensed_requests/*',70),(147,'admin/users',11),(148,'admin/reports/*',71),(149,'admin/reports',71);
-/*!40000 ALTER TABLE `permission_urls` ENABLE KEYS */;
-UNLOCK TABLES;
-
-
 --
 -- Dumping data for table `repo_perms_urls`
 --
@@ -561,15 +537,12 @@ LOCK TABLES `repo_perms_urls` WRITE;
 /*!40000 ALTER TABLE `repo_perms_urls` DISABLE KEYS */;
 INSERT INTO `repo_perms_urls` VALUES 
 (5,2,'admin/catalog/copy_ddi'),
-(6,2,'admin/catalog/copy_study'),
 (7,2,'admin/catalog/delete'),
-(8,2,'admin/catalog/do_copy_study/*'),
 (9,2,'admin/catalog/do_upload'),
 (10,2,'admin/catalog/edit/*'),
 (11,2,'admin/catalog/export-ddi'),
 (12,2,'admin/catalog/import-rdf'),
 (15,2,'admin/catalog/repladce_ddi/*'),
-(16,2,'admin/catalog/search'),
 (17,2,'admin/catalog/survey/*'),
 (18,2,'admin/catalog/update'),
 (19,2,'admin/catalog/update/*'),
@@ -582,7 +555,7 @@ INSERT INTO `repo_perms_urls` VALUES
 (67,2,'admin/pdf_generator/*'),
 (68,1,'admin/pdf_generator/*'),
 (69,1,'admin/catalog/add_study'),
-(70,1,'admin/catalog/batch_import'),
+(70,1,'admin/catalog/batch-import'),
 (71,1,'admin/catalog/refresh/*');
 /*!40000 ALTER TABLE `repo_perms_urls` ENABLE KEYS */;
 UNLOCK TABLES;

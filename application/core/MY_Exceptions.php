@@ -36,7 +36,7 @@ class MY_Exceptions extends CI_Exceptions {
     else
     {
       $heading = '404 Page Not Found';
-      $message = 'The page you requested was not found.xxxxxx';
+      $message = 'The page you requested was not found.';
     }
 
     if ($log_error)

@@ -11,16 +11,7 @@ class Analytics extends MY_REST_Controller
 		$this->load->model('Analytics_model');
 		
 	}
-	
-	function _auth_override_check()
-	{
-		//session user id
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
 
-		parent::_auth_override_check();
-	}
 
 	/**
 	 * Get raw pageview events with pagination and filtering
@@ -1095,9 +1086,16 @@ class Analytics extends MY_REST_Controller
 	function pageview_post()
 	{
 		try {
+			// Validate CSRF token from the JSON body.
+			// The api/* route is excluded from global CSRF middleware, so we check manually.
 			$options = $this->raw_json_input();
-			$study_id = $options['study_id'];
-			
+			$csrf_token_name = $this->security->get_csrf_token_name();
+			$csrf_submitted = isset($options[$csrf_token_name]) ? $options[$csrf_token_name] : null;
+			if (empty($csrf_submitted) || $csrf_submitted !== $this->security->get_csrf_hash()) {
+				$this->set_response(array('status' => false, 'error' => 'Invalid or missing CSRF token'), REST_Controller::HTTP_FORBIDDEN);
+				return;
+			}
+
 			if (empty($options['study_id'])) {
 				$output = array(
 					'status' => false,
@@ -1106,7 +1104,8 @@ class Analytics extends MY_REST_Controller
 				$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 				return;
 			}
-			
+
+			$study_id = $this->resolve_analytics_study_id($options['study_id']);
 			$session_id = $options['session_id'] ?? null;
 			
 			$result = $this->analytics_tracker->track_pageview($study_id, $session_id, $options);
@@ -1170,6 +1169,8 @@ class Analytics extends MY_REST_Controller
 				$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 				return;
 			}
+
+			$study_id = $this->resolve_analytics_study_id($study_id);
 			
 			$file_type = $this->input->post('file_type');
 			$user_agent = $this->input->post('user_agent');
@@ -1207,6 +1208,29 @@ class Analytics extends MY_REST_Controller
 			);
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * Resolve a client study identifier to numeric surveys.id for analytics events.
+	 *
+	 * Accepts numeric sid (from study page URLs / data-id) or survey idno strings.
+	 *
+	 * @param mixed $study_id
+	 * @return int
+	 * @throws Exception
+	 */
+	private function resolve_analytics_study_id($study_id)
+	{
+		$s = is_scalar($study_id) ? trim((string) $study_id) : '';
+		if ($s === '') {
+			throw new Exception('study_id is required');
+		}
+
+		if (ctype_digit($s) && (int) $s > 0) {
+			return (int) $s;
+		}
+
+		return $this->get_sid_from_idno($s);
 	}
 	
 }

@@ -8,7 +8,8 @@ class Licensed_requests extends MY_Controller {
        	
         $this->load->helper(array('url'));		
 		$this->load->library( array('pagination') );		
-        $this->load->model('Licensed_model');       	
+        $this->load->model('Licensed_model');
+		$this->load->model('Repository_model');
        	$this->template->set_template('admin');		
 		$this->lang->load('general');
 		$this->lang->load('licensed_request');
@@ -16,53 +17,79 @@ class Licensed_requests extends MY_Controller {
 
 		//$this->output->enable_profiler(TRUE);
 
-		//set active repo from querystring param
+		// Optional ?collection= filter only. Default context is central. No cookie or sticky bar.
 		if ($this->input->get("collection"))
 		{
-			$repo_uid=$this->repository_model->get_repositoryid_uid($this->input->get("collection"));
-			$repo_obj=$this->Repository_model->select_single($repo_uid); 
+			$repo_uid=$this->Repository_model->get_repositoryid_uid($this->input->get("collection"));
+			$repo_obj=$this->Repository_model->select_single($repo_uid);
 		}
 		else
 		{
-			//set active repo
-			$repo_obj=$this->Repository_model->select_single($this->Repository_model->user_active_repo());			
+			$repo_obj=null;
 		}
-		
-		if($repo_obj){
+
+		if ($repo_obj)
+		{
 			$repo_obj=(object)$repo_obj;
 		}
 
 		if (!$repo_obj)
 		{
-			//set active repo to CENTRAL
 			$data=$this->Repository_model->get_central_catalog_array();
 			$this->active_repo=(object)$data;
 		}
 		else
 		{
-			//set active repo
 			$this->active_repo=$repo_obj;
-			$data=$this->Repository_model->get_repository_by_repositoryid($repo_obj->repositoryid);
 		}
-		
-		//set active repo
-		$this->Repository_model->set_active_repo($this->active_repo->id);
-		
-		//set collection sticky bar options
-		$collection=$this->load->view('repositories/repo_sticky_bar',$data,TRUE);
-		$this->template->add_variable($name='collection',$value=$collection);
     }
     
     public function index()
-    {    	
-		$this->acl_manager->has_access_or_die('licensed_request', 'view',null,$this->active_repo->repositoryid);
-		
-    	$content=NULL;
-		$result['rows']=$this->_search();
-		$content=$this->load->view('access_licensed/index', $result,true);
-		$this->template->write('title', t('title_licensed_request'),true);				
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
+    {
+		$this->acl_manager->require_licensed_requests_access();
+		$this->_render_licensed_requests_vue_shell(t('licensed_requests'));
+	}
+
+
+	/**
+	 * Shared config for the licensed-requests Vue app.
+	 *
+	 * @return array
+	 */
+	private function _licensed_requests_vue_view_data()
+	{
+		$this->load->helper('vite_helper');
+		$pu    = parse_url(site_url('admin/licensed_requests'));
+		$rpath = isset($pu['path']) ? $pu['path'] : '/admin/licensed_requests';
+
+		return array(
+			'api_base_url'     => site_url('api/admin/licensed_requests/'),
+			'site_url'         => site_url(),
+			'base_url'         => base_url(),
+			'csrf_token'       => $this->security->get_csrf_hash(),
+			'csrf_token_name'  => $this->security->get_csrf_token_name(),
+			'assets_base'      => base_url('frontend/dist/'),
+			'translations'     => $this->lang->language,
+			'router_path_base' => $rpath,
+		);
+	}
+
+
+	/**
+	 * Render Vue 3 shell for licensed survey requests (list).
+	 *
+	 * @return void
+	 */
+	private function _render_licensed_requests_vue_shell($html_title = null)
+	{
+		$view_data = $this->_licensed_requests_vue_view_data();
+		$page      = array(
+			'title'           => $html_title !== null ? $html_title : t('title_licensed_request'),
+			'content'         => $this->load->view('admin/licensed_requests/index', $view_data, true),
+			'hide_breadcrumb' => true,
+			'theme_folder'    => 'adminvue',
+		);
+		$this->load->view('layouts/admin_vue', $page);
 	}
 	
 	function export()
@@ -71,43 +98,61 @@ class Licensed_requests extends MY_Controller {
 	}
 	
 	function edit($id)
-	{			
-		//$this->acl->user_has_lic_request_access($id);
-		$this->acl_manager->has_access_or_die('licensed_request', 'edit',null,$this->active_repo->repositoryid);
-		
-		$this->template->add_css('javascript/jquery/ui/themes/base/jquery-ui.css');
-		$this->template->add_js('javascript/jquery/ui/jquery.ui.js');		
-		
-		//get licensed request information		
-		$result=$this->Licensed_model->get_request_by_id($id);
-		
-		$this->load->model('Catalog_notes_model');
-		
-		$result['files']=array();
-		$result['survey_list']=array();
-
-		foreach($result['surveys'] as $survey)
-		{
-			$files=$this->Licensed_model->get_request_files($survey['id'], $requestid=$id);
-			if ($files)
-			{
-				$result['files'][$survey['id']]=$files;
-			}
+	{
+		if (! is_numeric($id)) {
+			show_404();
 		}
-			
-		//history
-		$result['comments_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='comment');
-		$result['email_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='email');
-		$result['forward_history']=$this->Licensed_model->get_request_history($request_id=$id,$logtype='forward');
-				
-		//monitoring information
-		$result['download_log']=$this->monitor($id,TRUE);
-		
-    	//show listing
-		$content=$this->load->view('access_licensed/edit', $result,true);
-		$this->template->write('title', t('title_licensed_request'),true);				
-		$this->template->write('content', $content,true);
-	  	$this->template->render();		
+
+		if (! $this->_admin_user_can_licensed_request((int) $id, 'edit')) {
+			show_error(t('ACCESS_DENIED'), 403);
+		}
+
+		$this->_render_licensed_requests_vue_shell();
+	}
+
+
+	/**
+	 * Whether the current admin may perform $privilege (view|edit) on this request (scope + per-repo ACL).
+	 *
+	 * @param int    $request_id
+	 * @param string $privilege  view|edit
+	 * @return bool
+	 */
+	private function _admin_user_can_licensed_request($request_id, $privilege)
+	{
+		$user = $this->ion_auth->current_user();
+		if (! $user) {
+			return false;
+		}
+
+		if ($this->acl_manager->user_is_admin($user)) {
+			return true;
+		}
+
+		$scope = $this->acl_manager->get_licensed_request_repository_scope($user);
+		if ($scope === false) {
+			return false;
+		}
+
+		if (! $this->Licensed_model->request_matches_repository_scope($request_id, $scope)) {
+			return false;
+		}
+
+		try {
+			$this->acl_manager->has_access('licensed_request', $privilege, $user);
+
+			return true;
+		}
+		catch (Exception $e) {
+			// continue — try per-repo Zend roles + collection ACL in one pass
+		}
+
+		return $this->acl_manager->has_access_on_any_repository(
+			'licensed_request',
+			$privilege,
+			$user,
+			$this->Licensed_model->get_request_repository_ids($request_id)
+		);
 	}
 	
 	function _status_check($str)
@@ -182,7 +227,7 @@ class Licensed_requests extends MY_Controller {
 	function update($requestid)
 	{			
 		//$this->acl->user_has_lic_request_access($requestid);
-		$this->acl_manager->has_access_or_die('licensed_request', 'view',null,$this->active_repo->repositoryid);
+		$this->acl_manager->repository_permission_or_die($this->active_repo->repositoryid, $this->acl_manager->licensed_request_repositories_acl_key('view'));
 
 		$this->form_validation->set_rules('status', 'Status', 'trim|required|xss_clean|callback__status_check');
 		$this->form_validation->set_rules('comments', 'Comments', 'trim|xss_clean');		
@@ -319,7 +364,7 @@ class Licensed_requests extends MY_Controller {
 	function monitor($requestid,$output=FALSE)
 	{	
 		//$this->acl->user_has_lic_request_access($requestid);
-		$this->acl_manager->has_access_or_die('licensed_request', 'edit',null,$this->active_repo->repositoryid);
+		$this->acl_manager->repository_permission_or_die($this->active_repo->repositoryid, $this->acl_manager->licensed_request_repositories_acl_key('edit'));
 
 		//get request summary statistics
 		$data['summary_rows']=$this->Licensed_model->get_request_summary($requestid);
@@ -351,7 +396,7 @@ class Licensed_requests extends MY_Controller {
 		}
 		
 		//$this->acl->user_has_lic_request_access($requestid);
-		$this->acl_manager->has_access_or_die('licensed_request', 'edit',null,$this->active_repo->repositoryid);
+		$this->acl_manager->repository_permission_or_die($this->active_repo->repositoryid, $this->acl_manager->licensed_request_repositories_acl_key('edit'));
 		
 		$this->form_validation->set_rules('to', t('to'), 'trim|required|xss_clean');
 		$this->form_validation->set_rules('cc', t('cc'), 'trim|xss_clean');
@@ -417,7 +462,7 @@ class Licensed_requests extends MY_Controller {
 		}
 		
 		//$this->acl->user_has_lic_request_access($requestid);
-		$this->acl_manager->has_access_or_die('licensed_request', 'edit',null,$this->active_repo->repositoryid);
+		$this->acl_manager->repository_permission_or_die($this->active_repo->repositoryid, $this->acl_manager->licensed_request_repositories_acl_key('edit'));
 		
 		//get request from db
 		$request_data=$this->Licensed_model->get_request_by_id($requestid);

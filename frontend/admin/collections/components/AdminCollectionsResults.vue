@@ -4,18 +4,23 @@
     :items="collections"
     :loading="loading"
     items-per-page="25"
-    class="elevation-1 mt-2"
+    class="elevation-0"
     density="compact"
     @click:row="onRowClick"
   >
     <template #item.thumbnail="{ item }">
       <img
-        v-if="item.thumbnail"
-        :src="baseUrl + item.thumbnail"
+        :src="item.thumbnail ? baseUrl + item.thumbnail : defaultThumb"
         class="thumbnail-img"
         alt=""
+        @error="e => e.target.src = defaultThumb"
       />
-      <span v-else class="text-medium-emphasis">—</span>
+    </template>
+
+    <template #item.repositoryid="{ item }">
+      <v-chip size="small" variant="tonal" color="primary" class="font-weight-medium">
+        {{ item.repositoryid }}
+      </v-chip>
     </template>
 
     <template #item.weight="{ item }">
@@ -57,8 +62,9 @@
           <v-list-item
             prepend-icon="mdi-cog-outline"
             title="Manage studies"
-            :href="siteUrl + '/admin/repositories/active/' + item.id"
+            :href="siteUrl + '/admin/collections/active/' + item.id"
           />
+          <v-list-item prepend-icon="mdi-account-key" title="Permissions" @click="goPermissions(item)" />
           <v-divider />
           <v-list-item prepend-icon="mdi-delete" title="Delete" base-color="error" @click="$emit('delete', item)" />
         </v-list>
@@ -72,11 +78,19 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 
 defineOptions({ name: 'AdminCollectionsResults' });
 
+const router = useRouter();
 const { baseUrl, siteUrl } = useAppConfig();
+const defaultThumb = computed(() => `${baseUrl.value}files/thumbnails/thumbnail-default.png`);
+
+function goPermissions(item) {
+  router.push({ name: 'collection-permissions', params: { repositoryId: String(item.id) } });
+}
 
 defineProps({
   collections: { type: Array, default: () => [] },

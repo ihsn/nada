@@ -376,10 +376,21 @@ paths:
         tags:
           - Data Import
         summary: Upload CSV file
-        description: Upload CSV or ZIP file and create/update table definition. This is the first step in the import workflow, it only uploads the file and prepares the table structure. Use the `/import` endpoint to actually process and import the data into the database. For ZIP files, the CSV file must match the ZIP filename (e.g., `data.zip` must contain `data.csv`).
+        description: |
+          Upload CSV or ZIP file and create/update table definition. This is the first step in the import workflow; use `/import` to process data into the database.
+
+          **Direct upload:** multipart/form-data with field `file` (small files).
+
+          **Large / resumable upload:**
+          1. `POST /api/uploads/init` with filename, total_size, total_chunks, chunk_size
+          2. `POST /api/uploads/chunk/{upload_id}` for each chunk (resume via `GET /api/uploads/status/{upload_id}`)
+          3. `POST /tables/upload/{dbId}/{tableId}` with JSON body `{ "upload_id": "<uuid>" }`
+
+          Provide either `file` or `upload_id`, not both. For ZIP files, the CSV must match the ZIP filename (e.g. `data.zip` → `data.csv`).
         operationId: uploadCsv
         consumes:
           - multipart/form-data
+          - application/json
         produces:
           - application/json
         parameters:
@@ -398,8 +409,13 @@ paths:
           - in: "formData"
             name: "file"
             type: file
-            description: "CSV or ZIP file containing CSV. For ZIP files: CSV filename must match ZIP filename (e.g., data.zip → data.csv). Supported CSV extensions: .csv, .txt, .CSV, .TXT"
-            required: true
+            description: "CSV or ZIP file (multipart only). Omit when using upload_id."
+            required: false
+          - in: "formData"
+            name: "upload_id"
+            type: string
+            description: "Completed resumable upload id from /api/uploads (alternative to file)."
+            required: false
           - in: "formData"
             name: "title"
             type: string
@@ -410,6 +426,20 @@ paths:
             type: string
             description: "Table description"
             required: false
+          - in: "body"
+            name: "body"
+            description: "JSON alternative to form fields (upload_id, title, description)"
+            required: false
+            schema:
+              type: object
+              properties:
+                upload_id:
+                  type: string
+                  description: "Completed resumable upload id from POST /api/uploads/*"
+                title:
+                  type: string
+                description:
+                  type: string
         responses:
           '200':
             description: successful operation
@@ -1562,6 +1592,10 @@ definitions:
       file_path:
         type: string
         description: "Partial file path for import"
+      upload_source:
+        type: string
+        enum: ["file", "upload_id"]
+        description: "Whether the file came from direct multipart upload or resumable upload_id"
       action:
         type: string
         enum: ["created", "updated"]

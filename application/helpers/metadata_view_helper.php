@@ -192,6 +192,116 @@ if ( ! function_exists('render_columns_array'))
 
 
 
+if ( ! function_exists('nada_category_is_missing_flag'))
+{
+	/**
+	 * Truthy missing flag — aligned with field_var_category.php (not '', not '0', not 0).
+	 */
+	function nada_category_is_missing_flag($item)
+	{
+		$item = (array) $item;
+		$ismissing_ = isset($item['is_missing']) ? $item['is_missing'] : '';
+		return ($ismissing_ !== '' && $ismissing_ !== '0' && $ismissing_ !== 0);
+	}
+}
+
+
+if ( ! function_exists('nada_var_sumstat_invd_non_wgtd'))
+{
+	/**
+	 * First non-weighted var_sumstat row with type invd; value must be numeric and > 0.
+	 *
+	 * @param  array|mixed  $var_sumstat
+	 * @return int|float|null
+	 */
+	function nada_var_sumstat_invd_non_wgtd($var_sumstat)
+	{
+		if (!is_array($var_sumstat)) {
+			return null;
+		}
+		foreach ($var_sumstat as $row) {
+			$row = (array) $row;
+			$type = isset($row['type']) ? $row['type'] : '';
+			if ($type !== 'invd') {
+				continue;
+			}
+			$wgtd = isset($row['wgtd']) ? $row['wgtd'] : '';
+			if ($wgtd === 'wgtd') {
+				continue;
+			}
+			if (!array_key_exists('value', $row) || $row['value'] === '' || $row['value'] === null) {
+				continue;
+			}
+			if (!is_numeric($row['value'])) {
+				continue;
+			}
+			$v = $row['value'] + 0;
+			if ($v > 0) {
+				return $v;
+			}
+		}
+		return null;
+	}
+}
+
+
+if ( ! function_exists('merge_var_catgry_invd_sysmiss_display'))
+{
+	/**
+	 * Append a synthetic Sysmiss frequency from var_sumstat.invd only when no category already
+	 * carries a missing flag and no literal Sysmiss row exists (avoids duplicate Sysmiss).
+	 *
+	 * @param  array  $var_catgry
+	 * @param  array  $var_sumstat
+	 * @return array
+	 */
+	function merge_var_catgry_invd_sysmiss_display(array $var_catgry, $var_sumstat = array())
+	{
+		$out = array();
+		foreach ($var_catgry as $row) {
+			$out[] = is_array($row) ? $row : (array) $row;
+		}
+
+		foreach ($out as $item) {
+			if (nada_category_is_missing_flag($item)) {
+				return $out;
+			}
+		}
+
+		foreach ($out as $item) {
+			$item = (array) $item;
+			foreach (array('value', 'labl', 'label') as $k) {
+				if (!isset($item[$k]) || !is_string($item[$k])) {
+					continue;
+				}
+				if (strcasecmp(trim($item[$k]), 'Sysmiss') === 0) {
+					return $out;
+				}
+			}
+		}
+
+		$invd = nada_var_sumstat_invd_non_wgtd($var_sumstat);
+		if ($invd === null) {
+			return $out;
+		}
+
+		$out[] = array(
+			'value'      => 'Sysmiss',
+			'labl'       => null,
+			'is_missing' => '1',
+			'stats'      => array(
+				array(
+					'type'  => 'freq',
+					'value' => $invd,
+				),
+			),
+		);
+
+		return $out;
+	}
+}
+
+
 if ( ! function_exists('render_var_category'))
 {
     function render_var_category($name, $data)

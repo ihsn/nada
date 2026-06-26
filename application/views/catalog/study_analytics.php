@@ -1,6 +1,7 @@
 <?php
 /**
- * Study-level Analytics Tab
+ * @deprecated Replaced by edit_study_analytics.php and the Vue 3 bundle admin_catalog_study_analytics.
+ * Study-level Analytics Tab (legacy Vue 2 inline app)
  *
  * Variables in scope (extracted from $survey_row by CI):
  *   $survey_id      - numeric survey ID (also the analytics study_id)
@@ -104,8 +105,8 @@ if (typeof axios === 'undefined') {
                 <div class="sa-section-title" style="display:flex; align-items:center; justify-content:space-between;">
                     <span>Monthly Breakdown</span>
                     <span style="font-weight:400; font-size:0.85rem;">
-                        <a href="<?php echo site_url('api/analytics/monthly/studies/export?study_id=' . $_sid . '&format=csv'); ?>" class="btn btn-default btn-xs" title="Export as CSV"><i class="fa fa-download"></i> CSV</a>
-                        <a href="<?php echo site_url('api/analytics/monthly/studies/export?study_id=' . $_sid . '&format=json'); ?>" class="btn btn-default btn-xs" title="Export as JSON"><i class="fa fa-download"></i> JSON</a>
+                        <a href="<?php echo site_url('api/analytics/monthly/studies/export?study_id=' . $_sid . '&format=csv'); ?>" class="btn btn-default btn-xs" title="Export as CSV">CSV</a>
+                        <a href="<?php echo site_url('api/analytics/monthly/studies/export?study_id=' . $_sid . '&format=json'); ?>" class="btn btn-default btn-xs" title="Export as JSON">JSON</a>
                     </span>
                 </div>
                 <div v-if="loading" class="sa-loading">Loading…</div>
@@ -147,8 +148,8 @@ if (typeof axios === 'undefined') {
                 <div class="sa-section-title" style="display:flex; align-items:center; justify-content:space-between;">
                     <span>File Downloads</span>
                     <span style="font-weight:400; font-size:0.85rem;">
-                        <a href="<?php echo site_url('api/analytics/monthly/files/export?study_id=' . $_sid . '&format=csv'); ?>" class="btn btn-default btn-xs" title="Export as CSV"><i class="fa fa-download"></i> CSV</a>
-                        <a href="<?php echo site_url('api/analytics/monthly/files/export?study_id=' . $_sid . '&format=json'); ?>" class="btn btn-default btn-xs" title="Export as JSON"><i class="fa fa-download"></i> JSON</a>
+                        <a href="<?php echo site_url('api/analytics/monthly/files/export?study_id=' . $_sid . '&format=csv'); ?>" class="btn btn-default btn-xs" title="Export as CSV">CSV</a>
+                        <a href="<?php echo site_url('api/analytics/monthly/files/export?study_id=' . $_sid . '&format=json'); ?>" class="btn btn-default btn-xs" title="Export as JSON">JSON</a>
                     </span>
                 </div>
                 <div v-if="filesLoading" class="sa-loading">Loading…</div>

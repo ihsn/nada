@@ -20,6 +20,9 @@ class DDI2_Import{
     //which field to use for country name - nation | geog_coverage
     private $geog_coverage_field='nation'; 
 
+    /** @var array DDI @ID => list of NADA vids created during import (for varGrp remapping) */
+    private $ddi_to_nada_vids=array();
+
     //non-fatal warnings collected during variable import (e.g. multi-file vars)
     private $variable_warnings=array();
 
@@ -426,6 +429,12 @@ class DDI2_Import{
         
         if(is_array($variable_groups)){
 			foreach($variable_groups as $vgroup){
+                if (isset($vgroup['variables']) && trim((string)$vgroup['variables']) !== '') {
+                    $vgroup['variables'] = DDI_Utils::remap_ddi_var_ids_list(
+                        $vgroup['variables'],
+                        $this->ddi_to_nada_vids
+                    );
+                }
 				$this->ci->Variable_group_model->insert($sid,$vgroup);
 			}
 		}
@@ -522,6 +531,7 @@ class DDI2_Import{
     {
         //delete existing variables + variables metadata
         $this->ci->Variable_model->remove_all_variables($sid);
+        $this->ddi_to_nada_vids=array();
 
         if(!$data_files){
             return 0;
@@ -638,6 +648,7 @@ class DDI2_Import{
         }
 
         $prefixed_groups=array(); //original_vid => array of stored vids
+        $vid_by_original_and_fid=array(); //original_vid => fid => stored vid (for var_wgt remapping)
         foreach($staged_rows as $idx=>$row){
             $original_vid=$row['_original_vid'];
             if ($vid_counts[$original_vid] > 1){
@@ -649,6 +660,30 @@ class DDI2_Import{
                 $staged_rows[$idx]['metadata']['vid_original']=$original_vid;
 
                 $prefixed_groups[$original_vid][]=$row['fid'].' => '.$stored_vid;
+            } else {
+                $stored_vid=$original_vid;
+            }
+
+            if (!isset($this->ddi_to_nada_vids[$original_vid])) {
+                $this->ddi_to_nada_vids[$original_vid]=array();
+            }
+            $this->ddi_to_nada_vids[$original_vid][]=$stored_vid;
+
+            $vid_by_original_and_fid[$original_vid][$row['fid']]=$stored_vid;
+        }
+
+        foreach($staged_rows as $idx=>$row){
+            if (empty($row['metadata']['var_wgt'])) {
+                continue;
+            }
+
+            $wgt_ddi=trim((string)$row['metadata']['var_wgt']);
+            if ($wgt_ddi === '') {
+                continue;
+            }
+
+            if (isset($vid_by_original_and_fid[$wgt_ddi][$row['fid']])) {
+                $staged_rows[$idx]['metadata']['var_wgt']=$vid_by_original_and_fid[$wgt_ddi][$row['fid']];
             }
         }
 

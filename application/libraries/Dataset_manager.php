@@ -7,6 +7,7 @@ class Dataset_manager{
         'survey'=>'microdata',
         'geospatial'=>'geospatial',
         'timeseries'=>'timeseries',
+        'timeseriesdb'=>'timeseriesdb',
         'document'=>'document',
         'image'=>'image',
         'video'=>'video',
@@ -22,6 +23,7 @@ class Dataset_manager{
         $this->ci->load->model("Facet_model");
         $this->ci->load->model("Dataset_microdata_model");
         $this->ci->load->model("Dataset_timeseries_model");
+        $this->ci->load->model("Dataset_timeseriesdb_model");
         $this->ci->load->model("Dataset_geospatial_model");
         $this->ci->load->model("Dataset_document_model");
         $this->ci->load->model("Dataset_image_model");
@@ -45,10 +47,10 @@ class Dataset_manager{
     }
 
 
-    function update_dataset($sid,$type,$options,$merge_data=false)
+    function update_dataset($sid,$type,$options,$merge_data=false,$validate_schema=true)
     {
         $this->validate_type($type);
-        $result=$this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options, $merge_data);
+        $result=$this->ci->{'Dataset_'.$this->types[$type].'_model'}->update_dataset($sid,$type,$options, $merge_data, $validate_schema);
         $this->ci->Facet_model->index_facets($sid);
         return $result;
     }

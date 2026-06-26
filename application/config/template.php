@@ -90,6 +90,10 @@ $template['blank']['theme_folder'] = 'nada52';
 $template['blank_iframe']['template'] =  '../../themes/nada52/blank';
 $template['blank_iframe']['theme_folder'] = 'nada52';
 
+// Minimal shell for public iframe embeds (no site nav; see themes/nada52/embed_chart.php)
+$template['embed_chart']['template'] = '../../themes/nada52/embed_chart';
+$template['embed_chart']['theme_folder'] = 'nada52';
+
 
 //box template file with only the body and no layout
 $template['box']['template'] = '../../themes/opendata/box';
@@ -103,7 +107,6 @@ $template['admin']['theme_folder'] = 'adminbt';
 //admin template file
 $template['admin5']['template'] = '../../themes/adminbt4/index';
 $template['admin5']['theme_folder'] = 'adminbt4';
-
 
 //blank admin template with all stylesheets included
 $template['admin_blank']['template'] = '../../themes/adminbt4/blank';

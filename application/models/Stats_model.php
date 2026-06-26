@@ -114,6 +114,87 @@ class Stats_model extends CI_Model {
 	
 	
 
+	/**
+	 * Public catalog headline stats (published content only).
+	 */
+	public function get_public_catalog_stats()
+	{
+		$row = $this->db->query("
+			SELECT COUNT(id) AS studies
+			FROM surveys
+			WHERE published = 1
+		")->row_array();
+		$studies = (int)$row['studies'];
+
+		$row = $this->db->query("
+			SELECT COUNT(v.uid) AS variables
+			FROM variables v
+			INNER JOIN surveys s ON s.id = v.sid
+			WHERE s.published = 1
+		")->row_array();
+		$variables = (int)$row['variables'];
+
+		$row = $this->db->query("
+			SELECT COUNT(id) AS citations
+			FROM citations
+			WHERE published = 1
+		")->row_array();
+		$citations = (int)$row['citations'];
+
+		$row = $this->db->query("
+			SELECT COUNT(DISTINCT sc.cid) AS countries_with_data
+			FROM survey_countries sc
+			INNER JOIN surveys s ON s.id = sc.sid
+			WHERE s.published = 1
+			AND sc.cid > 0
+		")->row_array();
+		$countries_with_data = (int)$row['countries_with_data'];
+
+		$row = $this->db->query("
+			SELECT MIN(year_start) AS min_year, MAX(year_end) AS max_year
+			FROM surveys
+			WHERE published = 1
+			AND year_start > 0
+		")->row_array();
+
+		return array(
+			'studies'             => $studies,
+			'variables'           => $variables,
+			'citations'           => $citations,
+			'countries_with_data' => $countries_with_data,
+			'min_year'            => isset($row['min_year']) ? (int)$row['min_year'] : 0,
+			'max_year'            => isset($row['max_year']) ? (int)$row['max_year'] : 0,
+		);
+	}
+
+	/**
+	 * Cached public catalog stats (filesystem, 10-minute TTL).
+	 */
+	public function get_public_catalog_stats_cached($ttl = 600)
+	{
+		$cache_dir  = FCPATH . 'cache';
+		$cache_file = $cache_dir . '/catalog_public_stats.json';
+
+		if (file_exists($cache_file)) {
+			$age = time() - filemtime($cache_file);
+			if ($age < $ttl) {
+				$cached = json_decode(file_get_contents($cache_file), true);
+				if (is_array($cached)) {
+					return $cached;
+				}
+			}
+		}
+
+		$stats = $this->get_public_catalog_stats();
+
+		if (!is_dir($cache_dir)) {
+			@mkdir($cache_dir, 0755, true);
+		}
+		@file_put_contents($cache_file, json_encode($stats));
+
+		return $stats;
+	}
+
 	function get_counts_by_type($repositoryid=null)
 	{
 		//$result=$this->db->query('select count(id) as total,type from surveys where published=1 group by type')->result_array();

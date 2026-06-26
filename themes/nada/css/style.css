@@ -94,8 +94,32 @@ button,
   font-size: 0.75rem;
   text-transform: uppercase; }
 
+.navbar-nav a.nav-menu-child {
+  border-left: 3px solid transparent; }
+
+.navbar-light .navbar-nav .dropdown-menu a.dropdown-item.nav-menu-child.active,
+.navbar-light .navbar-nav .dropdown-menu a.dropdown-item.nav-menu-child.active:hover,
+.navbar-light .navbar-nav .dropdown-menu a.dropdown-item.nav-menu-child.active:focus,
+.navbar-light .navbar-nav .dropdown-menu a.dropdown-item.nav-menu-child.active:active {
+  color: #003456 !important;
+  text-decoration: none;
+  background: none !important;
+  background-color: transparent !important;
+  border-left-color: #003456; }
+
+.navbar-light .navbar-nav .dropdown-menu a.dropdown-item.nav-menu-child:active {
+  background: none !important;
+  background-color: transparent !important; }
+
 li.nav-item.dropdown .fa {
   margin-right: 5px; }
+
+.navbar-nav .nav-menu-chevron {
+  margin-right: 0;
+  margin-left: 0.35rem;
+  font-size: 0.65em;
+  vertical-align: middle;
+  opacity: 0.85; }
 
 .sidebar-module {
   padding-top: 16px; }
@@ -649,6 +673,8 @@ footer {
 .var-compare-container .compare-box-body{
   padding: 15px 25px;
   width: 400px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .var-compare-container .compare-box .survey-link{
@@ -656,7 +682,18 @@ footer {
   font-size: small;
 }
 
-
+/* Long snake_case data file names must wrap (compare + variable pages) */
+h5.var-file{
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+h5.var-file a{
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: bottom;
+}
 
 
           /*

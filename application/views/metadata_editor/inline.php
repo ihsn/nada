@@ -1,6 +1,17 @@
-<html>
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+$embedded = ! empty($embedded);
+$lazy_metadata_load = ! empty($lazy_metadata_load);
+$metadata_api_url = isset($metadata_api_url) ? $metadata_api_url : '';
+$ajv_extra_schemas = isset($ajv_extra_schemas) && is_array($ajv_extra_schemas) ? $ajv_extra_schemas : array();
+if (! $embedded): ?><html>
 
-<head>            
+<head>
+<?php endif; ?>
+<?php if ($embedded): ?>
+<div class="study-metadata-editor-embed study-metadata-editor-embed--tab">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+<?php endif; ?>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/vuex@3.4.0/dist/vuex.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -63,12 +74,20 @@
 
         //json schema
         let metadata_schema=<?php echo $metadata_schema;?>;
+        let ajv_extra_schemas=<?php echo json_encode($ajv_extra_schemas, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;
+        let metadata_api_url=<?php echo json_encode($metadata_api_url, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;
+        let lazy_metadata_load=<?php echo $lazy_metadata_load ? 'true' : 'false'; ?>;
     </script>
 
     <?php //die();?>
 
     
     <style>
+        .study-metadata-editor-embed .metadata-editor-loading {
+            padding: 2rem;
+            text-align: center;
+            color: #666;
+        }
         .bg-light-2{
             background:#e9ecef!important;
         }
@@ -255,29 +274,38 @@
     font-size:smaller;
 }
     </style>
+<?php if (! $embedded): ?>
 </head>
 
 <body>
+<?php endif; ?>
     <!-- Bootstrap NavBar -->
 
 
 <div id="app">
+    <div v-if="lazy_metadata_load && metadata_loading" class="metadata-editor-loading">
+        <p>Loading metadata…</p>
+    </div>
 <!-- Bootstrap row -->
 <div class="row" id="body-row">
 
 
             
+    <?php if (! $embedded): ?>
     <!-- Sidebar -->
     <?php $this->load->view('metadata_editor/sidebar');?>
+    <?php endif; ?>
 
     <!-- MAIN -->
-    <div class="col py-3">
+    <div class="<?php echo $embedded ? 'col-12' : 'col'; ?> py-3">
 
         
 
         <!--start-->
         <div class="border-bottom py-2">
+                <?php if (!$embedded): ?>
                 <h3 style="margin:0px;">Metadata</h3>
+                <?php endif; ?>
             
                 <div class="btn-group">
                     <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -298,7 +326,7 @@
 
                 <div class="float-right">
                     <button type="button" class="btn btn-primary btn-sm" @click="submitForm">Save</button>
-                    <a href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" class="btn btn-danger btn-sm" >Cancel</a>
+                    <a href="<?php echo site_url('admin/catalog/edit/'.$sid);?>" class="btn btn-danger btn-sm">Cancel</a>
                 </div>
                 <div v-if="form_errors.length>0 || schema_errors.length>0" style="margin-bottom:15px;" class="pl-2">
                     <div style="color:red;font-weight:bold;">Please correct the following errors:</div>
@@ -418,11 +446,13 @@
         ?>
 
         
-        <?php if (empty($metadata)):?>
+        <?php if (! empty($lazy_metadata_load)): ?>
             var project_metadata={};
-        <?php else:?>
-            var project_metadata=<?php echo json_encode($metadata);?>;
-        <?php endif;?>
+        <?php elseif (empty($metadata)): ?>
+            var project_metadata={};
+        <?php else: ?>
+            var project_metadata=<?php echo json_encode($metadata, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;
+        <?php endif; ?>
 
         <?php if (empty($survey)):?>
             var project_sid=null;
@@ -541,11 +571,39 @@
                     'erorrs': {}                    
                 },
                 form_errors:[],
-                schema_errors:[]
+                schema_errors:[],
+                metadata_loading: !!lazy_metadata_load
             },
             mounted: function () {
                 console.log(this.form_template);
                 vm=this;
+
+                if (lazy_metadata_load && metadata_api_url) {
+                    vm.metadata_loading = true;
+                    axios.get(metadata_api_url, {
+                        params: { id_format: 'id' },
+                        withCredentials: true
+                    }).then(function (response) {
+                        if (response.data && response.data.status === 'success' && response.data.dataset) {
+                            var md = response.data.dataset.metadata || {};
+                            if (typeof md === 'object' && md !== null) {
+                                md.merge_options = 'replace';
+                                var coll = md.study_desc && md.study_desc.method && md.study_desc.method.data_collection
+                                    ? md.study_desc.method.data_collection.coll_mode : null;
+                                if (coll && typeof coll === 'string') {
+                                    md.study_desc.method.data_collection.coll_mode = [coll];
+                                }
+                                vm.$store.state.formData = md;
+                            }
+                        }
+                    }).catch(function (err) {
+                        console.error(err);
+                        alert('Failed to load study metadata');
+                    }).finally(function () {
+                        vm.metadata_loading = false;
+                    });
+                }
+
                 bus.$on('tree-node-click', function (node_id) {
                     vm.scrollToElement('#main-content','#field-'+node_id,500);
                     $("#field-"+node_id).focus();
@@ -556,27 +614,32 @@
                     allErrors : true
                 });
 
-                provenance_schema=<?php echo file_get_contents('application/schemas/provenance-schema.json');?>;        
-                ajv.addSchema(provenance_schema,'http://ihsn.org/schemas/provenance-schema.json');
+                if (ajv_extra_schemas.provenance) {
+                    ajv.addSchema(ajv_extra_schemas.provenance, 'http://ihsn.org/schemas/provenance-schema.json');
+                }
 
                 if (vm.dataset_type=='survey'){
-                    survey_schema=<?php echo file_get_contents('application/schemas/survey-schema.json');?>;
-                    ddi_schema=<?php echo file_get_contents('application/schemas/ddi-schema.json');?>;
-                    datafile_schema=<?php echo file_get_contents('application/schemas/datafile-schema.json');?>;  
-                    variable_schema=<?php echo file_get_contents('application/schemas/variable-schema.json');?>;    
-                    ajv.addSchema(ddi_schema,'http://ihsn.org/schemas/ddi-schema.json');
-                    ajv.addSchema(datafile_schema,'http://ihsn.org/schemas/datafile-schema.json');
-                    ajv.addSchema(variable_schema,'http://ihsn.org/schemas/variable-schema.json');                    
-                    //ajv.addSchema(survey_schema,'survey-schema');
-                    this.schema_validator= ajv.compile(survey_schema);
+                    if (ajv_extra_schemas.ddi) {
+                        ajv.addSchema(ajv_extra_schemas.ddi, 'http://ihsn.org/schemas/ddi-schema.json');
+                    }
+                    if (ajv_extra_schemas.datafile) {
+                        ajv.addSchema(ajv_extra_schemas.datafile, 'http://ihsn.org/schemas/datafile-schema.json');
+                    }
+                    if (ajv_extra_schemas.variable) {
+                        ajv.addSchema(ajv_extra_schemas.variable, 'http://ihsn.org/schemas/variable-schema.json');
+                    }
+                    var survey_schema = ajv_extra_schemas.survey || this.metadata_schema;
+                    this.schema_validator = ajv.compile(survey_schema);
                 }
                 else if (vm.dataset_type=='image'){
-                    image_schema=<?php echo file_get_contents('application/schemas/image-schema.json');?>;
-                    iptc_schema=<?php echo file_get_contents('application/schemas/iptc-pmd-schema.json');?>;
-                    iptc_shared_schema=<?php echo file_get_contents('application/schemas/iptc-phovidmdshared-schema.json');?>;
-                    ajv.addSchema(iptc_schema,'iptc-pmd-schema.json');
-                    ajv.addSchema(iptc_shared_schema,'https://www.iptc.org/std/photometadata/specification/iptc-phovidmdshared-schema.json');
-                    this.schema_validator= ajv.compile(image_schema);
+                    if (ajv_extra_schemas.iptc) {
+                        ajv.addSchema(ajv_extra_schemas.iptc, 'iptc-pmd-schema.json');
+                    }
+                    if (ajv_extra_schemas.iptc_shared) {
+                        ajv.addSchema(ajv_extra_schemas.iptc_shared, 'https://www.iptc.org/std/photometadata/specification/iptc-phovidmdshared-schema.json');
+                    }
+                    var image_schema = ajv_extra_schemas.image || this.metadata_schema;
+                    this.schema_validator = ajv.compile(image_schema);
                 }
                 else{
                     this.schema_validator= ajv.compile(this.metadata_schema);
@@ -797,8 +860,14 @@
     </script>
 
 
-    
+<?php if ($embedded): ?>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+</div>
+<?php else: ?>
 </body>
 
 </html>
+<?php endif; ?>
 

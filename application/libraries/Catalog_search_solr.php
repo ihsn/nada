@@ -147,6 +147,15 @@ class Catalog_search_solr
 
     function search($limit = 15, $offset = 0)
     {
+        if (!class_exists('Catalog_study_idno_lookup', false)) {
+            require_once APPPATH . 'libraries/Catalog_study_idno_lookup.php';
+        }
+        $params = is_array($this->params) ? $this->params : array();
+        $idno_result = Catalog_study_idno_lookup::try_search_from_params($params, $limit, $offset);
+        if ($idno_result !== null) {
+            return $idno_result;
+        }
+
         $query   = $this->solr_client->createSelect();
         $helper  = $query->getHelper();
         $edismax = $query->getEDisMax();
@@ -428,6 +437,9 @@ class Catalog_search_solr
     {
         $from = (int)$this->from;
         $to   = (int)$this->to;
+        if ($from > 0 && $to > 0 && $from > $to) {
+            [$from, $to] = [$to, $from];
+        }
         if ($from === 0 && $to === 0) return false;
         $f = $from > 0 ? $from : '*';
         $t = $to   > 0 ? $to   : '*';
@@ -438,6 +450,9 @@ class Catalog_search_solr
     {
         $from = (int)$this->from;
         $to   = (int)$this->to;
+        if ($from > 0 && $to > 0 && $from > $to) {
+            [$from, $to] = [$to, $from];
+        }
         if ($from === 0 && $to === 0) return false;
         $f = $from > 0 ? $from : '*';
         $t = $to   > 0 ? $to   : '*';

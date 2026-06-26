@@ -1,9 +1,5 @@
 <style>
 	.breadcrumb-container{padding-left:0px;}
-	.repo-thumbnail{
-		width:120px;
-		height:120px;
-	}
 	.contributing-repos h3{
 		margin-top:30px;
 	}
@@ -26,7 +22,7 @@
 <?php endif;?>
 
 <?php if($additional):?>
-	<h1 class="mb-5"><?php echo t('Collections');?></h1>
+	<h1 class="collections-page-title"><?php echo t('Collections');?></h1>
 	<?php echo $additional;?>
 <?php endif;?>
 </div>

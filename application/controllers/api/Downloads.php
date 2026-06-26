@@ -195,7 +195,7 @@ class Downloads extends MY_REST_Controller
                 throw new Exception('LOGIN_REQUIRED');
             }
 		
-		    $allow_download = $this->Survey_resource_model->user_has_download_access($user->id, $sid, $resource, $skip_puf=true);
+		    $allow_download = $this->Survey_resource_model->user_has_download_access($user ? $user->id : false, $sid, $resource);
 
 			if ($allow_download === false) {
 				throw new Exception("You don't have permissions to access the file.");

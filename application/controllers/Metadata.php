@@ -32,11 +32,14 @@ class Metadata extends MY_Controller {
                 $this->load->library('JSON_Writer');
                 
                 $pretty = $this->input->get('pretty') === 'true' || $this->input->get('pretty') === '1';
-                
+                $dsd_export = strtolower(trim((string) $this->input->get('dsd_export'))) === JSON_Writer::DSD_EXPORT_INLINE
+                    ? JSON_Writer::DSD_EXPORT_INLINE
+                    : JSON_Writer::DSD_EXPORT_REFERENCE;
+
                 if ($format == 'jsonl') {
-                    $this->json_writer->download($sid, 'jsonl', false);
+                    $this->json_writer->download($sid, 'jsonl', false, false, $dsd_export);
                 } else {
-                    $this->json_writer->download($sid, 'json', $pretty);
+                    $this->json_writer->download($sid, 'json', $pretty, false, $dsd_export);
                 }
             }		
             catch(Exception $e){

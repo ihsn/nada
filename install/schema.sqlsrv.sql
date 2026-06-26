@@ -69,7 +69,7 @@ CREATE TABLE site_menu (
 
 set IDENTITY_INSERT site_menu ON;
 INSERT INTO site_menu(id,pid,title,url,weight,depth,module)
- VALUES (1,0,'Dashboard','admin',0,0,'admin'),(2,0,'Studies','admin/catalog',1,0,'catalog'),(4,0,'Citations','admin/citations',3,0,'citations'),(5,0,'Users','admin/users',4,0,'users'),(6,0,'Menu','admin/menu',5,0,'menu'),(7,0,'Reports','admin/reports',6,0,'reports'),(8,0,'Settings','admin/configurations',7,0,'configurations'),(12,2,'-','-',70,1,'catalog'),(13,2,'Licensed requests','admin/licensed_requests',80,1,'catalog'),(14,2,'-','-',90,1,'catalog'),(15,2,'Manage collections','admin/repositories',60,1,'repositories'),(17,4,'All citations','admin/citations',100,1,'citations'),(18,4,'Import citations','admin/citations/import',90,1,'citations'),(19,4,'Export citations','admin/citations/export',80,1,'citations'),(20,5,'All users','admin/users',100,1,'users'),(21,5,'Add user','admin/users/add',99,1,'users'),(22,5,'-','-',65,1,'users'),(27,6,'All pages','admin/menu',0,1,'menu'),(28,7,'All reports','admin/reports',0,1,'reports'),(29,8,'Settings','admin/configurations',0,1,'configurations'),(30,8,'Countries','admin/countries',0,1,'vocabularies'),(31,8,'Regions','admin/regions',0,1,'vocabularies'),(32,8,'-','-',0,1,'vocabularies'),(33,8,'Vocabularies','admin/vocabularies',-9,1,'vocabularies'),(34,2,'Manage studies','admin/catalog',100,1,'catalog'),(35,5,'Impersonate user','admin/users/impersonate',50,1,'users');
+ VALUES (1,0,'Dashboard','admin',0,0,'admin'),(2,0,'Studies','admin/catalog',1,0,'catalog'),(4,0,'Citations','admin/citations',3,0,'citations'),(5,0,'Users','admin/users',4,0,'users'),(6,0,'Menu','admin/menu',5,0,'menu'),(7,0,'Reports','admin/reports',6,0,'reports'),(8,0,'Settings','admin/configurations',7,0,'configurations'),(12,2,'-','-',70,1,'catalog'),(13,2,'Licensed requests','admin/licensed_requests',80,1,'catalog'),(14,2,'-','-',90,1,'catalog'),(15,2,'Manage collections','admin/collections',60,1,'repositories'),(17,4,'All citations','admin/citations',100,1,'citations'),(18,4,'Import citations','admin/citations/import',90,1,'citations'),(19,4,'Export citations','admin/citations/export',80,1,'citations'),(20,5,'All users','admin/users',100,1,'users'),(21,5,'Add user','admin/users/add',99,1,'users'),(22,5,'-','-',65,1,'users'),(27,6,'All pages','admin/menu',0,1,'menu'),(28,7,'All reports','admin/reports',0,1,'reports'),(29,8,'Settings','admin/configurations',0,1,'configurations'),(30,8,'Countries','admin/countries',0,1,'vocabularies'),(31,8,'Regions','admin/regions',0,1,'vocabularies'),(32,8,'-','-',0,1,'vocabularies'),(33,8,'Vocabularies','admin/vocabularies',-9,1,'vocabularies'),(34,2,'Manage studies','admin/catalog',100,1,'catalog'),(35,5,'Impersonate user','admin/users/impersonate',50,1,'users');
 set IDENTITY_INSERT site_menu OFF;
 
 insert into site_menu(pid,title,url,weight,depth,module) 
@@ -104,14 +104,14 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_vocabularies on [dbo].[vocabularies](
 CREATE TABLE variables (
   uid int NOT NULL IDENTITY(1,1),
   sid int NOT NULL,
-  fid varchar(45) DEFAULT '',
-  vid varchar(45) DEFAULT '',
-  name varchar(100) DEFAULT '',
-  labl varchar(255) DEFAULT '',
-  qstn varchar(max),
-  catgry varchar(max),
-  metadata varchar(max),
-  keywords varchar(max),
+  fid nvarchar(45) DEFAULT '',
+  vid nvarchar(45) DEFAULT '',
+  name nvarchar(100) DEFAULT '',
+  labl nvarchar(255) DEFAULT '',
+  qstn nvarchar(max),
+  catgry nvarchar(max),
+  metadata nvarchar(max),
+  keywords nvarchar(max),
   PRIMARY KEY (uid)
 ) ;
 
@@ -358,6 +358,12 @@ CREATE TABLE surveys (
   link_questionnaire varchar(255) DEFAULT NULL,
   formid int DEFAULT NULL,
   data_class_id int DEFAULT NULL,
+  data_structure_id int DEFAULT NULL,
+  ts_db_id int DEFAULT NULL,
+  ts_dimensions nvarchar(2000) NULL,
+  ts_frequency nvarchar(500) NULL,
+  ts_sync_required tinyint NOT NULL CONSTRAINT df_surveys_ts_sync_required DEFAULT 0,
+  ts_data_count bigint NOT NULL CONSTRAINT df_surveys_ts_data_count DEFAULT 0,
   link_da varchar(255) DEFAULT NULL,
   published tinyint DEFAULT NULL,  
   total_views int DEFAULT '0',
@@ -386,10 +392,28 @@ CREATE NONCLUSTERED INDEX idx_surveys_type ON [dbo].[surveys] ([type] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_repositoryid ON [dbo].[surveys] ([repositoryid] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_formid ON [dbo].[surveys] ([formid] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_data_class_id ON [dbo].[surveys] ([data_class_id] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_data_structure_id ON [dbo].[surveys] ([data_structure_id] ASC);
+CREATE NONCLUSTERED INDEX idx_surveys_ts_db_id ON [dbo].[surveys] ([ts_db_id] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_year_start ON [dbo].[surveys] ([year_start] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_total_views ON [dbo].[surveys] ([total_views] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_changed ON [dbo].[surveys] ([changed] ASC);
 CREATE NONCLUSTERED INDEX idx_surveys_created ON [dbo].[surveys] ([created] ASC);
+
+--
+-- Table structure for table timeseries_db_links
+--
+
+CREATE TABLE timeseries_db_links (
+  id         INT          NOT NULL IDENTITY(1,1),
+  series_id  INT          NOT NULL,
+  db_idno    NVARCHAR(255) NOT NULL,
+  is_primary TINYINT      NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  CONSTRAINT uq_series_db UNIQUE (series_id, db_idno)
+);
+CREATE NONCLUSTERED INDEX idx_tsdbl_series_primary ON [dbo].[timeseries_db_links] ([series_id] ASC, [is_primary] ASC);
+CREATE NONCLUSTERED INDEX idx_tsdbl_db_idno         ON [dbo].[timeseries_db_links] ([db_idno] ASC);
+CREATE UNIQUE NONCLUSTERED INDEX idx_surveys_idno ON [dbo].[surveys] ([idno] ASC);
 
 
 --
@@ -478,11 +502,24 @@ SET IDENTITY_INSERT dctype_translations OFF;
 
 CREATE TABLE codelists (
   id int NOT NULL IDENTITY(1,1),
+  pid int NULL,
   name varchar(64) NOT NULL,
+  agency varchar(64) NOT NULL CONSTRAINT df_codelists_agency DEFAULT 'NADA',
+  version varchar(32) NOT NULL CONSTRAINT df_codelists_version DEFAULT '1.0',
+  version_seq int NOT NULL,
+  idno varchar(191) NULL,
   description varchar(255) DEFAULT NULL,
+  status smallint NOT NULL CONSTRAINT df_codelists_status DEFAULT 0,
+  created int NULL,
+  changed int NULL,
   PRIMARY KEY (id),
-  CONSTRAINT unq_codelists_name UNIQUE (name)
+  CONSTRAINT unq_codelists_identity UNIQUE (agency, name, version)
 );
+CREATE UNIQUE INDEX unq_codelists_idno ON codelists(idno) WHERE idno IS NOT NULL;
+CREATE UNIQUE INDEX unq_codelists_family_seq ON codelists(agency, name, version_seq);
+CREATE INDEX idx_codelists_agency_name ON codelists(agency, name);
+CREATE INDEX idx_codelists_pid ON codelists(pid);
+ALTER TABLE codelists ADD CONSTRAINT fk_codelists_pid FOREIGN KEY (pid) REFERENCES codelists (id);
 
 CREATE TABLE codelist_item (
   id int NOT NULL IDENTITY(1,1),
@@ -544,10 +581,86 @@ CREATE TABLE codelist_group_translation (
 CREATE INDEX idx_codelist_group_trans_lang ON codelist_group_translation (lang);
 
 --
+-- Global data structures (DSD catalogue; one row per version)
+--
+
+CREATE TABLE data_structures (
+  id int NOT NULL IDENTITY(1,1),
+  pid int NULL,
+  agency varchar(64) NOT NULL CONSTRAINT df_data_structures_agency DEFAULT 'NADA',
+  name varchar(64) NOT NULL,
+  version varchar(32) NOT NULL,
+  version_seq int NOT NULL,
+  idno varchar(191) NULL,
+  status smallint NOT NULL CONSTRAINT df_data_structures_status DEFAULT 0,
+  title varchar(255) NULL,
+  description varchar(255) NULL,
+  notes nvarchar(max) NULL,
+  content_hash char(64) NULL,
+  metadata nvarchar(max) NULL,
+  created int NULL,
+  updated int NULL,
+  created_by int NULL,
+  updated_by int NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_data_structures_identity UNIQUE (agency, name, version),
+  CONSTRAINT fk_data_structures_pid FOREIGN KEY (pid) REFERENCES data_structures (id)
+);
+CREATE UNIQUE INDEX unq_data_structures_idno ON data_structures(idno) WHERE idno IS NOT NULL;
+CREATE UNIQUE INDEX unq_data_structures_family_seq ON data_structures(agency, name, version_seq);
+CREATE INDEX idx_data_structures_agency_name ON data_structures(agency, name);
+CREATE INDEX idx_data_structures_pid ON data_structures(pid);
+
+CREATE TABLE data_structure_components (
+  id int NOT NULL IDENTITY(1,1),
+  data_structure_id int NOT NULL,
+  sort_order int NOT NULL CONSTRAINT df_dsc_sort_order DEFAULT 0,
+  name varchar(100) NOT NULL,
+  label varchar(255) NULL,
+  description nvarchar(max) NULL,
+  data_type varchar(16) NULL,
+  column_type varchar(32) NOT NULL,
+  time_period_format varchar(30) NULL,
+  codelist_id int NULL,
+  metadata nvarchar(max) NULL,
+  created int NULL,
+  updated int NULL,
+  created_by int NULL,
+  updated_by int NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_dsc_structure_name UNIQUE (data_structure_id, name),
+  CONSTRAINT fk_dsc_data_structure FOREIGN KEY (data_structure_id) REFERENCES data_structures (id) ON DELETE CASCADE,
+  CONSTRAINT fk_dsc_codelist FOREIGN KEY (codelist_id) REFERENCES codelists (id)
+);
+CREATE INDEX idx_dsc_structure_sort ON data_structure_components (data_structure_id, sort_order);
+CREATE INDEX idx_dsc_codelist ON data_structure_components (codelist_id);
+
+CREATE TABLE timeseries_value_counts (
+  id int NOT NULL IDENTITY(1,1),
+  sid int NOT NULL,
+  dsd_id int NOT NULL,
+  component_name varchar(100) NOT NULL,
+  code varchar(255) NOT NULL,
+  obs_count int NOT NULL CONSTRAINT df_tsvc_obs_count DEFAULT 0,
+  PRIMARY KEY (id),
+  CONSTRAINT unq_tsvc_scope_value UNIQUE (sid, dsd_id, component_name, code),
+  CONSTRAINT fk_tsvc_sid FOREIGN KEY (sid) REFERENCES surveys (id) ON DELETE CASCADE,
+  CONSTRAINT fk_tsvc_dsd FOREIGN KEY (dsd_id) REFERENCES data_structures (id) ON DELETE CASCADE
+);
+CREATE INDEX idx_tsvc_scope ON timeseries_value_counts (sid, dsd_id, component_name);
+
+--
+-- Link surveys.data_structure_id -> data_structures.id (declared after both tables exist)
+--
+ALTER TABLE surveys
+  ADD CONSTRAINT fk_surveys_data_structure FOREIGN KEY (data_structure_id) REFERENCES data_structures (id) ON DELETE NO ACTION;
+
+--
 -- Dumping data for codelists (dctypes codelist + default groups)
 --
 SET IDENTITY_INSERT codelists ON;
-INSERT INTO codelists (id, name, description) VALUES (1,'dctypes','Resource types (external resources)');
+INSERT INTO codelists (id, pid, name, agency, version, version_seq, idno, description, status, created, changed) VALUES (1,NULL,'dctypes','NADA','1.0',1,'NADA_dctypes_1.0','Resource types (external resources)',0,NULL,NULL);
+UPDATE codelists SET pid = 1 WHERE id = 1;
 SET IDENTITY_INSERT codelists OFF;
 
 SET IDENTITY_INSERT codelist_item ON;
@@ -756,32 +869,6 @@ CREATE NONCLUSTERED INDEX idx_citations_url_status  ON [dbo].[citations] ([url_s
 CREATE NONCLUSTERED INDEX idx_citations_created_by  ON [dbo].[citations] ([created_by]);
 CREATE NONCLUSTERED INDEX idx_citations_changed_by  ON [dbo].[citations] ([changed_by]);
 
-
---
--- Table structure for table permission_urls
---
-
-CREATE TABLE permission_urls (
-  id int NOT NULL IDENTITY(1,1),
-  url varchar(255) DEFAULT NULL,
-  permission_id int NOT NULL,
-  PRIMARY KEY (id)
-);
-
-CREATE UNIQUE NONCLUSTERED INDEX IX_perms_url on [dbo].[permission_urls](
-	[url] ASC
-);
-
-
-
---
--- Dumping data for table permission_urls
---
-set IDENTITY_INSERT permission_urls ON;
-INSERT INTO permission_urls (id,url,permission_id)
-VALUES (1,'admin/catalog/upload',1),(4,'admin/menu',4),(5,'admin/menu/add',5),(6,'admin/menu/edit/*',6),(7,'admin/menu/add_link',7),(8,'admin/menu/menu_sort',8),(9,'admin/vocabularies',9),(10,'admin/terms/*',10),(12,'admin/users/*',12),(14,'ddibrowser',14),(16,'page/*',16),(18,'citations',18),(22,'backup*',22),(23,'access_licensed*',23),(25,'switch_language*',25),(27,'translate/*',27),(34,'admin/catalog/do_upload',1),(48,'admin/datadeposit*',40),(51,'admin/catalog/delete',42),(52,'admin/catalog/export-ddi',43),(53,'admin/catalog/import-rdf',44),(54,'admin/repositories/*',45),(55,'admin/repositories',45),(88,'admin/catalog/replace_ddi/*',46),(100,'admin/catalog/edit/*',49),(101,'admin/catalog/update/*',49),(102,'admin/catalog/update',49),(103,'admin/managefiles/*',49),(104,'admin/resources/*',49),(112,'admin/catalog',2),(113,'admin/catalog/survey/*',2),(114,'admin/catalog/search',2),(116,'access_public/*',30),(119,'admin/catalog/copy_ddi',62),(124,'admin/repositories/select',61),(125,'admin/repositories/active/*',61),(126,'admin/catalog/publish',41),(127,'admin/catalog/publish/*',41),(131,'admin/catalog/copy_study',63),(132,'admin/catalog/do_copy_study/*',63),(133,'admin/citations',64),(134,'admin/citations/edit',65),(135,'admin/citations/edit/*',65),(136,'admin/citations/delete/*',66),(137,'admin/citations/import',67),(138,'admin/citations/export',68),(141,'admin',3),(142,'admin/users/exit_impersonate',3),(143,'admin/licensed_requests',69),(145,'admin/licensed_requests/*',70),(147,'admin/users',11),(148,'admin/reports/*',71),(149,'admin/reports',71);
-set IDENTITY_INSERT permission_urls OFF;
-
 --
 -- Table structure for table survey_aliases
 --
@@ -989,34 +1076,6 @@ CREATE TABLE survey_repos (
 
 CREATE NONCLUSTERED INDEX idx_survey_repos_repositoryid ON [dbo].[survey_repos] ([repositoryid] ASC) INCLUDE ([sid]);
 CREATE NONCLUSTERED INDEX idx_survey_repos_sid ON [dbo].[survey_repos] ([sid] ASC);
-
-
---
--- Table structure for table repo_perms_urls
---
-
-CREATE TABLE repo_perms_urls (
-  id int NOT NULL IDENTITY(1,1),
-  repo_pg_id int DEFAULT NULL,
-  url varchar(100) DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-
---
--- Dumping data for table repo_perms_urls
---
-
-set IDENTITY_INSERT repo_perms_urls ON;
-INSERT INTO repo_perms_urls(id,repo_pg_id,url)
-VALUES (5,2,'admin/catalog/copy_ddi'),(6,2,'admin/catalog/copy_study'),(7,2,'admin/catalog/delete'),(8,2,'admin/catalog/do_copy_study/*'),(9,2,'admin/catalog/do_upload'),(10,2,'admin/catalog/edit/*'),(11,2,'admin/catalog/export-ddi'),(12,2,'admin/catalog/import-rdf'),(15,2,'admin/catalog/repladce_ddi/*'),(16,2,'admin/catalog/search'),(17,2,'admin/catalog/survey/*'),(18,2,'admin/catalog/update'),(19,2,'admin/catalog/update/*'),(20,2,'admin/catalog/upload'),(28,3,'admin/licensed_requests'),(29,3,'admin/licensed_requests/*'),(30,2,'admin/managefiles/*'),(41,2,'admin/resources/*'),(64,1,'admin/catalog/*'),(67,2,'admin/pdf_generator/*'),
-(68,1,'admin/pdf_generator/*'),
-(69,1,'admin/catalog/add_study'),
-(70,1,'admin/catalog/batch_import'),
-(71,1,'admin/catalog/refresh/*');
-set IDENTITY_INSERT repo_perms_urls OFF;
-
-
 
 
 --
@@ -1593,6 +1652,7 @@ INSERT INTO survey_types(id,code,title, weight) VALUES(6,'image','Photo',40);
 INSERT INTO survey_types(id,code,title, weight) VALUES(7,'script','Script',30);
 INSERT INTO survey_types(id,code,title, weight) VALUES(8,'visualization','Visualization',60);
 INSERT INTO survey_types(id,code,title, weight) VALUES(9,'video','Video',40);
+INSERT INTO survey_types(id,code,title, weight) VALUES(10,'timeseriesdb','Datasets',75);
 set IDENTITY_INSERT survey_types OFF;
 
 
@@ -1820,6 +1880,28 @@ CREATE TABLE data_access_whitelist (
 );
 
 
+CREATE TABLE repositories_acl (
+  id int NOT NULL IDENTITY(1,1),
+  user_id int NOT NULL,
+  repository_id int NOT NULL,
+  permission varchar(80) NOT NULL,
+  created_by int NULL,
+  created datetime2(0) NOT NULL CONSTRAINT DF_repositories_acl_created DEFAULT (SYSUTCDATETIME()),
+  CONSTRAINT PK_repositories_acl PRIMARY KEY (id),
+  CONSTRAINT UQ_repositories_acl_user_repository_permission UNIQUE (user_id, repository_id, permission)
+);
+
+CREATE NONCLUSTERED INDEX IX_repositories_acl_user_repository ON [dbo].[repositories_acl](
+  [user_id] ASC,
+  [repository_id] ASC
+);
+
+CREATE NONCLUSTERED INDEX IX_repositories_acl_repository_permission ON [dbo].[repositories_acl](
+  [repository_id] ASC,
+  [permission] ASC
+);
+
+
 CREATE TABLE widgets (
   id int NOT NULL identity(1,1),
   uuid varchar(100) NOT NULL,
@@ -1895,7 +1977,8 @@ values
 ('country','Countries','core',1),
 ('collection','Collections','core',1),
 ('type','Data types','core',1),
-('tag','Tags','core',1);
+('tag','Tags','core',1),
+('ts_database','Dataset','core',1);
 
 
 CREATE TABLE facet_terms (
@@ -1924,6 +2007,7 @@ CREATE NONCLUSTERED INDEX idx_survey_facets_sid ON [dbo].[survey_facets] ([sid] 
 
 INSERT INTO configurations VALUES ('facets_all','["year","data_class","dtype","country"]',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('facets_microdata','["year","data_class","dtype","country"]',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('facets_timeseries','["ts_database","country"]',NULL,NULL,NULL);
 
 
 CREATE TABLE survey_data_api (
@@ -2028,4 +2112,52 @@ CREATE TABLE [analytics_monthly_files] (
 CREATE NONCLUSTERED INDEX [idx_study] ON [analytics_monthly_files] ([study_id] ASC);
 CREATE NONCLUSTERED INDEX [idx_file] ON [analytics_monthly_files] ([file_name] ASC);
 CREATE NONCLUSTERED INDEX [idx_period] ON [analytics_monthly_files] ([year] ASC, [month] ASC);
+
+
+-- ============================================================
+-- display templates
+-- ============================================================
+
+CREATE TABLE [display_templates] (
+    [id] bigint NOT NULL IDENTITY(1,1),
+    [uid] nvarchar(191) NOT NULL,
+    [template_type] nvarchar(20) NOT NULL DEFAULT 'custom',
+    [data_type] nvarchar(64) NOT NULL,
+    [name] nvarchar(255) NOT NULL,
+    [version] nvarchar(50) NULL,
+    [organization] nvarchar(255) NULL,
+    [author] nvarchar(255) NULL,
+    [description] nvarchar(max) NULL,
+    [status] nvarchar(20) NOT NULL DEFAULT 'draft',
+    [template_json] nvarchar(max) NOT NULL,
+    [is_deleted] bit NOT NULL DEFAULT 0,
+    [created_by] int NULL,
+    [changed_by] int NULL,
+    [created_at] datetime2 NOT NULL DEFAULT SYSDATETIME(),
+    [updated_at] datetime2 NOT NULL DEFAULT SYSDATETIME(),
+    PRIMARY KEY ([id]),
+    CONSTRAINT [unq_display_templates_uid] UNIQUE ([uid]),
+    CONSTRAINT [ck_display_templates_template_type] CHECK ([template_type] IN ('system','custom','imported')),
+    CONSTRAINT [ck_display_templates_status] CHECK ([status] IN ('draft','published','archived')),
+    CONSTRAINT [ck_display_templates_template_json_isjson] CHECK (ISJSON([template_json])=1)
+);
+
+CREATE NONCLUSTERED INDEX [idx_display_templates_type_status] ON [display_templates] ([data_type] ASC, [status] ASC);
+CREATE NONCLUSTERED INDEX [idx_display_templates_template_type] ON [display_templates] ([template_type] ASC);
+CREATE NONCLUSTERED INDEX [idx_display_templates_not_deleted] ON [display_templates] ([is_deleted] ASC, [data_type] ASC);
+
+
+CREATE TABLE [display_templates_default] (
+    [id] bigint NOT NULL IDENTITY(1,1),
+    [data_type] nvarchar(64) NOT NULL,
+    [template_uid] nvarchar(191) NOT NULL,
+    [created_by] int NULL,
+    [updated_by] int NULL,
+    [created_at] datetime2 NOT NULL DEFAULT SYSDATETIME(),
+    [updated_at] datetime2 NOT NULL DEFAULT SYSDATETIME(),
+    PRIMARY KEY ([id]),
+    CONSTRAINT [unq_display_default_type] UNIQUE ([data_type])
+);
+
+CREATE NONCLUSTERED INDEX [idx_display_default_template_uid] ON [display_templates_default] ([template_uid] ASC);
 

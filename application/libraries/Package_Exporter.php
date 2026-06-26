@@ -19,9 +19,10 @@ class Package_Exporter
      * 
      * @param int $sid - Study ID
      * @param string $output_path - Output ZIP file path (optional, defaults to temp file)
+     * @param string $dsd_export 'reference'|'inline' — timeseries JSONL first line (same as JSON_Writer::DSD_EXPORT_*)
      * @return string - Path to created ZIP file
      */
-    public function export($sid, $output_path = null)
+    public function export($sid, $output_path = null, $dsd_export = 'reference')
     {
         if (!$sid) {
             throw new Exception('STUDY_NOT_FOUND');
@@ -53,12 +54,12 @@ class Package_Exporter
 
             $resources = $this->ci->Survey_resource_model->get_resources_by_survey($sid);
             
-            $this->add_study_json($zip, $sid, $dataset);
+            $this->add_study_json($zip, $sid, $dataset, $dsd_export);
             $this->add_study_xml($zip, $sid, $dataset, $study_path);
             $this->add_external_resources_json($zip, $sid, $resources);
             $this->add_documentation_files($zip, $study_path, $resources);
             $this->add_thumbnail($zip, $dataset);
-            $this->add_info_json($zip, $sid, $dataset, $study_path);
+            $this->add_info_json($zip, $sid, $dataset, $study_path, $dsd_export);
         } finally {
             $zip->close();
             $this->cleanup_temp_files();
@@ -70,15 +71,21 @@ class Package_Exporter
     /**
      * Add study JSON (JSON Lines format) to ZIP
      */
-    private function add_study_json($zip, $sid, $dataset)
+    private function add_study_json($zip, $sid, $dataset, $dsd_export = 'reference')
     {
         $jsonl_path = sys_get_temp_dir() . '/' . $dataset['idno'] . '-' . time() . '.jsonl';
         
         try {
-            $this->ci->json_writer->write_jsonl($sid, $jsonl_path, true);
-            
+            $this->ci->json_writer->write_jsonl($sid, $jsonl_path, true, $dsd_export);
+
+            $zip_inner_name = $dataset['idno'] . '.jsonl';
+            if ($dataset['type'] === 'timeseries'
+                && strtolower((string) $dsd_export) === 'inline') {
+                $zip_inner_name = $dataset['idno'] . '.inline.jsonl';
+            }
+
             if (file_exists($jsonl_path)) {
-                $zip->addFile($jsonl_path, $dataset['idno'] . '.jsonl');
+                $zip->addFile($jsonl_path, $zip_inner_name);
                 $this->temp_files[] = $jsonl_path;
             }
         } catch (Exception $e) {
@@ -166,7 +173,7 @@ class Package_Exporter
     /**
      * Add info.json file with study/survey info
      */
-    private function add_info_json($zip, $sid, $dataset, $study_path)
+    private function add_info_json($zip, $sid, $dataset, $study_path, $dsd_export = 'reference')
     {
         $info = array(
             'idno' => $dataset['idno'],
@@ -183,6 +190,10 @@ class Package_Exporter
         }
 
         $info['json_file'] = $dataset['idno'] . '.jsonl';
+        if ($dataset['type'] === 'timeseries'
+            && strtolower((string) $dsd_export) === 'inline') {
+            $info['json_file'] = $dataset['idno'] . '.inline.jsonl';
+        }
 
         $rdf_xml_file = $study_path . '/' . $dataset['idno'] . '.rdf';
         if (file_exists($rdf_xml_file)) {

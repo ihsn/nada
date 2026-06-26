@@ -51,6 +51,23 @@ $fields_arr = array(
     .mouse-pointer {
         cursor: pointer;
     }
+
+    .resource-action-buttons .btn + .btn {
+        margin-top: 0.35rem;
+    }
+
+    #pdf-preview-modal .modal-body {
+        padding: 0;
+        min-height: 75vh;
+    }
+
+    #pdf-preview-frame {
+        width: 100%;
+        height: 75vh;
+        border: 0;
+        display: block;
+        background: #f5f5f5;
+    }
 </style>
 
 <?php if (!$resources): ?>
@@ -96,6 +113,22 @@ $fields_arr = array(
 
                         // Get file extension
                         $ext = get_file_extension($row['filename']);
+
+                        $is_local_pdf = (
+                            ! $is_url
+                            && $url
+                            && (
+                                strtolower($ext) === 'pdf'
+                                || (isset($row['dcformat']) && strtolower(trim((string) $row['dcformat'])) === 'application/pdf')
+                            )
+                        );
+
+                        $pdf_preview_url = '';
+                        if ($is_local_pdf) {
+                            $pdf_preview_url = site_url(
+                                'catalog/' . (int) $sid . '/pdf-stream/' . (int) $row['resource_id']
+                            );
+                        }
                         ?>
                         
                         <?php if ($class == "resource") { 
@@ -119,6 +152,7 @@ $fields_arr = array(
 
                                 <div class="col-md-4 col-lg-3">
                                     <?php if ($url != '' || $file_size != ''): ?>
+                                        <div class="resource-action-buttons">
                                         <?php
                                         $download_str = array();
                                         $download_str[] = strtoupper($ext);
@@ -147,6 +181,17 @@ $fields_arr = array(
                                             <i class="<?php echo $button_icon_class; ?>" aria-hidden="true"></i> 
                                             <?php echo $download_str; ?>
                                         </a>
+
+                                        <?php if ($pdf_preview_url !== ''): ?>
+                                            <button type="button"
+                                                    class="btn btn-outline-secondary btn-sm btn-block pdf-preview-btn"
+                                                    data-preview-url="<?php echo html_escape($pdf_preview_url); ?>"
+                                                    data-title="<?php echo html_escape($row['title']); ?>">
+                                                <i class="far fa-file-pdf" aria-hidden="true"></i>
+                                                <?php echo t('preview'); ?>
+                                            </button>
+                                        <?php endif; ?>
+                                        </div>
 
                                         <?php
                                         $link_text = '<img src="' . get_file_icon($ext) . '" alt="' . $ext . '" title="' . basename($row['filename']) . '"/> ';
@@ -222,30 +267,72 @@ $fields_arr = array(
     </div>
 </div>
 
+<div class="modal fade" id="pdf-preview-modal" tabindex="-1" role="dialog" aria-labelledby="pdf-preview-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document" style="max-width: 95%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdf-preview-modal-title"><?php echo t('pdf_preview'); ?></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <iframe id="pdf-preview-frame" title="<?php echo html_escape(t('pdf_preview')); ?>"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
     function toggle_resource(element_id) {
         $("#" + element_id).parent(".resource").toggleClass("active");
         $("#" + element_id).toggle();
     }
     
-    $(document).ready(function() { 
+    function bind_behaviours() {
+        $(".resource-info").unbind("click");
+        $(".resource-info").click(function() {
+            if ($(this).attr("id") != "") {
+                toggle_resource("info_" + $(this).attr("id"));
+            }
+            return false;
+        });
+    }
+
+    function bind_pdf_preview_behaviours() {
+        if (!$("#pdf-preview-modal").length) {
+            return;
+        }
+
+        $(document).off("click.nadaPdfPreview", ".pdf-preview-btn").on("click.nadaPdfPreview", ".pdf-preview-btn", function(e) {
+            e.preventDefault();
+
+            var previewUrl = $(this).attr("data-preview-url");
+            var title = $(this).attr("data-title") || "<?php echo html_escape(t('pdf_preview')); ?>";
+            var $modal = $("#pdf-preview-modal");
+            var $frame = $("#pdf-preview-frame");
+
+            $("#pdf-preview-modal-title").text(title);
+            $frame.attr("src", "about:blank");
+
+            $modal.off("shown.bs.modal.nadaPdfPreview").one("shown.bs.modal.nadaPdfPreview", function() {
+                $frame.attr("src", previewUrl);
+            }).modal("show");
+        });
+
+        $("#pdf-preview-modal").off("hidden.bs.modal.nadaPdfPreview").on("hidden.bs.modal.nadaPdfPreview", function() {
+            $("#pdf-preview-frame").attr("src", "about:blank");
+        });
+    }
+
+    $(document).ready(function() {
         bind_behaviours();
-        
+        bind_pdf_preview_behaviours();
+
         $(".show-datafiles").click(function() {
             $(".data-files .hidden").removeClass("hidden");
             $(".show-datafiles").hide();
             return false;
         });
-    });    
-    
-    function bind_behaviours() {
-        // Show variable info by id
-        $(".resource-info").unbind('click');
-        $(".resource-info").click(function() {
-            if ($(this).attr("id") != '') {
-                toggle_resource('info_' + $(this).attr("id"));
-            }
-            return false;
-        });            
-    }
+    });
 </script>

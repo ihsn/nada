@@ -132,9 +132,13 @@
         const el = document.querySelector('[data-study-id]');
         if (el) return el.getAttribute('data-study-id');
 
+        const meta = document.querySelector('#dataset-metadata-info[data-id]');
+        if (meta) return meta.getAttribute('data-id');
+
         if (window.STUDY_ID) return String(window.STUDY_ID);
 
-        const match = window.location.pathname.match(/\/catalog\/([^\/]+)/);
+        // Study URLs are /catalog/{numeric_sid}/…; repo listing pages use non-numeric slugs.
+        const match = window.location.pathname.match(/\/catalog\/(\d+)(?:\/|$)/);
         return match ? match[1] : null;
     }
 
@@ -144,9 +148,12 @@
             const base = CONFIG.baseUrl || '';
             const apiUrl = base + (base.endsWith('/') ? '' : '/') + 'api/analytics/pageview';
             log('Fetching: ' + apiUrl);
+
+        const headers = {'Content-Type': 'application/json'};
+
             const res = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: headers,
                 body: JSON.stringify(data)
             });
 
@@ -182,7 +189,7 @@
 
         const studyId = getStudyId();
         if (!studyId) {
-            log('No study ID found. Checked: data-study-id, window.STUDY_ID, URL pattern', 'error');
+            log('No study ID found. Checked: data-study-id, #dataset-metadata-info, window.STUDY_ID, numeric catalog URL', 'error');
             return;
         }
         
@@ -215,6 +222,10 @@
             referrer: document.referrer || null,
             source: 'builtin'
         };
+
+        if (CONFIG.csrfToken && CONFIG.csrfTokenName) {
+            payload[CONFIG.csrfTokenName] = CONFIG.csrfToken;
+        }
 
         log('Sending pageview to: ' + CONFIG.apiUrl);
         log('Payload: ' + JSON.stringify(payload));
@@ -303,6 +314,10 @@
             referrer: document.referrer || null,
             source: 'ajax'
         };
+
+        if (CONFIG.csrfToken && CONFIG.csrfTokenName) {
+            payload[CONFIG.csrfTokenName] = CONFIG.csrfToken;
+        }
 
         console.log('[NADA Analytics] Sending AJAX pageview for section:', section);
         console.log('[NADA Analytics] AJAX Payload:', JSON.stringify(payload));

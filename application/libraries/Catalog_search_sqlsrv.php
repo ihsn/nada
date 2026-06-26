@@ -23,6 +23,7 @@ class Catalog_search_sqlsrv{
 	var $type=array();
 	var $data_class=array();
 	var $dtype=array();//data access type
+	var $database=array();//timeseries database filter (db_idno values)
 	var $sid=''; //comma separated list of survey IDs
 	var $collections=array();
 	var $created='';
@@ -37,15 +38,15 @@ class Catalog_search_sqlsrv{
 	
 	//allowed sort options
 	var $sort_allowed_fields=array(
-        'title'=>'title',
-        'nation'=>'nation',
-        'year'=>'year_start',
-        'popularity'=>'total_views',
+        'title'=>'surveys.title',
+        'nation'=>'surveys.nation',
+        'year'=>'surveys.year_start',
+        'popularity'=>'surveys.total_views',
         'collection'=>'repositories.repositoryid',
         'rank'=>'k.rank',
         'relevance'=>'k.rank',
-		'created'=>'created',
-		'changed'=>'changed'
+		'created'=>'surveys.created',
+		'changed'=>'surveys.changed'
         );
 
 	var	$sort_allowed_order=array('asc','desc');
@@ -143,7 +144,7 @@ class Catalog_search_sqlsrv{
 		}
 		
 		//show only publshed studies
-		$where_list[]='published=1';
+		$where_list[]='surveys.published=1';
 
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -213,7 +214,7 @@ class Catalog_search_sqlsrv{
 			
 			if ($where!='') 
 			{
-				$this->ci->db->where($where, FALSE, FALSE);
+				$this->ci->db->where($where, NULL, FALSE);
 			}
 
 			$query=$this->ci->db->get("surveys");
@@ -235,6 +236,15 @@ class Catalog_search_sqlsrv{
 	//perform the search
 	function search($limit=15, $offset=0)
     {
+		if (!class_exists('Catalog_study_idno_lookup', false)) {
+			require_once APPPATH . 'libraries/Catalog_study_idno_lookup.php';
+		}
+		$params = is_array($this->params) ? $this->params : array();
+		$idno_result = Catalog_study_idno_lookup::try_search_from_params($params, $limit, $offset);
+		if ($idno_result !== null) {
+			return $idno_result;
+		}
+
 		$type=$this->_build_dataset_type_query();
 		$dtype = $this->_build_dtype_query();
         $study = $this->_build_study_query();
@@ -250,33 +260,34 @@ class Catalog_search_sqlsrv{
 		$tags=$this->_build_tags_query();
 		$created=$this->_build_created_query();
 		$regions=$this->_build_regions_query();
+		$database=$this->_build_database_query();
 
         // RANK / relevance sort only when study keywords
         if (! trim($this->study_keywords)) {
             unset($this->sort_allowed_fields['rank'], $this->sort_allowed_fields['relevance']);
         }
 
-        $sort_by = array_key_exists($this->sort_by, $this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'nation';
+        $sort_by = array_key_exists($this->sort_by, $this->sort_allowed_fields) ? $this->sort_allowed_fields[$this->sort_by] : 'surveys.nation';
         $sort_order = in_array($this->sort_order, $this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
         //set sort
         $sort_options[0] = $sort_options[0] = array('sort_by' => $sort_by, 'sort_order' => $sort_order);
 
         //multi-column sort
-        if ($sort_by == 'nation') {
-            $sort_options[1] = array('sort_by' => 'year_start', 'sort_order' => 'desc');
+        if ($sort_by == 'surveys.nation') {
+            $sort_options[1] = array('sort_by' => 'surveys.year_start', 'sort_order' => 'desc');
             $sort_options[2] = array('sort_by' => 'surveys.title', 'sort_order' => 'asc');
-        } elseif ($sort_by == 'title') {
-            $sort_options[1] = array('sort_by' => 'year_start', 'sort_order' => 'desc');
-            $sort_options[2] = array('sort_by' => 'nation', 'sort_order' => 'asc');
+        } elseif ($sort_by == 'surveys.title') {
+            $sort_options[1] = array('sort_by' => 'surveys.year_start', 'sort_order' => 'desc');
+            $sort_options[2] = array('sort_by' => 'surveys.nation', 'sort_order' => 'asc');
         }
-        if ($sort_by == 'year') {
-            $sort_options[1] = array('sort_by' => 'nation', 'sort_order' => 'asc');
+        if ($sort_by == 'surveys.year_start') {
+            $sort_options[1] = array('sort_by' => 'surveys.nation', 'sort_order' => 'asc');
             $sort_options[2] = array('sort_by' => 'surveys.title', 'sort_order' => 'asc');
         }
 
 		//array of all options
-		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$repository,$dtype,$collections,$created,$tags,$data_class,$countries_iso3,$regions,$type);
+		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$repository,$dtype,$collections,$created,$tags,$data_class,$countries_iso3,$regions,$type,$database);
 
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -303,8 +314,10 @@ class Catalog_search_sqlsrv{
 
 
 		//study fields returned by the select statement
-		$study_fields='surveys.id as id,surveys.idno,surveys.doi,surveys.type,surveys.title,nation,authoring_entity, f.model as form_model,data_class_id, year_start,year_end';
-		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,varcount, surveys.thumbnail';
+		$study_fields='surveys.id as id,surveys.idno,surveys.doi,surveys.type,surveys.title,surveys.nation,surveys.authoring_entity, f.model as form_model,surveys.data_class_id, surveys.year_start,surveys.year_end';
+		$study_fields.=', surveys.repositoryid as repositoryid, repositories.title as repo_title, surveys.created,surveys.changed,surveys.total_views,surveys.total_downloads,surveys.varcount, surveys.thumbnail';
+		$study_fields.=', surveys.ts_dimensions, surveys.ts_frequency, surveys.ts_data_count';
+		$study_fields.=',tsdb.id as ts_db_study_id, tsdb.title as ts_db_title';
 		$study_fields.=', surveys.abstract';
 
 		//add ranking if keywords are not empty
@@ -317,6 +330,8 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->from('surveys');
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
+		$this->ci->db->join('timeseries_db_links tdbl','tdbl.series_id=surveys.id AND tdbl.is_primary=1','left');
+		$this->ci->db->join('surveys tsdb','tsdb.idno=tdbl.db_idno AND tsdb.type=\'timeseriesdb\' AND tsdb.published=1','left');
 		$this->ci->db->where('surveys.published',1);
 
 		if ($repository!='')
@@ -334,7 +349,7 @@ class Catalog_search_sqlsrv{
 
 		if ($where!='')
 		{
-			$this->ci->db->where($where, FALSE, FALSE);
+			$this->ci->db->where($where, NULL, FALSE);
 		}
 
 		$query=$this->ci->db->get();
@@ -603,8 +618,21 @@ class Catalog_search_sqlsrv{
 	}
 	
 	
+	protected function _normalize_year_range()
+	{
+		$from = (int) $this->from;
+		$to   = (int) $this->to;
+
+		if ($from > 0 && $to > 0 && $from > $to) {
+			$this->from = $to;
+			$this->to   = $from;
+		}
+	}
+
 	function _build_years_query()
 	{
+		$this->_normalize_year_range();
+
 		$from=(integer)$this->from;
 		$to=(integer)$this->to;
 
@@ -855,7 +883,7 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		$this->ci->db->order_by($sort_by, $sort_order);
-		$this->ci->db->where($where, FALSE, FALSE);
+		$this->ci->db->where($where, NULL, FALSE);
 
 		if ($repository!=''){
 			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
@@ -901,7 +929,7 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->join('forms f','surveys.formid=f.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
 		
-		$this->ci->db->where($where, FALSE, FALSE);
+		$this->ci->db->where($where, NULL, FALSE);
 
 		if ($repository!=''){
 			$this->ci->db->join('survey_repos','surveys.id=survey_repos.sid','left');
@@ -953,7 +981,7 @@ class Catalog_search_sqlsrv{
 		$this->ci->db->limit($limit, $offset);
 		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn,v.fid");
 		$this->ci->db->order_by($sort_by, $sort_order);
-		$this->ci->db->where($where, FALSE, FALSE);
+		$this->ci->db->where($where, NULL, FALSE);
 		$this->ci->db->where('v.sid', $surveyid);
 
 		$query  = $this->ci->db->get("variables as v");
@@ -961,7 +989,7 @@ class Catalog_search_sqlsrv{
 
 		// Count matching rows (SQL Server has no FOUND_ROWS)
 		$this->ci->db->select("count(*) as rowcount", FALSE);
-		$this->ci->db->where($where, FALSE, FALSE);
+		$this->ci->db->where($where, NULL, FALSE);
 		$this->ci->db->where('v.sid', $surveyid);
 		$count_query = $this->ci->db->get("variables as v");
 		$count_row   = $count_query ? $count_query->row_array() : [];
@@ -1044,7 +1072,7 @@ class Catalog_search_sqlsrv{
 		$types_list=array();
 				
 		foreach($types  as $type){
-			if(!empty($type)){
+			if(!empty($type) && strtolower((string)$type)!=='all'){
 				$types_list[]=$this->ci->db->escape($type);
 			}
 		}
@@ -1150,7 +1178,7 @@ class Catalog_search_sqlsrv{
 		}
 		
 		if ($where!='') {
-			$this->ci->db->where($where,FALSE,FALSE);
+			$this->ci->db->where($where, NULL, FALSE);
 		}
 	
 		$query=$this->ci->db->get();
@@ -1263,6 +1291,29 @@ class Catalog_search_sqlsrv{
 		}
 
 		return FALSE;
+	}
+
+
+	protected function _build_database_query()
+	{
+		$idnos = (array) $this->database;
+
+		$escaped = array();
+		foreach ($idnos as $idno) {
+			$idno = trim((string) $idno);
+			if ($idno !== '') {
+				$escaped[] = $this->ci->db->escape($idno);
+			}
+		}
+
+		if (empty($escaped)) {
+			return FALSE;
+		}
+
+		return sprintf(
+			'surveys.id IN (SELECT series_id FROM timeseries_db_links WHERE db_idno IN (%s))',
+			implode(',', $escaped)
+		);
 	}
 
 

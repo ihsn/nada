@@ -1,13 +1,16 @@
 <template>
-  <v-app>
-    <v-main>
-      <v-container fluid>
-        <h1 class="text-h5 mb-4">Codelists</h1>
-
-        <v-alert v-if="message.text" :type="message.type" closable class="mb-4" @click:close="message.text = ''">
+  <v-app class="admin-codelists-app">
+    <v-main class="admin-codelists-page">
+      <v-container fluid class="px-4 pt-2 pb-6">
+        <v-alert
+          v-if="message.text"
+          :type="message.type"
+          closable
+          class="mb-4"
+          @click:close="message.text = ''"
+        >
           {{ message.text }}
         </v-alert>
-
         <router-view />
       </v-container>
     </v-main>
@@ -28,3 +31,10 @@ function setMessage(text, type = 'info') {
 
 provide('setMessage', setMessage);
 </script>
+
+<style>
+.admin-codelists-app,
+.admin-codelists-page {
+  background-color: #f0f2f5;
+}
+</style>

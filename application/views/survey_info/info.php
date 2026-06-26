@@ -122,6 +122,38 @@
                 </div>
                 <?php endif;?>
                 
+                <?php if ($survey['type'] === 'timeseries' && !empty($survey['resolved_databases'])): ?>
+                <div class="row mb-2 pb-2 border-bottom">
+                    <div class="col-md-2">
+                        <?php echo count($survey['resolved_databases']) === 1 ? t('dataset') : t('datasets'); ?>
+                    </div>
+                    <div class="col">
+                        <div class="ts-databases">
+                            <?php foreach ($survey['resolved_databases'] as $db): ?>
+                                <?php
+                                $idno        = isset($db['id'])          ? $db['id']         : '';
+                                $name        = isset($db['name'])        ? trim($db['name']) : '';
+                                $uri         = isset($db['uri'])         ? trim($db['uri'])  : '';
+                                $catalog_url = isset($db['catalog_url']) ? $db['catalog_url'] : null;
+                                $label       = $name !== '' ? $name : ($idno !== '' ? $idno : '');
+                                ?>
+                                <?php if ($label !== ''): ?>
+                                <div>
+                                    <?php if ($catalog_url): ?>
+                                        <a href="<?php echo htmlspecialchars($catalog_url); ?>"><?php echo htmlspecialchars($label); ?></a>
+                                    <?php elseif ($uri !== ''): ?>
+                                        <a href="<?php echo htmlspecialchars($uri); ?>" target="_blank" rel="noopener"><?php echo htmlspecialchars($label); ?> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                                    <?php else: ?>
+                                        <?php echo htmlspecialchars($label); ?>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <?php if ($survey['type']=='document' && isset($survey['metadata']['document_description']['abstract']) ):?>
                 <div class="row mb-2 pb-2  border-bottom">
                     <div class="col-md-2">

@@ -54,6 +54,131 @@ class Codelist_group_model extends CI_Model {
 	}
 
 	/**
+	 * Paginated groups for one codelist (same shape as get_groups_by_codelist rows).
+	 *
+	 * @param int   $codelist_id
+	 * @param array $options page, per_page, search (on name), with_translations (default true)
+	 * @return array{ rows: array, total: int, page: int, per_page: int }
+	 */
+	public function get_groups_by_codelist_paged($codelist_id, array $options = [])
+	{
+		$codelist_id = (int) $codelist_id;
+		if ($codelist_id <= 0) {
+			return ['rows' => [], 'total' => 0, 'page' => 1, 'per_page' => 50];
+		}
+		$page = isset($options['page']) ? max(1, (int) $options['page']) : 1;
+		$perPage = isset($options['per_page']) ? (int) $options['per_page'] : 50;
+		if ($perPage < 1) {
+			$perPage = 50;
+		}
+		if ($perPage > 200) {
+			$perPage = 200;
+		}
+		$search = isset($options['search']) ? trim((string) $options['search']) : '';
+		$withTranslations = !array_key_exists('with_translations', $options) || !empty($options['with_translations']);
+
+		$this->db->from('codelist_group');
+		$this->db->where('codelist_id', $codelist_id);
+		if ($search !== '') {
+			$this->db->like('name', $search);
+		}
+		$total = (int) $this->db->count_all_results();
+
+		$this->db->from('codelist_group');
+		$this->db->where('codelist_id', $codelist_id);
+		if ($search !== '') {
+			$this->db->like('name', $search);
+		}
+		$this->db->order_by('sort_order', 'ASC');
+		$this->db->order_by('id', 'ASC');
+		$offset = ($page - 1) * $perPage;
+		$this->db->limit($perPage, $offset);
+		$_r = $this->db->get();
+		$rows = $_r ? $_r->result_array() : [];
+
+		if (empty($rows)) {
+			return [
+				'rows'     => [],
+				'total'    => $total,
+				'page'     => $page,
+				'per_page' => $perPage,
+			];
+		}
+
+		$group_ids = array_column($rows, 'id');
+		$items_per_group = [];
+		$_r = $this->db->where_in('codelist_group_id', $group_ids)
+			->order_by('sort_order')
+			->get('codelist_group_item');
+		$group_items = $_r ? $_r->result_array() : [];
+		foreach ($group_items as $gi) {
+			$gid = (int) $gi['codelist_group_id'];
+			if (!isset($items_per_group[$gid])) {
+				$items_per_group[$gid] = [];
+			}
+			$items_per_group[$gid][] = (int) $gi['codelist_item_id'];
+		}
+
+		$trans_bulk = $withTranslations ? $this->get_group_translations_bulk($group_ids) : [];
+
+		foreach ($rows as &$row) {
+			$gid = (int) $row['id'];
+			$row['item_ids'] = isset($items_per_group[$gid]) ? $items_per_group[$gid] : [];
+			$row['translations'] = ($withTranslations && isset($trans_bulk[$gid])) ? $trans_bulk[$gid] : [];
+		}
+		unset($row);
+
+		return [
+			'rows'     => $rows,
+			'total'    => $total,
+			'page'     => $page,
+			'per_page' => $perPage,
+		];
+	}
+
+	/**
+	 * Count groups for a codelist.
+	 *
+	 * @param int $codelist_id
+	 * @return int
+	 */
+	public function count_groups_by_codelist($codelist_id)
+	{
+		$codelist_id = (int) $codelist_id;
+		if ($codelist_id <= 0) {
+			return 0;
+		}
+		$this->db->where('codelist_id', $codelist_id);
+		return (int) $this->db->count_all_results('codelist_group');
+	}
+
+	/**
+	 * Translations for many groups: [group_id => [lang => title]].
+	 *
+	 * @param array $group_ids
+	 * @return array
+	 */
+	public function get_group_translations_bulk(array $group_ids)
+	{
+		if (empty($group_ids)) {
+			return [];
+		}
+		$group_ids = array_map('intval', $group_ids);
+		$this->db->where_in('codelist_group_id', $group_ids);
+		$_r = $this->db->get('codelist_group_translation');
+		$rows = $_r ? $_r->result_array() : [];
+		$out = [];
+		foreach ($rows as $r) {
+			$id = (int) $r['codelist_group_id'];
+			if (!isset($out[$id])) {
+				$out[$id] = [];
+			}
+			$out[$id][$r['lang']] = $r['title'];
+		}
+		return $out;
+	}
+
+	/**
 	 * Get one group by id.
 	 *
 	 * @param int $group_id

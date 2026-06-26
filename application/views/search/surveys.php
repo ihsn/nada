@@ -63,20 +63,23 @@
 	$search_querystring='?'.get_querystring( array('sk', 'vk', 'vf','view','topic','country'));
 ?>
 
-<input type="hidden" name="sort_by" id="sort_by" value="<?php echo $sort_by;?>"/>
-<input type="hidden" name="sort_order" id="sort_order" value="<?php echo $sort_order;?>"/>
+<input type="hidden" name="sort_by" id="sort_by" value="<?php echo html_escape((string) $sort_by);?>"/>
+<input type="hidden" name="sort_order" id="sort_order" value="<?php echo html_escape((string) $sort_order);?>"/>
 <?php //if($search_options->ps>15):?>
-<input type="hidden" name="ps" id="ps" value="<?php echo $search_options->ps;?>"/>
+<input type="hidden" name="ps" id="ps" value="<?php echo html_escape((string) $search_options->ps);?>"/>
 <?php //endif;?>
 <input type="hidden" name="repo" id="repo" value="<?php echo html_escape($active_repo_id);?>"/>
-<input type="hidden" name="sid" id="sid" value="<?php echo $search_options->sid;?>"/>
+<input type="hidden" name="sid" id="sid" value="<?php echo html_escape((string) $search_options->sid);?>"/>
     
 <?php 
     $type_icons=array(
         'survey'=>'fa-database',
         'microdata'=>'fa-database',
+        'datasets'=>'fa-database',
         'geospatial'=>'fa-globe-americas',
         'timeseries'=>'fa-chart-line',
+        'timeseriesdb'=>'fa-database',
+        'timeseries-db'=>'fa-database',
         'document'=>'fa-file-alt',
         'table'=>'fa-table',
         'visualization'=>'fa-pie-chart',
@@ -205,7 +208,7 @@ if (isset($featured_studies) && is_array($featured_studies) ){
             <div class="<?php echo $row_col2_class;?>">                
                 <h5 class="wb-card-title title">
                     <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" class="d-flex" >   
-                        <i class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>             
+                        <i class="fa <?php echo isset($type_icons[$row['type']]) ? $type_icons[$row['type']] : 'fa-database';?> fa-nada-icon wb-title-icon"></i>             
                         <span>
                             <?php echo $row['title'];?>
                             <?php if(isset($row['subtitle'])):?>
@@ -248,6 +251,32 @@ if (isset($featured_studies) && is_array($featured_studies) ){
                         <span class="study-by" style="font-size:14px;"><?php echo $row['authoring_entity'];?></span>
                     </div>
                     <?php endif;?>
+
+                    <?php if (
+                        isset($row['type']) && $row['type'] === 'timeseries'
+                        && isset($row['ts_dimensions']) && trim((string)$row['ts_dimensions']) !== ''
+                    ): ?>
+                        <?php
+                            $dimensions_raw = explode(',', (string)$row['ts_dimensions']);
+                            $dimensions = array();
+                            foreach ($dimensions_raw as $dimension_item) {
+                                $dimension_item = trim($dimension_item);
+                                if ($dimension_item !== '') {
+                                    $dimensions[] = $dimension_item;
+                                }
+                            }
+                        ?>
+                        <?php if (!empty($dimensions)): ?>
+                            <div class="study-dimensions mt-1">
+                                <span class="wb-label mr-1" style="font-size: 12px;">Dimensions:</span>
+                                <?php foreach ($dimensions as $dimension): ?>
+                                    <span class="wb-chip mr-1 mb-1" style="font-size: 11px; line-height: 1.2; display: inline-block;">
+                                        <?php echo html_escape($dimension); ?>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
 
                     <?php if ($collection_links):?>
                         <div class="study-collections mt-1">

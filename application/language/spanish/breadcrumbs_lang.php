@@ -2,7 +2,7 @@
 $lang['Home']="Página principal";
 $lang['edit_study']="Editar estudio";
 $lang['Citations']="Citas";
-$lang['add_study']="Agregar nuevo estudio";
+$lang['add_study']="Agregar estudio";
 $lang['bulk_import']="Importar DDI";
 $lang['transfer_study_ownership']="Transferir estudio a otro dueño";
 $lang['delete']="Borrar";

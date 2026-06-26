@@ -16,7 +16,15 @@ class MY_Controller extends CI_Controller
     var $_ci_varmap         = array('unit_test' => 'unit', 'user_agent' => 'agent');
 	
 	var $is_admin=TRUE;
-	
+
+	/**
+	 * Legacy UI context (repository row or central stub). Controllers that need it set this explicitly
+	 * (e.g. Catalog, Citations, Licensed_requests, catalog Vue entrypoints). Not auto-populated.
+	 *
+	 * @var object|null
+	 */
+	public $active_repo = NULL;
+
 	/**
 	* Manages both admin/non-admin users
 	*
@@ -229,67 +237,97 @@ class MY_Controller extends CI_Controller
 	//get public site menu
 	function _menu()
 	{
-		$data['menus']= $this->Menu_model->select_all();		
+		$this->load->helper('menu');
+		$data['menus']= $this->Menu_model->get_published_menu_tree();
 		$content=$this->load->view('default_menu', $data,true);
 		return $content;
 	}
 	
  	/**
-	* Test if app is properly installed and can connect to db
+	* Test if app is properly installed and can connect to db.
+	* Uses a lock file in CATALOG_ROOT as a fast-path check to avoid a DB query
+	* on every request. DB is the authoritative source of truth; lock file is
+	* a performance optimisation only. Falls back to DB if lock file is absent.
 	*/
  	function is_app_installed()
 	{
 		$this->load->database();
-		
-		//check if database connection settings are filled in
+
 		if ($this->db->dbdriver=='' || $this->db->username=='' || $this->db->database=='')
 		{
 			show_error('You have not setup a database');
 		}
-		
-		//test reading from database tables
-		$this->db->limit(1);
-		$query=$this->db->get('configurations');
-		
-		if ($query)
+
+		// Fast path: lock file present means app is installed — skip DB query
+		$lock_file = $this->_get_install_lock_path();
+		if ($lock_file && file_exists($lock_file))
 		{
 			return TRUE;
 		}
-				
-		//test database connection only if everything else above has failed
-		switch($this->db->dbdriver)
+
+		// Lock file missing — check DB for app_installed row
+		$this->db->select('name');
+		$this->db->where('name', 'app_installed');
+		$query = $this->db->get('configurations');
+
+		if ($query && $query->num_rows() > 0)
 		{
-			case 'mysql':
-				$conn_id = @mysql_connect($this->db->hostname, $this->db->username, $this->db->password, TRUE);
-				break;
+			// Installed — recreate lock file for subsequent requests (migration path)
+			if ($lock_file)
+			{
+				@file_put_contents($lock_file, date("U"));
+			}
+			return TRUE;
+		}
+
+		// configurations table missing or app_installed row absent — test raw DB connection
+		// to distinguish "not installed" from "DB unreachable"
+		$conn_id = FALSE;
+		switch ($this->db->dbdriver)
+		{
 			case 'mysqli':
-				$conn_id = mysqli_connect($this->db->hostname, $this->db->username, $this->db->password);								
-				break;	
-			case 'postgre':
-				$conn_id=@pg_connect("host={$this->db->hostname} user={$this->db->username} password={$this->db->password} connect_timeout=5 dbname=postgres");
+				$conn_id = @mysqli_connect($this->db->hostname, $this->db->username, $this->db->password);
 				break;
 			case 'sqlsrv':
-				$auth_info = array( "UID"=>$this->db->username,"PWD"=>$this->db->password);
+				$auth_info = array('UID' => $this->db->username, 'PWD' => $this->db->password);
 				$conn_id = @sqlsrv_connect($this->db->hostname, $auth_info);
 				break;
-			case 'oci8':
-				$conn_id = @oci_connect($this->db->username, $this->db->password, $this->db->hostname);
-				break;				
 			default:
 				show_error('MY_CONTROLLER::database not supported '.$this->db->dbdriver);
 		}
 
-		if (!$conn_id ) 
-        {
-            //cannot connect to database server
+		if (!$conn_id)
+		{
 			show_error('Failed to connect to database, check database settings');
-        } 
-        else //can connect to db server but not to the database
-        {
-            redirect("install");
-        }
+		}
+		else
+		{
+			// Can reach DB server but app is not installed
+			redirect('install');
+		}
 	}
 
 
-	
-}	
+	/**
+	 * Returns the absolute path to the install lock file, or FALSE if
+	 * catalog_root is not configured.
+	 */
+	function _get_install_lock_path()
+	{
+		$catalog_root = $this->config->item('catalog_root');
+		if (empty($catalog_root))
+		{
+			return FALSE;
+		}
+
+		// Resolve to absolute path if relative (no leading / and no Windows drive letter)
+		if ($catalog_root[0] !== '/' && strpos($catalog_root, ':') === FALSE)
+		{
+			$catalog_root = FCPATH . $catalog_root;
+		}
+
+		return rtrim($catalog_root, '/') . '/.nada_installed';
+	}
+
+
+}

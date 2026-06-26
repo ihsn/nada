@@ -25,7 +25,7 @@ $menu[]=array(
 			),
 			array(
 				'title'	=>'Manage collections',
-				'url'	=>'admin/repositories'
+				'url'	=>'admin/collections'
 			),
 			array(
 				'type'	=>'divider'
@@ -180,6 +180,13 @@ $menu[]=array(
 	array(
 		'title'	=>'Codelists',
 		'url'	=>'admin/codelists'
+	),
+	array(
+		'type'	=>'divider'
+	),
+	array(
+		'title'	=>'Data structures',
+		'url'	=>'admin/data_structures'
 	),
 	array(
 		'type'	=>'divider'

@@ -2,6 +2,13 @@ import { ref } from 'vue';
 import axios from 'axios';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 
+/** @param {unknown} e */
+export function isCollectionsAccessDenied(e) {
+  if (e?.response?.status === 403) return true;
+  const msg = e?.response?.data?.message ?? e?.message ?? '';
+  return msg === 'ACCESS-DENIED' || msg === 'ACCESS_DENIED';
+}
+
 /**
  * Composable for admin collections API (CRUD).
  * Maps to application/controllers/api/admin/Collections.php
@@ -38,7 +45,7 @@ export function useCollectionsApi() {
     } catch (e) {
       error.value = e;
       console.error('Collections list error:', e);
-      return [];
+      throw e;
     } finally {
       loading.value = false;
     }

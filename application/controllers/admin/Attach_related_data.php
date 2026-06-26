@@ -14,6 +14,7 @@ class Attach_related_data extends MY_Controller {
 		parent::__construct();
 
 		$this->load->model('Catalog_admin_search');
+		$this->load->model('Repository_model');
 		$this->load->model("Related_study_model");
 		$this->load->model("Catalog_model");
 
@@ -45,6 +46,11 @@ class Attach_related_data extends MY_Controller {
 			show_error("SURVEY NOT FOUND");
 		}
 
+		$central = $this->Repository_model->get_central_catalog_array();
+		if ($this->acl_manager->get_admin_catalog_repository_scope() === false) {
+			$this->acl_manager->has_access_or_die('study', 'view', null, $central['repositoryid']);
+		}
+
 		$db_rows=$this->_search($sid);
 
 		$db_rows['survey_id']=$sid;
@@ -64,6 +70,16 @@ class Attach_related_data extends MY_Controller {
 		$content=$this->load->view('catalog/select_related_studies', $db_rows,TRUE);
 		$this->template->write('content', $content,true);
 		$this->template->render();
+	}
+
+
+	private function get_items($skey, $section = 'selected')
+	{
+		$sess_data = (array) $this->session->userdata($skey);
+		if (isset($sess_data[$section])) {
+			return $sess_data[$section];
+		}
+		return array();
 	}
 
 
@@ -101,7 +117,7 @@ class Attach_related_data extends MY_Controller {
 			}
 		}
 
-		$this->Catalog_admin_search->set_active_repo('');
+		$this->Catalog_admin_search->apply_session_user_acl_scope();
 
 		//survey rows
 		$data['rows']=$this->Catalog_admin_search->search($search_options,$limit,$offset);

@@ -1,0 +1,75 @@
+/* Minimal shell for themes/adminvue (no Bootstrap). Vuetify styles admin components. */
+
+/*
+ * Establish Vuetify CSS layer priority before any Vite-managed CSS loads.
+ * In production MPA builds the @layer declaration in base.css (bundled into each entry chunk)
+ * arrives AFTER Vuetify component chunks, so the browser's first-seen order wins instead.
+ * shell.css loads via a static <link> tag before all entry chunks, making this declaration
+ * authoritative. Without it, vuetify-utilities loses to vuetify-components → buttons get
+ * wrong text color (black on primary background).
+ */
+@layer vuetify-core, vuetify-components, vuetify-overrides, vuetify-utilities;
+
+html {
+  box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+body.admin-vue-body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1a1a1a;
+  /* Light app canvas (avoids a white band under the fixed header when .admin-vue-shell uses padding-top) */
+  background: #f0f2f5;
+  /* Fixed admin Vuetify bar + shell breathing room — reuse for sticky sub-headers in Vue apps */
+  --admin-app-bar-stack: calc(64px + 0.5rem);
+}
+
+/* Main column offset: Vuetify v-app-bar is fixed/sticky — push content below it (don’t rely on in-flow spacers). */
+.admin-vue-shell {
+  width: 100%;
+  max-width: 100%;
+  padding-top: 56px;
+  /* Opaque background so the padding area isn’t transparent to body (was showing as white with #fff body) */
+  background-color: #f0f2f5;
+}
+
+/* Shared page gutter — layouts/admin_vue pages */
+.admin-vue-shell > div {
+  padding: 24px 12px 24px;
+  box-sizing: border-box;
+}
+.sub-header {
+  background: #f1f1f1;
+  border-bottom: 1px solid #e5e5e5;
+  min-height: 100px;
+  width: 100%;
+  margin: 0 0 1.25rem 0;
+  padding: 10px 25px;
+}
+
+/*
+ * Admin Vue header (#admin-app-header): Vuetify sets toolbar text color from the light theme’s
+ * on-surface (dark), while the bar background is a custom dark color. Text buttons use
+ * color:inherit, so nav labels turn black. Utility classes like .text-white live in the shared
+ * Vite CSS chunk — if that file is missing or blocked on a host, the bar breaks. These rules are
+ * unlayered so they win over @layer vuetify-components without relying on utility CSS.
+ */
+#admin-app-header .admin-app-bar.v-toolbar {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+#admin-app-header .admin-app-bar .v-btn--variant-text.admin-nav-btn,
+#admin-app-header .admin-app-bar .admin-app-bar-brand a {
+  color: #fff !important;
+}
+
+#admin-app-header .admin-app-bar .v-toolbar-title a .text-medium-emphasis {
+  color: rgba(255, 255, 255, 0.75) !important;
+}

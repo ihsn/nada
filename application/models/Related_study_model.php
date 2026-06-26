@@ -252,10 +252,20 @@ class Related_study_model extends CI_Model {
 
 	public function get_relationships($sid)
 	{
-		$this->db->select('surveys.id as sid,surveys.title, surveys.nation,surveys.year_start, survey_relationships.*');
+		$this->db->select('surveys.id as sid,surveys.idno,surveys.title, surveys.nation,surveys.year_start, survey_relationships.*');
 		$this->db->where('sid_1',$sid);
 		$this->db->join('surveys','surveys.id=survey_relationships.sid_2','INNER');
 		return $this->db->get('survey_relationships')->result_array();
+	}
+
+
+	/**
+	 * Count related studies linked from sid_1 (admin summary / tab badges).
+	 */
+	public function get_relationships_count($sid)
+	{
+		$this->db->where('sid_1', (int) $sid);
+		return (int) $this->db->count_all_results('survey_relationships');
 	}
 
 

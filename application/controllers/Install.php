@@ -3,7 +3,7 @@
 class Install extends CI_Controller {
 
 	function __construct()
-	{		
+	{
 		parent::__construct();
 
 		//get a list of languages
@@ -13,19 +13,21 @@ class Install extends CI_Controller {
 		$this->config->set_item('language',$language);
 
 		$this->load->database();
-		
+
 		//initialize
 		$this->load->dbforge();
-		
-		//database utilities	
+
+		//database utilities
 		$this->load->dbutil();
-		
+
 		$this->template->set_template('installer');
 
 		$this->lang->load("general");
 		$this->lang->load("users");
 		$this->lang->load("install");
-		//$this->output->enable_profiler(TRUE);
+
+		// Block re-installation if already installed — checked once here for all methods
+		$this->is_already_installed();
 	}
 
 	function _load_language_list()
@@ -60,10 +62,7 @@ class Install extends CI_Controller {
 	}
 	
 	function index()
-	{	
-		//test if database is already installed
-		$this->is_already_installed();
-		
+	{
 		//test database connectivity
 		$data['db_connect']=$this->_test_connection();		
 
@@ -96,7 +95,7 @@ class Install extends CI_Controller {
 
 	
 	function installing($step=NULL)
-	{				
+	{
 		if ($step==NULL)
 		{
 			//test database connection
@@ -106,14 +105,11 @@ class Install extends CI_Controller {
 				redirect('install');
 			}
 
-			//exit if already installed	
-			$this->is_already_installed();
-
 			//else, create tables
 			redirect ('install/installing/create_tables');
-		}		
+		}
 		else if ($step=='create_tables')
-		{		
+		{
 			//test database connection
 			if($this->_test_connection()===FALSE)
 			{
@@ -121,16 +117,13 @@ class Install extends CI_Controller {
 				redirect('install');
 			}
 
-			//exit if already installed	
-			$this->is_already_installed();				
-			
 			//create tables and add insert data
-			$this->_create_tables();			
+			$this->_create_tables();
 			$this->session->set_flashdata('message', t('database_tables_created'));
-			
+
 			//redirect to admin account registration
-			redirect('install/create_user');						
-		}			
+			redirect('install/create_user');
+		}
 	}
 
 	
@@ -141,11 +134,8 @@ class Install extends CI_Controller {
 	 * 
 	 * @return void
 	 */
-	function create_user() 
-	{  				
-		//exit if already installed	
-		$this->is_already_installed();			
-		
+	function create_user()
+	{
         $this->load->library('form_validation');
         $this->data['page_title'] = t("create_admin_account");		
               		
@@ -203,14 +193,13 @@ class Install extends CI_Controller {
 			}
 			else
 			{
-				$this->error=$this->ion_auth->errors();				
-				var_dump($this->error);
-			}        	
-		} 
+				$this->error = $this->ion_auth->errors();
+			}
+		}
 		//display the create user form
-		
+
 		//set the flash data error message if there is one
-		$this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
+		$this->data['message'] = (validation_errors()) ? validation_errors() : ($this->error ? $this->error : $this->session->flashdata('message'));
 		
 		$this->data['first_name']          = array('name'   => 'first_name',
 												  'id'      => 'first_name',
@@ -270,26 +259,32 @@ class Install extends CI_Controller {
 	
 	function complete()
 	{
-			//exit if already installed	
-			$this->is_already_installed();
-					
-			//update db configurations
-			$data=array('name'=>'app_installed', 'value'=>date("U"));
-			$result=$this->db->insert("configurations",$data);			
+		$data = array('name' => 'app_installed', 'value' => date("U"));
+		$result = $this->db->insert("configurations", $data);
 
-			if ($result)
+		if (!$result)
+		{
+			show_error('Installation could not be completed: failed to write to the database. Check your database connection and try again.');
+			return;
+		}
+
+		$this->session->unset_userdata("installing");
+
+		// Write lock file to CATALOG_ROOT so future requests skip the DB check
+		$catalog_root = $this->config->item('catalog_root');
+		if (!empty($catalog_root))
+		{
+			if ($catalog_root[0] !== '/' && strpos($catalog_root, ':') === FALSE)
 			{
-				//unset session	
-				$this->session->unset_userdata("installing");		
+				$catalog_root = FCPATH . $catalog_root;
 			}
-			
-			$content=$this->load->view('install/completed',NULL,TRUE);	
-			
-			//pass data to the site's template
-			$this->template->write('content', $content,true);
-			
-			//render final output
-			$this->template->render();	
+			$lock_file = rtrim($catalog_root, '/') . '/.nada_installed';
+			@file_put_contents($lock_file, date("U"));
+		}
+
+		$content = $this->load->view('install/completed', NULL, TRUE);
+		$this->template->write('content', $content, true);
+		$this->template->render();
 	}
 	
 	
@@ -345,35 +340,22 @@ class Install extends CI_Controller {
 	*/
 	function _test_connection()
 	{
-		$conn_id=FALSE;
-		
-		switch($this->db->dbdriver)
+		$conn_id = FALSE;
+
+		switch ($this->db->dbdriver)
 		{
-			case 'mysql':
-				$conn_id = @mysql_connect($this->db->hostname, $this->db->username, $this->db->password, TRUE);
-			break;
 			case 'mysqli':
-			$conn_id = @mysqlI_connect($this->db->hostname, $this->db->username, $this->db->password);
-			break;
-			case 'postgre':
-				$conn_id=@pg_connect("host={$this->db->hostname} user={$this->db->username} password={$this->db->password} connect_timeout=5 dbname=postgres");
-			break;
-			case 'sqlsrv':				
-				$auth_info = array( "UID"=>$this->db->username,"PWD"=>$this->db->password, "Database"=>$this->db->database);
+				$conn_id = @mysqli_connect($this->db->hostname, $this->db->username, $this->db->password);
+				break;
+			case 'sqlsrv':
+				$auth_info = array("UID" => $this->db->username, "PWD" => $this->db->password, "Database" => $this->db->database);
 				$conn_id = @sqlsrv_connect($this->db->hostname, $auth_info);
-			break;
+				break;
 			default:
 				show_error('INSTALLER::database not supported');
 		}
 
-        if (! $conn_id ) 
-        {
-            return FALSE;
-        } 
-        else 
-        {
-            return TRUE;
-        }
+		return $conn_id ? TRUE : FALSE;
 	}
 	
 	

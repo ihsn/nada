@@ -39,6 +39,144 @@ class Codelist_item_model extends CI_Model {
 	}
 
 	/**
+	 * Count items for a codelist (no filter).
+	 *
+	 * @param int $codelist_id
+	 * @return int
+	 */
+	public function count_items_by_codelist($codelist_id)
+	{
+		$codelist_id = (int) $codelist_id;
+		if ($codelist_id <= 0) {
+			return 0;
+		}
+		$this->db->where('codelist_id', $codelist_id);
+		return (int) $this->db->count_all_results('codelist_item');
+	}
+
+	/**
+	 * Optional text filter on item rows (code, title).
+	 *
+	 * @param string $search trimmed; empty skips
+	 */
+	private function _apply_codelist_item_list_search($search)
+	{
+		$search = trim((string) $search);
+		if ($search === '') {
+			return;
+		}
+		$this->db->group_start();
+		$this->db->like('code', $search);
+		$this->db->or_like('title', $search);
+		$this->db->group_end();
+	}
+
+	/**
+	 * Paginated items for one codelist (flat rows from codelist_item only).
+	 *
+	 * @param int   $codelist_id
+	 * @param array $options page, per_page, search, with_translations (default false)
+	 * @return array{ rows: array, total: int, page: int, per_page: int }
+	 */
+	public function get_items_by_codelist_paged($codelist_id, array $options = [])
+	{
+		$codelist_id = (int) $codelist_id;
+		if ($codelist_id <= 0) {
+			return ['rows' => [], 'total' => 0, 'page' => 1, 'per_page' => 50];
+		}
+		$page = isset($options['page']) ? max(1, (int) $options['page']) : 1;
+		$perPage = isset($options['per_page']) ? (int) $options['per_page'] : 50;
+		if ($perPage < 1) {
+			$perPage = 50;
+		}
+		if ($perPage > 200) {
+			$perPage = 200;
+		}
+		$search = isset($options['search']) ? trim((string) $options['search']) : '';
+		$withTranslations = !empty($options['with_translations']);
+
+		$this->db->from('codelist_item');
+		$this->db->where('codelist_id', $codelist_id);
+		$this->_apply_codelist_item_list_search($search);
+		$total = (int) $this->db->count_all_results();
+
+		$this->db->from('codelist_item');
+		$this->db->where('codelist_id', $codelist_id);
+		$this->_apply_codelist_item_list_search($search);
+		$this->db->order_by('sort_order', 'ASC');
+		$this->db->order_by('id', 'ASC');
+		$offset = ($page - 1) * $perPage;
+		$this->db->limit($perPage, $offset);
+		$_r = $this->db->get();
+		$rows = $_r ? $_r->result_array() : [];
+
+		if ($withTranslations && !empty($rows)) {
+			$ids = array_column($rows, 'id');
+			$trans = $this->get_item_translations_bulk($ids);
+			foreach ($rows as &$row) {
+				$row['translations'] = isset($trans[$row['id']]) ? $trans[$row['id']] : [];
+			}
+			unset($row);
+		}
+
+		return [
+			'rows'     => $rows,
+			'total'    => $total,
+			'page'     => $page,
+			'per_page' => $perPage,
+		];
+	}
+
+	/**
+	 * Return item metadata keyed by code for one codelist, restricted to a code subset.
+	 *
+	 * @param int   $codelist_id
+	 * @param array $codes
+	 * @return array<string,array{code:string,title:?string,sort_order:int,parent_id:?int}>
+	 */
+	public function get_items_map_by_codes($codelist_id, array $codes)
+	{
+		$codelist_id = (int) $codelist_id;
+		if ($codelist_id <= 0 || empty($codes)) {
+			return [];
+		}
+		$normalized = [];
+		foreach ($codes as $code) {
+			$s = trim((string) $code);
+			if ($s !== '') {
+				$normalized[$s] = true;
+			}
+		}
+		$codes = array_keys($normalized);
+		if (empty($codes)) {
+			return [];
+		}
+
+		$out = [];
+		foreach (array_chunk($codes, 500) as $chunk) {
+			$this->db->select('code, title, sort_order, parent_id');
+			$this->db->from('codelist_item');
+			$this->db->where('codelist_id', $codelist_id);
+			$this->db->where_in('code', $chunk);
+			$_r = $this->db->get();
+			$rows = $_r ? $_r->result_array() : [];
+			foreach ($rows as $row) {
+				$code = isset($row['code']) ? (string) $row['code'] : '';
+				if ($code === '') {
+					continue;
+				}
+				$out[$code] = [
+					'code' => $code,
+					'title' => isset($row['title']) ? $row['title'] : null,
+					'sort_order' => isset($row['sort_order']) ? (int) $row['sort_order'] : 0,
+					'parent_id' => isset($row['parent_id']) && $row['parent_id'] !== null ? (int) $row['parent_id'] : null,
+				];
+			}
+		}
+		return $out;
+	}
+
+	/**
 	 * Get one item by id, optionally with translations.
 	 *
 	 * @param int $item_id
@@ -181,6 +319,31 @@ class Codelist_item_model extends CI_Model {
 		$this->db->where('id', $item_id);
 		$this->db->update('codelist_item', $upd);
 		return true;
+	}
+
+	/**
+	 * Remove all items (and their translations) for a codelist — e.g. before overwrite import.
+	 *
+	 * @param int $codelist_id
+	 * @return void
+	 */
+	public function delete_all_items_for_codelist($codelist_id)
+	{
+		$codelist_id = (int) $codelist_id;
+		if ($codelist_id <= 0) {
+			return;
+		}
+		$q = $this->db->select('id')->from('codelist_item')->where('codelist_id', $codelist_id)->get();
+		if (!$q) {
+			return;
+		}
+		$rows = $q->result_array();
+		if (empty($rows)) {
+			return;
+		}
+		$ids = array_column($rows, 'id');
+		$this->db->where_in('codelist_item_id', $ids)->delete('codelist_item_translation');
+		$this->db->where('codelist_id', $codelist_id)->delete('codelist_item');
 	}
 
 	/**

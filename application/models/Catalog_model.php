@@ -38,8 +38,6 @@ class Catalog_model extends CI_Model {
 	
 	//additional filters on search
 	var $filter=array('isdeleted='=>0);
-	var $active_repo=NULL;
-	var $active_repo_negate=FALSE;//show repo surveys or negate repo surveys
 	
     public function __construct()
     {
@@ -88,11 +86,6 @@ class Catalog_model extends CI_Model {
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');
 		$this->db->join('repositories', 'surveys.repositoryid= repositories.repositoryid','left');
 		
-		if ($this->active_repo!=NULL) 
-		{
-			$this->db->select("sr.repositoryid as repo_link, sr.isadmin as repo_isadmin");
-			$this->db->join('survey_repos sr', 'sr.sid= surveys.id','left');
-		}	
 		//$this->db->join('survey_notes notes', 'notes.sid= surveys.id','left');
 
 		//build search using the parameters passed to the GET/POST variables
@@ -141,11 +134,6 @@ class Catalog_model extends CI_Model {
 						'authoring_entity', 
 						'nation'
 						);
-		
-		if ($this->active_repo!=NULL)
-		{
-			$allowed_fields['repositoryid']='sr.repositoryid';
-		}	
 		
 		$where_clause='';			
 		$filter='';
@@ -221,20 +209,6 @@ class Catalog_model extends CI_Model {
 		}		
 		
 		
-		//active repo
-		if ($this->active_repo!=NULL)
-		{
-			if (!$this->active_repo_negate)
-			{
-				//$where_clause.=' and (sr.repositoryid='.$this->db->escape($this->active_repo).' AND surveys.repositoryid='.$this->db->escape($this->active_repo).')';
-				$where_clause.=' and (sr.repositoryid='.$this->db->escape($this->active_repo).')';
-			}
-			else
-			{	//show studies not part of the active repository
-				$where_clause.=' and isadmin=1 and sr.repositoryid!='.$this->db->escape($this->active_repo);//. ' AND sr.sid not in(select sid from survey_repos where repositoryid='.$this->db->escape($this->active_repo).') and isadmin=1';
-			}	
-		}
-		
 		//search on FIELDS [country, idno, title, producer]
 		$search_fields=array('nation','idno','title','published');
 		$search_options=NULL;
@@ -301,11 +275,6 @@ class Catalog_model extends CI_Model {
 		}
 		
 		$this->db->join('repositories', 'surveys.repositoryid= repositories.repositoryid','left');
-		
-		if ($this->active_repo!=NULL) 
-		{
-			$this->db->join('survey_repos sr', 'sr.sid= surveys.id','left');
-		}
 		
 		return $this->db->count_all_results('surveys');
     }
@@ -641,11 +610,8 @@ class Catalog_model extends CI_Model {
 			return FALSE;
 		}
 		
-		//get datasets folder path
-		$catalog_root=$this->config->item("catalog_root");
-		
-		//join to create full path
-		$survey_folder=unix_path($catalog_root.'/'.$survey_rel);
+		//join to create full path (same root resolution as Managefiles / get_catalog_root)
+		$survey_folder=unix_path(get_catalog_root().'/'.$survey_rel);
 		
 		return $survey_folder;
 	}
@@ -664,12 +630,7 @@ class Catalog_model extends CI_Model {
 		$data=(object)$data;
 		
 		//get datasets folder path
-		$catalog_root=$this->config->item("catalog_root");
-		
-		//join to create full path
-		$ddi_file=$catalog_root.'/'.$data->dirpath.'/'.$data->metafile;
-
-		$ddi_file=unix_path($ddi_file);
+		$ddi_file=unix_path(get_catalog_root().'/'.$data->dirpath.'/'.$data->metafile);
 		
 		if (file_exists($ddi_file) && is_file($ddi_file))
 		{
@@ -728,6 +689,13 @@ class Catalog_model extends CI_Model {
 	*/
 	function delete($id)
 	{
+		try {
+			$this->load->model('Timeseries_mongo_model');
+			$this->Timeseries_mongo_model->delete_observations_for_sid_all_indicator_collections((int) $id);
+		} catch (Throwable $e) {
+			log_message('error', 'Catalog_model::delete indicator Mongo cleanup failed for sid=' . $id . ': ' . $e->getMessage());
+		}
+
 		$this->delete_storage_folder($id);
 		
 		$this->db->where('id', $id); 
@@ -774,6 +742,11 @@ class Catalog_model extends CI_Model {
 			//remove notes
 			$this->db->where('sid', $id); 
 			$this->db->delete('survey_notes');
+
+			if ($this->db->table_exists('study_admin_metadata')) {
+				$this->db->where('sid', $id);
+				$this->db->delete('study_admin_metadata');
+			}
 
 		}		
 	}
@@ -1128,10 +1101,15 @@ class Catalog_model extends CI_Model {
 	}
 	
 	/**
-	*
-	* Link to a study from another repo
-	**/
-	function copy_study($repositoryid,$sid,$isadmin=0)
+	 * Insert or replace a survey_repos row associating a study (surveys.id) with a collection (repositoryid).
+	 * Not a metadata/file copy; use Repository_model::link_study for the public attach endpoint.
+	 *
+	 * @param string $repositoryid
+	 * @param int    $sid surveys.id
+	 * @param int    $isadmin 1 = owner association after transfer; 0 = secondary link
+	 * @return bool
+	 */
+	function link_study_to_repository($repositoryid, $sid, $isadmin = 0)
 	{
 		$options=array(
 				'repositoryid'=>$repositoryid,
@@ -1227,7 +1205,7 @@ class Catalog_model extends CI_Model {
 		$this->remove_all_study_owners($sid);
 		
 		//make the target_repository owner of the study
-		$this->copy_study($target_repositoryid,$sid,1);
+		$this->link_study_to_repository($target_repositoryid,$sid,1);
 		
 		//remove study link from the target repository if any exists
 		$this->unlink_study($target_repositoryid,$sid);
@@ -1556,12 +1534,12 @@ class Catalog_model extends CI_Model {
 
 
 	/**
-	 * 
-	 * 
-	 * Export all catalog entries to CSV
-	 * 
+	 * Export catalog rows to CSV (stream).
+	 *
+	 * @param string|null|array $repositoryid null = all rows; string = studies linked in survey_repos to that collection (legacy); non-empty array = studies owned by or linked to any listed repositoryid
+	 * @return void
 	 */
-	function download_csv($repositoryid=NULL)
+	function download_csv($repositoryid = null)
 	{
         $columns=array(
             'surveys.id'=>'id',
@@ -1583,8 +1561,23 @@ class Catalog_model extends CI_Model {
 		$this->db->select(implode(",",array_keys($columns)));
 		$this->db->join('forms', 'forms.formid= surveys.formid','left');
 		$this->db->join('repositories', 'repositories.repositoryid= surveys.repositoryid','left');
-		
-		if ($repositoryid){
+
+		if (is_array($repositoryid)) {
+			if (count($repositoryid) === 0) {
+				show_error('No data found');
+			}
+			$escaped = array();
+			foreach ($repositoryid as $r) {
+				$escaped[] = $this->db->escape((string) $r);
+			}
+			$in_list = implode(',', $escaped);
+			$this->db->where(
+				"(surveys.repositoryid IN ($in_list) OR surveys.id IN (select sid from survey_repos where repositoryid IN ($in_list)))",
+				null,
+				false
+			);
+		}
+		elseif ($repositoryid) {
 			$this->db->where_in('surveys.id','select sid from survey_repos where repositoryid='.$this->db->escape($repositoryid),false);
 		}
 

@@ -24,7 +24,19 @@
     <div class="form-group mt-3">
         <label for="title"><?php echo t('title'); ?><span class="required">*</span></label>
 				<input class="form-control" name="title" type="text" id="title" value="<?php echo get_form_value('title', isset($title) ? $title : ''); ?>"/>
-        <input type="hidden" name="pid" value="<?php echo get_form_value('pid', isset($pid) ? $pid : ''); ?>"/>
+    </div>
+
+    <div class="form-group">
+        <label for="pid"><?php echo t('parent_page'); ?></label>
+        <?php
+        $current_pid = get_form_value('pid', isset($pid) ? $pid : 0);
+        $parent_items = isset($parent_options) ? $parent_options : array();
+        $pid_options = array(0 => '— ' . t('none_top_level') . ' —');
+        foreach ($parent_items as $opt) {
+            $pid_options[$opt['id']] = $opt['title'];
+        }
+        echo form_dropdown('pid', $pid_options, $current_pid, array('class' => 'form-control', 'id' => 'pid'));
+        ?>
     </div>
 
 			<div class="form-group">
@@ -55,8 +67,8 @@
         </div>
         <?php endif; ?>
         
-        <!-- Hidden field to store actual content -->
-				<textarea id="body" name="body" class="<?php echo ($this->config->item("use_html_editor") !== "no") ? 'editor-hidden' : ''; ?>"><?php echo get_form_value('body', isset($body) ? $body : ''); ?></textarea>
+        <!-- Hidden field to store actual content (plain textarea when HTML editor is off) -->
+				<textarea id="body" name="body" class="<?php echo ($this->config->item("use_html_editor") !== "no") ? 'editor-hidden' : 'form-control body-plain-textarea'; ?>"><?php echo get_form_value('body', isset($body) ? $body : ''); ?></textarea>
     </div>
 
 	<div class="form-group form-inline form-inline-with-spacing">
@@ -85,6 +97,16 @@
 	</div>
 	</div>
 </div>
+
+<?php if ($this->config->item("use_html_editor") === "no"): ?>
+<style>
+.body-plain-textarea {
+	width: 100%;
+	height: 500px;
+	resize: vertical;
+}
+</style>
+<?php endif; ?>
 
 <!-- Image Selector Modal -->
 <?php if ($this->config->item("use_html_editor") !== "no"): ?>

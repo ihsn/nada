@@ -468,12 +468,33 @@ class Metadata_Import{
             $vid_counts[$ov]=isset($vid_counts[$ov]) ? $vid_counts[$ov]+1 : 1;
         }
 
+        $vid_by_original_and_fid=array();
         foreach($staged_rows as $idx=>$row){
-            if ($vid_counts[$row['_original_vid']] > 1){
-                $stored_vid=DDI_Utils::prefix_vid($row['_fid_token'], $row['_original_vid']);
+            $original_vid=$row['_original_vid'];
+            if ($vid_counts[$original_vid] > 1){
+                $stored_vid=DDI_Utils::prefix_vid($row['_fid_token'], $original_vid);
                 $staged_rows[$idx]['vid']=$stored_vid;
                 $staged_rows[$idx]['metadata_array']['vid']=$stored_vid;
-                $staged_rows[$idx]['metadata_array']['vid_original']=$row['_original_vid'];
+                $staged_rows[$idx]['metadata_array']['vid_original']=$original_vid;
+            } else {
+                $stored_vid=$original_vid;
+            }
+
+            $vid_by_original_and_fid[$original_vid][$row['_fid_token']]=$stored_vid;
+        }
+
+        foreach($staged_rows as $idx=>$row){
+            if (empty($row['metadata_array']['var_wgt'])) {
+                continue;
+            }
+
+            $wgt_ddi=trim((string)$row['metadata_array']['var_wgt']);
+            if ($wgt_ddi === '') {
+                continue;
+            }
+
+            if (isset($vid_by_original_and_fid[$wgt_ddi][$row['_fid_token']])) {
+                $staged_rows[$idx]['metadata_array']['var_wgt']=$vid_by_original_and_fid[$wgt_ddi][$row['_fid_token']];
             }
         }
 

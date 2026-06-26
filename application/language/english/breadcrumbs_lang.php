@@ -3,7 +3,7 @@
 $lang['Home']="Home";
 $lang['edit_study']="Edit study";
 $lang['Citations']="Citations";
-$lang['add_study']="Add new study";
+$lang['add_study']="Add study";
 $lang['bulk_import']="Bulk import DDI";
 $lang['transfer_study_ownership']="Transfer study ownership";
 $lang['delete']="Delete";

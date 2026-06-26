@@ -70,6 +70,15 @@ class Catalog_Notes_model extends CI_Model {
 		return $this->db->get('survey_notes')->result_array();
 	}
 	
+	/**
+	 * Count notes for a study (admin summary / tab badges).
+	 */
+	public function get_notes_count_by_study($sid)
+	{
+		$this->db->where('sid', (int) $sid);
+		return (int) $this->db->count_all_results('survey_notes');
+	}
+
 	public function get_notes_by_study($sid,$type=NULL) {
 		$this->db->select("*");
 		$this->db->where('sid', $sid);

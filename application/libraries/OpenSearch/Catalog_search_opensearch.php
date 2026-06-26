@@ -121,6 +121,15 @@ class catalog_search_opensearch
      */
     public function search(int $limit = 15, int $offset = 0): array
     {
+        if (!class_exists('Catalog_study_idno_lookup', false)) {
+            require_once APPPATH . 'libraries/Catalog_study_idno_lookup.php';
+        }
+        $params = $this->search_params_for_db_lookup();
+        $idno_result = Catalog_study_idno_lookup::try_search_from_params($params, $limit, $offset);
+        if ($idno_result !== null) {
+            return $idno_result;
+        }
+
         $t0   = microtime(true);
         $body = $this->build_survey_query($limit, $offset);
 
@@ -287,8 +296,10 @@ class catalog_search_opensearch
         ];
 
         // Year range
-        $from = (int)($this->from ?? 0);
-        $to   = (int)($this->to   ?? 0);
+        [$from, $to] = $this->normalize_year_bounds(
+            (int)($this->from ?? 0),
+            (int)($this->to ?? 0)
+        );
         if ($from > 0 || $to > 0) {
             $range = [];
             if ($from > 0) $range['gte'] = $from;
@@ -589,8 +600,10 @@ class catalog_search_opensearch
         }
 
         // Year range
-        $from = (int)($this->from ?? 0);
-        $to   = (int)($this->to   ?? 0);
+        [$from, $to] = $this->normalize_year_bounds(
+            (int)($this->from ?? 0),
+            (int)($this->to ?? 0)
+        );
         if ($from > 0 || $to > 0) {
             $range = [];
             if ($from > 0) $range['gte'] = $from;
@@ -742,6 +755,11 @@ class catalog_search_opensearch
                 'total_views'     => isset($s['total_views'])    ? (int)$s['total_views']   : 0,
                 'total_downloads' => isset($s['total_downloads'])? (int)$s['total_downloads']:0,
                 'varcount'        => isset($s['var_count'])      ? (int)$s['var_count']     : 0,
+                'ts_dimensions'   => $s['ts_dimensions']         ?? null,
+                'ts_frequency'    => $s['ts_frequency']          ?? null,
+                'ts_data_count'   => isset($s['ts_data_count'])  ? (int)$s['ts_data_count'] : null,
+                'ts_db_study_id'  => isset($s['ts_db_study_id']) ? (int)$s['ts_db_study_id'] : null,
+                'ts_db_title'     => $s['ts_db_title']           ?? null,
             ];
         }
         return $rows;
@@ -811,6 +829,7 @@ class catalog_search_opensearch
             'thumbnail', 'link_da',
             'created', 'changed',
             'total_views', 'total_downloads', 'var_count',
+            'ts_dimensions', 'ts_frequency', 'ts_data_count', 'ts_db_study_id', 'ts_db_title',
         ];
     }
 
@@ -848,6 +867,18 @@ class catalog_search_opensearch
     {
         $arr = $this->normalise_array($value);
         return array_values(array_filter(array_map('intval', $arr)));
+    }
+
+    /**
+     * @return array{0: int, 1: int}
+     */
+    private function normalize_year_bounds(int $from, int $to): array
+    {
+        if ($from > 0 && $to > 0 && $from > $to) {
+            return [$to, $from];
+        }
+
+        return [$from, $to];
     }
 
     /**
@@ -903,5 +934,30 @@ class catalog_search_opensearch
             $counts[(int)$bucket['key']] = (int)$bucket['doc_count'];
         }
         return $counts;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function search_params_for_db_lookup(): array
+    {
+        $props = [
+            'study_keywords', 'variable_keywords', 'countries', 'regions',
+            'from', 'to', 'repo', 'type', 'data_class', 'collections',
+            'dtype', 'sid', 'created', 'country_iso3', 'sort_by', 'sort_order',
+        ];
+        $params = [];
+        foreach ($props as $p) {
+            if (property_exists($this, $p)) {
+                $params[$p] = $this->$p;
+            }
+        }
+        foreach ($this->user_facets as $fc) {
+            $name = $fc['name'] ?? '';
+            if ($name !== '' && property_exists($this, $name)) {
+                $params[$name] = $this->$name;
+            }
+        }
+        return $params;
     }
 }

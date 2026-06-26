@@ -38,6 +38,33 @@ tags:
     description: |
       Site analytics: raw pageview and download events, daily and monthly aggregates, CSV/JSON exports, and aggregation jobs.
       Endpoints require an admin user and `X-API-KEY` (same as other catalog-admin APIs).
+  - name: Data Structures
+    description: Admin endpoints for global DSD catalogue management.
+  - name: Codelists Admin
+    description: Admin endpoints for codelist catalogue management and JSON import.
+  - name: Timeseries Admin
+    description: Admin endpoints for project-level timeseries data and DSD linking.
+  - name: Templates Admin
+    description: Admin endpoints for display templates and renderer registry listing.
+  - name: Study admin metadata
+    description: |
+      Attach admin-only custom JSON metadata to catalog studies via the API.
+      Data is stored separately from published study metadata (`surveys.metadata`) and is not exposed on public catalog endpoints.
+  - name: Search metadata extract
+    description: |
+      Admin endpoints that expose catalog study and citation metadata in a canonical shape for external indexers (OpenSearch, Solr, etc.).
+      All endpoints require an admin API key (`X-API-KEY`).
+  - name: Catalog import
+    description: |
+      Import studies into the admin catalog from DDI/XML, dataset JSON/JSONL, or study package ZIP files.
+
+      **One-shot import** — `POST /admin/catalog/import` accepts a single uploaded file (multipart) and runs the full import in one request. Suitable for smaller files.
+
+      **Staged package import** — for large package ZIP files, upload via [Resumable uploads](#tag/Resumable-uploads) (`metadata.purpose` = `package_import`, `metadata.allowed_types` = `zip`), then run tasks in order:
+      `unzip` → `create` → `datafile` (repeat until no pending data files) → `finalize`.
+      Progress is stored on the `upload_id` (no separate job id). Use `GET /admin/catalog/import_package/status` to resume after interruption.
+
+      Package ZIP layout matches `GET /admin/catalog/{idno}/package` export: `info.json`, `{idno}.jsonl`, optional DDI/XML, `external_resources.json`, `documentation/*`, thumbnail.
 
 x-tagGroups:
   - name: Authentication
@@ -64,6 +91,13 @@ x-tagGroups:
       - Widgets
       - Resumable uploads
       - Analytics
+      - Data Structures
+      - Codelists Admin
+      - Timeseries Admin
+      - Templates Admin
+      - Study admin metadata
+      - Catalog import
+      - Search metadata extract
 
 security:
   - ApiKeyAuth: []
@@ -635,6 +669,67 @@ paths:
               schema:
                 $ref: 'survey-schema.json'
 
+  /datasets/patch/{type}/{IDNo}:
+    post:
+      tags:
+        - Survey
+        - Datasets
+      summary: Patch dataset metadata (JSON Patch)
+      description: |
+        Applies [RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902) JSON Patch operations to the dataset metadata document
+        returned by the catalog (same `patches` array shape as the metadata editor `POST .../editor/patch/{project-type}/{id}` API).
+
+        Path segments: `type` is the dataset type (`survey`, `geospatial`, `timeseries`, `timeseriesdb`, `document`, etc.—same as `/datasets/update/{type}/{IDNo}`).
+        `IDNo` is the study IDNO (or internal numeric id with query `?id_format=id`).
+
+        Request body:
+        - `patches` (required): array of JSON Patch operations.
+        - `validate` (optional): reserved for parity with the metadata editor; schema validation is always applied on save in NADA.
+      operationId: patchDatasetMetadata
+      parameters:
+        - name: type
+          in: path
+          required: true
+          description: Dataset type (must match the existing study type)
+          schema:
+            type: string
+        - name: IDNo
+          in: path
+          required: true
+          description: Dataset IDNo
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - patches
+              properties:
+                patches:
+                  type: array
+                  items:
+                    type: object
+                validate:
+                  type: boolean
+                  description: Ignored in NADA; validation always runs on update.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  dataset:
+                    type: object
+                    description: Catalog row for the study (shape varies by type)
+
   /datasets/import_ddi:
     post:
       tags:
@@ -916,7 +1011,11 @@ paths:
       tags:
         - Timeseries
       summary: Create timeseries dataset
-      description: Create a new timeseries project
+      description: >-
+        Create a new timeseries project.
+        DSD/codelist: link the study to the global catalogue with `data_structure_reference` (the schema
+        does not allow an inline DSD snapshot in metadata). For each component, `codelist_reference` is
+        canonical and overrides inline `codelist` when both are present.
       operationId: createTimeSeries
       requestBody:
         required: true
@@ -931,40 +1030,6 @@ paths:
             application/json:
               schema:
                 $ref: 'timeseries-schema.json'
-
-  /dataset/series/{datasetIDNo}/{fileId}:
-    post:
-      tags:
-        - Timeseries
-      summary: Add series
-      description: Add series for timeseries
-      operationId: AddTimeSeries
-      parameters:
-        - name: datasetIDNo
-          in: path
-          required: true
-          description: Dataset user defined IDNo
-          schema:
-            type: string
-        - name: fileId
-          in: path
-          required: true
-          description: File ID - user defined unique file identifier
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: 'series-schema.json'
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: 'series-schema.json'
 
   # ----------------------------------------------------------------
   # Images
@@ -2073,7 +2138,11 @@ paths:
       tags:
         - Resumable uploads
       summary: Initialize resumable upload
-      description: Start a new resumable upload session and get an upload_id.
+      description: >-
+        Start a new resumable upload session and get an upload_id.
+
+        For staged package import, set `metadata.purpose` to `package_import` and `metadata.allowed_types` to `zip`
+        (see [Catalog import](#tag/Catalog-import)).
       requestBody:
         required: true
         content:
@@ -2787,6 +2856,892 @@ paths:
           $ref: '#/components/responses/AnalyticsBadRequest'
         '403':
           $ref: '#/components/responses/AnalyticsForbidden'
+
+  # ----------------------------------------------------------------
+  # Data structures (admin)
+  # ----------------------------------------------------------------
+
+  /admin/data_structures:
+    get:
+      tags:
+        - Data Structures
+      summary: List data structures
+      description: List global DSDs. Supports collapsed or flat list and optional pagination.
+      operationId: dataStructuresList
+      parameters:
+        - name: flat
+          in: query
+          schema:
+            type: boolean
+          description: When true, return one row per version.
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: 1-based page number. When provided, returns paginated payload.
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search across title/name/agency/idno/version/description/notes.
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Alias for `search`.
+        - name: status
+          in: query
+          description: Exact status code filter (`DataStructureStatusCode`).
+          schema:
+            $ref: '#/components/schemas/DataStructureStatusCode'
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/data_structures/create:
+    post:
+      tags:
+        - Data Structures
+      summary: Create data structure
+      description: >-
+        Create a global DSD identity row from JSON (metadata only). Body schema:
+        `data-structure-schema.json#/definitions/data_structure_create`. To create
+        components and codelists in one request, use `POST /admin/data_structures/import_json`
+        (root envelope in the same schema file). Optional query `overwrite` updates an
+        existing non-locked DSD matched by idno or identity (agency+name+version).
+      operationId: dataStructuresCreate
+      parameters:
+        - name: overwrite
+          in: query
+          schema:
+            type: boolean
+          description: When true, overwrite an existing non-locked DSD.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'data-structure-schema.json#/definitions/data_structure_create'
+      responses:
+        '200':
+          description: Existing data structure overwritten
+        '201':
+          description: Data structure created
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/data_structures/import_json:
+    post:
+      tags:
+        - Data Structures
+      summary: Import data structure JSON
+      description: >-
+        Import global DSD, components and codelists from JSON. Body matches
+        `data-structure-schema.json`: root `data_structure` (identity + `components`),
+        optional boolean `overwrite` and `dry_run` on the same JSON object (no query
+        flags). Legacy split body (`structure` + `components` + `import_options`) is
+        not accepted.
+      operationId: dataStructuresImportJson
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'data-structure-schema.json'
+      responses:
+        '200':
+          description: Validation/dry-run succeeded
+        '201':
+          description: Import completed
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/codelists/import_json:
+    post:
+      tags:
+        - Codelists Admin
+      summary: Import codelist JSON
+      description: >-
+        Import one codelist and its items using DSD-style resolution rules:
+        match existing by idno first, then by name+agency+version; create when
+        missing; optionally replace items when `overwrite=true`. Boolean `overwrite`
+        and `dry_run` are supplied on the JSON body only (no query parameters).
+      operationId: codelistsImportJson
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodelistImportJsonRequest'
+      responses:
+        '200':
+          description: >-
+            Dry-run succeeded, or import completed without creating a new codelist
+            (existing codelist reused, or items updated in place when applicable).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodelistImportJsonResponse'
+        '201':
+          description: Import completed and a new codelist row was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodelistImportJsonResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/data_structures/import:
+    post:
+      tags:
+        - Data Structures
+      summary: Import data structure from SDMX XML
+      description: Import SDMX-ML structure XML from multipart `file` or XML body.
+      operationId: dataStructuresImportXml
+      parameters:
+        - name: overwrite_codelists
+          in: query
+          schema:
+            type: boolean
+        - name: dsd_id
+          in: query
+          schema:
+            type: string
+          description: Optional DataStructure @id selector when multiple are present in XML.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                overwrite_codelists:
+                  type: string
+                dsd_id:
+                  type: string
+          application/xml:
+            schema:
+              type: string
+          text/xml:
+            schema:
+              type: string
+      responses:
+        '201':
+          description: Import completed
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/data_structures/by_identity:
+    get:
+      tags:
+        - Data Structures
+      summary: Get data structure by identity
+      operationId: dataStructuresByIdentity
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: agency
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: query
+          schema:
+            type: string
+        - name: with_components
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Data structure not found
+
+  /admin/data_structures/validate:
+    post:
+      tags:
+        - Data Structures
+      summary: Validate DSD payload or existing DSD
+      description: >-
+        Option A: `{ "data_structure_id": <id> }` for a persisted DSD. Option B:
+        `{ "data_structure": { ...fields..., "components": [ ... ] } }` for a
+        proposed import shape (same nested envelope as `import_json`).
+      operationId: dataStructuresValidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Validation result
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+
+  /admin/data_structures/update/{idOrIdno}:
+    post:
+      tags:
+        - Data Structures
+      summary: Update data structure
+      operationId: dataStructuresUpdate
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Updated
+        '404':
+          description: Not found
+
+  /admin/data_structures/status/{idOrIdno}:
+    post:
+      tags:
+        - Data Structures
+      summary: Update data structure status
+      operationId: dataStructuresStatusUpdate
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: '#/components/schemas/DataStructureStatusCode'
+      responses:
+        '200':
+          description: Status updated
+        '404':
+          description: Not found
+
+  /admin/data_structures/versions/{idOrIdno}:
+    get:
+      tags:
+        - Data Structures
+      summary: List versions for a data structure family
+      operationId: dataStructuresVersions
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+
+  /admin/data_structures/projects/{idOrIdno}:
+    get:
+      tags:
+        - Data Structures
+      summary: List linked projects for a data structure
+      operationId: dataStructuresProjects
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 25
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+
+  /admin/data_structures/export/{idOrIdno}:
+    get:
+      tags:
+        - Data Structures
+      summary: Export data structure
+      operationId: dataStructuresExport
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+
+  /admin/data_structures/delete/{idOrIdno}:
+    post:
+      tags:
+        - Data Structures
+      summary: Delete data structure (POST alias)
+      operationId: dataStructuresDeletePost
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+        '409':
+          description: Conflict (locked or in use)
+
+  /admin/data_structures/{idOrIdno}:
+    get:
+      tags:
+        - Data Structures
+      summary: Get data structure by id or idno
+      operationId: dataStructuresGetOne
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: with_components
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Data Structures
+      summary: Delete data structure
+      operationId: dataStructuresDelete
+      parameters:
+        - name: idOrIdno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+        '409':
+          description: Conflict (locked or in use)
+
+  /admin/data_structures/components/{segment}:
+    get:
+      tags:
+        - Data Structures
+      summary: Get data structure components
+      operationId: dataStructuresComponentsGet
+      parameters:
+        - name: segment
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Structure id/idno or component id.
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+    post:
+      tags:
+        - Data Structures
+      summary: Create data structure component
+      operationId: dataStructuresComponentsCreate
+      parameters:
+        - name: segment
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Structure id/idno.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+        '404':
+          description: Not found
+    put:
+      tags:
+        - Data Structures
+      summary: Update data structure component
+      operationId: dataStructuresComponentsUpdate
+      parameters:
+        - name: segment
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Component id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Updated
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Data Structures
+      summary: Delete data structure component
+      operationId: dataStructuresComponentsDelete
+      parameters:
+        - name: segment
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Component id.
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+
+  /admin/data_structures/components_update/{componentId}:
+    post:
+      tags:
+        - Data Structures
+      summary: Update data structure component (POST alias)
+      operationId: dataStructuresComponentsUpdatePost
+      parameters:
+        - name: componentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Updated
+        '404':
+          description: Not found
+
+  /admin/data_structures/components_delete/{componentId}:
+    post:
+      tags:
+        - Data Structures
+      summary: Delete data structure component (POST alias)
+      operationId: dataStructuresComponentsDeletePost
+      parameters:
+        - name: componentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+
+  # ----------------------------------------------------------------
+  # Timeseries Admin
+  # ----------------------------------------------------------------
+
+  /admin/timeseries/data/{idno}:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: List project timeseries observations
+      operationId: timeseriesAdminDataList
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Successful operation
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Insert project timeseries observations
+      operationId: timeseriesAdminDataInsert
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties: true
+      responses:
+        '201':
+          description: Inserted
+
+  /admin/timeseries/data/{idno}/count:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: Count project timeseries observations
+      operationId: timeseriesAdminDataCount
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/timeseries/data/{idno}/schema:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: Get project DSD schema context
+      operationId: timeseriesAdminDataSchema
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/timeseries/data/{idno}/attach-dsd:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Attach or detach DSD for project
+      description: >-
+        Attach with `data_structure_id` or `data_structure_reference`; detach with `detach=true`.
+        The public timeseries metadata schema uses `data_structure_reference` for the DSD link (no inline DSD object).
+      operationId: timeseriesAdminAttachDsd
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data_structure_id:
+                  type: integer
+                data_structure_reference:
+                  type: string
+                detach:
+                  type: boolean
+      responses:
+        '200':
+          description: Link updated
+
+  /admin/timeseries/data/import:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Import project timeseries CSV
+      description: >
+        Replaces all indicator observations for the study in MongoDB (always overwrite).
+        Supply the CSV either as a direct multipart `file` or as a completed resumable `upload_id`
+        from `POST /uploads/init` and `POST /uploads/chunk/{upload_id}` — not both.
+        Large files from external systems (e.g. Metadata Editor DuckDB export) should use `upload_id`.
+      operationId: timeseriesAdminDataImport
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [idno]
+              properties:
+                idno:
+                  type: string
+                  description: Catalogue study idno (`surveys.idno`).
+                file:
+                  type: string
+                  format: binary
+                  description: CSV file (required unless `upload_id` is provided).
+                upload_id:
+                  type: string
+                  description: >
+                    Completed resumable upload session id from `/uploads/*` (required unless `file`
+                    is provided). The assembled file must be CSV.
+                delimiter:
+                  type: string
+                  example: ","
+                mapping:
+                  type: string
+                  description: JSON object mapping CSV headers to DSD component names.
+                ensure_unique_index:
+                  type: string
+                  enum: ['0', '1']
+                dsd_idno:
+                  type: string
+                  description: >
+                    Optional catalogue DSD idno. When set, the server persists the study→DSD link
+                    (same as POST .../attach-dsd with data_structure_reference) before importing.
+                    Omit when the project is already linked.
+      responses:
+        '201':
+          description: Import completed
+
+  /admin/timeseries/data/{idno}/rehash:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Rehash project observations
+      operationId: timeseriesAdminDataRehash
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  type: integer
+      responses:
+        '200':
+          description: Rehash completed
+
+  /admin/timeseries/data/{idno}/duplicates:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: List duplicate observations for project
+      operationId: timeseriesAdminDataDuplicates
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/timeseries/data/{idno}/sync-counts:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Sync value counts for project
+      operationId: timeseriesAdminDataSyncCounts
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sync completed
+
+  /admin/timeseries/data/{idno}/value-counts-summary:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: Get value counts summary for project
+      operationId: timeseriesAdminDataValueCountsSummary
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/timeseries/data-structures/{dsdId}/indexes:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Ensure indexes for DSD collection
+      operationId: timeseriesAdminStructureIndexes
+      parameters:
+        - name: dsdId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                include_unique_key_hash:
+                  type: boolean
+      responses:
+        '200':
+          description: Indexes ensured
+
+  /admin/timeseries/data-structures/{dsdId}/rehash:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Rehash DSD collection observations
+      operationId: timeseriesAdminStructureRehash
+      parameters:
+        - name: dsdId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sid:
+                  type: integer
+                limit:
+                  type: integer
+      responses:
+        '200':
+          description: Rehash completed
+
+  /admin/timeseries/data-structures/{dsdId}/duplicates:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: List duplicate observations for DSD
+      operationId: timeseriesAdminStructureDuplicates
+      parameters:
+        - name: dsdId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: sid
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/timeseries/data-structures/{dsdId}/stats:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: Get DSD collection stats
+      operationId: timeseriesAdminStructureStats
+      parameters:
+        - name: dsdId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
     post:
       tags:
         - Analytics
@@ -2827,6 +3782,823 @@ paths:
           $ref: '#/components/responses/AnalyticsBadRequest'
         '403':
           $ref: '#/components/responses/AnalyticsForbidden'
+
+  # ----------------------------------------------------------------
+  # Templates Admin
+  # ----------------------------------------------------------------
+
+  /admin/templates:
+    get:
+      tags:
+        - Templates Admin
+      summary: List display templates
+      operationId: templatesAdminList
+      parameters:
+        - name: data_type
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published, archived]
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplatesListResponse'
+    post:
+      tags:
+        - Templates Admin
+      summary: Create display template
+      operationId: templatesAdminCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateWriteRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSingleResponse'
+
+  /admin/templates/{uid}:
+    get:
+      tags:
+        - Templates Admin
+      summary: Get display template by uid
+      operationId: templatesAdminGet
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSingleResponse'
+        '404':
+          description: Not found
+    post:
+      tags:
+        - Templates Admin
+      summary: Update display template by uid
+      operationId: templatesAdminUpdate
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSingleResponse'
+        '404':
+          description: Not found
+
+  /admin/templates/{uid}/delete:
+    post:
+      tags:
+        - Templates Admin
+      summary: Soft-delete display template
+      operationId: templatesAdminDelete
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+
+  /admin/templates/{uid}/duplicate:
+    post:
+      tags:
+        - Templates Admin
+      summary: Duplicate display template
+      operationId: templatesAdminDuplicate
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSingleResponse'
+
+  /admin/templates/default/{data_type}/{uid}:
+    post:
+      tags:
+        - Templates Admin
+      summary: Set default display template for data type
+      operationId: templatesAdminSetDefault
+      parameters:
+        - name: data_type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated
+        '404':
+          description: Not found
+
+  /admin/templates/import:
+    post:
+      tags:
+        - Templates Admin
+      summary: Import metadata-editor template into display template
+      operationId: templatesAdminImport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateImportRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateImportResponse'
+
+  /admin/templates/{uid}/export:
+    get:
+      tags:
+        - Templates Admin
+      summary: Export display template by uid
+      operationId: templatesAdminExport
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateSingleResponse'
+        '404':
+          description: Not found
+
+  /admin/templates/validate:
+    post:
+      tags:
+        - Templates Admin
+      summary: Validate display template payload
+      operationId: templatesAdminValidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateValidateRequest'
+      responses:
+        '200':
+          description: Valid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateValidateResponse'
+        '400':
+          description: Invalid payload
+
+  /admin/templates/renderers:
+    get:
+      tags:
+        - Templates Admin
+      summary: List available renderers
+      operationId: templatesAdminRenderersList
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderersListResponse'
+
+  /admin/templates/renderers/{source_type}:
+    get:
+      tags:
+        - Templates Admin
+      summary: List renderers by source_type
+      operationId: templatesAdminRenderersByType
+      parameters:
+        - name: source_type
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderersListResponse'
+
+  # ----------------------------------------------------------------
+  # Catalog import
+  # ----------------------------------------------------------------
+
+  /admin/catalog/ddi_upload_collections:
+    get:
+      tags:
+        - Catalog import
+      summary: List collections available for study import
+      description: >-
+        Returns collections (repositories) the authenticated user may import into, based on admin catalog scope
+        and `study.create` permission. Used by the admin upload UI; optional for API clients that already know `repositoryid`.
+      operationId: catalogDdiUploadCollections
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogDdiUploadCollectionsResponse'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import:
+    post:
+      tags:
+        - Catalog import
+      summary: Import study from file (one-shot)
+      description: >-
+        Upload a metadata file and create or update a study in one request. Format is auto-detected:
+
+        - `.xml` with root `codeBook` — DDI microdata (`DDI2_import`)
+        - `.xml` with root `MD_Metadata` / `MI_Metadata` — geospatial
+        - `.json` — dataset metadata document (`Catalog_dataset_import`)
+        - `.jsonl` — line 1 = study document, further lines = variables
+        - `.zip` — study package (same layout as package export); full import in one request
+
+        For large package ZIP files, prefer staged import via `/admin/catalog/import_package/*` after a resumable upload.
+
+        Optional multipart field `rdf` — RDF file imported after DDI survey XML import.
+      operationId: catalogImportOneShot
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, repositoryid]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Metadata file (`.xml`, `.json`, `.jsonl`, or `.zip`)
+                repositoryid:
+                  type: string
+                  description: Target collection id (e.g. `central`)
+                  default: central
+                overwrite:
+                  type: string
+                  enum: [yes, no]
+                  description: Replace existing study with same IDNO when `yes`
+                published:
+                  type: integer
+                  enum: [0, 1]
+                  description: Published flag; only applied when sent
+                access_policy:
+                  type: string
+                  description: Data access form/model code; sets `formid` when it resolves
+                data_remote_url:
+                  type: string
+                  description: Remote data access URL (`link_da`)
+                rdf:
+                  type: string
+                  format: binary
+                  description: Optional RDF file (survey DDI import only)
+      responses:
+        '200':
+          description: Import succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportOneShotResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportValidationError'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import_package/status:
+    get:
+      tags:
+        - Catalog import
+      summary: Get staged package import status
+      description: >-
+        Returns import progress for a completed resumable upload. Use `next_task` to determine the next endpoint to call.
+        Safe to call after page reload or API client restart.
+      operationId: catalogImportPackageStatus
+      parameters:
+        - name: upload_id
+          in: query
+          required: true
+          description: Resumable upload session id (`/uploads/*`)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Import status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportPackageStatusResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportBadRequest'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import_package/unzip:
+    post:
+      tags:
+        - Catalog import
+      summary: Staged package import — extract ZIP
+      description: >-
+        Extract the uploaded package ZIP to a server temp directory, read `info.json` and JSONL, and prepare per–data-file
+        variable sidecar files (survey/microdata). Idempotent if already extracted for this `upload_id`.
+      operationId: catalogImportPackageUnzip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogImportPackageUploadRequest'
+      responses:
+        '200':
+          description: Extract completed or already done
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportPackageStatusResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportBadRequest'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import_package/create:
+    post:
+      tags:
+        - Catalog import
+      summary: Staged package import — create study metadata
+      description: >-
+        Create the study from JSONL line 1 (study-level metadata, data file definitions, variable groups).
+        Does **not** import variables; use `datafile` for that. Uses the same validation and type resolution as one-shot JSON import.
+      operationId: catalogImportPackageCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogImportPackageCreateRequest'
+      responses:
+        '200':
+          description: Study created or already exists for this import
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportPackageStatusResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportValidationError'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import_package/datafile:
+    post:
+      tags:
+        - Catalog import
+      summary: Staged package import — import next data file
+      description: >-
+        Import **one** data file and **all** variables for that `file_id` atomically (no partial variable import).
+        Call repeatedly until `data_files_pending` is empty. Survey/microdata only; non-survey packages skip this step.
+      operationId: catalogImportPackageDatafile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogImportPackageUploadRequest'
+      responses:
+        '200':
+          description: Data file imported, or all data files already complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportPackageStatusResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportValidationError'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/import_package/finalize:
+    post:
+      tags:
+        - Catalog import
+      summary: Staged package import — finalize
+      description: >-
+        Copy package assets (DDI/XML, documentation, external resources, thumbnail, RDF), rebuild search indexes,
+        and remove temp extract files. Returns `sid` and `package_stats` when complete.
+      operationId: catalogImportPackageFinalize
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogImportPackageUploadRequest'
+      responses:
+        '200':
+          description: Import completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogImportPackageFinalizeResponse'
+        '400':
+          $ref: '#/components/responses/CatalogImportBadRequest'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  /admin/catalog/{idno}/package:
+    get:
+      tags:
+        - Catalog import
+      summary: Export study package ZIP
+      description: >-
+        Download a study package ZIP produced by `Package_Exporter`. Import via one-shot `/admin/catalog/import`
+        or staged `/admin/catalog/import_package/*` after resumable upload.
+
+        ZIP contents: `info.json`, `{idno}.jsonl`, optional DDI/XML, `external_resources.json`, `documentation/*`, thumbnail.
+      operationId: catalogExportPackage
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+        - name: dsd_export
+          in: query
+          description: Timeseries DSD export mode in JSONL (`reference` default, or `inline`)
+          schema:
+            type: string
+            enum: [reference, inline]
+            default: reference
+      responses:
+        '200':
+          description: Package ZIP file
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/CatalogImportBadRequest'
+        '403':
+          $ref: '#/components/responses/CatalogImportForbidden'
+
+  # ----------------------------------------------------------------
+  # Study admin metadata
+  # ----------------------------------------------------------------
+
+  /admin/catalog/{idno}/admin-metadata:
+    get:
+      tags:
+        - Study admin metadata
+      summary: Get study admin metadata
+      description: >-
+        Returns admin-only metadata attached to a study. When no record exists, `metadata` is an empty object.
+        Study reference is the dataset IDNO by default; pass query `id_format=id` to use numeric `surveys.id`.
+      operationId: studyAdminMetadataGet
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataResponse'
+        '400':
+          $ref: '#/components/responses/StudyAdminMetadataBadRequest'
+        '403':
+          $ref: '#/components/responses/StudyAdminMetadataForbidden'
+    post:
+      tags:
+        - Study admin metadata
+      summary: Create study admin metadata
+      description: >-
+        Creates admin metadata for a study. Request body must include a `metadata` object.
+        If metadata already exists for the study, the request fails with `409` unless `overwrite` is set
+        (in the JSON body or query string), in which case the stored document is replaced.
+      operationId: studyAdminMetadataCreate
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+        - $ref: '#/components/parameters/StudyAdminMetadataOverwrite'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudyAdminMetadataSaveRequest'
+      responses:
+        '200':
+          description: Created or replaced (when overwrite is set)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataResponse'
+        '400':
+          $ref: '#/components/responses/StudyAdminMetadataBadRequest'
+        '403':
+          $ref: '#/components/responses/StudyAdminMetadataForbidden'
+        '409':
+          description: Metadata already exists and overwrite was not set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataErrorResponse'
+              example:
+                status: failed
+                message: METADATA_ALREADY_EXISTS
+    delete:
+      tags:
+        - Study admin metadata
+      summary: Delete study admin metadata
+      description: Removes the admin metadata record for a study (no-op if none exists).
+      operationId: studyAdminMetadataDelete
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataDeleteResponse'
+        '400':
+          $ref: '#/components/responses/StudyAdminMetadataBadRequest'
+        '403':
+          $ref: '#/components/responses/StudyAdminMetadataForbidden'
+
+  /admin/catalog/{idno}/admin-metadata/update:
+    post:
+      tags:
+        - Study admin metadata
+      summary: Replace study admin metadata
+      description: >-
+        Replaces the entire admin metadata document for a study (inserts if none exists).
+        POST alias for environments that cannot send PUT. Same JSON body as create.
+      operationId: studyAdminMetadataUpdate
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudyAdminMetadataSaveRequest'
+      responses:
+        '200':
+          description: Replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataResponse'
+        '400':
+          $ref: '#/components/responses/StudyAdminMetadataBadRequest'
+        '403':
+          $ref: '#/components/responses/StudyAdminMetadataForbidden'
+
+  /admin/catalog/{idno}/admin-metadata/delete:
+    post:
+      tags:
+        - Study admin metadata
+      summary: Delete study admin metadata (POST alias)
+      description: >-
+        Same as `DELETE /admin/catalog/{idno}/admin-metadata`. Provided for environments that cannot send DELETE.
+      operationId: studyAdminMetadataDeletePost
+      parameters:
+        - $ref: '#/components/parameters/AdminCatalogStudyIdno'
+        - $ref: '#/components/parameters/AdminCatalogStudyIdFormat'
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyAdminMetadataDeleteResponse'
+        '400':
+          $ref: '#/components/responses/StudyAdminMetadataBadRequest'
+        '403':
+          $ref: '#/components/responses/StudyAdminMetadataForbidden'
+
+# ----------------------------------------------------------------
+# Search metadata extract
+# ----------------------------------------------------------------
+
+  /admin/search-metadata-extract/status:
+    get:
+      tags:
+        - Search metadata extract
+      summary: Indexer status / counts
+      description: Returns total study and citation counts for external indexer bootstrapping.
+      operationId: searchMetadataExtractStatus
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMetadataExtractStatusResponse'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+
+  /admin/search-metadata-extract/studies:
+    get:
+      tags:
+        - Search metadata extract
+      summary: Batch list studies
+      description: |
+        Returns a paginated list of study documents for external indexing.
+
+        Use `offset` + `limit` to page through the full catalog.
+        Filter by one or more dataset types with the `type` parameter.
+      operationId: searchMetadataExtractStudiesList
+      parameters:
+        - name: offset
+          in: query
+          description: Number of records to skip (default 0)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: limit
+          in: query
+          description: Page size (default 50, max 100)
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+            minimum: 1
+        - name: type
+          in: query
+          description: |
+            Filter by dataset type. Comma-separated list of one or more values.
+            When omitted, all types are returned.
+          schema:
+            type: string
+            example: timeseries,survey
+          examples:
+            single:
+              summary: Single type
+              value: timeseries
+            multiple:
+              summary: Multiple types
+              value: survey,timeseries,geospatial
+        - name: include_metadata
+          in: query
+          description: Include full raw metadata JSON in each study document (default false)
+          schema:
+            type: boolean
+            default: false
+        - name: include_admin_metadata
+          in: query
+          description: Include admin-only metadata in each study document (default false)
+          schema:
+            type: boolean
+            default: false
+        - name: include_resources
+          in: query
+          description: Include external resources array in each study document (default false)
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMetadataExtractStudiesBatchResponse'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+
+  /admin/search-metadata-extract/studies/{idno}:
+    get:
+      tags:
+        - Search metadata extract
+      summary: Get single study
+      description: Returns the full extract document for a single study by IDNO (or numeric ID when `id_format=id`).
+      operationId: searchMetadataExtractStudyGet
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          description: Study IDNO (default) or numeric `surveys.id` when `id_format=id`
+          schema:
+            type: string
+        - name: id_format
+          in: query
+          description: Set to `id` to use numeric `surveys.id` instead of IDNO
+          schema:
+            type: string
+            enum: [id]
+        - name: include_metadata
+          in: query
+          description: Include full raw metadata JSON (default false)
+          schema:
+            type: boolean
+            default: false
+        - name: include_admin_metadata
+          in: query
+          description: Include admin-only metadata (default false)
+          schema:
+            type: boolean
+            default: false
+        - name: include_resources
+          in: query
+          description: Include external resources array (default false)
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMetadataExtractStudySingleResponse'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+        '404':
+          $ref: '#/components/responses/SearchMetadataExtractNotFound'
+
+  /admin/search-metadata-extract/citations/{id}:
+    get:
+      tags:
+        - Search metadata extract
+      summary: Get single citation
+      description: Returns the extract document for a single citation by numeric ID.
+      operationId: searchMetadataExtractCitationGet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Numeric `citations.id`
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMetadataExtractCitationResponse'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+        '404':
+          $ref: '#/components/responses/SearchMetadataExtractNotFound'
 
 # ----------------------------------------------------------------
 # Security & Components
@@ -2896,6 +4668,29 @@ components:
         type: string
         enum: [csv, json]
         default: csv
+    AdminCatalogStudyIdno:
+      name: idno
+      in: path
+      required: true
+      description: Study IDNO (default) or numeric `surveys.id` when `id_format=id`
+      schema:
+        type: string
+    AdminCatalogStudyIdFormat:
+      name: id_format
+      in: query
+      description: Set to `id` to use numeric `surveys.id` instead of IDNO in the path
+      schema:
+        type: string
+        enum: [id]
+    StudyAdminMetadataOverwrite:
+      name: overwrite
+      in: query
+      description: >-
+        When true, replace existing admin metadata instead of failing with `409`.
+        May also be sent in the JSON request body.
+      schema:
+        type: boolean
+        default: false
 
   responses:
     AnalyticsBadRequest:
@@ -2917,8 +4712,409 @@ components:
               message:
                 type: string
                 example: ACCESS-DENIED
+    CatalogImportForbidden:
+      description: Admin catalog access denied or upload not owned by caller
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CatalogImportErrorResponse'
+          example:
+            status: error
+            message: ACCESS_DENIED
+    CatalogImportBadRequest:
+      description: Invalid request (e.g. `UPLOAD_ID_REQUIRED`, `UPLOAD_NOT_COMPLETE_OR_MISSING`, `PACKAGE_NOT_UNZIPPED`, `DATAFILES_NOT_COMPLETE`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CatalogImportErrorResponse'
+    CatalogImportValidationError:
+      description: Validation failed (e.g. `VALIDATION_ERROR`, `INVALID_TYPE`, variable schema errors)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CatalogImportValidationErrorResponse'
+    StudyAdminMetadataBadRequest:
+      description: Invalid request (e.g. `METADATA_REQUIRED`, `METADATA_MUST_BE_OBJECT`, `METADATA_TOO_LARGE`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StudyAdminMetadataErrorResponse'
+    StudyAdminMetadataForbidden:
+      description: Admin or study edit access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StudyAdminMetadataErrorResponse'
+          example:
+            status: failed
+            message: ACCESS_DENIED
+    SearchMetadataExtractForbidden:
+      description: Admin catalog access required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SearchMetadataExtractErrorResponse'
+          example:
+            status: failed
+            message: ACCESS_DENIED
+    SearchMetadataExtractNotFound:
+      description: Study or citation not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SearchMetadataExtractErrorResponse'
+          example:
+            status: failed
+            message: STUDY_NOT_FOUND
 
   schemas:
+    TemplateRecord:
+      type: object
+      properties:
+        uid:
+          type: string
+        template_type:
+          type: string
+          enum: [system, custom, imported]
+        data_type:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+          nullable: true
+        organization:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, published, archived]
+        template_json:
+          type: object
+          additionalProperties: true
+        default:
+          type: boolean
+          nullable: true
+
+    TemplateWriteRequest:
+      type: object
+      required: [data_type, name, template_json]
+      properties:
+        uid:
+          type: string
+        template_type:
+          type: string
+          enum: [system, custom, imported]
+        data_type:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        organization:
+          type: string
+        author:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        template_json:
+          type: object
+          additionalProperties: true
+
+    TemplateUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        organization:
+          type: string
+        author:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        template_json:
+          type: object
+          additionalProperties: true
+
+    TemplateImportRequest:
+      type: object
+      properties:
+        uid:
+          type: string
+        template_type:
+          type: string
+          enum: [system, custom, imported]
+        data_type:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        organization:
+          type: string
+        author:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        template:
+          type: object
+          additionalProperties: true
+        template_json:
+          type: object
+          additionalProperties: true
+
+    TemplateSingleResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            template:
+              $ref: '#/components/schemas/TemplateRecord'
+
+    TemplatesListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            templates:
+              type: array
+              items:
+                $ref: '#/components/schemas/TemplateRecord'
+
+    TemplateImportResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            template:
+              $ref: '#/components/schemas/TemplateRecord'
+            import_summary:
+              type: object
+              properties:
+                total_nodes:
+                  type: integer
+                total_sections:
+                  type: integer
+                total_fields:
+                  type: integer
+                missing_renderer:
+                  type: integer
+                warnings:
+                  type: array
+                  items:
+                    type: string
+
+    TemplateValidateRequest:
+      type: object
+      required: [template_json]
+      properties:
+        template_json:
+          type: object
+          additionalProperties: true
+
+    TemplateValidateResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            valid:
+              type: boolean
+            errors:
+              type: array
+              items:
+                type: string
+
+    RendererRecord:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        supported_source_types:
+          type: array
+          items:
+            type: string
+        handler:
+          type: object
+          additionalProperties: true
+        default_params:
+          type: object
+          additionalProperties: true
+        params:
+          type: object
+          additionalProperties: true
+        supports_layout_builder:
+          type: boolean
+        status:
+          type: string
+
+    RenderersListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            renderers:
+              type: array
+              items:
+                $ref: '#/components/schemas/RendererRecord'
+
+    DataStructureStatusCode:
+      type: string
+      description: >-
+        Catalogue DSD lifecycle slug (persisted as an integer in `data_structures.status`):
+        `draft`, `review`, `published` (locked from destructive edits), `deprecated`,
+        `archived` (locked). Request bodies and import JSON must use these strings. The
+        list endpoint `GET /admin/data_structures` also accepts legacy numeric strings
+        `0`, `10`, `20`, `30`, `40` for the `status` query filter only.
+      enum: [draft, review, published, deprecated, archived]
+
+    CodelistImportItem:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          description: Stable code value (max 64 chars).
+        label:
+          type: string
+          description: Display label; mapped to item title on import.
+        title:
+          type: string
+          description: Alternate title field accepted by the importer.
+        sort_order:
+          type: integer
+          default: 0
+        parent_id:
+          type: integer
+          nullable: true
+
+    CodelistImportPayload:
+      type: object
+      properties:
+        idno:
+          type: string
+          description: Preferred stable codelist idno.
+        name:
+          type: string
+          description: Codelist name (required when creating a new codelist).
+        agency:
+          type: string
+          default: NADA
+        version:
+          type: string
+          default: 1.0.0
+        description:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodelistImportItem'
+
+    CodelistImportJsonRequest:
+      type: object
+      required: [codelist]
+      properties:
+        overwrite:
+          type: boolean
+          default: false
+          description: Replace existing item set when matched codelist exists (body only; not a query flag).
+        dry_run:
+          type: boolean
+          default: false
+          description: Validate and resolve action without writing changes (body only; not a query flag).
+        codelist:
+          $ref: '#/components/schemas/CodelistImportPayload'
+
+    CodelistImportJsonResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            dry_run:
+              type: boolean
+            codelist:
+              type: object
+              additionalProperties: true
+            items_imported:
+              type: integer
+            codelists_created:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  idno:
+                    type: string
+                    nullable: true
+            codelists_reused:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  idno:
+                    type: string
+                    nullable: true
+            codelists_updated:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  idno:
+                    type: string
+                    nullable: true
+            warnings:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+
     FileStore:
       type: object
       properties:
@@ -3624,3 +5820,436 @@ components:
           type: integer
           minimum: 0
           description: Total all-time downloads to store for this file
+
+    StudyAdminMetadataSaveRequest:
+      type: object
+      required: [metadata]
+      properties:
+        metadata:
+          type: object
+          description: Admin-only custom metadata (JSON object; not merged on create)
+          additionalProperties: true
+          example:
+            workflow_status: reviewed
+            source_system: crm
+            internal_ref: INT-12345
+        overwrite:
+          type: boolean
+          description: >-
+            When true on `POST /admin/catalog/{idno}/admin-metadata`, replace existing metadata
+            instead of returning `409`. Ignored on `/update`.
+
+    CatalogImportErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [error, failed]
+        message:
+          type: string
+
+    CatalogImportValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/CatalogImportErrorResponse'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties: true
+              description: Validation error details (shape varies by failure)
+
+    CatalogDdiUploadCollectionsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        collections:
+          type: array
+          items:
+            type: object
+            properties:
+              repositoryid:
+                type: string
+              title:
+                type: string
+
+    CatalogImportOneShotResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        detected_type:
+          type: string
+          description: Detected import kind (`survey_xml`, `geospatial_xml`, `dataset_json`, `dataset_jsonl`, `package_zip`)
+        sid:
+          type: integer
+          description: Numeric study id (`surveys.id`)
+        idno:
+          type: string
+        study_type:
+          type: string
+          description: Resolved dataset type (JSON/JSONL/ZIP imports)
+        dataset:
+          type: object
+          additionalProperties: true
+        package_stats:
+          $ref: '#/components/schemas/CatalogImportPackageStats'
+
+    CatalogImportPackageUploadRequest:
+      type: object
+      required: [upload_id]
+      properties:
+        upload_id:
+          type: string
+          description: Completed resumable upload id from `/uploads/*`
+
+    CatalogImportPackageCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/CatalogImportPackageUploadRequest'
+        - type: object
+          properties:
+            repositoryid:
+              type: string
+              default: central
+            overwrite:
+              oneOf:
+                - type: boolean
+                - type: string
+                  enum: [yes, no]
+              description: Replace existing study with same IDNO when true/`yes`
+            published:
+              type: integer
+              enum: [0, 1]
+            access_policy:
+              type: string
+              description: Data access form/model code
+            data_remote_url:
+              type: string
+              description: Remote data access URL (`link_da`)
+
+    CatalogImportPackageStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        upload_id:
+          type: string
+        phase:
+          type: string
+          description: >-
+            Current phase (`uploaded`, `unzipped`, `study_created`, `importing_datafiles`, `datafiles_done`, `completed`)
+        next_task:
+          type: string
+          nullable: true
+          enum: [unzip, create, datafile, finalize]
+          description: Next endpoint to call; omitted or null when `done` is true
+        action:
+          type: string
+          nullable: true
+          description: Result of the last task invocation (e.g. `unzipped`, `datafile_imported`)
+        sid:
+          type: integer
+          nullable: true
+        idno:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+          description: Resolved dataset type
+        data_files_total:
+          type: integer
+        data_files_done:
+          type: integer
+        data_files_pending:
+          type: array
+          items:
+            type: string
+          description: Data file ids not yet imported
+        last_datafile:
+          type: object
+          nullable: true
+          properties:
+            file_id:
+              type: string
+            variables_count:
+              type: integer
+        finalize_stats:
+          $ref: '#/components/schemas/CatalogImportPackageStats'
+        done:
+          type: boolean
+
+    CatalogImportPackageFinalizeResponse:
+      allOf:
+        - $ref: '#/components/schemas/CatalogImportPackageStatusResponse'
+        - type: object
+          properties:
+            package_stats:
+              $ref: '#/components/schemas/CatalogImportPackageStats'
+
+    CatalogImportPackageStats:
+      type: object
+      properties:
+        documentation_files:
+          type: integer
+        resources:
+          type: integer
+        thumbnail:
+          type: boolean
+        xml_copied:
+          type: boolean
+        rdf_imported:
+          type: boolean
+
+    StudyAdminMetadataResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        sid:
+          type: integer
+          description: Numeric study id (`surveys.id`)
+        metadata:
+          type: object
+          additionalProperties: true
+        created:
+          type: string
+          format: date-time
+          nullable: true
+        changed:
+          type: string
+          format: date-time
+          nullable: true
+        created_by:
+          type: integer
+          nullable: true
+        changed_by:
+          type: integer
+          nullable: true
+
+    StudyAdminMetadataDeleteResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        sid:
+          type: integer
+        deleted:
+          type: boolean
+          example: true
+
+    StudyAdminMetadataErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: failed
+        message:
+          type: string
+          description: Error code (e.g. `METADATA_ALREADY_EXISTS`, `METADATA_REQUIRED`, `ACCESS_DENIED`)
+
+
+    SearchMetadataExtractErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: failed
+        message:
+          type: string
+          description: Error code (e.g. `ACCESS_DENIED`, `STUDY_NOT_FOUND`, `CITATION_NOT_FOUND`)
+
+    SearchMetadataExtractStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        counts:
+          type: object
+          properties:
+            studies:
+              type: integer
+              description: Total studies in catalog
+            studies_published:
+              type: integer
+              description: Published studies
+            citations:
+              type: integer
+              description: Total citations
+
+    SearchMetadataExtractStudyDocument:
+      type: object
+      description: Canonical study document for external indexers
+      properties:
+        id:
+          type: integer
+          description: Numeric `surveys.id`
+        idno:
+          type: string
+        title:
+          type: string
+        dataset_type:
+          type: string
+          description: Survey type code
+          enum:
+            - survey
+            - geospatial
+            - timeseries
+            - document
+            - table
+            - image
+            - script
+            - visualization
+            - video
+            - timeseriesdb
+        published:
+          type: integer
+          enum: [0, 1]
+        created:
+          type: string
+          format: date-time
+        changed:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          nullable: true
+          description: Full raw metadata JSON — only present when `include_metadata=1`
+          additionalProperties: true
+        admin_metadata:
+          type: object
+          nullable: true
+          description: Admin-only metadata — only present when `include_admin_metadata=1`
+          additionalProperties: true
+        resources:
+          type: array
+          nullable: true
+          description: External resources — only present when `include_resources=1`
+          items:
+            type: object
+            properties:
+              resource_id:
+                type: integer
+              survey_id:
+                type: integer
+              title:
+                type: string
+              dctype:
+                type: string
+              dcformat:
+                type: string
+                nullable: true
+              filename:
+                type: string
+                nullable: true
+              is_url:
+                type: integer
+                enum: [0, 1]
+              resource_type:
+                type: string
+                nullable: true
+              resource_idno:
+                type: string
+                nullable: true
+              abstract:
+                type: string
+                nullable: true
+              author:
+                type: string
+                nullable: true
+              dcdate:
+                type: string
+                nullable: true
+              created:
+                type: string
+                nullable: true
+              changed:
+                type: string
+                nullable: true
+              _links:
+                type: object
+                nullable: true
+                description: Present when a downloadable file or URL exists
+                properties:
+                  download:
+                    type: string
+                    description: Absolute URL to download or access the resource file
+                  type:
+                    type: string
+                    description: "`download` for local files, `link` for external URLs"
+                    enum: [download, link]
+
+    SearchMetadataExtractStudySingleResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        study:
+          $ref: '#/components/schemas/SearchMetadataExtractStudyDocument'
+
+    SearchMetadataExtractStudiesBatchResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        offset:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+          description: Total matching records (respects `type` filter)
+        has_more:
+          type: boolean
+        studies:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchMetadataExtractStudyDocument'
+
+    SearchMetadataExtractCitationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        citation:
+          type: object
+          properties:
+            id:
+              type: integer
+            uuid:
+              type: string
+            title:
+              type: string
+            subtitle:
+              type: string
+              nullable: true
+            authors:
+              type: string
+              nullable: true
+            ctype:
+              type: string
+              nullable: true
+            abstract:
+              type: string
+              nullable: true
+            keywords:
+              type: string
+              nullable: true
+            doi:
+              type: string
+              nullable: true
+            published:
+              type: integer
+              enum: [0, 1]
+            pub_year:
+              type: integer
+              nullable: true

@@ -38,6 +38,11 @@ class Dataset_model extends CI_Model {
 		'created_by',
 		'changed_by',
 		'data_class_id',
+		'data_structure_id',
+		'ts_db_id',
+		'ts_dimensions',
+		'ts_frequency',
+		'ts_sync_required',
 		'formid',
 		'metadata',
 		'link_study',
@@ -68,6 +73,7 @@ class Dataset_model extends CI_Model {
 		'total_downloads',
 		'created_by',
 		'changed_by',
+		'ts_db_id',
 		'formid',
 		'doi',
 		'abstract'
@@ -248,7 +254,7 @@ class Dataset_model extends CI_Model {
 			year_end,nation,surveys.authoring_entity,published,created, changed, varcount, total_views, total_downloads, 
 			surveys.formid,forms.model as data_access_type,link_da as remote_data_url, 
 			surveys.data_class_id, data_classifications.code as data_class_code, data_classifications.title as data_class_title,
-			surveys.thumbnail, link_study, link_indicator, link_report");
+			surveys.thumbnail, surveys.abstract, link_study, link_indicator, link_report");
 		$this->db->join('forms','surveys.formid=forms.formid','left');
 		$this->db->join('data_classifications','surveys.data_class_id=data_classifications.id','left');
 		$this->db->where("surveys.id",$sid);
@@ -406,6 +412,32 @@ class Dataset_model extends CI_Model {
 		if ($survey){
 			return $survey['doi'];
 		}
+	}
+
+
+	/**
+	 * Plain-text abstract stored on surveys.abstract (no metadata decode).
+	 *
+	 * @param int $sid
+	 * @return string|null
+	 */
+	function get_study_abstract($sid)
+	{
+		if (!is_numeric($sid) || is_float($sid)) {
+			return null;
+		}
+
+		$this->db->select('abstract');
+		$this->db->where('id', (int) $sid);
+		$row = $this->db->get('surveys')->row_array();
+
+		if (!$row || !isset($row['abstract'])) {
+			return null;
+		}
+
+		$abstract = trim(strip_tags((string) $row['abstract']));
+
+		return $abstract !== '' ? $abstract : null;
 	}
 
 	/**
@@ -772,43 +804,1147 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	function extract_abstract($metadata, $type = '')
+	function extract_abstract($metadata, $type = '', $max_len = 500)
 	{
-		// Map of study type => path in metadata (separator '/')
-		$paths = [
-			'survey'        => 'study_desc/study_info/abstract',
-			'document'      => 'document_description/abstract',
-			'script'        => 'project_desc/abstract',
-			'timeseriesdb'  => 'database_description/abstract',
-			'table'         => 'table_description/description',
-			'timeseries'    => 'series_description/definition_short',
-			'video'         => 'video_description/description',
-			'visualization' => 'visualization_description/description',
-			//'geospatial'     => 'description/identificationInfo/abstract', 
-			// 'image': //todo
-		];
+		$abstract = $this->get_metadata_abstract_text($metadata, $type);
+		if ($abstract === null) {
+			return null;
+		}
 
-		if (isset($paths[$type])) {
-			$abstract = $this->get_array_nested_value($metadata, $paths[$type], '/');
-		} elseif ($type === 'geospatial') {
-			// identificationInfo is an array of objects in ISO 19139 metadata
+		$max_len = (int) $max_len;
+		if ($max_len <= 0) {
+			return $abstract;
+		}
+
+		return mb_strlen($abstract) > $max_len
+			? mb_substr($abstract, 0, $max_len)
+			: $abstract;
+	}
+
+
+	/**
+	 * Plain-text description for schema.org Dataset JSON-LD (50–5000 characters).
+	 *
+	 * @param array  $metadata
+	 * @param string $type
+	 * @return string|null
+	 */
+	function get_schema_org_description($metadata, $type = '')
+	{
+		$max_len = 5000;
+		$min_len = 50;
+
+		if ($type === 'geospatial') {
+			$text = $this->get_metadata_abstract_text($metadata, $type);
+			if ($text === null) {
+				return null;
+			}
+
+			$text = $this->truncate_schema_org_description($text, $max_len);
+			return mb_strlen($text) >= $min_len ? $text : null;
+		}
+
+		$candidate_paths = $this->get_schema_org_description_paths($type);
+		foreach ($candidate_paths as $path) {
+			$value = $this->get_array_nested_value($metadata, $path, '/');
+			$text = $this->normalize_schema_org_text($value);
+			if ($text === '') {
+				continue;
+			}
+
+			$text = $this->truncate_schema_org_description($text, $max_len);
+			if (mb_strlen($text) >= $min_len) {
+				return $text;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * @param string $type
+	 * @return array<int, string>
+	 */
+	private function get_schema_org_description_paths($type = '')
+	{
+		$survey_paths = array(
+			'study_desc/study_info/abstract',
+			'study_desc/series_statement/series_info',
+			'study_desc/study_info/notes',
+		);
+
+		$paths_by_type = array(
+			'survey'        => $survey_paths,
+			'microdata'     => $survey_paths,
+			'document'      => array(
+				'document_description/abstract',
+				'document_description/description',
+				'document_description/scope',
+				'document_description/notes',
+			),
+			'script'        => array(
+				'project_desc/abstract',
+			),
+			'timeseriesdb'  => array(
+				'database_description/abstract',
+			),
+			'timeseries-db' => array(
+				'database_description/abstract',
+			),
+			'table'         => array(
+				'table_description/description',
+				'table_description/notes',
+			),
+			'timeseries'    => array(
+				'series_description/definition_short',
+				'series_description/definition_long',
+			),
+			'video'         => array(
+				'video_description/description',
+			),
+			'visualization' => array(
+				'visualization_description/description',
+				'visualization_description/narrative',
+			),
+			'image'         => array(
+				'image_description/dcmi/description',
+				'image_description/dcmi/caption',
+				'image_description/iptc/photoVideoMetadataIPTC/description',
+				'image_description/iptc/photoVideoMetadataIPTC/headline',
+			),
+		);
+
+		return isset($paths_by_type[$type]) ? $paths_by_type[$type] : array();
+	}
+
+
+	/**
+	 * @param array|string|null $metadata
+	 * @param string            $type
+	 * @return string|null
+	 */
+	private function get_metadata_abstract_text($metadata, $type = '')
+	{
+		if ($type === 'geospatial') {
 			$ident = $this->get_array_nested_value($metadata, 'description/identificationInfo', '/');
 			if (is_array($ident)) {
-				$first    = reset($ident);
-				$abstract = is_array($first) ? ($first['abstract'] ?? null) : null;
+				$first = reset($ident);
+				$value = is_array($first) ? ($first['abstract'] ?? null) : null;
 			} else {
-				$abstract = null;
+				$value = null;
 			}
+
+			$text = $this->normalize_schema_org_text($value);
+			return $text !== '' ? $text : null;
+		}
+
+		$paths = $this->get_schema_org_description_paths($type);
+		if (empty($paths)) {
+			return null;
+		}
+
+		foreach ($paths as $path) {
+			$value = $this->get_array_nested_value($metadata, $path, '/');
+			$text = $this->normalize_schema_org_text($value);
+			if ($text !== '') {
+				return $text;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * @param mixed $text
+	 * @return string
+	 */
+	private function normalize_schema_org_text($text)
+	{
+		if (is_array($text)) {
+			$text = $this->flatten_schema_org_text_array($text);
+		}
+
+		if (!is_string($text)) {
+			return '';
+		}
+
+		$text = trim(strip_tags($text));
+		$text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		$text = preg_replace('/\s+/u', ' ', $text);
+
+		return trim($text);
+	}
+
+
+	/**
+	 * @param array $values
+	 * @return string
+	 */
+	private function flatten_schema_org_text_array(array $values)
+	{
+		$parts = array();
+
+		foreach ($values as $value) {
+			if (is_array($value)) {
+				foreach (array('note', 'text', 'description') as $key) {
+					if (!empty($value[$key]) && is_string($value[$key])) {
+						$parts[] = trim($value[$key]);
+						break;
+					}
+				}
+				continue;
+			}
+
+			if (is_string($value) && trim($value) !== '') {
+				$parts[] = trim($value);
+			}
+		}
+
+		if (!empty($parts)) {
+			return implode("\n\n", $parts);
+		}
+
+		$scalar = array_filter($values, function ($value) {
+			return is_scalar($value) && $value !== null && $value !== '';
+		});
+
+		return implode(', ', $scalar);
+	}
+
+
+	/**
+	 * @param string $text
+	 * @param int    $max_len
+	 * @return string
+	 */
+	private function truncate_schema_org_description($text, $max_len = 5000)
+	{
+		$max_len = (int) $max_len;
+		if ($max_len <= 0 || mb_strlen($text) <= $max_len) {
+			return $text;
+		}
+
+		$cut = mb_substr($text, 0, $max_len - 1);
+		$last_period = mb_strrpos($cut, '.');
+		if ($last_period !== false && $last_period > (int) ($max_len * 0.7)) {
+			return mb_substr($cut, 0, $last_period + 1);
+		}
+
+		$last_space = mb_strrpos($cut, ' ');
+		if ($last_space !== false) {
+			$cut = mb_substr($cut, 0, $last_space);
+		}
+
+		return rtrim($cut, '.,;') . '…';
+	}
+
+
+	/**
+	 * Study types that represent tabular/statistical datasets for schema.org Dataset JSON-LD.
+	 *
+	 * @return array<int, string>
+	 */
+	function schema_org_dataset_types()
+	{
+		return array(
+			'survey',
+			'microdata',
+			'timeseries',
+			'timeseriesdb',
+			'timeseries-db',
+			'table',
+			'geospatial',
+			'script',
+		);
+	}
+
+
+	/**
+	 * All catalog study types that emit schema.org JSON-LD.
+	 *
+	 * @return array<int, string>
+	 */
+	function schema_org_supported_types()
+	{
+		return array(
+			'survey',
+			'microdata',
+			'timeseries',
+			'timeseriesdb',
+			'timeseries-db',
+			'table',
+			'geospatial',
+			'script',
+			'document',
+			'image',
+			'video',
+			'visualization',
+		);
+	}
+
+
+	/**
+	 * @param string $type
+	 * @return bool
+	 */
+	function is_schema_org_dataset_type($type = '')
+	{
+		return in_array($type, $this->schema_org_dataset_types(), true);
+	}
+
+
+	/**
+	 * Build schema.org JSON-LD for public catalog study pages.
+	 *
+	 * @param array $survey Row from get_row() plus metadata and optional schema_org_description
+	 * @return array|null
+	 */
+	function build_schema_org_json_ld(array $survey)
+	{
+		$type = isset($survey['type']) ? (string) $survey['type'] : '';
+		if (!in_array($type, $this->schema_org_supported_types(), true)) {
+			return null;
+		}
+
+		$metadata = isset($survey['metadata']) && is_array($survey['metadata']) ? $survey['metadata'] : array();
+
+		$json_ld = array(
+			'@context' => 'https://schema.org/',
+			'@type'    => $this->get_schema_org_json_ld_type($type, $metadata),
+			'url'      => site_url('catalog/' . (isset($survey['id']) ? $survey['id'] : '')),
+		);
+
+		$this->apply_schema_org_common_fields($json_ld, $survey, $metadata, $type);
+
+		if ($this->is_schema_org_dataset_type($type)) {
+			$this->apply_schema_org_dataset_fields($json_ld, $survey, $metadata, $type);
 		} else {
+			$this->apply_schema_org_creative_work_fields($json_ld, $survey, $metadata, $type);
+		}
+
+		return $json_ld;
+	}
+
+
+	/**
+	 * @param string $type
+	 * @param array  $metadata
+	 * @return string
+	 */
+	function get_schema_org_json_ld_type($type = '', $metadata = array())
+	{
+		if ($this->is_schema_org_dataset_type($type)) {
+			return 'Dataset';
+		}
+
+		switch ($type) {
+			case 'video':
+				return 'VideoObject';
+			case 'image':
+				return 'ImageObject';
+			case 'document':
+				return $this->get_schema_org_document_type($metadata);
+			case 'visualization':
+				return 'CreativeWork';
+			default:
+				return 'CreativeWork';
+		}
+	}
+
+
+	/**
+	 * @param array  $json_ld
+	 * @param array  $survey
+	 * @param array  $metadata
+	 * @param string $type
+	 * @return void
+	 */
+	private function apply_schema_org_common_fields(array &$json_ld, array $survey, array $metadata, $type)
+	{
+		$title = trim((string) ($survey['title'] ?? ''));
+		$nation = trim((string) ($survey['nation'] ?? ''));
+		$name = implode(' - ', array_filter(array($title, $nation !== '' ? $nation : null)));
+
+		if ($name !== '') {
+			$json_ld['name'] = $name;
+		}
+
+		$identifiers = array();
+		$idno = trim((string) ($survey['idno'] ?? ''));
+		if ($idno !== '') {
+			$identifiers[] = $idno;
+		}
+
+		$doi_url = $this->format_schema_org_doi_url(isset($survey['doi']) ? $survey['doi'] : '');
+		if ($doi_url !== null) {
+			$identifiers[] = $doi_url;
+			$json_ld['sameAs'] = $doi_url;
+		}
+
+		if (count($identifiers) === 1) {
+			$json_ld['identifier'] = $identifiers[0];
+		} elseif (count($identifiers) > 1) {
+			$json_ld['identifier'] = $identifiers;
+		}
+
+		$this->apply_schema_org_catalog_membership(
+			$json_ld,
+			$this->is_schema_org_dataset_type($type)
+		);
+
+		if (!empty($survey['created'])) {
+			$json_ld['dateCreated'] = date('c', $survey['created']);
+		}
+
+		if (!empty($survey['changed'])) {
+			$json_ld['dateModified'] = date('c', $survey['changed']);
+		}
+
+		$description = isset($survey['schema_org_description'])
+			? $survey['schema_org_description']
+			: $this->get_schema_org_description($metadata, $type);
+		if (!empty($description)) {
+			$json_ld['description'] = $description;
+		}
+
+		$keywords = $this->get_schema_org_keywords($metadata, $type);
+		if (!empty($keywords)) {
+			$json_ld['keywords'] = $keywords;
+		}
+	}
+
+
+	/**
+	 * @param array $json_ld
+	 * @param bool  $use_included_in_data_catalog
+	 * @return void
+	 */
+	private function apply_schema_org_catalog_membership(array &$json_ld, $use_included_in_data_catalog)
+	{
+		$catalog_name = trim((string) $this->config->item('website_title'));
+		if ($catalog_name === '') {
+			$catalog_name = trim((string) $this->config->item('site_title'));
+		}
+
+		$catalog_url = base_url();
+		if ($catalog_name === '' && $catalog_url === '') {
+			return;
+		}
+
+		$catalog = array('@type' => 'DataCatalog');
+		if ($catalog_name !== '') {
+			$catalog['name'] = $catalog_name;
+		}
+		if ($catalog_url !== '') {
+			$catalog['url'] = $catalog_url;
+		}
+
+		if ($use_included_in_data_catalog) {
+			$json_ld['includedInDataCatalog'] = $catalog;
+		} else {
+			$json_ld['isPartOf'] = $catalog;
+		}
+	}
+
+
+	/**
+	 * @param array  $json_ld
+	 * @param array  $survey
+	 * @param array  $metadata
+	 * @param string $type
+	 * @return void
+	 */
+	private function apply_schema_org_dataset_fields(array &$json_ld, array $survey, array $metadata, $type)
+	{
+		$years = implode('/', array_filter(array_unique(array(
+			$survey['year_start'] ?? null,
+			$survey['year_end'] ?? null,
+		))));
+		if ($years !== '') {
+			$json_ld['temporalCoverage'] = $years;
+		}
+
+		$nation = trim((string) ($survey['nation'] ?? ''));
+		if ($nation !== '') {
+			$json_ld['spatialCoverage'] = array(
+				'@type' => 'Place',
+				'name'  => $nation,
+			);
+		}
+
+		$creators = $this->get_schema_org_creators($metadata, $type);
+		if (!empty($creators)) {
+			$json_ld['creator'] = $creators;
+		}
+
+		$producers = $this->get_schema_org_producers($metadata, $type);
+		if (!empty($producers)) {
+			$json_ld['producer'] = $producers;
+		}
+	}
+
+
+	/**
+	 * @param array  $json_ld
+	 * @param array  $survey
+	 * @param array  $metadata
+	 * @param string $type
+	 * @return void
+	 */
+	private function apply_schema_org_creative_work_fields(array &$json_ld, array $survey, array $metadata, $type)
+	{
+		$creators = $this->get_schema_org_creators($metadata, $type);
+		if (empty($creators)) {
+			$creators = $this->get_schema_org_producers($metadata, $type);
+		}
+		if (!empty($creators)) {
+			$json_ld['creator'] = $creators;
+		}
+
+		$years = implode('/', array_filter(array_unique(array(
+			$survey['year_start'] ?? null,
+			$survey['year_end'] ?? null,
+		))));
+		if ($years !== '') {
+			$json_ld['temporalCoverage'] = $years;
+		}
+
+		$nation = trim((string) ($survey['nation'] ?? ''));
+		if ($nation !== '') {
+			$json_ld['contentLocation'] = array(
+				'@type' => 'Place',
+				'name'  => $nation,
+			);
+		}
+
+		switch ($type) {
+			case 'video':
+				$this->apply_schema_org_video_fields($json_ld, $survey, $metadata);
+				break;
+			case 'image':
+				$this->apply_schema_org_image_fields($json_ld, $survey, $metadata);
+				break;
+			case 'document':
+				$this->apply_schema_org_document_fields($json_ld, $metadata);
+				break;
+			case 'visualization':
+				$this->apply_schema_org_visualization_fields($json_ld, $metadata);
+				break;
+		}
+	}
+
+
+	/**
+	 * @param array $metadata
+	 * @return string
+	 */
+	private function get_schema_org_document_type($metadata)
+	{
+		$doc_type = strtolower(trim((string) $this->get_array_nested_value(
+			$metadata,
+			'document_description/type',
+			'/'
+		)));
+
+		$map = array(
+			'article'       => 'ScholarlyArticle',
+			'inproceeding'  => 'ScholarlyArticle',
+			'incollection'  => 'ScholarlyArticle',
+			'techreport'    => 'Report',
+			'working-paper' => 'Report',
+			'phdthesis'     => 'Thesis',
+			'masterthesis'  => 'Thesis',
+			'book'          => 'Book',
+			'booklet'       => 'Book',
+			'manual'        => 'Book',
+			'proceedings'   => 'PublicationVolume',
+			'website'       => 'WebPage',
+		);
+
+		return isset($map[$doc_type]) ? $map[$doc_type] : 'DigitalDocument';
+	}
+
+
+	/**
+	 * @param array $json_ld
+	 * @param array $survey
+	 * @param array $metadata
+	 * @return void
+	 */
+	private function apply_schema_org_video_fields(array &$json_ld, array $survey, array $metadata)
+	{
+		$video_url = trim((string) $this->get_array_nested_value($metadata, 'video_description/video_url', '/'));
+		if ($video_url !== '') {
+			$json_ld['contentUrl'] = $video_url;
+		}
+
+		$embed_url = trim((string) $this->get_array_nested_value($metadata, 'video_description/embed_url', '/'));
+		if ($embed_url !== '') {
+			$json_ld['embedUrl'] = $embed_url;
+		}
+
+		$encoding_format = trim((string) $this->get_array_nested_value($metadata, 'video_description/encoding_format', '/'));
+		if ($encoding_format !== '') {
+			$json_ld['encodingFormat'] = $encoding_format;
+		}
+
+		$duration = trim((string) $this->get_array_nested_value($metadata, 'video_description/duration', '/'));
+		if ($duration !== '') {
+			$json_ld['duration'] = $duration;
+		}
+
+		$thumbnail_url = $this->resolve_schema_org_thumbnail_url($survey);
+		if ($thumbnail_url !== null) {
+			$json_ld['thumbnailUrl'] = $thumbnail_url;
+		}
+
+		$credit_text = trim((string) $this->get_array_nested_value($metadata, 'video_description/credit_text', '/'));
+		if ($credit_text !== '') {
+			$json_ld['creditText'] = $credit_text;
+		}
+	}
+
+
+	/**
+	 * @param array $json_ld
+	 * @param array $survey
+	 * @param array $metadata
+	 * @return void
+	 */
+	private function apply_schema_org_image_fields(array &$json_ld, array $survey, array $metadata)
+	{
+		$thumbnail_url = $this->resolve_schema_org_thumbnail_url($survey);
+		if ($thumbnail_url !== null) {
+			$json_ld['contentUrl'] = $thumbnail_url;
+			$json_ld['thumbnailUrl'] = $thumbnail_url;
+		}
+
+		$encoding_format = trim((string) $this->get_array_nested_value($metadata, 'image_description/dcmi/format', '/'));
+		if ($encoding_format !== '') {
+			$json_ld['encodingFormat'] = $encoding_format;
+		}
+
+		$caption = trim((string) $this->get_array_nested_value($metadata, 'image_description/dcmi/caption', '/'));
+		if ($caption === '') {
+			$caption = trim((string) $this->get_array_nested_value(
+				$metadata,
+				'image_description/iptc/photoVideoMetadataIPTC/headline',
+				'/'
+			));
+		}
+		if ($caption !== '') {
+			$json_ld['caption'] = $caption;
+		}
+	}
+
+
+	/**
+	 * @param array $json_ld
+	 * @param array $metadata
+	 * @return void
+	 */
+	private function apply_schema_org_document_fields(array &$json_ld, array $metadata)
+	{
+		$doc_type = trim((string) $this->get_array_nested_value($metadata, 'document_description/type', '/'));
+		if ($doc_type !== '') {
+			$json_ld['genre'] = $doc_type;
+		}
+	}
+
+
+	/**
+	 * @param array $json_ld
+	 * @param array $metadata
+	 * @return void
+	 */
+	private function apply_schema_org_visualization_fields(array &$json_ld, array $metadata)
+	{
+		$genres = array();
+		$types = $this->get_array_nested_value($metadata, 'visualization_description/visualization_types', '/');
+		if (is_array($types)) {
+			if ($this->is_assoc_array($types) && isset($types['type'])) {
+				$types = array($types);
+			}
+			foreach ($types as $entry) {
+				if (!is_array($entry) || empty($entry['type'])) {
+					continue;
+				}
+				$genre = trim((string) $entry['type']);
+				if ($genre !== '') {
+					$genres[] = $genre;
+				}
+			}
+		}
+
+		if (!empty($genres)) {
+			$json_ld['genre'] = count($genres) === 1 ? $genres[0] : $genres;
+		}
+	}
+
+
+	/**
+	 * @param array $survey
+	 * @return string|null
+	 */
+	private function resolve_schema_org_thumbnail_url(array $survey)
+	{
+		$thumbnail = trim((string) ($survey['thumbnail'] ?? ''));
+		if ($thumbnail === '') {
 			return null;
 		}
 
-		if (empty($abstract) || !is_string($abstract)) {
+		if (stripos($thumbnail, 'http://') === 0 || stripos($thumbnail, 'https://') === 0) {
+			return $thumbnail;
+		}
+
+		return base_url(ltrim($thumbnail, '/'));
+	}
+
+
+	/**
+	 * @param string|null $doi
+	 * @return string|null
+	 */
+	function format_schema_org_doi_url($doi)
+	{
+		$doi = trim((string) $doi);
+		if ($doi === '') {
 			return null;
 		}
 
-		$abstract = trim(strip_tags($abstract));
-		return $abstract !== '' ? mb_substr($abstract, 0, 500) : null;
+		if (stripos($doi, 'http://') === 0 || stripos($doi, 'https://') === 0) {
+			return $doi;
+		}
+
+		return 'https://doi.org/' . ltrim($doi, '/');
+	}
+
+
+	/**
+	 * @param array  $metadata
+	 * @param string $type
+	 * @return array<int, string>
+	 */
+	function get_schema_org_keywords($metadata, $type = '')
+	{
+		if ($type === 'geospatial') {
+			return $this->extract_schema_org_geospatial_keywords($metadata);
+		}
+
+		if ($type === 'image') {
+			$keywords = $this->extract_schema_org_keyword_names(
+				$metadata,
+				'image_description/dcmi/keywords',
+				'name'
+			);
+			if (!empty($keywords)) {
+				return $keywords;
+			}
+
+			return $this->extract_schema_org_string_list(
+				$this->get_array_nested_value($metadata, 'image_description/iptc/photoVideoMetadataIPTC/keywords', '/')
+			);
+		}
+
+		$paths = array(
+			'survey'        => array('study_desc/study_info/keywords', 'keyword'),
+			'microdata'     => array('study_desc/study_info/keywords', 'keyword'),
+			'document'      => array('document_description/keywords', 'name'),
+			'script'        => array('project_desc/keywords', 'name'),
+			'timeseries'    => array('series_description/keywords', 'name'),
+			'timeseriesdb'  => array('database_description/keywords', 'name'),
+			'timeseries-db' => array('database_description/keywords', 'name'),
+			'table'         => array('table_description/keywords', 'name'),
+			'video'         => array('video_description/keywords', 'name'),
+			'image'         => array('image_description/dcmi/keywords', 'name'),
+			'visualization' => array('visualization_description/keywords', 'name'),
+		);
+
+		if (!isset($paths[$type])) {
+			return array();
+		}
+
+		return $this->extract_schema_org_keyword_names(
+			$metadata,
+			$paths[$type][0],
+			$paths[$type][1]
+		);
+	}
+
+
+	/**
+	 * @param array  $metadata
+	 * @param string $type
+	 * @return array<int, array<string, string>>
+	 */
+	function get_schema_org_creators($metadata, $type = '')
+	{
+		if ($type === 'document') {
+			return $this->schema_org_organizations_from_names(
+				$this->extract_schema_org_document_author_names($metadata)
+			);
+		}
+
+		if ($type === 'geospatial') {
+			return $this->schema_org_organizations_from_names(
+				$this->extract_schema_org_geospatial_creator_names($metadata)
+			);
+		}
+
+		if ($type === 'image') {
+			return $this->schema_org_organizations_from_names(
+				$this->extract_schema_org_image_creator_names($metadata)
+			);
+		}
+
+		if ($type === 'video') {
+			return $this->schema_org_organizations_from_names(
+				$this->extract_schema_org_video_creator_names($metadata)
+			);
+		}
+
+		$paths = array(
+			'survey'        => 'study_desc/authoring_entity',
+			'microdata'     => 'study_desc/authoring_entity',
+			'script'        => 'project_desc/authoring_entity',
+			'timeseries'    => 'series_description/authoring_entity',
+			'timeseriesdb'  => 'database_description/authoring_entity',
+			'timeseries-db' => 'database_description/authoring_entity',
+			'table'         => 'table_description/authoring_entity',
+			'visualization' => 'visualization_description/authoring_entity',
+		);
+
+		if (!isset($paths[$type])) {
+			return array();
+		}
+
+		return $this->schema_org_organizations_from_names(
+			$this->extract_schema_org_entity_names($metadata, $paths[$type])
+		);
+	}
+
+
+	/**
+	 * @param array  $metadata
+	 * @param string $type
+	 * @return array<int, array<string, string>>
+	 */
+	function get_schema_org_producers($metadata, $type = '')
+	{
+		$paths = array(
+			'survey'        => 'study_desc/production_statement/producers',
+			'microdata'     => 'study_desc/production_statement/producers',
+			'document'      => 'metadata_information/producers',
+			'script'        => 'metadata_information/producers',
+			'timeseries'    => 'metadata_information/producers',
+			'timeseriesdb'  => 'metadata_information/producers',
+			'timeseries-db' => 'metadata_information/producers',
+			'table'         => 'metadata_information/producers',
+			'geospatial'    => 'metadata_information/producers',
+			'video'         => 'metadata_information/producers',
+			'image'         => 'metadata_information/producers',
+			'visualization' => 'metadata_information/producers',
+		);
+
+		if (!isset($paths[$type])) {
+			return array();
+		}
+
+		return $this->schema_org_organizations_from_names(
+			$this->extract_schema_org_entity_names($metadata, $paths[$type])
+		);
+	}
+
+
+	/**
+	 * @param array  $metadata
+	 * @param string $path
+	 * @param string $name_key
+	 * @return array<int, string>
+	 */
+	private function extract_schema_org_keyword_names($metadata, $path, $name_key = 'name')
+	{
+		$items = $this->get_array_nested_value($metadata, $path, '/');
+		if (empty($items) || !is_array($items)) {
+			return array();
+		}
+
+		if ($this->is_assoc_array($items) && isset($items[$name_key])) {
+			$items = array($items);
+		}
+
+		$keywords = array();
+		foreach ($items as $item) {
+			if (!is_array($item) || empty($item[$name_key])) {
+				continue;
+			}
+			$keyword = trim((string) $item[$name_key]);
+			if ($keyword !== '') {
+				$keywords[] = $keyword;
+			}
+		}
+
+		return array_values(array_unique($keywords));
+	}
+
+
+	/**
+	 * @param array  $metadata
+	 * @param string $path
+	 * @return array<int, string>
+	 */
+	private function extract_schema_org_entity_names($metadata, $path)
+	{
+		$items = $this->get_array_nested_value($metadata, $path, '/');
+		if (empty($items) || !is_array($items)) {
+			return array();
+		}
+
+		if ($this->is_assoc_array($items) && isset($items['name'])) {
+			$items = array($items);
+		}
+
+		$names = array();
+		foreach ($items as $item) {
+			if (!is_array($item) || !isset($item['name'])) {
+				continue;
+			}
+			$name = trim((string) $item['name']);
+			if ($name !== '') {
+				$names[] = $name;
+			}
+		}
+
+		return array_values(array_unique($names));
+	}
+
+
+	/**
+	 * @param array $metadata
+	 * @return array<int, string>
+	 */
+	private function extract_schema_org_document_author_names($metadata)
+	{
+		$authors = $this->get_array_nested_value($metadata, 'document_description/authors', '/');
+		if (empty($authors) || !is_array($authors)) {
+			return array();
+		}
+
+		if ($this->is_assoc_array($authors) && (isset($authors['first_name']) || isset($authors['full_name']))) {
+			$authors = array($authors);
+		}
+
+		$names = array();
+		foreach ($authors as $author) {
+			if (!is_array($author)) {
+				continue;
+			}
+
+			if (!empty($author['full_name'])) {
+				$name = trim((string) $author['full_name']);
+			} else {
+				$name = trim(trim((string) ($author['first_name'] ?? '')) . ' ' . trim((string) ($author['last_name'] ?? '')));
+			}
+
+			if ($name !== '') {
+				$names[] = $name;
+			}
+		}
+
+		return array_values(array_unique($names));
+	}
+
+
+	/**
+	 * @param array $metadata
+	 * @return array<int, string>
+	 */
+	private function extract_schema_org_geospatial_creator_names($metadata)
+	{
+		$ident = $this->get_array_nested_value($metadata, 'description/identificationInfo', '/');
+		if (empty($ident) || !is_array($ident)) {
+			return array();
+		}
+
+		$names = array();
+		foreach ($ident as $info) {
+			if (!is_array($info) || empty($info['pointOfContact'])) {
+				continue;
+			}
+
+			$contacts = $info['pointOfContact'];
+			if ($this->is_assoc_array($contacts)) {
+				$contacts = array($contacts);
+			}
+
+			foreach ($contacts as $party) {
+				if (!is_array($party)) {
+					continue;
+				}
+
+				if (!empty($party['organisationName'])) {
+					$names[] = trim((string) $party['organisationName']);
+				} elseif (!empty($party['individualName'])) {
+					$names[] = trim((string) $party['individualName']);
+				}
+			}
+		}
+
+		return array_values(array_unique(array_filter($names)));
+	}
+
+
+	/**
+	 * @param array $metadata
+	 * @return array<int, string>
+	 */
+	private function extract_schema_org_geospatial_keywords($metadata)
+	{
+		$ident = $this->get_array_nested_value($metadata, 'description/identificationInfo', '/');
+		if (empty($ident) || !is_array($ident)) {
+			return array();
+		}
+
+		$keywords = array();
+		foreach ($ident as $info) {
+			if (!is_array($info) || empty($info['descriptiveKeywords'])) {
+				continue;
+			}
+
+			$groups = $info['descriptiveKeywords'];
+			if ($this->is_assoc_array($groups) && isset($groups['keyword'])) {
+				$groups = array($groups);
+			}
+
+			foreach ($groups as $group) {
+				if (!is_array($group) || !isset($group['keyword'])) {
+					continue;
+				}
+
+				$values = $group['keyword'];
+				if (!is_array($values)) {
+					$values = array($values);
+				}
+
+				foreach ($values as $value) {
+					$keyword = trim((string) $value);
+					if ($keyword !== '') {
+						$keywords[] = $keyword;
+					}
+				}
+			}
+		}
+
+		return array_values(array_unique($keywords));
+	}
+
+
+	/**
+	 * @param array $metadata
+	 * @return array<int, string>
+	 */
+	private function extract_schema_org_image_creator_names($metadata)
+	{
+		$names = array();
+
+		$dcmi_creator = $this->get_array_nested_value($metadata, 'image_description/dcmi/creator', '/');
+		$names = array_merge($names, $this->extract_schema_org_string_list($dcmi_creator));
+
+		$iptc_creators = $this->get_array_nested_value(
+			$metadata,
+			'image_description/iptc/photoVideoMetadataIPTC/creatorNames',
+			'/'
+		);
+		$names = array_merge($names, $this->extract_schema_org_string_list($iptc_creators));
+
+		return array_values(array_unique(array_filter($names)));
+	}
+
+
+	/**
+	 * @param array $metadata
+	 * @return array<int, string>
+	 */
+	private function extract_schema_org_video_creator_names($metadata)
+	{
+		$names = array();
+
+		$creator = $this->get_array_nested_value($metadata, 'video_description/creator', '/');
+		$names = array_merge($names, $this->extract_schema_org_string_list($creator));
+
+		$credit_text = trim((string) $this->get_array_nested_value($metadata, 'video_description/credit_text', '/'));
+		if ($credit_text !== '') {
+			$names[] = $credit_text;
+		}
+
+		return array_values(array_unique(array_filter($names)));
+	}
+
+
+	/**
+	 * @param mixed $value
+	 * @return array<int, string>
+	 */
+	private function extract_schema_org_string_list($value)
+	{
+		if (is_string($value)) {
+			$value = trim($value);
+			return $value !== '' ? array($value) : array();
+		}
+
+		if (!is_array($value)) {
+			return array();
+		}
+
+		$names = array();
+		foreach ($value as $item) {
+			if (is_string($item)) {
+				$item = trim($item);
+				if ($item !== '') {
+					$names[] = $item;
+				}
+			}
+		}
+
+		return $names;
+	}
+
+
+	/**
+	 * @param array<int, string> $names
+	 * @return array<int, array<string, string>>
+	 */
+	private function schema_org_organizations_from_names(array $names)
+	{
+		$organizations = array();
+		foreach ($names as $name) {
+			$name = trim((string) $name);
+			if ($name === '') {
+				continue;
+			}
+			$organizations[] = array(
+				'@type' => 'Organization',
+				'name'  => $name,
+			);
+		}
+
+		return $organizations;
+	}
+
+
+	/**
+	 * @param array $array
+	 * @return bool
+	 */
+	private function is_assoc_array(array $array)
+	{
+		if ($array === array()) {
+			return false;
+		}
+
+		return array_keys($array) !== range(0, count($array) - 1);
 	}
 
 
@@ -862,8 +1998,17 @@ class Dataset_model extends CI_Model {
 			unset($options['aliases']);
 		}
 
-		if(empty($options)){
+		if (empty($data)) {
 			return false;
+		}
+
+		//abstract
+		if (!isset($data['abstract']) && isset($data['metadata'])) {
+			$type = isset($data['type']) ? $data['type'] : $this->get_type($sid);
+			$metadata = is_array($data['metadata'])
+				? $data['metadata']
+				: $this->decode_metadata($data['metadata']);
+			$data['abstract'] = $this->extract_abstract($metadata, $type);
 		}
 
 		//encode json fields
@@ -989,6 +2134,13 @@ class Dataset_model extends CI_Model {
 	*/
 	function delete($id)
 	{
+		try {
+			$this->load->model('Timeseries_mongo_model');
+			$this->Timeseries_mongo_model->delete_observations_for_sid_all_indicator_collections((int) $id);
+		} catch (Throwable $e) {
+			log_message('error', 'Dataset_model::delete indicator Mongo cleanup failed for sid=' . $id . ': ' . $e->getMessage());
+		}
+
 		$this->delete_storage_folder($id);
 
 		$this->db->where('id', $id); 
@@ -1952,11 +3104,11 @@ class Dataset_model extends CI_Model {
         return $ddi_path;
     }
 
-	function download_metadata($sid,$format='json')
+	function download_metadata($sid,$format='json',$dsd_export='reference')
 	{
 		if ($format=='json' || $format=='jsonl'){
 			$this->load->library('JSON_Writer');
-			$this->json_writer->download($sid, $format, false);
+			$this->json_writer->download($sid, $format, false, false, $dsd_export);
 		}
 		else if ($format=='ddi'){
 			return $this->download_metadata_ddi($sid);
@@ -2084,6 +3236,220 @@ class Dataset_model extends CI_Model {
 		}
 
 		return false;
+	}
+
+	// -------------------------------------------------------------------------
+	// Indicator timeseries: surveys.ts_dimensions + surveys.ts_sync_required
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sorted comma-separated DSD component names with column_type `dimension`.
+	 *
+	 * @param array $components Data_structure_component_model rows
+	 * @return string|null
+	 */
+	public function build_ts_dimensions_csv_from_components(array $components)
+	{
+		$names = [];
+		foreach ($components as $c) {
+			if (!is_array($c) || empty($c['name']) || empty($c['column_type'])) {
+				continue;
+			}
+			if ($c['column_type'] === 'dimension') {
+				$names[] = (string) $c['name'];
+			}
+		}
+		$names = array_values(array_unique($names));
+		sort($names, SORT_STRING);
+		return $names !== [] ? implode(',', $names) : null;
+	}
+
+	/**
+	 * @param int $data_structure_id data_structures.id
+	 * @return string|null
+	 */
+	public function build_ts_dimensions_csv_for_structure_id($data_structure_id)
+	{
+		$data_structure_id = (int) $data_structure_id;
+		if ($data_structure_id <= 0) {
+			return null;
+		}
+		$this->load->model('Data_structure_component_model');
+		$components = $this->Data_structure_component_model->get_components_by_structure_id($data_structure_id);
+		return $this->build_ts_dimensions_csv_from_components($components);
+	}
+
+	/**
+	 * Comma-separated titles of codelist items from the DSD's periodicity component.
+	 * Returns null when no periodicity component or its codelist has no items.
+	 *
+	 * @param array $components Data_structure_component_model rows
+	 * @return string|null e.g. "Annual" or "Annual, Quarterly"
+	 */
+	public function build_ts_frequency_from_components(array $components)
+	{
+		$periodicity = null;
+		foreach ($components as $c) {
+			if (is_array($c) && !empty($c['column_type']) && $c['column_type'] === 'periodicity') {
+				$periodicity = $c;
+				break;
+			}
+		}
+		if (!$periodicity || empty($periodicity['codelist_id'])) {
+			return null;
+		}
+		$this->load->model('Codelist_item_model');
+		$items = $this->Codelist_item_model->get_items_by_codelist((int) $periodicity['codelist_id'], false);
+		$titles = [];
+		foreach ($items as $item) {
+			if (!empty($item['title'])) {
+				$titles[] = (string) $item['title'];
+			}
+		}
+		return $titles !== [] ? implode(', ', $titles) : null;
+	}
+
+	/**
+	 * @param int $data_structure_id data_structures.id
+	 * @return string|null
+	 */
+	public function build_ts_frequency_for_structure_id($data_structure_id)
+	{
+		$data_structure_id = (int) $data_structure_id;
+		if ($data_structure_id <= 0) {
+			return null;
+		}
+		$this->load->model('Data_structure_component_model');
+		$components = $this->Data_structure_component_model->get_components_by_structure_id($data_structure_id);
+		return $this->build_ts_frequency_from_components($components);
+	}
+
+	/**
+	 * Canonical on-disk CSV name for indicator timeseries import (one file per study folder).
+	 *
+	 * @param int $sid surveys.id
+	 * @return string e.g. "123_indicator_data.csv"
+	 */
+	public function get_indicator_timeseries_import_csv_filename($sid)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return '';
+		}
+		return $sid . '_indicator_data.csv';
+	}
+
+	/**
+	 * Public catalogue gating: when 1, chart/data API should be hidden until import or rehash clears the flag.
+	 *
+	 * @param int $sid surveys.id
+	 * @return int 0 or 1
+	 */
+	public function get_indicator_ts_sync_required_for_sid($sid)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return 0;
+		}
+		$r = $this->db->select('ts_sync_required')->get_where('surveys', ['id' => $sid])->row_array();
+		return ($r && !empty($r['ts_sync_required'])) ? 1 : 0;
+	}
+
+	/**
+	 * Linked surveys: refresh ts_dimensions from live DSD, set ts_sync_required = 1.
+	 *
+	 * @param int $data_structure_id
+	 */
+	public function mark_surveys_indicator_ts_sync_required_for_dsd($data_structure_id)
+	{
+		$dsd_id = (int) $data_structure_id;
+		if ($dsd_id <= 0) {
+			return;
+		}
+		$q = $this->db->select('id')->from('surveys')->where('data_structure_id', $dsd_id)->get();
+		$sids = $q ? array_map('intval', array_column($q->result_array(), 'id')) : [];
+		$csv  = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$freq = $this->build_ts_frequency_for_structure_id($dsd_id);
+		$this->db->where('data_structure_id', $dsd_id);
+		$this->db->update('surveys', [
+			'ts_sync_required' => 1,
+			'ts_dimensions'    => $csv,
+			'ts_frequency'     => $freq,
+			'changed'          => date('U'),
+		]);
+		$this->_emit_survey_refresh_events_for_sids($sids);
+	}
+
+	/**
+	 * After successful import/rehash for one study.
+	 *
+	 * @param int $sid surveys.id
+	 * @param int $data_structure_id
+	 */
+	public function clear_indicator_ts_sync_for_survey($sid, $data_structure_id)
+	{
+		$sid = (int) $sid;
+		$dsd_id = (int) $data_structure_id;
+		if ($sid <= 0 || $dsd_id <= 0) {
+			return;
+		}
+		$csv  = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$freq = $this->build_ts_frequency_for_structure_id($dsd_id);
+		$this->db->where('id', $sid);
+		$this->db->where('data_structure_id', $dsd_id);
+		$this->db->update('surveys', [
+			'ts_sync_required' => 0,
+			'ts_dimensions'    => $csv,
+			'ts_frequency'     => $freq,
+			'changed'          => date('U'),
+		]);
+		$this->_emit_survey_refresh_events_for_sids([$sid]);
+	}
+
+	/**
+	 * Full rehash for a DSD (no partial limit): clear flag for every linked survey.
+	 *
+	 * @param int $data_structure_id
+	 */
+	public function clear_indicator_ts_sync_for_all_surveys_on_dsd($data_structure_id)
+	{
+		$dsd_id = (int) $data_structure_id;
+		if ($dsd_id <= 0) {
+			return;
+		}
+		$q = $this->db->select('id')->from('surveys')->where('data_structure_id', $dsd_id)->get();
+		$sids = $q ? array_map('intval', array_column($q->result_array(), 'id')) : [];
+		$csv  = $this->build_ts_dimensions_csv_for_structure_id($dsd_id);
+		$freq = $this->build_ts_frequency_for_structure_id($dsd_id);
+		$this->db->where('data_structure_id', $dsd_id);
+		$this->db->update('surveys', [
+			'ts_sync_required' => 0,
+			'ts_dimensions'    => $csv,
+			'ts_frequency'     => $freq,
+			'changed'          => date('U'),
+		]);
+		$this->_emit_survey_refresh_events_for_sids($sids);
+	}
+
+	/**
+	 * @param int[] $sids
+	 */
+	protected function _emit_survey_refresh_events_for_sids(array $sids)
+	{
+		$sids = array_values(array_unique(array_map('intval', $sids)));
+		$sids = array_filter($sids, function ($x) {
+			return $x > 0;
+		});
+		if ($sids === []) {
+			return;
+		}
+		$CI = &get_instance();
+		if (!isset($CI->events) || !is_object($CI->events)) {
+			return;
+		}
+		foreach ($sids as $sid) {
+			$CI->events->emit('db.after.update', 'surveys', $sid, 'refresh');
+		}
 	}
 
 }//end-class

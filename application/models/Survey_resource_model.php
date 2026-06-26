@@ -328,7 +328,67 @@ class Survey_resource_model extends CI_Model {
 		$this->db->order_by('title','ASC');
 		return $this->db->get('resources')->result_array();
 	}
-		
+
+	/**
+	 * Sort a resources result_array in memory (after DB fetch).
+	 *
+	 * @param array  $resources By reference
+	 * @param string $sort_by   title|dctype|changed|created|resource_id|filename
+	 * @param string $sort_order asc|desc
+	 */
+	public function sort_resources_result(array &$resources, $sort_by = null, $sort_order = null)
+	{
+		$allowed = array('title', 'dctype', 'changed', 'created', 'resource_id', 'filename');
+		$col = is_string($sort_by) && in_array($sort_by, $allowed, true) ? $sort_by : 'title';
+		$desc = is_string($sort_order) && strtolower($sort_order) === 'desc';
+
+		usort(
+			$resources,
+			function ($a, $b) use ($col, $desc) {
+				$va = isset($a[$col]) ? $a[$col] : '';
+				$vb = isset($b[$col]) ? $b[$col] : '';
+				if (is_numeric($va) && is_numeric($vb)) {
+					$cmp = ($va == $vb) ? 0 : (($va < $vb) ? -1 : 1);
+				} else {
+					$cmp = strnatcasecmp((string) $va, (string) $vb);
+				}
+				return $desc ? -$cmp : $cmp;
+			}
+		);
+	}
+
+	/**
+	 * Whether the resource filename points to an existing local file or a remote URL (catalog tab semantics).
+	 *
+	 * @param int   $sid
+	 * @param array $resources result_array rows (mutated: adds file_exists bool)
+	 */
+	public function enrich_resources_file_exists($sid, array &$resources)
+	{
+		$this->load->model('Catalog_model');
+		$this->load->helper('file');
+
+		$survey_folder = $this->Catalog_model->get_survey_path_full($sid);
+		$root = ($survey_folder && is_dir($survey_folder)) ? unix_path(rtrim($survey_folder, '/')) : '';
+
+		foreach ($resources as $k => $row) {
+			$fn = isset($row['filename']) ? trim((string) $row['filename']) : '';
+			if ($fn === '') {
+				$resources[$k]['file_exists'] = false;
+				continue;
+			}
+			if (function_exists('is_url') && is_url($fn)) {
+				$resources[$k]['file_exists'] = true;
+				continue;
+			}
+			if ($root !== '') {
+				$full = unix_path($root . '/' . $fn);
+				$resources[$k]['file_exists'] = is_file($full);
+			} else {
+				$resources[$k]['file_exists'] = false;
+			}
+		}
+	}
 
 
 	/**
@@ -435,51 +495,6 @@ class Survey_resource_model extends CI_Model {
 		}
 		
 		return $list;
-	}
-	
-	/**
-	* Returns the type ID by type-name
-	*
-	*/
-	function get_dctype_id_by_name($type_name)
-	{
-		$type_arr=explode(' ', $type_name);
-		
-		$type=NULL;
-		
-		if (!$type_arr)
-		{
-			return 0;
-		}
-		
-		foreach($type_arr as $str)
-		{
-			$str=trim($str);
-			if ($str[0]=='[' && $str[strlen($str)-1]==']')
-			{
-				$type=$str;
-			}
-		}
-		
-		//Type not found
-		if ($type==NULL)
-		{
-			return 0;
-		}
-		
-		//search db
-		$this->db->select('id'); 
-		$this->db->like('title', $type); 
-		$result= $this->db->get('dctypes')->row_array();
-		
-		if ($result)
-		{
-			return $result['id'];
-		}
-		else
-		{
-			return 0;
-		}	
 	}
 	
 	/**
@@ -1037,8 +1052,110 @@ class Survey_resource_model extends CI_Model {
 			'file_type' => $is_microdata ? 'microdata' : 'doc'
 		));
 		force_download2($resource_path);
+		exit;
 	}
-	
+
+
+	/**
+	 * True when the resource is a local (non-URL) PDF file on disk.
+	 */
+	function is_local_pdf_resource($resource)
+	{
+		if (empty($resource) || ! is_array($resource)) {
+			return false;
+		}
+
+		if (! empty($resource['is_url']) && (int) $resource['is_url'] === 1) {
+			return false;
+		}
+
+		$filename = isset($resource['filename']) ? trim((string) $resource['filename']) : '';
+		if ($filename === '') {
+			return false;
+		}
+
+		if ($this->form_validation->valid_url($filename)) {
+			return false;
+		}
+
+		$dcformat = strtolower(trim((string) ($resource['dcformat'] ?? '')));
+		if ($dcformat === 'application/pdf') {
+			return true;
+		}
+
+		return strtolower(pathinfo($filename, PATHINFO_EXTENSION)) === 'pdf';
+	}
+
+
+	/**
+	 * Stream a local PDF inline (Content-Disposition: inline). Same ACL as download().
+	 */
+	function stream_pdf_inline($user, $survey_id, $resource_id)
+	{
+		$resource = $this->select_single($resource_id);
+
+		if (! $resource) {
+			throw new Exception('RESOURCE_NOT_FOUND');
+		}
+
+		if ((int) $resource['survey_id'] !== (int) $survey_id) {
+			throw new Exception('RESOURCE_NOT_FOUND');
+		}
+
+		if (! $this->is_local_pdf_resource($resource)) {
+			throw new Exception('RESOURCE_NOT_PDF_STREAMABLE');
+		}
+
+		$user_id = isset($user->id) ? $user->id : false;
+
+		$this->whitelist_stream_pdf($user_id, $survey_id, $resource);
+
+		$download_req = $this->get_user_download_access_info($user_id, $survey_id, $resource);
+
+		if (! $download_req) {
+			throw new Exception('FILE_NOT_AVAILABLE');
+		}
+
+		if ($download_req['is_microdata'] === true && $download_req['license'] == 'public') {
+			if (! $user_id) {
+				throw new Exception(t('USER_NOT_LOGGED_IN'));
+			}
+		}
+
+		$resource_path = $this->get_resource_download_path($resource_id);
+
+		if (! file_exists($resource_path)) {
+			throw new Exception('RESOURCE_FILE_NOT_FOUND');
+		}
+
+		$this->load->helper('download');
+		log_message('info', 'Streaming PDF inline <em>'.$resource_path.'</em>');
+		force_download_inline($resource_path, null, true);
+		throw new Exception('RESOURCE_STREAM_FAILED');
+	}
+
+
+	function whitelist_stream_pdf($user_id, $survey_id, $resource)
+	{
+		$this->load->model('Data_access_whitelist_model');
+		$user_whitelisted = $this->Data_access_whitelist_model->has_access($user_id, $survey_id);
+
+		if (! $user_whitelisted) {
+			return false;
+		}
+
+		$resource_path = $this->get_resource_download_path($resource['resource_id']);
+
+		if (! file_exists($resource_path)) {
+			throw new Exception('RESOURCE_FILE_NOT_FOUND');
+		}
+
+		$this->load->helper('download');
+		log_message('info', 'Streaming PDF inline (whitelist) <em>'.$resource_path.'</em>');
+		force_download_inline($resource_path, null, true);
+		throw new Exception('RESOURCE_STREAM_FAILED');
+	}
+
 
 	function download($user,$survey_id,$resource_id)
 	{
@@ -1088,7 +1205,8 @@ class Survey_resource_model extends CI_Model {
 		$this->analytics_tracker->track_download($survey_id, basename($resource_path), array(
 			'file_type' => $download_req['is_microdata'] ? 'microdata' : 'resource'
 		));
-		force_download2($resource_path);		
+		force_download2($resource_path);
+		exit;
 	}
 	
 	
@@ -1339,6 +1457,7 @@ class Survey_resource_model extends CI_Model {
     {
         $this->db->select('count(resource_id) as total');
         $this->db->where('survey_id', $sid);
+        $this->db->where_not_in('resource_type', $this->_get_microdata_resource_type_codes());
         $result=$this->db->get('resources')->row_array();
         return $result['total'];
 	}
@@ -1778,8 +1897,8 @@ class Survey_resource_model extends CI_Model {
 	/**
 	 * Build download URL and link type for a resource. Single source for catalog vs API link building.
 	 *
-	 * @param array  $resource  Resource row (survey_id, resource_id, filename)
-	 * @param string $link_type 'page' for catalog download URL, 'api' for API download URL
+	 * @param array  $resource  Resource row (survey_id, resource_id, filename; optional dataset_idno for admin path)
+	 * @param string $link_type page | api | admin_api
 	 * @return array ['url' => string, 'type' => 'link'|'download']
 	 */
 	private function _build_resource_download_link($resource, $link_type = 'page')
@@ -1795,6 +1914,18 @@ class Survey_resource_model extends CI_Model {
 		}
 		if ($link_type === 'api') {
 			$url = site_url('api/resources/download/' . $resource['survey_id'] . '/' . $resource['resource_id'] . '?file_name=' . rawurlencode($resource['filename']) . '&id_format=id');
+		} elseif ($link_type === 'admin_api') {
+			$study_seg = '';
+			$query = '';
+			if (!empty($resource['dataset_idno'])) {
+				$study_seg = rawurlencode((string) $resource['dataset_idno']);
+			} else {
+				$study_seg = (string) (int) $resource['survey_id'];
+				$query = '?id_format=id';
+			}
+			$url = site_url(
+				'api/admin/resources/' . $study_seg . '/resources/download/' . (int) $resource['resource_id'] . $query
+			);
 		} else {
 			$url = site_url('catalog/' . $resource['survey_id'] . '/download/' . $resource['resource_id'] . '/' . rawurlencode($resource['filename']));
 		}
@@ -1973,11 +2104,15 @@ class Survey_resource_model extends CI_Model {
 
 	/**
 	 * Add download links for resources (API URL format).
+	 *
+	 * @param array $resources
+	 * @param bool  $use_admin_api When true, use api/admin/resources/.../download/... (catalog admin); when false, api/resources/download/... (datasets API).
 	 */
-	function generate_api_download_link($resources)
+	function generate_api_download_link($resources, $use_admin_api = false)
 	{
+		$link_type = $use_admin_api ? 'admin_api' : 'api';
 		foreach ($resources as $idx => $resource) {
-			$link_info = $this->_build_resource_download_link($resource, 'api');
+			$link_info = $this->_build_resource_download_link($resource, $link_type);
 			if ($link_info['url'] !== '') {
 				$resources[$idx]['_links'] = array(
 					'download' => $link_info['url'],

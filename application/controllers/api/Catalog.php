@@ -9,6 +9,7 @@ class Catalog extends MY_REST_Controller
 		parent::__construct();
 		$this->load->helper("date");
 		$this->load->model('Catalog_model');
+		$this->load->model('Search_helper_model');
 		$this->load->model('Dataset_model');
 		$this->load->model('Data_file_model');
 		$this->load->model('Variable_model');
@@ -115,6 +116,65 @@ class Catalog extends MY_REST_Controller
 
 
 	/**
+	 * DDI documentation PDF on-disk status (same rules as Catalog_admin::get_study_pdf).
+	 *
+	 * GET /api/catalog/pdf_documentation/{idno}
+	 * GET /api/catalog/pdf_documentation?idno=...
+	 *
+	 * Query id_format=id when using numeric surveys.id. Response pdf_documentation.status: uptodate | outdated | na.
+	 */
+	function pdf_documentation_get($idno = null)
+	{
+		try {
+			if ($idno === null || $idno === '') {
+				$q = $this->input->get('idno');
+				$idno = ($q !== null && trim((string) $q) !== '') ? trim((string) $q) : null;
+			}
+
+			if (! $idno) {
+				throw new Exception('IDNO-NOT-PROVIDED');
+			}
+
+			$sid = $this->get_sid_from_idno($idno);
+
+			$this->load->library('catalog_admin');
+			$info = $this->catalog_admin->get_study_pdf($sid);
+
+			if (isset($info['path'])) {
+				$info['filename'] = basename($info['path']);
+				unset($info['path']);
+			}
+
+			$this->set_response(
+				array(
+					'status'             => 'success',
+					'pdf_documentation'  => $info,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array(
+					'status'  => 'failed',
+					'message' => $e->getMessage(),
+				),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+		catch (Error $e) {
+			$this->set_response(
+				array(
+					'status'  => 'failed',
+					'message' => $e->getMessage(),
+				),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
 	 * 
 	 * Return a list of all study IDNOs in the catalog
 	 * 
@@ -157,6 +217,12 @@ class Catalog extends MY_REST_Controller
 	 */
 	function search_get()
 	{
+		$include_facets = $this->input->get('include_facets');
+		$catalog_browse = $this->input->get('catalog_browse');
+		if ($include_facets === '1' || $include_facets === 1 || $catalog_browse === '1' || $catalog_browse === 1) {
+			return $this->_browse_search_get($include_facets === '1' || $include_facets === 1);
+		}
+
 		$search_options=new StdClass;
 		$limit=$this->get_page_size();
 
@@ -181,9 +247,16 @@ class Catalog extends MY_REST_Controller
 		$search_options->ps				=xss_clean($this->input->get("ps"));
 		$offset=						($search_options->page-1)*$limit;
 
+		$repo_for_tab = xss_clean($this->input->get("repo"));
+		$search_options->tab_type = $this->Search_helper_model->validate_catalog_tab_type(
+			$search_options->tab_type,
+			($repo_for_tab !== false && $repo_for_tab !== null && trim((string) $repo_for_tab) !== '') ? $repo_for_tab : null
+		);
 
 		if($search_options->tab_type!=''){
 			$search_options->type=$search_options->tab_type;
+		} else {
+			$search_options->type = $this->Search_helper_model->filter_catalog_type_param($search_options->type);
 		}
 
 		list($sort_by_resolved, $sort_order_resolved) = $this->_normalize_catalog_sort_for_listing(
@@ -224,8 +297,15 @@ class Catalog extends MY_REST_Controller
 		//convert country names or iso codes into country IDs
 		$params['countries']=$this->get_countries_id($params['countries']);
 
-		//collections to array
-		$params['collections']=explode(",",$params['collections']);		
+		//collections to array — support both ?collection=a,b and ?collection[]=a&collection[]=b
+		$col = $this->input->get('collection');
+		if (is_array($col)) {
+			$params['collections'] = array_values(array_filter(array_map('xss_clean', $col)));
+		} elseif ($col === false || $col === null || $col === '') {
+			$params['collections'] = array();
+		} else {
+			$params['collections'] = explode(',', xss_clean($col));
+		}		
 
 		//custom facet filters by data type	
 		$custom_filters_by_data_type=(array)json_decode($this->config->item('facets_'.'all'),true);
@@ -321,16 +401,26 @@ class Catalog extends MY_REST_Controller
 				}
 
 				$response=array(
+					'status' => 'success',
 					'result'=>$result,
 					'params'=>$params
 				);
+
+				if (!empty($result['semantic_note'])) {
+					$response['semantic_note'] = $result['semantic_note'];
+				}
+				if (!empty($result['semantic_fallback'])) {
+					$response['semantic_fallback'] = $result['semantic_fallback'];
+				}
 			}
 			else{
 				$response=array(
+					'status' => 'success',
 					'found'=>0,
 					'rows'=>array()
 				);
 			}
+
 			$this->set_response($response, REST_Controller::HTTP_OK);			
 		}
 		catch(Exception $e){
@@ -338,8 +428,120 @@ class Catalog extends MY_REST_Controller
 				'status'=>'failed',
 				'errors'=>$e->getMessage()
 			);
+			$error_output = array_merge($error_output, $this->semantic_search_debug_for_exception($e));
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
+	}
+
+	/**
+	 * Interactive catalog browse/search (Vue UI): same behavior as legacy HTML catalog.
+	 * GET /api/catalog/search?include_facets=1  — results + sidebar facets
+	 * GET /api/catalog/search?catalog_browse=1 — results only (facets cached client-side)
+	 */
+	private function _browse_search_get($load_facets = true)
+	{
+		$this->load->library('catalog_browse_service');
+
+		$repo = $this->input->get('repo');
+		$this->catalog_browse_service->set_active_repo($repo ? $repo : 'central');
+		$this->catalog_browse_service->active_tab = $this->catalog_browse_service->validate_tab_type(
+			(string) $this->input->get('tab_type')
+		);
+
+		try {
+			$data = $this->catalog_browse_service->run_search($load_facets);
+
+			if ($data['search_type'] === 'variable') {
+				$result = isset($data['variables']) ? $data['variables'] : array('found' => 0, 'rows' => array());
+			} else {
+				$result = isset($data['surveys']) ? $data['surveys'] : array('found' => 0, 'rows' => array());
+			}
+
+			if (isset($result['rows'])) {
+				$result['page'] = $data['current_page'];
+				array_walk($result['rows'], 'unix_date_to_gmt', array('created', 'changed'));
+				foreach ($result['rows'] as $idx => $row) {
+					$result['rows'][$idx]['url'] = site_url('catalog/' . $row['id']);
+				}
+			}
+
+			if (isset($result['semantic_facets'])) {
+				unset($result['semantic_facets']);
+			}
+			if (isset($result['facet_mode'])) {
+				unset($result['facet_mode']);
+			}
+
+			$this->load->helper('catalog');
+			$result = catalog_browse_sanitize_search_result($result);
+
+			$response = array(
+				'status' => 'success',
+				'result' => $result,
+				'search_type' => $data['search_type'],
+				'tab_type' => $this->catalog_browse_service->active_tab,
+				'tabs' => $this->catalog_browse_service->build_tabs($data),
+				'site' => $this->catalog_browse_service->site_config_for_client(),
+				'enabled_filters' => $this->catalog_browse_service->enabled_filters,
+			);
+
+			if ($load_facets) {
+				$response['facets'] = $this->catalog_browse_service->facets;
+			}
+
+			if (isset($data['featured_studies'])) {
+				$featured = $data['featured_studies'];
+				if (is_array($featured)) {
+					foreach ($featured as $idx => $study) {
+						$featured[$idx]['url'] = site_url('catalog/' . $study['id']);
+						if (!isset($featured[$idx]['form_model']) && isset($study['model'])) {
+							$featured[$idx]['form_model'] = $study['model'];
+						}
+						array_walk($featured[$idx], 'unix_date_to_gmt_row', array('created', 'changed'));
+					}
+				}
+				$response['featured_studies'] = $featured;
+			}
+			if (isset($data['related_collections'])) {
+				$response['related_collections'] = $data['related_collections'];
+			}
+			if (!empty($result['semantic_note'])) {
+				$response['semantic_note'] = $result['semantic_note'];
+			}
+			if (!empty($result['semantic_fallback'])) {
+				$response['semantic_fallback'] = $result['semantic_fallback'];
+			}
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		} catch (RuntimeException $e) {
+			$response = array('status' => 'failed', 'message' => $e->getMessage());
+			$response = array_merge($response, $this->semantic_search_debug_for_exception($e));
+			$this->set_response($response, REST_Controller::HTTP_BAD_REQUEST);
+		} catch (Exception $e) {
+			$response = array('status' => 'failed', 'message' => $e->getMessage());
+			$response = array_merge($response, $this->semantic_search_debug_for_exception($e));
+			$this->set_response($response, REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * When semantic_search_debug is enabled, attach API request/response to error payloads.
+	 *
+	 * @param Exception $e
+	 * @return array<string, mixed>
+	 */
+	private function semantic_search_debug_for_exception($e)
+	{
+		if (!filter_var($this->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN)) {
+			return array();
+		}
+
+		require_once APPPATH . 'libraries/Semantic_search_api_exception.php';
+		if (!($e instanceof Semantic_search_api_exception)) {
+			return array();
+		}
+
+		return array('semantic_debug' => $e->debug_payload());
 	}
 
 	
@@ -842,7 +1044,7 @@ class Catalog extends MY_REST_Controller
 		$from    = xss_clean($this->input->get('from'));
 		$to      = xss_clean($this->input->get('to'));
 		$dtype   = xss_clean($this->input->get('dtype'));
-		$type    = xss_clean($this->input->get('type'));
+		$type    = $this->Search_helper_model->filter_catalog_type_param(xss_clean($this->input->get('type')));
 
 		list($vsb, $vso) = $this->_normalize_catalog_sort_for_listing(
 			$sk,
@@ -1348,6 +1550,8 @@ class Catalog extends MY_REST_Controller
 	 *   format - 'json' (default) or 'jsonl' for JSON Lines format
 	 *   pretty - 'true' to pretty print JSON (only for JSON format)
 	 *   download - 'true' to download the file instead of streaming
+	 *   dsd_export - for timeseries only: 'reference' (default) or 'inline' — full DSD + components + codelists
+	 *   include_resources - 'true' to embed external resources as `external_resources` (same row shape as resources_get + url)
 	 * 
 	 */
 	function json_get($idno=null)
@@ -1368,11 +1572,15 @@ class Catalog extends MY_REST_Controller
 
 			$pretty = $this->input->get('pretty') === 'true' || $this->input->get('pretty') === '1';
 			$download = $this->input->get('download') === 'true' || $this->input->get('download') === '1';
+			$include_resources = $this->input->get('include_resources') === 'true' || $this->input->get('include_resources') === '1';
+			$dsd_export = strtolower(trim((string) $this->input->get('dsd_export'))) === JSON_Writer::DSD_EXPORT_INLINE
+				? JSON_Writer::DSD_EXPORT_INLINE
+				: JSON_Writer::DSD_EXPORT_REFERENCE;
 
 			if ($download) {
-				$this->json_writer->download($sid, $format, $pretty);
+				$this->json_writer->download($sid, $format, $pretty, false, $dsd_export, $include_resources);
 			} else {
-				$this->json_writer->stream($sid, $format, $pretty);
+				$this->json_writer->stream($sid, $format, $pretty, $dsd_export, $include_resources);
 			}
         }		
 		catch(Exception $e){
@@ -1448,6 +1656,54 @@ class Catalog extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
+	}
+
+
+	/**
+	 * Stream a local PDF resource inline for in-app viewing (e.g. PDF.js).
+	 *
+	 * GET /api/catalog/{idno}/resources/{resource_id}/pdf-stream
+	 *
+	 * Rejects external URL resources. Same access rules as file download.
+	 */
+	function pdf_stream_get($idno = null, $resource_id = null)
+	{
+		try {
+			if (! $resource_id) {
+				throw new Exception('RESOURCE_ID_NOT_PROVIDED');
+			}
+
+			$sid = $this->get_sid_from_idno($idno);
+			$this->load->model('Survey_resource_model');
+			$this->load->library('Downloads_service');
+
+			$user = $this->api_user();
+			$resource = $this->downloads_service->get_resource_info($sid, $resource_id);
+
+			if (! $resource) {
+				throw new Exception('RESOURCE_NOT_FOUND');
+			}
+
+			if (in_array($resource['data_access_type'], array('public', 'licensed')) && ! $user) {
+				throw new Exception('LOGIN_REQUIRED');
+			}
+
+			$allow_download = $this->Survey_resource_model->user_has_download_access($user ? $user->id : false, $sid, $resource);
+
+			if ($allow_download === false) {
+				throw new Exception("You don't have permissions to access the file.");
+			}
+
+			$this->Survey_resource_model->stream_pdf_inline($user, $sid, $resource_id);
+			die();
+		}
+		catch (Exception $e) {
+			$error_output = array(
+				'status'  => 'failed',
+				'errors'  => $e->getMessage(),
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
 	}
 
 
@@ -1574,5 +1830,41 @@ class Catalog extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
+	}
+
+	/**
+	 * Public catalog headline stats (published content only, cached 10 minutes).
+	 *
+	 * GET /api/catalog/stats
+	 */
+	function stats_get()
+	{
+		try {
+			$this->load->model('Stats_model');
+			$stats = $this->Stats_model->get_public_catalog_stats_cached();
+
+			$response = array(
+				'status' => 'success',
+				'values' => array(
+					'studies'             => (int)$stats['studies'],
+					'variables'           => (int)$stats['variables'],
+					'citations'           => (int)$stats['citations'],
+					'countries_with_data' => (int)$stats['countries_with_data'],
+					'year_range'          => array(
+						'min' => (int)$stats['min_year'],
+						'max' => (int)$stats['max_year'],
+					),
+				),
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch (Exception $e) {
+			$error_output = array(
+				'status' => 'failed',
+				'errors' => $e->getMessage(),
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
 	}
 }

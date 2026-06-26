@@ -56,8 +56,28 @@ class Survey_alias_model extends CI_Model {
 	
 	public function delete($id) 
 	{
-		$this->db->where('id', $id); 
-		return $this->db->delete('survey_aliases');
+		$this->db->where('id', $id);
+		$this->db->delete('survey_aliases');
+		return $this->db->affected_rows() > 0;
+	}
+
+
+	/**
+	 * Delete alias row by survey and alternate id string.
+	 *
+	 * @param int    $sid
+	 * @param string $alternate_id
+	 */
+	public function delete_by_sid_and_alternate($sid, $alternate_id)
+	{
+		$alternate_id = trim((string) $alternate_id);
+		if ($alternate_id === '') {
+			return false;
+		}
+		$this->db->where('sid', (int) $sid);
+		$this->db->where('alternate_id', $alternate_id);
+		$this->db->delete('survey_aliases');
+		return $this->db->affected_rows() > 0;
 	}
 	
 	public function single($id) 

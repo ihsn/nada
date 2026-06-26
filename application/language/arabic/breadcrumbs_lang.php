@@ -2,7 +2,7 @@
 $lang['Home']="الصفحة الرئيسية";
 $lang['edit_study']="تحرير الدراسة";
 $lang['Citations']="اقتباسات";
-$lang['add_study']="إضافة دراسة جديدة";
+$lang['add_study']="إضافة دراسة";
 $lang['bulk_import']="تحميل ملفات DDI بالجملة";
 $lang['transfer_study_ownership']="نقل ملكية الدراسة";
 $lang['delete']="حذف";

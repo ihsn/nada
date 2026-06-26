@@ -27,7 +27,7 @@ class Dataset_timeseries_model extends Dataset_model {
      *  false - replace all metadata with new values (no merge)
      * 
      */
-    function update_dataset($sid,$type,$options, $merge_metadata=false)
+    function update_dataset($sid,$type,$options, $merge_metadata=false, $validate_schema=true)
 	{
 		//need this to validate IDNO for uniqueness
         $options['sid']=$sid;
@@ -42,13 +42,15 @@ class Dataset_timeseries_model extends Dataset_model {
             }
         }
 
-        return $this->create_dataset($type,$options,$sid);
+        return $this->create_dataset($type,$options,$sid, $validate_schema);
     }
 
-    function create_dataset($type,$options, $sid=null)
+    function create_dataset($type,$options, $sid=null, $validate_schema=true)
 	{
 		//validate schema
-        $this->validate_schema($type,$options);
+        if ($validate_schema){
+            $this->validate_schema($type,$options);
+        }
 
         //get core fields for listing datasets in the catalog
         $core_fields=$this->get_core_fields($options);
@@ -77,15 +79,53 @@ class Dataset_timeseries_model extends Dataset_model {
         }
 
         $options['changed']=date("U");
-        
-        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional','data_structure','data_notes');
+
+        // Partial API payloads often send { "metadata": { "data_structure_reference": "…" } }. Merged state can
+        // still carry a stale root-level data_structure_reference; prefer the nested value so surveys.data_structure_id updates.
+        if (is_array($options['metadata'] ?? null)) {
+            $nested_ref = $options['metadata']['data_structure_reference'] ?? null;
+            if (is_array($nested_ref) && !empty($nested_ref)) {
+                $options['data_structure_reference'] = $nested_ref;
+            } elseif ($nested_ref !== null && $nested_ref !== '' && trim((string) $nested_ref) !== '') {
+                $options['data_structure_reference'] = trim((string) $nested_ref);
+            }
+        }
+
+        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional','data_structure_reference','data_notes');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
                 $options['metadata'][$section]=$options[$section];
                 unset($options[$section]);
             }
-        }                        
+        }
+
+        // Normalize legacy database_id/database_name -> databases[] array
+        if (is_array($options['metadata'] ?? null)) {
+            $this->normalize_databases_metadata($options['metadata']);
+        }
+
+        // Canonical reference precedence for legacy or mixed payloads:
+        // - when data_structure_reference is set, drop any inline metadata.data_structure (not part of the public schema)
+        // - within an inline DSD snapshot, codelist_reference wins over codelist per component
+        if (is_array($options['metadata'] ?? null)) {
+            $this->_apply_reference_precedence_rules_to_metadata($options['metadata']);
+        }
+
+        // Resolve data_structure_reference (DSD idno) -> surveys.data_structure_id when the DSD exists
+        // in the catalogue. Unresolved references are kept in metadata only (informational).
+        if (array_key_exists('data_structure_reference', (array) ($options['metadata'] ?? []))) {
+            $reference = $options['metadata']['data_structure_reference'];
+            $options['data_structure_id'] = $this->_resolve_data_structure_id($options['metadata']['data_structure_reference']);
+        }
+
+		$existingSurveyId = null;
+		if (!empty($sid) && is_numeric($sid)) {
+			$existingSurveyId = (int) $sid;
+		} elseif (!empty($dataset_id) && is_numeric($dataset_id) && (int) $dataset_id > 0) {
+			$existingSurveyId = (int) $dataset_id;
+		}
+		$this->_apply_indicator_ts_columns_on_data_structure_change($options, $existingSurveyId);
 
 		//start transaction
 		$this->db->trans_start();
@@ -104,7 +144,85 @@ class Dataset_timeseries_model extends Dataset_model {
 		//complete transaction
 		$this->db->trans_complete();
 
+		$this->sync_db_links($dataset_id, $options['metadata']);
+
 		return $dataset_id;
+    }
+
+
+	/**
+	 * Rebuild timeseries_db_links rows for this series from series_description.databases[].
+	 */
+	function sync_db_links($sid, $metadata)
+	{
+		$sid = (int)$sid;
+		if ($sid <= 0 || !is_array($metadata)) {
+			return;
+		}
+
+		$databases = isset($metadata['series_description']['databases'])
+			? $metadata['series_description']['databases']
+			: array();
+
+		$this->db->where('series_id', $sid)->delete('timeseries_db_links');
+
+		if (!is_array($databases)) {
+			return;
+		}
+
+		foreach ($databases as $db) {
+			$idno = isset($db['id']) ? trim((string)$db['id']) : '';
+			if ($idno === '') {
+				continue;
+			}
+			$is_primary = !empty($db['is_primary']) ? 1 : 0;
+			$this->db->query(
+				'INSERT IGNORE INTO timeseries_db_links (series_id, db_idno, is_primary) VALUES (?, ?, ?)',
+				array($sid, $idno, $is_primary)
+			);
+		}
+	}
+
+
+	/**
+	 * Delete pivot rows when a timeseries series is deleted.
+	 */
+	function delete($id)
+	{
+		$this->db->where('series_id', (int)$id)->delete('timeseries_db_links');
+		return parent::delete($id);
+	}
+
+
+    /**
+     * Resolve metadata.data_structure_reference (DSD idno) to data_structures.id.
+     *
+     * Returns:
+     *   - int  — matching data_structures.id when idno is known in the catalogue.
+     *   - null — when the reference is empty/null, or when the idno is informational
+     *            only (not yet present in data_structures). The reference is still
+     *            stored in metadata; only the operational FK is left unset.
+     */
+    private function _resolve_data_structure_id($reference)
+    {
+        if ($reference === null) {
+            return null;
+        }
+        $idno = '';
+        if (is_array($reference)) {
+            $idno = trim((string) ($reference['idno'] ?? ''));
+        } elseif (is_string($reference)) {
+            $idno = trim($reference);
+        }
+        if ($idno === '') {
+            return null;
+        }
+        $this->load->model('Data_structure_model');
+        $row = $this->Data_structure_model->get_structure_by_idno($idno);
+        if (!$row) {
+            return null;
+        }
+        return (int) $row['id'];
     }
 
 
@@ -246,6 +364,14 @@ class Dataset_timeseries_model extends Dataset_model {
 
     function get_timeseries_db_id($sid)
     {
+        $this->db->select('ts_db_id');
+        $this->db->where('id', (int)$sid);
+        $row=$this->db->get('surveys')->row_array();
+
+        if(isset($row['ts_db_id']) && $row['ts_db_id']!==null && $row['ts_db_id']!==''){
+            return (int)$row['ts_db_id'];
+        }
+
         $metadata=$this->get_metadata($sid);
 
         if(isset($metadata['series_description']['database_id'])){
@@ -253,6 +379,148 @@ class Dataset_timeseries_model extends Dataset_model {
         }
 
         return false;
+    }
+
+	/**
+	 * When metadata resolved data_structure_id, align ts_dimensions / ts_sync_required on the survey row.
+	 *
+	 * @param array    $options
+	 * @param int|null $existingSurveyId surveys.id when updating or overwriting an existing row
+	 */
+	private function _apply_indicator_ts_columns_on_data_structure_change(array &$options, $existingSurveyId)
+	{
+		if (!array_key_exists('data_structure_id', $options)) {
+			return;
+		}
+		$newRaw = $options['data_structure_id'];
+		$newId   = ($newRaw !== null && $newRaw !== '' && is_numeric($newRaw)) ? (int) $newRaw : null;
+		if ($existingSurveyId !== null && (int) $existingSurveyId > 0) {
+			$oldRow = $this->db->select('data_structure_id')->get_where('surveys', ['id' => (int) $existingSurveyId])->row_array();
+			$oldId  = (isset($oldRow['data_structure_id']) && $oldRow['data_structure_id'] !== null && $oldRow['data_structure_id'] !== '')
+				? (int) $oldRow['data_structure_id']
+				: null;
+			if ($oldId === $newId) {
+				return;
+			}
+		}
+		if ($newId === null) {
+			$options['ts_dimensions'] = null;
+			$options['ts_frequency']  = null;
+			$options['ts_sync_required'] = 0;
+		} else {
+			$options['ts_dimensions'] = $this->build_ts_dimensions_csv_for_structure_id($newId);
+			$options['ts_frequency']  = $this->build_ts_frequency_for_structure_id($newId);
+			$options['ts_sync_required'] = 1;
+		}
+	}
+
+    /**
+     * Apply canonical reference precedence in metadata (legacy rows may still carry inline snapshots).
+     * When `data_structure_reference` is set, drop `data_structure`. Within nested components, when
+     * `codelist_reference` is set, drop inline `codelist`.
+     *
+     * @param array $metadata
+     * @return void
+     */
+    private function _apply_reference_precedence_rules_to_metadata(array &$metadata)
+    {
+        if (array_key_exists('data_structure_reference', $metadata)) {
+            $ref = $metadata['data_structure_reference'];
+            $hasRef = false;
+            if (is_array($ref)) {
+                $hasRef = trim((string) ($ref['idno'] ?? '')) !== '';
+            } elseif ($ref !== null && trim((string) $ref) !== '') {
+                $hasRef = true;
+            }
+            if ($hasRef && array_key_exists('data_structure', $metadata)) {
+                unset($metadata['data_structure']);
+            }
+        }
+
+        if (!isset($metadata['data_structure']) || !is_array($metadata['data_structure'])) {
+            return;
+        }
+        if (!isset($metadata['data_structure']['components']) || !is_array($metadata['data_structure']['components'])) {
+            return;
+        }
+
+        foreach ($metadata['data_structure']['components'] as $i => $component) {
+            if (!is_array($component)) {
+                continue;
+            }
+            $ref = isset($component['codelist_reference']) ? $component['codelist_reference'] : null;
+            $hasRef = false;
+            if (is_array($ref)) {
+                $hasRef = trim((string) ($ref['idno'] ?? '')) !== '';
+            } elseif ($ref !== null && trim((string) $ref) !== '') {
+                $hasRef = true;
+            }
+            if ($hasRef && array_key_exists('codelist', $component)) {
+                unset($component['codelist']);
+                $metadata['data_structure']['components'][$i] = $component;
+            }
+        }
+    }
+
+
+    /**
+     * Override: normalize legacy database_id/database_name -> databases[] on every read
+     * so exports and display always receive the canonical format regardless of when the
+     * record was last saved.
+     */
+    function get_metadata($sid)
+    {
+        $metadata = parent::get_metadata($sid);
+        if (is_array($metadata)) {
+            $this->normalize_databases_metadata($metadata);
+        }
+        return $metadata;
+    }
+
+
+    public function normalize_databases_metadata(array &$metadata)
+    {
+        $sd = isset($metadata['series_description']) && is_array($metadata['series_description'])
+            ? $metadata['series_description']
+            : null;
+
+        if ($sd === null) {
+            return;
+        }
+
+        $legacy_id   = isset($sd['database_id'])   ? trim((string)$sd['database_id'])   : '';
+        $legacy_name = isset($sd['database_name'])  ? trim((string)$sd['database_name']) : '';
+
+        // Remove legacy fields regardless — databases[] is canonical going forward
+        unset($metadata['series_description']['database_id']);
+        unset($metadata['series_description']['database_name']);
+
+        if ($legacy_id === '') {
+            return;
+        }
+
+        $databases = isset($sd['databases']) && is_array($sd['databases'])
+            ? $sd['databases']
+            : array();
+
+        // Check if already present in databases[]
+        foreach ($databases as $entry) {
+            $existing_id = isset($entry['id']) ? trim((string)$entry['id']) : '';
+            if ($existing_id === $legacy_id) {
+                // Already represented — ensure name is filled if missing
+                return;
+            }
+        }
+
+        // Prepend entry so the legacy primary database appears first
+        $new_entry = array(
+            'id'         => $legacy_id,
+            'name'       => $legacy_name !== '' ? $legacy_name : $legacy_id,
+            'is_primary' => true,
+        );
+
+        array_unshift($databases, $new_entry);
+        $metadata['series_description']['databases'] = $databases;
     }
 
 }

@@ -39,6 +39,8 @@ CREATE NONCLUSTERED INDEX [idx_session] ON [analytics_pageview_events] ([session
 GO
 CREATE NONCLUSTERED INDEX [idx_ts_study] ON [analytics_pageview_events] ([ts] ASC, [study_id] ASC);
 GO
+CREATE NONCLUSTERED INDEX [idx_dedup] ON [analytics_pageview_events] ([study_id] ASC, [hashed_ip] ASC, [ts] ASC);
+GO
 
 -- ============================================================
 -- 2. RAW DOWNLOAD EVENTS

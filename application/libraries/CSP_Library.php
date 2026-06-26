@@ -104,6 +104,8 @@ class CSP_Library
         if ($development_mode && isset($this->config['csp_development_policy'])) {
             $policy = array_merge($policy, $this->config['csp_development_policy']);
         }
+
+        $policy = $this->apply_embed_csp_overrides($policy);
         
         $parts = array();
         
@@ -128,6 +130,31 @@ class CSP_Library
         }
         
         return implode('; ', $parts);
+    }
+
+    /**
+     * Merge CSP overrides for iframe embed URIs (e.g. relaxed frame-ancestors).
+     *
+     * @param array $policy Base policy directives
+     * @return array
+     */
+    private function apply_embed_csp_overrides($policy)
+    {
+        $patterns = isset($this->config['csp_embed_uri_patterns']) ? $this->config['csp_embed_uri_patterns'] : array();
+        $override = isset($this->config['csp_embed_policy_override']) ? $this->config['csp_embed_policy_override'] : array();
+        if (empty($patterns) || empty($override) || !is_array($policy)) {
+            return $policy;
+        }
+        $uri = $this->CI->uri->uri_string();
+        foreach ($patterns as $pattern) {
+            if ($pattern === '') {
+                continue;
+            }
+            if (@preg_match('#^' . $pattern . '$#', $uri)) {
+                return array_merge($policy, $override);
+            }
+        }
+        return $policy;
     }
     
     /**

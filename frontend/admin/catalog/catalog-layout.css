@@ -1,0 +1,254 @@
+/**
+ * Admin catalog page layout (Vue shell — no Bootstrap).
+ * Spacing scale aligned with dashboard-style cards (~4px grid).
+ */
+
+.admin-catalog-page {
+  min-height: calc(100vh - 5rem);
+}
+
+/* Column stacks — filter sidebar tighter than main column */
+.admin-catalog-filter-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.admin-catalog-filters-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-catalog-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Filter cards only: less outer padding than search/results cards */
+.admin-catalog-filter-stack > .admin-catalog-surface {
+  padding-block: 0.45rem;
+}
+
+/* Filter cards: header / body — tighter */
+.admin-catalog-filter-stack .admin-catalog-filter-card__header {
+  padding: 0.625rem 1rem 0.5rem;
+}
+
+.admin-catalog-filter-stack .admin-catalog-filter-card__body {
+  padding: 0.375rem 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.admin-catalog-filter-stack .cursor-pointer {
+  border-radius: 8px;
+  margin: 0 0.25rem;
+  transition: background-color 0.15s ease;
+}
+
+.admin-catalog-filter-stack .cursor-pointer:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.admin-catalog-filter-stack .filter-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 0;
+}
+
+/* Tighter rows for multi-select filter options (grid: checkbox | name | count) */
+.admin-catalog-filter-stack .filter-options-list .filter-option-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) max-content;
+  align-items: center;
+  column-gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+  padding-block: 0.125rem;
+  box-sizing: border-box;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.admin-catalog-filter-stack .filter-options-list .filter-option-row__checkbox {
+  margin: 0;
+  padding: 0;
+  justify-self: start;
+  display: inline-flex;
+  width: auto;
+  max-width: none;
+  flex: none;
+}
+
+.admin-catalog-filter-stack .filter-options-list .filter-option-row__checkbox .v-selection-control {
+  min-height: 0;
+  padding-block: 0;
+}
+
+.admin-catalog-filter-stack .filter-options-list .filter-option-row__name {
+  min-width: 0;
+  line-height: 1.35;
+  font-size: 0.8125rem;
+}
+
+.admin-catalog-filter-stack .filter-options-list .filter-option-row__count {
+  justify-self: end;
+  flex-shrink: 0;
+  line-height: 1.35;
+  font-size: 0.8125rem;
+  padding-left: 0.25rem;
+}
+
+/* Search card */
+.admin-catalog-search-inner {
+  padding: 1rem 1.25rem;
+}
+
+.admin-catalog-surface {
+  padding-block: 0.75rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.admin-catalog-surface:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Active filter chips row */
+.admin-catalog-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgb(var(--v-theme-surface));
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.admin-catalog-filter-chips .v-chip {
+  margin: 0 !important;
+}
+
+.admin-catalog-results-card {
+  overflow: hidden;
+}
+
+/* Toolbars above the study table */
+.catalog-results-toolbar {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.catalog-results-toolbar--padded .v-row {
+  padding: 0.875rem 1.25rem;
+}
+
+/* Table (v-table wraps a real <table> in .v-table__wrapper) */
+.admin-catalog-table table tbody td {
+  padding: 1rem 1rem !important;
+  vertical-align: top;
+}
+
+.admin-catalog-table table tbody td:first-child,
+.admin-catalog-table table tbody td:last-child {
+  padding-top: 1.125rem !important;
+}
+
+.admin-catalog-table table tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+.admin-catalog-table table tbody tr:hover {
+  background-color: rgba(25, 118, 210, 0.06) !important;
+}
+
+.admin-catalog-table .study-type-thumb img,
+.admin-catalog-table .study-type-thumb .v-img__img {
+  object-position: top center;
+}
+
+/* Publish switch + row menu: extra horizontal space */
+.admin-catalog-table .study-actions-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 1.5rem;
+}
+
+/* Study column: vertical rhythm */
+.study-row-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.study-row-detail__title-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  row-gap: 0.25rem;
+}
+
+.study-row-detail__meta {
+  line-height: 1.45;
+}
+
+.study-row-detail__chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  row-gap: 0.25rem;
+}
+
+.study-row-detail__chips-row .chip-label {
+  margin-right: 0.125rem;
+}
+
+.study-meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.75rem;
+  row-gap: 0.5rem;
+  line-height: 1.5;
+}
+
+.study-meta-bar__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.study-meta-bar__key {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.study-meta-bar__value {
+  color: rgba(0, 0, 0, 0.87);
+  font-weight: 500;
+  font-size: 0.8125rem;
+}
+
+.study-meta-bar__sep {
+  color: rgba(0, 0, 0, 0.28);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.admin-catalog-search-field .v-field {
+  border-radius: 8px;
+}
+
+/* Bottom pagination block */
+.admin-catalog-results-footer {
+  padding: 1rem 1.25rem 1.25rem;
+}

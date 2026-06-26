@@ -1,5 +1,7 @@
 <?php
 
+use Swaggest\JsonDiff\JsonPatch;
+
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
 class Datasets extends MY_REST_Controller
@@ -15,15 +17,6 @@ class Datasets extends MY_REST_Controller
 		$this->load->library("Dataset_manager");
 		$this->is_authenticated_or_die();
 		
-	}
-
-	//override authentication to support both session authentication + api keys
-	function _auth_override_check()
-	{
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
-		parent::_auth_override_check();
 	}
 	
 	
@@ -99,13 +92,14 @@ class Datasets extends MY_REST_Controller
 			$this->has_dataset_access('view',$sid);
 
 			$result=$this->dataset_manager->get_row($sid);
-			array_walk($result, 'unix_date_to_gmt_row',array('created','changed'));
-				
-			if(!$result){
+
+			if(!is_array($result) || !$result){
 				throw new Exception("DATASET_NOT_FOUND");
 			}
 
-			$result['metadata']=$this->dataset_manager->get_metadata($sid);
+			array_walk($result, 'unix_date_to_gmt_row',array('created','changed'));
+
+			$result['metadata']=$this->dataset_manager->get_metadata($sid, isset($result['type']) ? $result['type'] : null);
 			
 			$response=array(
 				'status'=>'success',
@@ -278,7 +272,8 @@ class Datasets extends MY_REST_Controller
 	 * Update dataset options
 	 * 
 	 * @idno - dataset IDNO
-	 * 
+	 *
+	 * JSON body may include `featured` (bool|0|1) to set or clear featured status for the study's owner repository.
 	 * 
 	 * 
 	 */
@@ -330,25 +325,35 @@ class Datasets extends MY_REST_Controller
 				$this->Repository_model->update_collection_studies($collection_options);
 			}
 
+			$featured_status = $this->featured_option_from_input($input);
 
-			if (empty($options)){
+			if (empty($options) && $featured_status === null){
 				throw new Exception("NO_PARAMS_PROVIDED");
 			}
 
-		//validate
-		$this->dataset_manager->validate_options($options);
-		
-		//update
-		$this->dataset_manager->update_options($sid,$options);
+			if (!empty($options)){
+				$this->dataset_manager->validate_options($options);
+				$this->dataset_manager->update_options($sid,$options);
+			}
 
-		$this->events->emit('db.after.update', 'surveys', $sid,'atomic');
+			if ($featured_status !== null){
+				$survey_row = $this->dataset_manager->get_row($sid);
+				if (!$survey_row){
+					throw new Exception("STUDY_NOT_FOUND");
+				}
+				$this->Repository_model->set_featured_study($survey_row['repositoryid'], $sid, $featured_status);
+			}
 
-		$response=array(
-			'status'=>'success'				
-		);
+			if (!empty($options) || $featured_status !== null){
+				$this->events->emit('db.after.update', 'surveys', $sid,'atomic');
+			}
+
+			$response=array(
+				'status'=>'success'				
+			);
 
 
-		$this->set_response($response, REST_Controller::HTTP_OK);
+			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(ValidationException $e){
 			$error_output=array(
@@ -514,27 +519,27 @@ class Datasets extends MY_REST_Controller
 
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * Create new study
 	 * @type - survey, timesereis, geospatial
-	 * 
+	 *
 	 */
 	function create_post($type=null,$idno=null)
 	{
-		if($type=='timeseries-db' || $type=='timeseriesdb'){
-			return $this->create_timeseries_database($idno);
+		if($type=='timeseries-db'){
+			$type='timeseriesdb';
 		}
 
-		try{			
+		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
-			
+
 			$options['created_by']=$user_id;
 			$options['changed_by']=$user_id;
 			$options['created']=date("U");
 			$options['changed']=date("U");
-			
+
 			//set default repository if not set
 			if(!isset($options['repositoryid'])){
 				$options['repositoryid']='central';
@@ -542,6 +547,13 @@ class Datasets extends MY_REST_Controller
 
 			if(isset($options['data_remote_url'])){
 				$options['link_da']=$options['data_remote_url'];
+			}
+
+			if (!empty($options['access_policy'])) {
+				$formid = $this->dataset_manager->get_data_access_type_id($options['access_policy']);
+				if ($formid) {
+					$options['formid'] = $formid;
+				}
 			}
 
 			$this->has_dataset_access('edit',null,$options['repositoryid']);
@@ -569,7 +581,7 @@ class Datasets extends MY_REST_Controller
 				'status'=>'success',
 				'dataset'=>$dataset,
 				'_links'=>array(
-					'view'=>site_url('catalog/'.$dataset['id'])				
+					'view'=>site_url('catalog/'.$dataset['id'])
 				)
 			);
 
@@ -586,7 +598,7 @@ class Datasets extends MY_REST_Controller
 		catch(Exception $e){
 			$error_output=array(
 				'status'=>'failed',
-				'message'=>$e->getMessage() 
+				'message'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
@@ -595,22 +607,22 @@ class Datasets extends MY_REST_Controller
 
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * Update dataset
 	 * @type - survey, timeseries, geospatial
-	 * 
+	 *
 	 */
 	function update_post($type=null,$idno=null)
 	{
-		if($type=='timeseries-db' || $type=='timeseriesdb'){
-			return $this->update_timeseries_database($idno);
+		if($type=='timeseries-db'){
+			$type='timeseriesdb';
 		}
 
-		try{			
+		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
-			
+
 			//get sid from idno
 			$sid=$this->get_sid_from_idno($idno);
 
@@ -622,6 +634,17 @@ class Datasets extends MY_REST_Controller
 			$options['changed_by']=$user_id;
 			$options['changed']=date("U");
 
+			if(isset($options['data_remote_url'])){
+				$options['link_da']=$options['data_remote_url'];
+			}
+
+			if (!empty($options['access_policy'])) {
+				$formid = $this->dataset_manager->get_data_access_type_id($options['access_policy']);
+				if ($formid) {
+					$options['formid'] = $formid;
+				}
+			}
+
 			//default to merge metadata and update partial metadata
 			$merge_metadata=true;
 
@@ -632,11 +655,11 @@ class Datasets extends MY_REST_Controller
 			}
 
 			//merge dataset cataloging options
-        	$options=array_merge($dataset,$options);
-			
-			//validate & update dataset			
-			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image' || $type=='video' || $type=='timeseries'){
-				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata); 
+			$options=array_merge($dataset,$options);
+
+			//validate & update dataset
+			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image' || $type=='video' || $type=='timeseries' || $type=='timeseriesdb'){
+				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, $merge_metadata);
 			}
 			else{
 				//get existing metadata
@@ -650,26 +673,123 @@ class Datasets extends MY_REST_Controller
 				$dataset_id=$this->dataset_manager->create_dataset($type,$options);
 			}
 
-		//load updated dataset
-		$dataset=$this->dataset_manager->get_row($dataset_id);
+			//load updated dataset
+			$dataset=$this->dataset_manager->get_row($dataset_id);
 
-		$this->events->emit('db.after.update', 'surveys', $dataset_id,'refresh');
+			$this->events->emit('db.after.update', 'surveys', $dataset_id,'refresh');
 
-		$response=array(
-			'status'=>'success',
-			'dataset'=>$dataset,
-			'_links'=>array(
-				'view'=>site_url('catalog/'.$dataset['id'])				
-			)
-		);
+			$response=array(
+				'status'=>'success',
+				'dataset'=>$dataset,
+				'_links'=>array(
+					'view'=>site_url('catalog/'.$dataset['id'])
+				)
+			);
 
-		$this->set_response($response, REST_Controller::HTTP_OK);
+			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(ValidationException $e){
 			$error_output=array(
 				'status'=>'failed',
 				'message'=>$e->getMessage(),
 				'errors'=>$e->GetValidationErrors()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * Apply RFC 6902 JSON Patch to dataset metadata (same contract as metadata editor patch).
+	 *
+	 * POST api/datasets/patch/{type}/{idno}
+	 *
+	 * Body: { "patches": [ ... ] }
+	 */
+	function patch_post($type=null,$idno=null)
+	{
+		if($type=='timeseries-db'){
+			$type='timeseriesdb';
+		}
+
+		try{
+			$body=$this->raw_json_input();
+			if (!is_array($body)){
+				throw new Exception("INVALID_JSON_INPUT");
+			}
+
+			if (!isset($body['patches'])){
+				throw new Exception("`patches` parameter is required");
+			}
+
+			if (!is_array($body['patches'])){
+				throw new Exception("`patches` must be a JSON array");
+			}
+
+			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
+
+			$dataset=$this->dataset_manager->get_row($sid);
+
+			if(!$dataset){
+				throw new Exception("DATASET_NOT_FOUND");
+			}
+
+			if ($dataset['type']!==$type){
+				throw new Exception("TYPE_MISMATCH: dataset type is [".$dataset['type']."] but URL type is [".$type."]");
+			}
+
+			$metadata=$this->dataset_manager->get_metadata($sid, $type);
+
+			if (!is_array($metadata)){
+				throw new Exception("METADATA_NOT_AVAILABLE");
+			}
+
+			$metadata_for_patch=json_decode(json_encode($metadata));
+			$patch=JsonPatch::import($body['patches']);
+			$patch->setFlags(1);
+			$patch->apply($metadata_for_patch);
+
+			$patched=json_decode(json_encode($metadata_for_patch), true);
+
+			$user_id=$this->get_api_user_id();
+			$options=array_merge($dataset, $patched);
+			$options['changed_by']=$user_id;
+			$options['changed']=date("U");
+
+			if ($type=='survey' || $type=='document' || $type=='table' || $type=='geospatial' || $type=='image' || $type=='video' || $type=='timeseries' || $type=='timeseriesdb'){
+				$dataset_id=$this->dataset_manager->update_dataset($sid,$type,$options, true, false);
+			}
+			else{
+				$dataset_id=$this->dataset_manager->create_dataset($type,$options);
+			}
+
+			$dataset=$this->dataset_manager->get_row($dataset_id);
+
+			$this->events->emit('db.after.update', 'surveys', $dataset_id,'refresh');
+
+			$response=array(
+				'status'=>'success',
+				'dataset'=>$dataset,
+				'_links'=>array(
+					'view'=>site_url('catalog/'.$dataset['id'])
+				)
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(ValidationException $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage(),
+				'errors'=>(array)$e->GetValidationErrors()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
@@ -1086,13 +1206,12 @@ class Datasets extends MY_REST_Controller
 	function update_id_put($idno=null,$new_id=null)
 	{
 		try{
-			$this->has_dataset_access('edit');
+			$old_sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$old_sid);
 
 			if(!is_numeric($new_id)){
 				throw new Exception("INVALID NEW ID");
 			}
-			
-			$old_sid=$this->get_sid_from_idno($idno);
 
 			if($old_sid == $new_id){
 				$response=array(
@@ -1128,6 +1247,14 @@ class Datasets extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * POST alias for {@see update_id_put()} when PUT cannot be sent (same path: …/update_id/{datasetIDNo}/{newId}).
+	 */
+	function update_id_post($idno = null, $new_id = null)
+	{
+		$this->update_id_put($idno, $new_id);
 	}
 
 	/** 
@@ -1323,7 +1450,8 @@ class Datasets extends MY_REST_Controller
 	{		
 		try{
 			$sid=$this->get_sid_from_idno($idno);
-					
+			$this->has_dataset_access('edit', $sid);
+
 			//process form
 			$temp_upload_folder=get_catalog_root().'/tmp';
 			
@@ -1482,12 +1610,12 @@ class Datasets extends MY_REST_Controller
 	 * 
 	 */
 	public function set_publish_status_put($sid=null,$publish_status=null)
-	{		
+	{
 		try{
-			$this->has_dataset_access('publish');
 			if(!is_numeric($sid) || !is_numeric($publish_status)){
 				throw new Exception("MISSING_PARAMS");
 			}
+			$this->has_dataset_access('publish',(int)$sid);
 			$this->dataset_manager->set_publish_status($sid,$publish_status);
 			$this->events->emit('db.after.update', 'surveys', $sid,'publish');
 			$this->set_response('UPDATED', REST_Controller::HTTP_OK);
@@ -2265,7 +2393,10 @@ class Datasets extends MY_REST_Controller
 			}
 
 			$pretty = $this->input->get('pretty') === 'true' || $this->input->get('pretty') === '1';
-			
+			$dsd_export = strtolower(trim((string) $this->input->get('dsd_export'))) === JSON_Writer::DSD_EXPORT_INLINE
+				? JSON_Writer::DSD_EXPORT_INLINE
+				: JSON_Writer::DSD_EXPORT_REFERENCE;
+
 			$dataset = $this->Dataset_model->get_row($sid);
 			$study_path = $this->Dataset_model->get_storage_fullpath($sid);
 			if (!$study_path) {
@@ -2273,22 +2404,26 @@ class Datasets extends MY_REST_Controller
 			}
 
 			$extension = ($format == 'jsonl') ? 'jsonl' : 'json';
-			$json_path = $study_path . '/' . $dataset['idno'] . '.' . $extension;
+			$inline_suffix = ($dataset['type'] === 'timeseries' && $dsd_export === JSON_Writer::DSD_EXPORT_INLINE)
+				? '.inline'
+				: '';
+			$json_path = $study_path . '/' . $dataset['idno'] . $inline_suffix . '.' . $extension;
 
 			if (!file_exists($study_path)) {
 				mkdir($study_path, 0755, true);
 			}
 
 			if ($format == 'jsonl') {
-				$result = $this->json_writer->write_jsonl($sid, $json_path, true);
+				$result = $this->json_writer->write_jsonl($sid, $json_path, true, $dsd_export);
 			} else {
-				$result = $this->json_writer->write_json($sid, $json_path, true, $pretty);
+				$result = $this->json_writer->write_json($sid, $json_path, true, $pretty, $dsd_export);
 			}
 
 			$response=array(
 				'status'=>  'success',
 				'path' => $result,
-				'format' => $format
+				'format' => $format,
+				'dsd_export' => $dsd_export,
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -2317,8 +2452,12 @@ class Datasets extends MY_REST_Controller
 			$this->has_dataset_access('view',$sid);
 			
 			$this->load->library('Package_Exporter');
-			
-			$temp_zip = $this->package_exporter->export($sid);
+
+			$dsd_export = strtolower(trim((string) $this->input->get('dsd_export'))) === 'inline'
+				? 'inline'
+				: 'reference';
+
+			$temp_zip = $this->package_exporter->export($sid, null, $dsd_export);
 			
 			if (!file_exists($temp_zip)) {
 				throw new Exception("FAILED_TO_CREATE_PACKAGE");
