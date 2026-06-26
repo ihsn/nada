@@ -17,8 +17,9 @@ $config['authentication_drivers'] = array(
     'DefaultAuth'   => 'application/libraries/Auth/DefaultAuth.php',
     'SsoAuth'       => 'application/libraries/Auth/SsoAuth.php',
     'AzureAuth'     => 'application/libraries/Auth/AzureAuth.php',
-    //'Auth0'         => 'application/libraries/Auth/Auth0.php',
-    'SocialAuth'    => 'application/libraries/Auth/SocialAuth.php'
+    'Auth0'         => 'application/libraries/Auth/Auth0.php',
+    'SocialAuth'    => 'application/libraries/Auth/SocialAuth.php',
+    'ZeroAuth'      => 'application/libraries/Auth/ZeroAuth.php',
 );
 
 
@@ -147,6 +148,38 @@ $config['social_login_providers'] = array(
 
 
 */
+
+/*
+|--------------------------------------------------------------------------
+| Auth0 Config options
+|--------------------------------------------------------------------------
+|
+| Configurations for Auth0 authentication driver.
+| Set authentication_driver to 'Auth0' to enable.
+|
+| Register the callback URL in your Auth0 Application settings:
+|   {base_url}/index.php/auth/callback
+|
+| Generate a cookie_secret with: openssl rand -hex 64
+|
+| federated_logout: clear Auth0 SSO session on logout
+| enable_alternate_login: allow built-in email/password login at alternate_login_url
+| alternate_login_url: default auth/alternate (useful when auto_redirect is true)
+|
+*/
+
+$config['auth0_auth'] = array(
+    'domain'         => '',
+    'client_id'      => '',
+    'client_secret'  => '',
+    'cookie_secret'  => '',
+    'redirect_uri'   => '', // leave empty to use site_url('auth/callback')
+    'auto_redirect'  => true, // when true, /auth/login redirects immediately to Auth0
+    'federated_logout' => true, // when true, logout also clears the Auth0 SSO session
+    'enable_alternate_login' => true, // when true, built-in email/password login is available
+    'alternate_login_url' => 'auth/alternate', // route for built-in login (relative to site_url)
+);
+
 
 $config['azure_auth']['client_id']='your-azure-client-id';
 $config['azure_auth']['tenant_id']='your-azure-tenant-id';
