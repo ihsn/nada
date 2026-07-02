@@ -53,7 +53,9 @@ This upgrade enhances the `resources` table with new fields for better resource 
 
 ## Running the Migration
 
-### Option 1: Web Interface (Recommended for Non-Technical Users)
+See **[NADA56_UPGRADE_README.md](NADA56_UPGRADE_README.md)** for the current upgrade process (8 consolidated migrations, CLI-first).
+
+### Legacy: Web Interface
 
 1. **Backup your database** (mandatory!)
 
@@ -78,16 +80,16 @@ This upgrade enhances the `resources` table with new fields for better resource 
 cd /path/to/nada-social-merge
 
 # Check current version
-php index.php cli/migrate current
+php index.php cli migrate current
 
 # List available migrations
-php index.php cli/migrate list
+php index.php cli migrate list_migrations
 
 # Run latest migration
-php index.php cli/migrate latest
+php index.php cli migrate latest
 
 # Or run specific version
-php index.php cli/migrate version 20251022000001
+php index.php cli migrate version 20260701000001
 ```
 
 **Note:** CodeIgniter's migration library is automatically enabled during CLI execution.

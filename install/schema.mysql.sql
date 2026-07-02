@@ -198,7 +198,8 @@ CREATE TABLE `survey_tags` (
   `sid` int(11) NOT NULL,
   `tag` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_tag` (`sid`,`tag`)
+  UNIQUE KEY `uq_tag` (`sid`,`tag`),
+  KEY `idx_survey_tags_tag` (`tag`,`sid`)
 ) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -374,6 +375,15 @@ CREATE TABLE `surveys` (
   UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`),
   KEY `idx_surveys_data_structure_id` (`data_structure_id`),
   KEY `idx_surveys_ts_db_id` (`ts_db_id`),
+  KEY `idx_surveys_published` (`published`),
+  KEY `idx_surveys_type` (`type`),
+  KEY `idx_surveys_repositoryid` (`repositoryid`),
+  KEY `idx_surveys_formid` (`formid`),
+  KEY `idx_surveys_data_class_id` (`data_class_id`),
+  KEY `idx_surveys_year_start` (`year_start`),
+  KEY `idx_surveys_total_views` (`total_views`),
+  KEY `idx_surveys_changed` (`changed`),
+  KEY `idx_surveys_created` (`created`),
   FULLTEXT KEY `ft_titl` (`title`),
   FULLTEXT KEY `ft_keywords` (`keywords`,`var_keywords`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
@@ -992,7 +1002,8 @@ CREATE TABLE `survey_countries` (
   `cid` int(11) DEFAULT NULL,
   `country_name` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `sid_iso_UNIQUE` (`sid`,`country_name`)
+  UNIQUE KEY `sid_iso_UNIQUE` (`sid`,`country_name`),
+  KEY `idx_survey_countries_cid` (`cid`,`sid`)
 ) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1025,7 +1036,9 @@ CREATE TABLE `survey_repos` (
   `sid` int(10)  NOT NULL,
   `repositoryid` varchar(255) NOT NULL,
   `isadmin` tinyint(3) unsigned NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_survey_repos_repositoryid` (`repositoryid`,`sid`),
+  KEY `idx_survey_repos_sid` (`sid`)
 ) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1185,7 +1198,8 @@ CREATE TABLE `survey_years` (
   `data_coll_year` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_sid_year` (`sid`,`data_coll_year`),
-  KEY `idx_sid` (`sid`)
+  KEY `idx_sid` (`sid`),
+  KEY `idx_survey_years_year_sid` (`data_coll_year`,`sid`)
 ) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1778,7 +1792,9 @@ CREATE TABLE `survey_facets` (
   `sid` int(11) DEFAULT NULL,
   `facet_id` int(11) DEFAULT NULL,
   `term_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_survey_facets_term_id` (`term_id`,`sid`),
+  KEY `idx_survey_facets_sid` (`sid`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
@@ -1832,7 +1848,8 @@ CREATE TABLE `analytics_pageview_events` (
     INDEX `idx_ts` (`ts`),
     INDEX `idx_study` (`study_id`),
     INDEX `idx_session` (`session_id`),
-    INDEX `idx_ts_study` (`ts`, `study_id`)
+    INDEX `idx_ts_study` (`ts`, `study_id`),
+    INDEX `idx_dedup` (`study_id`, `hashed_ip`, `ts`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -1848,8 +1865,7 @@ CREATE TABLE `analytics_download_events` (
     INDEX `idx_ts` (`ts`),
     INDEX `idx_study` (`study_id`),
     INDEX `idx_study_file` (`study_id`, `file_name`),
-    INDEX `idx_ts_study_file` (`ts`, `study_id`, `file_name`),
-    INDEX `idx_dedupe` (`study_id`, `file_name`, `hashed_ip`, `user_agent`, `ts`)
+    INDEX `idx_ts_study_file` (`ts`, `study_id`, `file_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `analytics_daily_studies` (

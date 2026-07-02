@@ -51,9 +51,13 @@ class Migration_Restore_var_keywords_to_surveys extends MY_Migration {
             log_message('info', 'Dropped ft_keywords index from surveys');
         }
 
-        // 3. Recreate on (keywords, var_keywords)
-        $this->db->query('ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_keywords` (`keywords`, `var_keywords`)');
-        log_message('info', 'Created ft_keywords index on surveys(keywords, var_keywords)');
+        // 3. Recreate on (keywords, var_keywords) when missing
+        if ($this->index_exists('surveys', 'ft_keywords')) {
+            log_message('info', 'ft_keywords index already exists on surveys (MySQL), skipping CREATE');
+        } else {
+            $this->db->query('ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_keywords` (`keywords`, `var_keywords`)');
+            log_message('info', 'Created ft_keywords index on surveys(keywords, var_keywords)');
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -91,16 +95,28 @@ class Migration_Restore_var_keywords_to_surveys extends MY_Migration {
             log_message('info', 'Dropped fulltext index on surveys (SQLSRV)');
         }
 
-        // 3. Recreate on (keywords, var_keywords)
-        $this->db->query("
-            CREATE FULLTEXT INDEX ON surveys
-            (
-                keywords     Language 1033,
-                var_keywords Language 1033
-            )
-            KEY INDEX pk_idx_surveys
+        // 3. Recreate on (keywords, var_keywords) when missing
+        $_r_after = $this->db->query("
+            SELECT 1
+            FROM sys.fulltext_indexes fi
+            JOIN sys.tables t ON fi.object_id = t.object_id
+            WHERE t.name = 'surveys'
         ");
-        log_message('info', 'Created fulltext index on surveys(keywords, var_keywords) (SQLSRV)');
+        $ft_still_exists = $_r_after ? $_r_after->row_array() : null;
+
+        if ($ft_still_exists) {
+            log_message('info', 'Fulltext index already exists on surveys (SQLSRV), skipping CREATE');
+        } else {
+            $this->db->query("
+                CREATE FULLTEXT INDEX ON surveys
+                (
+                    keywords     Language 1033,
+                    var_keywords Language 1033
+                )
+                KEY INDEX pk_idx_surveys
+            ");
+            log_message('info', 'Created fulltext index on surveys(keywords, var_keywords) (SQLSRV)');
+        }
     }
 
     // -------------------------------------------------------------------------

@@ -25,7 +25,7 @@ System requirements and steps for installation - [NADA installation guide](https
 
 ### Upgrading from older versions of NADA
 
-Documentation for upgrading from various versions - [NADA upgrade guide](https://ihsn.github.io/nada-documentation/installation-guide/upgrade/).
+Documentation for upgrading from various versions - [NADA upgrade guide](install/NADA56_UPGRADE_README.md).
 
 ### Schema guide
 

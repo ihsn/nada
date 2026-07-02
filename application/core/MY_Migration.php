@@ -355,5 +355,143 @@ class MY_Migration extends CI_Migration {
 
         throw new Exception($detail);
     }
+
+    /**
+     * Run archived migration steps bundled into a consolidated release migration.
+     * Each step must be idempotent (safe to re-run after partial failure).
+     *
+     * @param array<int,string> $filenames Basenames under application/migrations/archived/
+     * @return void
+     */
+    protected function run_archived_steps(array $filenames)
+    {
+        $total = count($filenames);
+        $index = 0;
+
+        foreach ($filenames as $filename) {
+            $index++;
+            echo "\n" . str_repeat('=', 72) . "\n";
+            echo "Bundled step {$index}/{$total}: {$filename}\n";
+            echo str_repeat('=', 72) . "\n\n";
+            flush();
+
+            $this->run_archived_step($filename);
+        }
+    }
+
+    /**
+     * @param string $filename Basename under application/migrations/archived/
+     * @return void
+     */
+    protected function run_archived_step($filename)
+    {
+        $path = APPPATH . 'migrations/archived/' . $filename;
+
+        if (!is_file($path)) {
+            throw new Exception('Archived migration not found: ' . $path);
+        }
+
+        require_once $path;
+
+        $class = $this->archived_migration_class($filename);
+
+        if (!class_exists($class, FALSE)) {
+            throw new Exception("Migration class not found: {$class} (from {$filename})");
+        }
+
+        $migration = new $class();
+
+        if (!method_exists($migration, 'up')) {
+            throw new Exception("Migration {$class} has no up() method");
+        }
+
+        $migration->up();
+    }
+
+    /**
+     * @param string $filename
+     * @return string Fully-qualified migration class name
+     */
+    protected function archived_migration_class($filename)
+    {
+        $base = basename($filename, '.php');
+        $parts = explode('_', $base);
+        array_shift($parts);
+
+        return 'Migration_' . ucfirst(strtolower(implode('_', $parts)));
+    }
+
+    /**
+     * @param string $table
+     * @param string $column
+     * @return bool
+     */
+    protected function column_exists($table, $column)
+    {
+        return $this->db->field_exists($column, $table);
+    }
+
+    /**
+     * @param string $table
+     * @return bool
+     */
+    protected function table_exists($table)
+    {
+        return $this->db->table_exists($table);
+    }
+
+    /**
+     * @param string $table
+     * @param string $index_name
+     * @return bool
+     */
+    protected function index_exists($table, $index_name)
+    {
+        $driver = $this->db->dbdriver;
+
+        if (in_array($driver, array('mysql', 'mysqli'), TRUE)) {
+            $result = $this->db->query(
+                'SHOW INDEX FROM `' . str_replace('`', '', $table) . '` WHERE Key_name = ' . $this->db->escape($index_name)
+            );
+
+            return $result && $result->num_rows() > 0;
+        }
+
+        if ($driver === 'sqlsrv') {
+            $result = $this->db->query(
+                "SELECT 1 AS present FROM sys.indexes i
+                 INNER JOIN sys.tables t ON i.object_id = t.object_id
+                 WHERE t.name = " . $this->db->escape($table) . "
+                 AND i.name = " . $this->db->escape($index_name)
+            );
+
+            return $result && $result->num_rows() > 0;
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * @param string $name configurations.name
+     * @param array<string,mixed> $row
+     * @return void
+     */
+    protected function insert_configuration_if_missing($name, array $row)
+    {
+        if (!$this->table_exists('configurations')) {
+            return;
+        }
+
+        $this->db->where('name', $name);
+        $query = $this->db->get('configurations', 1);
+
+        if ($query && $query->num_rows() > 0) {
+            echo "SKIP: configurations.{$name} already exists\n";
+            return;
+        }
+
+        $row['name'] = $name;
+        $this->db->insert('configurations', $row);
+    }
 }
 
