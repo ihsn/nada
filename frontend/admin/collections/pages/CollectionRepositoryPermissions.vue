@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="d-flex align-center flex-wrap gap-2 mb-4">
+    <div class="permissions-page-header">
       <v-btn icon="mdi-arrow-left" variant="text" size="small" @click="router.push({ path: '/' })" />
       <h1 class="text-h5 font-weight-medium">Collection permissions</h1>
       <v-chip v-if="repositoryLabel" size="small" variant="tonal" color="primary">{{ repositoryLabel }}</v-chip>
@@ -13,14 +13,13 @@
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
 
     <template v-if="!loading && catalog">
-      <!-- Add / assign bar — elevated surface + explicit spacing below (Vuetify default card is often flat) -->
       <div class="add-user-access-wrap">
-        <v-card variant="elevated" elevation="2" rounded="lg">
+        <v-card elevation="1" rounded="lg">
           <v-card-title class="text-subtitle-1 py-3">Add or update user access</v-card-title>
-          <v-card-text>
+          <v-card-text class="assign-card-body">
             <v-row dense>
               <v-col cols="12" md="5">
-                <label class="text-caption font-weight-medium text-medium-emphasis mb-2 d-block" for="perm-assign-user">Search user</label>
+                <div class="text-caption text-medium-emphasis mb-1" id="perm-assign-user-label">Search user</div>
                 <v-autocomplete
                   id="perm-assign-user"
                   v-model="assign.user"
@@ -34,11 +33,12 @@
                   hide-details="auto"
                   clearable
                   return-object
+                  aria-labelledby="perm-assign-user-label"
                   @update:search="onUserSearch"
                 />
               </v-col>
               <v-col cols="12" md="7">
-                <label class="text-caption font-weight-medium text-medium-emphasis mb-2 d-block" for="perm-assign-perms">Permissions</label>
+                <div class="text-caption text-medium-emphasis mb-1" id="perm-assign-perms-label">Permissions</div>
                 <v-select
                   id="perm-assign-perms"
                   v-model="assign.permissions"
@@ -54,21 +54,23 @@
                   hide-details="auto"
                   clearable
                   class="perm-multiselect"
+                  aria-labelledby="perm-assign-perms-label"
                 />
               </v-col>
             </v-row>
-          <p v-if="assignBarHint" class="text-caption text-medium-emphasis mt-3 mb-0">{{ assignBarHint }}</p>
-          <div class="d-flex justify-end mt-2">
+            <p v-if="assignBarHint" class="assign-bar-hint text-caption text-medium-emphasis">{{ assignBarHint }}</p>
+          </v-card-text>
+          <v-divider />
+          <v-card-actions class="assign-card-actions">
+            <v-spacer />
             <v-btn color="primary" variant="flat" :loading="saving" :disabled="!assign.user" @click="submitAssign">
               Save for selected user
             </v-btn>
-          </div>
-          </v-card-text>
+          </v-card-actions>
         </v-card>
       </div>
 
-      <!-- Users table -->
-      <v-card variant="outlined">
+      <v-card elevation="1" rounded="lg">
         <v-card-title class="text-subtitle-1 py-3">Users with access</v-card-title>
         <v-data-table
           :headers="headers"
@@ -98,11 +100,12 @@
       <v-card v-if="editDialog.user">
         <v-card-title class="text-h6">Edit — {{ editDialog.user.username }}</v-card-title>
         <v-divider />
-        <v-card-text>
-          <label class="text-caption font-weight-medium text-medium-emphasis mb-2 d-block" for="perm-edit-perms">Permissions</label>
+        <v-card-text class="pa-4">
+          <div class="text-caption text-medium-emphasis mb-1" id="perm-edit-perms-label">Permissions</div>
           <v-select
             id="perm-edit-perms"
             v-model="editDialog.permissions"
+            aria-labelledby="perm-edit-perms-label"
             :items="permissionSelectItems"
             item-title="title"
             item-value="value"
@@ -117,7 +120,7 @@
           />
         </v-card-text>
         <v-divider />
-        <v-card-actions>
+        <v-card-actions class="pa-3">
           <v-spacer />
           <v-btn variant="text" @click="editDialog.open = false">Cancel</v-btn>
           <v-btn color="primary" variant="flat" :loading="saving" @click="saveEdit">Save</v-btn>
@@ -335,9 +338,35 @@ async function confirmRemove(row) {
 </script>
 
 <style scoped>
+.permissions-page-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 1.5rem;
+}
+
+.permissions-page-header h1 {
+  margin: 0;
+}
+
 .add-user-access-wrap {
   margin-bottom: 2.5rem;
 }
+
+.assign-card-body {
+  padding: 0 20px 24px;
+}
+
+.assign-bar-hint {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+.assign-card-actions {
+  padding: 20px 20px 16px;
+}
+
 .perm-multiselect :deep(.v-field__input) {
   flex-wrap: wrap;
 }

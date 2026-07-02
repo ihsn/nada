@@ -5,7 +5,6 @@ class Database_migration extends MY_Controller {
     function __construct() 
     {
         parent::__construct();
-        $this->template->set_template('admin');
         $this->lang->load('general');
         
         $is_admin = $this->acl_manager->user_is_admin();
@@ -28,11 +27,7 @@ class Database_migration extends MY_Controller {
         $data['available_migrations'] = $this->get_available_migrations();
         $data['db_debug_enabled'] = $this->db->db_debug === TRUE;
         
-        $content = $this->load->view('admin/database_migration/index', $data, TRUE);
-        
-        $this->template->write('title', $data['page_title'], TRUE);
-        $this->template->write('content', $content, TRUE);
-        $this->template->render();
+        $this->render_admin_page($data['page_title'], $this->load->view('admin/database_migration/index', $data, TRUE));
     }
     
     function run($version = null)
@@ -123,12 +118,10 @@ class Database_migration extends MY_Controller {
         $data['after_version'] = $after_version;
         $data['db_debug_was_enabled'] = $db_debug_was_enabled;
         
-        // Load view instead of redirecting
-        $content = $this->load->view('admin/database_migration/run_output', $data, TRUE);
-        
-        $this->template->write('title', $data['page_title'], TRUE);
-        $this->template->write('content', $content, TRUE);
-        $this->template->render();
+        $this->render_admin_page(
+            $data['page_title'],
+            $this->load->view('admin/database_migration/run_output', $data, TRUE)
+        );
     }
     
     /**
@@ -308,6 +301,22 @@ class Database_migration extends MY_Controller {
         return $versions[$index - 1];
     }
     
+    /**
+     * Render a page with the Vue admin header shell.
+     */
+    private function render_admin_page($title, $content)
+    {
+        $page = array(
+            'title'           => $title,
+            'content'         => $content,
+            'hide_breadcrumb' => true,
+            'theme_folder'    => 'adminvue',
+            '_styles'         => '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">',
+        );
+
+        $this->load->view('layouts/admin_vue', $page);
+    }
+
     private function get_current_version()
     {
         if (!$this->db->table_exists('migrations')) {
