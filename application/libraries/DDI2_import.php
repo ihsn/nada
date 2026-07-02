@@ -262,6 +262,9 @@ class DDI2_Import{
         //import variables
         $variables_imported=$this->import_variables($sid,$data_files, $parser->get_variable_iterator());
 
+        //update var_count per data file from the actual imported variable count
+        $this->sync_file_var_counts($sid);
+
         //import variable groups
         $this->create_update_variable_groups($sid,$parser->get_variable_groups());
 
@@ -514,6 +517,24 @@ class DDI2_Import{
     private function encode_metadata($metadata_array)
     {
         return $this->ci->Survey_model->encode_metadata($metadata_array); //base64_encode(serialize($metadata_array));
+    }
+
+
+    private function sync_file_var_counts($sid)
+    {
+        $rows = $this->ci->db
+            ->select('fid, COUNT(*) AS cnt')
+            ->where('sid', $sid)
+            ->group_by('fid')
+            ->get('variables')
+            ->result_array();
+
+        foreach ($rows as $row) {
+            $this->ci->db
+                ->where('sid', $sid)
+                ->where('file_id', $row['fid'])
+                ->update('data_files', ['var_count' => (int)$row['cnt']]);
+        }
     }
 
 

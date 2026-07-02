@@ -1,7 +1,7 @@
 <?php
 
 //map ddi2 to NADA survey type schema
-//note: all complex types are tranformed by the DDI2Reader at the time of parsing the DDI. The transform_callbacks are not implemented yet.
+//note: all complex types are transformed by DDIReader at the time of parsing. The transform_callbacks are not implemented yet.
 $config['survey']=array(
     #docDesc elements
     'doc_desc/title'=>array('xpath'=>'codeBook/docDscr/citation/titlStmt/titl', 'transform_callback'=>'none'),

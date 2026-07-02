@@ -10,78 +10,80 @@
 
 class DdiVariableIterator implements Iterator
 {
-	private $xml_reader=NULL;
-	private $position=0;
-	private $is_valid=TRUE;
+    private $file;
+	private $xml_reader = null;
+	private $position   = 0;
+	private $is_valid   = false;
 
 	public function __construct($xml_file)
     {
-        require dirname(__FILE__).'/DdiVariable.php';
+        require_once dirname(__FILE__).'/DdiVariable.php';
 
-        $this->xml_reader= new XMLReader();
+        $this->file = $xml_file;
+        $this->openAndScan();
+    }
 
-        //read the xml file
-        if(!$this->xml_reader->open($xml_file,null,LIBXML_NOERROR | LIBXML_NOWARNING))
-        {
-            throw new Exception("DDIVARIABLEITERATOR::FAILED TO OPEN FILE:".$xml_file );
+    public function rewind(): void
+    {
+        $this->xml_reader->close();
+        $this->openAndScan();
+    }
+
+    private function openAndScan(): void
+    {
+        $this->xml_reader = new XMLReader();
+
+        if (!$this->xml_reader->open($this->file, null, LIBXML_NOERROR | LIBXML_NOWARNING)) {
+            throw new Exception("DDIVARIABLEITERATOR::FAILED TO OPEN FILE:" . $this->file);
         }
 
-        //read only the DDI docDscr and stdyDscr sections
-        while ($this->xml_reader->read() )
-        {
-            if ($this->xml_reader->nodeType == XMLReader::ELEMENT && $this->xml_reader->localName == "var")
-            {
-                $this->position=0;
+        $found = false;
+        while ($this->xml_reader->read()) {
+            if ($this->xml_reader->nodeType == XMLReader::ELEMENT && $this->xml_reader->localName == "var") {
+                $this->position = 0;
+                $found = true;
                 break;
             }
         }
+        $this->is_valid = $found;
     }
 
-    function rewind() {
-        //return $this->xml_reader->readOuterXML();
-    }
-
-    function current() {
-
+    public function current(): ?DdiVariable
+    {
         if ($this->xml_reader->nodeType == XMLReader::ELEMENT && $this->xml_reader->localName == "var")
         {
-            //get variable xml
-            $xml=$this->xml_reader->readOuterXML();
+            $xml = $this->xml_reader->readOuterXML();
 
-            //convert to xml object
-            if (!$xml_obj=simplexml_load_string($xml))
+            if (!$xml_obj = simplexml_load_string($xml))
             {
-                throw new Exception("VARIABLE OUTPUT NOT VALID: ".$xml);
+                throw new Exception("VARIABLE OUTPUT NOT VALID: " . $xml);
             }
 
             return new DdiVariable($xml_obj);
         }
+
+        return null;
     }
 
-
-
-    function key() {}
-
-    function next()
+    public function key(): int
     {
-        $this->is_valid=$this->xml_reader->next();
-
-        if (!$this->is_valid)
-        {
-            return false;
-        }
-
-        if ($this->is_valid==TRUE && $this->xml_reader->nodeType == XMLReader::ELEMENT && $this->xml_reader->localName == "var")
-        {
-            $this->position++;
-        }
-        else
-        {
-            $this->next();
-        }
+        return $this->position;
     }
 
-    function valid() {
+    public function next(): void
+    {
+        while ($this->xml_reader->next()) {
+            if ($this->xml_reader->nodeType == XMLReader::ELEMENT && $this->xml_reader->localName == "var") {
+                $this->position++;
+                $this->is_valid = true;
+                return;
+            }
+        }
+        $this->is_valid = false;
+    }
+
+    public function valid(): bool
+    {
         return $this->is_valid;
     }
 

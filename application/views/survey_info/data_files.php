@@ -21,7 +21,7 @@
             <th><?php echo t('cases');?></th>
         <?php endif;?>
         
-        <?php if(!empty($case_counts_col)):?>
+        <?php if(!empty($var_count_col)):?>
             <th><?php echo t('variables');?></th>
         <?php endif;?>
     </tr>
@@ -38,7 +38,7 @@
         <?php if(!empty($case_counts_col)):?>
             <td><?php echo $file['case_count'];?></td>
         <?php endif;?>
-        <?php if(!empty($case_counts_col)):?>
+        <?php if(!empty($var_count_col)):?>
         <td><?php echo $file['var_count'];?></td>
         <?php endif;?>
     </tr>

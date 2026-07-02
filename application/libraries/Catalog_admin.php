@@ -533,13 +533,13 @@ class Catalog_Admin
 			throw new Exception("SURVEY_NOT_FOUND");
 		}
 
-		require_once dirname(__FILE__).'/Metadata_parser/classes/DDI2Reader.php';
+        require_once dirname(__FILE__).'/Metadata_parser/classes/DDIReader.php';
+        require_once dirname(__FILE__).'/Metadata_parser/classes/ReaderInterface.php';
         require_once dirname(__FILE__).'/Metadata_parser/classes/DdiVariableIterator.php';
-        
-		$this->ddi2reader= new DDI2Reader($new_ddi_file);
-		$new_idno=$this->ddi2reader->get_study_IDNO();
 
-		$this->ddi2reader=null;
+        $reader    = new DDIReader($new_ddi_file);
+        $new_idno  = $reader->get_study_IDNO();
+        $reader    = null;
 		 
 		 //sanitize ID to remove anything except a-Z1-9 characters
 		 /*if ($new_idno!==$this->sanitize_filename($new_idno)){

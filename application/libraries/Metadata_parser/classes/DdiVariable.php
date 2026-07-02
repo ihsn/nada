@@ -17,9 +17,49 @@ class DdiVariable
 
     function variable_xml_to_array(&$xml_obj)
     {
-        $xml = new JsonSerializer($xml_obj->asXML());
-        $xml_json=json_encode($xml,JSON_PRETTY_PRINT);
-        return json_decode($xml_json,true);
+        return self::simplexml_to_array($xml_obj, true);
+    }
+
+    // Replaces the JsonSerializer roundtrip (asXML → re-parse → json_encode → json_decode).
+    // Produces the identical array shape that JsonSerializer::jsonSerialize() produced.
+    private static function simplexml_to_array(\SimpleXMLElement $element, bool $is_root): array
+    {
+        $array       = [];
+        $has_children = false;
+
+        foreach ($element as $tag => $child) {
+            $has_children = true;
+            $temp = self::simplexml_to_array($child, false);
+
+            $attributes = [];
+            foreach ($child->attributes() as $name => $value) {
+                $attributes[(string)$name] = (string)$value;
+            }
+
+            if (!empty($attributes)) {
+                $array[(string)$tag][] = array_merge($temp, ['@attr' => $attributes]);
+            } else {
+                $array[(string)$tag][] = $temp;
+            }
+        }
+
+        if (!$has_children) {
+            $text = trim((string)$element);
+            if ($text !== '') {
+                $array['_text'] = $text;
+            }
+        }
+
+        if ($is_root) {
+            $name   = $element->getName();
+            $result = [$name => $array];
+            foreach ($element->attributes() as $attr_name => $attr_value) {
+                $result[$name]['@attr'][(string)$attr_name] = (string)$attr_value;
+            }
+            return $result;
+        }
+
+        return $array;
     }
 
 
@@ -271,11 +311,13 @@ class DdiVariable
             return null;
         }
 
-        $categories_labl=array_column($categories,"labl");
-        $categories=array_merge($categories_labl,array_column($categories,"label"));
-        $categories=array_unique(explode(" ",implode(" ",$categories)));
+        $labels = array_filter(array_merge(
+            array_column($categories, 'labl'),
+            array_column($categories, 'label')
+        ));
+        $labels = array_values(array_unique($labels));
 
-        return implode(" ",$categories);
+        return implode(' ', $labels);
     }
 
     public function get_metadata_array(){
