@@ -170,7 +170,9 @@ class DDI2_Import{
             $copied=$this->copy_file($this->file_path, $survey_target_filepath);
         }
 
-        $options=$this->transform_ddi_fields($parser->get_metadata_array());                
+        $mapper  = new Nada\DdiParser\Mapping\NadaSurveyMapper($this->ci->config->item('survey', 'metadata_parser', TRUE));
+        $options = $mapper->map($parser->get_study_meta());
+
         $options['created_by']=$this->user_id;
 		$options['changed_by']=$this->user_id;
 		$options['changed']=date("U");
@@ -230,8 +232,8 @@ class DDI2_Import{
             );
         }
 
-        //get list of data files
-        $files=(array)$parser->get_data_files();
+        //get list of data files (DataFile objects → arrays)
+        $files = array_map(function ($f) { return $f->toArray(); }, $parser->get_data_files());
 
         //check if data file is empty
         foreach($files as $idx =>$file){
@@ -253,7 +255,7 @@ class DDI2_Import{
                 $file['id']=$file['file_id'];
             }
             $data_files[$file['id']]=$file;
-        } 
+        }
         unset($files);
 
         //import data files and update data_files with file db id
@@ -265,8 +267,9 @@ class DDI2_Import{
         //update var_count per data file from the actual imported variable count
         $this->sync_file_var_counts($sid);
 
-        //import variable groups
-        $this->create_update_variable_groups($sid,$parser->get_variable_groups());
+        //import variable groups (VariableGroup objects → arrays)
+        $groups = array_map(function ($g) { return $g->toArray(); }, $parser->get_variable_groups());
+        $this->create_update_variable_groups($sid, $groups);
 
         //update survey varcount
         $this->ci->dataset_manager->update_varcount($sid);
@@ -293,85 +296,6 @@ class DDI2_Import{
     
     
     //transform structure of ddi fields  to survey type fields
-    private function transform_ddi_fields($metadata)
-    {
-        //mappings from DDI to NADA SURVEY type
-        $ddi_mappings=$this->ci->config->item('survey',"metadata_parser",TRUE);
-
-        $mappings=array();
-        $complex_fields=array();
-        foreach($ddi_mappings as $key=>$value){
-            $mappings[$value['xpath']][]=$key;
-
-            if(isset($value['type']) && $value['type']=='array' ){
-                $complex_fields[$value['xpath']]['type']='array';
-            }
-        }
-
-        $output=array();
-        //only importing what is mapped
-        foreach($mappings as $xpath=>$values)
-        {
-            foreach($values as $value){            
-                //metadata exists?
-                if(isset($metadata[$xpath])){
-                    $element_value=$metadata[$xpath];
-
-                    //complex type?
-                    if(isset($ddi_mappings[$value]['type']) &&  $ddi_mappings[$value]['type']=='array'){
-                        $this->array_nested_path($output, $value, $element_value, $glue = '/');
-                    }
-                    else{
-                        //non-complex types
-                        //value in array format
-                        if(is_array($element_value) ){
-                            //echo $value."-----\r\n";
-                            //var_dump($element_value);
-                            $this->array_nested_path($output, $value, implode(" ",$element_value), $glue = '/');
-                        }
-                        else { //simple element
-                            #$output[$mappings[$key]]=$value;
-                            $this->array_nested_path($output, $value, $element_value, $glue = '/');
-                        }
-                    }
-                                  
-                }
-            }    
-        }
-
-        return $output;
-    }
-
-    
-    //return an array with the nested path and value
-    function array_nested_path(&$array, $parents, $value, $glue = '/')
-    {
-        $parents = explode($glue, (string) $parents);
-        $reference = &$array;
-        foreach ($parents as $key) {
-            if (!array_key_exists($key, $reference)) {
-                $reference[$key] = [];
-            }
-            $reference = &$reference[$key];
-        }
-        $reference = $value;
-        unset($reference);
-
-        return $array;
-    }
-
-    function get_array_nested_value($data, $path, $glue = '/')
-    {
-        $paths = explode($glue, (string) $path);
-        $reference = $data;
-        foreach ($paths as $key) {
-            if (!array_key_exists($key, $reference)) {
-                return false;
-            }
-            $reference = $reference[$key];
-        }
-        return $reference;
-    }
 
 
 

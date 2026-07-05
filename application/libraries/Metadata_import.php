@@ -249,7 +249,7 @@ class Metadata_Import{
 
 
         //get list of data files
-        $files=(array)$parser->get_data_files();
+        $files = array_map(function ($f) { return $f->toArray(); }, $parser->get_data_files());
 
         $data_files=array();
         foreach($files as $file){

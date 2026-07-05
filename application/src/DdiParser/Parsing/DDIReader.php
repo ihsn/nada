@@ -1,5 +1,12 @@
 <?php
 
+namespace Nada\DdiParser\Parsing;
+
+use Nada\DdiParser\Contracts\ReaderInterface;
+use Nada\DdiParser\ValueObjects\DataFile;
+use Nada\DdiParser\ValueObjects\StudyMeta;
+use Nada\DdiParser\ValueObjects\VariableGroup;
+
 class DDIReader implements ReaderInterface
 {
     private $file;
@@ -10,7 +17,6 @@ class DDIReader implements ReaderInterface
     private $metadata_array = [];
     private $labels         = [];
 
-    // --- public API state ---
     private $metadata;
     private $variable_groups;
 
@@ -74,24 +80,21 @@ class DDIReader implements ReaderInterface
 
     public function __construct($file, $metadata_keys_map = null)
     {
-        require_once dirname(__FILE__) . '/DdiVariableIterator.php';
-
-        // XPath mapping table (controls which elements are parsed and how)
         $xpath_group = [];
 
         $xpath_group['codeBook/fileDscr'] = [
             'label' => 'file description',
             'type'  => 'table',
             'cols'  => [
-                '@ID'                    => 'id',
-                '@URI'                   => 'uri',
-                'fileTxt/fileName'       => 'filename',
-                'fileTxt/fileName/@ID'   => 'file_id',
+                '@ID'                       => 'id',
+                '@URI'                      => 'uri',
+                'fileTxt/fileName'          => 'filename',
+                'fileTxt/fileName/@ID'      => 'file_id',
                 'fileTxt/dimensns/caseQnty' => 'caseQnty',
                 'fileTxt/dimensns/varQnty'  => 'varQnty',
-                'fileTxt/fileType'       => 'filetype',
-                'fileTxt/fileCont'       => 'fileCont',
-                'fileTxt/filePlac'       => 'filePlac',
+                'fileTxt/fileType'          => 'filetype',
+                'fileTxt/fileCont'          => 'fileCont',
+                'fileTxt/filePlac'          => 'filePlac',
             ],
         ];
 
@@ -99,12 +102,12 @@ class DDIReader implements ReaderInterface
             'label' => 'Variable group',
             'type'  => 'table',
             'cols'  => [
-                '@ID'      => 'vgid',
-                '@type'    => 'group_type',
-                '@varGrp'  => 'variable_groups',
-                '@var'     => 'variables',
-                'labl'     => 'label',
-                'defntn'   => 'definition',
+                '@ID'     => 'vgid',
+                '@type'   => 'group_type',
+                '@varGrp' => 'variable_groups',
+                '@var'    => 'variables',
+                'labl'    => 'label',
+                'defntn'  => 'definition',
             ],
         ];
 
@@ -221,10 +224,10 @@ class DDIReader implements ReaderInterface
             'label' => 'Data access confidentiality',
             'type'  => 'table',
             'cols'  => [
-                '@relatedProcesses'    => 'related_processes',
-                '@type'                => 'type',
-                'txt'                  => 'txt',
-                'command'              => 'command',
+                '@relatedProcesses'       => 'related_processes',
+                '@type'                   => 'type',
+                'txt'                     => 'txt',
+                'command'                 => 'command',
                 'command/@formalLanguage' => 'formal_language',
             ],
         ];
@@ -345,23 +348,22 @@ class DDIReader implements ReaderInterface
 
         $this->table_elements = $xpath_group;
 
-        // Validate and store file path
         if (!file_exists($file)) {
-            throw new Exception("file not found: " . $file);
+            throw new \Exception("file not found: " . $file);
         }
         $this->file = $file;
 
-        // Load all metadata sections
-        $this->metadata       = array_merge(
+        $this->metadata = array_merge(
             $this->get_ddi_part_array('docDscr'),
             $this->get_ddi_part_array('stdyDscr')
         );
-        $this->metadata_array = $this->get_ddi_part_array('stdyDscr');
+        $this->metadata_array  = $this->get_ddi_part_array('stdyDscr');
         $this->variable_groups = $this->extract_var_groups_array();
 
-        // Schema validation requires empty strings rather than nulls
+        $this->apply_timeprd_transform($this->metadata);
+
         array_walk_recursive($this->metadata, function (&$item) {
-            if ($item === null) $item = '';
+            if ($item === null) { $item = ''; }
         });
     }
 
@@ -372,19 +374,16 @@ class DDIReader implements ReaderInterface
 
     public function get_id(): string
     {
-        // Priority 1: IDNo (mixed case)
         $idno = $this->array_to_string($this->get_key('stdy_id'), 'text');
         if (!empty(trim((string)$idno))) {
             return $idno;
         }
 
-        // Priority 2: codeBook/@ID attribute
         $codebook = $this->get_ddi_part_array('codeBook');
         if (isset($codebook['ID']) && !empty(trim($codebook['ID']))) {
             return trim($codebook['ID']);
         }
 
-        // Priority 3: IDNO (all uppercase)
         $xpath = 'codeBook/stdyDscr/citation/titlStmt/IDNO';
         if (isset($this->metadata[$xpath])) {
             $val = $this->metadata[$xpath];
@@ -485,6 +484,11 @@ class DDIReader implements ReaderInterface
         return $this->metadata;
     }
 
+    public function get_study_meta(): StudyMeta
+    {
+        return new StudyMeta($this->metadata);
+    }
+
     public function get_bounding_box()
     {
         return null;
@@ -495,13 +499,15 @@ class DDIReader implements ReaderInterface
         return null;
     }
 
-    public function get_data_files()
+    public function get_data_files(): array
     {
-        $files = $this->get_ddi_part_array('fileDscr');
-        if (isset($files['codeBook/fileDscr'])) {
-            return $files['codeBook/fileDscr'];
+        $raw = $this->get_ddi_part_array('fileDscr');
+        if (!isset($raw['codeBook/fileDscr'])) {
+            return [];
         }
-        return null;
+        return array_map(function ($f) {
+            return DataFile::fromArray($f);
+        }, $raw['codeBook/fileDscr']);
     }
 
     public function get_variable_iterator(): DdiVariableIterator
@@ -509,9 +515,11 @@ class DDIReader implements ReaderInterface
         return new DdiVariableIterator($this->file);
     }
 
-    public function get_variable_groups()
+    public function get_variable_groups(): array
     {
-        return $this->variable_groups;
+        return array_map(function ($g) {
+            return VariableGroup::fromArray($g);
+        }, $this->variable_groups);
     }
 
     public function to_array(): array
@@ -527,19 +535,16 @@ class DDIReader implements ReaderInterface
     {
         $study = $this->get_ddi_part_array('stdyDscr');
 
-        // Priority 1: IDNo (mixed case)
         if (!empty($study['codeBook/stdyDscr/citation/titlStmt/IDNo'][0])) {
             $idno = trim($study['codeBook/stdyDscr/citation/titlStmt/IDNo'][0]);
             if ($idno !== '') { return $idno; }
         }
 
-        // Priority 2: codeBook/@ID
         $codebook = $this->get_ddi_part_array('codeBook');
         if (isset($codebook['ID']) && !empty(trim($codebook['ID']))) {
             return trim($codebook['ID']);
         }
 
-        // Priority 3: IDNO (uppercase)
         if (!empty($study['codeBook/stdyDscr/citation/titlStmt/IDNO'][0])) {
             $idno = trim($study['codeBook/stdyDscr/citation/titlStmt/IDNO'][0]);
             if ($idno !== '') { return $idno; }
@@ -550,7 +555,9 @@ class DDIReader implements ReaderInterface
 
     public function extract_study_meta_array(): array
     {
-        return $this->get_ddi_part_array('stdyDscr');
+        $data = $this->get_ddi_part_array('stdyDscr');
+        $this->apply_timeprd_transform($data);
+        return $data;
     }
 
     public function extract_doc_meta_array(): array
@@ -570,7 +577,7 @@ class DDIReader implements ReaderInterface
 
     public function extract_var_groups_array(): array
     {
-        $reader = new XMLReader();
+        $reader = new \XMLReader();
 
         if (!$reader->open($this->file, null, LIBXML_NOERROR | LIBXML_NOWARNING)) {
             return [];
@@ -579,7 +586,7 @@ class DDIReader implements ReaderInterface
         $groups = [];
 
         while ($reader->read()) {
-            if ($reader->nodeType == XMLReader::ELEMENT && $reader->localName == 'varGrp') {
+            if ($reader->nodeType == \XMLReader::ELEMENT && $reader->localName == 'varGrp') {
                 $xml_obj     = simplexml_load_string($reader->readOuterXML());
                 $parent_path = 'codeBook/dataDscr/' . $xml_obj->getName();
                 $output      = [];
@@ -630,7 +637,7 @@ class DDIReader implements ReaderInterface
             return implode("\r\n", $output);
         }
 
-        throw new Exception('TYPE_NOT_SUPPORTED: ' . $type);
+        throw new \Exception('TYPE_NOT_SUPPORTED: ' . $type);
     }
 
 
@@ -640,7 +647,7 @@ class DDIReader implements ReaderInterface
 
     private function get_ddi_part_array(string $section): array
     {
-        $xml_reader = new XMLReader();
+        $xml_reader = new \XMLReader();
 
         if (!$xml_reader->open($this->file, null, LIBXML_NOERROR | LIBXML_NOWARNING)) {
             return [];
@@ -649,7 +656,7 @@ class DDIReader implements ReaderInterface
         $key_values = [];
 
         while ($xml_reader->read()) {
-            if ($xml_reader->nodeType == XMLReader::ELEMENT
+            if ($xml_reader->nodeType == \XMLReader::ELEMENT
                 && $xml_reader->localName == 'codeBook'
                 && $section == 'codeBook'
             ) {
@@ -658,7 +665,7 @@ class DDIReader implements ReaderInterface
                 $key_values['version'] = $xml_reader->getAttribute('version');
                 break;
 
-            } elseif ($xml_reader->nodeType == XMLReader::ELEMENT
+            } elseif ($xml_reader->nodeType == \XMLReader::ELEMENT
                 && in_array($xml_reader->localName, ['docDscr', 'stdyDscr'])
                 && $section === $xml_reader->localName
             ) {
@@ -667,16 +674,15 @@ class DDIReader implements ReaderInterface
                 $key_values  = $this->get_child_elements_array($xml_obj, $parent_path, $key_values);
                 break;
 
-            } elseif ($xml_reader->nodeType == XMLReader::ELEMENT
+            } elseif ($xml_reader->nodeType == \XMLReader::ELEMENT
                 && $xml_reader->localName == 'fileDscr'
                 && $section == 'fileDscr'
             ) {
                 $xml_obj     = simplexml_load_string($xml_reader->readOuterXML());
                 $parent_path = 'codeBook/' . $xml_obj->getName();
                 $key_values  = $this->get_child_elements_array($xml_obj, $parent_path, $key_values);
-                // continue — file may have multiple fileDscr elements
 
-            } elseif ($xml_reader->nodeType == XMLReader::ELEMENT
+            } elseif ($xml_reader->nodeType == \XMLReader::ELEMENT
                 && $xml_reader->localName === 'dataDscr'
             ) {
                 if ($section !== 'fileDscr') {
@@ -686,47 +692,11 @@ class DDIReader implements ReaderInterface
         }
 
         $xml_reader->close();
-
-        // Transform date fields from event-based to start/end pairs
-        foreach (['codeBook/stdyDscr/stdyInfo/sumDscr/timePrd', 'codeBook/stdyDscr/stdyInfo/sumDscr/collDate'] as $date_field) {
-            if (array_key_exists($date_field, $key_values)) {
-                $key_values[$date_field] = $this->transform_collection_dates($key_values[$date_field]);
-            }
-        }
-
-        // Normalise access place — schema expects a single scalar value
-        $access_place_key = 'codeBook/stdyDscr/dataAccs/setAvail/accsPlac';
-        if (array_key_exists($access_place_key, $key_values)) {
-            $ap = $key_values[$access_place_key];
-            if (is_array($ap)) {
-                $key_values[$access_place_key]          = @$ap[0]['name'];
-                $key_values[$access_place_key . '_url'] = @$ap[0]['uri'];
-            } else {
-                $key_values[$access_place_key] = '';
-            }
-        }
-
-        // Ensure IDNo is populated from any of the three fallback locations
-        if ($section == 'stdyDscr') {
-            $idno_xpath   = 'codeBook/stdyDscr/citation/titlStmt/IDNo';
-            $idno_upper   = 'codeBook/stdyDscr/citation/titlStmt/IDNO';
-            $has_idno     = isset($key_values[$idno_xpath][0]) && !empty(trim($key_values[$idno_xpath][0]));
-
-            if (!$has_idno) {
-                $codebook = $this->get_ddi_part_array('codeBook');
-                if (isset($codebook['ID']) && !empty(trim($codebook['ID']))) {
-                    $key_values[$idno_xpath] = [trim($codebook['ID'])];
-                } elseif (isset($key_values[$idno_upper][0]) && !empty(trim($key_values[$idno_upper][0]))) {
-                    $key_values[$idno_xpath] = [trim($key_values[$idno_upper][0])];
-                }
-            }
-        }
-
         return $key_values;
     }
 
 
-    private function get_child_elements_array(&$xml_obj, $parent_path, &$elements_array): array
+    private function get_child_elements_array(\SimpleXMLElement $xml_obj, $parent_path, &$elements_array): array
     {
         if (array_key_exists($parent_path, $this->table_elements)) {
 
@@ -749,7 +719,7 @@ class DDIReader implements ReaderInterface
 
             $column_data = [];
             foreach ($cols as $xpath => $name) {
-                $column_data[$name] = @$result[$xpath];
+                $column_data[$name] = isset($result[$xpath]) ? $result[$xpath] : null;
             }
 
             $elements_array[$parent_path][] = $column_data;
@@ -775,7 +745,7 @@ class DDIReader implements ReaderInterface
     }
 
 
-    private function get_element_flattened(&$xml_obj, $parent_path, &$output): array
+    private function get_element_flattened(\SimpleXMLElement $xml_obj, $parent_path, &$output): array
     {
         if ($parent_path) {
             $output[$parent_path] = trim((string)$xml_obj);
@@ -804,15 +774,23 @@ class DDIReader implements ReaderInterface
     }
 
 
+    private function apply_timeprd_transform(array &$data): void
+    {
+        $key = 'codeBook/stdyDscr/stdyInfo/sumDscr/timePrd';
+        if (isset($data[$key]) && is_array($data[$key])) {
+            $data[$key] = $this->transform_collection_dates($data[$key]);
+        }
+    }
+
     private function transform_collection_dates(array $data): array
     {
         $output  = [];
         $current = null;
 
         foreach ($data as $item) {
-            $event = $item['event'] ?? null;
-            $date  = $item['date']  ?? null;
-            $cycle = $item['cycle'] ?? null;
+            $event = isset($item['event']) ? $item['event'] : null;
+            $date  = isset($item['date'])  ? $item['date']  : null;
+            $cycle = isset($item['cycle']) ? $item['cycle'] : null;
 
             if ($event === 'start' || $event === null) {
                 if ($current !== null) {

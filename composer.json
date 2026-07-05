@@ -19,6 +19,11 @@
         "league/oauth2-client": "^2.8",
         "swaggest/json-diff": "^3.11"
     },
+    "autoload": {
+        "psr-4": {
+            "Nada\\": "application/src/"
+        }
+    },
     "config": {
         "platform": {
             "php": "7.4"

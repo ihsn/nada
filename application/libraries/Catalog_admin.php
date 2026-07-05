@@ -533,11 +533,7 @@ class Catalog_Admin
 			throw new Exception("SURVEY_NOT_FOUND");
 		}
 
-        require_once dirname(__FILE__).'/Metadata_parser/classes/DDIReader.php';
-        require_once dirname(__FILE__).'/Metadata_parser/classes/ReaderInterface.php';
-        require_once dirname(__FILE__).'/Metadata_parser/classes/DdiVariableIterator.php';
-
-        $reader    = new DDIReader($new_ddi_file);
+        $reader    = new Nada\DdiParser\Parsing\DDIReader($new_ddi_file);
         $new_idno  = $reader->get_study_IDNO();
         $reader    = null;
 		 

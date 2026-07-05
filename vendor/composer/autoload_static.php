@@ -43,6 +43,10 @@ class ComposerStaticInit57625deda3373c5e89e84ba00508af84
             'Psr\\Cache\\' => 10,
             'PHPMailer\\PHPMailer\\' => 20,
         ),
+        'N' => 
+        array (
+            'Nada\\' => 5,
+        ),
         'L' => 
         array (
             'League\\OAuth2\\Client\\' => 21,
@@ -138,6 +142,10 @@ class ComposerStaticInit57625deda3373c5e89e84ba00508af84
         'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
+        ),
+        'Nada\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/application/src',
         ),
         'League\\OAuth2\\Client\\' => 
         array (
