@@ -838,7 +838,7 @@ class Catalog_admin_search extends CI_Model
 	}
 
 	/**
-	 * Get repositories list for collections filter (published, with section, ordered)
+	 * Get repositories list for collections filter (optionally published-only, with section, ordered)
 	 *
 	 * @param bool $published Only published repositories
 	 * @return array Map repositoryid => row (with title, section_title, etc.)
@@ -1075,7 +1075,7 @@ class Catalog_admin_search extends CI_Model
 		$formatted = array();
 
 		if ($this->acl_scope_unrestricted) {
-			$raw_collections = $this->_get_repositories(true);
+			$raw_collections = $this->_get_repositories(false);
 			foreach ((array) $raw_collections as $repo) {
 				$rid = $repo['repositoryid'];
 				$c = $counts[strtolower((string) $rid)] ?? 0;
