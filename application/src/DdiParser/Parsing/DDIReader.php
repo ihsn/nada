@@ -361,6 +361,8 @@ class DDIReader implements ReaderInterface
         $this->variable_groups = $this->extract_var_groups_array();
 
         $this->apply_timeprd_transform($this->metadata);
+        $this->apply_coll_dates_transform($this->metadata);
+        $this->apply_accs_plac_transform($this->metadata);
 
         array_walk_recursive($this->metadata, function (&$item) {
             if ($item === null) { $item = ''; }
@@ -557,6 +559,8 @@ class DDIReader implements ReaderInterface
     {
         $data = $this->get_ddi_part_array('stdyDscr');
         $this->apply_timeprd_transform($data);
+        $this->apply_coll_dates_transform($data);
+        $this->apply_accs_plac_transform($data);
         return $data;
     }
 
@@ -780,6 +784,28 @@ class DDIReader implements ReaderInterface
         if (isset($data[$key]) && is_array($data[$key])) {
             $data[$key] = $this->transform_collection_dates($data[$key]);
         }
+    }
+
+    private function apply_coll_dates_transform(array &$data): void
+    {
+        $key = 'codeBook/stdyDscr/stdyInfo/sumDscr/collDate';
+        if (isset($data[$key]) && is_array($data[$key])) {
+            $data[$key] = $this->transform_collection_dates($data[$key]);
+        }
+    }
+
+    private function apply_accs_plac_transform(array &$data): void
+    {
+        $key     = 'codeBook/stdyDscr/dataAccs/setAvail/accsPlac';
+        $url_key = 'codeBook/stdyDscr/dataAccs/setAvail/accsPlac_url';
+
+        if (!isset($data[$key]) || !is_array($data[$key])) {
+            return;
+        }
+
+        $first          = reset($data[$key]);
+        $data[$key]     = is_array($first) ? ($first['name'] ?? '') : (string) $first;
+        $data[$url_key] = is_array($first) ? ($first['uri']  ?? '') : '';
     }
 
     private function transform_collection_dates(array $data): array
