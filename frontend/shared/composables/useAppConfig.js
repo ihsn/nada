@@ -32,6 +32,9 @@ export function useAppConfig() {
       return String(p).replace(/\/$/, '');
     }),
     siteConfig: computed(() => config.value?.siteConfig ?? {}),
+    canManageCollectionAccess: computed(() => !!config.value?.canManageCollectionAccess),
+    canEdit: computed(() => !!config.value?.canEdit),
+    canDelete: computed(() => !!config.value?.canDelete),
   };
 }
 

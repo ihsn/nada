@@ -132,7 +132,12 @@
       >
         <template #item.name="{ item }">
           <div>
-            <span :class="rowNameClass(item)">{{ item.name }}</span>
+            <a
+              v-if="resourceEditUrl(item)"
+              :href="resourceEditUrl(item)"
+              :class="[rowNameClass(item), 'csf-file-link']"
+            >{{ item.name }}</a>
+            <span v-else :class="rowNameClass(item)">{{ item.name }}</span>
             <div v-if="item.relative" class="text-caption text-medium-emphasis">{{ item.relative }}</div>
           </div>
         </template>
@@ -146,12 +151,12 @@
         <template #item.actions="{ item }">
           <div class="d-flex align-center flex-wrap gap-1">
             <v-btn
-              v-if="managefilesEditBase"
-              :href="editUrl(item)"
+              v-if="resourceEditUrl(item)"
+              :href="resourceEditUrl(item)"
               size="x-small"
               variant="text"
               icon="mdi-pencil"
-              :title="lbl.edit_resource"
+              :title="resourceEditTitle(item)"
             />
             <v-btn
               :href="downloadHref(item.base64)"
@@ -197,7 +202,9 @@ const { config } = useAppConfig();
 const { fetchFiles, deleteFile, uploadFile, downloadHref } = useStudyFilesApi();
 
 const lbl = computed(() => config.value?.labels || {});
+const resourcesEditBase = computed(() => config.value?.resourcesEditBase || '');
 const managefilesEditBase = computed(() => config.value?.managefilesEditBase || '');
+const studySid = computed(() => config.value?.studySid ?? null);
 
 const loading = ref(true);
 const uploading = ref(false);
@@ -256,15 +263,37 @@ function rowNameClass(item) {
   return parts.join(' ');
 }
 
-function editUrl(item) {
-  const b = item?.base64;
-  const base = managefilesEditBase.value;
-  if (!b || !base) {
-    return base || '#';
+function resourceEditUrl(item) {
+  if (item?.is_ddi_locked) {
+    return null;
   }
-  // Query param avoids path splitting when base64 contains "/" or proxies decode %2F.
-  const join = base.includes('?') ? '&' : '?';
-  return `${base}${join}t=${encodeURIComponent(b)}`;
+
+  const sid = studySid.value;
+  if (sid == null) {
+    return null;
+  }
+
+  const rid = item?.resource?.resource_id;
+  const editBase = String(resourcesEditBase.value || '').replace(/\/+$/, '');
+  if (rid != null && editBase) {
+    return `${editBase}/${encodeURIComponent(String(rid))}/${encodeURIComponent(String(sid))}`;
+  }
+
+  const token = item?.base64;
+  const mfBase = String(managefilesEditBase.value || '').replace(/\/+$/, '');
+  if (token && mfBase) {
+    const params = new URLSearchParams({ t: token });
+    return `${mfBase}?${params.toString()}`;
+  }
+
+  return null;
+}
+
+function resourceEditTitle(item) {
+  if (item?.resource?.resource_id != null) {
+    return lbl.value.edit_resource || 'Edit resource';
+  }
+  return lbl.value.create_resource || lbl.value.edit_resource || 'Create resource';
 }
 
 function addFilesFromFileList(list) {
@@ -622,5 +651,13 @@ onMounted(() => {
 
 .text-success {
   color: #2e7d32;
+}
+
+.csf-file-link {
+  text-decoration: none;
+}
+
+.csf-file-link:hover {
+  text-decoration: underline;
 }
 </style>

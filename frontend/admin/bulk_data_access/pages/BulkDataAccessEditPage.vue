@@ -124,13 +124,11 @@ async function submit() {
   try {
     const payload = { title: form.title.trim(), description: form.description.trim() };
     if (props.isNew) {
-      const created = await createCollection(payload);
-      toast.value = { open: true, message: t('form_update_success', 'Saved'), color: 'success' };
-      router.replace({ name: 'bda-edit', params: { id: String(created.id) } });
+      await createCollection(payload);
     } else {
       await updateCollection(props.id, payload);
-      toast.value = { open: true, message: t('form_update_success', 'Saved'), color: 'success' };
     }
+    router.push({ name: 'bda-list' });
   } catch (e) {
     toast.value = { open: true, message: e?.message || 'Error', color: 'error' };
   } finally {

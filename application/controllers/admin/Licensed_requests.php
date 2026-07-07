@@ -94,7 +94,22 @@ class Licensed_requests extends MY_Controller {
 	
 	function export()
 	{
-		return $this->Licensed_model->export_to_csv();
+		$this->acl_manager->require_licensed_requests_access();
+
+		$user  = $this->ion_auth->current_user();
+		$scope = $this->acl_manager->get_licensed_request_repository_scope($user);
+		if ($scope === false) {
+			$this->acl_manager->show_access_denied('feature');
+		}
+
+		if ($scope === null) {
+			$rows = $this->Licensed_model->select_all();
+		}
+		else {
+			$rows = $this->Licensed_model->admin_search_requests(50000, 0, array(), 'created', 'desc', $scope, null);
+		}
+
+		return $this->Licensed_model->export_to_csv($rows);
 	}
 	
 	function edit($id)
@@ -104,7 +119,7 @@ class Licensed_requests extends MY_Controller {
 		}
 
 		if (! $this->_admin_user_can_licensed_request((int) $id, 'edit')) {
-			show_error(t('ACCESS_DENIED'), 403);
+			$this->acl_manager->show_access_denied('feature');
 		}
 
 		$this->_render_licensed_requests_vue_shell();
@@ -226,8 +241,9 @@ class Licensed_requests extends MY_Controller {
 	*/
 	function update($requestid)
 	{			
-		//$this->acl->user_has_lic_request_access($requestid);
-		$this->acl_manager->repository_permission_or_die($this->active_repo->repositoryid, $this->acl_manager->licensed_request_repositories_acl_key('view'));
+		if (! is_numeric($requestid) || ! $this->_admin_user_can_licensed_request((int) $requestid, 'edit')) {
+			$this->acl_manager->show_access_denied('feature');
+		}
 
 		$this->form_validation->set_rules('status', 'Status', 'trim|required|xss_clean|callback__status_check');
 		$this->form_validation->set_rules('comments', 'Comments', 'trim|xss_clean');		
@@ -363,8 +379,9 @@ class Licensed_requests extends MY_Controller {
 	*/
 	function monitor($requestid,$output=FALSE)
 	{	
-		//$this->acl->user_has_lic_request_access($requestid);
-		$this->acl_manager->repository_permission_or_die($this->active_repo->repositoryid, $this->acl_manager->licensed_request_repositories_acl_key('edit'));
+		if (! is_numeric($requestid) || ! $this->_admin_user_can_licensed_request((int) $requestid, 'edit')) {
+			$this->acl_manager->show_access_denied('feature');
+		}
 
 		//get request summary statistics
 		$data['summary_rows']=$this->Licensed_model->get_request_summary($requestid);
@@ -394,9 +411,10 @@ class Licensed_requests extends MY_Controller {
 		if (!is_numeric($requestid)){
 			show_404();
 		}
-		
-		//$this->acl->user_has_lic_request_access($requestid);
-		$this->acl_manager->repository_permission_or_die($this->active_repo->repositoryid, $this->acl_manager->licensed_request_repositories_acl_key('edit'));
+
+		if (! $this->_admin_user_can_licensed_request((int) $requestid, 'edit')) {
+			$this->acl_manager->show_access_denied('feature');
+		}
 		
 		$this->form_validation->set_rules('to', t('to'), 'trim|required|xss_clean');
 		$this->form_validation->set_rules('cc', t('cc'), 'trim|xss_clean');
@@ -461,15 +479,16 @@ class Licensed_requests extends MY_Controller {
 			show_404();
 		}
 		
-		//$this->acl->user_has_lic_request_access($requestid);
-		$this->acl_manager->repository_permission_or_die($this->active_repo->repositoryid, $this->acl_manager->licensed_request_repositories_acl_key('edit'));
-		
 		//get request from db
 		$request_data=$this->Licensed_model->get_request_by_id($requestid);
 		
 		if (!$request_data)
 		{
 			show_404("REQUEST_INVALID");
+		}
+
+		if (! $this->_admin_user_can_licensed_request((int) $requestid, 'edit')) {
+			$this->acl_manager->show_access_denied('feature');
 		}
 		
 		$this->form_validation->set_rules('to', t('to'), 'trim|required|xss_clean');
@@ -589,6 +608,8 @@ class Licensed_requests extends MY_Controller {
 	*/
 	function delete($id)
 	{			
+		$this->acl_manager->require_licensed_requests_access();
+
 		//array of id to be deleted
 		$delete_arr=array();
 	
@@ -643,8 +664,10 @@ class Licensed_requests extends MY_Controller {
 		{
 			foreach($delete_arr as $item)
 			{
-				//$this->acl->user_has_lic_request_access($item);
-				
+				if (! $this->_admin_user_can_licensed_request((int) $item, 'delete')) {
+					$this->acl_manager->show_access_denied('feature');
+				}
+
 				//confirm delete	
 				$this->Licensed_model->delete($item);
 			}

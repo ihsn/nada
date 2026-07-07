@@ -12,6 +12,8 @@ class Admin extends MY_Controller {
 
     function index()
     {
+        $this->acl_manager->has_access_or_die('dashboard', 'view');
+
         $this->load->helper('vite_helper');
 
         $inner = array(
@@ -37,6 +39,8 @@ class Admin extends MY_Controller {
      */
     function ui_kit()
     {
+        $this->acl_manager->has_access_or_die('dashboard', 'view');
+
         $this->load->helper('vite_helper');
 
         $inner = array(
@@ -62,6 +66,8 @@ class Admin extends MY_Controller {
      */
     function clear_cache()
     {
+        $this->acl_manager->has_access_or_die('dashboard', 'view');
+
         $this->cache->clean();
         $this->session->set_flashdata('message', 'Cache is cleared!');
         redirect("admin", "refresh");

@@ -260,6 +260,100 @@ class Acl_manager
 	}
 
 
+	/**
+	 * Whether the user may enter the site admin area (/admin).
+	 *
+	 * Coarse gate only — feature access is enforced per controller via has_access().
+	 * Deny by default: plain site accounts (no roles, or only the system "user" role
+	 * with no collection grants) are blocked. Does not inspect role_permissions content.
+	 *
+	 * Allow when:
+	 * - full admin (is_admin role), or
+	 * - at least one global role other than "user", or
+	 * - any repositories_acl grant (collection-only admins may keep the user role)
+	 *
+	 * @param object|null $user
+	 * @return bool
+	 */
+	function user_has_any_admin_capability($user = null)
+	{
+		if (empty($user)) {
+			$user = $this->current_user();
+		}
+
+		if ( ! $user || empty($user->id)) {
+			return false;
+		}
+
+		if ($this->user_is_admin($user)) {
+			return true;
+		}
+
+		// Collection-only admins may have no global roles (or only "user"); check grants before role list.
+		if ($this->user_has_any_collection_grant((int) $user->id)) {
+			return true;
+		}
+
+		$user_roles = $this->get_user_roles((int) $user->id);
+		if (empty($user_roles)) {
+			return false;
+		}
+
+		if ($this->user_has_non_site_user_role($user_roles)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * True if the user has a global role other than the system site-user role (name "user").
+	 *
+	 * @param array $user_roles from get_user_roles()
+	 * @return bool
+	 */
+	protected function user_has_non_site_user_role(array $user_roles)
+	{
+		$site_user_role = $this->site_user_role_name();
+
+		foreach ($user_roles as $role) {
+			$name = isset($role['name']) ? strtolower(trim((string) $role['name'])) : '';
+			if ($name !== '' && $name !== $site_user_role) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * System role name for plain site users (acl_permissions acl_system_roles).
+	 *
+	 * @return string lowercase
+	 */
+	protected function site_user_role_name()
+	{
+		return 'user';
+	}
+
+	/**
+	 * @param int $user_id
+	 * @return bool
+	 */
+	protected function user_has_any_collection_grant($user_id)
+	{
+		if ( ! $this->ci->db->table_exists('repositories_acl')) {
+			return false;
+		}
+
+		$this->ci->db->select('id');
+		$this->ci->db->where('user_id', (int) $user_id);
+		$this->ci->db->limit(1);
+		$row = $this->ci->db->get('repositories_acl')->row_array();
+
+		return ! empty($row);
+	}
+
 	function has_site_admin_access($user=null)
 	{
 		if(empty($user)){
@@ -270,20 +364,7 @@ class Acl_manager
 			die("acl_manager::User not set");
 		}
 
-		//get user roles
-		$user_roles=$this->get_user_roles($user->id);
-
-		if(!$user_roles){
-			return false;
-		}
-
-		foreach($user_roles as $role){
-			if ($role['role_id']==2){ //user
-				return false;
-			}
-		}
-
-		return true;
+		return $this->user_has_any_admin_capability($user);
 	}
 
 	function has_access_or_die($resource,$privilege, $user=null, $repositoryid=null)
@@ -292,6 +373,10 @@ class Acl_manager
 			$this->has_access($resource, $privilege,$user,$repositoryid);
 		}
 		catch(Exception $e){
+			if ($e instanceof AclAccessDeniedException) {
+				$this->show_access_denied('feature');
+			}
+
 			if ($this->ci->input->is_ajax_request()) {
 				$this->ci->output
 					->set_status_header(403)
@@ -301,6 +386,66 @@ class Acl_manager
 
 			show_error($e->getMessage());
 		}	
+	}
+
+	/**
+	 * User-facing HTML access denied (403), or JSON for AJAX/API-style requests.
+	 *
+	 * @param string $context 'feature' = missing permission; 'shell' = cannot enter /admin (logging only)
+	 */
+	public function show_access_denied($context = 'feature')
+	{
+		$CI =& $this->ci;
+
+		if (!isset($CI->ion_auth)) {
+			$CI->load->library('ion_auth');
+		}
+
+		if ($CI->input->is_ajax_request()) {
+			$CI->output
+				->set_status_header(403)
+				->set_content_type('application/json', 'utf-8');
+			echo json_encode(array('status' => 'failed', 'message' => 'ACCESS-DENIED'));
+			exit(1);
+		}
+
+		$CI->lang->load('general');
+
+		$title = t('access_denied_title');
+		$message = t('access_denied_message');
+
+		$use_admin_shell = (
+			$context !== 'shell'
+			&& $CI->uri->segment(1) === 'admin'
+			&& $CI->ion_auth->logged_in()
+			&& $CI->ion_auth->can_access_site_admin()
+		);
+
+		log_message(
+			'info',
+			'Access denied ['.$context.']: uri='.$CI->uri->uri_string().' user='.$CI->ion_auth->current_user_identity()
+		);
+
+		$data = array(
+			'title'   => $title,
+			'message' => $message,
+		);
+
+		if ($use_admin_shell) {
+			$page = array(
+				'title'           => $title,
+				'content'         => $CI->load->view('errors/access_denied_panel', $data, true),
+				'hide_breadcrumb' => true,
+				'theme_folder'    => 'adminvue',
+			);
+			$html = $CI->load->view('layouts/admin_vue', $page, true);
+		} else {
+			$html = $CI->load->view('errors/html/error_access_denied', $data, true);
+		}
+
+		$CI->output->set_status_header(403);
+		echo $html;
+		exit;
 	}
 
 	/**
@@ -417,6 +562,14 @@ class Acl_manager
 			return 'licensed_request_' . $p;
 		}
 
+		if ($r === 'collection') {
+			if ($p === 'manage_access') {
+				return 'collection_manage_access';
+			}
+
+			return 'collection_' . $p;
+		}
+
 		return null;
 	}
 
@@ -440,7 +593,124 @@ class Acl_manager
 	}
 
 	/**
-	 * Role permissions (Zend ACL) plus, for study / licensed_request with a repository slug, grants from repositories_acl.
+	 * True when the user may list or open the collections admin UI (global or any per-collection view).
+	 *
+	 * @param object|null $user
+	 * @throws AclAccessDeniedException
+	 */
+	public function require_collection_admin_list_access($user = null)
+	{
+		if ($this->get_collection_admin_repository_scope($user) === false) {
+			$this->has_access_or_die('collection', 'view', $user);
+		}
+	}
+
+	/**
+	 * Repositories (lowercase repositoryid) the user may access in collections admin.
+	 *
+	 * @param object|null $user
+	 * @return array|null|false null = unrestricted; array = allowed slugs; false = none
+	 */
+	function get_collection_admin_repository_scope($user = null)
+	{
+		if (empty($user)) {
+			$user = $this->current_user();
+		}
+		if (!$user) {
+			return false;
+		}
+
+		$user_roles = $this->get_user_roles($user->id);
+		if ($this->is_admin_role($user_roles)) {
+			return null;
+		}
+
+		$permissions = $this->get_roles_permissions(array_keys($user_roles));
+		$repos = array();
+		$has_global_collection_view = false;
+
+		foreach ($permissions as $perm) {
+			$res = isset($perm['resource']) ? $perm['resource'] : '';
+			$plist = isset($perm['permissions']) ? (array) $perm['permissions'] : array();
+			if ($res === 'collection' && in_array('view', $plist, true)) {
+				$has_global_collection_view = true;
+			}
+			if (preg_match('/^(.+)-collection$/', $res, $m) && in_array('view', $plist, true)) {
+				$repos[strtolower($m[1])] = true;
+			}
+		}
+
+		foreach ($this->repositories_acl_repository_slugs_for_user_permission_prefix((int) $user->id, 'collection_') as $slug_lc) {
+			$repos[$slug_lc] = true;
+		}
+
+		if ($has_global_collection_view) {
+			return null;
+		}
+
+		if (empty($repos)) {
+			return false;
+		}
+
+		return array_keys($repos);
+	}
+
+	/**
+	 * Whether the user holds global collection/manage_access or collection_manage_access on any repository.
+	 *
+	 * @param object|null $user
+	 * @return bool
+	 */
+	function user_has_any_collection_manage_access($user = null)
+	{
+		if (empty($user)) {
+			$user = $this->current_user();
+		}
+		if (!$user) {
+			return false;
+		}
+
+		if ($this->user_has_access('collection', 'manage_access', $user, null)) {
+			return true;
+		}
+
+		if ( ! $this->ci->db->table_exists('repositories_acl')) {
+			return false;
+		}
+
+		$this->ci->db->select('permission');
+		$this->ci->db->where('user_id', (int) $user->id);
+		$this->ci->db->group_start();
+		$this->ci->db->where('permission', 'collection_manage_access');
+		$this->ci->db->or_where('permission', 'collection_admin');
+		$this->ci->db->group_end();
+		$this->ci->db->limit(1);
+		$row = $this->ci->db->get('repositories_acl')->row_array();
+
+		return ! empty($row);
+	}
+
+	/**
+	 * Non-throwing access probe for controllers and APIs.
+	 *
+	 * @param string      $resource
+	 * @param string      $privilege
+	 * @param object|null $user
+	 * @param string|null $repositoryid
+	 * @return bool
+	 */
+	function user_has_access($resource, $privilege, $user = null, $repositoryid = null)
+	{
+		try {
+			$this->has_access($resource, $privilege, $user, $repositoryid);
+			return true;
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Role permissions (Zend ACL) plus, for study / licensed_request / collection with a repository slug, grants from repositories_acl.
 	 *
 	 * @param string      $resource
 	 * @param string      $privilege
@@ -506,20 +776,136 @@ class Acl_manager
 	public function check_access($resource, $privilege, $user_id = null, $study_id = null, $repository_id = null)
 	{
 		if ($user_id !== null) {
-			$user = $this->ci->ion_auth->user((int) $user_id)->row();
-			if (empty($user)) {
-				throw new AclAccessDeniedException('User not found');
-			}
+			$user = $this->resolve_user_for_access_check($user_id);
 		} else {
 			$user = $this->current_user();
 		}
 
 		if (empty($repository_id) && !empty($study_id)) {
 			$this->ci->load->model('Catalog_model');
-			$repository_id = $this->ci->catalog_model->get_study_owner((int) $study_id) ?: null;
+			$repository_id = $this->ci->Catalog_model->get_study_owner((int) $study_id) ?: null;
 		}
 
 		$this->has_access($resource, $privilege, $user, $repository_id ?: null);
+	}
+
+	/**
+	 * Study ACL with repository resolution aligned to legacy API checks (MY_REST_Controller::has_dataset_access).
+	 * Defaults repository to central when study and repository are both omitted.
+	 *
+	 * @param string      $privilege
+	 * @param int|null    $user_id
+	 * @param int|null    $study_id
+	 * @param string|null $repository_id
+	 * @throws AclAccessDeniedException
+	 */
+	public function check_study_access($privilege, $user_id = null, $study_id = null, $repository_id = null)
+	{
+		if ($user_id !== null) {
+			$user = $this->resolve_user_for_access_check($user_id);
+		} else {
+			$user = $this->current_user();
+		}
+
+		$repository_id = $this->resolve_study_repository_slug($study_id, $repository_id);
+
+		return $this->has_access('study', $privilege, $user, $repository_id);
+	}
+
+	/**
+	 * Require study view on each study id (throws on first denial).
+	 *
+	 * @param int[]    $study_ids
+	 * @param int|null $user_id
+	 * @throws AclAccessDeniedException
+	 * @throws Exception when no valid ids provided
+	 */
+	public function assert_study_view_on_study_ids(array $study_ids, $user_id = null)
+	{
+		$checked = 0;
+		foreach ($study_ids as $study_id) {
+			if ($study_id === null || $study_id === '') {
+				continue;
+			}
+			$checked++;
+			$this->check_study_access('view', $user_id, (int) $study_id, null);
+		}
+		if ($checked === 0) {
+			throw new Exception('study_ids contains no valid study identifiers');
+		}
+	}
+
+	/**
+	 * Analytics API ACL: reports/view globally, or study/view on a specific study when scoped.
+	 *
+	 * @param int|null    $user_id
+	 * @param int|null    $study_id           numeric surveys.id; required for non-report admins when $allow_study_scope
+	 * @param bool        $allow_study_scope  false for site-wide reads/writes (reports/view only)
+	 * @throws AclAccessDeniedException
+	 */
+	public function check_analytics_access($user_id = null, $study_id = null, $allow_study_scope = true)
+	{
+		if ($user_id !== null) {
+			$user = $this->resolve_user_for_access_check($user_id);
+		} else {
+			$user = $this->current_user();
+		}
+
+		if ($this->user_has_access('reports', 'view', $user)) {
+			return;
+		}
+
+		if ( ! $allow_study_scope || $study_id === null || $study_id === '') {
+			throw new AclAccessDeniedException('Access denied for resource:: analytics');
+		}
+
+		$this->check_study_access('view', $user_id, (int) $study_id, null);
+	}
+
+	/**
+	 * Resolve catalog slug for a study check (owner repo, surveys.repositoryid fallback, else central).
+	 *
+	 * @param int|null    $study_id
+	 * @param string|null $repository_id explicit slug when provided
+	 * @return string lowercase repository slug
+	 */
+	protected function resolve_study_repository_slug($study_id = null, $repository_id = null)
+	{
+		if ($repository_id !== null && $repository_id !== '') {
+			return strtolower(trim((string) $repository_id));
+		}
+
+		if ( ! empty($study_id)) {
+			$this->ci->load->model('Catalog_model');
+			$repo = $this->ci->Catalog_model->get_study_owner((int) $study_id);
+			if ($repo) {
+				return strtolower(trim($repo));
+			}
+
+			$this->ci->db->select('repositoryid');
+			$this->ci->db->where('id', (int) $study_id);
+			$row = $this->ci->db->get('surveys')->row_array();
+			if ( ! empty($row['repositoryid'])) {
+				return strtolower(trim($row['repositoryid']));
+			}
+		}
+
+		return 'central';
+	}
+
+	/**
+	 * @param int $user_id
+	 * @return object
+	 * @throws AclAccessDeniedException
+	 */
+	protected function resolve_user_for_access_check($user_id)
+	{
+		$user = $this->ci->ion_auth->get_user((int) $user_id);
+		if (empty($user)) {
+			throw new AclAccessDeniedException('User not found');
+		}
+
+		return $user;
 	}
 
 	/**
@@ -932,6 +1318,19 @@ class Acl_manager
 	}
 
 	/**
+	 * UI + validation: collection-admin tier keys for repositories_acl.
+	 *
+	 * @return array[] each [ 'key','label','description' ]
+	 */
+	function get_manageable_collection_repositories_acl_rows()
+	{
+		$ca = $this->ci->config->item('collections_acl');
+		$rows = (is_array($ca) && isset($ca['collection_tiers'])) ? $ca['collection_tiers'] : array();
+
+		return is_array($rows) ? $rows : array();
+	}
+
+	/**
 	 * Allowed repositories_acl.permission values for managed user-collection UI / replace.
 	 *
 	 * @return array<string,int> map key=>1
@@ -943,6 +1342,9 @@ class Acl_manager
 			$m[$row['key']] = 1;
 		}
 		foreach ($this->get_manageable_licensed_request_repositories_acl_rows() as $row) {
+			$m[$row['key']] = 1;
+		}
+		foreach ($this->get_manageable_collection_repositories_acl_rows() as $row) {
 			$m[$row['key']] = 1;
 		}
 
@@ -972,6 +1374,7 @@ class Acl_manager
 		$this->ci->db->group_start();
 		$this->ci->db->like('permission', 'study_', 'after');
 		$this->ci->db->or_like('permission', 'licensed_request_', 'after');
+		$this->ci->db->or_like('permission', 'collection_', 'after');
 		$this->ci->db->group_end();
 		$this->ci->db->delete('repositories_acl');
 
@@ -1120,6 +1523,19 @@ class Acl_manager
 			return array('licensed_request', $privilege);
 		}
 
+		$p = 'collection_';
+		if (strpos($key, $p) === 0) {
+			$privilege = substr($key, strlen($p));
+			if ($privilege === '') {
+				return null;
+			}
+			if ($privilege === 'manage_access') {
+				return array('collection', 'manage_access');
+			}
+
+			return array('collection', $privilege);
+		}
+
 		return null;
 	}
 
@@ -1242,6 +1658,73 @@ class Acl_manager
 		$this->ci->db->where('permission', $perm);
 		$rows = $this->ci->db->get('repositories_acl')->result_array();
 		return array_unique(array_map('intval', array_column($rows, 'repository_id')));
+	}
+
+	/**
+	 * Collections (repositories) each user has managed per-collection ACL grants on.
+	 * One batched query for listing pages; keys are user_id.
+	 *
+	 * @param int[] $user_ids
+	 * @return array<int, array<int, array{id:int, repositoryid:string, title:string}>>
+	 */
+	function repositories_acl_collections_for_users(array $user_ids)
+	{
+		if (empty($user_ids) || ! $this->ci->db->table_exists('repositories_acl')) {
+			return array();
+		}
+
+		$ids = array();
+		foreach ($user_ids as $uid) {
+			$uid = (int) $uid;
+			if ($uid > 0) {
+				$ids[$uid] = true;
+			}
+		}
+		if (empty($ids)) {
+			return array();
+		}
+
+		$managed_keys = array_keys($this->get_manageable_repositories_acl_permission_whitelist_map());
+		if (empty($managed_keys)) {
+			return array();
+		}
+
+		$this->ci->db->select('ra.user_id, r.id, r.repositoryid, r.title');
+		$this->ci->db->from('repositories_acl ra');
+		$this->ci->db->join('repositories r', 'r.id = ra.repository_id', 'inner');
+		$this->ci->db->where_in('ra.user_id', array_keys($ids));
+		$this->ci->db->where_in('ra.permission', $managed_keys);
+		$this->ci->db->order_by('r.title', 'ASC');
+		$rows = $this->ci->db->get()->result_array();
+
+		$output = array();
+		$seen = array();
+
+		foreach ($rows as $row) {
+			$user_id = isset($row['user_id']) ? (int) $row['user_id'] : 0;
+			$repo_id = isset($row['id']) ? (int) $row['id'] : 0;
+			if ($user_id < 1 || $repo_id < 1) {
+				continue;
+			}
+
+			$uniq = $user_id . ':' . $repo_id;
+			if (isset($seen[$uniq])) {
+				continue;
+			}
+			$seen[$uniq] = true;
+
+			if ( ! isset($output[$user_id])) {
+				$output[$user_id] = array();
+			}
+
+			$output[$user_id][] = array(
+				'id'           => $repo_id,
+				'repositoryid' => isset($row['repositoryid']) ? (string) $row['repositoryid'] : '',
+				'title'        => isset($row['title']) ? (string) $row['title'] : '',
+			);
+		}
+
+		return $output;
 	}
 
 }

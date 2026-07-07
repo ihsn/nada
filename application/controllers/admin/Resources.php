@@ -22,122 +22,16 @@ class Resources extends MY_Controller {
 		//$this->output->enable_profiler(TRUE);
 	}
  
-	function index(){	
-
-		//required
-		$surveyid=$this->uri->segment(3);
-		
-		if (!is_numeric($surveyid) )
-		{
-			show_error('Invalid or missing parameters');
-		}
-		
-		//test user study permissions
-		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($surveyid));
-		
-		//get survey folder path
-		$this->survey_folder=$this->Catalog_model->get_survey_path_full($surveyid);
-
-		//set parent survey
-		$this->Survey_resource_model->surveyid=$surveyid;
-				
-		//get records		
-		$result['rows']=$this->_search();
-		
-		//load the contents of the page into a variable
-		$content=$this->load->view('resources/index', $result,true);
-	
-		//page title
-		$this->template->write('title', t('resource_manager'),true);
-
-		//pass data to the site's template
-		$this->template->write('content', $content,true);
-		
-		//render final output
-	  	$this->template->render();
-	}
-	
-	
-	/**
-	* returns the paginated resources
-	* 
-	* supports: sorting, searching, pagination
-	*/
-	function _search()
-	{		
-		//records to show per page
-		$per_page = $this->input->get("ps");
-		
-		if($per_page===FALSE || !is_numeric($per_page))
-		{
-			$per_page=15;
-		}
-				
-		//current page
-		$curr_page=$this->input->get('per_page');//$this->uri->segment(4);
-
-		//records
-		$rows=$this->Survey_resource_model->search($per_page, $curr_page);
-
-		//total records in the db
-		$total = $this->Survey_resource_model->search_count;
-
-		if ($curr_page>$total)
-		{
-			$curr_page=$total-$per_page;
-			
-			//search again
-			$rows=$this->Survey_resource_model->search($per_page, $curr_page);
-		}
-		
-		//set pagination options
-		$base_url = site_url("admin/catalog/{$this->Survey_resource_model->surveyid}/resources");
-		$config['base_url'] = $base_url;
-		$config['total_rows'] = $total;
-		$config['per_page'] = $per_page;
-		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('keywords', 'field','ps'));//pass any additional querystrings
-		$config['next_link'] = t('page_next');
-		$config['num_links'] = 5;
-		$config['prev_link'] = t('page_prev');
-		$config['first_link'] = t('page_first');
-		$config['last_link'] = t('page_last');
-		$config['full_tag_open'] = '<span class="page-nums">' ;
-		$config['full_tag_close'] = '</span>';
-		
-		//intialize pagination
-		$this->pagination->initialize($config); 
-		return $rows;		
-	}
-
-	/**
-	* show single resource on the page
-	* 
-	*/
-	function view($resourceid)
-	{
-		//get db row by id
-		$row=$this->Survey_resource_model->select_single($resourceid);
-		
-		$data['row']=$row;
-		$data['textarea_fields']=array('abstract','toc');
-		//load the contents of the page into a variable
-		$content=$this->load->view('resources/single_record', $data,true);
-		
-		//pass data to the site's template
-		$this->template->write('content', $content,true);
-		
-		//render final output
-	  	$this->template->render();		
-	}
-	
 	/**
 	*
 	* Delete one or more resources
 	**/
 	function delete($sid,$resource_id)
 	{			
-		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
+		$this->_require_study_edit($sid);
+		if (is_numeric($resource_id)) {
+			$this->_require_resource_on_study($resource_id, $sid);
+		}
 
 		//array of id to be deleted
 		$delete_arr=array();
@@ -235,7 +129,8 @@ class Resources extends MY_Controller {
 	 */
 	function download($sid=null,$resource_id=null)
 	{
-		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
+		$this->_require_study_edit($sid);
+		$this->_require_resource_on_study($resource_id, $sid);
 		$resource_filepath=$this->Survey_resource_model->get_resource_download_path($resource_id);
 
 		if (!file_exists($resource_filepath))
@@ -255,16 +150,18 @@ class Resources extends MY_Controller {
 	*/
 	function edit($id='add')
 	{
-		//check survey id 
-		$survey_id=$this->uri->segment(5);
-		
-		//test user study permissiosn
-		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($survey_id));
-		
-		if (!is_numeric($survey_id) && $survey_id<1)
+		$survey_id = $this->_resolve_survey_id_from_uri($id !== 'add' ? $id : null);
+
+		$this->_require_study_edit($survey_id);
+
+		if (!is_numeric($survey_id) || $survey_id < 1)
 		{
 			$this->session->set_flashdata('error', 'Invalid id was provided.');
 			redirect('admin/catalog');			
+		}
+
+		if (is_numeric($id) && $id > 0) {
+			$this->_require_resource_on_study($id, $survey_id);
 		}
 		
 		//js auto complete file list
@@ -280,7 +177,7 @@ class Resources extends MY_Controller {
 		if (!is_numeric($id) && $id!='add')
 		{
 			$this->session->set_flashdata('error', 'Invalid id was provided.');
-			redirect("admin/catalog/$survey_id/resources");
+			redirect("admin/catalog/edit/$survey_id/resources");
 		}
 	
 		//redirect on Cancel
@@ -428,7 +325,10 @@ class Resources extends MY_Controller {
 		}
 		
 		//get survey id
-	 	$surveyid=$this->uri->segment(3);		
+		$surveyid = $this->_resolve_survey_id_from_uri();
+		if (!is_numeric($surveyid)) {
+			return FALSE;
+		}
 		
 		//get relative survey folder path
 		$survey_folder=$this->Catalog_model->get_survey_path($surveyid);
@@ -481,7 +381,7 @@ class Resources extends MY_Controller {
 		}
 		
 		// Get survey id and resource id
-		$survey_id = $this->uri->segment(5);
+		$survey_id = $this->_resolve_survey_id_from_uri();
 		$resource_id = $this->uri->segment(4); // 'add' or numeric id
 		
 		// Check uniqueness
@@ -542,8 +442,7 @@ class Resources extends MY_Controller {
 			show_error("invalid_id");
 		}
 		
-		//test user study permissiosn
-		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
+		$this->_require_study_edit($sid);
 		
 		$this->load->library('form_validation');
 		
@@ -564,8 +463,7 @@ class Resources extends MY_Controller {
 	
 	function do_import($sid)
 	{
-		//test user study permissiosn
-		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
+		$this->_require_study_edit($sid);
 		
 		//catalog folder path
 		$catalog_root=$this->config->item("catalog_root");
@@ -730,7 +628,10 @@ class Resources extends MY_Controller {
 		}
 				
 		//get survey id
-	 	$surveyid=$this->uri->segment(3);		
+		$surveyid = $this->_resolve_survey_id_from_uri();
+		if (!is_numeric($surveyid)) {
+			return FALSE;
+		}
 		
 		//get relative survey folder path
 		$survey_folder=$this->Catalog_model->get_survey_path($surveyid);
@@ -780,8 +681,7 @@ class Resources extends MY_Controller {
 			show_error("invalid_id");
 		}
 		
-		//test user study permissiosn
-		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($surveyid));
+		$this->_require_study_edit($surveyid);
 	
 		$this->load->library('catalog_admin');		
 		$fixed_count=$this->catalog_admin->fix_resource_links($surveyid);		
@@ -838,7 +738,7 @@ class Resources extends MY_Controller {
 			show_error("INVALID");
 		}
 		
-		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($sid));
+		$this->_require_study_edit($sid);
 		
 		if($_FILES)
 		{
@@ -934,8 +834,7 @@ class Resources extends MY_Controller {
 			show_404();
 		}
 		
-		//test user study permissiosn
-		$this->acl_manager->has_access_or_die('study', 'edit',null,$this->Catalog_model->get_survey_repositoryid($surveyid));
+		$this->_require_study_edit($surveyid);
 		
 		$resource_folder=unix_path($survey_path);
 		
@@ -1118,6 +1017,74 @@ class Resources extends MY_Controller {
 			
 		} catch (Exception $e) {
 			log_message('error', "Failed to sync resources for file {$filename}: " . $e->getMessage());
+		}
+	}
+
+	/**
+	 * @param int|string|null $sid
+	 */
+	private function _require_study_edit($sid)
+	{
+		if (! is_numeric($sid) || (int) $sid < 1) {
+			show_error('INVALID_STUDY_ID');
+		}
+		$this->acl_manager->has_access_or_die(
+			'study',
+			'edit',
+			null,
+			$this->Catalog_model->get_survey_repositoryid((int) $sid)
+		);
+	}
+
+	/**
+	 * Resolve surveys.id from admin/resources/* URI (add/new/{sid}, edit/{rid}/{sid}, import/{sid}, …).
+	 *
+	 * @param int|string|null $resource_id when editing, used as fallback lookup
+	 * @return int|null
+	 */
+	private function _resolve_survey_id_from_uri($resource_id = null)
+	{
+		if ($this->uri->segment(3) === 'add' && $this->uri->segment(4) === 'new') {
+			$sid = $this->uri->segment(5);
+			if (is_numeric($sid)) {
+				return (int) $sid;
+			}
+		}
+
+		if ($this->uri->segment(3) === 'edit') {
+			$sid = $this->uri->segment(5);
+			if (is_numeric($sid)) {
+				return (int) $sid;
+			}
+		}
+
+		$sid = $this->uri->segment(4);
+		if (is_numeric($sid)) {
+			return (int) $sid;
+		}
+
+		if ($resource_id !== null && is_numeric($resource_id)) {
+			$row = $this->Survey_resource_model->select_single($resource_id);
+			if (is_array($row) && isset($row['survey_id']) && is_numeric($row['survey_id'])) {
+				return (int) $row['survey_id'];
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * @param int|string $resource_id
+	 * @param int|string $survey_id
+	 */
+	private function _require_resource_on_study($resource_id, $survey_id)
+	{
+		if (! is_numeric($resource_id) || ! is_numeric($survey_id)) {
+			show_error('INVALID_ID');
+		}
+		$row = $this->Survey_resource_model->select_single($resource_id);
+		if (! is_array($row) || (int) $row['survey_id'] !== (int) $survey_id) {
+			show_error('RESOURCE_NOT_FOUND');
 		}
 	}
 

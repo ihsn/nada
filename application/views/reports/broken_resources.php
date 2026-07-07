@@ -28,9 +28,9 @@ List of broken external resources
     <?php foreach($rows as $row):?>
         <tr>
             <td><?php echo $k++;?></td>
-            <td><a href="<?php echo site_url();?>/admin/catalog/<?php echo $row['survey_id'];?>/resources/"><?php echo $row['survey_id'];?></a></td>
+            <td><a href="<?php echo site_url('admin/catalog/edit/'.$row['survey_id'].'/resources');?>"><?php echo $row['survey_id'];?></a></td>
             <td><?php echo $row['resource_id'];?></td>
-            <td><a href="<?php echo site_url();?>/admin/catalog/<?php echo $row['survey_id'];?>/resources/edit/<?php echo $row['resource_id'];?>"><?php echo $row['title'];?></a></td>
+            <td><a href="<?php echo site_url('admin/resources/edit/'.$row['resource_id'].'/'.$row['survey_id']);?>"><?php echo $row['title'];?></a></td>
             <td class="small"><?php echo $this->Catalog_model->get_survey_path_full($row['survey_id']);?></td>
             <td  class="small"><?php echo $row['filename'];?></td>
         </tr>

@@ -16,6 +16,8 @@ class Pdf_generator extends MY_Controller {
  
 	function index()
 	{	
+		$this->acl_manager->require_catalog_access();
+
 		$content="PDF Generator";
 		$this->template->write('title', "PDF Generator",TRUE);
 		$this->template->write('content', $content,TRUE);

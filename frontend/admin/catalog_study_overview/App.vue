@@ -577,12 +577,12 @@ function buildCollectionItems(apiRows, linkedIds, ownerRepo) {
   const owner = normRepo(ownerRepo);
   const map = new Map();
   for (const row of apiRows || []) {
-    const id = row.id ?? row.code;
+    const id = row.repositoryid ?? row.id ?? row.code;
     if (!id || normRepo(id) === owner) continue;
     map.set(normRepo(id), {
       id,
-      name: row.name || String(id),
-      code: row.code ?? id,
+      name: row.title ?? row.name ?? String(id),
+      code: row.repositoryid ?? row.code ?? id,
       count: row.count ?? 0,
     });
   }
@@ -613,11 +613,11 @@ function repoIdSetsEqual(a, b) {
   return true;
 }
 
-function applyLinkedCollectionsFromServer(study, filterOpts) {
+function applyLinkedCollectionsFromServer(study, collectionRows) {
   syncingLinkedCollections.value = true;
   const linkedIds = linkedRepoIdsFromDataset(study);
   collectionItems.value = buildCollectionItems(
-    filterOpts.collections || [],
+    collectionRows || [],
     linkedIds,
     study.repositoryid
   );
@@ -679,24 +679,19 @@ async function reloadAll() {
       folderStatus.value = null;
     }
 
-    const ownerRepo =
-      study.repositoryid && normRepo(study.repositoryid) !== 'central'
-        ? study.repositoryid
-        : undefined;
-
     const siteDcOff = config.value?.dataClassificationsEnabled === false;
     const dcPromise = siteDcOff
       ? Promise.resolve({ data_classifications_enabled: false, codelist: [] })
       : api.fetchDataClassifications();
 
-    const [tags, dc, filterOpts] = await Promise.all([
+    const [tags, dc, listCollections] = await Promise.all([
       api.fetchTags(),
       dcPromise,
-      api.fetchFilterOptions(ownerRepo ? { owner_repo: ownerRepo } : {}),
+      api.fetchListCollections(),
     ]);
 
     applyTagsFromServer(tags);
-    applyLinkedCollectionsFromServer(study, filterOpts);
+    applyLinkedCollectionsFromServer(study, listCollections);
 
     dcEnabled.value = siteDcOff ? false : !!dc.data_classifications_enabled;
     dcRows.value = siteDcOff ? [] : dc.codelist || [];

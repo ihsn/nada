@@ -130,8 +130,10 @@ class Managefiles_model extends CI_Model {
 	
 	function get_resource_paths_array($surveyid)
 	{
+		$this->load->model('Survey_resource_model');
+
 		//get resources by survey id
-		$this->db->select("filename,resource_id,dctype");
+		$this->db->select('filename,resource_id,dctype,resource_type');
 		$this->db->where('survey_id',$surveyid);
 		$resources=$this->db->get("resources")->result_array();
 		
@@ -143,13 +145,13 @@ class Managefiles_model extends CI_Model {
 			$result=array();
 			foreach($resources as $resource)
 			{
-				//check if a microdata file
-				$ismicro=FALSE;
-				
-				if(strpos($resource['dctype'],'dat/micro]')!==FALSE 
-					|| strpos($resource['dctype'],'dat]')!==FALSE || strpos($resource['dctype'],'[dat/')!==FALSE)
-				{
-					$ismicro=TRUE;
+				$ismicro = $this->Survey_resource_model->is_microdata_resource_type(
+					isset($resource['resource_type']) ? $resource['resource_type'] : null
+				);
+				if (! $ismicro) {
+					$ismicro = $this->Survey_resource_model->is_microdata_resource(
+						isset($resource['dctype']) ? $resource['dctype'] : ''
+					);
 				}
 			
 				//build absolute resource path

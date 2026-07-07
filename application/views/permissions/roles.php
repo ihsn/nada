@@ -5,7 +5,6 @@
 </style>
 
 <div class="container-fluid">
-<?php $this->load->view('permissions/links');?>
 <h1><?php echo t('Manage roles');?></h1>
 
 <?php if (validation_errors() ) : ?>

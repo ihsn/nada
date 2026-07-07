@@ -1,1 +1,0 @@
-import{d as s}from"./runtime-dom.esm-bundler-Cg1w4xVq.js";function a(){const r=s(()=>(typeof window<"u"&&window.APP_CONFIG?.translations)??{});function u(t,d,...n){const i=r.value[t]??d??t;if(n.length===0)return i;let o=0;return String(i).replace(/%(?:s|d)/g,e=>n[o]!==void 0?String(n[o++]):e)}return{t:u}}export{a as u};

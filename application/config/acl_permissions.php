@@ -49,6 +49,10 @@ $config['acl_permissions'] = [
             ],
             [
                 "permission" => "delete"
+            ],
+            [
+                "permission" => "publish",
+                "description" => "Publish or unpublish menu items"
             ]
         ]
     ],
@@ -88,6 +92,7 @@ $config['acl_permissions'] = [
     ],
     "licensed_request"=>[ 
         "title" => "Licensed requests",
+        "description" => "Site-wide access to licensed survey requests across all collections.",
         "permissions"=>[
             [
                 "permission" => "view"
@@ -105,7 +110,7 @@ $config['acl_permissions'] = [
     ],
     "collection"=>[ 
         "title" => "Manage collections",
-        "description" => "Allows access to create, view, edit and delete collections",
+        "description" => "Site-wide access to collection records (view, create, edit, delete, publish).",
         "permissions"=>[
             [
                 "permission" => "view",
@@ -126,12 +131,16 @@ $config['acl_permissions'] = [
             [
                 "permission" => "publish",
                 "description" => "Publish or unpublish a collection"
+            ],
+            [
+                "permission" => "manage_access",
+                "description" => "Assign per-user access on any collection (studies, licensed requests, and collection administration)."
             ]
         ]
     ], 
     "study"=>[ 
         "title" => "Manage studies",
-        "description"=> "Site-wide access to studies across collections. Per-collection access is managed under Admin → Collections → Permissions (user grants).",
+        "description"=> "Site-wide access to studies across all collections.",
         "permissions"=>[
             [
                 "permission" => "view"
@@ -199,12 +208,146 @@ $config['acl_permissions'] = [
             ]
         ]
     ],
+    "facets"=>[
+        "title" => "Search facets",
+        "description" => "Manage search facets, ordering, and indexing",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Browse facets admin"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Create, update, reorder, and reindex facets"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete user facets"
+            ]
+        ]
+    ],
+    "collection_type"=>[
+        "title" => "Collection sections",
+        "description" => "Manage collection type sections",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Browse collection sections"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Create and edit collection sections"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete collection sections"
+            ]
+        ]
+    ],
     "translate"=>[ 
         "title" => "Site translations",
         "description"=> "Manage translations",
         "permissions"=>[
             [
                 "permission" => "edit"
+            ]
+        ]
+    ],
+    "codelist"=>[
+        "title" => "Codelists",
+        "description" => "Manage catalogue codelists, items, groups, and translations",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Browse and read codelists"
+            ],
+            [
+                "permission" => "create",
+                "description" => "Create codelists and versions"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Edit codelists, items, groups, and import"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete codelists and related rows"
+            ]
+        ]
+    ],
+    "data_structure"=>[
+        "title" => "Data structures (DSD)",
+        "description" => "Manage global data structure definitions and components",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Browse and read data structures (including study picker lists)"
+            ],
+            [
+                "permission" => "create",
+                "description" => "Create data structure versions"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Update, import, export, and manage components"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete data structures and components"
+            ]
+        ]
+    ],
+    "table"=>[
+        "title" => "Tables API",
+        "description" => "Administer data tables via the Tables API (schema, indexes, uploads)",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Open the tables admin UI"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Upload data, manage indexes, fields, and table definitions"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete tables and table definitions"
+            ]
+        ]
+    ],
+    "datadeposit"=>[
+        "title" => "Data deposit",
+        "description" => "Administer submitted data-deposit projects (review, process, assign, delete).",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Browse and open data-deposit projects"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Process projects, assign tasks, send notifications, and download files"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete data-deposit projects and task assignments"
+            ]
+        ]
+    ],
+    "bulk_data_access"=>[
+        "title" => "Bulk data access",
+        "description" => "Manage bulk data access collections (group licensed studies for shared access).",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Browse bulk data access collections"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Create collections and attach or detach studies"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete bulk data access collections"
             ]
         ]
     ],
@@ -265,6 +408,38 @@ $config['collections_acl'] = array(
 			'description' => 'Full study access for this collection (implies view, edit, delete, publish).',
 		),
 	),
+	'collection_tiers' => array(
+		array(
+			'key'         => 'collection_view',
+			'label'       => 'View',
+			'description' => 'Browse this collection in admin (metadata, history, linked studies).',
+		),
+		array(
+			'key'         => 'collection_edit',
+			'label'       => 'Edit',
+			'description' => 'Edit collection metadata (title, text, thumbnail, weight). Does not include publish or delete.',
+		),
+		array(
+			'key'         => 'collection_publish',
+			'label'       => 'Publish',
+			'description' => 'Publish or unpublish this collection.',
+		),
+		array(
+			'key'         => 'collection_delete',
+			'label'       => 'Delete',
+			'description' => 'Delete this collection.',
+		),
+		array(
+			'key'         => 'collection_manage_access',
+			'label'       => 'Manage access',
+			'description' => 'Assign per-user study, licensed-request, and collection-admin grants on this collection.',
+		),
+		array(
+			'key'         => 'collection_admin',
+			'label'       => 'Admin',
+			'description' => 'Full collection administration for this collection (implies view, edit, publish, delete, manage access).',
+		),
+	),
 	'licensed_request_tiers' => array(
 		array(
 			'key'         => 'licensed_request_view',
@@ -302,6 +477,18 @@ $config['collections_acl'] = array(
 		'licensed_request_edit'   => array('licensed_request_edit', 'licensed_request_admin'),
 		'licensed_request_create' => array('licensed_request_edit', 'licensed_request_admin'),
 		'licensed_request_delete' => array('licensed_request_delete', 'licensed_request_admin'),
+		'collection_view'          => array(
+			'collection_view',
+			'collection_edit',
+			'collection_publish',
+			'collection_delete',
+			'collection_manage_access',
+			'collection_admin',
+		),
+		'collection_edit'          => array('collection_edit', 'collection_admin'),
+		'collection_publish'       => array('collection_publish', 'collection_admin'),
+		'collection_delete'        => array('collection_delete', 'collection_admin'),
+		'collection_manage_access' => array('collection_manage_access', 'collection_admin'),
 	),
 );
 

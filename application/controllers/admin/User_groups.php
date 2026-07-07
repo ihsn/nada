@@ -7,7 +7,8 @@ class User_groups extends MY_Controller {
 		
 		$this->load->helper(array('form', 'url'));		
 		$this->load->library( array('form_validation','pagination') );
-       	$this->load->model('User_groups_model');
+		$this->load->model('User_groups_model');
+		$this->acl_manager->has_access_or_die('user', 'edit');
 		
 		//menu language file
 		$this->lang->load('general');

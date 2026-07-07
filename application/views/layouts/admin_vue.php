@@ -35,7 +35,7 @@ if (!$use_vite_dev_header) {
     <base href="<?php echo js_base_url(); ?>">
     <title><?php echo isset($title) ? htmlspecialchars($title, ENT_QUOTES, 'UTF-8') : ''; ?></title>
 
-    <link href="<?php echo base_url(); ?>themes/<?php echo htmlspecialchars($theme_folder, ENT_QUOTES, 'UTF-8'); ?>/shell.css?v=9" rel="stylesheet">
+    <link href="<?php echo base_url(); ?>themes/<?php echo htmlspecialchars($theme_folder, ENT_QUOTES, 'UTF-8'); ?>/shell.css?v=10" rel="stylesheet">
 
     <script type="text/javascript">
       var CI = {'base_url': '<?php echo site_url(); ?>'};

@@ -13,6 +13,8 @@ window.APP_CONFIG = {
     csrfToken: "<?php echo addslashes($csrf_token); ?>",
     csrfTokenName: "<?php echo addslashes(isset($csrf_token_name) ? $csrf_token_name : 'ncsrf'); ?>",
     routerPathBase: "<?php echo addslashes(isset($router_path_base) ? $router_path_base : ''); ?>",
+    canEdit: <?php echo ! empty($can_edit) ? 'true' : 'false'; ?>,
+    canDelete: <?php echo ! empty($can_delete) ? 'true' : 'false'; ?>,
     translations: <?php echo json_encode($translations, JSON_HEX_APOS); ?>
 };
 </script>

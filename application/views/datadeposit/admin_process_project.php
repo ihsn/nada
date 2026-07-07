@@ -64,9 +64,13 @@ font-weight: bold;
 <div id="tabs">
 	<ul>
 		<li <?php echo ($active_tab=='info') ? $active_tab_class : ''; ?>><a href="<?php echo $current_url;?>#tabs-1">Project information</a></li>
+		<?php if (!empty($can_edit)): ?>
 		<li <?php echo ($active_tab=='process') ? $active_tab_class : ''; ?>><a href="<?php echo site_url('admin/datadeposit/tab_process/'.$project_id);?>#tab-process">Process</a></li>
+		<?php endif; ?>
 		<li <?php echo ($active_tab=='files') ? $active_tab_class : ''; ?>><a href="<?php echo site_url('admin/datadeposit/tab_files/'.$project_id);?>#tabs-3">Files</a></li>
+		<?php if (!empty($can_edit)): ?>
 		<li <?php echo ($active_tab=='communicate') ? $active_tab_class : ''; ?>><a href="<?php echo site_url('admin/datadeposit/tab_communicate/'.$project_id);?>#tabs-4">Communicate</a></li>
+		<?php endif; ?>
         <li <?php echo ($active_tab=='history') ? $active_tab_class : ''; ?>><a href="<?php echo site_url('admin/datadeposit/tab_history/'.$project_id);?>#tab-history">History</a></li>
 	</ul>
     <div id="tabs-1">

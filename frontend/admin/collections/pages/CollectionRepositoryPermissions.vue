@@ -180,15 +180,19 @@ const assignBarHint = computed(() => {
   if (!assign.user?.value) return '';
   const row = catalog.value?.users?.find((r) => r.user_id === assign.user.value);
   if (row?.permissions?.length) {
-    return 'This user already has access on this collection — their permissions are loaded in the field above. Adjust and save; save replaces study and licensed-request grants for this collection with exactly what you select.';
+    return 'This user already has access on this collection — their permissions are loaded in the field above. Adjust and save; save replaces study, licensed-request, and collection-admin grants for this collection with exactly what you select.';
   }
   return 'Save assigns the permissions you select for this collection.';
 });
 
-/** Flat list for v-select multi-select (studies + licensed requests). */
+/** Flat list for v-select multi-select (collection admin, studies, licensed requests). */
 const permissionSelectItems = computed(() => {
   const c = catalog.value;
   if (!c) return [];
+  const collectionAdmin = (c.collection_permissions || []).map(r => ({
+    title: `Collection — ${r.label}`,
+    value: r.key,
+  }));
   const study = (c.study_permissions || []).map(r => ({
     title: `Studies — ${r.label}`,
     value: r.key,
@@ -197,7 +201,7 @@ const permissionSelectItems = computed(() => {
     title: `Licensed requests — ${r.label}`,
     value: r.key,
   }));
-  return [...study, ...licensed];
+  return [...collectionAdmin, ...study, ...licensed];
 });
 
 const headers = [

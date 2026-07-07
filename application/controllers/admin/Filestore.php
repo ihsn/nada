@@ -8,14 +8,6 @@ class Filestore extends MY_Controller {
     {
         parent::__construct();
         $this->load->helper('url');
-        $this->load->library('ion_auth');
-        
-        // Check if user is logged in and is admin
-        if (!$this->ion_auth->logged_in() || !$this->ion_auth->is_admin()) {
-            redirect('auth/login', 'refresh');
-        }
-        
-        // Set template to admin5 to use site admin header
         $this->template->set_template('admin5');
     }
 
@@ -38,6 +30,5 @@ class Filestore extends MY_Controller {
         $this->template->render();
     }
 }
-
 
 

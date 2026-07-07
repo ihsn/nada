@@ -23,6 +23,8 @@ class Public_requests extends MY_Controller {
 		{
 			show_404();
 		}
+
+		$this->acl_manager->has_access_or_die('reports', 'view');
 		
 		//get request data
 		$data=$this->public_model->select_single($requestid);

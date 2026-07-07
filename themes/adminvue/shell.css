@@ -73,3 +73,38 @@ body.admin-vue-body {
 #admin-app-header .admin-app-bar .v-toolbar-title a .text-medium-emphasis {
   color: rgba(255, 255, 255, 0.75) !important;
 }
+
+.access-denied-panel {
+  max-width: 640px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 40px 32px;
+  text-align: center;
+}
+.access-denied-panel__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 20px;
+  border-radius: 50%;
+  background: #fdecea;
+  color: #c62828;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.access-denied-panel__title {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #212529;
+}
+.access-denied-panel__message {
+  margin: 0;
+  color: #495057;
+}

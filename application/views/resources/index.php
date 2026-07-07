@@ -10,7 +10,9 @@
 .resource-notfound{background:url(images/close.gif) no-repeat; padding-left:25px;}
 </style>
 <div class="body-container" >
-<?php include dirname(__FILE__).'/../managefiles/tabs.php';?>
+<div class="page-links">
+	<a href="<?php echo site_url('admin/catalog/edit/' . (int) $this->uri->segment(3) . '/resources'); ?>" class="button"><img src="images/house.png"/><?php echo t('return_to_edit_page'); ?></a>
+</div>
 <?php if (!isset($hide_form)):?>
 <div class="page-links">
 	<a href="<?php echo current_url(); ?>/add" class="button"><img src="images/icon_plus.gif"/><?php echo t('link_add_new_resource'); ?></a> 

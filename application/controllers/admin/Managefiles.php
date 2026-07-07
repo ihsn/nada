@@ -274,7 +274,7 @@ class Managefiles extends MY_Controller {
 				$this->session->set_flashdata('message', t('form_update_success'));
 				
 				//redirect back to the list
-				redirect("admin/catalog/edit/".$surveyid,"refresh");
+				redirect("admin/catalog/edit/".$surveyid."/files","refresh");
 			}
 			else
 			{
@@ -314,7 +314,7 @@ class Managefiles extends MY_Controller {
 		//use the unified resource form with simple mode
 		$data['simple_mode'] = true; // Use simple text field instead of URL/File picker
 		$data['path_token'] = $this->_encoded_path_token();
-		$data['back_link'] = 'admin/catalog/edit/'.$surveyid;
+		$data['back_link'] = 'admin/catalog/edit/'.$surveyid.'/files';
 		$data['back_text'] = t('link_resource_home');
 		$data['form_title'] = $data['page_title'];
 		

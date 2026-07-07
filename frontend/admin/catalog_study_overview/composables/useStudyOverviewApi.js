@@ -82,16 +82,15 @@ export function useStudyOverviewApi() {
   }
 
   /**
-   * Facet collections for admin catalog filters (id, name, code, count).
-   * GET /api/admin/catalog/filter_options?owner_repo=...
+   * All collections for study link picker (id, repositoryid, title).
+   * GET /api/admin/catalog/list_collections
    */
-  async function fetchFilterOptions(params = {}) {
-    const { data } = await axios.get(`${base()}filter_options`, {
-      params,
+  async function fetchListCollections() {
+    const { data } = await axios.get(`${base()}list_collections`, {
       withCredentials: true,
     });
-    if (data.status !== 'success') throw new Error(data.message || 'LOAD_FILTER_OPTIONS_FAILED');
-    return data;
+    if (data.status !== 'success') throw new Error(data.message || 'LOAD_LIST_COLLECTIONS_FAILED');
+    return data.collections || [];
   }
 
   /**
@@ -223,7 +222,7 @@ export function useStudyOverviewApi() {
     postCreateStudyFolder,
     fetchTags,
     fetchCollections,
-    fetchFilterOptions,
+    fetchListCollections,
     postLinkedCollectionsReplace,
     fetchDataClassifications,
     fetchDataAccessOptions,

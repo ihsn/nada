@@ -64,7 +64,12 @@
             title="Manage studies"
             :href="siteUrl + '/admin/collections/active/' + item.id"
           />
-          <v-list-item prepend-icon="mdi-account-key" title="Permissions" @click="goPermissions(item)" />
+          <v-list-item
+            v-if="canManageCollectionAccess || item.can_manage_access"
+            prepend-icon="mdi-account-key"
+            title="Permissions"
+            @click="goPermissions(item)"
+          />
           <v-divider />
           <v-list-item prepend-icon="mdi-delete" title="Delete" base-color="error" @click="$emit('delete', item)" />
         </v-list>
@@ -85,8 +90,9 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
 defineOptions({ name: 'AdminCollectionsResults' });
 
 const router = useRouter();
-const { baseUrl, siteUrl } = useAppConfig();
+const { baseUrl, siteUrl, config } = useAppConfig();
 const defaultThumb = computed(() => `${baseUrl.value}files/thumbnails/thumbnail-default.png`);
+const canManageCollectionAccess = computed(() => !!config.value?.canManageCollectionAccess);
 
 function goPermissions(item) {
   router.push({ name: 'collection-permissions', params: { repositoryId: String(item.id) } });

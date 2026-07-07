@@ -1,26 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $title; ?></title>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
-    
-    <!-- Vuetify CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-    
-    <!-- Vue.js and Axios -->
-    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-    <script src="https://unpkg.com/vue-router@3/dist/vue-router.js"></script>
-    
-    <style>
-        .v-application {
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+<link href="<?php echo base_url('javascript/mdi/css/materialdesignicons.min.css'); ?>" rel="stylesheet">
+
+<!-- Vuetify 2 (load after admin header Vuetify 3 bundle) -->
+<link href="<?php echo base_url('javascript/vuetify.min.css'); ?>" rel="stylesheet">
+
+<!-- Vue.js, Axios, Vuetify, Vue Router -->
+<script src="<?php echo base_url('javascript/vue.min.js'); ?>"></script>
+<script src="<?php echo base_url('javascript/axios.min.js'); ?>"></script>
+<script src="<?php echo base_url('javascript/vuetify.min.js'); ?>"></script>
+<script src="<?php echo base_url('javascript/vue-router.min.js'); ?>"></script>
+
+<style>
+        /* Contain Vuetify inside admin5 template without full-page takeover */
+        #filestore-app .v-application--wrap { min-height: unset; }
+        #filestore-app { margin-top: 8px; }
+
+        /*
+         * Admin header loads Vuetify 3 CSS globally; this page uses Vuetify 2.
+         * V3 rules can set on-primary text color without matching V2 backgrounds.
+         */
+        #filestore-app .v-btn.primary:not(.v-btn--outlined):not(.v-btn--text):not(.v-btn--flat) {
+            background-color: #1976D2 !important;
+            border-color: #1976D2 !important;
+            color: #fff !important;
+        }
+        #filestore-app .v-btn.primary.v-btn--outlined {
+            background-color: transparent !important;
+            color: #1976D2 !important;
+            border-color: currentColor !important;
+        }
+        #filestore-app .v-btn.secondary:not(.v-btn--outlined):not(.v-btn--text):not(.v-btn--flat) {
+            background-color: #424242 !important;
+            border-color: #424242 !important;
+            color: #fff !important;
+        }
+        #filestore-app .v-btn:not(.primary):not(.secondary):not(.error):not(.success):not(.warning):not(.info):not(.v-btn--outlined):not(.v-btn--text):not(.v-btn--flat) {
             background-color: #f5f5f5 !important;
+            color: rgba(0, 0, 0, 0.87) !important;
+        }
+        #filestore-app .v-btn.v-btn--outlined:not(.primary):not(.secondary) {
+            background-color: transparent !important;
+            color: rgba(0, 0, 0, 0.87) !important;
+            border-color: rgba(0, 0, 0, 0.38) !important;
+        }
+        #filestore-app .v-application {
+            background-color: transparent !important;
         }
         .file-preview-thumb {
             width: 60px;
@@ -44,11 +69,12 @@
             background-color: #f5f5f5;
         }
     </style>
-</head>
-<body>
+
+<div id="filestore-app">
     <v-app id="app">
         <router-view></router-view>
     </v-app>
+</div>
 
     <script>
         const apiBase = '<?php echo $api_base_url; ?>';
@@ -69,7 +95,7 @@
                                         <v-icon left>mdi-upload</v-icon>
                                         Upload Files
                                     </v-btn>
-                                    <v-btn color="secondary" :loading="loading" :disabled="loading" @click="loadFiles">
+                                    <v-btn outlined :loading="loading" :disabled="loading" @click="loadFiles">
                                         <v-icon v-if="!loading" left>mdi-refresh</v-icon>
                                         {{ loading ? 'Loading...' : 'Refresh' }}
                                     </v-btn>
@@ -857,6 +883,4 @@
             })
         });
     </script>
-</body>
-</html>
 

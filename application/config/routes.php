@@ -124,6 +124,7 @@ $route['api/admin/catalog/import_package/unzip']        = 'api/admin/catalog/imp
 $route['api/admin/catalog/import_package/create']       = 'api/admin/catalog/import_package_create';
 $route['api/admin/catalog/import_package/datafile']     = 'api/admin/catalog/import_package_datafile';
 $route['api/admin/catalog/import_package/finalize']     = 'api/admin/catalog/import_package_finalize';
+$route['api/admin/catalog/list_collections']            = 'api/admin/catalog/list_collections';
 $route['api/admin/catalog/(:any)/warnings']            = 'api/admin/catalog/warnings/$1';
 $route['api/admin/catalog/(:any)/summary']             = 'api/admin/catalog/summary/$1';
 $route['api/admin/catalog/(:any)/folder-status']      = 'api/admin/catalog/folder_status/$1';
@@ -153,6 +154,7 @@ $route['api/admin/catalog/(:any)/replace_ddi'] = 'api/admin/catalog/replace_ddi/
 $route['api/admin/catalog/(:any)/export_ddi'] = 'api/admin/catalog/export_ddi/$1';
 $route['api/admin/catalog/(:any)/refresh_ddi'] = 'api/admin/catalog/refresh_ddi/$1';
 $route['api/admin/catalog/(:any)/generate_ddi'] = 'api/admin/catalog/generate_ddi/$1';
+$route['api/admin/catalog/(:any)/validate_ddi'] = 'api/admin/catalog/validate_ddi/$1';
 $route['api/admin/catalog/(:any)/transfer_ownership'] = 'api/admin/catalog/transfer_ownership/$1';
 // Study folder files — explicit segments before generic files/(.*)
 $route['api/admin/catalog/(:any)/files/download']       = 'api/admin/catalog_files/download/$1';
@@ -242,6 +244,12 @@ $route['api/datadeposits'] = "api/datadeposits/projects";
 
 //collections
 $route['collections/(.*)'] = "collections/index/$1";
+
+// Legacy Repositories admin URLs → Collections (controller removed in NADA 5.6)
+$route['admin/repositories/active/(:num)'] = 'admin/collections/active/$1';
+$route['admin/repositories/select'] = 'admin/collections';
+$route['admin/repositories'] = 'admin/collections';
+$route['admin/repositories/(.*)'] = 'admin/collections';
 
 //for new study page
 $route['catalog/(:num)/study-description'] = "study/metadata/$1";
@@ -425,19 +433,10 @@ $route['admin/api_logs'] = "admin/logs/api_logs";
 $route['admin/filestore'] = "admin/filestore";
 $route['admin/filestore/upload'] = "admin/filestore";
 
-//catalog/resources
 $route['admin/clear_cache'] = "admin/admin/clear_cache";
 $route['admin/catalog/batch-import'] = 'admin/catalog/batch_import_page';
 $route['admin/catalog/batch-refresh'] = 'admin/catalog/batch_refresh_page';
 $route['admin/catalog/batch-generate'] = 'admin/catalog/batch_generate_page';
-$route['admin/catalog/(:num)/resources'] = "admin/resources";
-$route['admin/catalog/(:num)/resources/(:num)'] = "admin/resources/view/$2";
-$route['admin/catalog/(:num)/resources/add'] = "admin/resources/add";
-$route['admin/catalog/(:num)/resources/edit/(:num)'] = "admin/resources/edit/$2";
-$route['admin/catalog/(:num)/resources/delete/(:num)'] = "admin/resources/delete/$2";
-$route['admin/catalog/(:num)/resources/fixlinks'] = "admin/resources/fixlinks/$1";
-$route['admin/catalog/(:num)/edit'] = "admin/catalog/edit/$1";
-$route['admin/catalog/(:num)/resources/import'] = "admin/resources/import";
 
 //data deposit
 $route['admin/datadeposit/tasks/info/(.*)'] = "admin/datadeposittasks/info/$1";
@@ -450,14 +449,6 @@ $route['admin/datadeposit/tasks'] = "admin/datadeposittasks";
 
 //licensed files
 $route['admin/licensed_files/files/(:num)/add'] = "admin/licensed_files/add/$1";
-
-//data files [public/direct/licensed/enclave]
-$route['admin/catalog/(:num)/datafiles'] = "admin/datafiles/index/$1";//index page
-$route['admin/datafiles/(:num)'] = "admin/datafiles/index/$1";
-//$route['admin/catalog/(:num)/datafiles/edit/(:num)'] = "admin/datafiles/edit/$1";//edit page
-$route['admin/catalog/(:num)/datafiles/add'] = "admin/datafiles/add/$1";//add page
-$route['admin/datafiles/(:num)/edit/(:num)'] = "admin/datafiles/edit/$1/$2";//edit page
-$route['admin/datafiles/(:num)/delete/(:num)'] = "admin/datafiles/delete/$1/$2";//edit page
 
 //access request forms
 $route['catalog/(:num)/request'] = "catalog/access_request_form/$1";
@@ -484,44 +475,43 @@ $route['access_enclave/(:num)/download/(:any)'] = "access_enclave/download/$1/$2
 
 $route['admin/permissions/(:num)'] = "admin/permissions/index/$1";
 
-$route['admin/catalog/attach_related_data/(:num)'] = "admin/attach_related_data/index/$1";
-
-
 //Downloads API
 $route['api/downloads/(:any)/files'] = "api/downloads/files/$1";
 $route['api/downloads/(:any)/info/(:any)'] = "api/downloads/info/$1/$2";
 $route['api/downloads/download/(:any)/(:num)'] = "api/downloads/download/$1/$2";
 
-//Analytics API
+// Public analytics tracking API
 $route['api/analytics/pageview'] = "api/analytics/pageview";
 $route['api/analytics/download'] = "api/analytics/download";
-$route['api/analytics/recent/pageviews'] = "api/analytics/recent_pageviews";
-$route['api/analytics/recent/downloads'] = "api/analytics/recent_downloads";
-$route['api/analytics/stats/study/(:any)'] = "api/analytics/stats_study_get/$1";
-$route['api/analytics/stats/file/(:any)'] = "api/analytics/stats_file_get/$1";
-$route['api/analytics/totals/study/(:any)'] = "api/analytics/totals_study_get/$1";
-$route['api/analytics/totals/file/(:any)'] = "api/analytics/totals_file_get/$1";
-$route['api/analytics/aggregate/daily'] = "api/analytics/aggregate_daily";
-$route['api/analytics/aggregate/monthly'] = "api/analytics/aggregate_monthly";
-$route['api/analytics/aggregate/totals'] = "api/analytics/aggregate_totals";
-$route['api/analytics/aggregate/run'] = "api/analytics/aggregate_run";
-$route['api/analytics/aggregate/status'] = "api/analytics/aggregate_status";
-$route['api/analytics/aggregate/stop'] = "api/analytics/aggregate_stop";
-$route['api/analytics/raw/pageviews'] = "api/analytics/raw_pageviews";
-$route['api/analytics/raw/downloads'] = "api/analytics/raw_downloads";
-$route['api/analytics/daily/studies/export'] = "api/analytics/daily_studies_export";
-$route['api/analytics/daily/files/export'] = "api/analytics/daily_files_export";
-$route['api/analytics/monthly/studies/export'] = "api/analytics/monthly_studies_export";
-$route['api/analytics/monthly/files/export'] = "api/analytics/monthly_files_export";
-$route['api/analytics/daily/studies'] = "api/analytics/daily_studies";
-$route['api/analytics/daily/files'] = "api/analytics/daily_files";
-$route['api/analytics/monthly/studies'] = "api/analytics/monthly_studies";
-$route['api/analytics/monthly/files'] = "api/analytics/monthly_files";
-$route['api/analytics/monthly/totals'] = "api/analytics/monthly_totals";
-$route['api/analytics/studies'] = "api/analytics/studies";
-$route['api/analytics/aggregate/run_all'] = "api/analytics/aggregate_run_all";
-$route['api/analytics/legacy/studies'] = "api/analytics/legacy_studies";
-$route['api/analytics/legacy/files'] = "api/analytics/legacy_files";
+
+// Admin analytics API
+$route['api/admin/analytics/recent/pageviews'] = "api/admin/analytics/recent_pageviews";
+$route['api/admin/analytics/recent/downloads'] = "api/admin/analytics/recent_downloads";
+$route['api/admin/analytics/stats/study/(:any)'] = "api/admin/analytics/stats_study_get/$1";
+$route['api/admin/analytics/stats/file/(:any)'] = "api/admin/analytics/stats_file_get/$1";
+$route['api/admin/analytics/totals/study/(:any)'] = "api/admin/analytics/totals_study_get/$1";
+$route['api/admin/analytics/totals/file/(:any)'] = "api/admin/analytics/totals_file_get/$1";
+$route['api/admin/analytics/aggregate/daily'] = "api/admin/analytics/aggregate_daily";
+$route['api/admin/analytics/aggregate/monthly'] = "api/admin/analytics/aggregate_monthly";
+$route['api/admin/analytics/aggregate/totals'] = "api/admin/analytics/aggregate_totals";
+$route['api/admin/analytics/aggregate/run'] = "api/admin/analytics/aggregate_run";
+$route['api/admin/analytics/aggregate/status'] = "api/admin/analytics/aggregate_status";
+$route['api/admin/analytics/aggregate/stop'] = "api/admin/analytics/aggregate_stop";
+$route['api/admin/analytics/raw/pageviews'] = "api/admin/analytics/raw_pageviews";
+$route['api/admin/analytics/raw/downloads'] = "api/admin/analytics/raw_downloads";
+$route['api/admin/analytics/daily/studies/export'] = "api/admin/analytics/daily_studies_export";
+$route['api/admin/analytics/daily/files/export'] = "api/admin/analytics/daily_files_export";
+$route['api/admin/analytics/monthly/studies/export'] = "api/admin/analytics/monthly_studies_export";
+$route['api/admin/analytics/monthly/files/export'] = "api/admin/analytics/monthly_files_export";
+$route['api/admin/analytics/daily/studies'] = "api/admin/analytics/daily_studies";
+$route['api/admin/analytics/daily/files'] = "api/admin/analytics/daily_files";
+$route['api/admin/analytics/monthly/studies'] = "api/admin/analytics/monthly_studies";
+$route['api/admin/analytics/monthly/files'] = "api/admin/analytics/monthly_files";
+$route['api/admin/analytics/monthly/totals'] = "api/admin/analytics/monthly_totals";
+$route['api/admin/analytics/studies'] = "api/admin/analytics/studies";
+$route['api/admin/analytics/aggregate/run_all'] = "api/admin/analytics/aggregate_run_all";
+$route['api/admin/analytics/legacy/studies'] = "api/admin/analytics/legacy_studies";
+$route['api/admin/analytics/legacy/files'] = "api/admin/analytics/legacy_files";
 
 // Admin licensed requests API (hyphen alias → controller)
 $route['api/admin/bulk-data-access'] = 'api/admin/bulk_da';

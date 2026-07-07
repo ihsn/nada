@@ -143,5 +143,8 @@ $lang['new_account_will_be_created']="A new account will be created for you";
 $lang['message_sent_to_your_email']="A message has been sent to your email address with instructions to reset your password.";
 $lang['file_manager']="File manager";
 
+$lang['access_denied_title']="Access denied";
+$lang['access_denied_message']="You do not have permission to access this page or resource. If you believe you should have access, please contact your system administrator.";
+
 /* End of file general_lang.php */
 /* Location: ./application/language/english/general_lang.php */

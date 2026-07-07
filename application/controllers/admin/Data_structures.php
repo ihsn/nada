@@ -3,7 +3,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * Admin Data structures (DSD catalogue) — Vue 3 + Vite app.
- * Restricted to site administrators (same expectation as the admin API).
  */
 class Data_structures extends MY_Controller {
 
@@ -11,17 +10,12 @@ class Data_structures extends MY_Controller {
 	{
 		parent::__construct();
 		$this->template->set_template('admin5');
-		$this->load->library('ion_auth');
-		if (!$this->ion_auth->logged_in()) {
-			redirect('auth/login', 'refresh');
-		}
-		if (!$this->ion_auth->is_admin()) {
-			show_error('You do not have permission to access this page.', 403);
-		}
 	}
 
 	public function index()
 	{
+		$this->acl_manager->has_access_or_die('data_structure', 'view');
+
 		$this->load->helper('vite_helper');
 		$view_data = [
 			'api_base_url'           => site_url('api/admin/data_structures/'),

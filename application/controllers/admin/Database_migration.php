@@ -10,7 +10,7 @@ class Database_migration extends MY_Controller {
         $is_admin = $this->acl_manager->user_is_admin();
         
         if (!$is_admin) {
-            show_error('Access denied');
+            $this->acl_manager->show_access_denied('feature');
         }
         
         $this->load->database();

@@ -10,7 +10,7 @@
       <h1 class="text-h5 font-weight-semibold text-high-emphasis mb-0">
         {{ t('bulk_da_collections', 'Bulk data access collections') }}
       </h1>
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="goAdd">
+      <v-btn v-if="canEdit" color="primary" prepend-icon="mdi-plus" @click="goAdd">
         {{ t('da_collection_create', 'Create new collection') }}
       </v-btn>
     </div>
@@ -20,7 +20,7 @@
     </v-alert>
 
     <v-card elevation="1">
-      <div v-if="rows.length" class="pa-3 d-flex flex-wrap align-center gap-2 border-b">
+      <div v-if="rows.length && canDelete" class="pa-3 d-flex flex-wrap align-center gap-2 border-b">
         <v-select
           v-model="batchAction"
           :items="batchItems"
@@ -42,21 +42,31 @@
         :items="rows"
         :loading="loading"
         item-value="id"
-        show-select
+        :show-select="canDelete"
         class="elevation-0"
       >
         <template #item.title="{ item }">
-          <a href="#" class="text-primary text-decoration-none" @click.prevent="goEdit(item.id)">{{ item.title }}</a>
+          <a
+            v-if="canEdit"
+            href="#"
+            class="text-primary text-decoration-none"
+            @click.prevent="goEdit(item.id)"
+          >{{ item.title }}</a>
+          <span v-else>{{ item.title }}</span>
         </template>
         <template #item.description="{ item }">
           <span class="text-body-2">{{ truncate(item.description, 120) }}</span>
         </template>
         <template #item.actions="{ item }">
-          <v-btn size="small" variant="text" color="primary" @click="goEdit(item.id)">{{ t('edit', 'Edit') }}</v-btn>
-          <span class="text-medium-emphasis">|</span>
-          <v-btn size="small" variant="text" color="primary" @click="goAttach(item.id)">{{ t('attach_studies', 'Attach studies') }}</v-btn>
-          <span class="text-medium-emphasis">|</span>
-          <v-btn size="small" variant="text" color="error" @click="openDeleteSingle(item)">{{ t('delete', 'Delete') }}</v-btn>
+          <template v-if="canEdit">
+            <v-btn size="small" variant="text" color="primary" @click="goEdit(item.id)">{{ t('edit', 'Edit') }}</v-btn>
+            <span class="text-medium-emphasis">|</span>
+            <v-btn size="small" variant="text" color="primary" @click="goAttach(item.id)">{{ t('attach_studies', 'Attach studies') }}</v-btn>
+          </template>
+          <template v-if="canDelete">
+            <span v-if="canEdit" class="text-medium-emphasis">|</span>
+            <v-btn size="small" variant="text" color="error" @click="openDeleteSingle(item)">{{ t('delete', 'Delete') }}</v-btn>
+          </template>
         </template>
       </v-data-table>
 
@@ -96,7 +106,7 @@ defineOptions({ name: 'BulkDataAccessListPage' });
 
 const { t } = useI18n();
 const router = useRouter();
-const { siteUrl } = useAppConfig();
+const { siteUrl, canEdit, canDelete } = useAppConfig();
 const { loading, fetchCollections, deleteCollections } = useBulkDataAccessApi();
 
 const siteBaseUrl = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));

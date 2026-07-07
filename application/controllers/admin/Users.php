@@ -22,6 +22,29 @@ class Users extends MY_Controller {
 		//$this->output->enable_profiler(TRUE);
 		$this->disable_page_cache();
 	}
+
+	/**
+	 * @return list<int>
+	 */
+	private function role_ids_from_post()
+	{
+		$roles = $this->input->post('role');
+		if ($roles === null || $roles === '') {
+			return array();
+		}
+		if (!is_array($roles)) {
+			$roles = array($roles);
+		}
+
+		$ids = array();
+		foreach ($roles as $role_id) {
+			if ($role_id !== '' && $role_id !== null && is_numeric($role_id)) {
+				$ids[] = (int) $role_id;
+			}
+		}
+
+		return $ids;
+	}
 	
 	//expire page immediately
     private function disable_page_cache()
@@ -37,19 +60,20 @@ class Users extends MY_Controller {
 	{
 		$this->acl_manager->has_access_or_die('user', 'view');
 
-		//get array of db rows		
-		$result['rows']=$this->_search();
-		
-		$user_id_arr=array();
-		foreach($result['rows'] as $row){
-			$user_id_arr[]=$row['id'];
+		$result['rows'] = $this->_search();
+
+		$user_id_arr = array();
+		foreach ($result['rows'] as $row) {
+			$user_id_arr[] = $row['id'];
 		}
-				
-		//get user groups 
-		$result['user_groups']=$this->User_model->get_user_roles($user_id_arr);
-		
-		//get API key counts for users
+
+		$result['user_groups'] = $this->User_model->get_user_roles($user_id_arr);
+		$result['user_collections'] = $this->acl_manager->repositories_acl_collections_for_users($user_id_arr);
 		$result['api_key_counts'] = $this->_get_api_key_counts($user_id_arr);
+		$result['show_permissions_link'] = $this->acl_manager->user_is_admin();
+		$result['roles'] = $this->acl_manager->get_roles();
+		$result['can_bulk_edit'] = $this->acl_manager->user_has_access('user', 'edit');
+		$result['can_bulk_delete'] = $this->acl_manager->user_has_access('user', 'delete');
 
 		$content=$this->load->view('users/index', $result,true);
 		$this->template->write('content', $content,true);
@@ -91,61 +115,400 @@ class Users extends MY_Controller {
 	 **/
 	function _search()
 	{
-		//records to show per page
 		$per_page = 15;
-				
-		//current page
-		$offset=$this->input->get('offset');//$this->uri->segment(4);
+		$offset = $this->input->get('offset');
+		$sort_order = $this->input->get('sort_order') ? $this->input->get('sort_order') : 'asc';
+		$sort_by = $this->input->get('sort_by') ? $this->input->get('sort_by') : 'username';
 
-		//sort order
-		$sort_order=$this->input->get('sort_order') ? $this->input->get('sort_order') : 'asc';
-		$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'title';
+		$filter = array();
+		$filter_count = 0;
 
-		//filter
-		$filter=NULL;
+		if ($this->input->get_post('keywords')) {
+			$filter[$filter_count]['field'] = $this->input->get_post('field');
+			$filter[$filter_count]['keywords'] = $this->input->get_post('keywords');
+			$filter_count++;
+		}
 
-		//simple search
-		if ($this->input->get_post("keywords") )
-		{
-			$filter[0]['field']=$this->input->get_post('field');
-			$filter[0]['keywords']=$this->input->get_post('keywords');			
-		}		
-		
+		$status_filter = $this->input->get('status_filter');
+		if ($status_filter !== null && $status_filter !== '') {
+			$filter[$filter_count]['field'] = 'status';
+			$filter[$filter_count]['value'] = $status_filter;
+			$filter_count++;
+		}
+
+		if ($this->input->get('last_login_filter')) {
+			$filter[$filter_count]['field'] = 'last_login';
+			$filter[$filter_count]['operator'] = $this->_get_login_filter_operator($this->input->get('last_login_filter'));
+			$filter[$filter_count]['value'] = $this->_get_login_filter_value($this->input->get('last_login_filter'));
+			$filter_count++;
+		}
+
+		$collection_access = $this->input->get('collection_access');
+		if ($collection_access === 'has' || $collection_access === 'none') {
+			$filter[$filter_count]['field'] = 'collection_access';
+			$filter[$filter_count]['value'] = $collection_access;
+			$filter[$filter_count]['managed_keys'] = array_keys($this->acl_manager->get_manageable_repositories_acl_permission_whitelist_map());
+			$filter_count++;
+		}
+
+		$api_keys_filter = $this->input->get('api_keys_filter');
+		if ($api_keys_filter === 'has' || $api_keys_filter === 'none') {
+			$filter[$filter_count]['field'] = 'api_keys';
+			$filter[$filter_count]['value'] = $api_keys_filter;
+			$filter_count++;
+		}
+
+		$role_filter = (int) $this->input->get('role_filter');
+
 		if ($this->input->get('user_group')) {
-			$rows=$this->User_model->get_users_by_group((int)$this->input->get('user_group'), $per_page, $offset,$filter, $sort_by, $sort_order);
+			$rows = $this->User_model->get_users_by_group((int) $this->input->get('user_group'), $per_page, $offset, $filter, $sort_by, $sort_order);
+			$total = $this->User_model->search_count($filter);
+		}
+		elseif ($role_filter > 0) {
+			$rows = $this->User_model->get_users_by_role($role_filter, $per_page, $offset, $filter, $sort_by, $sort_order);
+			$total = $this->User_model->get_users_by_role_count($role_filter, $filter);
+		}
+		else {
+			$rows = $this->User_model->search($per_page, $offset, $filter, $sort_by, $sort_order);
+			$total = $this->User_model->search_count($filter);
+		}
 
-			$total = $this->User_model->search_count();
-		} else {
-			//records
-			$rows=$this->User_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
+		if ($offset > $total) {
+			$offset = max(0, $total - $per_page);
 
-			//total records in the db
-			$total = $this->User_model->search_count();
-
-			if ($offset>$total)
-			{
-				$offset=$total-$per_page;
-			
-				//search again
-				$rows=$this->User_model->search($per_page, $offset,$filter, $sort_by, $sort_order);
+			if ($this->input->get('user_group')) {
+				$rows = $this->User_model->get_users_by_group((int) $this->input->get('user_group'), $per_page, $offset, $filter, $sort_by, $sort_order);
+			}
+			elseif ($role_filter > 0) {
+				$rows = $this->User_model->get_users_by_role($role_filter, $per_page, $offset, $filter, $sort_by, $sort_order);
+			}
+			else {
+				$rows = $this->User_model->search($per_page, $offset, $filter, $sort_by, $sort_order);
 			}
 		}
-		
-		//set pagination options
+
 		$base_url = site_url('admin/users');
 		$config['base_url'] = $base_url;
 		$config['total_rows'] = $total;
 		$config['per_page'] = $per_page;
-		$config['query_string_segment']="offset"; 
-		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('keywords', 'field','sort_by','sort_order'));//pass any additional querystrings
+		$config['query_string_segment'] = 'offset';
+		$config['page_query_string'] = true;
+		$config['additional_querystring'] = get_querystring(array(
+			'keywords', 'field', 'sort_by', 'sort_order',
+			'status_filter', 'role_filter', 'collection_access', 'api_keys_filter', 'last_login_filter',
+		));
 		$config['num_links'] = 1;
-		$config['full_tag_open'] = '<span class="page-nums">' ;
+		$config['full_tag_open'] = '<span class="page-nums">';
 		$config['full_tag_close'] = '</span>';
 
-		//intialize pagination
-		$this->pagination->initialize($config); 
-		return $rows;		
+		$this->pagination->initialize($config);
+		return $rows;
+	}
+
+	/**
+	 * @param mixed $role_ids
+	 * @return int[]
+	 */
+	private function _filter_assignable_role_ids($role_ids)
+	{
+		if ( ! is_array($role_ids)) {
+			return array();
+		}
+
+		$allowed = array();
+		foreach ($this->acl_manager->get_roles() as $role) {
+			if ( ! $this->acl_manager->user_is_admin() && ! empty($role['is_admin'])) {
+				continue;
+			}
+			$allowed[(int) $role['id']] = true;
+		}
+
+		$out = array();
+		foreach ($role_ids as $role_id) {
+			$role_id = (int) $role_id;
+			if ($role_id > 0 && isset($allowed[$role_id])) {
+				$out[] = $role_id;
+			}
+		}
+
+		return $out;
+	}
+
+	function bulk_action()
+	{
+		$this->acl_manager->has_access_or_die('user', 'edit');
+
+		$action = $this->input->post('action');
+		$user_ids = json_decode($this->input->post('user_ids'), true);
+
+		if (empty($user_ids) || ! is_array($user_ids)) {
+			echo json_encode(array('success' => false, 'message' => t('please_select_users')));
+			return;
+		}
+
+		$result = false;
+		$message = '';
+
+		switch ($action) {
+			case 'delete':
+				if ( ! $this->acl_manager->user_has_access('user', 'delete')) {
+					echo json_encode(array('success' => false, 'message' => t('ACCESS_DENIED')));
+					return;
+				}
+				$result = $this->_bulk_delete($user_ids);
+				$message = $result ? t('users_deleted_successfully') : t('operation_failed');
+				break;
+
+			case 'activate':
+				$result = $this->_bulk_activate($user_ids, 1);
+				$message = $result ? t('users_activated_successfully') : t('operation_failed');
+				break;
+
+			case 'deactivate':
+				$result = $this->_bulk_activate($user_ids, 0);
+				$message = $result ? t('users_deactivated_successfully') : t('operation_failed');
+				break;
+
+			default:
+				$message = t('operation_failed');
+		}
+
+		echo json_encode(array('success' => $result, 'message' => $message));
+	}
+
+	private function _bulk_delete($user_ids)
+	{
+		$success_count = 0;
+
+		foreach ($user_ids as $user_id) {
+			if (is_numeric($user_id) && $this->User_model->delete($user_id)) {
+				$success_count++;
+			}
+		}
+
+		return $success_count > 0;
+	}
+
+	private function _bulk_activate($user_ids, $status)
+	{
+		$success_count = 0;
+
+		foreach ($user_ids as $user_id) {
+			if (is_numeric($user_id) && $this->_update_user_status($user_id, $status)) {
+				$success_count++;
+			}
+		}
+
+		return $success_count > 0;
+	}
+
+	private function _update_user_status($user_id, $status)
+	{
+		$data = array('active' => (int) $status);
+		if ((int) $status === 1) {
+			$data['activation_code'] = '';
+		}
+		$this->db->where('id', (int) $user_id);
+		return $this->db->update('users', $data);
+	}
+
+	function bulk_assign_roles()
+	{
+		$this->acl_manager->has_access_or_die('user', 'edit');
+
+		$user_ids = $this->input->get('user_ids');
+		if (empty($user_ids)) {
+			$this->session->set_flashdata('error', t('please_select_users'));
+			redirect('admin/users');
+		}
+
+		$user_ids_array = explode(',', $user_ids);
+		$users = array();
+		foreach ($user_ids_array as $user_id) {
+			if (is_numeric($user_id)) {
+				$user = $this->User_model->getSingle($user_id);
+				if ($user && $user->num_rows() > 0) {
+					$users[] = $user->row();
+				}
+			}
+		}
+
+		$assignable_roles = $this->acl_manager->get_roles();
+		if ( ! $this->acl_manager->user_is_admin()) {
+			$assignable_roles = array_values(array_filter($assignable_roles, function ($role) {
+				return empty($role['is_admin']);
+			}));
+		}
+
+		$data = array(
+			'users'    => $users,
+			'roles'    => $assignable_roles,
+			'user_ids' => $user_ids,
+		);
+
+		if ($this->input->is_ajax_request()) {
+			echo $this->load->view('users/bulk_assign_roles_modal', $data, true);
+			return;
+		}
+
+		redirect('admin/users');
+	}
+
+	function process_bulk_assign_roles()
+	{
+		$this->acl_manager->has_access_or_die('user', 'edit');
+
+		$user_ids = $this->input->post('user_ids');
+		$role_ids = $this->_filter_assignable_role_ids($this->input->post('role_ids'));
+
+		if (empty($user_ids) || empty($role_ids)) {
+			$this->session->set_flashdata('error', t('please_select_users'));
+			redirect('admin/users');
+		}
+
+		$user_ids_array = explode(',', $user_ids);
+		$success_count = 0;
+
+		foreach ($user_ids_array as $user_id) {
+			if ( ! is_numeric($user_id)) {
+				continue;
+			}
+			foreach ($role_ids as $role_id) {
+				if ($this->acl_manager->set_user_role((int) $user_id, (int) $role_id)) {
+					$success_count++;
+				}
+			}
+		}
+
+		if ($success_count > 0) {
+			$this->session->set_flashdata('message', t('roles_assigned_successfully'));
+		}
+		else {
+			$this->session->set_flashdata('error', t('operation_failed'));
+		}
+
+		redirect('admin/users');
+	}
+
+	function bulk_remove_roles()
+	{
+		$this->acl_manager->has_access_or_die('user', 'edit');
+
+		$user_ids = $this->input->get('user_ids');
+		if (empty($user_ids)) {
+			$this->session->set_flashdata('error', t('please_select_users'));
+			redirect('admin/users');
+		}
+
+		$user_ids_array = explode(',', $user_ids);
+		$users = array();
+		$user_roles = array();
+
+		foreach ($user_ids_array as $user_id) {
+			if ( ! is_numeric($user_id)) {
+				continue;
+			}
+			$user = $this->User_model->getSingle($user_id);
+			if ($user && $user->num_rows() > 0) {
+				$users[] = $user->row();
+
+				$this->db->select('ur.role_id, r.name, r.description, r.is_admin');
+				$this->db->from('user_roles ur');
+				$this->db->join('roles r', 'ur.role_id = r.id');
+				$this->db->where('ur.user_id', (int) $user_id);
+				$roles_query = $this->db->get();
+				$roles = $roles_query->result_array();
+
+				if ( ! $this->acl_manager->user_is_admin()) {
+					$roles = array_values(array_filter($roles, function ($role) {
+						return empty($role['is_admin']);
+					}));
+				}
+
+				$user_roles[$user_id] = $roles;
+			}
+		}
+
+		$data = array(
+			'users'      => $users,
+			'user_roles' => $user_roles,
+			'user_ids'   => $user_ids,
+		);
+
+		if ($this->input->is_ajax_request()) {
+			echo $this->load->view('users/bulk_remove_roles_modal', $data, true);
+			return;
+		}
+
+		redirect('admin/users');
+	}
+
+	function process_bulk_remove_roles()
+	{
+		$this->acl_manager->has_access_or_die('user', 'edit');
+
+		$user_ids = $this->input->post('user_ids');
+		$role_ids = $this->_filter_assignable_role_ids($this->input->post('role_ids'));
+
+		if (empty($user_ids) || empty($role_ids)) {
+			$this->session->set_flashdata('error', t('please_select_users'));
+			redirect('admin/users');
+		}
+
+		$user_ids_array = explode(',', $user_ids);
+		$success_count = 0;
+
+		foreach ($user_ids_array as $user_id) {
+			if ( ! is_numeric($user_id)) {
+				continue;
+			}
+			foreach ($role_ids as $role_id) {
+				$this->db->where('user_id', (int) $user_id);
+				$this->db->where('role_id', (int) $role_id);
+				if ($this->db->delete('user_roles')) {
+					$success_count++;
+				}
+			}
+		}
+
+		if ($success_count > 0) {
+			$this->session->set_flashdata('message', t('roles_removed_successfully'));
+		}
+		else {
+			$this->session->set_flashdata('error', t('operation_failed'));
+		}
+
+		redirect('admin/users');
+	}
+
+	private function _get_login_filter_operator($filter_value)
+	{
+		switch ($filter_value) {
+			case 'today':
+			case 'week':
+			case 'month':
+				return '>=';
+			case 'never':
+				return 'NEVER';
+			default:
+				return '>=';
+		}
+	}
+
+	private function _get_login_filter_value($filter_value)
+	{
+		switch ($filter_value) {
+			case 'today':
+				return strtotime('today');
+			case 'week':
+				return strtotime('-1 week');
+			case 'month':
+				return strtotime('-1 month');
+			case 'never':
+				return null;
+			default:
+				return strtotime('today');
+		}
 	}
 	
 	function add() 
@@ -187,7 +550,7 @@ class Users extends MY_Controller {
 									 'active'     => $this->input->post('active'),
 									 'country'    => $this->input->post('country'),
         							 'active'     => $this->input->post('active'),
-									 'role_id'    => $this->input->post('role')
+									 'role_id'    => $this->role_ids_from_post()
         							);
         	
         	//register the user
@@ -270,8 +633,8 @@ class Users extends MY_Controller {
 			
 			$this->data['roles']=array();
 
-			if($this->input->post('role')){
-				$this->data['user_role']=$this->input->post('role');
+			if ($this->input->method() === 'post') {
+				$this->data['user_role'] = $this->role_ids_from_post();
 			}
 			
 			$this->data['roles']= $this->acl_manager->get_roles();//full list of roles
@@ -316,7 +679,7 @@ class Users extends MY_Controller {
 				'company'    => $this->input->post('company'),
 				'phone'      => $this->input->post('phone1'),
 				'active'     => $this->input->post('active'),
-				'role_id'     => $this->input->post('role'),
+				'role_id'     => $this->role_ids_from_post(),
 				'country'     => $this->input->post('country'),
 			);
 						
@@ -406,7 +769,7 @@ class Users extends MY_Controller {
 			$this->data['country']=$db_data->country;
 			
 			if($this->input->post('id')){
-				$db_data->user_role=$this->input->post('role');
+				$db_data->user_role=$this->role_ids_from_post();
 			}else{				
 				if (isset($db_data->groups) && count($db_data->groups) >0){
 					$db_data->user_role=array_keys($db_data->groups);

@@ -78,6 +78,7 @@ $task_codes=array(
             <td><label>Update status</label></td>
             <td>
 
+                <?php if (!empty($can_edit)): ?>
                 <?php if ($task['status']==0):?>
                 <!--complete task-->
                 <a href="<?php echo site_url('admin/datadeposit/tasks/update/'.$task['id'].'/1');?>" type="button" class="btn btn-success">Resolve</a>
@@ -85,9 +86,12 @@ $task_codes=array(
                     <!--re-open task-->
                     <a href="<?php echo site_url('admin/datadeposit/tasks/update/'.$task['id'].'/0');?>" type="button" class="btn btn-warning">Re-open</a>
                 <?php endif;?>
+                <?php endif; ?>
 
+                <?php if (!empty($can_delete)): ?>
                 <!--cancel (un-assign) task -->
                 <a href="<?php echo site_url('admin/datadeposit/tasks/delete/'.$task['id']);?>" type="button" class="btn btn-default">Delete</a>
+                <?php endif; ?>
 
             </td>
         </tr>

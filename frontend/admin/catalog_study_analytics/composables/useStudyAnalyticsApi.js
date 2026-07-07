@@ -8,7 +8,7 @@ export function useStudyAnalyticsApi() {
     const u = config.value?.analyticsApiBase;
     if (u) return String(u).replace(/\/+$/, '') + '/';
     const site = String(config.value?.siteUrl || '').replace(/\/+$/, '');
-    return `${site}/api/analytics/`;
+    return `${site}/api/admin/analytics/`;
   }
 
   function studyIdParam() {

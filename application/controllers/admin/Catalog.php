@@ -313,7 +313,7 @@ class Catalog extends MY_Controller {
 		// Show Vue 3 upload UI (GET); POST is unchanged multipart handling below.
 		if (!$this->input->post('submit')) {
 			if (!$this->_user_has_any_ddi_upload_target()) {
-				show_error('Access denied');
+				$this->acl_manager->show_access_denied('feature');
 			}
 			$this->load->helper('vite_helper');
 			$flash_error = $this->session->flashdata('error');
@@ -932,27 +932,6 @@ class Catalog extends MY_Controller {
 
 	/**
 	*
-	* Export citations as serialized array
-	*
-	**/
-	function export_citations($id=NULL)
-	{
-		if (!is_numeric($id))
-		{
-			show_404();
-		}
-
-		$this->load->model('Citation_model');
-
-		//get citations by survey id
-		$citations=$this->Citation_model->serialize_citations_by_survey($id);
-
-		echo $citations;
-	}
-
-
-	/**
-	*
 	* Transfer Ownership of a study to another catalog
 	*
 	* @surveyid  number | string in case of multiple IDs seperated by comma
@@ -1218,7 +1197,7 @@ class Catalog extends MY_Controller {
 		}
 
 		if (!$this->_repositoryid_allowed_by_catalog_scope($repositoryid)) {
-			show_error('Access denied');
+			$this->acl_manager->show_access_denied('feature');
 		}
 
 		$this->acl_manager->has_access_or_die('study', 'create', null, $repositoryid);
@@ -1612,13 +1591,13 @@ class Catalog extends MY_Controller {
 		return array_merge(
 			$this->_study_edit_vue_common($id, $survey_row),
 			array(
-				'analyticsApiBase' => rtrim(site_url('api/analytics'), '/') . '/',
+				'analyticsApiBase' => rtrim(site_url('api/admin/analytics'), '/') . '/',
 				'totalViews'       => (int) (isset($survey_row['total_views']) ? $survey_row['total_views'] : 0),
 				'totalDownloads'   => (int) (isset($survey_row['total_downloads']) ? $survey_row['total_downloads'] : 0),
-				'exportMonthlyStudiesCsv' => site_url('api/analytics/monthly/studies/export?study_id=' . $_sid_int . '&format=csv'),
-				'exportMonthlyStudiesJson' => site_url('api/analytics/monthly/studies/export?study_id=' . $_sid_int . '&format=json'),
-				'exportFilesCsv'   => site_url('api/analytics/monthly/files/export?study_id=' . $_sid_int . '&format=csv'),
-				'exportFilesJson'  => site_url('api/analytics/monthly/files/export?study_id=' . $_sid_int . '&format=json'),
+				'exportMonthlyStudiesCsv' => site_url('api/admin/analytics/monthly/studies/export?study_id=' . $_sid_int . '&format=csv'),
+				'exportMonthlyStudiesJson' => site_url('api/admin/analytics/monthly/studies/export?study_id=' . $_sid_int . '&format=json'),
+				'exportFilesCsv'   => site_url('api/admin/analytics/monthly/files/export?study_id=' . $_sid_int . '&format=csv'),
+				'exportFilesJson'  => site_url('api/admin/analytics/monthly/files/export?study_id=' . $_sid_int . '&format=json'),
 				'labels'           => array(
 					'title'               => t('Analytics'),
 					'loading'             => t('loading'),
@@ -1710,7 +1689,8 @@ class Catalog extends MY_Controller {
 			array(
 				'apiBaseUrl'          => site_url('api/admin/catalog/'),
 				'uploadsApiUrl'       => rtrim(site_url('api/uploads'), '/') . '/',
-				'managefilesEditBase' => site_url('admin/managefiles/' . (int) $id . '/edit'),
+				'resourcesEditBase'   => rtrim(site_url('admin/resources/edit'), '/'),
+				'managefilesEditBase' => rtrim(site_url('admin/managefiles/' . (int) $id . '/edit'), '/'),
 				'labels'              => array(
 					'name'                 => t('name'),
 					'size'                 => t('size'),
@@ -1734,6 +1714,7 @@ class Catalog extends MY_Controller {
 					'download'             => t('download'),
 					'delete'               => t('delete'),
 					'edit_resource'        => t('edit_resource'),
+					'create_resource'      => t('link_add_new_resource'),
 					'saved'                => t('form_update_success'),
 					'resource_col'         => 'Link',
 					'upload_queue_title'   => 'Files to upload',
@@ -1873,8 +1854,7 @@ class Catalog extends MY_Controller {
 			array(
 				'apiBaseUrl' => rtrim(site_url('api/admin/catalog'), '/') . '/',
 				'legacyUrls' => array(
-					'editStudyBase'     => rtrim(site_url('admin/catalog/edit'), '/'),
-					'fullPageAttachUrl' => site_url('admin/catalog/attach_related_data/' . (int) $id),
+					'editStudyBase' => rtrim(site_url('admin/catalog/edit'), '/'),
 				),
 				'labels'     => array(
 					'title'                  => t('tab_related_data'),
@@ -2074,41 +2054,6 @@ class Catalog extends MY_Controller {
 
 
 	/**
-	*
-	* Returns formatted selected survey list from session
-	*
-	* @skey= survey id (internal)
-	**/
-	function related_citations($skey,$isajax=1)
-	{
-       	if (!is_numeric($skey)){
-			return FALSE;
-		}
-
-		$this->load->model('Citation_model');
-
-		//get survey info from db
-		$data['related_citations']=$this->Citation_model->get_citations_by_survey($skey);
-
-		$data['survey_id']=$skey;
-
-		//load formatted list
-		$output=$this->load->view("catalog/related_citations",$data,TRUE);
-
-		if ($isajax==1)
-		{
-			echo $output;
-		}
-		else
-		{
-			return $output;
-		}
-	}
-
-
-
-
-	/**
 	 * Human-readable study type for the catalog edit header (reference table when available, else lang lines).
 	 *
 	 * @param string $type_code Value of surveys.type (e.g. survey, timeseries, document).
@@ -2142,27 +2087,6 @@ class Catalog extends MY_Controller {
 		}
 
 		return ucwords(str_replace(array('_', '-'), ' ', $code));
-	}
-
-
-	/**
-	*
-	* Returns an array of Citation IDs
-	*
-	**/
-	function _get_related_citations_array($citations)
-	{
-		if (!is_array($citations))
-		{
-			return FALSE;
-		}
-
-		$result=array();
-		foreach($citations as $citation)
-		{
-			$result[]=$citation['id'];
-		}
-		return $result;
 	}
 
 
@@ -2211,22 +2135,6 @@ class Catalog extends MY_Controller {
 
 		$this->load->model("Related_study_model");
 		$this->Related_study_model->delete_relationship($sid_1,$sid_2,$rel_id=null);
-	}
-
-	function get_related_studies($sid)
-	{
-		if(!is_numeric($sid))
-		{
-			show_error("INVALID-PARAMS");
-		}
-
-		$this->load->model("Related_study_model");
-		$survey_row['related_studies']=$this->Related_study_model->get_relationships($sid);
-
-		//array of all relationship types
-		$survey_row['relationship_types']=$this->Related_study_model->get_relationship_types_array();
-		$survey_row['survey_id']=$sid;
-		$this->load->view('catalog/related_studies_tab',$survey_row);
 	}
 
 	function set_featured_study($repositoryid,$sid,$status)
@@ -2466,7 +2374,7 @@ class Catalog extends MY_Controller {
 		if ($req !== '') {
 			if ($scope !== null) {
 				if (! $this->_repositoryid_allowed_by_catalog_scope($req)) {
-					show_error('Access denied');
+					$this->acl_manager->show_access_denied('feature');
 				}
 			}
 			$this->acl_manager->has_access_or_die('study', 'view', null, $req);
@@ -2483,7 +2391,7 @@ class Catalog extends MY_Controller {
 		}
 
 		if ($scope === false || ! is_array($scope) || count($scope) === 0) {
-			show_error('Access denied');
+			$this->acl_manager->show_access_denied('feature');
 		}
 
 		$this->Catalog_model->download_csv(array_values($scope));

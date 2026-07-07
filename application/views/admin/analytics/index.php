@@ -847,7 +847,7 @@
 </v-app>
 
     <script>
-        const apiBase = '<?php echo site_url("api/analytics"); ?>';
+        const apiBase = '<?php echo site_url("api/admin/analytics"); ?>';
         const baseUrl = '<?php echo base_url(); ?>';
         const siteUrl = '<?php echo site_url(); ?>';
         const serverTimezone = '<?php echo date_default_timezone_get(); ?>';

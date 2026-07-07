@@ -7,9 +7,10 @@ class Datadeposittasks extends MY_Controller {
 	{
 		parent::__construct();
 		$this->load->model('DD_project_model');
-        $this->load->model('DD_tasks_model');
+		$this->load->model('DD_tasks_model');
 		$this->template->set_template('admin');
-		//$this->_get_active_project();
+
+		$this->acl_manager->has_access_or_die('datadeposit', 'view');
 		
 		//$this->output->enable_profiler(TRUE);
 	}
@@ -21,6 +22,9 @@ class Datadeposittasks extends MY_Controller {
 
         //find all pending tasks
         $options['tasks_pending']=$this->DD_tasks_model->get_tasks_by_status($status=0);
+
+        $options['can_edit'] = $this->acl_manager->user_has_access('datadeposit', 'edit');
+        $options['can_delete'] = $this->acl_manager->user_has_access('datadeposit', 'delete');
 
         $content=$this->load->view('datadeposit/tasks_index',$options,true);
         $this->template->write('content', $content,true);
@@ -50,6 +54,8 @@ class Datadeposittasks extends MY_Controller {
 
         $data['project_id']=$data['task']['project_id'];
         $data['project']=(object)$this->DD_project_model->get_by_id($data['project_id']);
+        $data['can_edit'] = $this->acl_manager->user_has_access('datadeposit', 'edit');
+        $data['can_delete'] = $this->acl_manager->user_has_access('datadeposit', 'delete');
 
         $content=$this->load->view('datadeposit/view_task',$data,true);
 
@@ -61,6 +67,8 @@ class Datadeposittasks extends MY_Controller {
 
     public function update($task_id,$status_code)
     {
+        $this->acl_manager->has_access_or_die('datadeposit', 'edit');
+
         $this->DD_tasks_model->update_task($task_id,$status_code);
 
         $task= $this->DD_tasks_model->select_single($task_id);
@@ -80,6 +88,8 @@ class Datadeposittasks extends MY_Controller {
 
     public function delete($task_id)
     {
+        $this->acl_manager->has_access_or_die('datadeposit', 'delete');
+
         $task= $this->DD_tasks_model->select_single($task_id);
 
         $this->DD_tasks_model->delete($task_id);
@@ -107,6 +117,8 @@ class Datadeposittasks extends MY_Controller {
         //find tasks assigned to me or I assigned to others
         $options['tasks']=$this->DD_tasks_model->get_tasks_by_user($user_id);
         $options['assigner_tasks']=$this->DD_tasks_model->get_tasks_by_assigner($user_id);
+        $options['can_edit'] = $this->acl_manager->user_has_access('datadeposit', 'edit');
+        $options['can_delete'] = $this->acl_manager->user_has_access('datadeposit', 'delete');
 
         $content=$this->load->view('datadeposit/my_tasks',$options,true);
 

@@ -9,15 +9,16 @@ class Permissions extends MY_Controller {
        	//$this->load->model('User_Groups_model');
 		$this->load->model('Permissions_model');
 		$this->load->library("Acl_manager");
+
+		if (!$this->acl_manager->user_is_admin()) {
+			$this->acl_manager->show_access_denied('feature');
+		}
 		
 		//language files
 		$this->lang->load('general');
 		$this->lang->load('user_groups');
 		$this->lang->load('permissions');
 		//$this->output->enable_profiler(TRUE);
-
-		//set default template
-		$this->template->set_template('admin');		
 	}
 
 	
@@ -52,15 +53,19 @@ class Permissions extends MY_Controller {
 		);
 		$role_permissions=$this->acl_manager->get_role_permissions($role_id);
 
-		//process post
-		if($post_data=$this->input->post('resource')){
-			$data['post_values']=$post_data;
+		//process post (unchecked checkboxes are omitted from POST, so detect submission by method)
+		if ($this->input->method() === 'post') {
+			$post_data = $this->input->post('resource');
+			if (!is_array($post_data)) {
+				$post_data = array();
+			}
+			$data['post_values'] = $post_data;
 			$this->acl_manager->remove_role_permissions($role_id);
-			foreach($post_data as $resource=>$permissions){
-				$this->acl_manager->set_role_permissions($role_id,$resource, (array)$permissions);
+			foreach ($post_data as $resource => $permissions) {
+				$this->acl_manager->set_role_permissions($role_id, $resource, (array)$permissions);
 			}
 		}
-		else{
+		else {
 			$data['post_values']=array();
 			foreach($role_permissions as $row){
 				$data['post_values'][$row['resource']]=$row['permissions'];
@@ -71,10 +76,7 @@ class Permissions extends MY_Controller {
 		$data['active_id']=$role_id;
 		$data['roles']=$this->acl_manager->get_roles();
 
-		$contents=$this->load->view('permissions/index',$data,TRUE);
-		
-		$this->template->write('content', $contents,true);
-	  	$this->template->render();
+		$this->render_admin_page(t('manage_permissions'), $this->load->view('permissions/index', $data, TRUE));
 	}
 
 
@@ -82,9 +84,7 @@ class Permissions extends MY_Controller {
 	function roles()
 	{
 		$data['roles']=$this->acl_manager->get_roles();
-		$contents=$this->load->view('permissions/roles',$data,TRUE);		
-		$this->template->write('content', $contents,true);
-	  	$this->template->render();
+		$this->render_admin_page(t('Manage roles'), $this->load->view('permissions/roles', $data, TRUE));
 	}
 
 
@@ -167,9 +167,7 @@ class Permissions extends MY_Controller {
 			}
 		}
 		
-		$contents=$this->load->view('permissions/role_edit',$role,TRUE);		
-		$this->template->write('content', $contents,true);
-		$this->template->render();
+		$this->render_admin_page(t('Edit role'), $this->load->view('permissions/role_edit', $role, TRUE));
 	}
 	
 	
@@ -180,8 +178,6 @@ class Permissions extends MY_Controller {
 	*/
 	function delete_role($id)
 	{			
-		$this->acl_manager->has_access_or_die('user', 'edit');
-
 		if (!is_numeric($id)){
 			show_error('INVALID_ROLE_ID');
 		}
@@ -215,10 +211,23 @@ class Permissions extends MY_Controller {
 		else
 		{
 			//ask for confirmation
-			$content=$this->load->view('resources/delete', NULL,true);
-			
-			$this->template->write('content', $content,true);
-	  		$this->template->render();
+			$this->render_admin_page(t('delete'), $this->load->view('resources/delete', NULL, true));
 		}		
+	}
+
+	/**
+	 * Render a page with the Vue admin header shell.
+	 */
+	private function render_admin_page($title, $content)
+	{
+		$page = array(
+			'title'           => $title,
+			'content'         => $content,
+			'hide_breadcrumb' => true,
+			'theme_folder'    => 'adminvue',
+			'_styles'         => '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">',
+		);
+
+		$this->load->view('layouts/admin_vue', $page);
 	}
 }

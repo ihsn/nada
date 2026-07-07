@@ -157,7 +157,7 @@ class Facets extends MY_Controller {
 	*/
 	function delete($id)
 	{
-		$this->acl_manager->has_access_or_die('facet', 'delete');
+		$this->acl_manager->has_access_or_die('facets', 'delete');
 
 		$facet=$this->Facet_model->select_single($id);
 

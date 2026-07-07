@@ -11,6 +11,8 @@ class Solr extends MY_Controller {
  
     function index()
     {
+        $this->acl_manager->has_access_or_die('configurations', 'edit');
+
         $content=$this->load->view('solr_vue/index',null,true);
 		$this->template->write('title', t('solr'),true);
 		$this->template->write('content', $content,true);

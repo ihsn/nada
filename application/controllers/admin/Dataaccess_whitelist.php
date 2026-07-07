@@ -30,6 +30,8 @@ class Dataaccess_whitelist extends MY_Controller {
 
     function create()
     {
+        $this->acl_manager->has_access_or_die('citation', 'edit');
+
         $user_id=$this->Data_access_whitelist_model->get_user_id($this->input->post("email"));
         $repository_id=$this->input->post("repository_id");
 
@@ -52,6 +54,8 @@ class Dataaccess_whitelist extends MY_Controller {
 
     function delete($id)
     {
+        $this->acl_manager->has_access_or_die('citation', 'edit');
+
         $this->Data_access_whitelist_model->delete_by_id($id);
         $this->session->set_flashdata('message', t('form_update_success'));
 		redirect("admin/dataaccess_whitelist","refresh");

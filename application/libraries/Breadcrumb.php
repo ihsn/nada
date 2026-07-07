@@ -641,16 +641,6 @@ class Breadcrumb
 			}
 		}
 		
-		if ($segments[2]=='managefiles')
-		{
-			switch ($segments[4])
-			{
-				case 'edit':
-					$breadcrumbs['admin/catalog/edit/'.$segments[3]]=$this->get_study_title($segments[3]);
-				break;
-			}
-		}
-		
 			
 	}
 

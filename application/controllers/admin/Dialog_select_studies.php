@@ -13,7 +13,7 @@ class Dialog_select_studies extends MY_Controller {
     {
         parent::__construct();
        	$this->load->model('Catalog_admin_search');
-		$this->load->model('Repository_model');
+		$this->load->model('Catalog_model');
 		$this->load->library('pagination');
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
@@ -34,10 +34,7 @@ class Dialog_select_studies extends MY_Controller {
 	* @id	session key
 	**/
 	public function index($skey){
-		$central = $this->Repository_model->get_central_catalog_array();
-		if ($this->acl_manager->get_admin_catalog_repository_scope() === false) {
-			$this->acl_manager->repository_permission_or_die($central['repositoryid'], $this->acl_manager->study_repositories_acl_key('view'));
-		}
+		$this->_require_dialog_access();
 
 		//add/remove excluded items in the session
 		$this->update_excluded_items($skey);		
@@ -189,6 +186,8 @@ class Dialog_select_studies extends MY_Controller {
 	**/	
 	public function add($skey,$sid,$isajax=0)
 	{
+		$this->_require_dialog_access();
+
 		$id_list=explode(",",$sid);
 		
 		foreach($id_list as $key=>$value)
@@ -196,7 +195,9 @@ class Dialog_select_studies extends MY_Controller {
 			if (!is_numeric($value))
 			{
 				unset($id_list[$key]);
+				continue;
 			}
+			$this->_require_study_view((int) $value);
 		}
 		
 		//get session data by key
@@ -230,10 +231,14 @@ class Dialog_select_studies extends MY_Controller {
 	**/
 	public function remove($skey,$sid,$isajax=0)
 	{
+		$this->_require_dialog_access();
+
 		if (!is_numeric($sid))
 		{
 			show_error("INVALID_ID");
 		}
+
+		$this->_require_study_view((int) $sid);
 	
 		//get session data by key
 		$sess_data=$this->session->userdata($skey);
@@ -271,17 +276,21 @@ class Dialog_select_studies extends MY_Controller {
 	**/
 	function clear_all($skey)
 	{
+		$this->_require_dialog_access();
 		$this->session->unset_userdata($skey);
 	}
 	
 	function get_list($skey)
 	{
+		$this->_require_dialog_access();
 		header('Content-type: application/json');
 		$sess_data=$this->session->userdata($skey);
 		$output=array();
-		if(!is_array($sess_data['selected']))
+		if (! is_array($sess_data) || ! isset($sess_data['selected']) || ! is_array($sess_data['selected']))
 		{
-			$sess_data['selected']=array();
+			$output['selected']='';
+			echo json_encode($output);
+			return;
 		}
 		$output['selected']=implode(",",$sess_data['selected']);
 		echo json_encode($output);
@@ -290,9 +299,45 @@ class Dialog_select_studies extends MY_Controller {
 	
 	function dump($skey)
 	{
+		$this->_require_dialog_access();
 		echo '<pre>';
 		$sess_data=$this->session->userdata($skey);
 		var_dump($sess_data);
+	}
+
+	/**
+	 * Citation attach/import flows only — require citation create or edit (not catalog shell scope).
+	 */
+	private function _require_dialog_access()
+	{
+		if ($this->_citation_privilege_granted('edit') || $this->_citation_privilege_granted('create')) {
+			return;
+		}
+		$this->acl_manager->has_access_or_die('citation', 'edit');
+	}
+
+	/**
+	 * @param string $privilege citation privilege (create, edit, …)
+	 * @return bool
+	 */
+	private function _citation_privilege_granted($privilege)
+	{
+		try {
+			$this->acl_manager->has_access('citation', $privilege);
+			return true;
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			return false;
+		}
+	}
+
+	/**
+	 * @param int $sid surveys.id
+	 */
+	private function _require_study_view($sid)
+	{
+		$this->acl_manager->has_access_or_die('study', 'view', null, $this->Catalog_model->get_survey_repositoryid($sid));
 	}
 	
 }

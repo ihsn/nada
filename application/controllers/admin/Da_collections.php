@@ -11,6 +11,7 @@ class Da_Collections extends MY_Controller
 		$this->load->helper(array('url', 'vite_helper'));
 		$this->lang->load('general');
 		$this->lang->load('da_collection');
+		$this->acl_manager->has_access_or_die('bulk_data_access', 'view');
 	}
 
 	public function index()
@@ -20,6 +21,7 @@ class Da_Collections extends MY_Controller
 
 	public function add()
 	{
+		$this->acl_manager->has_access_or_die('bulk_data_access', 'edit');
 		$this->_render_da_collections_vue_shell(t('da_collection_add'));
 	}
 
@@ -28,6 +30,7 @@ class Da_Collections extends MY_Controller
 		if (! is_numeric($id)) {
 			show_404();
 		}
+		$this->acl_manager->has_access_or_die('bulk_data_access', 'edit');
 		$this->_render_da_collections_vue_shell(t('da_collection_edit'));
 	}
 
@@ -36,6 +39,7 @@ class Da_Collections extends MY_Controller
 		if (! is_numeric($collection_id)) {
 			show_404();
 		}
+		$this->acl_manager->has_access_or_die('bulk_data_access', 'edit');
 		$this->_render_da_collections_vue_shell(t('attach_studies_to_da_collection'));
 	}
 
@@ -71,6 +75,8 @@ class Da_Collections extends MY_Controller
 			'assets_base'     => base_url('frontend/dist/'),
 			'translations'    => $this->lang->language,
 			'router_path_base'=> $rpath,
+			'can_edit'        => $this->acl_manager->user_has_access('bulk_data_access', 'edit'),
+			'can_delete'      => $this->acl_manager->user_has_access('bulk_data_access', 'delete'),
 		);
 	}
 }

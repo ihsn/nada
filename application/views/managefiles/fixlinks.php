@@ -1,6 +1,5 @@
-<?php include dirname(__FILE__).'/../managefiles/tabs.php';?>
 <div class="page-links">
-	<a href="<?php echo site_url(); ?>/admin/catalog/<?php echo $this->uri->segment(3);?>/resources" class="button"><img src="images/house.png"/><?php echo t('link_resource_home');?></a> 
+	<a href="<?php echo site_url('admin/catalog/edit/' . (int) $this->uri->segment(3) . '/resources'); ?>" class="button"><img src="images/house.png"/><?php echo t('link_resource_home');?></a>
 </div>
 
 <h1><?php echo t('title_fix_broken');?></h1>

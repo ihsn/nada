@@ -24,31 +24,100 @@ if (!array_key_exists($filter,$status_codes))
 ?>
 
 <style>
-.label{ text-transform:uppercase;font-weight:normal;padding:5px;}
-.label-draft{background-color:#9E9E9E;display:block;}
-.label-submitted{background-color:#3a87ad}
-.label-closed{background-color:#0099FF;display:block;}
-.label-processed{background-color:orange}
-.label-accepted{background-color:#00CC00;display:block;}
+.page-datadeposit-index .dd-status-badge {
+    display: inline-block;
+    min-width: 5.5rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 50rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+.page-datadeposit-index .dd-status--draft {
+    background: #e9ecef;
+    color: #495057;
+    border-color: #ced4da;
+}
+.page-datadeposit-index .dd-status--submitted {
+    background: #cfe2ff;
+    color: #084298;
+    border-color: #9ec5fe;
+}
+.page-datadeposit-index .dd-status--processed {
+    background: #fff3cd;
+    color: #664d03;
+    border-color: #ffecb5;
+}
+.page-datadeposit-index .dd-status--accepted {
+    background: #d1e7dd;
+    color: #0f5132;
+    border-color: #a3cfbb;
+}
+.page-datadeposit-index .dd-status--closed {
+    background: #e2e3e5;
+    color: #41464b;
+    border-color: #c4c8cb;
+}
+.page-datadeposit-index .dd-status--default {
+    background: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
 
-.label-0{background-color:orange}
-.label-1{background-color:#00CC00}
+.page-datadeposit-index .dd-task-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+}
+.page-datadeposit-index .dd-task-badge--0 {
+    background: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffecb5;
+}
+.page-datadeposit-index .dd-task-badge--1 {
+    background: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #a3cfbb;
+}
 
-.grid-table td{vertical-align: top;}
-.grid-table .shortname{font-size:smaller;color:gray;}
+.page-datadeposit-index .grid-table td { vertical-align: middle; }
+.page-datadeposit-index .grid-table .shortname { font-size: smaller; color: gray; }
 
-.task-team-container .person{border-bottom:1px solid #dcdcdc; padding:5px;}
-.task-team-container .person .input-radio{display:none;}
-.task-team-container .person {position: relative;}
-.task-team-container .person .btn-assign {position: absolute; right:10px; top:15px;}
-.task-team-container .person:hover{background:#dcdcdc;}
+.page-datadeposit-index .task-team-container .person { border-bottom: 1px solid #dcdcdc; padding: 5px; }
+.page-datadeposit-index .task-team-container .person .input-radio { display: none; }
+.page-datadeposit-index .task-team-container .person { position: relative; }
+.page-datadeposit-index .task-team-container .person .btn-assign { position: absolute; right: 10px; top: 15px; }
+.page-datadeposit-index .task-team-container .person:hover { background: #dcdcdc; }
 
-.datadeposit-tabs a:link,.datadeposit-tabs a:visited {
+.page-datadeposit-index .datadeposit-tabs a:link,
+.page-datadeposit-index .datadeposit-tabs a:visited {
     color: #007bff;
 }
 </style>
 
-<div class="container-fluid">
+<?php
+$status_styles = array(
+    'draft'     => 'dd-status--draft',
+    'submitted' => 'dd-status--submitted',
+    'processed' => 'dd-status--processed',
+    'accepted'  => 'dd-status--accepted',
+    'closed'    => 'dd-status--closed',
+);
+?>
+
+<div class="container-fluid page-datadeposit-index">
 
 <h1 class="page-title"><?php echo t('Data Deposit Projects');?></h1>
 
@@ -104,8 +173,15 @@ if (!array_key_exists($filter,$status_codes))
     </thead>
   <tbody>
     <?php foreach($projects as $project): ?>
+    <?php
+        $status_key = strtolower((string) $project->status);
+        $status_class = isset($status_styles[$status_key]) ? $status_styles[$status_key] : 'dd-status--default';
+        $status_label = isset($status_codes[$status_key]) ? $status_codes[$status_key] : ucfirst($status_key);
+    ?>
     <tr>
-    	<td><span class="label label-<?php echo $project->status;?>"><?php echo $project->status;?></span></td>
+    	<td>
+            <span class="dd-status-badge <?php echo $status_class; ?>"><?php echo html_escape($status_label); ?></span>
+        </td>
         <td>
             <div><a href="<?php echo site_url('admin/datadeposit/id/'.$project->id);?>"><?php echo $project->title;?></a></div>
             <div class="shortname">
@@ -117,7 +193,7 @@ if (!array_key_exists($filter,$status_codes))
         <td><?php echo $project->created_by;?></td>
         <td><?php if(isset($project->task_user)):?>
                 <a href="<?php echo site_url('admin/datadeposit/tasks/info/'.$project->task_id);?>">
-                    <span class="label label-<?php echo $project->task_status;?>" title="<?php echo @$task_codes[$project->task_status]. ' - '. $project->task_user;?> ">
+                    <span class="dd-task-badge dd-task-badge--<?php echo (int) $project->task_status; ?>" title="<?php echo html_escape(@$task_codes[$project->task_status]. ' - '. $project->task_user); ?>">
                         <?php
                             $user=$project->task_user;
                             $name_parts=explode(" ",$user);
@@ -131,9 +207,15 @@ if (!array_key_exists($filter,$status_codes))
             <?php endif;?>
         </td>
         <td nowrap="nowrap">
+            <?php if (!empty($can_edit)): ?>
             <a class="assign" href="<?php echo site_url('admin/datadeposit/assign/'.$project->id);?>" data-id="<?php echo $project->id;?>">Assign</a> |
-            <a href="<?php echo site_url('admin/datadeposit/id/'.$project->id);?>">Edit</a> |
-            <a href="<?php echo site_url('admin/datadeposit/delete/'.$project->id);?>">Delete</a>
+            <a href="<?php echo site_url('admin/datadeposit/id/'.$project->id);?>">Edit</a>
+            <?php else: ?>
+            <a href="<?php echo site_url('admin/datadeposit/id/'.$project->id);?>">View</a>
+            <?php endif; ?>
+            <?php if (!empty($can_delete)): ?>
+             | <a href="<?php echo site_url('admin/datadeposit/delete/'.$project->id);?>">Delete</a>
+            <?php endif; ?>
             </td>
     </tr>
     <?php endforeach; ?>

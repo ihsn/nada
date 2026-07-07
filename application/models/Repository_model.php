@@ -1346,7 +1346,7 @@ class Repository_model extends CI_Model {
 	
 	
 	/**
-	 * Legacy convenience cookie after admin “select active repository” (e.g. Repositories::active).
+	 * Legacy convenience cookie after admin “select active repository” (admin/collections/active).
 	 * Admin catalog Vue/API does not depend on this; some PHP flows and redirects still read it.
 	 */
 	function set_active_repo($repoid)

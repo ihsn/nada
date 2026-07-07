@@ -12,7 +12,7 @@ class Codelists extends MY_Controller {
 		parent::__construct();
 		$this->template->set_template('admin5');
 		$this->lang->load('general');
-		$this->acl_manager->has_access_or_die('configurations', 'edit');
+		$this->acl_manager->has_access_or_die('codelist', 'view');
 	}
 
 	/**

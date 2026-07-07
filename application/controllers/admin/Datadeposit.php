@@ -22,6 +22,8 @@ class Datadeposit extends MY_Controller {
 		$this->storage_location= $this->config->item('datadeposit');
 		$this->storage_location = $this->storage_location['resources'];
 
+		$this->acl_manager->has_access_or_die('datadeposit', 'view');
+
 		//$this->output->enable_profiler(TRUE);
 	}
 	
@@ -57,6 +59,9 @@ class Datadeposit extends MY_Controller {
         $this->load->model('DD_tasks_team_model');
         $result['tasks_team']=$this->DD_tasks_team_model->get_tasks_team_array();
 
+		$result['can_edit'] = $this->acl_manager->user_has_access('datadeposit', 'edit');
+		$result['can_delete'] = $this->acl_manager->user_has_access('datadeposit', 'delete');
+
 		//$result['stats'] = $this->DD_project_model->stats();
 		
 		$this->sort_by    = $this->input->get('sort_by')    ? $this->input->get('sort_by'): 'created_on';
@@ -91,6 +96,8 @@ class Datadeposit extends MY_Controller {
 		$data['project']=(object)$this->DD_project_model->get_by_id($id);
 		$data['project_summary']=$this->DD_project_model->get_project_summary($id);
 		$data['study_id']=$this->DD_project_model->get_study_id($id);
+		$data['can_edit'] = $this->acl_manager->user_has_access('datadeposit', 'edit');
+		$data['can_delete'] = $this->acl_manager->user_has_access('datadeposit', 'delete');
 		$content=$this->load->view('datadeposit/admin_process_project',$data,true);
 	
 		$this->template->write('content', $content,true);
@@ -101,6 +108,8 @@ class Datadeposit extends MY_Controller {
 	//process project e.g. change project status
 	function tab_process($id)
 	{
+		$this->acl_manager->has_access_or_die('datadeposit', 'edit');
+
 		if ($this->input->post("status"))
 		{
 			$options=array(
@@ -189,6 +198,8 @@ class Datadeposit extends MY_Controller {
 	
 	function tab_communicate($id)
 	{
+		$this->acl_manager->has_access_or_die('datadeposit', 'edit');
+
 		if ($this->input->post("body"))
 		{
 			$this->load->helper('email');
@@ -346,6 +357,8 @@ class Datadeposit extends MY_Controller {
 	//prints folders using older method
 	function old_folder_paths()
 	{
+		$this->acl_manager->has_access_or_die('datadeposit', 'edit');
+
 		$this->db->select("id,created_on,title");
 		$projects=$this->db->get('DD_projects')->result_array('DD_projects');
 		
@@ -369,6 +382,8 @@ class Datadeposit extends MY_Controller {
 	
 	function update_folder_paths()
 	{
+		$this->acl_manager->has_access_or_die('datadeposit', 'edit');
+
 		$this->db->select("id,created_on,title,data_folder_path");
 		$projects=$this->db->get('DD_projects')->result_array('dd_projects');
 		
@@ -399,6 +414,8 @@ class Datadeposit extends MY_Controller {
 	*/
 	function delete($id)
 	{			
+		$this->acl_manager->has_access_or_die('datadeposit', 'delete');
+
 		//array of id to be deleted
 		$delete_arr=array();
 	
@@ -521,6 +538,8 @@ class Datadeposit extends MY_Controller {
 
     function assign($project_id)
     {
+        $this->acl_manager->has_access_or_die('datadeposit', 'edit');
+
         $this->load->model('user_model');
         $this->load->model('DD_tasks_model');
         $this->load->model('DD_tasks_team_model');

@@ -10,6 +10,7 @@ class Citations extends MY_Controller {
 
 		$this->template->set_template('admin5');
 		$this->load->model('Citation_model');
+		$this->load->model('Catalog_model');
 		$this->load->model('Survey_resource_model');
 		$this->load->helper(array ('querystring_helper','url', 'form') );
         $this->load->library( array('acl_manager','form_validation','pagination') );
@@ -248,6 +249,8 @@ class Citations extends MY_Controller {
      **/
     function selected_surveys($skey,$isajax=1)
     {
+		$this->_require_citation_attach_access();
+
         //get survey id array from session
         $sess=(array)$this->session->userdata($skey);
 
@@ -261,8 +264,15 @@ class Citations extends MY_Controller {
 			return false;
 		}
 
+		$allowed_ids = array();
+		foreach ((array) $sess['selected'] as $sid) {
+			if ($this->_study_view_granted($sid)) {
+				$allowed_ids[] = (int) $sid;
+			}
+		}
+
 		//get survey info from db
-		$data['selected_surveys']=$this->Citation_model->get_surveys($sess['selected']);
+		$data['selected_surveys']=$this->Citation_model->get_surveys($allowed_ids);
 
 		//load formatted list
 		$output=$this->load->view("citations/selected_surveys",$data,TRUE);
@@ -503,6 +513,8 @@ class Citations extends MY_Controller {
         {
             return FALSE;
         }
+
+		$this->_require_study_view_on_ids($surveys);
 
 		//remove all related surveys
 		$this->Citation_model->delete_related_survey($citationid);
@@ -1196,6 +1208,67 @@ class Citations extends MY_Controller {
 
         echo json_encode($citations);
     }
+
+	/**
+	 * Citation import/edit attach flows (same as Dialog_select_studies).
+	 */
+	private function _require_citation_attach_access()
+	{
+		if ($this->_citation_privilege_granted('edit') || $this->_citation_privilege_granted('create')) {
+			return;
+		}
+		$this->acl_manager->has_access_or_die('citation', 'edit');
+	}
+
+	private function _citation_privilege_granted($privilege)
+	{
+		try {
+			$this->acl_manager->has_access('citation', $privilege);
+			return true;
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			return false;
+		}
+	}
+
+	/**
+	 * @param array $survey_ids numeric surveys.id values
+	 */
+	private function _require_study_view_on_ids($survey_ids)
+	{
+		foreach ((array) $survey_ids as $sid) {
+			if ($sid === null || $sid === '' || ! is_numeric($sid)) {
+				continue;
+			}
+			$this->acl_manager->has_access_or_die(
+				'study',
+				'view',
+				null,
+				$this->Catalog_model->get_survey_repositoryid((int) $sid)
+			);
+		}
+	}
+
+	private function _study_view_granted($sid)
+	{
+		if ($sid === null || $sid === '' || ! is_numeric($sid)) {
+			return false;
+		}
+		try {
+			$this->acl_manager->has_access(
+				'study',
+				'view',
+				null,
+				$this->Catalog_model->get_survey_repositoryid((int) $sid)
+			);
+			return true;
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			return false;
+		}
+	}
 
 
 }

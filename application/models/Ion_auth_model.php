@@ -1030,10 +1030,12 @@ class Ion_auth_model extends CI_Model
 		$update_needed=false;
 
 		$roles=array();
+		$update_roles=false;
 		
 		//user role IDs
 		if (isset($data['role_id']) || array_key_exists('role_id',$data))
 		{			
+			$update_roles=true;
 			if(is_array($data['role_id'])){
 				$roles=$data['role_id'];
 			}
@@ -1077,9 +1079,7 @@ class Ion_auth_model extends CI_Model
 
 		
 		//user role membership
-
-        //update user roles info
-		if (is_array($roles) && count($roles)>0)
+		if ($update_roles)
 		{
 			//remove any existing user roles
 			$this->db->query(sprintf('delete from %s where user_id=%d',
@@ -1088,8 +1088,11 @@ class Ion_auth_model extends CI_Model
 
 			foreach($roles as $role_id)
 			{
+				if ($role_id === '' || $role_id === null || !is_numeric($role_id)) {
+					continue;
+				}
 				$options=array(
-						'role_id'	=> $role_id,
+						'role_id'	=> (int) $role_id,
 						'user_id'	=> $id 
 						);
 				$this->db->insert('user_roles',$options);

@@ -105,8 +105,8 @@ if (typeof axios === 'undefined') {
                 <div class="sa-section-title" style="display:flex; align-items:center; justify-content:space-between;">
                     <span>Monthly Breakdown</span>
                     <span style="font-weight:400; font-size:0.85rem;">
-                        <a href="<?php echo site_url('api/analytics/monthly/studies/export?study_id=' . $_sid . '&format=csv'); ?>" class="btn btn-default btn-xs" title="Export as CSV">CSV</a>
-                        <a href="<?php echo site_url('api/analytics/monthly/studies/export?study_id=' . $_sid . '&format=json'); ?>" class="btn btn-default btn-xs" title="Export as JSON">JSON</a>
+                        <a href="<?php echo site_url('api/admin/analytics/monthly/studies/export?study_id=' . $_sid . '&format=csv'); ?>" class="btn btn-default btn-xs" title="Export as CSV">CSV</a>
+                        <a href="<?php echo site_url('api/admin/analytics/monthly/studies/export?study_id=' . $_sid . '&format=json'); ?>" class="btn btn-default btn-xs" title="Export as JSON">JSON</a>
                     </span>
                 </div>
                 <div v-if="loading" class="sa-loading">Loading…</div>
@@ -148,8 +148,8 @@ if (typeof axios === 'undefined') {
                 <div class="sa-section-title" style="display:flex; align-items:center; justify-content:space-between;">
                     <span>File Downloads</span>
                     <span style="font-weight:400; font-size:0.85rem;">
-                        <a href="<?php echo site_url('api/analytics/monthly/files/export?study_id=' . $_sid . '&format=csv'); ?>" class="btn btn-default btn-xs" title="Export as CSV">CSV</a>
-                        <a href="<?php echo site_url('api/analytics/monthly/files/export?study_id=' . $_sid . '&format=json'); ?>" class="btn btn-default btn-xs" title="Export as JSON">JSON</a>
+                        <a href="<?php echo site_url('api/admin/analytics/monthly/files/export?study_id=' . $_sid . '&format=csv'); ?>" class="btn btn-default btn-xs" title="Export as CSV">CSV</a>
+                        <a href="<?php echo site_url('api/admin/analytics/monthly/files/export?study_id=' . $_sid . '&format=json'); ?>" class="btn btn-default btn-xs" title="Export as JSON">JSON</a>
                     </span>
                 </div>
                 <div v-if="filesLoading" class="sa-loading">Loading…</div>
@@ -183,7 +183,7 @@ if (typeof axios === 'undefined') {
 <script>
 (function() {
     var STUDY_ID   = <?php echo $_sid; ?>;
-    var API_BASE   = (typeof CI !== 'undefined' ? CI.base_url : '') + '/api/analytics';
+    var API_BASE   = (typeof CI !== 'undefined' ? CI.base_url : '') + '/api/admin/analytics';
     var CHART_ID   = 'sa-trend-chart-' + STUDY_ID;
     var MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 

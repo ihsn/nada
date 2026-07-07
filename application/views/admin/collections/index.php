@@ -11,6 +11,7 @@ window.APP_CONFIG = {
     apiBaseUrl: "<?php echo addslashes($api_base_url); ?>",
     assetsBase: "<?php echo addslashes(isset($assets_base) ? $assets_base : base_url('frontend/dist/')); ?>",
     csrfToken: "<?php echo addslashes($csrf_token); ?>",
+    canManageCollectionAccess: <?php echo !empty($can_manage_collection_access) ? 'true' : 'false'; ?>,
     translations: <?php echo json_encode($translations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>
 };
 </script>
