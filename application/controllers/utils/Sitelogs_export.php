@@ -44,7 +44,7 @@ class Sitelogs_export extends CI_Controller {
         if (!$this->is_cli) {
             $this->load->library('acl_manager');
             if (!$this->acl_manager->user_is_admin()) {
-                show_error('Access denied. Admin privileges required.');
+                $this->acl_manager->show_access_denied('feature');
             }
             $this->load->library('template');
             $this->template->set_template('admin');

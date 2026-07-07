@@ -14,8 +14,9 @@ class Api_logs extends MY_REST_Controller {
         parent::__construct();
         
         $this->load->model('Api_logs_model');
-                
-        $this->is_admin_or_die();
+
+        $this->is_authenticated_or_die();
+        $this->require_access('user', 'view');
     }
 
     /**

@@ -11,7 +11,16 @@ class Reports extends MY_REST_Controller
 		$this->load->helper("date");
 		$this->load->model('Dataset_model');//remove with Datasets library
 		$this->load->library("Dataset_manager");
-		//$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
+		$this->_apply_reports_acl();
+	}
+
+	private function _apply_reports_acl()
+	{
+		$method = strtolower((string) $this->router->fetch_method());
+		if (preg_match('/_get$/', $method)) {
+			$this->require_access('reports', 'view');
+		}
 	}
 	
 

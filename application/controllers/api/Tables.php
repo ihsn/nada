@@ -299,7 +299,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function indexes_post($db_id=null,$table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$options=$this->raw_json_input();
@@ -339,7 +339,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function text_index_post($db_id=null,$table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$options=$this->raw_json_input();
@@ -379,7 +379,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function indexes_delete($db_id=null,$table_id=null,$index_name=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$options=$this->raw_json_input();
@@ -418,7 +418,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function indexes_delete_all_post($db_id=null,$table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			
@@ -538,7 +538,7 @@ class Tables extends MY_REST_Controller
 	function export_get($db_id=null,$table_id=null)
 	{
 		try{
-			$this->is_admin_or_die();
+			$this->require_access('table', 'edit');
 
 			$get_params=array();
 			parse_str($_SERVER['QUERY_STRING'], $get_params);
@@ -655,7 +655,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function insert_post($db_id=NULL, $table_id=NULL)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 
 		try{
 			$options=$this->raw_json_input();
@@ -735,7 +735,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function upload_post($db_id,$table_id)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			
@@ -797,7 +797,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function import_post($db_id=null, $table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 
 		try {
 			$options = $this->raw_json_input();
@@ -837,7 +837,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function rename_collection_post()
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 
 		try{
 			$user_id=$this->get_api_user_id();
@@ -893,7 +893,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function create_table_post($db_id=NULL, $table_id=NULL)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 
 		try{
 			$options=$this->raw_json_input();
@@ -979,7 +979,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function update_table_put($db_id=NULL, $table_id=NULL)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 
 		try{
 			$options=$this->raw_json_input();
@@ -1034,7 +1034,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function export_definition_get($db_id=null, $table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$user_id=$this->get_api_user_id();
@@ -1117,7 +1117,7 @@ class Tables extends MY_REST_Controller
 
 	function delete_post($db_id=null,$table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'delete');
 		
 		try{
 			$options=$this->raw_json_input();
@@ -1181,7 +1181,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function attach_to_study_post()
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 
 		try{
 			$options=$this->raw_json_input();
@@ -1236,7 +1236,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function detach_from_study_post()
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$options=$this->raw_json_input();
@@ -1289,7 +1289,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function studies_get($db_id=null, $table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$user_id=$this->get_api_user_id();
@@ -1733,7 +1733,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function fields_post($db_id=null, $table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$field_data = $this->raw_json_input();
@@ -1786,7 +1786,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function field_delete($db_id=null, $table_id=null, $field_name=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$user_id=$this->get_api_user_id();
@@ -1836,7 +1836,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function fields_reorder_post($db_id=null, $table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$options = $this->raw_json_input();
@@ -1882,7 +1882,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function create_dictionary_indexes_post()
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$user_id=$this->get_api_user_id();
@@ -1929,7 +1929,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function fields_sync_post($db_id=null, $table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$user_id=$this->get_api_user_id();
@@ -1961,7 +1961,7 @@ class Tables extends MY_REST_Controller
 
 	function fields_populate_post($db_id=null,$table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try{
 			$options=$this->raw_json_input();
@@ -2010,7 +2010,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function convert_field_types_post($db_id=null, $table_id=null)
 	{
-		$this->is_admin_or_die();
+		$this->require_access('table', 'edit');
 		
 		try {
 			$user_id = $this->get_api_user_id();

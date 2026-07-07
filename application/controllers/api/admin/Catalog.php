@@ -47,6 +47,8 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
  * Study folder on disk: GET|POST /api/admin/catalog/{idno}/folder-status — optional query `id_format=id`.
  *   GET: JSON `exists`, `folder_path`, `folder_path_full` (read-only).
  *   POST: creates the directory on disk (and may set `surveys.dirpath` when empty, same as new-study flow); requires edit access; JSON same shape as GET.
+ *
+ * Study link picker: GET /api/admin/catalog/list_collections — all collections `{ id, repositoryid, title }`; gated by `user_has_any_admin_capability()` (not ACL-scoped).
  */
 class Catalog extends MY_REST_Controller
 {
@@ -2003,6 +2005,84 @@ class Catalog extends MY_REST_Controller
 
 
 	/**
+	 * Parse and validate the DDI file on disk for a survey without saving anything.
+	 *
+	 * GET /api/admin/catalog/{idno}/validate_ddi
+	 * Query `id_format=id` when `{idno}` is numeric surveys.id.
+	 *
+	 * Response shape (always HTTP 200):
+	 *   { status: "success"|"failed", idno, message, errors[] }
+	 * Returns HTTP 400 only for infrastructure errors (file missing, wrong type, etc.).
+	 */
+	function validate_ddi_get($idno = null)
+	{
+		try {
+			$user = $this->api_user();
+			if (! $user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+			if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			$sid = $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view', $sid);
+
+			$this->load->model('Dataset_model');
+			$dataset = $this->Dataset_model->get_row($sid);
+			if (! $dataset) {
+				throw new Exception('IDNO_NOT_FOUND');
+			}
+			if ($dataset['type'] !== 'survey') {
+				throw new Exception('NOT_A_SURVEY_DATASET');
+			}
+
+			$file_path = $this->Dataset_model->get_metadata_file_path($sid);
+			if (! $file_path || ! file_exists($file_path)) {
+				throw new Exception('DDI_FILE_NOT_FOUND');
+			}
+
+			$this->load->library('Metadata_parser', ['file_type' => 'survey', 'file_path' => $file_path]);
+			$parser = $this->metadata_parser->get_reader();
+
+			$mapper = new Nada\DdiParser\Mapping\NadaSurveyMapper(
+				$this->config->item('survey', 'metadata_parser', TRUE)
+			);
+			$mapped = $mapper->map($parser->get_study_meta());
+
+			$this->load->library('Schema_validator');
+			$this->schema_validator->validate_schema(APPPATH . 'schemas/survey-schema.json', $mapped);
+
+			$this->set_response(
+				array('status' => 'success', 'idno' => $idno, 'message' => 'DDI is valid'),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (ValidationException $e) {
+			$this->set_response(
+				array(
+					'status'  => 'failed',
+					'idno'    => $idno,
+					'message' => $e->getMessage(),
+					'errors'  => $e->GetValidationErrors(),
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array('status' => 'failed', 'message' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
 	 * Transfer study ownership to another collection (same core action as POST api/datasets/{idno}/owner_collection).
 	 *
 	 * POST /api/admin/catalog/{idno}/transfer_ownership
@@ -3163,6 +3243,61 @@ class Catalog extends MY_REST_Controller
 		}
 		catch (Exception $e) {
 			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_OK);
+		}
+	}
+
+
+	/**
+	 * All collections for the study "Display in other collections" picker (minimal fields).
+	 *
+	 * GET /api/admin/catalog/list_collections
+	 *
+	 * Gate: authenticated + user_has_any_admin_capability() (includes collection-only admins with repositories_acl grants).
+	 * Does not filter rows by catalog ACL; study edit on POST …/collections controls who may save links.
+	 */
+	function list_collections_get()
+	{
+		try {
+			$user = $this->api_user();
+			if (!$user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+			if (!$this->acl_manager->user_has_any_admin_capability($user)) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			$repos = $this->Repository_model->select_all(null, false);
+			$collections = array();
+
+			foreach ($repos as $row) {
+				$rid = isset($row['repositoryid']) ? (string) $row['repositoryid'] : '';
+				if ($rid === '') {
+					continue;
+				}
+				$collections[] = array(
+					'id'             => isset($row['id']) ? (int) $row['id'] : null,
+					'repositoryid'   => $rid,
+					'title'          => isset($row['title']) ? (string) $row['title'] : $rid,
+				);
+			}
+
+			usort($collections, function ($a, $b) {
+				return strcasecmp($a['title'], $b['title']);
+			});
+
+			$this->set_response(
+				array(
+					'status'      => 'success',
+					'collections' => $collections,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
 

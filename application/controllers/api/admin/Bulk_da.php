@@ -19,26 +19,24 @@ class Bulk_da extends MY_REST_Controller
 		$this->lang->load('da_collection');
 		$this->is_authenticated_or_die();
 		$this->load->library('acl_manager');
+		$this->_apply_bulk_data_access_acl();
 	}
 
 	/**
-	 * Session auth (same as other admin JSON APIs).
+	 * Map REST action to bulk_data_access view / edit / delete.
 	 */
-
-	/**
-	 * User must be allowed to use admin catalog (bulk DA UI).
-	 *
-	 * @throws AclAccessDeniedException
-	 */
-	protected function _require_bulk_da_catalog_access()
+	private function _apply_bulk_data_access_acl()
 	{
-		$user = $this->api_user();
-		if (! $user) {
-			throw new AclAccessDeniedException('ACCESS-DENIED');
+		$method = strtolower((string) $this->router->fetch_method());
+		if (preg_match('/delete/', $method)) {
+			$this->require_access('bulk_data_access', 'delete');
+			return;
 		}
-		if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
-			throw new AclAccessDeniedException('ACCESS-DENIED');
+		if (preg_match('/_(post|put)$/', $method)) {
+			$this->require_access('bulk_data_access', 'edit');
+			return;
 		}
+		$this->require_access('bulk_data_access', 'view');
 	}
 
 	/**
@@ -47,8 +45,6 @@ class Bulk_da extends MY_REST_Controller
 	public function collections_get()
 	{
 		try {
-			$this->_require_bulk_da_catalog_access();
-
 			$rows = $this->bulk_da_lib->select_all();
 			if (! is_array($rows)) {
 				$rows = array();
@@ -77,8 +73,6 @@ class Bulk_da extends MY_REST_Controller
 	public function collection_get($id = null)
 	{
 		try {
-			$this->_require_bulk_da_catalog_access();
-
 			if (! is_numeric($id)) {
 				$this->set_response(array('status' => 'error', 'message' => 'INVALID_ID'), REST_Controller::HTTP_BAD_REQUEST);
 				return;
@@ -113,8 +107,6 @@ class Bulk_da extends MY_REST_Controller
 	public function collection_post()
 	{
 		try {
-			$this->_require_bulk_da_catalog_access();
-
 			$input = $this->raw_json_input();
 			if (! is_array($input)) {
 				$this->set_response(array('status' => 'error', 'message' => 'INVALID_JSON_INPUT'), REST_Controller::HTTP_BAD_REQUEST);
@@ -165,8 +157,6 @@ class Bulk_da extends MY_REST_Controller
 	public function collection_update_post($id = null)
 	{
 		try {
-			$this->_require_bulk_da_catalog_access();
-
 			if (! is_numeric($id)) {
 				$this->set_response(array('status' => 'error', 'message' => 'INVALID_ID'), REST_Controller::HTTP_BAD_REQUEST);
 				return;
@@ -227,8 +217,6 @@ class Bulk_da extends MY_REST_Controller
 	public function collections_delete_post()
 	{
 		try {
-			$this->_require_bulk_da_catalog_access();
-
 			$input = $this->raw_json_input();
 			if (! is_array($input) || ! isset($input['ids']) || ! is_array($input['ids'])) {
 				$this->set_response(array('status' => 'error', 'message' => 'INVALID_IDS'), REST_Controller::HTTP_BAD_REQUEST);
@@ -274,8 +262,6 @@ class Bulk_da extends MY_REST_Controller
 	public function studies_search_get($collection_id = null)
 	{
 		try {
-			$this->_require_bulk_da_catalog_access();
-
 			if (! is_numeric($collection_id)) {
 				$this->set_response(array('status' => 'error', 'message' => 'INVALID_ID'), REST_Controller::HTTP_BAD_REQUEST);
 				return;
@@ -350,8 +336,6 @@ class Bulk_da extends MY_REST_Controller
 	public function study_link_post()
 	{
 		try {
-			$this->_require_bulk_da_catalog_access();
-
 			$input = $this->raw_json_input();
 			if (! is_array($input)) {
 				$this->set_response(array('status' => 'error', 'message' => 'INVALID_JSON_INPUT'), REST_Controller::HTTP_BAD_REQUEST);

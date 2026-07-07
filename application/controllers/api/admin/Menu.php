@@ -8,15 +8,39 @@ require(APPPATH . '/libraries/MY_REST_Controller.php');
  *
  * REST API for managing menu items.
  * Base URL: /api/admin/menu
- * Auth: admin only (is_admin_or_die).
+ * Auth: session or API key; ACL via menu/* (see constructor).
  */
 class Menu extends MY_REST_Controller {
 
 	public function __construct()
 	{
 		parent::__construct();
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
 		$this->load->model('Menu_model');
+		$this->_apply_menu_acl();
+	}
+
+	private function _apply_menu_acl()
+	{
+		$method = strtolower((string) $this->router->fetch_method());
+		if ($method === '' || $method === 'index') {
+			return;
+		}
+		if ($method === 'index_get') {
+			$this->require_access('menu', 'view');
+			return;
+		}
+		if (preg_match('/delete/', $method)) {
+			$this->require_access('menu', 'delete');
+			return;
+		}
+		if ($method === 'publish_post') {
+			$this->require_access('menu', 'publish');
+			return;
+		}
+		if (preg_match('/_(post|put)$/', $method)) {
+			$this->require_access('menu', 'edit');
+		}
 	}
 
 	/**

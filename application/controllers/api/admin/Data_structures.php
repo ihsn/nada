@@ -7,7 +7,7 @@ require(APPPATH . '/libraries/MY_REST_Controller.php');
  * Admin Data Structures API (global DSD catalogue)
  *
  * Base URL: /api/admin/data_structures
- * Auth: session or API key; **admin only** (is_admin_or_die), same bar as other catalogue admin APIs.
+ * Auth: session or API key; ACL via `data_structure/*` (see constructor).
  *
  * Endpoints (PUT/DELETE also have POST aliases where noted):
  *
@@ -55,12 +55,36 @@ class Data_structures extends MY_REST_Controller {
 	public function __construct()
 	{
 		parent::__construct();
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
+		$this->_apply_data_structure_acl();
 		$this->load->model('Data_structure_model');
 		$this->load->model('Data_structure_component_model');
 		$this->load->model('Codelist_model');
 		$this->load->model('Codelist_item_model');
 		$this->load->model('Codelist_group_model');
+	}
+
+	private function _apply_data_structure_acl()
+	{
+		$method = strtolower((string) $this->router->fetch_method());
+		if ($method === '' || $method === 'index') {
+			return;
+		}
+		if (preg_match('/_get$/', $method)) {
+			$this->require_access('data_structure', 'view');
+			return;
+		}
+		if (preg_match('/delete/', $method)) {
+			$this->require_access('data_structure', 'delete');
+			return;
+		}
+		if ($method === 'create_post' || $method === 'index_post') {
+			$this->require_access('data_structure', 'create');
+			return;
+		}
+		if (preg_match('/_(post|put)$/', $method)) {
+			$this->require_access('data_structure', 'edit');
+		}
 	}
 
 	/**

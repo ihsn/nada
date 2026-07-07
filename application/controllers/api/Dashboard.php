@@ -5,15 +5,14 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
 /**
  * Dashboard API Controller
  *
- * Provides a single consolidated stats endpoint for the admin dashboard.
- * All DB work is delegated to Dashboard_model.
  */
 class Dashboard extends MY_REST_Controller {
 
     public function __construct()
     {
         parent::__construct();
-        $this->is_admin_or_die();
+        $this->is_authenticated_or_die();
+        $this->require_access('dashboard', 'view');
         $this->load->model('Dashboard_model');
     }
 
@@ -55,7 +54,7 @@ class Dashboard extends MY_REST_Controller {
     }
 
     // -------------------------------------------------------------------------
-    // Private helpers (non-DB)
+    // Private helpers
     // -------------------------------------------------------------------------
 
     /**

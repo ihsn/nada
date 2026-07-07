@@ -9,8 +9,32 @@ class Filestore extends MY_REST_Controller
 		parent::__construct();
         $this->load->helper("date");
         $this->load->model('Filestore_model');
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
+		$this->_apply_filestore_acl();
     }
+
+	private function _apply_filestore_acl()
+	{
+		$method = strtolower((string) $this->router->fetch_method());
+		if ($method === '' || $method === 'index') {
+			return;
+		}
+		if (preg_match('/_get$/', $method)) {
+			if ($method === 'download_get') {
+				$this->require_access('filestore', 'download');
+			} else {
+				$this->require_access('filestore', 'view');
+			}
+			return;
+		}
+		if ($method === 'index_post') {
+			$this->require_access('filestore', 'upload');
+			return;
+		}
+		if (preg_match('/delete/', $method)) {
+			$this->require_access('filestore', 'delete');
+		}
+	}
     
 
     /**

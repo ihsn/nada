@@ -10,9 +10,24 @@ class Datadeposits extends MY_REST_Controller
 		$this->load->model('Catalog_model'); 	
 		$this->load->helper("date");
         $this->load->model('DD_project_model');
-		$this->load->model('DD_resource_model');
+        $this->load->model('DD_resource_model');
 		$this->load->model('DD_citation_model');
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
+		$this->_apply_datadeposit_acl();
+	}
+
+	private function _apply_datadeposit_acl()
+	{
+		$method = strtolower((string) $this->router->fetch_method());
+		if (preg_match('/delete/', $method)) {
+			$this->require_access('datadeposit', 'delete');
+			return;
+		}
+		if (preg_match('/_(post|put)$/', $method)) {
+			$this->require_access('datadeposit', 'edit');
+			return;
+		}
+		$this->require_access('datadeposit', 'view');
 	}
 
 	/** 

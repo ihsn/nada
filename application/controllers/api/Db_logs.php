@@ -31,8 +31,9 @@ class Db_logs extends MY_REST_Controller {
         $webroot  = rtrim(str_replace('\\', '/', realpath(FCPATH) ?: FCPATH), '/') . '/';
         $csv_real = rtrim(str_replace('\\', '/', realpath($this->csv_dir) ?: $this->csv_dir), '/') . '/';
         $this->csv_dir_in_webroot = (strpos($csv_real, $webroot) === 0);
-                
-        $this->is_admin_or_die();
+
+        $this->is_authenticated_or_die();
+        $this->require_access('user', 'view');
     }
 
     /**

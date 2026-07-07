@@ -96,7 +96,7 @@ class Widgets extends MY_REST_Controller
 	function index_post($uuid=null)
 	{
 		try{
-			$this->is_admin_or_die();
+			$this->require_access('configurations', 'edit');
 			$overwrite=$this->input->post("overwrite");
 
 			if($overwrite=='yes'){
@@ -134,7 +134,7 @@ class Widgets extends MY_REST_Controller
 	{
 		
 		try{
-			$this->is_admin_or_die();
+			$this->require_access('configurations', 'edit');
 			$this->Widget_model->delete($uuid);
 
 			$output=array(
@@ -168,7 +168,6 @@ class Widgets extends MY_REST_Controller
 	function attach_to_study_post()
 	{		
 		try{	
-			$this->is_admin_or_die();		
 			$options=$this->raw_json_input();
 
 			if (!isset($options['uuid'])){
@@ -180,6 +179,7 @@ class Widgets extends MY_REST_Controller
 			}
 
 			$sid=$this->get_sid_from_idno($options['idno']);
+			$this->require_study_access('edit', $sid);
 
 			$result=$this->Widget_model->attach_to_study($sid,$options['uuid']);
 
@@ -209,7 +209,6 @@ class Widgets extends MY_REST_Controller
 	function detach_study_post()
 	{		
 		try{	
-			$this->is_admin_or_die();		
 			$options=$this->raw_json_input();
 
 			if (!isset($options['uuid'])){
@@ -221,6 +220,7 @@ class Widgets extends MY_REST_Controller
 			}
 
 			$sid=$this->get_sid_from_idno($options['idno']);
+			$this->require_study_access('edit', $sid);
 
 			$result=$this->Widget_model->remove_from_study($sid,$options['uuid']);
 

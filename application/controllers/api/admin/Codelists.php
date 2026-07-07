@@ -19,6 +19,30 @@ class Codelists extends MY_REST_Controller {
 		$this->load->model('Codelist_model');
 		$this->load->model('Codelist_item_model');
 		$this->load->model('Codelist_group_model');
+		$this->_apply_codelist_acl();
+	}
+
+	private function _apply_codelist_acl()
+	{
+		$method = strtolower((string) $this->router->fetch_method());
+		if ($method === '' || $method === 'index') {
+			return;
+		}
+		if (preg_match('/_get$/', $method)) {
+			$this->require_access('codelist', 'view');
+			return;
+		}
+		if (preg_match('/delete/', $method)) {
+			$this->require_access('codelist', 'delete');
+			return;
+		}
+		if ($method === 'index_post') {
+			$this->require_access('codelist', 'create');
+			return;
+		}
+		if (preg_match('/_(post|put)$/', $method)) {
+			$this->require_access('codelist', 'edit');
+		}
 	}
 
 	/**

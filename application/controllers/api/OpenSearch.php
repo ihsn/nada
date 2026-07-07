@@ -30,7 +30,8 @@ class OpenSearch extends MY_REST_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->is_admin_or_die();
+        $this->is_authenticated_or_die();
+        $this->require_access('configurations', 'edit');
 
         require_once APPPATH . 'libraries/OpenSearch/OpenSearch_manager.php';
         $this->manager = new OpenSearch_manager();

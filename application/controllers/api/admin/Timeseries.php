@@ -619,7 +619,7 @@ class Timeseries extends MY_REST_Controller {
 	public function structure_indexes_post($dsd_id = null)
 	{
 		try {
-			$this->is_admin_or_die();
+			$this->require_access('data_structure', 'edit');
 			$dsd_id = (int) $dsd_id;
 			if ($dsd_id <= 0) {
 				throw new Exception('Invalid data structure id');
@@ -669,7 +669,7 @@ class Timeseries extends MY_REST_Controller {
 					throw new Exception('Study is not linked to this data structure');
 				}
 			} else {
-				$this->is_admin_or_die();
+				$this->require_access('data_structure', 'edit');
 			}
 			$limit = null;
 			if (isset($input['limit']) && $input['limit'] !== '') {
@@ -721,7 +721,7 @@ class Timeseries extends MY_REST_Controller {
 				}
 				$filter['sid'] = $sidInt;
 			} else {
-				$this->is_admin_or_die();
+				$this->require_access('data_structure', 'view');
 			}
 			$dups = $this->Timeseries_mongo_model->find_duplicate_key_hashes($dsd_id, $filter);
 			$this->set_response([
@@ -739,7 +739,7 @@ class Timeseries extends MY_REST_Controller {
 	public function structure_stats_get($dsd_id = null)
 	{
 		try {
-			$this->is_admin_or_die();
+			$this->require_access('data_structure', 'view');
 			$dsd_id = (int) $dsd_id;
 			if ($dsd_id <= 0) {
 				throw new Exception('Invalid data structure id');

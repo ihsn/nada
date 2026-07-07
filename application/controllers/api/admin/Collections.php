@@ -29,12 +29,28 @@ class Collections extends MY_REST_Controller
 		$published=$this->input->get("published");
 
 		try{
-			$this->has_access($resource_='collection',$privilege='view');
+			$user = $this->api_user();
+			if (!$user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+			$this->acl_manager->require_collection_admin_list_access($user);
 
 			if (is_numeric($published) && ($published==0 || $published==1)){
 				$repos=$this->Repository_model->select_all($published, true);
 			}else{
 				$repos=$this->Repository_model->select_all(null, true);
+			}
+
+			$scope = $this->acl_manager->get_collection_admin_repository_scope($user);
+			if (is_array($scope)) {
+				$allowed = array_flip(array_map('strtolower', $scope));
+				$repos = array_filter(
+					$repos,
+					static function ($row) use ($allowed) {
+						$rid = strtolower((string) ($row['repositoryid'] ?? ''));
+						return $rid !== '' && isset($allowed[$rid]);
+					}
+				);
 			}
 
 			$output=array();
@@ -57,6 +73,12 @@ class Collections extends MY_REST_Controller
 				foreach($fields as $idx=>$name){
 					$tmp[$name]=$row[$idx];
 				}
+				$tmp['can_manage_access'] = $this->acl_manager->user_has_access(
+					'collection',
+					'manage_access',
+					$user,
+					$row['repositoryid']
+				);
 
 				$output[]=$tmp;
 			}
@@ -100,7 +122,7 @@ class Collections extends MY_REST_Controller
 		}
 
 		try{
-			$this->has_access($resource_='collection',$privilege='edit');
+			$this->has_access($resource_='collection',$privilege='create');
 			$user_id=$this->get_api_user_id();
 
 			if (isset($options['long_text'])) {
@@ -170,7 +192,6 @@ class Collections extends MY_REST_Controller
 		}
 
 		try{
-			$this->has_access($resource_='collection',$privilege='edit');
 			$user_id=$this->get_api_user_id();
 
 			if(!isset($options['repositoryid'])){
@@ -178,12 +199,19 @@ class Collections extends MY_REST_Controller
 			}
 
 			$posted_long = array_key_exists('long_text', $options);
+			$posted_ispublished = array_key_exists('ispublished', $options);
 
 			$repository=$this->Repository_model->get_repository_by_repositoryid($options['repositoryid']);
 			
 			if(!$repository){
 				throw new Exception("Repository not found:: " .$options['repositoryid']);
 			}
+
+			if ($posted_ispublished && (int) $options['ispublished'] !== (int) $repository['ispublished']) {
+				$this->has_access($resource_='collection', $privilege='publish', $options['repositoryid']);
+			}
+
+			$this->has_access($resource_='collection',$privilege='edit', $options['repositoryid']);
 
 			$options=array_merge($repository,$options);
 
@@ -256,9 +284,6 @@ class Collections extends MY_REST_Controller
 		}
 
 		try{
-			$this->has_access($resource_='collection',$privilege='edit');
-			$user_id=$this->get_api_user_id();
-			
 			if(!isset($options['old_repositoryid'])){
 				throw new Exception("parameter `old_repositoryid` is missing");
 			}
@@ -266,6 +291,9 @@ class Collections extends MY_REST_Controller
 			if(!isset($options['new_repositoryid'])){
 				throw new Exception("parameter `new_repositoryid` is missing");
 			}
+
+			$this->has_access($resource_='collection',$privilege='edit', $options['old_repositoryid']);
+			$user_id=$this->get_api_user_id();
 
 			$repository=$this->Repository_model->get_repository_by_repositoryid($options['old_repositoryid']);
 
@@ -321,16 +349,17 @@ class Collections extends MY_REST_Controller
 	function single_get($repo_id=null)
 	{
 		try{
-			$this->has_access($resource_='collection',$privilege='view');
 			if(!($repo_id)){
 				throw new Exception("MISSING_PARAM: repositoryId");
-			}			
-			
+			}
+
 			$repo=$this->Repository_model->get_repository_by_repositoryid($repo_id);
-			
+
 			if(!$repo){
 				throw new Exception("REPOSITORY-NOT-FOUND");
 			}
+
+			$this->has_access($resource_='collection',$privilege='view', $repo['repositoryid']);
 
 			$repo=array(
 				'id'=>$repo['id'],
@@ -368,17 +397,17 @@ class Collections extends MY_REST_Controller
 	function datasets_get($repo_id=null)
 	{
 		try{
-			$this->has_access($resource_='collection',$privilege='view');
-
 			if(!($repo_id)){
 				throw new Exception("MISSING_PARAM: repositoryId");
-			}			
-			
+			}
+
 			$repo=$this->Repository_model->get_repository_by_repositoryid($repo_id);
-			
+
 			if(!$repo){
 				throw new Exception("REPOSITORY-NOT-FOUND");
 			}
+
+			$this->has_access($resource_='collection',$privilege='view', $repo['repositoryid']);
 
 			$datasets=$this->Repository_model->get_all_repo_studies($repo_id);
 			$sid_arr=array_values(array_column($datasets,'id'));
@@ -418,17 +447,17 @@ class Collections extends MY_REST_Controller
 	function delete_delete($repo_id=null)
 	{
 		try{
-			$this->has_access($resource_='collection',$privilege='delete');
-
 			if(!($repo_id)){
 				throw new Exception("MISSING_PARAM: repositoryId");
-			}			
-			
+			}
+
 			$repo=$this->Repository_model->get_repository_by_repositoryid($repo_id);
-			
+
 			if(!$repo){
 				throw new Exception("REPOSITORY-NOT-FOUND");
 			}
+
+			$this->has_access($resource_='collection',$privilege='delete', $repo['repositoryid']);
 
 			$this->Repository_model->delete($repo['id']);
 
@@ -464,8 +493,6 @@ class Collections extends MY_REST_Controller
 	function history_get($repositoryid=null)
 	{
 		try{
-			$this->has_access($resource_='collection',$privilege='view');
-
 			if(!$repositoryid){
 				throw new Exception("MISSING_PARAM: repositoryid");
 			}
@@ -474,6 +501,8 @@ class Collections extends MY_REST_Controller
 			if(!$repo){
 				throw new Exception("REPOSITORY-NOT-FOUND");
 			}
+
+			$this->has_access($resource_='collection',$privilege='view', $repo['repositoryid']);
 
 			$page   = max(1, (int)$this->input->get('page'));
 			$ps     = min(200, max(1, (int)($this->input->get('ps') ?: 25)));
@@ -509,7 +538,7 @@ class Collections extends MY_REST_Controller
 				$this->set_response(array('status' => 'failed', 'message' => 'AUTH_REQUIRED'), REST_Controller::HTTP_UNAUTHORIZED);
 				return;
 			}
-			$this->has_access($resource_='collection',$privilege='view');
+			$this->acl_manager->require_collection_admin_list_access($user);
 			$sections=$this->Repository_model->get_repository_sections();
 			$this->set_response(array('status'=>'success','sections'=>$sections), REST_Controller::HTTP_OK);
 		}
@@ -527,15 +556,17 @@ class Collections extends MY_REST_Controller
 	 * GET {apiBase}repository_acl/{repository_pk}
 	 *
 	 * Optional query: user_q (min 2 chars) — username/email search for the add-user bar.
+	 * Requires global collection/manage_access (or full admin).
 	 */
 	function repository_acl_get($repository_pk = null)
 	{
 		try {
-			$this->has_access('user', 'edit');
-
 			if ($repository_pk === null || $repository_pk === '') {
 				throw new Exception('MISSING_PARAM: repository_pk');
 			}
+
+			$repo = $this->_repository_row_by_pk((int) $repository_pk);
+			$this->has_access('collection', 'manage_access', $repo['repositoryid']);
 
 			$user_q = trim((string) $this->input->get('user_q'));
 			$payload = $this->_repository_acl_payload((int) $repository_pk, $user_q);
@@ -556,6 +587,7 @@ class Collections extends MY_REST_Controller
 	 * POST {apiBase}repository_acl/{repository_pk}
 	 *
 	 * JSON: { "user_id": int, "permissions": ["study_view", ...] }
+	 * Requires global collection/manage_access (or full admin).
 	 */
 	function repository_acl_post($repository_pk = null)
 	{
@@ -571,13 +603,13 @@ class Collections extends MY_REST_Controller
 		}
 
 		try {
-			$this->has_access('user', 'edit');
-
 			if ($repository_pk === null || $repository_pk === '') {
 				throw new Exception('MISSING_PARAM: repository_pk');
 			}
 
 			$pk = (int) $repository_pk;
+			$repo = $this->_repository_row_by_pk($pk);
+			$this->has_access('collection', 'manage_access', $repo['repositoryid']);
 
 			$user_id = isset($options['user_id']) ? (int) $options['user_id'] : 0;
 			if ($user_id < 1) {
@@ -601,11 +633,10 @@ class Collections extends MY_REST_Controller
 
 
 	/**
-	 * @param int    $pk repositories.id (0 = central)
-	 * @param string $user_q optional search string for user autocomplete
-	 * @return array
+	 * @param int $pk repositories.id (0 = central)
+	 * @return array repository row with repositoryid
 	 */
-	private function _repository_acl_payload($pk, $user_q = '')
+	private function _repository_row_by_pk($pk)
 	{
 		if ($pk === 0) {
 			$repo = $this->Repository_model->get_central_catalog_array();
@@ -616,6 +647,19 @@ class Collections extends MY_REST_Controller
 		if (empty($repo) || empty($repo['repositoryid'])) {
 			throw new Exception('REPOSITORY-NOT-FOUND');
 		}
+
+		return $repo;
+	}
+
+
+	/**
+	 * @param int    $pk repositories.id (0 = central)
+	 * @param string $user_q optional search string for user autocomplete
+	 * @return array
+	 */
+	private function _repository_acl_payload($pk, $user_q = '')
+	{
+		$repo = $this->_repository_row_by_pk($pk);
 
 		$white_list   = $this->acl_manager->get_manageable_repositories_acl_permission_whitelist_map();
 		$managed_keys = array_keys($white_list);
@@ -666,6 +710,7 @@ class Collections extends MY_REST_Controller
 			),
 			'study_permissions'    => $this->acl_manager->get_manageable_study_repositories_acl_rows(),
 			'licensed_permissions' => $this->acl_manager->get_manageable_licensed_request_repositories_acl_rows(),
+			'collection_permissions' => $this->acl_manager->get_manageable_collection_repositories_acl_rows(),
 			'users'                => array_values($users_map),
 			'user_search'          => $user_search,
 		);

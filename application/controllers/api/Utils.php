@@ -8,7 +8,8 @@ class Utils extends MY_REST_Controller
 	{
 		parent::__construct();
 		$this->load->helper("date");
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
+		$this->require_access('configurations', 'edit');
 	}
 	
 

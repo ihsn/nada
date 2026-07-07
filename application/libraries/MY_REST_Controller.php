@@ -24,12 +24,7 @@ abstract class MY_REST_Controller extends REST_Controller {
             }
         }   
         catch(Exception $e){
-			$response=array(
-                'status'=>'failed',
-                'message'=>'ACCESS-DENIED'
-            );
-            $this->response($response, REST_Controller::HTTP_FORBIDDEN,false);
-            die();
+            $this->access_denied_response();
 		}
     }
 
@@ -202,39 +197,111 @@ abstract class MY_REST_Controller extends REST_Controller {
 
     }
 
-    function has_access($resource,$privilege,$repositoryid=null)
+    function has_access($resource, $privilege, $repositoryid = null, $study_id = null)
     {
-        $user=$this->api_user();
-
-        try{
-            return $this->acl_manager->has_access($resource, $privilege,$user,$repositoryid);
-        }
-        catch(Exception $e){
-            throw new AclAccessDeniedException('ACCESS-DENIED',$e->getMessage());
-        }        
+        return $this->acl_manager->check_access(
+            $resource,
+            $privilege,
+            $this->get_api_user_id(),
+            $study_id,
+            $repositoryid
+        );
     }
 
-
-    function has_dataset_access($privilege, $sid=null,$repositoryid=null)
+    /**
+     * Enforce ACL; respond with 403 JSON and exit on denial.
+     *
+     * @param string      $resource
+     * @param string      $privilege
+     * @param string|null $repositoryid catalog slug
+     * @param int|null    $study_id     repo resolved from study when repositoryid omitted
+     */
+    protected function require_access($resource, $privilege, $repositoryid = null, $study_id = null)
     {
-        $user=$this->api_user();
-        $resource='study';        
+        try {
+            $this->acl_manager->check_access(
+                $resource,
+                $privilege,
+                $this->get_api_user_id(),
+                $study_id,
+                $repositoryid
+            );
+        }
+        catch (AclAccessDeniedException $e) {
+            $this->access_denied_response();
+        }
+    }
 
-        //get repositoryid
-        if ($sid && !$repositoryid){            
-            $repositoryid=$this->get_dataset_repositoryid($sid);
+    /**
+     * Enforce study ACL (see Acl_manager::check_study_access).
+     *
+     * @param string      $privilege
+     * @param int|null    $sid
+     * @param string|null $repositoryid
+     */
+    protected function require_study_access($privilege, $sid = null, $repositoryid = null)
+    {
+        try {
+            $this->acl_manager->check_study_access(
+                $privilege,
+                $this->get_api_user_id(),
+                $sid,
+                $repositoryid
+            );
         }
-        
-        if (!$repositoryid){        
-            $repositoryid='central';
+        catch (AclAccessDeniedException $e) {
+            $this->access_denied_response();
         }
+    }
 
-        try{
-            return $this->acl_manager->has_access('study', $privilege,$user,$repositoryid);
+    /**
+     * Analytics API ACL (see Acl_manager::check_analytics_access).
+     *
+     * @param int|string|null $study_id           numeric sid or idno; empty for site-wide endpoints
+     * @param bool            $allow_study_scope  false for writes / site-admin-only operations
+     */
+    protected function require_analytics_access($study_id = null, $allow_study_scope = true)
+    {
+        try {
+            $sid = null;
+            if ($study_id !== null && $study_id !== '') {
+                $sid = is_numeric($study_id) ? (int) $study_id : $this->get_sid_from_idno($study_id);
+            }
+            $this->acl_manager->check_analytics_access(
+                $this->get_api_user_id(),
+                $sid,
+                $allow_study_scope
+            );
         }
-        catch(Exception $e){
-            throw new AclAccessDeniedException('ACCESS-DENIED',$e->getMessage());
+        catch (AclAccessDeniedException $e) {
+            $this->access_denied_response();
         }
+    }
+
+    /**
+     * Standard 403 for ACL denial on admin APIs (matches is_admin_or_die JSON shape).
+     */
+    protected function access_denied_response()
+    {
+        $this->response(
+            array(
+                'status'  => 'failed',
+                'message' => 'ACCESS-DENIED',
+            ),
+            REST_Controller::HTTP_FORBIDDEN,
+            false
+        );
+        exit;
+    }
+
+    function has_dataset_access($privilege, $sid = null, $repositoryid = null)
+    {
+        return $this->acl_manager->check_study_access(
+            $privilege,
+            $this->get_api_user_id(),
+            $sid,
+            $repositoryid
+        );
     }
 
 	/**
@@ -249,18 +316,14 @@ abstract class MY_REST_Controller extends REST_Controller {
 		if (count($idno_list) === 0) {
 			throw new Exception('idno_list must be a non-empty array');
 		}
-		$checked = 0;
+		$study_ids = array();
 		foreach ($idno_list as $idno) {
 			if ($idno === null || $idno === '') {
 				continue;
 			}
-			$checked++;
-			$sid = $this->get_sid_from_idno($idno);
-			$this->has_dataset_access('view', $sid);
+			$study_ids[] = $this->get_sid_from_idno($idno);
 		}
-		if ($checked === 0) {
-			throw new Exception('idno_list contains no valid study identifiers');
-		}
+		$this->acl_manager->assert_study_view_on_study_ids($study_ids, $this->get_api_user_id());
 	}
 
 
@@ -296,17 +359,6 @@ abstract class MY_REST_Controller extends REST_Controller {
             }
         }
         throw new Exception('INVALID_FEATURED_VALUE');
-    }
-
-    
-    private function get_dataset_repositoryid($sid)
-    {
-        $this->db->select("repositoryid");
-        $this->db->where("id",$sid);
-        $output=$this->db->get("surveys")->row_array();
-        if($output){
-            return $output['repositoryid'];
-        }
     }
 
     public function _auth_override_check()

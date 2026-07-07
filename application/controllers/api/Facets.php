@@ -8,8 +8,28 @@ class Facets extends MY_REST_Controller
 	{
         parent::__construct();
         $this->load->model("Facet_model");
-		$this->is_admin_or_die();
+		$this->is_authenticated_or_die();
+		$this->_apply_facets_acl();
     }
+
+	private function _apply_facets_acl()
+	{
+		$method = strtolower((string) $this->router->fetch_method());
+		if ($method === '' || $method === 'index') {
+			return;
+		}
+		if (preg_match('/_get$/', $method)) {
+			$this->require_access('facets', 'edit');
+			return;
+		}
+		if (preg_match('/delete/', $method)) {
+			$this->require_access('facets', 'delete');
+			return;
+		}
+		if (preg_match('/_(post|put)$/', $method)) {
+			$this->require_access('facets', 'edit');
+		}
+	}
 
 
     // GET /api/facets — list all user facets with term counts
