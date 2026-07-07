@@ -1200,15 +1200,30 @@ class Tables extends MY_REST_Controller
 				throw new exception("Missing Param:: idno or sid");
 			}
 
+			$sid = null;
+			if (isset($options['sid'])) {
+				$sid = (int) $options['sid'];
+			}
+
 			// If sid is provided, get idno from it
-			if (isset($options['sid']) && !isset($options['idno'])){
+			if ($sid && !isset($options['idno'])){
 				$this->load->model('Dataset_model');
-				$idno = $this->Dataset_model->get_idno($options['sid']);
+				$idno = $this->Dataset_model->get_idno($sid);
 				if (!$idno){
-					throw new exception("Study ID not found: " . $options['sid']);
+					throw new exception("Study ID not found: " . $sid);
 				}
 				$options['idno'] = $idno;
 			}
+
+			if (!$sid && isset($options['idno'])) {
+				$sid = $this->get_sid_from_idno($options['idno']);
+			}
+
+			if (!$sid) {
+				throw new exception("Missing Param:: idno or sid");
+			}
+
+			$this->require_study_access('edit', $sid);
 
 			$result=$this->Survey_data_api_model->insert($options);
 			
@@ -1253,6 +1268,8 @@ class Tables extends MY_REST_Controller
 			if (!isset($options['sid'])){
 				throw new exception("Missing Param:: sid");
 			}
+
+			$this->require_study_access('edit', (int) $options['sid']);
 
 			$result=$this->Survey_data_api_model->detach($options['sid'],$options['db_id'],$options['table_id']);			
 

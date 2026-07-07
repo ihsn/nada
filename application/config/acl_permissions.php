@@ -351,6 +351,28 @@ $config['acl_permissions'] = [
             ]
         ]
     ],
+    "widget"=>[
+        "title" => "Widgets",
+        "description" => "Create and manage embeddable chart widgets; attach to studies where the user has study edit access.",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Browse and read widget records"
+            ],
+            [
+                "permission" => "create",
+                "description" => "Upload and register new widgets"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Update widgets and attach or detach them from studies"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete widget records and storage"
+            ]
+        ]
+    ],
     "filestore"=>[ 
         "title" => "Filestore",
         "description"=> "Manage filestore files",

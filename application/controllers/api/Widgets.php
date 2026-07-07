@@ -21,6 +21,7 @@ class Widgets extends MY_REST_Controller
 	function index_get($uuid=null)
 	{
 		try{
+			$this->require_access('widget', 'view');
 
 			if($uuid){
 				return $this->single($uuid);
@@ -96,7 +97,7 @@ class Widgets extends MY_REST_Controller
 	function index_post($uuid=null)
 	{
 		try{
-			$this->require_access('configurations', 'edit');
+			$this->require_access('widget', 'create');
 			$overwrite=$this->input->post("overwrite");
 
 			if($overwrite=='yes'){
@@ -134,7 +135,7 @@ class Widgets extends MY_REST_Controller
 	{
 		
 		try{
-			$this->require_access('configurations', 'edit');
+			$this->require_access('widget', 'delete');
 			$this->Widget_model->delete($uuid);
 
 			$output=array(
@@ -168,6 +169,8 @@ class Widgets extends MY_REST_Controller
 	function attach_to_study_post()
 	{		
 		try{	
+			$this->require_access('widget', 'edit');
+
 			$options=$this->raw_json_input();
 
 			if (!isset($options['uuid'])){
@@ -209,6 +212,8 @@ class Widgets extends MY_REST_Controller
 	function detach_study_post()
 	{		
 		try{	
+			$this->require_access('widget', 'edit');
+
 			$options=$this->raw_json_input();
 
 			if (!isset($options['uuid'])){
@@ -254,6 +259,8 @@ class Widgets extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->require_study_access('view', $sid);
+
 			$result=$this->Widget_model->widgets_by_study($sid);
 			
 			$response=array(
