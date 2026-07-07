@@ -2,8 +2,22 @@
   <div>
     <div class="permissions-page-header">
       <v-btn icon="mdi-arrow-left" variant="text" size="small" @click="router.push({ path: '/' })" />
-      <h1 class="text-h5 font-weight-medium">Collection permissions</h1>
-      <v-chip v-if="repositoryLabel" size="small" variant="tonal" color="primary">{{ repositoryLabel }}</v-chip>
+      <div class="permissions-page-header__content">
+        <div class="permissions-page-header__title-row">
+          <h1 class="text-h5 font-weight-medium mb-0">Collection user access</h1>
+          <v-chip
+            v-if="repositoryLabel"
+            size="small"
+            variant="flat"
+            class="permissions-collection-chip"
+          >
+            {{ repositoryLabel }}
+          </v-chip>
+        </div>
+        <p class="text-body-2 text-medium-emphasis mb-0 permissions-page-header__subtitle">
+          Assign study, licensed-request, and collection-admin permissions for this collection only.
+        </p>
+      </div>
     </div>
 
     <v-alert v-if="error" type="error" class="mb-4" density="compact" closable @click:close="error = null">
@@ -80,8 +94,8 @@
           class="elevation-0"
         >
           <template #item.permissions="{ item }">
-            <div class="d-flex flex-wrap gap-1 py-1">
-              <v-chip v-for="p in item.permissions" :key="p" size="x-small" variant="outlined">{{ p }}</v-chip>
+            <div class="d-flex flex-wrap gap-2 py-1">
+              <v-chip v-for="p in item.permissions" :key="p" size="x-small" variant="tonal">{{ p }}</v-chip>
               <span v-if="!item.permissions?.length" class="text-medium-emphasis">—</span>
             </div>
           </template>
@@ -344,14 +358,46 @@ async function confirmRemove(row) {
 <style scoped>
 .permissions-page-header {
   display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.permissions-page-header__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.permissions-page-header__title-row {
+  display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-bottom: 1.5rem;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.permissions-page-header__subtitle {
+  max-width: 42rem;
 }
 
 .permissions-page-header h1 {
   margin: 0;
+}
+
+.permissions-collection-chip {
+  max-width: 100%;
+  font-weight: 500;
+}
+
+.permissions-collection-chip :deep(.v-chip__content) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.permissions-collection-chip.v-chip {
+  background: rgba(var(--v-theme-on-surface), 0.08);
+  color: rgba(var(--v-theme-on-surface), 0.82);
 }
 
 .add-user-access-wrap {

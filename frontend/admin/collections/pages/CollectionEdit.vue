@@ -1,8 +1,18 @@
 <template>
   <div>
-    <div class="d-flex align-center mb-4">
+    <div class="d-flex align-center flex-wrap mb-4 ga-2">
       <v-btn icon="mdi-arrow-left" variant="text" size="small" @click="router.push('/')" />
-      <h1 class="text-h5 font-weight-medium ml-2">Edit Collection</h1>
+      <h1 class="text-h5 font-weight-medium">Edit Collection</h1>
+      <v-spacer />
+      <v-btn
+        v-if="canManageAccess"
+        variant="outlined"
+        color="primary"
+        prepend-icon="mdi-account-key-outline"
+        @click="goPermissions"
+      >
+        User access
+      </v-btn>
     </div>
 
     <v-card max-width="800">
@@ -66,19 +76,32 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAppConfig } from '@/shared/composables/useAppConfig';
 import CollectionForm from '../components/CollectionForm.vue';
 import { useCollectionsApi } from '../composables/useCollectionsApi';
 
 const router = useRouter();
 const route = useRoute();
+const { config } = useAppConfig();
 const { loading: fetchLoading, getCollection, getSections, updateCollection, renameCollection } = useCollectionsApi();
 
 const formRef = ref(null);
 const saveLoading = ref(false);
 const error = ref(null);
 const sections = ref([]);
+const collectionPk = ref(null);
+const canManageAccessOnCollection = ref(false);
+
+const canManageAccess = computed(() =>
+  !!config.value?.canManageCollectionAccess || canManageAccessOnCollection.value
+);
+
+function goPermissions() {
+  if (!collectionPk.value) return;
+  router.push({ name: 'collection-permissions', params: { repositoryId: String(collectionPk.value) } });
+}
 
 const form = reactive({
   repositoryid: '',
@@ -134,6 +157,8 @@ onMounted(async () => {
     (async () => {
       try {
         const collection = await getCollection(route.params.repositoryid);
+        collectionPk.value = collection.id;
+        canManageAccessOnCollection.value = !!collection.can_manage_access;
         form.repositoryid = collection.repositoryid;
         form.title = collection.title || '';
         form.short_text = collection.short_text || '';

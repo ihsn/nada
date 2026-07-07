@@ -566,6 +566,13 @@
     "file": "assets/chart-hgNavcfR.js",
     "name": "chart"
   },
+  "_dialog-3zRuZncs.js": {
+    "file": "assets/dialog-3zRuZncs.js",
+    "name": "dialog",
+    "imports": [
+      "_router-BpJENvmT.js"
+    ]
+  },
   "_dialog-transition-ChXOMSP1.js": {
     "file": "assets/dialog-transition-ChXOMSP1.js",
     "name": "dialog-transition",
@@ -712,13 +719,14 @@
     ]
   },
   "admin/catalog/main.js": {
-    "file": "assets/admin_catalog-BUu9aezl.js",
+    "file": "assets/admin_catalog-S5pSH4dV.js",
     "name": "admin_catalog",
     "src": "admin/catalog/main.js",
     "isEntry": true,
     "imports": [
       "_router-BpJENvmT.js",
       "_useAppConfig-DHJaKOkw.js",
+      "_dialog-3zRuZncs.js",
       "_VCard--9kEVasb.js",
       "_VSpacer-Dnj3WPnk.js",
       "_VApp-BHZt_YCD.js",
@@ -1080,7 +1088,7 @@
     ]
   },
   "admin/collections/main.js": {
-    "file": "assets/admin_collections-ECpVm7ci.js",
+    "file": "assets/admin_collections-Gx5Fclp3.js",
     "name": "admin_collections",
     "src": "admin/collections/main.js",
     "isEntry": true,
@@ -1089,26 +1097,30 @@
       "_useAppConfig-DHJaKOkw.js",
       "_vue-router-CBZweK-l.js",
       "_VSelect-DZLCXrlW.js",
-      "_VTabs-CH9q8ZG7.js",
       "__plugin-vue_export-helper-DlAUqK2U.js",
-      "_VMenu-CZ_hQuUI.js",
-      "_VList-DYYvZhNk.js",
       "_VApp-BHZt_YCD.js",
-      "_VSwitch--cSfxQIZ.js",
-      "_VChip-DOp997Go.js",
-      "_VDataTable-D_nUzpPW.js",
       "_index-BOeqtr82.js",
-      "_VBreadcrumbs-t8oBbORW.js",
+      "_dialog-3zRuZncs.js",
+      "_VCheckbox-DMdH1OnN.js",
+      "_VList-DYYvZhNk.js",
+      "_VMenu-CZ_hQuUI.js",
+      "_VPagination-CUUm-v7x.js",
+      "_VChip-DOp997Go.js",
+      "_VTooltip-BOJFg5kk.js",
+      "_VSwitch--cSfxQIZ.js",
+      "_VTable-Bo-S-Bik.js",
       "_VRow-CFPRqsyB.js",
-      "_VAlert-CwYfv-ru.js",
       "_VCard--9kEVasb.js",
+      "_VDialog-DXzp7EKF.js",
+      "_VBreadcrumbs-t8oBbORW.js",
+      "_VAlert-CwYfv-ru.js",
       "_VSnackbar-By2UUUwp.js",
       "_VSpacer-Dnj3WPnk.js",
-      "_VDialog-DXzp7EKF.js",
       "_VTextarea-DGQPjd_I.js",
       "_VForm-_JH6LG_F.js",
       "_VDataTableServer-p9fgyCyL.js",
       "_VAutocomplete-iSimYUWJ.js",
+      "_VDataTable-D_nUzpPW.js",
       "_VMain-CIsPJJRZ.js",
       "_VContainer-BC-BgblT.js",
       "_VInput-BCAhb56r.js",
@@ -1117,12 +1129,10 @@
       "_forwardRefs-CWyi9GPe.js",
       "_dialog-transition-ChXOMSP1.js",
       "_VSheet-pkxooOoY.js",
-      "_ssrBoot-CyzHDsop.js",
-      "_VPagination-CUUm-v7x.js",
-      "_VTable-Bo-S-Bik.js"
+      "_ssrBoot-CyzHDsop.js"
     ],
     "css": [
-      "assets/admin_collections-9ZLoCwaB.css",
+      "assets/admin_collections-CShWRkxA.css",
       "assets/base-BKMxH8S4.css"
     ]
   },

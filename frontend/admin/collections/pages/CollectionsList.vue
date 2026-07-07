@@ -8,7 +8,10 @@
 
     <v-row align="center" class="mb-4">
       <v-col cols="12" md="8">
-        <h1 class="text-h5 font-weight-semibold text-high-emphasis mb-0">Collections</h1>
+        <h1 class="text-h5 font-weight-semibold text-high-emphasis mb-1">Collections</h1>
+        <p class="text-body-2 text-medium-emphasis mb-0">
+          Organize studies and assign per-user access for studies, licensed requests, and collection administration.
+        </p>
       </v-col>
       <v-col cols="12" md="4" class="d-flex justify-end ga-2">
         <v-btn
@@ -34,21 +37,22 @@
     </v-alert>
 
     <template v-else>
-      <v-card class="pa-4 mb-4" elevation="1">
+      <v-card class="pa-4" elevation="1">
         <v-row dense align="center">
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="5">
             <AdminCollectionsSearchBar @search="onSearch" @submit="applySearch" />
           </v-col>
-          <v-col cols="12" md="auto">
-            <v-btn color="primary" @click="applySearch">Search</v-btn>
+          <v-col cols="12" md="5">
+            <AdminCollectionsFilters
+              :published="publishedFilter"
+              @filter-change="onFilterChange"
+            />
+          </v-col>
+          <v-col cols="12" md="2" class="d-flex">
+            <v-btn color="primary" block @click="applySearch">Search</v-btn>
           </v-col>
         </v-row>
       </v-card>
-
-      <AdminCollectionsFilters
-        :published="publishedFilter"
-        @filter-change="onFilterChange"
-      />
 
       <v-snackbar v-model="toast.open" :color="toast.color" location="bottom right" :timeout="5000">
         {{ toast.message }}
@@ -57,7 +61,7 @@
         </template>
       </v-snackbar>
 
-      <v-card elevation="1">
+      <v-card class="collections-table-card admin-collections-results-card" elevation="1">
         <AdminCollectionsResults
           :collections="filteredCollections"
           :loading="loading"
@@ -65,7 +69,7 @@
           @history="c => router.push('/history/' + c.repositoryid)"
           @delete="openDeleteDialog"
           @publish-change="onPublishChange"
-          @weight-change="onWeightChange"
+          @refresh="fetchCollections"
         />
       </v-card>
 
@@ -181,16 +185,6 @@ async function onPublishChange({ collection, published }) {
   }
 }
 
-async function onWeightChange({ collection, weight }) {
-  try {
-    await updateCollection({ repositoryid: collection.repositoryid, weight });
-    await fetchCollections();
-  } catch (e) {
-    showError(e);
-    await fetchCollections();
-  }
-}
-
 async function confirmDelete() {
   if (!deleteDialog.collection) return;
   saving.value = true;
@@ -218,5 +212,9 @@ onMounted(fetchCollections);
 .coll-breadcrumbs :deep(.v-breadcrumbs-item),
 .coll-breadcrumbs :deep(.v-breadcrumbs-divider) {
   font-size: 0.8125rem;
+}
+
+.collections-table-card {
+  margin-top: 1.5rem;
 }
 </style>

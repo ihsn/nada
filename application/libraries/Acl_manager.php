@@ -1727,4 +1727,115 @@ class Acl_manager
 		return $output;
 	}
 
+	/**
+	 * Distinct users with managed per-collection ACL grants, keyed by repositories.id.
+	 *
+	 * @return array<int,int> repository_id => user count
+	 */
+	function repositories_acl_managed_user_counts_by_repository()
+	{
+		if ( ! $this->ci->db->table_exists('repositories_acl')) {
+			return array();
+		}
+
+		$managed_keys = array_keys($this->get_manageable_repositories_acl_permission_whitelist_map());
+		if (empty($managed_keys)) {
+			return array();
+		}
+
+		$this->ci->db->select('repository_id, COUNT(DISTINCT user_id) AS user_count', false);
+		$this->ci->db->from('repositories_acl');
+		$this->ci->db->where_in('permission', $managed_keys);
+		$this->ci->db->group_by('repository_id');
+		$rows = $this->ci->db->get()->result_array();
+
+		$out = array();
+		foreach ($rows as $row) {
+			$pk = isset($row['repository_id']) ? (int) $row['repository_id'] : 0;
+			if ($pk < 1) {
+				continue;
+			}
+			$out[$pk] = (int) $row['user_count'];
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Distinct users with managed per-collection ACL grants, keyed by repositories.id.
+	 * Includes total count and a username preview (for admin list UI).
+	 *
+	 * @param int $preview_limit max usernames per repository
+	 * @return array<int, array{count:int, users:array<int, array{user_id:int, username:string}>}>
+	 */
+	function repositories_acl_managed_users_preview_by_repository($preview_limit = 3)
+	{
+		if ( ! $this->ci->db->table_exists('repositories_acl')) {
+			return array();
+		}
+
+		$preview_limit = max(1, (int) $preview_limit);
+		$managed_keys = array_keys($this->get_manageable_repositories_acl_permission_whitelist_map());
+		if (empty($managed_keys)) {
+			return array();
+		}
+
+		$this->ci->load->config('ion_auth');
+		$tables = $this->ci->config->item('tables');
+		$meta_table = (is_array($tables) && ! empty($tables['meta'])) ? $tables['meta'] : 'meta';
+
+		$this->ci->db->select('ra.repository_id, u.id AS user_id, m.first_name, m.last_name');
+		$this->ci->db->from('repositories_acl ra');
+		$this->ci->db->join('users u', 'u.id = ra.user_id', 'inner');
+		$this->ci->db->join($meta_table . ' m', 'm.user_id = u.id', 'left');
+		$this->ci->db->where_in('ra.permission', $managed_keys);
+		$this->ci->db->group_by('ra.repository_id, u.id, m.first_name, m.last_name');
+		$this->ci->db->order_by('ra.repository_id', 'ASC');
+		$this->ci->db->order_by('m.first_name', 'ASC');
+		$this->ci->db->order_by('m.last_name', 'ASC');
+		$rows = $this->ci->db->get()->result_array();
+
+		$out = array();
+		foreach ($rows as $row) {
+			$pk = isset($row['repository_id']) ? (int) $row['repository_id'] : 0;
+			$uid = isset($row['user_id']) ? (int) $row['user_id'] : 0;
+			if ($pk < 1 || $uid < 1) {
+				continue;
+			}
+
+			if ( ! isset($out[$pk])) {
+				$out[$pk] = array(
+					'count' => 0,
+					'users' => array(),
+				);
+			}
+
+			$out[$pk]['count']++;
+			$display_name = $this->_format_user_display_name(
+				isset($row['first_name']) ? $row['first_name'] : '',
+				isset($row['last_name']) ? $row['last_name'] : ''
+			);
+			if ($display_name !== '' && count($out[$pk]['users']) < $preview_limit) {
+				$out[$pk]['users'][] = array(
+					'user_id'      => $uid,
+					'first_name'   => isset($row['first_name']) ? (string) $row['first_name'] : '',
+					'last_name'    => isset($row['last_name']) ? (string) $row['last_name'] : '',
+					'display_name' => $display_name,
+				);
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * @param string $first_name
+	 * @param string $last_name
+	 * @return string
+	 */
+	private function _format_user_display_name($first_name, $last_name)
+	{
+		return trim(trim((string) $first_name) . ' ' . trim((string) $last_name));
+	}
+
 }

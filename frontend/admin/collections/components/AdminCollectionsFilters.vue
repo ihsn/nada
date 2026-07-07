@@ -1,14 +1,20 @@
 <template>
-  <v-tabs
-    :model-value="published"
-    color="primary"
-    class="mb-4"
-    @update:model-value="$emit('filter-change', $event ?? '')"
-  >
-    <v-tab value="">All</v-tab>
-    <v-tab value="1">Published</v-tab>
-    <v-tab value="0">Unpublished</v-tab>
-  </v-tabs>
+  <div class="published-filter">
+    <v-btn-toggle
+      :model-value="published"
+      color="primary"
+      density="compact"
+      variant="outlined"
+      divided
+      mandatory
+      class="published-filter-toggle"
+      @update:model-value="$emit('filter-change', $event ?? '')"
+    >
+      <v-btn value="" size="small">All</v-btn>
+      <v-btn value="1" size="small">Published</v-btn>
+      <v-btn value="0" size="small">Draft</v-btn>
+    </v-btn-toggle>
+  </div>
 </template>
 
 <script setup>
@@ -20,3 +26,14 @@ defineProps({
 
 defineEmits(['filter-change']);
 </script>
+
+<style scoped>
+.published-filter-toggle {
+  flex-wrap: wrap;
+}
+
+.published-filter-toggle :deep(.v-btn) {
+  text-transform: none;
+  letter-spacing: normal;
+}
+</style>

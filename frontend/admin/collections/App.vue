@@ -1,5 +1,6 @@
 <template>
   <v-app class="admin-collections-app">
+    <GlobalDialog />
     <v-main class="admin-collections-page">
       <v-container fluid class="px-4 pt-2 pb-6">
         <router-view />
@@ -9,6 +10,8 @@
 </template>
 
 <script setup>
+import GlobalDialog from './components/GlobalDialog.vue';
+
 defineOptions({ name: 'AdminCollectionsApp' });
 </script>
 

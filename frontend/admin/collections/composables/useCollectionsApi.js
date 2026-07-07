@@ -113,8 +113,9 @@ export function useCollectionsApi() {
   }
 
   /** POST {apiBase}update — update an existing collection (repositoryid required in payload) */
-  async function updateCollection(payload) {
-    loading.value = true;
+  async function updateCollection(payload, options = {}) {
+    const quiet = !!options.quiet;
+    if (!quiet) loading.value = true;
     error.value = null;
     try {
       const { data: body, headers } = buildPayload(payload);
@@ -125,7 +126,7 @@ export function useCollectionsApi() {
       error.value = e;
       throw e;
     } finally {
-      loading.value = false;
+      if (!quiet) loading.value = false;
     }
   }
 
@@ -149,8 +150,9 @@ export function useCollectionsApi() {
   }
 
   /** DELETE {apiBase}delete/{repo_id} — delete a collection */
-  async function deleteCollection(repositoryId) {
-    loading.value = true;
+  async function deleteCollection(repositoryId, options = {}) {
+    const quiet = !!options.quiet;
+    if (!quiet) loading.value = true;
     error.value = null;
     try {
       const { data } = await axios.delete(`${base()}delete/${encodeURIComponent(repositoryId)}`);
@@ -160,7 +162,7 @@ export function useCollectionsApi() {
       error.value = e;
       throw e;
     } finally {
-      loading.value = false;
+      if (!quiet) loading.value = false;
     }
   }
 

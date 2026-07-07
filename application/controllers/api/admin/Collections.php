@@ -53,6 +53,8 @@ class Collections extends MY_REST_Controller
 				);
 			}
 
+			$acl_user_previews = $this->acl_manager->repositories_acl_managed_users_preview_by_repository(3);
+
 			$output=array();
 			$fields=array(
 				'id'=>'id',
@@ -79,6 +81,14 @@ class Collections extends MY_REST_Controller
 					$user,
 					$row['repositoryid']
 				);
+				$repo_pk = isset($row['id']) ? (int) $row['id'] : 0;
+				$acl_preview = $repo_pk > 0 && isset($acl_user_previews[$repo_pk])
+					? $acl_user_previews[$repo_pk]
+					: array('count' => 0, 'users' => array());
+				$tmp['acl_user_count'] = (int) ($acl_preview['count'] ?? 0);
+				$tmp['acl_users'] = isset($acl_preview['users']) && is_array($acl_preview['users'])
+					? $acl_preview['users']
+					: array();
 
 				$output[]=$tmp;
 			}
@@ -361,6 +371,7 @@ class Collections extends MY_REST_Controller
 
 			$this->has_access($resource_='collection',$privilege='view', $repo['repositoryid']);
 
+			$user = $this->api_user();
 			$repo=array(
 				'id'=>$repo['id'],
 				'repositoryid'=>$repo['repositoryid'],
@@ -369,7 +380,13 @@ class Collections extends MY_REST_Controller
 				'long_text'=>$repo['long_text'],
 				'thumbnail'=>$repo['thumbnail'],
 				'weight'=>$repo['weight'],
-				'ispublished'=>$repo['ispublished']
+				'ispublished'=>$repo['ispublished'],
+				'can_manage_access' => $this->acl_manager->user_has_access(
+					'collection',
+					'manage_access',
+					$user,
+					$repo['repositoryid']
+				),
 			);
 
 			$response=array(
