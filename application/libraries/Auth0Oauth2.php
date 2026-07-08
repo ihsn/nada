@@ -47,7 +47,7 @@ class Auth0Oauth2
 		$redirect_uri = $this->get_redirect_uri();
 
 		if (empty($domain) || empty($client_id) || empty($cookie_secret)) {
-			show_error('Auth0 is not configured. Set auth0_auth options in application/config/auth.php');
+			show_error('Auth0 is not configured. Set auth0_auth options in application/config/auth.local.php');
 		}
 
 		$configuration = new SdkConfiguration(array(
