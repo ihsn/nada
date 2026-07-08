@@ -62,6 +62,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
+import DOMPurify from 'dompurify';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { joinSiteUrl } from '../catalogUrls';
@@ -144,7 +145,7 @@ async function loadHtml() {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    htmlContent.value = await res.text();
+    htmlContent.value = DOMPurify.sanitize(await res.text());
   } catch (err) {
     if (err.name === 'AbortError') return;
     error.value = err.message || t('error_invalid_parameters');

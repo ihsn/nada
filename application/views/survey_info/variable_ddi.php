@@ -29,7 +29,7 @@
 
 
 <div class="variable-container">
-    <h2><?php echo $variable['labl'] . ' ('. $variable['name'].')';?></h2>
+    <h2><?php echo html_escape($variable['labl']) . ' (' . html_escape($variable['name']) . ')';?></h2>
     <h5 class="var-file"><?php echo t('data_file');?>: <a href="<?php echo site_url('catalog/'.$file['sid'].'/data-dictionary/'.$file['file_id']);?>"><?php echo $file['file_name'];?></a></h5>
 
     <?php /* ?>
@@ -51,9 +51,9 @@
         <div class="col-md-6">
             <?php foreach($variable['metadata']['var_sumstat'] as $sumstat): $sumstat=(object)$sumstat; ?>
                 <?php $wgtd=isset($sumstat->wgtd) && $sumstat->wgtd=='wgtd' ? '_wgtd' : '';?>
-                <div class="fld-inline sum-stat sum-stat-<?php echo $sumstat->type;?>-<?php echo $wgtd;?>">
+                <div class="fld-inline sum-stat sum-stat-<?php echo html_escape($sumstat->type);?>-<?php echo $wgtd;?>">
                     <span class="fld-name sum-stat-type"><?php echo t('var_'.$sumstat->type. $wgtd);?>: </span>
-                    <span class="fld-value sum-stat-value"><?php echo isset($sumstat->value) ? $sumstat->value : '-';?></span>
+                    <span class="fld-value sum-stat-value"><?php echo isset($sumstat->value) ? html_escape($sumstat->value) : '-';?></span>
                 </div>
             <?php endforeach;?>
         </div>
@@ -81,7 +81,7 @@
                 <?php $range=$variable['metadata']['var_val_range'];?>
                 <?php  $range=(object)$range; ?>
                 <span class="fld-value sum-stat-value">
-                <?php echo @$range->min;?> - <?php echo @$range->max;?>
+                <?php echo html_escape((string)@$range->min);?> - <?php echo html_escape((string)@$range->max);?>
             </span>
         </div>
         <?php endif;?>
@@ -107,7 +107,7 @@
         <div class="fld-inline sum-stat var_wgt">
             <span class="fld-name var-fld-var_wgt"><?php echo t('var_wgt');?>: </span>
             <?php $var_wgt=$variable['metadata']['var_wgt'];?>
-            <span class="fld-value var_wgt-value"><a href="<?php echo site_url('catalog/'.$file['sid'].'/variable/'.$file['file_id'].'/'.$var_wgt);?>"><?php echo $var_wgt;?></a></span>
+            <span class="fld-value var_wgt-value"><a href="<?php echo html_escape(site_url('catalog/'.$file['sid'].'/variable/'.$file['file_id'].'/'.$var_wgt));?>"><?php echo html_escape($var_wgt);?></a></span>
         </div>
         <?php endif;?>
 

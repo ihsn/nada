@@ -82,7 +82,7 @@
                                 <?php if(is_url($row[$column_name])):?>
                                      <a target="_blank" href="<?php echo html_escape($row[$column_name]);?>"><i class="fas fa-external-link-alt"></i> <?php echo t('Link');?></a>
                                 <?php else:?>
-                                    <?php echo $row[$column_name];?>
+                                    <?php echo html_escape($row[$column_name]);?>
                                 <?php endif;?>
                             <?php endif;?>    
                         </td>
@@ -107,7 +107,7 @@
         <table class="table xsl-table table-grid">            
                <?php foreach($data as $row):?>
                <tr>
-                <td><?php echo $row;?></td>
+                <td><?php echo html_escape($row);?></td>
                </tr>
                <?php endforeach;?>
         </table>

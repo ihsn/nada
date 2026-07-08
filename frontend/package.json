@@ -18,6 +18,7 @@
     "axios": "^1.13.6",
     "chart.js": "^4.4.8",
     "codemirror": "^6.0.2",
+    "dompurify": "^3.4.11",
     "lodash": "^4.17.23",
     "pdfjs-dist": "^6.0.227",
     "sortablejs": "^1.15.7",
