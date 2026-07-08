@@ -1485,7 +1485,7 @@ class Analytics_model extends CI_Model {
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 
 		// Build data query
-		$this->db->select('analytics_pageview_events.id, analytics_pageview_events.ts, analytics_pageview_events.study_id, analytics_pageview_events.session_id, analytics_pageview_events.user_agent, analytics_pageview_events.referrer, hashed_ip, surveys.title as study_title');
+		$this->db->select('analytics_pageview_events.id, analytics_pageview_events.ts, analytics_pageview_events.study_id, analytics_pageview_events.session_id, analytics_pageview_events.page_url, analytics_pageview_events.section, analytics_pageview_events.user_agent, analytics_pageview_events.referrer, surveys.title as study_title');
 		$this->db->from('analytics_pageview_events');
 		$this->db->join('surveys', 'analytics_pageview_events.study_id = surveys.id', 'left');
 

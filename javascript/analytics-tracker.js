@@ -158,17 +158,18 @@
             });
 
             log('Response status: ' + res.status);
-            log('Response ok: ' + res.ok);
+
+            // 204 = recorded; 409 = duplicate within server dedupe window
+            if (res.status === 204 || res.status === 409) {
+                return true;
+            }
 
             if (!res.ok) {
-                const errorText = await res.text();
-                log(`API error: ${res.status} - ${errorText}`, 'error');
+                log(`API error: ${res.status}`, 'error');
                 return false;
             }
 
-            const responseData = await res.json();
-            log('Response data: ' + JSON.stringify(responseData));
-            return true;
+            return false;
         } catch (err) {
             log(`Request failed: ${err.message || err}`, 'error');
             log('Error stack: ' + (err.stack || 'no stack'), 'error');

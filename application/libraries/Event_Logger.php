@@ -57,7 +57,9 @@ class Event_Logger {
 			return false;
 		}
 		
-		return $this->ci->analytics_tracker->track_pageview($study_id, $session_id, $data);
+		$result = $this->ci->analytics_tracker->track_pageview($study_id, $session_id, $data);
+
+		return $result !== Analytics_event_tracker_model::PAGEVIEW_REJECTED;
 	}
 	
 	/**

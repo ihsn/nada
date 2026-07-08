@@ -29,12 +29,12 @@ class Analytics_tracker {
 	 * @param int $study_id Study identifier
 	 * @param string $session_id Optional session ID (from client-side)
 	 * @param array $data Optional additional data (referrer, user_agent, etc.)
-	 * @return bool Success status
+	 * @return string inserted|duplicate|rejected
 	 */
 	public function track_pageview($study_id, $session_id = null, $data = array())
 	{
 		if (!$this->CI->config->item('analytics_enabled')) {
-			return false;
+			return Analytics_event_tracker_model::PAGEVIEW_REJECTED;
 		}
 		return $this->event_tracker->track_pageview($study_id, $session_id, $data);
 	}

@@ -11,6 +11,7 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
  * Auth: none (CSRF required for pageview POST)
  *
  * Responses are status-only (no body) to avoid leaking details to anonymous clients.
+ * Pageview POST: 204 inserted, 409 duplicate, 400 rejected, 403 CSRF failure.
  */
 class Analytics extends MY_REST_Controller
 {
@@ -18,12 +19,14 @@ class Analytics extends MY_REST_Controller
 	{
 		parent::__construct();
 		$this->load->library('analytics_tracker');
+		$this->load->model('Analytics_event_tracker_model');
 	}
 
 	/**
 	 * POST /api/analytics/pageview
 	 *
-	 * 204 — accepted (tracked or filtered server-side)
+	 * 204 — pageview recorded
+	 * 409 — duplicate pageview within dedupe window
 	 * 400 — invalid payload
 	 * 403 — invalid or missing CSRF token
 	 */
@@ -46,8 +49,19 @@ class Analytics extends MY_REST_Controller
 			$study_id = $this->resolve_analytics_study_id($options['study_id']);
 			$session_id = $options['session_id'] ?? null;
 
-			$this->analytics_tracker->track_pageview($study_id, $session_id, $options);
-			$this->respond_status(REST_Controller::HTTP_NO_CONTENT);
+			$result = $this->analytics_tracker->track_pageview($study_id, $session_id, $options);
+
+			if ($result === Analytics_event_tracker_model::PAGEVIEW_INSERTED) {
+				$this->respond_status(REST_Controller::HTTP_NO_CONTENT);
+				return;
+			}
+
+			if ($result === Analytics_event_tracker_model::PAGEVIEW_DUPLICATE) {
+				$this->respond_status(REST_Controller::HTTP_CONFLICT);
+				return;
+			}
+
+			$this->respond_status(REST_Controller::HTTP_BAD_REQUEST);
 
 		} catch (Exception $e) {
 			$this->respond_status(REST_Controller::HTTP_BAD_REQUEST);

@@ -2030,6 +2030,8 @@ CREATE TABLE [analytics_pageview_events] (
     [ts] datetime NOT NULL,
     [study_id] nvarchar(100) NOT NULL,
     [session_id] nvarchar(255) NULL,
+    [page_url] nvarchar(512) NULL,
+    [section] nvarchar(100) NULL,
     [hashed_ip] nchar(64) NULL,
     [user_agent] nvarchar(200) NULL,
     [referrer] nvarchar(512) NULL,
@@ -2041,7 +2043,7 @@ CREATE NONCLUSTERED INDEX [idx_ts] ON [analytics_pageview_events] ([ts] ASC);
 CREATE NONCLUSTERED INDEX [idx_study] ON [analytics_pageview_events] ([study_id] ASC);
 CREATE NONCLUSTERED INDEX [idx_session] ON [analytics_pageview_events] ([session_id] ASC);
 CREATE NONCLUSTERED INDEX [idx_ts_study] ON [analytics_pageview_events] ([ts] ASC, [study_id] ASC);
-CREATE NONCLUSTERED INDEX [idx_dedup] ON [analytics_pageview_events] ([study_id] ASC, [hashed_ip] ASC, [ts] ASC);
+CREATE NONCLUSTERED INDEX [idx_dedup] ON [analytics_pageview_events] ([study_id] ASC, [session_id] ASC, [section] ASC, [page_url] ASC, [ts] ASC);
 
 
 CREATE TABLE [analytics_download_events] (

@@ -544,6 +544,30 @@ $config['rewrite_short_tags'] = FALSE;
 */
 $config['proxy_ips'] = '';
 
+/*
+|--------------------------------------------------------------------------
+| Reverse proxy client IP headers
+|--------------------------------------------------------------------------
+|
+| When REMOTE_ADDR matches an entry in proxy_ips, CodeIgniter reads these
+| $_SERVER keys in order and uses the first valid IP found.
+|
+| Use HTTP_* server keys (header hyphens become underscores).
+| Comma-separated X-Forwarded-For values use the first IP in the list.
+|
+| Leave empty to use CodeIgniter defaults:
+|   HTTP_X_FORWARDED_FOR, HTTP_CLIENT_IP, HTTP_X_CLIENT_IP,
+|   HTTP_X_CLUSTER_CLIENT_IP
+|
+| Cloudflare example:
+|   array('HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR')
+|
+| nginx example:
+|   array('HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR')
+|
+*/
+$config['proxy_client_ip_headers'] = array();
+
 
 /*
 |--------------------------------------------------------------------------

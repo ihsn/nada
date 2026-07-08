@@ -58,6 +58,16 @@
                             </span>
                             <span v-else class="text--secondary">-</span>
                         </template>
+                        <template v-slot:item.page_url="{ item }">
+                            <span v-if="item.page_url" :title="item.page_url" style="max-width: 220px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {{ item.page_url }}
+                            </span>
+                            <span v-else class="text--secondary">-</span>
+                        </template>
+                        <template v-slot:item.section="{ item }">
+                            <span v-if="item.section">{{ item.section }}</span>
+                            <span v-else class="text--secondary">-</span>
+                        </template>
                         <template v-slot:item.user_agent="{ item }">
                             <span v-if="item.user_agent" :title="item.user_agent" style="max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 {{ item.user_agent }}
@@ -74,6 +84,8 @@
                     { text: 'Time', value: 'ts', sortable: true },
                     { text: 'Study ID', value: 'study_id', sortable: true },
                     { text: 'Session ID', value: 'session_id', sortable: false },
+                    { text: 'Page URL', value: 'page_url', sortable: false },
+                    { text: 'Section', value: 'section', sortable: false },
                     { text: 'User Agent', value: 'user_agent', sortable: false },
                     { text: 'Referrer', value: 'referrer', sortable: false }
                 ],

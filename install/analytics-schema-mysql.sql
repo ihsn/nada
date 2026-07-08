@@ -33,7 +33,9 @@ CREATE TABLE `analytics_pageview_events` (
     `ts` DATETIME NOT NULL,
     `study_id` INT NOT NULL COMMENT 'Study page referenced',
     `session_id` VARCHAR(255) NULL COMMENT 'Client-generated session token',
-    `hashed_ip` CHAR(64) NULL COMMENT 'Hashed IP for dedupe/rate limiting',
+    `page_url` VARCHAR(512) NULL COMMENT 'Client page URL or AJAX request path',
+    `section` VARCHAR(100) NULL COMMENT 'Study tab/section for AJAX pageviews',
+    `hashed_ip` CHAR(64) NULL COMMENT 'Legacy; unused for pageview dedupe',
     `user_agent` VARCHAR(200) NULL COMMENT 'Used for bot filtering (truncated)',
     `referrer` VARCHAR(512) NULL COMMENT 'Optional analytics',
     PRIMARY KEY (`id`),
@@ -41,7 +43,7 @@ CREATE TABLE `analytics_pageview_events` (
     INDEX `idx_study` (`study_id`),
     INDEX `idx_session` (`session_id`),
     INDEX `idx_ts_study` (`ts`, `study_id`),
-    INDEX `idx_dedup` (`study_id`, `hashed_ip`, `ts`)
+    INDEX `idx_dedup` (`study_id`, `session_id`, `section`, `page_url`(191), `ts`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
