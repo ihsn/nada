@@ -239,8 +239,7 @@ class Catalog_search_sqlsrv{
 		if (!class_exists('Catalog_study_idno_lookup', false)) {
 			require_once APPPATH . 'libraries/Catalog_study_idno_lookup.php';
 		}
-		$params = is_array($this->params) ? $this->params : array();
-		$idno_result = Catalog_study_idno_lookup::try_search_from_params($params, $limit, $offset);
+		$idno_result = Catalog_study_idno_lookup::try_search($this, $limit, $offset);
 		if ($idno_result !== null) {
 			return $idno_result;
 		}
@@ -463,6 +462,124 @@ class Catalog_search_sqlsrv{
 		}
 		
 		return FALSE;
+	}
+
+	protected function _build_search_where_sql($include_type = true, $include_study = true)
+	{
+		$type = $include_type ? $this->_build_dataset_type_query() : false;
+		$study = $include_study ? $this->_build_study_query() : false;
+		$topics = $this->_build_topics_query();
+		$countries = $this->_build_countries_query();
+		$regions = $this->_build_regions_query();
+		$tags = $this->_build_tags_query();
+		$collections = $this->_build_collections_query();
+		$years = $this->_build_years_query();
+		$repository = $this->_build_repository_query();
+		$dtype = $this->_build_dtype_query();
+		$data_class = $this->_build_data_class_query();
+		$sid = $this->_build_sid_query();
+		$created = $this->_build_created_query();
+		$countries_iso3 = $this->_build_countries_iso3_query();
+
+		$where_list = array(
+			$study, $topics, $countries, $years, $repository, $collections, $dtype,
+			$sid, $countries_iso3, $created, $data_class, $tags, $type, $regions,
+		);
+
+		foreach ($this->user_facets as $fc) {
+			if (array_key_exists($fc['name'], $this->params)) {
+				$facet_query = $this->_build_facet_query($fc['name'], $this->params[$fc['name']]);
+				if ($facet_query) {
+					$where_list[] = $facet_query;
+				}
+			}
+		}
+
+		$where = '';
+
+		foreach ($where_list as $stmt) {
+			if ($stmt === FALSE || $stmt === '') {
+				continue;
+			}
+			$where .= ($where === '' ? '' : "\r\n AND ") . $stmt;
+		}
+
+		return $where;
+	}
+
+	/**
+	 * Resolve published survey IDs matching an exact IDNO or alias (case-insensitive),
+	 * within current sidebar filters (no keyword/fulltext constraint).
+	 *
+	 * @param string $keyword Single search token
+	 * @return int[]
+	 */
+	public function resolve_idno_alias_survey_ids($keyword)
+	{
+		$token_lower = strtolower(trim((string) $keyword));
+		if ($token_lower === '') {
+			return array();
+		}
+
+		$saved_kw = $this->study_keywords;
+		$this->study_keywords = '';
+		$where = $this->_build_search_where_sql(true, false);
+		$repository = $this->_build_repository_query();
+		$this->study_keywords = $saved_kw;
+
+		$exact = $this->ci->db->escape($token_lower);
+		$idno_clause = '(LOWER(surveys.idno) = ' . $exact
+			. ' OR surveys.id IN (SELECT sid FROM survey_aliases WHERE LOWER(alternate_id) = ' . $exact . '))';
+
+		$this->ci->db->select('surveys.id');
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms f', 'surveys.formid=f.formid', 'left');
+		$this->ci->db->join('repositories', 'surveys.repositoryid=repositories.repositoryid', 'left');
+		if ($repository !== FALSE && $repository !== '') {
+			$this->ci->db->join('survey_repos', 'surveys.id=survey_repos.sid', 'left');
+		}
+		$this->ci->db->where('surveys.published', 1);
+		$this->ci->db->where($idno_clause, null, false);
+		if ($where !== '') {
+			$this->ci->db->where($where, null, false);
+		}
+
+		$rows = $this->ci->db->get()->result_array();
+
+		return array_values(array_unique(array_map('intval', array_column($rows, 'id'))));
+	}
+
+	/**
+	 * Study search limited to a set of survey IDs (filters preserved, no keyword search).
+	 *
+	 * @param int[] $ids
+	 * @param int $limit
+	 * @param int $offset
+	 * @return array
+	 */
+	public function search_for_survey_ids(array $ids, $limit, $offset)
+	{
+		$ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+		if (empty($ids)) {
+			return array(
+				'found' => 0,
+				'total' => 0,
+				'limit' => $limit,
+				'offset' => $offset,
+				'rows' => array(),
+				'citations' => array(),
+				'search_counts_by_type' => array(),
+			);
+		}
+
+		$params = is_array($this->params) ? $this->params : array();
+		$params['study_keywords'] = '';
+		$params['variable_keywords'] = '';
+		$params['sid'] = implode(',', $ids);
+
+		$driver_class = get_class($this);
+		$scoped = new $driver_class($params);
+		return $scoped->search($limit, $offset);
 	}
 			
 	function _build_variable_query()

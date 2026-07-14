@@ -32,6 +32,10 @@ class Catalog_search_mysql{
 	var $country_iso3=''; //comma seperated list country iso3 codes	
 	var $created='';
 
+	var $user_facets = array();
+	var $search_result;
+	var $search_found_rows;
+	var $total_surveys;
 	var $params;
 
 	//allowed variable search fields
@@ -570,7 +574,8 @@ class Catalog_search_mysql{
 		$params['variable_keywords'] = '';
 		$params['sid'] = implode(',', $ids);
 
-		$scoped = new catalog_search_mysql($params);
+		$driver_class = get_class($this);
+		$scoped = new $driver_class($params);
 		return $scoped->search($limit, $offset);
 	}
 

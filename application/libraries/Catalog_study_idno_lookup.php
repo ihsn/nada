@@ -21,14 +21,35 @@ class Catalog_study_idno_lookup {
 	}
 
 	/**
+	 * Catalog search driver for the active DB backend (mysql/mysqli or sqlsrv).
+	 *
+	 * @param array<string, mixed> $params Catalog_search constructor params
+	 * @return catalog_search_mysql|catalog_search_sqlsrv
+	 */
+	public static function create_driver(array $params)
+	{
+		$ci =& get_instance();
+		$dbdriver = $ci->db->dbdriver;
+
+		require_once APPPATH . 'libraries/Catalog_search_mysql.php';
+
+		if ($dbdriver === 'sqlsrv') {
+			require_once APPPATH . 'libraries/Catalog_search_sqlsrv.php';
+			return new catalog_search_sqlsrv($params);
+		}
+
+		return new catalog_search_mysql($params);
+	}
+
+	/**
 	 * Run catalog search restricted to IDNO/alias hits when the keyword is a single token.
 	 *
-	 * @param catalog_search_mysql $driver Active driver (params + filters)
+	 * @param catalog_search_mysql|catalog_search_sqlsrv $driver Active driver (params + filters)
 	 * @param int $limit
 	 * @param int $offset
 	 * @return array|null Search result array, or null to continue with normal keyword search
 	 */
-	public static function try_search(catalog_search_mysql $driver, $limit, $offset)
+	public static function try_search($driver, $limit, $offset)
 	{
 		$keyword = trim((string) $driver->study_keywords);
 		if ($keyword === '' || !self::is_single_token($keyword)) {
@@ -51,11 +72,7 @@ class Catalog_study_idno_lookup {
 	 */
 	public static function try_search_from_params(array $params, $limit, $offset)
 	{
-		if (!class_exists('catalog_search_mysql', false)) {
-			require_once APPPATH . 'libraries/Catalog_search_mysql.php';
-		}
-
-		$driver = new catalog_search_mysql($params);
+		$driver = self::create_driver($params);
 		return self::try_search($driver, $limit, $offset);
 	}
 }
