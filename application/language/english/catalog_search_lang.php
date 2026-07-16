@@ -244,6 +244,7 @@ $lang['timeseries_description']="Series Description";
 $lang['timeseries_db']="Dataset description";
 $lang['dataset']="Dataset";
 $lang['datasets']="Datasets";
+$lang['identifier']="Identifier";
 $lang['related_series']="Related Indicators";
 $lang['related_series_count']="Total: %d indicators";
 $lang['no_related_series_found']="No related indicators found.";
