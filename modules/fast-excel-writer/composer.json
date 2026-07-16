@@ -1,0 +1,10 @@
+{
+    "require": {
+        "avadim/fast-excel-writer": "^6.13"
+    },
+    "config": {
+        "platform": {
+            "php": "7.4"
+        }
+    }
+}

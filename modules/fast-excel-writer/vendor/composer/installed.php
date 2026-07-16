@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => '__root__',
+        'pretty_version' => 'dev-develop',
+        'version' => 'dev-develop',
+        'reference' => '71c258544eea3c83693b6ff857622d120ce60fb2',
+        'type' => 'library',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => false,
+    ),
+    'versions' => array(
+        '__root__' => array(
+            'pretty_version' => 'dev-develop',
+            'version' => 'dev-develop',
+            'reference' => '71c258544eea3c83693b6ff857622d120ce60fb2',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'avadim/fast-excel-helper' => array(
+            'pretty_version' => 'v1.3.0',
+            'version' => '1.3.0.0',
+            'reference' => '5994f8afc69853f34669a9b71eccb4bf45025514',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../avadim/fast-excel-helper',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'avadim/fast-excel-writer' => array(
+            'pretty_version' => 'v6.13.2',
+            'version' => '6.13.2.0',
+            'reference' => '6232c3b2d1a5543cd1f2bc870893fa0e36d1d613',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../avadim/fast-excel-writer',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);

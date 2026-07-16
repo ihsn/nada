@@ -1,0 +1,67 @@
+site_name: FastExcelWriter
+site_description: Lightweight and very fast XLSX Excel Spreadsheet Writer in PHP
+site_url: https://fast-excel-writer.readthedocs.io/
+repo_url: https://github.com/aVadim483/fast-excel-writer
+repo_name: aVadim483/fast-excel-writer
+edit_uri: blob/master/docs/
+use_directory_urls: false
+
+theme:
+  name: material
+  logo: img/logo-120.png
+  favicon: img/logo-120.png
+  features:
+    - navigation.sections
+    - navigation.tracking
+    - search.highlight
+    - content.code.copy
+
+nav:
+  - Overview: index.md
+  - Installation: index.md#installation
+  - Quick Start:
+      - Simple Example: index.md#simple-example
+      - Advanced Example: index.md#advanced-example
+  - Workbook & Sheets:
+      - Workbook: 01-workbook.md
+      - Sheets: 02-sheets.md
+      - Page Setup & Print Settings: 02-sheets.md#page-setup
+      - Protection: 06-protection.md
+  - Writing & Styles:
+      - Writing Cells & Rows: 03-writing.md
+      - Formulas: 03-writing.md#formulas
+      - Rich Text: 03-writing.md#using-rich-text
+      - Styles: 04-styles.md
+  - Insertions:
+      - Images: index.md#adding-images
+      - Notes: index.md#adding-notes
+      - Charts: 05-charts.md
+  - Additional Features:
+      - Data Validation: 07-validation.md
+      - Conditional Formatting: 08-conditional.md
+  - API Reference: 90-api-reference.md
+  - Other libraries:
+      - FastExcelReader: https://github.com/aVadim483/fast-excel-reader
+      - FastExcelTemplator: https://github.com/aVadim483/fast-excel-templator
+      - Laravel Integration: https://github.com/aVadim483/fast-excel-laravel
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - tables
+  - footnotes
+  - def_list
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.snippets
+
+plugins:
+  - search
+  # - redirects
+  # - glightbox
+
+extra_javascript:
+  - ext/ext.js

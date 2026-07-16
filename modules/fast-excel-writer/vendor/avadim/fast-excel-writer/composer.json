@@ -1,0 +1,39 @@
+{
+    "name": "avadim/fast-excel-writer",
+    "description": "Lightweight and very fast XLSX Excel Spreadsheet Writer in PHP",
+    "keywords": [
+        "php",
+        "excel",
+        "phpexcel",
+        "library",
+        "xls",
+        "xlsx",
+        "export",
+        "spreadsheet",
+        "ms office",
+        "office 2007"
+    ],
+    "type": "library",
+    "homepage": "https://github.com/aVadim483/fast-excel-writer",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "avadim\\FastExcelWriter\\": "./src/FastExcelWriter"
+        }
+    },
+    "require": {
+        "php": ">=7.4",
+        "ext-zip": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "avadim/fast-excel-helper": "^1.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0",
+        "ext-fileinfo": "*",
+        "avadim/fast-excel-reader": "^2.30"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit tests"
+    }
+}
