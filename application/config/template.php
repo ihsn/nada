@@ -94,6 +94,9 @@ $template['blank_iframe']['theme_folder'] = 'nada52';
 $template['embed_chart']['template'] = '../../themes/nada52/embed_chart';
 $template['embed_chart']['theme_folder'] = 'nada52';
 
+$template['embed_table']['template'] = '../../themes/nada52/embed_table';
+$template['embed_table']['theme_folder'] = 'nada52';
+
 
 //box template file with only the body and no layout
 $template['box']['template'] = '../../themes/opendata/box';

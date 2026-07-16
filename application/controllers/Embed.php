@@ -17,6 +17,65 @@ class Embed extends MY_Controller {
 	}
 
 	/**
+	 * Public indicator table shell for iframes — same Vue app and query params as catalog/…/indicator-table.
+	 *
+	 * Route: embed/catalog/{sid}/table
+	 */
+	public function catalog_table($sid = null)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			show_404();
+		}
+
+		$survey = $this->Dataset_model->get_row($sid);
+		if (!$survey || $survey['type'] !== 'timeseries') {
+			show_404();
+		}
+
+		$ctx = $this->Timeseries_dsd_model->resolve_dsd_for_sid($sid);
+		if ($ctx === null) {
+			show_404();
+		}
+
+		if ((int) $this->Dataset_model->get_indicator_ts_sync_required_for_sid($sid) === 1) {
+			$msg = function_exists('t') ? t('indicator_data_sync_pending_public') : 'Indicator table is temporarily unavailable.';
+			$content = '<div class="container py-4"><p class="text-muted">' . htmlspecialchars($msg) . '</p></div>';
+			$page_title = isset($survey['title']) ? (string) $survey['title'] : ('Study ' . $sid);
+			$this->template->set_template('embed_table');
+			$this->template->write('title', $page_title, true);
+			$this->template->write('content', $content, true);
+			$this->template->render();
+			return;
+		}
+
+		$this->load->helper('vite_helper');
+
+		$study_abstract = isset($survey['abstract']) ? strip_tags((string) $survey['abstract']) : '';
+		if (strlen($study_abstract) > 4000) {
+			$study_abstract = substr($study_abstract, 0, 4000) . '…';
+		}
+
+		$content = $this->load->view('catalog/study_indicator_data_public', array(
+			'survey_id' => $sid,
+			'idno' => isset($survey['idno']) ? (string) $survey['idno'] : '',
+			'indicator_main_view' => 'table',
+			'catalog_page_title' => function_exists('t') ? t('tab_indicator_table') : 'Table',
+			'study_title' => isset($survey['title']) ? (string) $survey['title'] : '',
+			'study_abstract' => $study_abstract,
+			'indicator_data_api_ui' => array(),
+			'embed_mode' => true,
+		), true);
+
+		$page_title = isset($survey['title']) ? (string) $survey['title'] : ('Study ' . $sid);
+
+		$this->template->set_template('embed_table');
+		$this->template->write('title', $page_title, true);
+		$this->template->write('content', $content, true);
+		$this->template->render();
+	}
+
+	/**
 	 * Public indicator chart shell for iframes — same Vue app and query params as catalog/…/indicator-chart.
 	 *
 	 * Route: embed/catalog/{sid}/chart
