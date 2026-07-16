@@ -53,6 +53,9 @@ $route['translate_uri_dashes'] = FALSE;
 
 
 
+// Schema files served from application/schemas/ (web-inaccessible directory)
+$route['schemas/(:any)'] = 'schemas/serve/$1';
+
 ///////////////////////// API routes ////////////////////////////////////////
 
 //data deposit project - resources

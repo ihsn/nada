@@ -1,8 +1,8 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://ihsn.org/schemas/ddi2-codebook",
-  "version": "0.0",
-  "title": "Survey Microdata Schema Draft",
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://ihsn.org/schemas/microdata/1.0.0",
+  "version": "1.0.0",
+  "title": "Microdata schema",
   "description": "Schema for Survey data type based on DDI 2.5",
   "definitions": {
     "doc_desc": {
@@ -87,6 +87,11 @@
               "_ddi_xpath": "docDscr/citation/verStmt/notes"
             }
           }
+        },
+        "checksum": {
+          "title": "Checksum",
+          "description": "Checksum value for the document using SHA-256",
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -1214,28 +1219,28 @@
                   "title": "Sources",
                   "description": "Description of sources used for the data collection. The element is nestable so that the sources statement might encompass a series of discrete source statements, each of which could contain the facts about an individual source. This element maps to Dublin Core Source element.",
                   "_ddi_xpath": "stdyDscr/method/dataColl/sources",
-                  "items":{
-                    "type":"object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "title": "Source name",
-                      "description": "Name of the source"
-                    },
-                    "origin": {
-                      "type": "string",
-                      "title": "Origin of Source",
-                      "description": "For historical materials, information about the origin(s) of the sources and the rules followed in establishing the sources should be specified. May not be relevant to survey data. ",
-                      "_ddi_xpath": "stdyDscr/method/dataColl/sources/srcOrig"
-                    },
-                    "characteristics": {
-                      "type": "string",
-                      "title": "Characteristics of Source Noted",
-                      "description": "Assessment of characteristics and quality of source material. May not be relevant to survey data.",
-                      "_ddi_xpath": "stdyDscr/method/dataColl/sources/srcChar"
-                    }                    
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "title": "Source name",
+                        "description": "Name of the source"
+                      },
+                      "origin": {
+                        "type": "string",
+                        "title": "Origin of Source",
+                        "description": "For historical materials, information about the origin(s) of the sources and the rules followed in establishing the sources should be specified. May not be relevant to survey data. ",
+                        "_ddi_xpath": "stdyDscr/method/dataColl/sources/srcOrig"
+                      },
+                      "characteristics": {
+                        "type": "string",
+                        "title": "Characteristics of Source Noted",
+                        "description": "Assessment of characteristics and quality of source material. May not be relevant to survey data.",
+                        "_ddi_xpath": "stdyDscr/method/dataColl/sources/srcChar"
+                      }
+                    }
                   }
-                }
                 },
                 "coll_situation": {
                   "title": "Characteristics of Data Collection Situation - Notes on data collection",

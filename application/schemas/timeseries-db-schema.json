@@ -187,6 +187,11 @@
 					"title": "Dataset type",
 					"description": "Dataset type"
 				},
+				"doi": {
+					"type": "string",
+					"title": "DOI",
+					"description": "DOI handle"
+				},
 				"date_created": {
 					"type": "string",
 					"title": "Date of creation",
@@ -285,6 +290,11 @@
 							}
 						}
 					}
+				},
+				"release_calendar": {
+					"title": "Release calendar",
+					"description": "Release calendar",
+					"type": "string"
 				},
 				"themes":{
 					"type":"array",
@@ -766,6 +776,19 @@
 					"required": [
 						"name"
 					]
+				},
+				"confidentiality": {
+					"type": "string",
+					"title": "Confidentiality statement",
+					"description": "Confidentiality statement"
+				},
+				"confidentiality_status": {
+					"type": "string",
+					"title": "Confidentiality status"
+				},
+				"confidentiality_note": {
+					"type": "string",
+					"title": "Confidentiality note"
 				},
 				"citation": {
 					"title": "Citation",
