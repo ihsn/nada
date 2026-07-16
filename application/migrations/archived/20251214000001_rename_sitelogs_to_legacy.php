@@ -51,6 +51,9 @@ class Migration_Rename_sitelogs_to_legacy extends MY_Migration {
             throw new Exception('Unsupported database driver: ' . $db_driver);
         }
 
+        // Clear CI3's table list cache — raw RENAME TABLE bypasses dbforge and leaves the cache stale.
+        unset($this->db->data_cache['table_names']);
+
         if (!$this->db->table_exists('sitelogs_legacy')) {
             throw new Exception(
                 'Rename verification failed: sitelogs_legacy was not created'

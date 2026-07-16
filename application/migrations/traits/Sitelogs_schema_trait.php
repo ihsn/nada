@@ -84,6 +84,9 @@ trait Sitelogs_schema_trait {
             throw new Exception('Unsupported database driver for sitelogs schema: ' . $db_driver);
         }
 
+        // Clear CI3's table list cache — raw CREATE TABLE bypasses dbforge and leaves the cache stale.
+        unset($this->db->data_cache['table_names']);
+
         if (!$this->db->table_exists('sitelogs')) {
             throw new Exception('sitelogs table was not created');
         }

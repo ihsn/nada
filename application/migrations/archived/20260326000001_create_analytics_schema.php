@@ -158,7 +158,7 @@ class Migration_Create_analytics_schema extends MY_Migration {
         }
     }
 
-    private function column_exists($table, $column, $db_driver)
+    protected function column_exists($table, $column, $db_driver = null)
     {
         if ($db_driver === 'mysqli') {
             $result = $this->db->query("
