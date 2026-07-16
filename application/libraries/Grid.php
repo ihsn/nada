@@ -44,15 +44,15 @@ class Grid
 			$x++;
 		}
 		// if an array (row) has all empty elements, remove it; do this for the entire grid.
-		$array['data'] = array_filter($array['data'], create_function('&$value', '
+		$array['data'] = array_filter($array['data'], function (&$value) {
 			if (is_array($value)) {
-			foreach ($value as $vals) {
-				if (!empty($vals)) return 1;
+				foreach ($value as $vals) {
+					if (!empty($vals)) return 1;
+				}
+				// is empty
+				return 0;
 			}
-			// is empty
-			return 0;
-		}')
-		);
+		});
 		return ($json) ? json_encode($array) : $array;
 	}
 

@@ -7,6 +7,8 @@
  */
 class Catalog_Admin
 {
+	public $ci;
+
 	/**
 	 * Constructor
 	 */

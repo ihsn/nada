@@ -7,6 +7,8 @@
  */ 
 class Bulk_data_access
 {
+	public $ci;
+
 	/**
 	 * Constructor
 	 */

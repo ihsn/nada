@@ -9,6 +9,8 @@
  */ 
 class Site_Menu
 {
+	public $ci;
+
 	/**
 	 * Constructor
 	 */

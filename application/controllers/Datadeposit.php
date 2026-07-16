@@ -259,13 +259,13 @@ class Datadeposit extends MY_Controller {
 			}    
 		}
 		// return cleaned array
-		return array_filter($new, create_function('$x', '
-			if (isset($x["name"])) {
-				if (!empty($x["name"])) {
-					return 1;
-				}
-			}
-		'));
+		return array_filter($new, function ($x) {
+            if (isset($x["name"])) {
+                if (!empty($x["name"])) {
+                    return 1;
+                }
+            }
+        });
 	}
 	
 	
@@ -511,13 +511,13 @@ class Datadeposit extends MY_Controller {
 			{			
 				//delete db record
 				$this->DD_resource_model->delete_project_resource($fid);
-				
+
 				//delete file from filesystem
 				$resource_filename=$data['file'][0]->filename;
-				
+
 				unlink(unix_path($project_folder.'/'.$resource_filename));
 				$this->_write_history_entry("file {$data['file'][0]->filename} deleted", $project[0]->id, $project[0]->status);
-				
+
 				//redirect('datadeposit/datafiles/' . $data['file'][0]->project_id);
 			} 
 			else if ($this->input->post('answer') == 'No') 

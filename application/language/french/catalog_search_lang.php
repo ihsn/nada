@@ -228,6 +228,7 @@ $lang[‘no_related_series_found’]="Aucun indicateur associé trouvé.";
 $lang[‘no_databases_found’]="Aucune base de données listée pour cette série.";
 $lang[‘tab_indicator_data’]="Données d’indicateurs";
 $lang['tab_indicator_chart']="Graphique et données";
+$lang['tab_indicator_table']="Tableau";
 $lang['tab_indicator_observations']="API de données";
 $lang['tab_indicator_structure']="Structure des données";
 $lang['indicator_data_no_dsd']="Cette série chronologique n’a pas encore de structure de données liée ; les observations d’indicateurs ne sont pas disponibles dans le catalogue.";

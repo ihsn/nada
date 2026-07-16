@@ -257,6 +257,7 @@ $lang['showing_x_to_y_of_z_indicators']="Showing %d–%d of %d indicators";
 $lang['no_databases_found']="No databases listed for this series.";
 $lang['tab_indicator_data']="Indicator data";
 $lang['tab_indicator_chart']="Chart & data";
+$lang['tab_indicator_table']="Table";
 $lang['tab_indicator_observations']="Data API";
 $lang['tab_indicator_structure']="Data structure";
 $lang['indicator_data_no_dsd']="This time series has no linked data structure yet, so indicator observations are not available on the catalog.";

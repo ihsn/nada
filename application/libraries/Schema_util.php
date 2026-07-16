@@ -16,6 +16,8 @@ use JsonSchema\Constraints\Constraint;
  */ 
 class Schema_util
 {
+	public $ci;
+
 	/**
 	 * Constructor
 	 */

@@ -9,6 +9,8 @@
  */ 
 class Review_study
 {
+	public $ci;
+
 	/**
 	 * Constructor
 	 */

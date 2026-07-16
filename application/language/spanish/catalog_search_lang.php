@@ -231,6 +231,7 @@ $lang['no_related_series_found']="No se encontraron indicadores relacionados.";
 $lang['no_databases_found']="No hay bases de datos listadas para esta serie.";
 $lang['tab_indicator_data']="Datos del indicador";
 $lang['tab_indicator_chart']="Gráfico y datos";
+$lang['tab_indicator_table']="Tabla";
 $lang['tab_indicator_observations']="API de datos";
 $lang['tab_indicator_structure']="Estructura de datos";
 $lang['indicator_data_no_dsd']="Esta serie temporal aún no tiene una estructura de datos vinculada; las observaciones del indicador no están disponibles en el catálogo.";

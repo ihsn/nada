@@ -114,7 +114,7 @@ if ( ! function_exists('get_post_cookie'))
 		}
 
 		//check cookie
-		$cookie_data=	$CI->$this->input->cookie($cookie_id);
+		$cookie_data=	$CI->input->cookie($cookie_id);
 		
 		//no data set?
 		if (!$cookie_data)
@@ -207,7 +207,8 @@ if (!function_exists('is_post_request'))
 {
 	function is_post_request()
 	{
-		if($this->input->method()=='post'){
+		$CI =& get_instance();
+		if($CI->input->method()=='post'){
 			return TRUE;
 		}
 		return FALSE;

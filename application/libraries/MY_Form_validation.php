@@ -68,7 +68,7 @@ class MY_Form_validation extends CI_Form_validation {
     function valid_url($str){
 
            $pattern = "/^(http|https|ftp):\/\/([A-Z0-9][A-Z0-9_-]*(?:\.[A-Z0-9][A-Z0-9_-]*)+):?(\d+)?\/?/i";
-            if (!preg_match($pattern, $str))
+            if (!preg_match($pattern, (string) $str))
             {
                 return FALSE;
             }
@@ -111,7 +111,7 @@ class MY_Form_validation extends CI_Form_validation {
     {
         //disallowed characters
         $pattern = "/[!'\"><@#$%&*()^;:]/";
-        if (preg_match($pattern, $str))
+        if (preg_match($pattern, (string) $str))
         {
             $this->set_message('validate_name', t('Invalid characters in %s.'));
             return FALSE;

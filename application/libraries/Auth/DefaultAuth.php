@@ -5,6 +5,7 @@ class DefaultAuth implements AuthInterface
 {
 
 	protected $ci;
+	public $data;
 
     function __construct()
     {

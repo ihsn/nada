@@ -26,6 +26,7 @@
  */
 class DDI_Browser{
     
+	var $ci;
 	var $ddi_file;
 	var $use_xml_reader=TRUE;
 	

@@ -248,7 +248,7 @@ class Dataset_document_model extends Dataset_model {
         foreach($external_resources as $resource_filename => $resource){
 
             if (!$this->form_validation->valid_url($resource['filename'])){
-                $external_resources[$resource_filename]['filename']=site_url("catalog/{$sid}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
+                $external_resources[$resource_filename]['filename']=site_url("catalog/{$sid}/download/{$resource['resource_id']}/".rawurlencode((string) $resource['filename']) );
             }
         }
         

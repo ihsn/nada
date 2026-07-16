@@ -4,6 +4,7 @@ use Nada\DdiParser\Factory\ReaderFactory;
 
 class Metadata_parser {
 
+    public $ci;
     private $type;
     private $file_path;
     private $key_mappings;

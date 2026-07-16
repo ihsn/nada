@@ -1848,7 +1848,7 @@ class Timeseries_mongo_model extends CI_Model {
 	/**
 	 * Build catalog chart rows from public observation payloads (same slice identity as Metadata Editor chart records).
 	 *
-	 * Each output row: time_period (DSD `time_period` component when present, else reporting year, else period_start), observation_value, series_key and series-dimension fields.
+	 * Each output row: time_period (DSD `time_period` component when present, else reporting year, else period_start), observation_value, series_key and series-dimension fields (geography, periodicity, and dimension column_types).
 	 * series_key = "GEO=… | DIM=…" segments (geography + dimension column_types only), deduped by (series_key, time_period) last wins.
 	 *
 	 * @param array $public_observations List of assoc arrays (post strip + append_public_observation_timeseries_fields)
@@ -1858,6 +1858,7 @@ class Timeseries_mongo_model extends CI_Model {
 	public function build_catalog_chart_records(array $public_observations, array $components)
 	{
 		$geoName = $this->get_component_name_for_column_type($components, 'geography');
+		$freqName = $this->get_component_name_for_column_type($components, 'periodicity');
 		$tpName  = $this->get_component_name_for_column_type($components, 'time_period');
 		$ovName  = $this->get_component_name_for_column_type($components, 'observation_value');
 
@@ -1893,6 +1894,11 @@ class Timeseries_mongo_model extends CI_Model {
 				$geoVal = (string) $row[$geoName];
 				$series_parts[] = $geoName . '=' . $geoVal;
 				$series_fields[$geoName] = $geoVal;
+			}
+			if ($freqName !== null && isset($row[$freqName]) && $row[$freqName] !== '' && $row[$freqName] !== null) {
+				$freqVal = (string) $row[$freqName];
+				$series_parts[] = $freqName . '=' . $freqVal;
+				$series_fields[$freqName] = $freqVal;
 			}
 			foreach ($dimension_names as $dn) {
 				if (isset($row[$dn]) && $row[$dn] !== '' && $row[$dn] !== null) {

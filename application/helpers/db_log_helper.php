@@ -7,7 +7,7 @@ if ( ! function_exists('log_db'))
 {
 	function log_db($level = 'error', $message='', $php_error = FALSE)
 	{
-		echo $this->db->last_query();exit;
+		// stub — no implementation
 	}
 }
 

@@ -2,6 +2,7 @@
 class Licensed_model extends CI_Model {
 
 	//form fields
+	var $tables;
 	var $db_fields=array(
 					'request_title',
 					'org_rec',

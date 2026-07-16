@@ -32,390 +32,128 @@
                     :class="{ 'flex-grow-1 flex-shrink-1 min-height-0 ma-0': isIndicatorEmbed }"
                   >
                     <v-col v-if="!isIndicatorEmbed" cols="12" lg="3" class="d-flex mb-4 mb-lg-0 pr-lg-3">
-                      <v-card class="filter-panel filter-panel--dense flex-grow-1" rounded="0" flat>
-                        <v-card-text class="pa-0">
-                          <v-expansion-panels
-                            v-model="chartFilterExpandedPanels"
-                            multiple
-                            flat
-                            class="filter-expansion-panels"
+                      <IndicatorFilterSidebar
+                        v-model:expanded-panels="chartFilterExpandedPanels"
+                        class="flex-grow-1"
+                        :filter-draft="filterDraft"
+                        :codelist-select-items="codelistSelectItems"
+                        :geography-component="geographyComponent"
+                        :periodicity-component="periodicityComponent"
+                        :facet-components-for-c-visible="facetComponentsForCVisible"
+                        :geography-filter-visible="geographyFilterVisible"
+                        :periodicity-filter-visible="periodicityFilterVisible"
+                        :apply-loading="applyLoading"
+                        :apply-disabled="applyLoading || (catalogSliceRequired && !catalogSliceSelectionComplete)"
+                        :dimension-label-fn="facetLabel"
+                        @apply="onApplyFilters"
+                      >
+                        <template #time-title>{{ timePeriodFilterSectionLabel }}</template>
+                        <template #time-filter>
+                          <div
+                            v-if="timeFacetShowSummary"
+                            class="facet-filter-subheader d-flex align-center flex-wrap gap-1"
                           >
-                            <v-expansion-panel v-if="geographyFilterVisible" value="geo">
-                              <v-expansion-panel-title class="filter-expansion-panel-title">
-                                {{ facetLabel(geographyComponent) }}
-                              </v-expansion-panel-title>
-                              <v-expansion-panel-text class="filter-expansion-panel-text">
-                                <div
-                                  v-if="filterDraft.dGeography.length > 0"
-                                  class="facet-filter-subheader d-flex align-center flex-wrap gap-1"
-                                >
-                                  <span class="facet-filter-subheader__count">{{ filterDraft.dGeography.length }}</span>
-                                  <span class="facet-filter-subheader__suffix">selected</span>
-                                  <v-spacer />
-                                  <v-btn
-                                    variant="text"
-                                    density="compact"
-                                    size="x-small"
-                                    class="text-none facet-filter-subheader__clear"
-                                    prepend-icon="mdi-close"
-                                    aria-label="Clear geography selection"
-                                    @click="clearFacetGeography"
-                                  >
-                                    Clear
-                                  </v-btn>
-                                </div>
-                                <div v-if="codelistSelectItems[geographyComponent.name]?.length" class="facet-checkbox-panel">
-                                  <div
-                                    v-if="facetListNeedsSearch(codelistSelectItems[geographyComponent.name])"
-                                    class="facet-checkbox-search-wrap"
-                                  >
-                                    <v-text-field
-                                      v-model="facetListSearch[geographyComponent.name]"
-                                      density="compact"
-                                      variant="solo-filled"
-                                      flat
-                                      hide-details
-                                      prepend-inner-icon="mdi-magnify"
-                                      placeholder="Search codes…"
-                                      clearable
-                                      class="facet-checkbox-search rounded-lg"
-                                    />
-                                  </div>
-                                  <div class="facet-checkbox-scroll">
-                                    <v-list density="compact" class="facet-checkbox-list bg-transparent py-0">
-                                      <v-list-item
-                                        v-for="opt in facetListItemsFiltered(
-                                          geographyComponent.name,
-                                          codelistSelectItems[geographyComponent.name]
-                                        )"
-                                        :key="geographyComponent.name + '-' + opt.value"
-                                        class="facet-checkbox-row py-0"
-                                        @click="facetToggleCode(filterDraft.dGeography, opt.value)"
-                                      >
-                                        <template #prepend>
-                                          <v-checkbox
-                                            :model-value="facetCodesInclude(filterDraft.dGeography, opt.value)"
-                                            hide-details
-                                            density="compact"
-                                            class="facet-checkbox-control"
-                                            @click.stop
-                                            @update:model-value="(on) => facetSetCodeSelected(filterDraft.dGeography, opt.value, on)"
-                                          />
-                                        </template>
-                                        <v-list-item-title class="facet-checkbox-item-title text-wrap">
-                                          {{ opt.title }}
-                                        </v-list-item-title>
-                                      </v-list-item>
-                                    </v-list>
-                                    <p
-                                      v-if="
-                                        !facetListItemsFiltered(
-                                          geographyComponent.name,
-                                          codelistSelectItems[geographyComponent.name]
-                                        ).length
-                                      "
-                                      class="facet-checkbox-empty text-medium-emphasis mb-0"
-                                    >
-                                      No matching codes.
-                                    </p>
-                                  </div>
-                                </div>
-                                <div v-else class="px-2 pb-2">
-                                  <v-combobox
-                                    v-model="filterDraft.dGeography"
-                                    multiple
-                                    chips
-                                    closable-chips
-                                    density="compact"
-                                    variant="solo-filled"
-                                    flat
-                                    hide-details
-                                    placeholder="Codes (comma-separated chips)"
-                                    class="rounded-lg"
-                                  />
-                                </div>
-                              </v-expansion-panel-text>
-                            </v-expansion-panel>
-
-                            <v-expansion-panel v-if="periodicityFilterVisible" value="period">
-                              <v-expansion-panel-title class="filter-expansion-panel-title">
-                                {{ facetLabel(periodicityComponent) }}
-                              </v-expansion-panel-title>
-                              <v-expansion-panel-text class="filter-expansion-panel-text">
-                                <div
-                                  v-if="filterDraft.dPeriodicity.length > 0"
-                                  class="facet-filter-subheader d-flex align-center flex-wrap gap-1"
-                                >
-                                  <span class="facet-filter-subheader__count facet-filter-subheader__suffix">
-                                    {{ (codelistSelectItems[periodicityComponent.name] ?? []).find(o => o.value === filterDraft.dPeriodicity[0])?.title ?? filterDraft.dPeriodicity[0] }}
-                                  </span>
-                                  <v-spacer />
-                                  <v-btn
-                                    variant="text"
-                                    density="compact"
-                                    size="x-small"
-                                    class="text-none facet-filter-subheader__clear"
-                                    prepend-icon="mdi-close"
-                                    aria-label="Clear periodicity selection"
-                                    @click="clearFacetPeriodicity"
-                                  >
-                                    Clear
-                                  </v-btn>
-                                </div>
-                                <div v-if="codelistSelectItems[periodicityComponent.name]?.length" class="px-2 py-1">
-                                  <v-radio-group
-                                    :model-value="filterDraft.dPeriodicity[0] ?? ''"
-                                    density="compact"
-                                    hide-details
-                                    class="freq-radio-group"
-                                    @update:model-value="onPeriodicityRadioChange"
-                                  >
-                                    <v-radio
-                                      v-for="opt in codelistSelectItems[periodicityComponent.name]"
-                                      :key="opt.value"
-                                      :label="opt.title"
-                                      :value="opt.value"
-                                      density="compact"
-                                      class="freq-radio-item"
-                                    />
-                                  </v-radio-group>
-                                </div>
-                                <div v-else class="px-2 pb-2">
-                                  <v-text-field
-                                    :model-value="filterDraft.dPeriodicity[0] ?? ''"
-                                    density="compact"
-                                    variant="solo-filled"
-                                    flat
-                                    hide-details
-                                    placeholder="Frequency code"
-                                    class="rounded-lg"
-                                    @update:model-value="onPeriodicityRadioChange"
-                                  />
-                                </div>
-                              </v-expansion-panel-text>
-                            </v-expansion-panel>
-
-                            <v-expansion-panel value="time">
-                              <v-expansion-panel-title class="filter-expansion-panel-title">
-                                {{ timePeriodFilterSectionLabel }}
-                              </v-expansion-panel-title>
-                              <v-expansion-panel-text class="filter-expansion-panel-text">
-                                <div
-                                  v-if="timeFacetShowSummary"
-                                  class="facet-filter-subheader d-flex align-center flex-wrap gap-1"
-                                >
-                                  <span class="facet-filter-subheader__count">{{ timeFacetSummaryCount }}</span>
-                                  <span class="facet-filter-subheader__suffix">
-                                    {{ subPeriodMode ? 'periods set' : canUseYearSlider ? 'years in range' : 'fields set' }}
-                                  </span>
-                                  <v-spacer />
-                                  <v-btn
-                                    variant="text"
-                                    density="compact"
-                                    size="x-small"
-                                    class="text-none facet-filter-subheader__clear"
-                                    prepend-icon="mdi-close"
-                                    aria-label="Clear time filter"
-                                    @click="clearFacetTime"
-                                  >
-                                    Clear
-                                  </v-btn>
-                                </div>
-                                <div class="filter-expansion-time-body">
-                                  <template v-if="subPeriodMode">
-                                    <div class="sub-period-row mb-2">
-                                      <span class="sub-period-label">From</span>
-                                      <v-select
-                                        v-model="subPeriodDraft.fromYear"
-                                        :items="subPeriodYearOptions"
-                                        density="compact"
-                                        variant="solo-filled"
-                                        flat
-                                        hide-details
-                                        class="sub-period-select sub-period-select--year"
-                                      />
-                                      <v-select
-                                        v-model="subPeriodDraft.fromSub"
-                                        :items="subPeriodMode === 'quarterly' ? quarterOptions : monthOptions"
-                                        density="compact"
-                                        variant="solo-filled"
-                                        flat
-                                        hide-details
-                                        class="sub-period-select sub-period-select--sub"
-                                      />
-                                    </div>
-                                    <div class="sub-period-row">
-                                      <span class="sub-period-label">To</span>
-                                      <v-select
-                                        v-model="subPeriodDraft.toYear"
-                                        :items="subPeriodYearOptions"
-                                        density="compact"
-                                        variant="solo-filled"
-                                        flat
-                                        hide-details
-                                        class="sub-period-select sub-period-select--year"
-                                      />
-                                      <v-select
-                                        v-model="subPeriodDraft.toSub"
-                                        :items="subPeriodMode === 'quarterly' ? quarterOptions : monthOptions"
-                                        density="compact"
-                                        variant="solo-filled"
-                                        flat
-                                        hide-details
-                                        class="sub-period-select sub-period-select--sub"
-                                      />
-                                    </div>
-                                  </template>
-                                  <template v-else-if="canUseYearSlider">
-                                    <v-chip variant="tonal" color="primary" size="small" class="year-chip mb-2 font-weight-medium">
-                                      {{ yearSliderLocal[0] }} – {{ yearSliderLocal[1] }}
-                                    </v-chip>
-                                    <v-range-slider
-                                      :model-value="yearSliderLocal"
-                                      :min="chartTimeBoundsYears.min"
-                                      :max="chartTimeBoundsYears.max"
-                                      :step="1"
-                                      color="primary"
-                                      density="compact"
-                                      track-size="2"
-                                      hide-details
-                                      @update:model-value="onYearSliderInput"
-                                    />
-                                  </template>
-                                  <template v-else>
-                                    <v-text-field
-                                      v-model="filterDraft.from"
-                                      label="From"
-                                      density="compact"
-                                      variant="solo-filled"
-                                      flat
-                                      hide-details
-                                      class="mb-2 rounded-lg"
-                                    />
-                                    <v-text-field
-                                      v-model="filterDraft.to"
-                                      label="To"
-                                      density="compact"
-                                      variant="solo-filled"
-                                      flat
-                                      hide-details
-                                      class="rounded-lg"
-                                    />
-                                  </template>
-                                </div>
-                              </v-expansion-panel-text>
-                            </v-expansion-panel>
-
-                            <v-expansion-panel
-                              v-for="col in facetComponentsForCVisible"
-                              :key="'ep-dim-' + col.name"
-                              :value="'dim:' + col.name"
-                            >
-                              <v-expansion-panel-title class="filter-expansion-panel-title">
-                                {{ facetLabel(col) }}
-                              </v-expansion-panel-title>
-                              <v-expansion-panel-text class="filter-expansion-panel-text">
-                                <div
-                                  v-if="filterDraft.c[col.name]?.length > 0"
-                                  class="facet-filter-subheader d-flex align-center flex-wrap gap-1"
-                                >
-                                  <span class="facet-filter-subheader__count">{{ filterDraft.c[col.name].length }}</span>
-                                  <span class="facet-filter-subheader__suffix">selected</span>
-                                  <v-spacer />
-                                  <v-btn
-                                    variant="text"
-                                    density="compact"
-                                    size="x-small"
-                                    class="text-none facet-filter-subheader__clear"
-                                    prepend-icon="mdi-close"
-                                    :aria-label="'Clear ' + facetLabel(col)"
-                                    @click="clearFacetDimension(col.name)"
-                                  >
-                                    Clear
-                                  </v-btn>
-                                </div>
-                                <div v-if="codelistSelectItems[col.name]?.length" class="facet-checkbox-panel">
-                                  <div
-                                    v-if="facetListNeedsSearch(codelistSelectItems[col.name])"
-                                    class="facet-checkbox-search-wrap"
-                                  >
-                                    <v-text-field
-                                      v-model="facetListSearch[col.name]"
-                                      density="compact"
-                                      variant="solo-filled"
-                                      flat
-                                      hide-details
-                                      prepend-inner-icon="mdi-magnify"
-                                      placeholder="Search codes…"
-                                      clearable
-                                      class="facet-checkbox-search rounded-lg"
-                                    />
-                                  </div>
-                                  <div class="facet-checkbox-scroll">
-                                    <v-list density="compact" class="facet-checkbox-list bg-transparent py-0">
-                                      <v-list-item
-                                        v-for="opt in facetListItemsFiltered(col.name, codelistSelectItems[col.name])"
-                                        :key="col.name + '-' + opt.value"
-                                        class="facet-checkbox-row py-0"
-                                        @click="facetToggleCode(filterDraft.c[col.name], opt.value)"
-                                      >
-                                        <template #prepend>
-                                          <v-checkbox
-                                            :model-value="facetCodesInclude(filterDraft.c[col.name], opt.value)"
-                                            hide-details
-                                            density="compact"
-                                            class="facet-checkbox-control"
-                                            @click.stop
-                                            @update:model-value="(on) => facetSetCodeSelected(filterDraft.c[col.name], opt.value, on)"
-                                          />
-                                        </template>
-                                        <v-list-item-title class="facet-checkbox-item-title text-wrap">
-                                          {{ opt.title }}
-                                        </v-list-item-title>
-                                      </v-list-item>
-                                    </v-list>
-                                    <p
-                                      v-if="!facetListItemsFiltered(col.name, codelistSelectItems[col.name]).length"
-                                      class="facet-checkbox-empty text-medium-emphasis mb-0"
-                                    >
-                                      No matching codes.
-                                    </p>
-                                  </div>
-                                </div>
-                                <div v-else class="px-2 pb-2">
-                                  <v-combobox
-                                    v-model="filterDraft.c[col.name]"
-                                    multiple
-                                    chips
-                                    closable-chips
-                                    density="compact"
-                                    variant="solo-filled"
-                                    flat
-                                    hide-details
-                                    class="rounded-lg"
-                                  />
-                                </div>
-                              </v-expansion-panel-text>
-                            </v-expansion-panel>
-                          </v-expansion-panels>
-
-                          <div class="filter-sidebar-apply pt-2 pb-2">
+                            <span class="facet-filter-subheader__count">{{ timeFacetSummaryCount }}</span>
+                            <span class="facet-filter-subheader__suffix">
+                              {{ subPeriodMode ? 'periods set' : canUseYearSlider ? 'years in range' : 'fields set' }}
+                            </span>
+                            <v-spacer />
                             <v-btn
-                              variant="outlined"
-                              size="small"
-                              rounded="xl"
-                              block
-                              class="text-none filter-apply-outlined"
-                              :loading="applyLoading"
-                              :disabled="applyLoading || (catalogSliceRequired && !catalogSliceSelectionComplete)"
-                              prepend-icon="mdi-check"
-                              @click="onApplyFilters"
+                              variant="text"
+                              density="compact"
+                              size="x-small"
+                              class="text-none facet-filter-subheader__clear"
+                              prepend-icon="mdi-close"
+                              aria-label="Clear time filter"
+                              @click="clearFacetTime"
                             >
-                              Apply
+                              Clear
                             </v-btn>
                           </div>
-                        </v-card-text>
-                      </v-card>
+                          <div class="filter-expansion-time-body">
+                            <template v-if="subPeriodMode">
+                              <div class="sub-period-row mb-2">
+                                <span class="sub-period-label">From</span>
+                                <v-select
+                                  v-model="subPeriodDraft.fromYear"
+                                  :items="subPeriodYearOptions"
+                                  density="compact"
+                                  variant="solo-filled"
+                                  flat
+                                  hide-details
+                                  class="sub-period-select sub-period-select--year"
+                                />
+                                <v-select
+                                  v-model="subPeriodDraft.fromSub"
+                                  :items="subPeriodMode === 'quarterly' ? quarterOptions : monthOptions"
+                                  density="compact"
+                                  variant="solo-filled"
+                                  flat
+                                  hide-details
+                                  class="sub-period-select sub-period-select--sub"
+                                />
+                              </div>
+                              <div class="sub-period-row">
+                                <span class="sub-period-label">To</span>
+                                <v-select
+                                  v-model="subPeriodDraft.toYear"
+                                  :items="subPeriodYearOptions"
+                                  density="compact"
+                                  variant="solo-filled"
+                                  flat
+                                  hide-details
+                                  class="sub-period-select sub-period-select--year"
+                                />
+                                <v-select
+                                  v-model="subPeriodDraft.toSub"
+                                  :items="subPeriodMode === 'quarterly' ? quarterOptions : monthOptions"
+                                  density="compact"
+                                  variant="solo-filled"
+                                  flat
+                                  hide-details
+                                  class="sub-period-select sub-period-select--sub"
+                                />
+                              </div>
+                            </template>
+                            <template v-else-if="canUseYearSlider">
+                              <v-chip variant="tonal" color="primary" size="small" class="year-chip mb-2 font-weight-medium">
+                                {{ yearSliderLocal[0] }} – {{ yearSliderLocal[1] }}
+                              </v-chip>
+                              <v-range-slider
+                                :model-value="yearSliderLocal"
+                                :min="chartTimeBoundsYears.min"
+                                :max="chartTimeBoundsYears.max"
+                                :step="1"
+                                color="primary"
+                                density="compact"
+                                track-size="2"
+                                hide-details
+                                @update:model-value="onYearSliderInput"
+                              />
+                            </template>
+                            <template v-else>
+                              <v-text-field
+                                v-model="filterDraft.from"
+                                label="From"
+                                density="compact"
+                                variant="solo-filled"
+                                flat
+                                hide-details
+                                class="mb-2 rounded-lg"
+                              />
+                              <v-text-field
+                                v-model="filterDraft.to"
+                                label="To"
+                                density="compact"
+                                variant="solo-filled"
+                                flat
+                                hide-details
+                                class="rounded-lg"
+                              />
+                            </template>
+                          </div>
+                        </template>
+                      </IndicatorFilterSidebar>
                     </v-col>
                     <v-col cols="12" :lg="isIndicatorEmbed ? 12 : 9">
                   <template v-if="chartVisualizationReady">
@@ -766,6 +504,7 @@ import debounce from 'lodash/debounce';
 import Chart from 'chart.js/auto';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { usePublicTimeseriesApi } from '../composables/usePublicTimeseriesApi';
+import IndicatorFilterSidebar from '../components/IndicatorFilterSidebar.vue';
 
 defineOptions({ name: 'IndicatorChartTab' });
 
@@ -918,68 +657,6 @@ const filterDraft = reactive({
 });
 
 const codelistSelectItems = ref({});
-
-/** Client-side filter query per facet column (component `name`). */
-const facetListSearch = reactive({});
-
-const FACET_LIST_SEARCH_THRESHOLD = 20;
-
-function facetListNeedsSearch(items) {
-  return Array.isArray(items) && items.length > FACET_LIST_SEARCH_THRESHOLD;
-}
-
-function facetListItemsFiltered(componentName, items) {
-  const list = Array.isArray(items) ? items : [];
-  const q = String(facetListSearch[componentName] ?? '').trim().toLowerCase();
-  if (!q) return list;
-  return list.filter((opt) => {
-    const t = String(opt?.title ?? '').toLowerCase();
-    const v = String(opt?.value ?? '').toLowerCase();
-    return t.includes(q) || v.includes(q);
-  });
-}
-
-function facetCodesInclude(arr, code) {
-  if (!Array.isArray(arr)) return false;
-  const s = String(code ?? '');
-  return arr.some((x) => String(x ?? '') === s);
-}
-
-function facetSetCodeSelected(arr, code, on) {
-  if (!Array.isArray(arr)) return;
-  const s = String(code ?? '');
-  const idx = arr.findIndex((x) => String(x ?? '') === s);
-  if (on && idx < 0) {
-    arr.push(s);
-  }
-  if (!on && idx >= 0) {
-    arr.splice(idx, 1);
-  }
-}
-
-function facetToggleCode(arr, code) {
-  facetSetCodeSelected(arr, code, !facetCodesInclude(arr, code));
-}
-
-function clearFacetGeography() {
-  filterDraft.dGeography.splice(0, filterDraft.dGeography.length);
-}
-
-function clearFacetPeriodicity() {
-  filterDraft.dPeriodicity.splice(0, filterDraft.dPeriodicity.length);
-}
-
-function onPeriodicityRadioChange(val) {
-  filterDraft.dPeriodicity.splice(0);
-  if (val) filterDraft.dPeriodicity.push(String(val));
-}
-
-function clearFacetDimension(colName) {
-  const arr = filterDraft.c[colName];
-  if (Array.isArray(arr)) {
-    arr.splice(0, arr.length);
-  }
-}
 
 function clearFacetTime() {
   const b = chartTimeBoundsYears.value;
@@ -2750,9 +2427,6 @@ onBeforeUnmount(() => {
 
 async function loadCodelistsForSchema() {
   codelistSelectItems.value = {};
-  for (const k of Object.keys(facetListSearch)) {
-    delete facetListSearch[k];
-  }
   const byName = {};
   const observed = await fetchFilterOptions();
   const filters = Array.isArray(observed?.filters) ? observed.filters : [];
