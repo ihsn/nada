@@ -1,6 +1,6 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-//this file overwrites email settings loaded from the database
+// Copy this file to email.php and configure for your environment.
 
 $config['email_driver']     = 'smtp';                    // Email driver: 'smtp', 'sendgrid_api', 'sendgrid_smtp', 'microsoft_graph'
 $config['useragent']        = 'PHPMailer';              // Mail engine switcher: 'CodeIgniter' or 'PHPMailer'
@@ -28,6 +28,8 @@ $config['newline']          = "\n";                     // "\r\n" or "\n" or "\r
 $config['bcc_batch_mode']   = false;
 $config['bcc_batch_size']   = 200;
 $config['encoding']         = '8bit';                   // The body encoding. For CodeIgniter: '8bit' or '7bit'. For PHPMailer: '8bit', '7bit', 'binary', 'base64', or 'quoted-printable'.
+$config['smtp_email']       = '';                       // Email address to send from
+$config['smtp_display_name'] = '';                     // Display name shown in the From header
 
 
 
@@ -171,6 +173,28 @@ $config['smtp_display_name'] = 'Your Organization';
 $config['mailtype']          = 'html';
 */
 
+/*
+|| -------------------------------------------------------------------
+|| Microsoft Graph Configuration
+|| -------------------------------------------------------------------
+||
+|| Uses the Microsoft Graph API to send email via an Azure AD app registration.
+|| - Suitable for Office 365 / Exchange Online
+|| - No SMTP credentials required; uses OAuth2 client credentials flow
+||
+|| Setup:
+|| 1. Register an app in Azure AD: https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps
+|| 2. Grant Mail.Send application permission and admin-consent it
+|| 3. Create a client secret under Certificates & secrets
+||
+*/
 
-
-
+/*
+$config['email_driver']          = 'microsoft_graph';
+$config['msgraph_tenant_id']     = 'your-tenant-id';
+$config['msgraph_client_id']     = 'your-client-id';
+$config['msgraph_client_secret'] = 'your-client-secret';
+$config['smtp_email']            = 'sender@yourdomain.com';
+$config['smtp_display_name']     = 'Your Organization';
+$config['mailtype']              = 'html';
+*/
