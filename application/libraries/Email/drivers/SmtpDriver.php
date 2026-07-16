@@ -28,9 +28,8 @@ class SmtpDriver implements EmailInterface {
         $this->phpmailer->Encoding = '8bit';
         $this->phpmailer->SMTPAutoTLS = true;
         $this->phpmailer->SMTPKeepAlive = false;
-        $this->phpmailer->SMTPTimeout = 30;
-        $this->phpmailer->WordWrap = true;
-        $this->phpmailer->WrapChars = 76;
+        $this->phpmailer->Timeout = 30;
+        $this->phpmailer->WordWrap = 76;
         $this->phpmailer->Priority = 3;
         $this->phpmailer->isHTML(false);
     }
@@ -102,12 +101,10 @@ class SmtpDriver implements EmailInterface {
                 $this->phpmailer->Encoding = $config['encoding'];
             }
             
-            if (isset($config['wordwrap'])) {
-                $this->phpmailer->WordWrap = (bool)$config['wordwrap'];
-            }
-            
             if (isset($config['wrapchars'])) {
-                $this->phpmailer->WrapChars = (int)$config['wrapchars'];
+                $this->phpmailer->WordWrap = (int)$config['wrapchars'];
+            } elseif (isset($config['wordwrap'])) {
+                $this->phpmailer->WordWrap = $config['wordwrap'] ? 76 : 0;
             }
             
             if (isset($config['priority'])) {

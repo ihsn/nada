@@ -742,177 +742,177 @@ class MY_Email extends CI_Email {
      * Setter methods for configuration properties
      */
     public function set_useragent($useragent) {
-        $this->useragent = $useragent;
+        $this->properties['useragent'] = $useragent;
         return $this->set_mailer_engine($useragent);
     }
 
     public function set_protocol($protocol = 'mail') {
-        $this->protocol = $protocol;
+        $this->properties['protocol'] = $protocol;
         return $this;
     }
 
     public function set_smtp_host($smtp_host) {
-        $this->smtp_host = $smtp_host;
+        $this->properties['smtp_host'] = $smtp_host;
         return $this;
     }
 
     public function set_smtp_auth($smtp_auth) {
-        $this->smtp_auth = $smtp_auth;
+        $this->properties['smtp_auth'] = $smtp_auth;
         return $this;
     }
 
     public function set_smtp_user($smtp_user) {
-        $this->smtp_user = $smtp_user;
+        $this->properties['smtp_user'] = $smtp_user;
         return $this;
     }
 
     public function set_smtp_pass($smtp_pass) {
-        $this->smtp_pass = $smtp_pass;
+        $this->properties['smtp_pass'] = $smtp_pass;
         return $this;
     }
 
     public function set_smtp_port($smtp_port) {
-        $this->smtp_port = $smtp_port;
+        $this->properties['smtp_port'] = $smtp_port;
         return $this;
     }
 
     public function set_smtp_timeout($smtp_timeout) {
-        $this->smtp_timeout = $smtp_timeout;
+        $this->properties['smtp_timeout'] = $smtp_timeout;
         return $this;
     }
 
     public function set_smtp_keepalive($smtp_keepalive) {
-        $this->smtp_keepalive = $smtp_keepalive;
+        $this->properties['smtp_keepalive'] = $smtp_keepalive;
         return $this;
     }
 
     public function set_smtp_crypto($smtp_crypto) {
-        $this->smtp_crypto = $smtp_crypto;
+        $this->properties['smtp_crypto'] = $smtp_crypto;
         return $this;
     }
 
     public function set_smtp_auto_tls($smtp_auto_tls) {
-        $this->smtp_auto_tls = $smtp_auto_tls;
+        $this->properties['smtp_auto_tls'] = $smtp_auto_tls;
         return $this;
     }
 
     public function set_smtp_conn_options($smtp_conn_options) {
-        $this->smtp_conn_options = $smtp_conn_options;
+        $this->properties['smtp_conn_options'] = $smtp_conn_options;
         return $this;
     }
 
     public function set_smtp_debug($smtp_debug) {
-        $this->smtp_debug = $smtp_debug;
+        $this->properties['smtp_debug'] = $smtp_debug;
         return $this;
     }
 
     public function set_debug_output($debug_output) {
-        $this->debug_output = $debug_output;
+        $this->properties['debug_output'] = $debug_output;
         return $this;
     }
 
     public function set_wordwrap($wordwrap = true) {
-        $this->wordwrap = $wordwrap;
+        $this->properties['wordwrap'] = $wordwrap;
         return $this;
     }
 
     public function set_wrapchars($wrapchars) {
-        $this->wrapchars = $wrapchars;
+        $this->properties['wrapchars'] = $wrapchars;
         return $this;
     }
 
     public function set_mailtype($type = 'text') {
-        $this->mailtype = $type;
+        $this->properties['mailtype'] = $type;
         return $this;
     }
 
     public function set_charset($charset) {
-        $this->charset = $charset;
+        $this->properties['charset'] = $charset;
         return $this;
     }
 
     public function set_multipart($multipart) {
-        $this->multipart = $multipart;
+        $this->properties['multipart'] = $multipart;
         return $this;
     }
 
     public function set_alt_message($str) {
-        $this->alt_message = $str;
+        $this->properties['alt_message'] = $str;
         return $this;
     }
 
     public function set_validate($validate) {
-        $this->validate = $validate;
+        $this->properties['validate'] = $validate;
         return $this;
     }
 
     public function set_priority($n = 3) {
-        $this->priority = $n;
+        $this->properties['priority'] = $n;
         return $this;
     }
 
     public function set_newline($newline = "\n") {
-        $this->newline = $newline;
+        $this->properties['newline'] = $newline;
         return $this;
     }
 
     public function set_crlf($crlf = "\n") {
-        $this->crlf = $crlf;
+        $this->properties['crlf'] = $crlf;
         return $this;
     }
 
     public function set_dsn($dsn) {
-        $this->dsn = $dsn;
+        $this->properties['dsn'] = $dsn;
         return $this;
     }
 
     public function set_send_multipart($send_multipart) {
-        $this->send_multipart = $send_multipart;
+        $this->properties['send_multipart'] = $send_multipart;
         return $this;
     }
 
     public function set_bcc_batch_mode($bcc_batch_mode) {
-        $this->bcc_batch_mode = $bcc_batch_mode;
+        $this->properties['bcc_batch_mode'] = $bcc_batch_mode;
         return $this;
     }
 
     public function set_bcc_batch_size($bcc_batch_size) {
-        $this->bcc_batch_size = $bcc_batch_size;
+        $this->properties['bcc_batch_size'] = $bcc_batch_size;
         return $this;
     }
 
     public function set_encoding($encoding) {
-        $this->encoding = $encoding;
+        $this->properties['encoding'] = $encoding;
         return $this;
     }
 
     public function set_dkim_domain($dkim_domain) {
-        $this->dkim_domain = $dkim_domain;
+        $this->properties['dkim_domain'] = $dkim_domain;
         return $this;
     }
 
     public function set_dkim_private($dkim_private) {
-        $this->dkim_private = $dkim_private;
+        $this->properties['dkim_private'] = $dkim_private;
         return $this;
     }
 
     public function set_dkim_private_string($dkim_private_string) {
-        $this->dkim_private_string = $dkim_private_string;
+        $this->properties['dkim_private_string'] = $dkim_private_string;
         return $this;
     }
 
     public function set_dkim_selector($dkim_selector) {
-        $this->dkim_selector = $dkim_selector;
+        $this->properties['dkim_selector'] = $dkim_selector;
         return $this;
     }
 
     public function set_dkim_passphrase($dkim_passphrase) {
-        $this->dkim_passphrase = $dkim_passphrase;
+        $this->properties['dkim_passphrase'] = $dkim_passphrase;
         return $this;
     }
 
     public function set_dkim_identity($dkim_identity) {
-        $this->dkim_identity = $dkim_identity;
+        $this->properties['dkim_identity'] = $dkim_identity;
         return $this;
     }
 }
