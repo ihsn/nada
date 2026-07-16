@@ -1,0 +1,1 @@
+import{r as s,K as t,s as e,D as n}from"./router-DUfTLqFJ.js";function i(){const o=e(!1);return s(()=>{window.requestAnimationFrame(()=>{o.value=!0})}),{ssrBootStyles:n(()=>o.value?void 0:{transition:"none !important"}),isBooted:t(o)}}export{i as u};

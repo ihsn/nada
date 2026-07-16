@@ -512,6 +512,8 @@ class Study extends MY_Controller {
 			$target = 'indicator-data-api';
 		} elseif (in_array($tab, array('structure', 'dsd', 'ds'), true)) {
 			$target = 'indicator-structure';
+		} elseif (in_array($tab, array('table', 'pivot'), true)) {
+			$target = 'indicator-table';
 		}
 		$params = array();
 		$qs = isset($_SERVER['QUERY_STRING']) ? (string) $_SERVER['QUERY_STRING'] : '';
@@ -526,6 +528,150 @@ class Study extends MY_Controller {
 	public function indicator_chart($sid)
 	{
 		$this->render_indicator_data_public($sid, 'indicator_chart', 'chart');
+	}
+
+	public function indicator_table($sid)
+	{
+		$this->render_indicator_data_public($sid, 'indicator_table', 'table');
+	}
+
+	/**
+	 * Pivot-table HTML/XLSX export for the public indicator table tab.
+	 *
+	 * GET catalog/{sid}/indicator-table-export
+	 *   ?format=html|xlsx
+	 *   &table_rows=DIM1,DIM2   (comma-separated dim keys, URI-encoded)
+	 *   &table_cols=DIM3
+	 *   &table_time_order=asc|desc
+	 *   &geo=CODE1,CODE2        (geography filter)
+	 *   &period=CODE            (periodicity filter)
+	 *   &c[COMPONENT]=CODES     (dimension filters)
+	 *   &from=YEAR  &to=YEAR    (time range)
+	 */
+	public function indicator_table_export($sid)
+	{
+		$this->load->model('Timeseries_mongo_model');
+		$this->load->model('Codelist_item_model');
+
+		$survey = $this->Dataset_model->get_row((int) $sid);
+		if (!$survey || $survey['type'] !== 'timeseries') {
+			show_404();
+		}
+
+		$ctx = $this->Timeseries_dsd_model->resolve_dsd_for_sid((int) $sid);
+		if ($ctx === null) {
+			show_404();
+		}
+
+		if ((int) $this->Dataset_model->get_indicator_ts_sync_required_for_sid((int) $sid) === 1) {
+			show_404();
+		}
+
+		// Translate browser URL filter keys → API filter format
+		$query = (array) $this->input->get();
+		if (!isset($query['d']) || !is_array($query['d'])) {
+			$query['d'] = [];
+		}
+		if (!empty($query['geo'])) {
+			$query['d']['geography'] = $query['geo'];
+		}
+		if (!empty($query['period'])) {
+			$query['d']['periodicity'] = $query['period'];
+		}
+
+		$filter = $this->Timeseries_mongo_model->build_observation_query_filter(
+			(int) $sid,
+			$ctx['components'],
+			$query
+		);
+		$rows = $this->Timeseries_mongo_model->find_observations($ctx['dsd_id'], $filter, [
+			'limit' => 10000,
+			'skip'  => 0,
+			'sort'  => ['_ts_year' => 1, '_ts_period_start' => 1],
+		]);
+
+		$obs = [];
+		foreach ($rows as $doc) {
+			$arr   = json_decode(json_encode($doc), true);
+			if (!is_array($arr)) continue;
+			$strip = $this->Timeseries_mongo_model->strip_public_observation_fields($arr);
+			$obs[] = $this->Timeseries_mongo_model->append_public_observation_timeseries_fields($arr, $strip);
+		}
+		$built   = $this->Timeseries_mongo_model->build_catalog_chart_records($obs, $ctx['components']);
+		$records = isset($built['records']) && is_array($built['records']) ? $built['records'] : [];
+
+		// Parse layout params (dim names may be URI-encoded inside the comma-list)
+		$decode_dims = function ($raw) {
+			$raw = trim((string) $raw);
+			if ($raw === '') return [];
+			$parts = array_map('trim', explode(',', $raw));
+			$parts = array_filter($parts, function ($p) { return $p !== ''; });
+			return array_values(array_map('rawurldecode', $parts));
+		};
+		$row_dims   = $decode_dims($this->input->get('table_rows'));
+		$col_dims   = $decode_dims($this->input->get('table_cols'));
+		$time_order = $this->input->get('table_time_order') === 'desc' ? 'desc' : 'asc';
+
+		$tp_comp = $this->Timeseries_mongo_model->get_component_name_for_column_type($ctx['components'], 'time_period');
+		if ($tp_comp === null) $tp_comp = '';
+
+		$label_map = [];
+		$sort_map  = [];
+		foreach ($ctx['components'] as $comp) {
+			if (!is_array($comp) || empty($comp['name'])) continue;
+			$comp_name   = (string) $comp['name'];
+			$codelist_id = isset($comp['codelist_id']) ? (int) $comp['codelist_id'] : 0;
+			if ($codelist_id <= 0) continue;
+			$items = $this->Codelist_item_model->get_items_by_codelist($codelist_id, false);
+			$map   = [];
+			$order = [];
+			foreach ($items as $idx => $item) {
+				$code  = isset($item['code'])  ? (string) $item['code']  : '';
+				$title = isset($item['title']) ? (string) $item['title'] : $code;
+				if ($code !== '') {
+					$map[$code]   = $title !== '' ? $title : $code;
+					$order[$code] = $idx;
+				}
+			}
+			$col_type = isset($comp['column_type']) ? (string) $comp['column_type'] : '';
+			if ($col_type === 'time_period' || ($tp_comp !== '' && $comp_name === $tp_comp)) {
+				$label_map[\Indicator_table_export::TIME_PERIOD_SENTINEL] = $map;
+				$sort_map[\Indicator_table_export::TIME_PERIOD_SENTINEL]  = $order;
+			} else {
+				$label_map[$comp_name] = $map;
+				$sort_map[$comp_name]  = $order;
+			}
+		}
+
+		$dataset_title = isset($survey['title']) ? (string) $survey['title'] : '';
+		$idno          = isset($survey['idno'])  ? (string) $survey['idno']  : (string) $sid;
+
+		$this->load->library('Indicator_table_export');
+
+		$format = strtolower(trim((string) $this->input->get('format')));
+		if ($format === 'xlsx') {
+			$bytes    = $this->indicator_table_export->build_xlsx(
+				$records, $row_dims, $col_dims, $tp_comp, $time_order, $label_map, $sort_map,
+				['dataset_title' => $dataset_title]
+			);
+			$filename = preg_replace('/[^A-Za-z0-9._-]/', '_', $idno) . '_table.xlsx';
+			header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+			header('Content-Disposition: attachment; filename="' . $filename . '"');
+			header('Cache-Control: no-cache, no-store');
+			echo $bytes;
+			exit;
+		}
+
+		$html     = $this->indicator_table_export->build_html(
+			$records, $row_dims, $col_dims, $tp_comp, $time_order, $label_map, $sort_map,
+			['dataset_title' => $dataset_title]
+		);
+		$filename = preg_replace('/[^A-Za-z0-9._-]/', '_', $idno) . '_table.html';
+		header('Content-Type: text/html; charset=UTF-8');
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+		header('Cache-Control: no-cache, no-store');
+		echo $html;
+		exit;
 	}
 
 	/**
@@ -552,8 +698,8 @@ class Study extends MY_Controller {
 	/**
 	 * Public catalog: indicator observations (Mongo) with chart + table via public timeseries API.
 	 *
-	 * @param string $active_tab Layout nav key (indicator_chart | indicator_observations | indicator_structure)
-	 * @param string $main_view  Vue initial pane (chart | observations | structure)
+	 * @param string $active_tab Layout nav key (indicator_chart | indicator_table | indicator_observations | indicator_structure)
+	 * @param string $main_view  Vue initial pane (chart | table | observations | structure)
 	 */
 	private function render_indicator_data_public($sid, $active_tab, $main_view)
 	{
@@ -568,13 +714,15 @@ class Study extends MY_Controller {
 			return;
 		}
 		$ts_sync_pending = (int) $this->Dataset_model->get_indicator_ts_sync_required_for_sid((int) $sid) === 1;
-		if ($ts_sync_pending && in_array($main_view, array('chart', 'observations'), true)) {
+		if ($ts_sync_pending && in_array($main_view, array('chart', 'table', 'observations'), true)) {
 			redirect(site_url('catalog/' . (int) $sid . '/indicator-structure'), 'location', 302);
 			return;
 		}
 		$this->load->helper('vite_helper');
 		$title_key = 'tab_indicator_chart';
-		if ($main_view === 'observations') {
+		if ($main_view === 'table') {
+			$title_key = 'tab_indicator_table';
+		} elseif ($main_view === 'observations') {
 			$title_key = 'tab_indicator_observations';
 		} elseif ($main_view === 'structure') {
 			$title_key = 'tab_indicator_structure';
@@ -782,6 +930,11 @@ class Study extends MY_Controller {
 					'indicator_chart'=>array(
 						'label'=>t('tab_indicator_chart'),
 						'url'=>site_url("catalog/$sid/indicator-chart"),
+						'show_tab'=>$show_indicator_chart_and_api ? 1 : 0
+					),
+					'indicator_table'=>array(
+						'label'=>t('tab_indicator_table'),
+						'url'=>site_url("catalog/$sid/indicator-table"),
 						'show_tab'=>$show_indicator_chart_and_api ? 1 : 0
 					),
 					'indicator_observations'=>array(

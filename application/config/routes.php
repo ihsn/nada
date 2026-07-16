@@ -262,6 +262,8 @@ $route['catalog/(:num)/vargrp'] = "study/variable_groups/$1";
 
 //timeseries db info page
 $route['catalog/(:num)/indicator-chart'] = "study/indicator_chart/$1";
+$route['catalog/(:num)/indicator-table'] = "study/indicator_table/$1";
+$route['catalog/(:num)/indicator-table-export'] = "study/indicator_table_export/$1";
 $route['catalog/(:num)/indicator-data-api'] = "study/indicator_observations/$1";
 // Legacy slug (301-style redirect in controller).
 $route['catalog/(:num)/indicator-observations'] = "study/redirect_indicator_observations/$1";
@@ -323,6 +325,7 @@ $route['switch_language/(.*)'] = "page/switch_language/$1";
 $route['forms/(.*)'] = "forms";
 
 $route['embed/catalog/(:num)/chart'] = 'embed/catalog_chart/$1';
+$route['embed/catalog/(:num)/table'] = 'embed/catalog_table/$1';
 
 //admin paths
 $route['admin'] = "admin/admin";
@@ -416,6 +419,7 @@ $route['api/timeseries/data/(:any)/export']                     = 'api/timeserie
 $route['api/timeseries/data/(:any)']                            = 'api/timeseries_public/data/$1';
 $route['api/timeseries/data/(:any)/filter-options']             = 'api/timeseries_public/data_filter_options/$1';
 $route['api/timeseries/data/(:any)/chart']                      = 'api/timeseries_public/data_chart/$1';
+$route['api/timeseries/data/(:any)/table-export']               = 'api/timeseries_public/data_table_export/$1';
 $route['api/timeseries/data/(:any)/schema']                     = 'api/timeseries_public/data_schema/$1';
 $route['api/timeseries/data-structures/by_idno/(:any)']        = 'api/timeseries_public/structure_by_idno/$1';
 $route['api/timeseries/data-structures/by_identity/(:any)']    = 'api/timeseries_public/structure_by_identity/$1';

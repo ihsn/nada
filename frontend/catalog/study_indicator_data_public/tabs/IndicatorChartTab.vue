@@ -49,109 +49,11 @@
                       >
                         <template #time-title>{{ timePeriodFilterSectionLabel }}</template>
                         <template #time-filter>
-                          <div
-                            v-if="timeFacetShowSummary"
-                            class="facet-filter-subheader d-flex align-center flex-wrap gap-1"
-                          >
-                            <span class="facet-filter-subheader__count">{{ timeFacetSummaryCount }}</span>
-                            <span class="facet-filter-subheader__suffix">
-                              {{ subPeriodMode ? 'periods set' : canUseYearSlider ? 'years in range' : 'fields set' }}
-                            </span>
-                            <v-spacer />
-                            <v-btn
-                              variant="text"
-                              density="compact"
-                              size="x-small"
-                              class="text-none facet-filter-subheader__clear"
-                              prepend-icon="mdi-close"
-                              aria-label="Clear time filter"
-                              @click="clearFacetTime"
-                            >
-                              Clear
-                            </v-btn>
-                          </div>
-                          <div class="filter-expansion-time-body">
-                            <template v-if="subPeriodMode">
-                              <div class="sub-period-row mb-2">
-                                <span class="sub-period-label">From</span>
-                                <v-select
-                                  v-model="subPeriodDraft.fromYear"
-                                  :items="subPeriodYearOptions"
-                                  density="compact"
-                                  variant="solo-filled"
-                                  flat
-                                  hide-details
-                                  class="sub-period-select sub-period-select--year"
-                                />
-                                <v-select
-                                  v-model="subPeriodDraft.fromSub"
-                                  :items="subPeriodMode === 'quarterly' ? quarterOptions : monthOptions"
-                                  density="compact"
-                                  variant="solo-filled"
-                                  flat
-                                  hide-details
-                                  class="sub-period-select sub-period-select--sub"
-                                />
-                              </div>
-                              <div class="sub-period-row">
-                                <span class="sub-period-label">To</span>
-                                <v-select
-                                  v-model="subPeriodDraft.toYear"
-                                  :items="subPeriodYearOptions"
-                                  density="compact"
-                                  variant="solo-filled"
-                                  flat
-                                  hide-details
-                                  class="sub-period-select sub-period-select--year"
-                                />
-                                <v-select
-                                  v-model="subPeriodDraft.toSub"
-                                  :items="subPeriodMode === 'quarterly' ? quarterOptions : monthOptions"
-                                  density="compact"
-                                  variant="solo-filled"
-                                  flat
-                                  hide-details
-                                  class="sub-period-select sub-period-select--sub"
-                                />
-                              </div>
-                            </template>
-                            <template v-else-if="canUseYearSlider">
-                              <v-chip variant="tonal" color="primary" size="small" class="year-chip mb-2 font-weight-medium">
-                                {{ yearSliderLocal[0] }} – {{ yearSliderLocal[1] }}
-                              </v-chip>
-                              <v-range-slider
-                                :model-value="yearSliderLocal"
-                                :min="chartTimeBoundsYears.min"
-                                :max="chartTimeBoundsYears.max"
-                                :step="1"
-                                color="primary"
-                                density="compact"
-                                track-size="2"
-                                hide-details
-                                @update:model-value="onYearSliderInput"
-                              />
-                            </template>
-                            <template v-else>
-                              <v-text-field
-                                v-model="filterDraft.from"
-                                label="From"
-                                density="compact"
-                                variant="solo-filled"
-                                flat
-                                hide-details
-                                class="mb-2 rounded-lg"
-                              />
-                              <v-text-field
-                                v-model="filterDraft.to"
-                                label="To"
-                                density="compact"
-                                variant="solo-filled"
-                                flat
-                                hide-details
-                                class="rounded-lg"
-                              />
-                            </template>
-                          </div>
+                          <IndicatorTimeFilterPanel
+                            :filter-draft="filterDraft"
+                            :schema="schema"
+                            :time-bounds="chartMetadata.time_bounds"
+                          />
                         </template>
                       </IndicatorFilterSidebar>
                     </v-col>
@@ -412,78 +314,13 @@
       </v-row>
     </template>
 
-    <v-dialog
+    <IndicatorEmbedDialog
       v-if="embedUiAvailable"
       v-model="embedDialogOpen"
-      max-width="640"
-      scrollable
-      transition="scale-transition"
-    >
-      <v-card class="embed-chart-dialog rounded-lg">
-        <v-card-title class="embed-chart-dialog__title">Embed this chart</v-card-title>
-        <v-card-text class="embed-chart-dialog__body pa-4 pt-2">
-          <v-row dense class="mb-4">
-            <v-col cols="12" sm="6">
-              <div class="embed-chart-dialog__label mb-1">Width</div>
-              <v-text-field
-                v-model="embedDialogWidth"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                autocomplete="off"
-              />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <div class="embed-chart-dialog__label mb-1">Height (px)</div>
-              <v-text-field
-                v-model.number="embedDialogHeightPx"
-                type="number"
-                :min="EMBED_IFRAME_HEIGHT_MIN"
-                :max="EMBED_IFRAME_HEIGHT_MAX"
-                step="1"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-              />
-            </v-col>
-          </v-row>
-          <div class="embed-chart-dialog__section-label mb-1">HTML (iframe)</div>
-          <v-textarea
-            :model-value="embedIframeHtml"
-            readonly
-            auto-grow
-            variant="outlined"
-            density="compact"
-            rows="6"
-            class="embed-chart-dialog__textarea embed-code-textarea font-monospace"
-          />
-          <div class="d-flex flex-wrap gap-2 mt-3">
-            <v-btn color="primary" variant="flat" size="x-small" rounded="lg" class="text-none" @click="onCopyEmbedIframe">
-              Copy embed code
-            </v-btn>
-            <v-btn variant="tonal" size="x-small" rounded="lg" class="text-none" @click="onCopyEmbedUrl"> Copy link only </v-btn>
-          </div>
-          <v-alert
-            v-if="embedDialogNotice"
-            :type="embedDialogNoticeIsError ? 'warning' : 'success'"
-            variant="tonal"
-            density="compact"
-            rounded="lg"
-            class="embed-chart-dialog__notice mt-3 mb-0 py-2"
-          >
-            {{ embedDialogNotice }}
-          </v-alert>
-          <div class="embed-chart-dialog__section-label mt-4 mb-1">Direct URL</div>
-          <v-sheet rounded="lg" border class="embed-chart-dialog__url-sheet pa-2 text-break">
-            <a :href="embedChartPageUrl" target="_blank" rel="noopener noreferrer">{{ embedChartPageUrl }}</a>
-          </v-sheet>
-        </v-card-text>
-        <v-card-actions class="embed-chart-dialog__actions px-4 pb-3">
-          <v-spacer />
-          <v-btn variant="text" size="x-small" rounded="lg" class="text-none" @click="embedDialogOpen = false">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      :embed-url="embedChartPageUrl"
+      :iframe-title="studyTitle || 'Indicator chart'"
+      dialog-title="Embed this chart"
+    />
   </div>
 </template>
 
@@ -503,8 +340,12 @@ import {
 import debounce from 'lodash/debounce';
 import Chart from 'chart.js/auto';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { buildIndicatorFilterContextLine } from '@/shared/timeseries/indicatorFilterContext.js';
 import { usePublicTimeseriesApi } from '../composables/usePublicTimeseriesApi';
 import IndicatorFilterSidebar from '../components/IndicatorFilterSidebar.vue';
+import IndicatorTimeFilterPanel from '../components/IndicatorTimeFilterPanel.vue';
+import { resolveTimeBoundsYears } from '@/shared/timeseries/indicatorTimeFilterUtils.js';
+import IndicatorEmbedDialog from '../components/IndicatorEmbedDialog.vue';
 
 defineOptions({ name: 'IndicatorChartTab' });
 
@@ -566,9 +407,6 @@ const filteredObservationCount = ref(0);
 /** Chart-ready rows from GET …/data/{idno}/chart (server aggregation). */
 const chartRecords = ref([]);
 const chartMetadata = ref({});
-/** [lowYear, highYear] for v-range-slider; independent until the user moves the slider or edits From/To. */
-const yearSliderLocal = ref([2000, 2020]);
-const subPeriodDraft = reactive({ fromYear: null, fromSub: null, toYear: null, toSub: null });
 const chartType = ref('line');
 
 /** URL query `chart_bg`: light | dark (`white` is accepted for older URLs and mapped to light) */
@@ -628,16 +466,6 @@ const chartShellThemeClass = computed(() => `chart-shell--bg-${normalizeChartBg(
 
 const chartApiQueryVisible = ref(false);
 const embedDialogOpen = ref(false);
-/** Inline feedback inside embed dialog after copy actions */
-const embedDialogNotice = ref('');
-const embedDialogNoticeIsError = ref(false);
-let embedDialogNoticeTimer = null;
-
-/** Embed dialog: iframe dimensions for generated HTML */
-const EMBED_IFRAME_HEIGHT_MIN = 200;
-const EMBED_IFRAME_HEIGHT_MAX = 3000;
-const embedDialogWidth = ref('100%');
-const embedDialogHeightPx = ref(520);
 
 /** When true, skip syncing chart filter state to the URL (initial load / applying query from URL). */
 const urlSyncSuspended = ref(true);
@@ -657,26 +485,6 @@ const filterDraft = reactive({
 });
 
 const codelistSelectItems = ref({});
-
-function clearFacetTime() {
-  const b = chartTimeBoundsYears.value;
-  if (subPeriodMode.value && b) {
-    subPeriodDraft.fromYear = b.min;
-    subPeriodDraft.fromSub  = 1;
-    subPeriodDraft.toYear   = b.max;
-    subPeriodDraft.toSub    = subPeriodMode.value === 'quarterly' ? 4 : 12;
-    subPeriodDraftToFromTo();
-    return;
-  }
-  if (canUseYearSlider.value && b) {
-    yearSliderLocal.value = [b.min, b.max];
-    filterDraft.from = String(b.min);
-    filterDraft.to = String(b.max);
-  } else {
-    filterDraft.from = '';
-    filterDraft.to = '';
-  }
-}
 
 const componentsSorted = computed(() => {
   const list = schema.value?.components;
@@ -759,10 +567,9 @@ function syncChartFilterExpandedPanelsOpen() {
     chartFilterExpandedPanels.value = [];
     return;
   }
-  const keys = [];
+  const keys = ['time'];
   if (geographyFilterVisible.value) keys.push('geo');
   if (periodicityFilterVisible.value) keys.push('period');
-  keys.push('time');
   for (const col of facetComponentsForCVisible.value) {
     keys.push(`dim:${col.name}`);
   }
@@ -933,15 +740,8 @@ function applyDefaultChartFiltersIfBlank() {
     }
   }
 
-  const b = chartTimeBoundsYears.value;
-  if (b && subPeriodMode.value) {
-    subPeriodDraft.fromYear = b.min;
-    subPeriodDraft.fromSub  = 1;
-    subPeriodDraft.toYear   = b.max;
-    subPeriodDraft.toSub    = subPeriodMode.value === 'quarterly' ? 4 : 12;
-    subPeriodDraftToFromTo();
-  } else if (b && canUseYearSlider.value) {
-    yearSliderLocal.value = [b.min, b.max];
+  const b = resolveTimeBoundsYears(schema.value, chartMetadata.value?.time_bounds);
+  if (b) {
     filterDraft.from = String(b.min);
     filterDraft.to = String(b.max);
   }
@@ -1076,97 +876,6 @@ const indicatorChartSourceVisible = computed(() => String(indicatorChartPageUrl.
 const indicatorChartLinkText = computed(() => {
   const t = String(studyTitle.value || '').trim();
   return t !== '' ? t : 'View indicator page';
-});
-
-function escapeHtmlAttr(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;');
-}
-
-/** CSS width for pasted iframe (plain number → px) */
-function normalizeEmbedIframeWidth(raw) {
-  const s = String(raw ?? '').trim().slice(0, 120);
-  if (!s) return '100%';
-  if (/^\d+$/.test(s)) return `${s}px`;
-  return s;
-}
-
-function clampEmbedIframeHeightPx(n) {
-  let h = Number(n);
-  if (!Number.isFinite(h)) h = 520;
-  return Math.min(EMBED_IFRAME_HEIGHT_MAX, Math.max(EMBED_IFRAME_HEIGHT_MIN, Math.round(h)));
-}
-
-const embedIframeHtml = computed(() => {
-  const url = embedChartPageUrl.value;
-  if (!url) return '';
-  const title = studyTitle.value || 'Indicator chart';
-  const w = normalizeEmbedIframeWidth(embedDialogWidth.value);
-  const h = clampEmbedIframeHeightPx(embedDialogHeightPx.value);
-  const style = `border:0;display:block;width:${w};height:${h}px;max-width:100%`;
-  return `<iframe src="${escapeHtmlAttr(url)}" style="${escapeHtmlAttr(style)}" title="${escapeHtmlAttr(title)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
-});
-
-async function copyTextToClipboard(text) {
-  if (!text) return false;
-  try {
-    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch {
-    /* fall through */
-  }
-  try {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.setAttribute('readonly', '');
-    ta.style.position = 'fixed';
-    ta.style.left = '-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    const ok = document.execCommand('copy');
-    document.body.removeChild(ta);
-    return ok;
-  } catch {
-    return false;
-  }
-}
-
-function showEmbedDialogNotice(text, isError = false) {
-  embedDialogNotice.value = text;
-  embedDialogNoticeIsError.value = isError;
-  if (embedDialogNoticeTimer) {
-    clearTimeout(embedDialogNoticeTimer);
-    embedDialogNoticeTimer = null;
-  }
-  embedDialogNoticeTimer = setTimeout(() => {
-    embedDialogNotice.value = '';
-    embedDialogNoticeTimer = null;
-  }, 5000);
-}
-
-async function onCopyEmbedIframe() {
-  const ok = await copyTextToClipboard(embedIframeHtml.value);
-  showEmbedDialogNotice(ok ? 'Link copied.' : 'Could not copy.', !ok);
-}
-
-async function onCopyEmbedUrl() {
-  const ok = await copyTextToClipboard(embedChartPageUrl.value);
-  showEmbedDialogNotice(ok ? 'Link copied.' : 'Could not copy.', !ok);
-}
-
-watch(embedDialogOpen, (open) => {
-  if (!open) {
-    embedDialogNotice.value = '';
-    embedDialogNoticeIsError.value = false;
-    if (embedDialogNoticeTimer) {
-      clearTimeout(embedDialogNoticeTimer);
-      embedDialogNoticeTimer = null;
-    }
-  }
 });
 
 watch(chartType, () => {
@@ -1340,17 +1049,6 @@ function filterDraftSnapshot() {
   });
 }
 
-/** Resolve facet codes to labels using loaded codelists (same source as filter sidebar). */
-function facetCodesDisplayLabels(componentName, codes) {
-  if (!Array.isArray(codes) || !codes.length) return [];
-  const items = codelistSelectItems.value[componentName] || [];
-  return codes.map((code) => {
-    const c = String(code ?? '').trim();
-    const hit = items.find((it) => String(it.value) === c);
-    return hit?.title ? String(hit.title) : c;
-  });
-}
-
 /** Turn `col=code` segments into readable labels using loaded codelists (server `series_key`). */
 function seriesLabelForId(id) {
   if (!id || id === 'Series') return id;
@@ -1390,51 +1088,18 @@ const valueAxisLabel = computed(() => {
 const xAxisLabel = computed(() => timePeriodFilterSectionLabel.value);
 
 /** Second line under chart title: applied reporting-year range, geography, periodicity, and dimension slices. */
-const chartFilterSubtitle = computed(() => {
-  const f = activeFilters.value;
-  if (!f) return '';
-
-  const parts = [];
-
-  const from = typeof f.from === 'string' ? f.from.trim() : '';
-  const to = typeof f.to === 'string' ? f.to.trim() : '';
-  if (from && to) parts.push(`${from}–${to}`);
-  else if (from) parts.push(`From ${from}`);
-  else if (to) parts.push(`To ${to}`);
-  else {
-    const tb = chartMetadata.value?.time_bounds;
-    if (tb?.min != null && tb?.max != null) {
-      const a = String(tb.min).trim();
-      const b = String(tb.max).trim();
-      if (a && b) parts.push(`${a}–${b}`);
-    }
-  }
-
-  const d = f.d && typeof f.d === 'object' ? f.d : {};
-  const geo = geographyComponent.value;
-  if (geo?.name && Array.isArray(d.geography) && d.geography.length) {
-    const labels = facetCodesDisplayLabels(geo.name, d.geography);
-    const head = facetLabel(geo) || 'Geography';
-    parts.push(`${head}: ${labels.join(', ')}`);
-  }
-
-  const per = periodicityComponent.value;
-  if (per?.name && Array.isArray(d.periodicity) && d.periodicity.length) {
-    const labels = facetCodesDisplayLabels(per.name, d.periodicity);
-    const head = facetLabel(per) || 'Periodicity';
-    parts.push(`${head}: ${labels.join(', ')}`);
-  }
-
-  const c = f.c && typeof f.c === 'object' ? f.c : {};
-  for (const col of facetComponentsForC.value) {
-    const arr = c[col.name];
-    if (!Array.isArray(arr) || !arr.length) continue;
-    const labels = facetCodesDisplayLabels(col.name, arr);
-    parts.push(`${facetLabel(col)}: ${labels.join(', ')}`);
-  }
-
-  return parts.join(' · ');
-});
+const chartFilterSubtitle = computed(() =>
+  buildIndicatorFilterContextLine({
+    activeFilters: activeFilters.value,
+    geographyComponent: geographyComponent.value,
+    periodicityComponent: periodicityComponent.value,
+    facetComponentsForC: facetComponentsForC.value,
+    codelistSelectItems: codelistSelectItems.value,
+    facetLabel,
+    facetShowsFilter: () => true,
+    timeBoundsFallback: chartMetadata.value?.time_bounds,
+  })
+);
 
 const chartDataTableHeaders = computed(() => {
   const base = [
@@ -1632,19 +1297,6 @@ function hexToRgba(hex, alpha) {
   return `rgba(${parseInt(m[1], 16)}, ${parseInt(m[2], 16)}, ${parseInt(m[3], 16)}, ${alpha})`;
 }
 
-function clamp(n, lo, hi) {
-  return Math.min(Math.max(n, lo), hi);
-}
-
-/** First calendar year in a filter or bound string (ISO or leading digits). */
-function parseLeadingCalendarYear(s) {
-  if (s == null || String(s).trim() === '') return null;
-  const m = String(s).trim().match(/^(\d{4})\b/);
-  if (!m) return null;
-  const y = Number(m[1]);
-  return Number.isFinite(y) ? y : null;
-}
-
 /**
  * Choose Chart.js x scale: category (even spacing) vs linear (calendar distance).
  * Calendar years YYYY use a category axis so ticks match discrete periods (same as the
@@ -1675,212 +1327,6 @@ function classifyTimeKeys(sortedTimes) {
     };
   }
   return { useNumeric: false, kind: null, parse: null };
-}
-
-/** Min/max `_ts_year` from schema (Mongo aggregate); chart `time_bounds` once a chart exists. */
-function reportingYearBoundsFromSchema(sch) {
-  const rb = sch?.reporting_year_bounds;
-  if (!rb || typeof rb !== 'object') return null;
-  if (rb.min == null || rb.max == null) return null;
-  const mn = typeof rb.min === 'string' && /^\d+$/.test(rb.min.trim()) ? Number(rb.min.trim()) : Number(rb.min);
-  const mx = typeof rb.max === 'string' && /^\d+$/.test(rb.max.trim()) ? Number(rb.max.trim()) : Number(rb.max);
-  if (!Number.isFinite(mn) || !Number.isFinite(mx) || mn <= 0 || mx <= 0 || mn > mx) return null;
-  return { min: Math.trunc(mn), max: Math.trunc(mx) };
-}
-
-const chartTimeBoundsYears = computed(() => {
-  const tb = chartMetadata.value?.time_bounds;
-  let fromChart = null;
-  if (tb) {
-    const mn = parseLeadingCalendarYear(tb.min);
-    const mx = parseLeadingCalendarYear(tb.max);
-    if (mn != null && mx != null && mn <= mx) {
-      fromChart = { min: mn, max: mx };
-    }
-  }
-  const fromSchema = reportingYearBoundsFromSchema(schema.value);
-  if (fromSchema && fromChart) {
-    return {
-      min: Math.min(fromSchema.min, fromChart.min),
-      max: Math.max(fromSchema.max, fromChart.max),
-    };
-  }
-  return fromSchema || fromChart || null;
-});
-
-const canUseYearSlider = computed(() => {
-  const b = chartTimeBoundsYears.value;
-  if (!b) return false;
-  const span = b.max - b.min;
-  if (!Number.isFinite(span) || span < 0) return false;
-  // Wide bounds: schema may span centuries; slider still works (ticks stay light).
-  if (b.min < 1 || b.max > 9999 || span > 8000) return false;
-  return true;
-});
-
-/** Time facet differs from full schema/chart year span (slider) or has From/To text. */
-const timeFacetShowSummary = computed(() => {
-  if (subPeriodMode.value) {
-    return !!(String(filterDraft.from ?? '').trim() || String(filterDraft.to ?? '').trim());
-  }
-  if (canUseYearSlider.value) {
-    const b = chartTimeBoundsYears.value;
-    if (!b) return false;
-    const lo = Number(yearSliderLocal.value[0]);
-    const hi = Number(yearSliderLocal.value[1]);
-    if (!Number.isFinite(lo) || !Number.isFinite(hi)) return false;
-    return lo !== b.min || hi !== b.max;
-  }
-  return !!(String(filterDraft.from ?? '').trim() || String(filterDraft.to ?? '').trim());
-});
-
-/** Count: years in selected span (slider) or number of non-empty From/To fields (text). */
-const timeFacetSummaryCount = computed(() => {
-  if (subPeriodMode.value) {
-    let n = 0;
-    if (String(filterDraft.from ?? '').trim()) n += 1;
-    if (String(filterDraft.to ?? '').trim()) n += 1;
-    return n;
-  }
-  if (canUseYearSlider.value) {
-    const lo = Number(yearSliderLocal.value[0]);
-    const hi = Number(yearSliderLocal.value[1]);
-    if (!Number.isFinite(lo) || !Number.isFinite(hi)) return 0;
-    return Math.max(0, Math.trunc(hi) - Math.trunc(lo) + 1);
-  }
-  let n = 0;
-  if (String(filterDraft.from ?? '').trim()) n += 1;
-  if (String(filterDraft.to ?? '').trim()) n += 1;
-  return n;
-});
-
-function syncYearSliderLocalFromFilters() {
-  const b = chartTimeBoundsYears.value;
-  if (!b) return;
-  const useSlider = canUseYearSlider.value;
-  const fy = parseLeadingCalendarYear(filterDraft.from);
-  const ty = parseLeadingCalendarYear(filterDraft.to);
-  const fromEmpty = !String(filterDraft.from ?? '').trim();
-  const toEmpty = !String(filterDraft.to ?? '').trim();
-  if (fy != null && ty != null) {
-    const lo = clamp(fy, b.min, b.max);
-    const hi = clamp(ty, b.min, b.max);
-    yearSliderLocal.value = [lo, hi].sort((x, y) => x - y);
-    if (useSlider) {
-      filterDraft.from = String(yearSliderLocal.value[0]);
-      filterDraft.to = String(yearSliderLocal.value[1]);
-    }
-    return;
-  }
-  if (fy != null && toEmpty) {
-    yearSliderLocal.value = [clamp(fy, b.min, b.max), b.max].sort((x, y) => x - y);
-    if (useSlider) {
-      filterDraft.from = String(yearSliderLocal.value[0]);
-    }
-    return;
-  }
-  if (ty != null && fromEmpty) {
-    yearSliderLocal.value = [b.min, clamp(ty, b.min, b.max)].sort((x, y) => x - y);
-    if (useSlider) {
-      filterDraft.to = String(yearSliderLocal.value[1]);
-    }
-    return;
-  }
-  yearSliderLocal.value = [b.min, b.max];
-}
-
-function onYearSliderInput(val) {
-  const b = chartTimeBoundsYears.value;
-  if (!b || !Array.isArray(val) || val.length < 2) return;
-  const lo = clamp(Math.min(Number(val[0]), Number(val[1])), b.min, b.max);
-  const hi = clamp(Math.max(Number(val[0]), Number(val[1])), b.min, b.max);
-  yearSliderLocal.value = [lo, hi];
-  filterDraft.from = String(lo);
-  filterDraft.to = String(hi);
-}
-
-const subPeriodMode = computed(() => {
-  const selected = filterDraft.dPeriodicity[0];
-  if (!selected) return null;
-  const code = String(selected).toUpperCase();
-  if (code === 'M') return 'monthly';
-  if (code === 'Q') return 'quarterly';
-  return null;
-});
-
-const subPeriodYearOptions = computed(() => {
-  const b = chartTimeBoundsYears.value;
-  if (!b) return [];
-  const arr = [];
-  for (let y = b.min; y <= b.max; y++) arr.push({ title: String(y), value: y });
-  return arr;
-});
-
-const quarterOptions = [
-  { title: 'Q1', value: 1 }, { title: 'Q2', value: 2 },
-  { title: 'Q3', value: 3 }, { title: 'Q4', value: 4 },
-];
-
-const monthOptions = [
-  { title: 'Jan', value: 1 },  { title: 'Feb', value: 2 },  { title: 'Mar', value: 3 },
-  { title: 'Apr', value: 4 },  { title: 'May', value: 5 },  { title: 'Jun', value: 6 },
-  { title: 'Jul', value: 7 },  { title: 'Aug', value: 8 },  { title: 'Sep', value: 9 },
-  { title: 'Oct', value: 10 }, { title: 'Nov', value: 11 }, { title: 'Dec', value: 12 },
-];
-
-function parseSubPeriodStr(value, mode) {
-  const s = String(value ?? '').trim();
-  if (!s) return { year: null, sub: null };
-  if (mode === 'quarterly') {
-    const m = s.match(/^(\d{4})-Q([1-4])$/i);
-    if (m) return { year: Number(m[1]), sub: Number(m[2]) };
-  }
-  if (mode === 'monthly') {
-    const m = s.match(/^(\d{4})-(\d{2})$/);
-    if (m) { const sub = Number(m[2]); if (sub >= 1 && sub <= 12) return { year: Number(m[1]), sub }; }
-  }
-  const yr = s.match(/^(\d{4})/);
-  if (yr) return { year: Number(yr[1]), sub: null };
-  return { year: null, sub: null };
-}
-
-function syncSubPeriodDraftFromFilterDraft() {
-  const mode = subPeriodMode.value;
-  if (!mode) return;
-  const b = chartTimeBoundsYears.value;
-  const fr = parseSubPeriodStr(filterDraft.from, mode);
-  const to = parseSubPeriodStr(filterDraft.to, mode);
-  const newFromYear = fr.year ?? (b?.min ?? null);
-  const newFromSub  = fr.sub  ?? 1;
-  const newToYear   = to.year ?? (b?.max ?? null);
-  const newToSub    = to.sub  ?? (mode === 'quarterly' ? 4 : 12);
-  if (subPeriodDraft.fromYear !== newFromYear) subPeriodDraft.fromYear = newFromYear;
-  if (subPeriodDraft.fromSub  !== newFromSub)  subPeriodDraft.fromSub  = newFromSub;
-  if (subPeriodDraft.toYear   !== newToYear)   subPeriodDraft.toYear   = newToYear;
-  if (subPeriodDraft.toSub    !== newToSub)    subPeriodDraft.toSub    = newToSub;
-}
-
-function subPeriodDraftToFromTo() {
-  const mode = subPeriodMode.value;
-  if (!mode) return;
-  let newFrom = '';
-  let newTo   = '';
-  if (subPeriodDraft.fromYear != null && subPeriodDraft.fromSub != null) {
-    newFrom = mode === 'quarterly'
-      ? `${subPeriodDraft.fromYear}-Q${subPeriodDraft.fromSub}`
-      : `${subPeriodDraft.fromYear}-${String(subPeriodDraft.fromSub).padStart(2, '0')}`;
-  } else if (subPeriodDraft.fromYear != null) {
-    newFrom = String(subPeriodDraft.fromYear);
-  }
-  if (subPeriodDraft.toYear != null && subPeriodDraft.toSub != null) {
-    newTo = mode === 'quarterly'
-      ? `${subPeriodDraft.toYear}-Q${subPeriodDraft.toSub}`
-      : `${subPeriodDraft.toYear}-${String(subPeriodDraft.toSub).padStart(2, '0')}`;
-  } else if (subPeriodDraft.toYear != null) {
-    newTo = String(subPeriodDraft.toYear);
-  }
-  if (filterDraft.from !== newFrom) filterDraft.from = newFrom;
-  if (filterDraft.to   !== newTo)   filterDraft.to   = newTo;
 }
 
 /** Pivot server chart `records` into Chart.js datasets (same shape as Metadata Editor client transform). */
@@ -2345,41 +1791,6 @@ watch(
 
 watch(
   () => [
-    chartMetadata.value?.time_bounds?.min,
-    chartMetadata.value?.time_bounds?.max,
-    schema.value?.reporting_year_bounds?.min,
-    schema.value?.reporting_year_bounds?.max,
-    canUseYearSlider.value,
-    subPeriodMode.value,
-  ],
-  () => {
-    if (subPeriodMode.value) {
-      syncSubPeriodDraftFromFilterDraft();
-    } else if (canUseYearSlider.value) {
-      syncYearSliderLocalFromFilters();
-    }
-  }
-);
-
-watch(
-  () => [filterDraft.from, filterDraft.to],
-  () => {
-    if (subPeriodMode.value) {
-      syncSubPeriodDraftFromFilterDraft();
-    } else if (canUseYearSlider.value) {
-      syncYearSliderLocalFromFilters();
-    }
-  }
-);
-
-watch(subPeriodDraft, () => {
-  if (subPeriodMode.value) {
-    subPeriodDraftToFromTo();
-  }
-});
-
-watch(
-  () => [
     chartLoading.value,
     chartType.value,
     chartBg.value,
@@ -2419,10 +1830,6 @@ onBeforeUnmount(() => {
   debouncedAutoApply.cancel();
   debouncedChartRelayoutOnResize.cancel();
   destroyChart();
-  if (embedDialogNoticeTimer) {
-    clearTimeout(embedDialogNoticeTimer);
-    embedDialogNoticeTimer = null;
-  }
 });
 
 async function loadCodelistsForSchema() {
@@ -2539,11 +1946,6 @@ async function loadAll() {
     applyDefaultChartFiltersIfBlank();
     ensureSingleOptionFacetDrafts();
     syncChartFilterExpandedPanelsOpen();
-    if (subPeriodMode.value) {
-      syncSubPeriodDraftFromFilterDraft();
-    } else if (canUseYearSlider.value) {
-      syncYearSliderLocalFromFilters();
-    }
     if (catalogSliceRequired.value) {
       if (catalogSliceSelectionComplete.value) {
         activeFilters.value = buildApiFiltersFromDraft();
@@ -3232,73 +2634,4 @@ onMounted(() => {
   padding-inline: 12px 16px;
 }
 
-/* Embed dialog — smaller typography */
-.embed-chart-dialog {
-  font-size: 0.8125rem;
-  line-height: 1.45;
-}
-
-.embed-chart-dialog__title {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1.3;
-  padding: 10px 16px 6px !important;
-  min-height: 0 !important;
-}
-
-.embed-chart-dialog__label {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: rgba(var(--v-theme-on-surface), 0.85);
-}
-
-.embed-chart-dialog__section-label {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: rgba(var(--v-theme-on-surface), 0.55);
-}
-
-.embed-chart-dialog__url-sheet {
-  font-size: 0.75rem;
-}
-
-.embed-chart-dialog__url-sheet a {
-  font-size: inherit;
-}
-
-.embed-chart-dialog :deep(.v-field .v-field__input) {
-  font-size: 0.8125rem;
-  min-height: 34px;
-}
-
-.embed-chart-dialog :deep(.v-messages__message) {
-  font-size: 0.6875rem;
-  line-height: 1.35;
-}
-
-.embed-chart-dialog__textarea :deep(textarea),
-.embed-chart-dialog__textarea :deep(.v-field__input) {
-  font-size: 0.75rem !important;
-  line-height: 1.4;
-  min-height: 7.5rem;
-}
-
-.embed-chart-dialog :deep(.v-btn) {
-  font-size: 0.6875rem;
-  letter-spacing: 0.02em;
-  min-height: 28px !important;
-}
-
-.embed-chart-dialog__actions :deep(.v-btn) {
-  font-size: 0.6875rem;
-  min-height: 28px !important;
-}
-
-.embed-chart-dialog__notice {
-  font-size: 0.75rem;
-  line-height: 1.35;
-}
 </style>
