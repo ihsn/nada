@@ -9,6 +9,7 @@
  *  - hide_column_headings - hide column headings 
  */
 
+if (!isset($template['props'])) { return false; }
 $columns=$template['props'];
 $name=$template['title'];
 $hide_field_title=isset($template['hide_field_title']) ? $template['hide_field_title'] : false;
