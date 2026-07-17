@@ -240,6 +240,70 @@ class Configurations extends MY_Controller {
 			.'</a></p></body></html>'
 		);
 	}
+
+	/**
+	 * Send test email — called by the Vue site configurations UI.
+	 * @input = $_POST
+	 */
+	function send_test_email()
+	{
+		$this->config->load('email');
+		$this->load->library('email');
+
+		$email_driver = $this->input->post('email_driver');
+		if (!$email_driver) {
+			$email_driver = $this->config->item('email_driver') ?: 'smtp';
+		}
+
+		$config = array(
+			'email_driver' => $email_driver,
+			'mailtype'     => 'html',
+			'smtp_debug'   => 2,
+		);
+
+		if ($email_driver === 'acs') {
+			$config['acs_endpoint']          = $this->input->post('acs_endpoint');
+			$config['acs_access_key']        = $this->input->post('acs_access_key');
+			$config['smtp_email']            = $this->input->post('acs_sender_address');
+			$config['acs_api_version']       = $this->input->post('acs_api_version') ?: '2025-09-01';
+			$config['acs_connection_string'] = $this->input->post('acs_connection_string');
+
+			if ($config['acs_access_key'] == '') {
+				$config['acs_access_key'] = $this->config->item('acs_access_key');
+			}
+			if ($config['acs_connection_string'] == '') {
+				$config['acs_connection_string'] = $this->config->item('acs_connection_string');
+			}
+		} else {
+			$config['protocol']   = 'smtp';
+			$config['useragent']  = $this->input->post('useragent');
+			$config['smtp_host']  = $this->input->post('smtp_host');
+			$config['smtp_port']  = $this->input->post('smtp_port');
+			$config['smtp_user']  = $this->input->post('smtp_user');
+			$config['smtp_pass']  = $this->input->post('smtp_pass');
+			$config['smtp_auth']  = $this->input->post('smtp_auth');
+			$config['smtp_crypto'] = $this->input->post('smtp_crypto');
+
+			if ($config['smtp_pass'] == '') {
+				$config['smtp_pass'] = $this->config->item('smtp_pass');
+			}
+		}
+
+		$this->email->initialize($config);
+
+		$email_sender = $this->input->post('mail_from');
+		if (!empty($email_sender)) {
+			$this->email->from($email_sender);
+		}
+
+		$this->email->to($this->input->post('mail_to'));
+		$this->email->subject('NADA test email');
+		$this->email->message('NADA test email message body');
+		$result = $this->email->send(false);
+		echo $result ? "Send result: success\n\n" : "Send result: failed\n\n";
+		echo $this->email->print_debugger();
+		$this->email->clear(true);
+	}
 	
 }
 

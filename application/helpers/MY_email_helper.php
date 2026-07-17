@@ -87,6 +87,11 @@ function load_email_settings()
   // Driver-specific configurations
   if ($email_driver === 'sendgrid') {
     $config['sendgrid_api_key'] = $ci->config->item("sendgrid_api_key");
+  } elseif ($email_driver === 'acs') {
+    $config['acs_endpoint'] = $ci->config->item("acs_endpoint");
+    $config['acs_access_key'] = $ci->config->item("acs_access_key");
+    $config['acs_api_version'] = $ci->config->item("acs_api_version");
+    $config['acs_connection_string'] = $ci->config->item("acs_connection_string");
   } elseif ($email_driver === 'microsoft_graph') {
     $config['microsoft_graph_client_id'] = $ci->config->item("microsoft_graph_client_id");
     $config['microsoft_graph_client_secret'] = $ci->config->item("microsoft_graph_client_secret");

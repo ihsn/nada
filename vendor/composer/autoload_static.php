@@ -40,7 +40,6 @@ class ComposerStaticInit57625deda3373c5e89e84ba00508af84
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
             'Psr\\EventDispatcher\\' => 20,
-            'Psr\\Cache\\' => 10,
             'PHPMailer\\PHPMailer\\' => 20,
         ),
         'N' => 
@@ -61,13 +60,6 @@ class ComposerStaticInit57625deda3373c5e89e84ba00508af84
             'JsonSchema\\' => 11,
             'JsonMachine\\' => 12,
         ),
-        'H' => 
-        array (
-            'Http\\Promise\\' => 13,
-            'Http\\Message\\MultipartStream\\' => 29,
-            'Http\\Discovery\\' => 15,
-            'Http\\Client\\' => 12,
-        ),
         'G' => 
         array (
             'GuzzleHttp\\Psr7\\' => 16,
@@ -80,7 +72,6 @@ class ComposerStaticInit57625deda3373c5e89e84ba00508af84
         ),
         'A' => 
         array (
-            'Auth0\\SDK\\' => 10,
             'Adbar\\' => 6,
         ),
     );
@@ -135,10 +126,6 @@ class ComposerStaticInit57625deda3373c5e89e84ba00508af84
         array (
             0 => __DIR__ . '/..' . '/psr/event-dispatcher/src',
         ),
-        'Psr\\Cache\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/cache/src',
-        ),
         'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
@@ -179,22 +166,6 @@ class ComposerStaticInit57625deda3373c5e89e84ba00508af84
         array (
             0 => __DIR__ . '/..' . '/halaxa/json-machine/src',
         ),
-        'Http\\Promise\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/php-http/promise/src',
-        ),
-        'Http\\Message\\MultipartStream\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/php-http/multipart-stream-builder/src',
-        ),
-        'Http\\Discovery\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/php-http/discovery/src',
-        ),
-        'Http\\Client\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/php-http/httplug/src',
-        ),
         'GuzzleHttp\\Psr7\\' => 
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/psr7/src',
@@ -210,10 +181,6 @@ class ComposerStaticInit57625deda3373c5e89e84ba00508af84
         'Firebase\\JWT\\' => 
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
-        ),
-        'Auth0\\SDK\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/auth0/auth0-php/src',
         ),
         'Adbar\\' => 
         array (

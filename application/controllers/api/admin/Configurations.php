@@ -32,6 +32,8 @@ class Configurations extends MY_REST_Controller
 		'sendgrid_api_key',
 		'microsoft_graph_client_secret',
 		'semantic_search_api_key',
+		'acs_access_key',
+		'acs_connection_string',
 	);
 
 	public function __construct()
@@ -670,14 +672,14 @@ class Configurations extends MY_REST_Controller
 				array(
 					'status' => 'success',
 					'form'   => array(
-						'smtp_host'    => (string) $this->config->item('smtp_host'),
-						'smtp_port'    => (string) $this->config->item('smtp_port'),
-						'smtp_user'    => (string) $this->config->item('smtp_user'),
-						'smtp_auth'    => ($auth === TRUE || $auth === 'true' || $auth === '1' || $auth === 1),
-						'smtp_crypto'  => $crypto,
-						'useragent'    => (string) ($this->config->item('useragent') ? $this->config->item('useragent') : 'CodeIgniter'),
-						'mail_from'    => (string) $this->config->item('smtp_user'),
-						'smtp_pass'    => '',
+						'smtp_host'   => (string) $this->config->item('smtp_host'),
+						'smtp_port'   => (string) $this->config->item('smtp_port'),
+						'smtp_user'   => (string) $this->config->item('smtp_user'),
+						'smtp_auth'   => ($auth === TRUE || $auth === 'true' || $auth === '1' || $auth === 1),
+						'smtp_crypto' => $crypto,
+						'useragent'   => (string) ($this->config->item('useragent') ? $this->config->item('useragent') : 'CodeIgniter'),
+						'mail_from'   => (string) ($this->config->item('smtp_email') ?: $this->config->item('smtp_user')),
+						'smtp_pass'   => '',
 					),
 				),
 				REST_Controller::HTTP_OK

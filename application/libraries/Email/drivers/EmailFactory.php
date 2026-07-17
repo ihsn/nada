@@ -9,6 +9,7 @@ require_once(__DIR__ . '/EmailInterface.php');
 require_once(__DIR__ . '/SmtpDriver.php');
 require_once(__DIR__ . '/SendgridDriver.php');
 require_once(__DIR__ . '/SendgridApiDriver.php');
+require_once(__DIR__ . '/AcsDriver.php');
 
 /**
  * Email Factory
@@ -24,11 +25,11 @@ class EmailFactory {
      * @var array
      */
     private static $available_drivers = array(
-        'smtp' => 'Email\\Drivers\\SmtpDriver',
-        'sendgrid' => 'Email\\Drivers\\SendgridDriver',
+        'smtp'          => 'Email\\Drivers\\SmtpDriver',
+        'sendgrid'      => 'Email\\Drivers\\SendgridDriver',
         'sendgrid_smtp' => 'Email\\Drivers\\SendgridDriver',
-        'sendgrid_api' => 'Email\\Drivers\\SendgridApiDriver',
-        'microsoft_graph' => 'Email\\Drivers\\MicrosoftGraphDriver'
+        'sendgrid_api'  => 'Email\\Drivers\\SendgridApiDriver',
+        'acs'           => 'Email\\Drivers\\AcsDriver',
     );
     
     /**

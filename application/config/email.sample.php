@@ -2,13 +2,13 @@
 
 // Copy this file to email.php and configure for your environment.
 
-$config['email_driver']     = 'smtp';                    // Email driver: 'smtp', 'sendgrid_api', 'sendgrid_smtp', 'microsoft_graph'
+$config['email_driver']     = 'smtp';                    // Email driver: 'smtp', 'sendgrid', 'sendgrid_smtp', 'sendgrid_api', 'acs'
 $config['useragent']        = 'PHPMailer';              // Mail engine switcher: 'CodeIgniter' or 'PHPMailer'
 $config['protocol']         = 'smtp';                   // 'mail', 'sendmail', or 'smtp'
 $config['mailpath']         = '/usr/sbin/sendmail';
 $config['smtp_host']        = '';
 $config['smtp_auth']        = NULL;                     // Whether to use SMTP authentication, boolean TRUE/FALSE. If this option is omited or if it is NULL, then SMTP authentication is used when both $config['smtp_user'] and $config['smtp_pass'] are non-empty strings.
-$config['smtp_user']        = '';                 
+$config['smtp_user']        = '';
 $config['smtp_pass']        = '';
 $config['smtp_port']        = 25;
 $config['smtp_timeout']     = 30;                       // (in seconds)
@@ -122,6 +122,25 @@ $config['smtp_display_name'] = 'Your Name';
 */
 
 /*
+| -------------------------------------------------------------------
+| Configurations for Azure Communication Services (ACS)
+| -------------------------------------------------------------------
+|
+| Use either the endpoint/access key pair or a connection string.
+| If both are provided, endpoint/access key take precedence.
+|
+*/
+/*
+$config['email_driver']          = 'acs';
+$config['acs_endpoint']          = 'https://your-resource.communication.azure.com';
+$config['acs_access_key']        = ''; // ACS access key
+$config['smtp_email']            = 'DoNotReply@your-domain.com';
+$config['smtp_display_name']     = 'Your Name';
+$config['acs_api_version']       = '2025-09-01';
+$config['acs_connection_string'] = ''; // Optional alternative to endpoint/access key
+*/
+
+/*
 || -------------------------------------------------------------------
 || SendGrid Configuration - Option 1: SMTP
 || -------------------------------------------------------------------
@@ -130,11 +149,11 @@ $config['smtp_display_name'] = 'Your Name';
 || - Compatible with standard SMTP implementations
 || - Requires SMTP credentials
 || - Good for basic email sending
-|| 
+||
 || Setup:
 || 1. Create API Key: https://app.sendgrid.com/settings/api_keys
 || 2. Verify sender: https://app.sendgrid.com/settings/sender_auth
-|| 
+||
 */
 
 /*

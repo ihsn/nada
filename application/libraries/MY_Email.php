@@ -12,12 +12,14 @@ use Email\Drivers\EmailFactory;
 use Email\Drivers\SmtpDriver;
 use Email\Drivers\SendgridDriver;
 use Email\Drivers\SendgridApiDriver;
+use Email\Drivers\AcsDriver;
 
 require_once(APPPATH . 'libraries/Email/drivers/EmailInterface.php');
 require_once(APPPATH . 'libraries/Email/drivers/EmailFactory.php');
 require_once(APPPATH . 'libraries/Email/drivers/SmtpDriver.php');
 require_once(APPPATH . 'libraries/Email/drivers/SendgridDriver.php');
 require_once(APPPATH . 'libraries/Email/drivers/SendgridApiDriver.php');
+require_once(APPPATH . 'libraries/Email/drivers/AcsDriver.php');
 
 class MY_Email extends CI_Email {
 
@@ -85,6 +87,10 @@ class MY_Email extends CI_Email {
         'dkim_passphrase' => '',
         'dkim_identity' => '',
         'email_driver' => 'smtp',
+        'acs_endpoint' => '',
+        'acs_access_key' => '',
+        'acs_api_version' => '2025-09-01',
+        'acs_connection_string' => '',
     );
 
     protected $properties = array();
@@ -261,7 +267,11 @@ class MY_Email extends CI_Email {
                     'smtp_debug' => $this->CI->config->item('smtp_debug'),
                     'debug_output' => $this->CI->config->item('debug_output'),
                     'mailtype' => $this->CI->config->item('mailtype'),
-                    'charset' => $this->CI->config->item('charset')
+                    'charset' => $this->CI->config->item('charset'),
+                    'acs_endpoint' => $this->CI->config->item('acs_endpoint'),
+                    'acs_access_key' => $this->CI->config->item('acs_access_key'),
+                    'acs_api_version' => $this->CI->config->item('acs_api_version'),
+                    'acs_connection_string' => $this->CI->config->item('acs_connection_string'),
                 );
             }
         }
@@ -583,11 +593,17 @@ class MY_Email extends CI_Email {
             // Add configuration information
             $output .= "Configuration:\n";
             $output .= "Driver: " . $this->driver_name . "\n";
-            $output .= "SMTP Host: " . $this->smtp_host . "\n";
-            $output .= "SMTP Port: " . $this->smtp_port . "\n";
-            $output .= "SMTP User: " . $this->smtp_user . "\n";
-            $output .= "SMTP Auth: " . ($this->smtp_auth ? 'Yes' : 'No') . "\n";
-            $output .= "SMTP Crypto: " . $this->smtp_crypto . "\n";
+            if ($this->driver_name === 'acs') {
+                $output .= "ACS Endpoint: " . $this->acs_endpoint . "\n";
+                $output .= "Sender Address: " . $this->smtp_email . "\n";
+                $output .= "ACS API Version: " . $this->acs_api_version . "\n";
+            } else {
+                $output .= "SMTP Host: " . $this->smtp_host . "\n";
+                $output .= "SMTP Port: " . $this->smtp_port . "\n";
+                $output .= "SMTP User: " . $this->smtp_user . "\n";
+                $output .= "SMTP Auth: " . ($this->smtp_auth ? 'Yes' : 'No') . "\n";
+                $output .= "SMTP Crypto: " . $this->smtp_crypto . "\n";
+            }
             
             return $output;
         } else {
@@ -703,6 +719,14 @@ class MY_Email extends CI_Email {
             $config['dkim_selector'] = $this->dkim_selector;
             $config['dkim_passphrase'] = $this->dkim_passphrase;
             $config['dkim_identity'] = $this->dkim_identity;
+        }
+
+        if ($this->driver_name === 'acs') {
+            $config['acs_endpoint'] = $this->acs_endpoint;
+            $config['acs_access_key'] = $this->acs_access_key;
+            $config['acs_api_version'] = $this->acs_api_version;
+            $config['acs_connection_string'] = $this->acs_connection_string;
+            $config['debug'] = $this->smtp_debug > 0;
         }
         
         return $config;
