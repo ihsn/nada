@@ -63,6 +63,9 @@ class Migration_Create_repositories_acl_table extends MY_Migration {
 
         log_message('info', 'Successfully created repositories_acl table');
         echo "✓ Successfully created repositories_acl table\n";
+
+        // Clear CI3's table list cache so subsequent steps see the newly created table.
+        unset($this->db->data_cache['table_names']);
     }
 
     public function down()

@@ -38,32 +38,18 @@ class Migration_Add_ts_dimensions_and_ts_sync_required_to_surveys extends MY_Mig
 
 	private function up_mysql()
 	{
-		$hasDim  = $this->mysql_column_exists('surveys', 'ts_dimensions');
-		$hasSync = $this->mysql_column_exists('surveys', 'ts_sync_required');
-
-		if (!$hasDim && !$hasSync) {
-			$this->db->query("
+		if (!$this->mysql_column_exists('surveys', 'ts_dimensions')) {
+			$this->assert_db_query($this->db->query("
 				ALTER TABLE `surveys`
-					ADD COLUMN `ts_dimensions` VARCHAR(2000) NULL DEFAULT NULL AFTER `data_structure_id`,
-					ADD COLUMN `ts_sync_required` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0 AFTER `ts_dimensions`
-			");
-			log_message('info', 'Added surveys.ts_dimensions and surveys.ts_sync_required');
-			return;
-		}
-		if (!$hasDim) {
-			$this->db->query("
-				ALTER TABLE `surveys`
-					ADD COLUMN `ts_dimensions` VARCHAR(2000) NULL DEFAULT NULL AFTER `data_structure_id`
-			");
+					ADD COLUMN `ts_dimensions` VARCHAR(2000) NULL DEFAULT NULL
+			"), 'ADD COLUMN ts_dimensions');
 			log_message('info', 'Added surveys.ts_dimensions');
 		}
-		if (!$hasSync) {
-			$after = $this->mysql_column_exists('surveys', 'ts_dimensions') ? 'ts_dimensions' : 'data_structure_id';
-			$this->db->query("
+		if (!$this->mysql_column_exists('surveys', 'ts_sync_required')) {
+			$this->assert_db_query($this->db->query("
 				ALTER TABLE `surveys`
 					ADD COLUMN `ts_sync_required` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0
-					AFTER `{$after}`
-			");
+			"), 'ADD COLUMN ts_sync_required');
 			log_message('info', 'Added surveys.ts_sync_required');
 		}
 	}
@@ -71,11 +57,17 @@ class Migration_Add_ts_dimensions_and_ts_sync_required_to_surveys extends MY_Mig
 	private function up_sqlsrv()
 	{
 		if (!$this->sqlsrv_column_exists('surveys', 'ts_dimensions')) {
-			$this->db->query('ALTER TABLE surveys ADD ts_dimensions NVARCHAR(2000) NULL');
+			$this->assert_db_query(
+				$this->db->query('ALTER TABLE surveys ADD ts_dimensions NVARCHAR(2000) NULL'),
+				'ADD COLUMN ts_dimensions'
+			);
 			log_message('info', 'Added surveys.ts_dimensions');
 		}
 		if (!$this->sqlsrv_column_exists('surveys', 'ts_sync_required')) {
-			$this->db->query('ALTER TABLE surveys ADD ts_sync_required TINYINT NOT NULL DEFAULT 0');
+			$this->assert_db_query(
+				$this->db->query('ALTER TABLE surveys ADD ts_sync_required TINYINT NOT NULL DEFAULT 0'),
+				'ADD COLUMN ts_sync_required'
+			);
 			log_message('info', 'Added surveys.ts_sync_required');
 		}
 	}
