@@ -2,6 +2,8 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+require_once APPPATH . '../modules/auth0/vendor/autoload.php';
+
 use Auth0\SDK\Auth0 as Auth0Client;
 use Auth0\SDK\Configuration\SdkConfiguration;
 use Auth0\SDK\Exception\StateException;

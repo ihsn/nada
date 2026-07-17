@@ -1,0 +1,94 @@
+{
+    "name": "psr-discovery/discovery",
+    "description": "Lightweight library that discovers available PSR implementations by searching for a list of well-known classes that implement the relevant interfaces, and returning an instance of the first one that is found.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "psr",
+        "discovery",
+        "psr-18",
+        "psr-17",
+        "psr-14",
+        "psr-11",
+        "psr-6",
+        "psr-3"
+    ],
+    "authors": [
+        {
+            "name": "Evan Sims",
+            "email": "hello@evansims.com",
+            "homepage": "https://evansims.com/"
+        }
+    ],
+    "homepage": "https://github.com/psr-discovery/discovery",
+    "require": {
+        "php": "^8.2",
+        "composer/semver": "^3.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.14",
+        "mockery/mockery": "^1.5",
+        "pestphp/pest": "^2.0",
+        "phpstan/phpstan": "^1.10",
+        "phpstan/phpstan-strict-rules": "^1.5",
+        "rector/rector": "^0.15",
+        "vimeo/psalm": "^5.8",
+        "wikimedia/composer-merge-plugin": "^2.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "PsrDiscovery\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PsrDiscovery\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "infection/extension-installer": true,
+            "pestphp/pest-plugin": true,
+            "wikimedia/composer-merge-plugin": true
+        },
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "process-timeout": 0,
+        "sort-packages": true
+    },
+    "extra": {
+        "merge-plugin": {
+            "ignore-duplicates": false,
+            "include": [
+                "composer.local.json"
+            ],
+            "merge-dev": true,
+            "merge-extra": false,
+            "merge-extra-deep": false,
+            "merge-scripts": false,
+            "recurse": true,
+            "replace": true
+        }
+    },
+    "scripts": {
+        "mutate": "@php ./vendor/bin/infection --test-framework=pest --show-mutations",
+        "pest:coverage": "@php vendor/bin/pest --order-by random --compact --coverage",
+        "pest": "@php vendor/bin/pest --order-by random --compact",
+        "phpcs:fix": "@php vendor/bin/php-cs-fixer fix src",
+        "phpcs": "@php vendor/bin/php-cs-fixer fix src --dry-run --diff",
+        "phpstan": "@php vendor/bin/phpstan analyze",
+        "psalm:fix": "@php vendor/bin/psalter --issues=all",
+        "psalm": "@php vendor/bin/psalm",
+        "rector:fix": "@php vendor/bin/rector process",
+        "rector": "@php vendor/bin/rector process --dry-run",
+        "test": [
+            "@pest",
+            "@phpstan",
+            "@psalm",
+            "@rector",
+            "@phpcs"
+        ]
+    }
+}

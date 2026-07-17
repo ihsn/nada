@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => '9b9d92474a0d4573951957adfe7a1538ed6d0d23',
+        'reference' => '9eea22dcadea24c08606bb1301d558f3cc0e49eb',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => '9b9d92474a0d4573951957adfe7a1538ed6d0d23',
+            'reference' => '9eea22dcadea24c08606bb1301d558f3cc0e49eb',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -25,15 +25,6 @@
             'reference' => '081e2cca50c84bfeeea2e3ef9b2c8d206d80ccae',
             'type' => 'library',
             'install_path' => __DIR__ . '/../adbario/php-dot-notation',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
-        'auth0/auth0-php' => array(
-            'pretty_version' => '8.3.1',
-            'version' => '8.3.1.0',
-            'reference' => '848c702e2ea58c8dba0cae30976953b5772f8bf0',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../auth0/auth0-php',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
@@ -136,69 +127,12 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
-        'php-http/async-client-implementation' => array(
-            'dev_requirement' => false,
-            'provided' => array(
-                0 => '*',
-            ),
-        ),
-        'php-http/client-implementation' => array(
-            'dev_requirement' => false,
-            'provided' => array(
-                0 => '*',
-            ),
-        ),
-        'php-http/discovery' => array(
-            'pretty_version' => '1.20.0',
-            'version' => '1.20.0.0',
-            'reference' => '82fe4c73ef3363caed49ff8dd1539ba06044910d',
-            'type' => 'composer-plugin',
-            'install_path' => __DIR__ . '/../php-http/discovery',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
-        'php-http/httplug' => array(
-            'pretty_version' => '2.4.1',
-            'version' => '2.4.1.0',
-            'reference' => '5cad731844891a4c282f3f3e1b582c46839d22f4',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../php-http/httplug',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
-        'php-http/multipart-stream-builder' => array(
-            'pretty_version' => '1.4.2',
-            'version' => '1.4.2.0',
-            'reference' => '10086e6de6f53489cca5ecc45b6f468604d3460e',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../php-http/multipart-stream-builder',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
-        'php-http/promise' => array(
-            'pretty_version' => '1.3.1',
-            'version' => '1.3.1.0',
-            'reference' => 'fc85b1fba37c169a69a07ef0d5a8075770cc1f83',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../php-http/promise',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
         'phpmailer/phpmailer' => array(
             'pretty_version' => 'v6.12.0',
             'version' => '6.12.0.0',
             'reference' => 'd1ac35d784bf9f5e61b424901d5a014967f15b12',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpmailer/phpmailer',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
-        'psr/cache' => array(
-            'pretty_version' => '1.0.1',
-            'version' => '1.0.1.0',
-            'reference' => 'd11b50ad223250cf17b86e38383413f5a6764bf8',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../psr/cache',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
@@ -229,8 +163,7 @@
         'psr/http-client-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '*',
-                1 => '1.0',
+                0 => '1.0',
             ),
         ),
         'psr/http-factory' => array(
@@ -245,8 +178,7 @@
         'psr/http-factory-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '*',
-                1 => '1.0',
+                0 => '1.0',
             ),
         ),
         'psr/http-message' => array(
@@ -261,8 +193,7 @@
         'psr/http-message-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '*',
-                1 => '1.0',
+                0 => '1.0',
             ),
         ),
         'ralouphie/getallheaders' => array(
