@@ -1430,7 +1430,7 @@
     ]
   },
   "admin/site_configurations/main.js": {
-    "file": "assets/admin_site_configurations-BTMNQwV_.js",
+    "file": "assets/admin_site_configurations-CsI9dyu5.js",
     "name": "admin_site_configurations",
     "src": "admin/site_configurations/main.js",
     "isEntry": true,
@@ -1680,7 +1680,7 @@
     ]
   },
   "catalog/study_indicator_data_public/main.js": {
-    "file": "assets/catalog_study_indicator_data-r8-t5ofw.js",
+    "file": "assets/catalog_study_indicator_data-pjYQ7jFG.js",
     "name": "catalog_study_indicator_data",
     "src": "catalog/study_indicator_data_public/main.js",
     "isEntry": true,
@@ -1820,7 +1820,7 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue": {
-    "file": "assets/IndicatorTableTab-Oab4tXMg.js",
+    "file": "assets/IndicatorTableTab-D5MlvqmX.js",
     "name": "IndicatorTableTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue",
     "isDynamicEntry": true,
@@ -1857,7 +1857,7 @@
       "_ssrBoot-C-EZUN_A.js"
     ],
     "css": [
-      "assets/IndicatorTableTab-DBz1IvRm.css"
+      "assets/IndicatorTableTab-CmTD4ENE.css"
     ]
   },
   "node_modules/@mdi/font/fonts/materialdesignicons-webfont.eot": {

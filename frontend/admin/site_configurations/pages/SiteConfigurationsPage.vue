@@ -258,7 +258,7 @@ const currentTitle = computed(() => {
 
 /** Hide Save for tooling-only sections and when mail uses config/email.php only */
 const saveVisible = computed(() => {
-  if (activeSection.value === 'mail' && emailConfigFileExists.value) return false;
+  if (activeSection.value === 'mail') return false;
   return true;
 });
 
@@ -907,129 +907,9 @@ onMounted(async () => {
                 <h2 class="site-config-card__title">
                   {{ currentTitle }}
                 </h2>
-                <v-btn
-                  v-if="saveVisible"
-                  color="primary"
-                  :loading="saving"
-                  prepend-icon="mdi-content-save"
-                  @click="saveCurrentSection"
-                >
-                  {{ tr('update') }}
-                </v-btn>
-              </div>            
-            <div v-if="emailConfigFileExists" style="margin-top: 12px; margin-bottom: 16px;">
-              <v-alert type="info" variant="tonal" class="py-2">
-                <span class="d-block" v-html="editEmailHtml" />
-              </v-alert>
-            </div>
-
-            <template v-else>
-              <v-row dense>
-                <v-col cols="12" md="6">
-                  <label class="site-config-field__label">Email driver</label>
-                  <v-select
-                    v-model="settings.email_driver"
-                    :items="[
-                      { value: 'smtp', title: 'SMTP' },
-                      { value: 'sendmail', title: 'Sendmail' },
-                      { value: 'sendgrid', title: 'SendGrid' },
-                      { value: 'microsoft_graph', title: 'Microsoft Graph' },
-                    ]"
-                    item-title="title"
-                    item-value="value"
-                    variant="outlined"
-                    density="comfortable"
-                    hide-details
-                  />
-                </v-col>
-                <v-col cols="12">
-                  <label class="site-config-field__label">{{ tr('select_mail_protocol') }}</label>
-                  <v-radio-group v-model="settings.mail_protocol" inline class="mt-1">
-                    <v-radio value="mail" :label="tr('use_php_mail')" />
-                    <v-radio value="smtp" :label="tr('use_smtp')" />
-                  </v-radio-group>
-                </v-col>
-              </v-row>
-
-              <v-divider class="my-4" />
-
-              <div v-show="settings.email_driver === 'smtp' || settings.email_driver === undefined || settings.email_driver === ''">
-                <div class="text-body-2 font-weight-bold text-medium-emphasis mb-2">SMTP</div>
-                <v-row dense>
-                  <v-col cols="12" md="8">
-                    <label class="site-config-field__label">{{ tr('smtp_host') }}</label>
-                    <v-text-field v-model="settings.smtp_host" variant="outlined" density="comfortable" hide-details />
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <label class="site-config-field__label">{{ tr('smtp_port') }}</label>
-                    <v-text-field v-model="settings.smtp_port" variant="outlined" density="comfortable" hide-details />
-                  </v-col>
-                  <v-col cols="12" md="8">
-                    <label class="site-config-field__label">{{ tr('smtp_user') }}</label>
-                    <v-text-field v-model="settings.smtp_user" variant="outlined" density="comfortable" hide-details />
-                  </v-col>
-                  <v-col cols="12" md="8">
-                    <label class="site-config-field__label">{{ tr('smtp_password') }}</label>
-                    <v-text-field v-model="settings.smtp_pass" variant="outlined" density="comfortable" type="password" autocomplete="new-password" hide-details />
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <label class="site-config-field__label">{{ tr('smtp_auth') }}</label>
-                    <v-select
-                      v-model="settings.smtp_auth"
-                      :items="[{ value: '', title: 'Auto' }, { value: '1', title: tr('yes') }, { value: '0', title: tr('no') }]"
-                      item-value="value"
-                      item-title="title"
-                      variant="outlined"
-                      density="comfortable"
-                      hide-details
-                    />
-                  </v-col>
-                  <v-col cols="12" md="4">
-                    <label class="site-config-field__label">{{ tr('smtp_crypto') }}</label>
-                    <v-select
-                      v-model="settings.smtp_crypto"
-                      :items="[{ value: '', title: 'None' }, { value: 'tls', title: 'TLS' }, { value: 'ssl', title: 'SSL' }]"
-                      item-value="value"
-                      item-title="title"
-                      variant="outlined"
-                      density="comfortable"
-                      hide-details
-                    />
-                  </v-col>
-                </v-row>
               </div>
 
-              <div v-show="settings.email_driver === 'sendgrid'" class="mt-4">
-                <div class="text-body-2 font-weight-bold text-medium-emphasis mb-3">SendGrid</div>
-                <label class="site-config-field__label">{{ tr('sendgrid_api_key') }}</label>
-                <v-text-field v-model="settings.sendgrid_api_key" variant="outlined" density="comfortable" type="password" autocomplete="new-password" hide-details />
-              </div>
-
-              <div v-show="settings.email_driver === 'microsoft_graph'" class="mt-4">
-                <div class="text-body-2 font-weight-bold text-medium-emphasis mb-3">Microsoft Graph</div>
-                <v-row dense>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('microsoft_graph_client_id') }}</label>
-                    <v-text-field v-model="settings.microsoft_graph_client_id" variant="outlined" density="comfortable" hide-details />
-                  </v-col>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('microsoft_graph_client_secret') }}</label>
-                    <v-text-field v-model="settings.microsoft_graph_client_secret" variant="outlined" density="comfortable" type="password" autocomplete="new-password" hide-details />
-                  </v-col>
-                  <v-col cols="12">
-                    <label class="site-config-field__label">{{ tr('microsoft_graph_tenant_id') }}</label>
-                    <v-text-field v-model="settings.microsoft_graph_tenant_id" variant="outlined" density="comfortable" hide-details />
-                  </v-col>
-                </v-row>
-              </div>
-
-              <div v-show="settings.email_driver === 'sendmail'" class="mt-4 text-medium-emphasis text-body-2">
-                Sendmail uses the server sendmail path configured in PHP.
-              </div>
-
-            </template>
-
-            <div class="text-h6 font-weight-bold mt-8" style="margin-bottom: 28px;">{{ tr('test_email_configurations') }}</div>
+            <div class="text-h6 font-weight-bold" style="margin-bottom: 28px;">{{ tr('test_email_configurations') }}</div>
             <v-progress-linear v-if="testEmailLoading" indeterminate color="primary" class="my-4" />
 
             <form v-show="!testEmailLoading" class="mt-3" @submit.prevent="submitTestEmail">
