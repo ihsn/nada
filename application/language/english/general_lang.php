@@ -125,6 +125,7 @@ $lang['JSON']="JSON";
 $lang['DDI/XML']="DDI/XML";
 $lang['page not found']='Page not found';
 $lang['export_to_csv']="Export to CSV";
+$lang['export_to_json']="Export to JSON";
 
 $lang['translate']="Translate";
 $lang['get_reproducibility_package']="Get Reproducibility Package";

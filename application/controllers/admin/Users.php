@@ -1385,6 +1385,58 @@ class Users extends MY_Controller {
 	}
 	
 	/**
+	 * Export all users as CSV or JSON (id, email, first_name, last_name).
+	 *
+	 * @param string|null $format csv|json
+	 * @return void
+	 */
+	function export($format = null)
+	{
+		$this->acl_manager->has_access_or_die('user', 'view');
+
+		$format = strtolower(trim((string) $format));
+		if ( ! in_array($format, array('csv', 'json'), true)) {
+			show_404();
+		}
+
+		$rows = $this->User_model->get_export_rows();
+		$export = array();
+		foreach ($rows as $row) {
+			$export[] = array(
+				'id'         => (int) $row['id'],
+				'email'      => isset($row['email']) ? (string) $row['email'] : '',
+				'first_name' => isset($row['first_name']) ? (string) $row['first_name'] : '',
+				'last_name'  => isset($row['last_name']) ? (string) $row['last_name'] : '',
+			);
+		}
+
+		if ($format === 'json') {
+			$filename = 'users-' . date('Y-m-d-His') . '.json';
+			header('Content-Type: application/json; charset=utf-8');
+			header('Content-Disposition: attachment; filename="' . $filename . '"');
+			echo json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+			return;
+		}
+
+		$filename = 'users-' . date('Y-m-d-His') . '.csv';
+		header('Expires: Sat, 01 Jan 1980 00:00:00 GMT');
+		header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+		header('Pragma: public');
+		header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+		header('Content-Type: text/csv; charset=utf-8');
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+		$outstream = fopen('php://output', 'w');
+		// UTF-8 BOM for Excel compatibility
+		fwrite($outstream, "\xEF\xBB\xBF");
+		fputcsv($outstream, array('id', 'email', 'first_name', 'last_name'));
+		foreach ($export as $row) {
+			fputcsv($outstream, array($row['id'], $row['email'], $row['first_name'], $row['last_name']));
+		}
+		fclose($outstream);
+	}
+
+	/**
 	*
 	* Batch import users using CSV
 	*

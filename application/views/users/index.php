@@ -77,6 +77,8 @@ $rows = (isset($rows) && is_array($rows)) ? $rows : array();
       <?php if (!empty($show_permissions_link)): ?>
       <a href="<?php echo site_url('admin/permissions'); ?>" class="btn btn-outline-primary btn-sm"><i class="fa fa-users" aria-hidden="true">&nbsp;</i> <?php echo t('User roles'); ?></a>
       <?php endif; ?>
+      <a href="<?php echo site_url('admin/users/export/csv'); ?>" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-export" aria-hidden="true">&nbsp;</i> <?php echo t('export_to_csv'); ?></a>
+      <a href="<?php echo site_url('admin/users/export/json'); ?>" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-export" aria-hidden="true">&nbsp;</i> <?php echo t('export_to_json'); ?></a>
     </div>
 
     <h1 class="page-title mt-3 mb-3"><?php echo t('title_user_management'); ?></h1>

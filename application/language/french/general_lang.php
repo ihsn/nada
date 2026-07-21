@@ -122,6 +122,7 @@ $lang['JSON']="JSON";
 $lang['DDI/XML']="DDI/XML";
 $lang['page not found']="Page non trouvée";
 $lang['export_to_csv']="Exporter au format CSV";
+$lang['export_to_json']="Exporter au format JSON";
 $lang['translate']="Traduire";
 
 
