@@ -20,7 +20,7 @@
     "codemirror": "^6.0.2",
     "dompurify": "^3.4.11",
     "lodash": "^4.17.23",
-    "pdfjs-dist": "^6.0.227",
+    "pdfjs-dist": "^6.2.108",
     "sortablejs": "^1.15.7",
     "vue": "^3.5.29",
     "vue-router": "^5.0.3",
