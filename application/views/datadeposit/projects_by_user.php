@@ -83,7 +83,7 @@
                 <?php if ($project->status=='draft'):?>
                 <span>
                     <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
-                    <a href="<?php echo site_url('datadeposit/summary'.$project->id);?>">Summary</a>
+                    <a href="<?php echo site_url('datadeposit/summary/'.$project->id);?>">Summary</a>
                 </span>
                 <?php endif;?>
 

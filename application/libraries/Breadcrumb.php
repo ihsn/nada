@@ -236,7 +236,7 @@ class Breadcrumb
 			break;
 
 			case 'datadeposit':
-					$breadcrumbs['data-deposit']=t('datadeposit');
+					$breadcrumbs['datadeposit']=t('datadeposit');
 					$breadcrumbs['datadeposit/projects']=t('my_projects');
 					$dd_array=array('summary', 'update', 'submit_review','study','datafiles','citations');
 					if(isset($segments[2]) && in_array($segments[2], $dd_array) && isset($segments[3]))
