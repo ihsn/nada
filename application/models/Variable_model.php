@@ -53,7 +53,7 @@ class Variable_model extends CI_Model {
 
         foreach($variables as $key=>$variable){            
             $variables[$key]['metadata']=$this->Dataset_model->decode_metadata($variable['metadata']);
-            $variable=$this->map_variable_fields($variable);
+            $variables[$key]=$this->map_variable_fields($variables[$key]);
         }
 
         return $variables;
@@ -285,6 +285,8 @@ class Variable_model extends CI_Model {
             foreach($variables as $key=>$variable){
                 if(isset($variable['metadata'])){
                     $var_metadata=$this->Dataset_model->decode_metadata($variable['metadata']);
+                    $mapped=$this->map_variable_fields(array('metadata'=>$var_metadata));
+                    $var_metadata=isset($mapped['metadata']) ? $mapped['metadata'] : $var_metadata;
                     unset($variable['metadata']);
                     foreach($exclude_metadata as $ex){
                         if (array_key_exists($ex, $var_metadata)){
@@ -561,7 +563,7 @@ class Variable_model extends CI_Model {
             'var_qstn_preqtxt',
             'var_qstn_qstnlit',
             'var_qstn_postqtxt',
-            'var_qstn_ivuinstr',
+            'var_qstn_ivulnstr',
             'var_universe',
             'var_sumstat',
             'var_txt',
@@ -630,17 +632,26 @@ class Variable_model extends CI_Model {
             'var_end_pos'=>'loc_end_pos',
             'var_width'=>'loc_width',
             'var_rec_seg_no'=>'loc_rec_seg_no',
-            'var_qstn_ivulnstr'=>'var_qstn_ivuinstr'
         );
 
-
-        if (isset($variable['metadata'])){
+        if (isset($variable['metadata']) && is_array($variable['metadata'])){
             foreach($variable['metadata'] as $key=>$value){
-                //complex types e.g. repeatable array types
                 if(array_key_exists($key,$mappings)){ 
                     $variable['metadata'][$mappings[$key]]=$value;
                     unset($variable['metadata'][$key]);
                 }
+            }
+
+            // Legacy typo var_qstn_ivuinstr → canonical var_qstn_ivulnstr
+            if (array_key_exists('var_qstn_ivuinstr', $variable['metadata'])) {
+                $legacy = $variable['metadata']['var_qstn_ivuinstr'];
+                $canonical = isset($variable['metadata']['var_qstn_ivulnstr'])
+                    ? $variable['metadata']['var_qstn_ivulnstr']
+                    : '';
+                if (($canonical === '' || $canonical === null) && $legacy !== '' && $legacy !== null) {
+                    $variable['metadata']['var_qstn_ivulnstr'] = $legacy;
+                }
+                unset($variable['metadata']['var_qstn_ivuinstr']);
             }
         }
 

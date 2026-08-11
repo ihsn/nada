@@ -442,7 +442,6 @@ class Dataset_microdata_model extends Dataset_model {
             'var_qstn_preqtxt',
             'var_qstn_qstnlit',
             'var_qstn_postqtxt',
-            'var_qstn_ivuinstr'
         );
 
         $output=[];
@@ -450,6 +449,13 @@ class Dataset_microdata_model extends Dataset_model {
             if(isset($variable[$field])){
                 $output[]=$variable[$field];
             }            
+        }
+
+        // Canonical interviewer instructions, with legacy key fallback
+        if (isset($variable['var_qstn_ivulnstr']) && $variable['var_qstn_ivulnstr'] !== '' && $variable['var_qstn_ivulnstr'] !== null) {
+            $output[] = $variable['var_qstn_ivulnstr'];
+        } elseif (isset($variable['var_qstn_ivuinstr']) && $variable['var_qstn_ivuinstr'] !== '' && $variable['var_qstn_ivuinstr'] !== null) {
+            $output[] = $variable['var_qstn_ivuinstr'];
         }
         
         return implode("\r\n",$output);

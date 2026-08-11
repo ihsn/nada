@@ -327,6 +327,7 @@ $lang['var_qstn_qstnlit']="Formulation de la question";
 $lang['var_qstn_preqtxt']="Prétexte de la question";
 $lang['var_qstn_postqtxt']="Texte de la post-question";
 $lang['var_qstn_ivuinstr']="Instructions aux enquêteurs";
+$lang['var_qstn_ivulnstr']="Instructions aux enquêteurs";
 $lang['data_file']="Fichier de microdonnées";
 $lang['overview']="Aperçu";
 $lang['contacts']="Contacts";

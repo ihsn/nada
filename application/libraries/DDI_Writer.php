@@ -305,6 +305,26 @@ class DDI_Writer
         return '';
     }
 
+    /**
+     * Interviewer instructions (DDI ivuInstr).
+     * Canonical metadata key: var_qstn_ivulnstr; legacy: var_qstn_ivuinstr.
+     */
+    function var_qstn_ivulnstr_value($variable)
+    {
+        if (!is_array($variable)) {
+            return '';
+        }
+        $canonical = isset($variable['var_qstn_ivulnstr']) ? $variable['var_qstn_ivulnstr'] : '';
+        if ($canonical !== '' && $canonical !== null) {
+            return $canonical;
+        }
+        $legacy = isset($variable['var_qstn_ivuinstr']) ? $variable['var_qstn_ivuinstr'] : '';
+        if ($legacy !== '' && $legacy !== null) {
+            return $legacy;
+        }
+        return '';
+    }
+
     function get_var_desc_xml($data)
     {
         $var = new \Adbar\Dot($data);
@@ -346,7 +366,7 @@ class DDI_Writer
             'qstn.preQTxt'=>$var['var_qstn_preqtxt'],
             'qstn.qstnLit'=>$var['var_qstn_qstnlit'],
             'qstn.postQTxt'=>$var['var_qstn_postqtxt'],
-            'qstn.ivuInstr'=>$var['var_qstn_ivulnstr'],
+            'qstn.ivuInstr'=>$this->var_qstn_ivulnstr_value($data),
 
             //'valrng'=>$var[''],//repeatable field - not supported
             'universe'=>$var['var_universe'],

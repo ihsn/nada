@@ -126,7 +126,10 @@
                   },
                   "identifier": {
                     "title": "Identifier",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   }
                 },
                 "required": [
@@ -285,7 +288,10 @@
                   },
                   "grant": {
                     "title": "Grant Number",
-                    "type": "string",
+                    "type": [
+                      "string",
+                      "number"
+                    ],
                     "_ddi_xpath": "stdyDscr/citation/prodStmt/grantNo"
                   },
                   "role": {
@@ -637,7 +643,10 @@
                   "cycle": {
                     "title": "Cycle",
                     "description": "Cycle",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   }
                 },
                 "required": [
@@ -666,7 +675,10 @@
                   "cycle": {
                     "title": "Cycle",
                     "description": "Cycle",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   }
                 },
                 "required": [
@@ -704,19 +716,31 @@
                 "properties": {
                   "west": {
                     "title": "West",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "east": {
                     "title": "East",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "south": {
                     "title": "South",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "north": {
                     "title": "North",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   }
                 }
               }
@@ -732,12 +756,18 @@
                   "lat": {
                     "title": "Latitude",
                     "description": "Latitude (y coordinate) of a point. Valid range expressed in decimal degrees is as follows: -90,0 to 90,0 degrees (latitude)",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "lon": {
                     "title": "longitude",
                     "description": "Longitude (x coordinate) of a point. Valid range expressed in decimal degrees is as follows: -180,0 to 180,0 degrees (longitude)",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   }
                 }
               }
@@ -1470,7 +1500,10 @@
                         "_ddi_xpath": "stdyDscr/dataAccs/useStmt/confDec/@URI"
                       },
                       "form_id": {
-                        "type": "string",
+                        "type": [
+                          "string",
+                          "number"
+                        ],
                         "title": "Form ID",
                         "description": "Indicates the number or ID of the form that the user must fill out",
                         "_ddi_xpath": "stdyDscr/dataAccs/useStmt/confDec/@formNo"
@@ -1502,7 +1535,10 @@
                         "description": "Link to the form URL"
                       },
                       "form_id": {
-                        "type": "string",
+                        "type": [
+                          "string",
+                          "number"
+                        ],
                         "title": "Form ID",
                         "description": "Indicates the number or ID of the form that the user must fill out"
                       }
