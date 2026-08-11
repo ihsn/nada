@@ -366,23 +366,39 @@ class Dataset_model extends CI_Model {
 			}
 
 			$doi_identifier=[
-				'type'=>'DOI',				
+				'type'=>'doi',
 				'identifier'=>$doi
 			];
 
 			if (!is_array($identifiers)){
-				set_array_nested_value($metadata,$mappings[$type],$doi_identifier,"/");
+				set_array_nested_value($metadata,$mappings[$type],array($doi_identifier),"/");
+				return;
 			}
 
-			//check if DOI already exists
+			// Keep a single DOI entry (case-insensitive type; schema uses lowercase `doi`).
+			// Also collapses doi/DOI duplicates already persisted in metadata.
+			$normalized=array();
+			$has_doi=false;
+
 			foreach($identifiers as $identifier){
-				if ($identifier['type']=='DOI' && $identifier['identifier']==$doi){
-					return;
+				if (isset($identifier['type'], $identifier['identifier'])
+					&& strtolower($identifier['type'])=='doi'
+					&& $identifier['identifier']==$doi){
+					if (!$has_doi){
+						$normalized[]=$doi_identifier;
+						$has_doi=true;
+					}
+					continue;
 				}
+
+				$normalized[]=$identifier;
 			}
 
-			$identifiers[]=$doi_identifier;
-			set_array_nested_value($metadata,$mappings[$type],$identifiers,"/");
+			if (!$has_doi){
+				$normalized[]=$doi_identifier;
+			}
+
+			set_array_nested_value($metadata,$mappings[$type],$normalized,"/");
 		}
 	}
 
