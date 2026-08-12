@@ -144,6 +144,18 @@
                   <th class="font-weight-bold">{{ t('expected_completion_date', 'Expected completion') }}</th>
                   <td>{{ requestRow.compdate }}</td>
                 </tr>
+                <tr v-if="hasRequestText(requestRow.team)">
+                  <th class="font-weight-bold">{{ t('research_team_members', 'Research team members (other than the lead researcher)') }}</th>
+                  <td style="white-space: pre-wrap">{{ requestRow.team }}</td>
+                </tr>
+                <tr v-if="datasetAccessLabel">
+                  <th class="font-weight-bold">{{ t('identification_data_files_and_variables_needed', 'Identification of data files and variables needed') }}</th>
+                  <td>{{ datasetAccessLabel }}</td>
+                </tr>
+                <tr v-if="hasRequestText(requestRow.additional_info)">
+                  <th class="font-weight-bold">{{ t('additional_info', 'Additional information requested') }}</th>
+                  <td style="white-space: pre-wrap">{{ requestRow.additional_info }}</td>
+                </tr>
               </tbody>
             </v-table>
           </v-card>
@@ -594,6 +606,18 @@ const bulkFileGlobal = reactive({
 
 const requestRow = computed(() => detail.value?.request || {});
 const userRow = computed(() => detail.value?.request?.user || {});
+
+function hasRequestText(val) {
+  return String(val ?? '').trim() !== '';
+}
+
+/** Whole vs subset, matching the PHP admin request view. */
+const datasetAccessLabel = computed(() => {
+  const v = String(requestRow.value?.dataset_access ?? '').trim().toLowerCase();
+  if (!v) return '';
+  if (v === 'whole') return t('whole_dataset', 'Whole dataset');
+  return t('subset_data', 'A subset of variables and/or cases');
+});
 
 const siteBaseUrl = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));
 
