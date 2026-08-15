@@ -338,10 +338,13 @@ class Dataset_geospatial_model extends Dataset_model {
                 'metadata'=> json_encode($file_metadata)
             );
 
-            $this->Data_file_model->insert($sid,$data_file);
+            $file_pk=$this->Data_file_model->insert($sid,$data_file);
 
             $car_chars=isset($feature_type['carrierOfCharacteristics']) ? $feature_type['carrierOfCharacteristics'] : null;
-            $this->insert_carrierOfCharacteristics($sid,$file_id,$car_chars);
+            $attr_count=$this->insert_carrierOfCharacteristics($sid,$file_id,$car_chars);
+            if ($file_pk){
+                $this->Data_file_model->update($file_pk,array('var_count'=>(int)$attr_count));
+            }
         }
 
         $this->update_varcount($sid);
@@ -352,7 +355,7 @@ class Dataset_geospatial_model extends Dataset_model {
     private function insert_carrierOfCharacteristics($sid,$fid,$car_chars)
     {
         if(!is_array($car_chars)){
-            return false;
+            return 0;
         }
 
         $var_counter=1;
@@ -382,7 +385,7 @@ class Dataset_geospatial_model extends Dataset_model {
             $this->Variable_model->insert($sid,$variable_metadata);
         }
 
-        return true;
+        return $var_counter-1;
     }
 
     /**

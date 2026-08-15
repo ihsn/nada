@@ -61,8 +61,11 @@ class Study extends MY_Controller {
 		);
 		$survey['schema_org_json_ld']=$this->Dataset_model->build_schema_org_json_ld($survey);
 
-		$this->template->add_js('javascript/linkify.min.js');
-		$this->template->add_js('javascript/linkify-jquery.min.js');		
+		$uses_display_template = in_array($survey['type'], array('script', 'survey', 'timeseries', 'timeseriesdb', 'timeseries-db', 'geospatial'), true);
+		if (!$uses_display_template) {
+			$this->template->add_js('javascript/linkify.min.js');
+			$this->template->add_js('javascript/linkify-jquery.min.js');
+		}
 		$this->template->add_js('javascript/pym.v1.min.js');
 
 		if (!empty($survey['schema_org_json_ld'])) {
@@ -87,7 +90,7 @@ class Study extends MY_Controller {
 			$survey['metadata']['series_description']['databases'] = $databases;
 		}
 
-		if (in_array($survey['type'], array('script','survey','timeseries','timeseriesdb','timeseries-db'))){
+		if (in_array($survey['type'], array('script','survey','timeseries','timeseriesdb','timeseries-db','geospatial'))){
 			$output=$this->render_metadata_html($survey);
 		}
 		else{		
@@ -126,7 +129,8 @@ class Study extends MY_Controller {
 
 			$page_options=array(
                 'html'=>$this->display_template->render_html(),
-                'sidebar'=>$this->display_template->get_sidebar_items()
+                'sidebar'=>$this->display_template->get_sidebar_items(),
+                'display_template_info'=>$this->display_template->get_template_resolution(),
             );
 
             return $this->load->view('display_templates/index',$page_options,true);
@@ -141,11 +145,13 @@ class Study extends MY_Controller {
 	public function data_dictionary($sid)
 	{
 		$this->load->model("Variable_group_model"); 
+		$views=$this->data_dictionary_views($sid);
 		$options['files']=$this->Data_file_model->get_all_by_survey($sid);
 		$options['variable_groups_html']=$this->Variable_group_model->get_vgroup_tree_html($sid);
         $options['sid']=$sid;
-		$options['content']=$this->load->view('survey_info/data_files',$options,TRUE);
-		$content=$this->load->view('survey_info/data_dictionary_layout',$options,TRUE);
+		$this->apply_geospatial_catalogue_context($sid, $options, $views['type']);
+		$options['content']=$this->load->view($views['index'],$options,TRUE);
+		$content=$this->load->view($views['layout'],$options,TRUE);
 		$this->render_page($sid, $content,'data_dictionary');
 	}
 
@@ -207,8 +213,17 @@ class Study extends MY_Controller {
         if (!$options['file']){
             show_404();
 		}
-		
-        $content=$this->load->view('survey_info/variables_by_file',$options,TRUE);
+
+		$views=$this->data_dictionary_views($sid);
+		if ($views['type']==='geospatial'){
+			$options['files']=$options['file_list'];
+			$this->apply_geospatial_catalogue_context($sid, $options, $views['type']);
+			$options['content']=$this->load->view($views['file'],$options,TRUE);
+			$content=$this->load->view($views['layout'],$options,TRUE);
+		}
+		else{
+			$content=$this->load->view($views['file'],$options,TRUE);
+		}
         $this->render_page($sid, $content,'data_dictionary');
     }
 
@@ -244,25 +259,7 @@ class Study extends MY_Controller {
 			show_404();
 		}
 
-		$dataset_type=$this->Dataset_model->get_type($sid);
-
-		//default variable template
-		$variable_template='timeseries';
-
-		switch($dataset_type){
-			case 'survey':
-				$variable_template='variable_ddi';
-			break;
-
-			case 'geospatial':
-				$variable_template='geospatial_features';
-			break;
-
-			case 'timeseries':
-				$variable_template='timeseries';
-			break;
-		}
-		//$variable_template='variable_ddi';
+		$views=$this->data_dictionary_views($sid);
 
         $options['sid']=$sid;
         $options['file_id']=$file_id;
@@ -275,15 +272,79 @@ class Study extends MY_Controller {
 		}
 
 		if($this->input->is_ajax_request()){
-			$content=$this->load->view('survey_info/'.$variable_template,$options,TRUE);
+			$content=$this->load->view($views['variable'],$options,TRUE);
 			return $this->render_page($sid, $content,'data_dictionary');
 		}
 
 		$options['files']=$this->Data_file_model->get_all_by_survey($sid);
-		$options['content']=$this->load->view('survey_info/'.$variable_template,$options,TRUE);
-		$content=$this->load->view('survey_info/data_dictionary_layout',$options,TRUE);
+		$this->apply_geospatial_catalogue_context($sid, $options, $views['type']);
+		$options['content']=$this->load->view($views['variable'],$options,TRUE);
+		$content=$this->load->view($views['layout'],$options,TRUE);
         $this->render_page($sid, $content,'data_dictionary');
     }
+
+
+	/**
+	 * View set for the data-dictionary / feature-catalogue tab.
+	 */
+	private function data_dictionary_views($sid)
+	{
+		$type=$this->Dataset_model->get_type($sid);
+		if ($type==='geospatial'){
+			return array(
+				'type'=>'geospatial',
+				'index'=>'survey_info/geospatial_feature_types',
+				'file'=>'survey_info/geospatial_feature_type',
+				'layout'=>'survey_info/geospatial_catalogue_layout',
+				'variable'=>'survey_info/geospatial_features',
+			);
+		}
+
+		$variable='survey_info/timeseries';
+		if ($type==='survey'){
+			$variable='survey_info/variable_ddi';
+		}
+
+		return array(
+			'type'=>$type,
+			'index'=>'survey_info/data_files',
+			'file'=>'survey_info/variables_by_file',
+			'layout'=>'survey_info/data_dictionary_layout',
+			'variable'=>$variable,
+		);
+	}
+
+
+	/**
+	 * Catalogue header and attribute counts for geospatial tab views.
+	 */
+	private function apply_geospatial_catalogue_context($sid, &$options, $type=null)
+	{
+		if ($type===null){
+			$type=$this->Dataset_model->get_type($sid);
+		}
+		if ($type!=='geospatial'){
+			return;
+		}
+
+		$metadata=$this->dataset_manager->get_metadata($sid,'geospatial');
+		$catalog=array();
+		if (is_array($metadata) && isset($metadata['description']['feature_catalogue']) && is_array($metadata['description']['feature_catalogue'])){
+			$catalog=$metadata['description']['feature_catalogue'];
+			unset($catalog['featureType']);
+		}
+		$options['feature_catalogue']=$catalog;
+
+		if (isset($options['files']) && is_array($options['files'])){
+			foreach($options['files'] as $key=>$file){
+				$fid=isset($file['file_id']) ? $file['file_id'] : '';
+				if ($fid==='' || !empty($file['var_count'])){
+					continue;
+				}
+				$options['files'][$key]['var_count']=$this->Variable_model->get_file_variables_count($sid,$fid);
+			}
+		}
+	}
 
 
 	public function downloads($sid=NULL)
@@ -861,9 +922,47 @@ class Study extends MY_Controller {
 		$display_layout='survey_info/layout';
 
 		switch($dataset_type){
+			case 'geospatial':
+				$page_tabs=array(
+					'description'=>array(
+						'label'=>t('geospatial_description'),
+						'url'=>site_url("catalog/$sid/study-description"),
+						'show_tab'=>1
+					),
+					'data_dictionary'=>array(
+						'label'=>t('feature_catalogue'),
+						'url'=>site_url("catalog/$sid/data-dictionary"),
+						'show_tab'=>$has_datafiles
+					),
+					'related_materials'=>array(
+						'label'=>t('related_materials'),
+						'url'=>site_url("catalog/$sid/related-materials"),
+						'show_tab'=>(int)$related_resources_count
+					),
+					'get_microdata'=>array(
+						'label'=>t('get_microdata'),
+						'url'=>site_url("catalog/$sid/get-microdata"),
+						'show_tab'=>1
+					),
+					'related_citations'=>array(
+						'label'=>t('related_citations'),
+						'url'=>site_url("catalog/$sid/related-publications"),
+						'show_tab'=>(int)$related_citations_count
+					),
+					'related_datasets'=>array(
+						'label'=>t('related_datasets'),
+						'url'=>site_url("catalog/$sid/related-datasets"),
+						'show_tab'=>count($related_studies)
+					),
+					'data_api'=>array(
+						'label'=>t('Data Api'),
+						'url'=>site_url("catalog/$sid/data-api"),
+						'show_tab'=>$has_data_api
+					)
+				);
+				break;
 			case 'survey':
 			case 'microdata':
-			case 'geospatial':
 				$page_tabs=array(
 					'description'=>array(
 						'label'=>t('microdata_description'),
@@ -1156,7 +1255,9 @@ class Study extends MY_Controller {
 
 		$options['files']=$this->Data_file_model->get_all_by_survey($id);
 		$options['content']=$html;
-		$content=$this->load->view('survey_info/data_dictionary_layout',$options,TRUE);
+		$views=$this->data_dictionary_views($id);
+		$this->apply_geospatial_catalogue_context($id, $options, $views['type']);
+		$content=$this->load->view($views['layout'],$options,TRUE);
 
 		$this->render_page($id, $content,'data_dictionary');
 	}

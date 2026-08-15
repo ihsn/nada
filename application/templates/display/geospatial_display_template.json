@@ -1,0 +1,228 @@
+{
+    "data_type": "geospatial",
+    "lang": "en",
+    "name": "Geospatial display template",
+    "version": "1.0",
+    "description": "Catalog study description layout matching the legacy ISO 19139 page.",
+    "template": {
+        "type": "template",
+        "title": "Geospatial",
+        "items": [
+            {
+                "type": "section_container",
+                "key": "description",
+                "title": "Description",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "identificationInfo",
+                        "title": "Identification",
+                        "items": [
+                            { "key": "description.identificationInfo.citation.title", "title": "Title", "type": "string" },
+                            { "key": "description.identificationInfo.citation.alternateTitle", "title": "Alternate title", "type": "simple_array" },
+                            { "key": "description.identificationInfo.citation.identifier", "title": "Identifier", "type": "array", "props": [
+                                { "key": "code", "title": "Identifier", "type": "string", "prop_key": "description.identificationInfo.citation.identifier.code" },
+                                { "key": "authority", "title": "Authority", "type": "string", "prop_key": "description.identificationInfo.citation.identifier.authority" }
+                            ]},
+                            { "key": "description.hierarchyLevel", "title": "Hierarchy level", "type": "string" },
+                            { "key": "description.identificationInfo.citation.edition", "title": "Edition", "type": "string" },
+                            { "key": "description.identificationInfo.citation.editionDate", "title": "Edition date", "type": "string" },
+                            { "key": "description.identificationInfo.status", "title": "Status", "type": "string" },
+                            { "key": "description.identificationInfo.language", "title": "Language", "type": "string" },
+                            { "key": "description.identificationInfo.characterSet.codeListValue", "title": "Character set", "type": "string" },
+                            { "key": "description.identificationInfo.citation.date", "title": "Date", "type": "array", "props": [
+                                { "key": "date", "title": "Date", "type": "string", "prop_key": "description.identificationInfo.citation.date.date" },
+                                { "key": "type", "title": "Type", "type": "string", "prop_key": "description.identificationInfo.citation.date.type" }
+                            ]},
+                            {
+                                "key": "description.distributionInfo.transferOptions.onLine",
+                                "title": "Graphic overview",
+                                "type": "array",
+                                "display_options": { "renderer": "field_photo_gallery" }
+                            },
+                            {
+                                "key": "iframe_embeds",
+                                "title": "Embedded widgets",
+                                "type": "widget",
+                                "display_options": { "renderer": "field_iframe_embed" }
+                            },
+                            {
+                                "key": "description.identificationInfo.citation.citedResponsibleParty",
+                                "title": "Responsible party",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_geog_contact" }
+                            },
+                            {
+                                "key": "description.identificationInfo.citation.presentationForm",
+                                "title": "Presentation form",
+                                "type": "simple_array",
+                                "display_options": { "renderer": "field_array_badge" }
+                            },
+                            { "key": "description.identificationInfo.citation.series.name", "title": "Series name", "type": "string" },
+                            { "key": "description.identificationInfo.citation.series.issueIdentification", "title": "Series issue identification", "type": "string" },
+                            { "key": "description.identificationInfo.citation.otherCitationDetails", "title": "Citation", "type": "string" },
+                            { "key": "description.identificationInfo.citation.collectiveTitle", "title": "Collective title", "type": "string" },
+                            { "key": "description.identificationInfo.citation.ISBN", "title": "ISBN", "type": "string" },
+                            { "key": "description.identificationInfo.citation.ISSN", "title": "ISSN", "type": "string" },
+                            { "key": "description.identificationInfo.abstract", "title": "Abstract", "type": "string" },
+                            { "key": "description.identificationInfo.purpose", "title": "Purpose", "type": "string" },
+                            { "key": "description.identificationInfo.credit", "title": "Credit", "type": "string" },
+                            {
+                                "key": "description.identificationInfo.pointOfContact",
+                                "title": "Point of contact",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_geog_contact" }
+                            },
+                            {
+                                "key": "description.identificationInfo.resourceMaintenance",
+                                "title": "Resource maintenance",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_array_stacked", "header_fields": ["maintenanceAndUpdateFrequency"] },
+                                "props": [
+                                    { "key": "maintenanceAndUpdateFrequency", "title": "Update frequency", "type": "string", "prop_key": "description.identificationInfo.resourceMaintenance.maintenanceAndUpdateFrequency" }
+                                ]
+                            },
+                            {
+                                "key": "description.identificationInfo.resourceFormat",
+                                "title": "Resource formats",
+                                "type": "array",
+                                "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "description.identificationInfo.resourceFormat.name" },
+                                    { "key": "specification", "title": "Specification", "type": "string", "prop_key": "description.identificationInfo.resourceFormat.specification" }
+                                ]
+                            },
+                            {
+                                "key": "description.identificationInfo.descriptiveKeywords",
+                                "title": "Descriptive keywords",
+                                "type": "array",
+                                "props": [
+                                    { "key": "type", "title": "Type", "type": "string", "prop_key": "description.identificationInfo.descriptiveKeywords.type" },
+                                    { "key": "keyword", "title": "Keyword", "type": "string", "prop_key": "description.identificationInfo.descriptiveKeywords.keyword" },
+                                    { "key": "thesaurusName", "title": "Thesaurus", "type": "string", "prop_key": "description.identificationInfo.descriptiveKeywords.thesaurusName" }
+                                ]
+                            },
+                            { "key": "description.identificationInfo.spatialRepresentationType", "title": "Spatial representation type", "type": "simple_array" },
+                            {
+                                "key": "description.identificationInfo.spatialResolution",
+                                "title": "Spatial resolution",
+                                "type": "object"
+                            },
+                            { "key": "description.identificationInfo.topicCategory", "title": "Topic category", "type": "simple_array" }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "spatial_extent",
+                        "title": "Spatial extent",
+                        "items": [
+                            {
+                                "key": "description.identificationInfo.extent.geographicElement",
+                                "title": "Bounding box",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_geospatial_bbox" }
+                            },
+                            {
+                                "key": "description.referenceSystemInfo",
+                                "title": "Reference system",
+                                "type": "array",
+                                "props": [
+                                    { "key": "code", "title": "Code", "type": "string", "prop_key": "description.referenceSystemInfo.code" },
+                                    { "key": "codeSpace", "title": "Code space", "type": "string", "prop_key": "description.referenceSystemInfo.codeSpace" }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "constraints",
+                        "title": "Constraints",
+                        "items": [
+                            {
+                                "key": "description.identificationInfo.resourceConstraints",
+                                "title": "Constraints",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_array_stacked" },
+                                "props": [
+                                    { "key": "legalConstraints.accessConstraints", "title": "Access constraints", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.accessConstraints" },
+                                    { "key": "legalConstraints.useConstraints", "title": "Use constraints", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.useConstraints" },
+                                    { "key": "legalConstraints.useLimitation", "title": "Use limitations", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.useLimitation" }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "distributionInfo",
+                        "title": "Distribution",
+                        "items": [
+                            {
+                                "key": "description.distributionInfo.distributionFormat",
+                                "title": "Distribution format",
+                                "type": "array",
+                                "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "description.distributionInfo.distributionFormat.name" },
+                                    { "key": "specification", "title": "Specification", "type": "string", "prop_key": "description.distributionInfo.distributionFormat.specification" },
+                                    { "key": "fileDecompressionTechnique", "title": "Compression", "type": "string", "prop_key": "description.distributionInfo.distributionFormat.fileDecompressionTechnique" }
+                                ]
+                            },
+                            {
+                                "key": "description.distributionInfo.distributor",
+                                "title": "Distributor",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_geog_contact" }
+                            },
+                            {
+                                "key": "description.distributionInfo.transferOptions.onLine",
+                                "title": "Online resources",
+                                "type": "array",
+                                "display_options": { "renderer": "field_resources", "exclude": "pic" }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "dataQualityInfo",
+                        "title": "Data quality",
+                        "items": [
+                            {
+                                "key": "description.dataQualityInfo",
+                                "title": "Data quality",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_array_stacked", "header_fields": ["scope"] },
+                                "props": [
+                                    { "key": "scope", "title": "Scope", "type": "string", "prop_key": "description.dataQualityInfo.scope" },
+                                    { "key": "lineage.statement", "title": "Lineage statement", "type": "string", "prop_key": "description.dataQualityInfo.lineage.statement" },
+                                    {
+                                        "key": "lineage.processStep",
+                                        "title": "Lineage process step",
+                                        "type": "nested_array",
+                                        "prop_key": "description.dataQualityInfo.lineage.processStep",
+                                        "display_options": { "renderer": "field_geo_lineage" }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "metadata",
+                        "title": "Metadata production",
+                        "items": [
+                            { "key": "description.idno", "title": "File identifier", "type": "string" },
+                            { "key": "description.metadataStandardName", "title": "Metadata standard", "type": "string" },
+                            { "key": "description.dateStamp", "title": "Date stamp", "type": "string" },
+                            { "key": "description.language", "title": "Language", "type": "string" },
+                            { "key": "description.characterSet.codeListValue", "title": "Character set", "type": "string" },
+                            {
+                                "key": "description.contact",
+                                "title": "Contacts",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_geog_contact" }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

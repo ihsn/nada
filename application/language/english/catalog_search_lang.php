@@ -240,6 +240,15 @@ $lang['select_data_classification']="Select data classification";
 $lang['Photo']='Image';
 
 $lang['geospatial_description']="Description";
+$lang['feature_catalogue']="Feature catalogue";
+$lang['feature_type']="Feature type";
+$lang['feature_types']="Feature types";
+$lang['attributes']="Attributes";
+$lang['feature_catalogue_version']="Version";
+$lang['feature_catalogue_scope']="Scope";
+$lang['field_of_application']="Field of application";
+$lang['functional_language']="Functional language";
+$lang['feature_catalogue_tab_info']="Feature types and attributes defined in the feature catalogue";
 $lang['timeseries_description']="Series Description";
 $lang['timeseries_db']="Dataset description";
 $lang['dataset']="Dataset";
