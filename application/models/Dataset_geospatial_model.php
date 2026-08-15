@@ -56,7 +56,7 @@ class Dataset_geospatial_model extends Dataset_model {
         $options['changed']=date("U");
         
         //fields to be stored as metadata
-        $study_metadata_sections=array('description','provenance','embeddings','lda_topics','tags','additional');
+        $study_metadata_sections=array('metadata_information','description','provenance','embeddings','lda_topics','tags','additional');
 
         foreach($study_metadata_sections as $section){
 			if(array_key_exists($section,$options)){
@@ -76,10 +76,10 @@ class Dataset_geospatial_model extends Dataset_model {
 		//start transaction
 		$this->db->trans_start();
 
-        $feature_catalog=isset($options['metadata']['description']['feature_catalogue']) ? $options['metadata']['description']['feature_catalogue'] : null;
-
-        if (isset($options['metadata']['description']['feature_catalogue'])){
-            //unset($options['metadata']['description']['feature_catalogue']);
+        // Body is stored in data_files/variables. Header stays in the metadata blob.
+        $incoming_feature_types=$this->incoming_feature_types($options);
+        if (isset($options['metadata']['description']['feature_catalogue']['featureType'])){
+            unset($options['metadata']['description']['feature_catalogue']['featureType']);
         }
         
         if($dataset_id>0){
@@ -94,8 +94,8 @@ class Dataset_geospatial_model extends Dataset_model {
         //import external resources
         $this->update_resources($dataset_id,$external_resources);
 
-        //feature catalog
-        $this->upsert_feature_catalog($dataset_id,$feature_catalog);
+        $this->upsert_feature_catalog($dataset_id,$incoming_feature_types);
+        $this->refresh_geospatial_keywords($dataset_id,$options['metadata'],$type);
 
         //complete transaction
 		$this->db->trans_complete();
@@ -114,7 +114,11 @@ class Dataset_geospatial_model extends Dataset_model {
             $metadata=$this->get_metadata($sid);
             
             if(is_array($metadata)){
-                unset($metadata['idno']);                
+                unset($metadata['idno']);
+                // get_metadata() reattaches featureType from tables; do not treat that as caller input.
+                if (isset($metadata['description']['feature_catalogue']['featureType'])){
+                    unset($metadata['description']['feature_catalogue']['featureType']);
+                }
                 $options=$this->array_merge_replace_metadata($metadata,$options);
                 $options=array_remove_nulls($options);
             }
@@ -234,6 +238,15 @@ class Dataset_geospatial_model extends Dataset_model {
 
         //add external resources
         $metadata['description']['distributionInfo']['transferOptions']['onLine']=$external_resources;
+
+        $feature_types=$this->get_feature_types_from_tables($sid);
+        if (!empty($feature_types)){
+            if (!isset($metadata['description']['feature_catalogue']) || !is_array($metadata['description']['feature_catalogue'])){
+                $metadata['description']['feature_catalogue']=array();
+            }
+            $metadata['description']['feature_catalogue']['featureType']=$feature_types;
+        }
+
         return $metadata;
 	}    
 
@@ -285,18 +298,32 @@ class Dataset_geospatial_model extends Dataset_model {
     }
 
 
-    function upsert_feature_catalog($sid,$feature_catalog)
+    /**
+     * Replace feature types/attributes when the caller sent featureType.
+     * null = not sent (leave tables). empty array = clear tables.
+     */
+    function upsert_feature_catalog($sid,$feature_types)
     {
-        $this->Data_file_model->remove_all_files($sid);
-
-        if (!isset($feature_catalog['featureType'])){
+        if ($feature_types===null){
             return false;
         }
 
-        //featureType [data file]
+        $this->Variable_model->remove_all_variables($sid);
+        $this->Data_file_model->remove_all_files($sid);
+
+        if (!is_array($feature_types) || empty($feature_types)){
+            $this->update_varcount($sid);
+            $this->Variable_model->update_survey_timestamp($sid);
+            return true;
+        }
+
         $file_counter=1;
-        foreach($feature_catalog['featureType'] as $feature_type)
+        foreach($feature_types as $feature_type)
         {
+            if (!is_array($feature_type)){
+                continue;
+            }
+
             $file_metadata=$feature_type;
             if (isset($file_metadata['carrierOfCharacteristics'])){
                 unset($file_metadata['carrierOfCharacteristics']);
@@ -306,42 +333,40 @@ class Dataset_geospatial_model extends Dataset_model {
             $data_file=array(
                 'sid'=>$sid,
                 'file_id'=>$file_id,
-                'file_name'=>$feature_type['typeName'],
-                'description'=>$feature_type['definition'],
+                'file_name'=>isset($feature_type['typeName']) ? $feature_type['typeName'] : '',
+                'description'=>isset($feature_type['definition']) ? $feature_type['definition'] : '',
                 'metadata'=> json_encode($file_metadata)
             );
 
-            $file=$this->Data_file_model->get_file_by_id($sid,$file_id);
-                
-            if($file){
-                $this->Data_file_model->update($file['id'],$data_file);
-            }else{
-                $this->Data_file_model->insert($sid,$data_file);
-            }
+            $this->Data_file_model->insert($sid,$data_file);
 
             $car_chars=isset($feature_type['carrierOfCharacteristics']) ? $feature_type['carrierOfCharacteristics'] : null;
-            $this->upsert_carrierOfCharacteristics($sid,$file_id,$car_chars,true);
+            $this->insert_carrierOfCharacteristics($sid,$file_id,$car_chars);
         }
+
+        $this->update_varcount($sid);
+        $this->Variable_model->update_survey_timestamp($sid);
+        return true;
     }
 
-    private function upsert_carrierOfCharacteristics($sid,$fid,$car_chars, $remove_existing=false)
-    {        
-        if ($remove_existing==true){
-            $this->delete_variables($sid,$fid);
-        }
-        
+    private function insert_carrierOfCharacteristics($sid,$fid,$car_chars)
+    {
         if(!is_array($car_chars)){
             return false;
         }
 
         $var_counter=1;
         foreach($car_chars as $variable){
+            if (!is_array($variable)){
+                continue;
+            }
+
             $vid='V'.$var_counter++;
             $listed_values=isset($variable['listedValue']) ? $variable['listedValue'] : '';
-            $labl=isset($variable['definition']) ? $variable['definition'] : '';
+            $labl=isset($variable['definition']) ? (string)$variable['definition'] : '';
             
             if (strlen($labl)>255){
-                $labl=substr(0,250).'...';
+                $labl=substr($labl,0,250).'...';
             }
 
             $variable_metadata=array(
@@ -354,19 +379,104 @@ class Dataset_geospatial_model extends Dataset_model {
                 'metadata'=>$variable
             );
 
-            $variable_id=$this->Variable_model->insert($sid,$variable_metadata, $upsert=!$remove_existing);
+            $this->Variable_model->insert($sid,$variable_metadata);
         }
 
-        //update survey varcount
-        $this->update_varcount($sid);
-        $this->Variable_model->update_survey_timestamp($sid);
+        return true;
     }
 
-    function delete_variables($sid,$fid)
+    /**
+     * featureType from the request, or null if the caller did not send it.
+     */
+    private function incoming_feature_types($options)
     {
+        $catalog=null;
+        if (isset($options['metadata']['description']['feature_catalogue']) && is_array($options['metadata']['description']['feature_catalogue'])){
+            $catalog=$options['metadata']['description']['feature_catalogue'];
+        }
+        elseif (isset($options['description']['feature_catalogue']) && is_array($options['description']['feature_catalogue'])){
+            $catalog=$options['description']['feature_catalogue'];
+        }
+
+        if ($catalog===null || !array_key_exists('featureType',$catalog) || !is_array($catalog['featureType'])){
+            return null;
+        }
+
+        return $catalog['featureType'];
+    }
+
+    /**
+     * Rebuild featureType[] from data_files + variables (response only).
+     */
+    private function get_feature_types_from_tables($sid)
+    {
+        $files=$this->Data_file_model->get_all_by_survey($sid);
+        if (!is_array($files) || empty($files)){
+            return array();
+        }
+
+        $variables_by_fid=array();
+        $this->db->select('fid,uid,metadata');
         $this->db->where('sid',$sid);
-        $this->db->where('fid',$fid);
-        $this->db->delete('variables');
+        $this->db->order_by('uid','ASC');
+        $rows=$this->db->get('variables')->result_array();
+        foreach($rows as $row){
+            $attribute=$this->decode_metadata($row['metadata']);
+            if (!is_array($attribute)){
+                continue;
+            }
+            $variables_by_fid[$row['fid']][]=$attribute;
+        }
+
+        $feature_types=array();
+        foreach($files as $file){
+            $feature_type=array();
+            if (!empty($file['metadata'])){
+                $decoded=json_decode($file['metadata'],true);
+                if (is_array($decoded)){
+                    $feature_type=$decoded;
+                }
+            }
+            if (!empty($file['file_name'])){
+                $feature_type['typeName']=$file['file_name'];
+            }
+            if (isset($file['description']) && $file['description']!=='' && $file['description']!==null){
+                $feature_type['definition']=$file['description'];
+            }
+            $fid=isset($file['file_id']) ? $file['file_id'] : '';
+            if ($fid!=='' && !empty($variables_by_fid[$fid])){
+                $feature_type['carrierOfCharacteristics']=$variables_by_fid[$fid];
+            }
+            $feature_types[]=$feature_type;
+        }
+
+        return $feature_types;
+    }
+
+    /**
+     * Study keywords from the header blob plus feature type names/definitions.
+     */
+    private function refresh_geospatial_keywords($sid,$metadata,$type)
+    {
+        $keywords=$this->extract_keywords($metadata,$type);
+        $files=$this->Data_file_model->get_all_by_survey($sid);
+        if (is_array($files)){
+            $extra=array();
+            foreach($files as $file){
+                if (!empty($file['file_name'])){
+                    $extra[]=$file['file_name'];
+                }
+                if (!empty($file['description'])){
+                    $extra[]=$file['description'];
+                }
+            }
+            if (!empty($extra)){
+                $keywords.=' '.implode(' ',$extra);
+            }
+        }
+
+        $this->db->where('id',$sid);
+        $this->db->update('surveys',array('keywords'=>$keywords));
     }
 
 
