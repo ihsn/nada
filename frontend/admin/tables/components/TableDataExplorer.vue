@@ -139,7 +139,7 @@
           <v-btn
             color="primary"
             :loading="uploading || deleting || importing"
-            :disabled="!uploadFile?.length || uploading || deleting || importing"
+            :disabled="!selectedUploadFile || uploading || deleting || importing"
             prepend-icon="mdi-upload"
             @click="uploadData"
           >
@@ -191,7 +191,8 @@ const emit = defineEmits(['fields-changed']);
 const api = useTablesApi();
 const base = () => api.base();
 
-const uploadFile = ref([]);
+/** v-file-input model: File | File[] | null */
+const uploadFile = ref(null);
 const uploading = ref(false);
 const importing = ref(false);
 const importCancelled = ref(false);
@@ -212,6 +213,11 @@ const previewLimit = 50;
 const previewPage = ref(1);
 const previewTotal = ref(0);
 
+const selectedUploadFile = computed(() => {
+  const f = uploadFile.value;
+  if (!f) return null;
+  return Array.isArray(f) ? f[0] ?? null : f;
+});
 const uploadAlertType = computed(() => {
   if (!uploadStatus.value) return 'info';
   return uploadStatus.value.status === 'success' ? 'success' : uploadStatus.value.status === 'error' ? 'error' : 'info';
@@ -241,7 +247,7 @@ const truncatedPreviewData = computed(() => {
 watch(previewPage, () => loadPreviewData());
 watch(showUploadDialog, (open) => {
   if (open) {
-    uploadFile.value = [];
+    uploadFile.value = null;
     uploadStatus.value = null;
     importStatus.value = null;
     uploading.value = false;
@@ -289,7 +295,7 @@ async function loadPreviewData() {
 }
 
 async function uploadData() {
-  const file = uploadFile.value?.[0];
+  const file = selectedUploadFile.value;
   if (!file) {
     alert('Please select a file to upload');
     return;
@@ -311,7 +317,7 @@ async function uploadData() {
         message: uploadResult.message,
         file_path: uploadResult.file_path,
       };
-      uploadFile.value = [];
+      uploadFile.value = null;
       deleting.value = true;
       try {
         const deleteResponse = await fetch(`${base()}/delete/${props.dbId}/${props.tableId}`, {
