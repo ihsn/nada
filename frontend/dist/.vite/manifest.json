@@ -699,6 +699,14 @@
       "_router-DUfTLqFJ.js"
     ]
   },
+  "_useResumableUpload-BwiKRixu.js": {
+    "file": "assets/useResumableUpload-BwiKRixu.js",
+    "name": "useResumableUpload",
+    "imports": [
+      "_index-DhXgJQ-f.js",
+      "_useAppConfig-BAjGdVd0.js"
+    ]
+  },
   "_vue-router-CaIhdl13.js": {
     "file": "assets/vue-router-CaIhdl13.js",
     "name": "vue-router",
@@ -872,7 +880,7 @@
     ]
   },
   "admin/catalog_study_files/main.js": {
-    "file": "assets/admin_catalog_study_files-Dvid8n9a.js",
+    "file": "assets/admin_catalog_study_files-BxfbIAed.js",
     "name": "admin_catalog_study_files",
     "src": "admin/catalog_study_files/main.js",
     "isEntry": true,
@@ -880,6 +888,7 @@
       "_router-DUfTLqFJ.js",
       "_index-DhXgJQ-f.js",
       "_useAppConfig-BAjGdVd0.js",
+      "_useResumableUpload-BwiKRixu.js",
       "__plugin-vue_export-helper-DlAUqK2U.js",
       "_VMain-Dz01vXZo.js",
       "_forwardRefs-DJ2P6moM.js",
@@ -1245,7 +1254,7 @@
     ]
   },
   "admin/ddi_upload/main.js": {
-    "file": "assets/admin_ddi_upload-BTxryiIG.js",
+    "file": "assets/admin_ddi_upload-Co1r7Fau.js",
     "name": "admin_ddi_upload",
     "src": "admin/ddi_upload/main.js",
     "isEntry": true,
@@ -1253,6 +1262,7 @@
       "_router-DUfTLqFJ.js",
       "_useAppConfig-BAjGdVd0.js",
       "_index-DhXgJQ-f.js",
+      "_useResumableUpload-BwiKRixu.js",
       "__plugin-vue_export-helper-DlAUqK2U.js",
       "_VMain-Dz01vXZo.js",
       "_VApp-BTb29ziX.js",
@@ -1509,7 +1519,7 @@
     ]
   },
   "admin/tables/main.js": {
-    "file": "assets/admin_tables-CK3QMf7-.js",
+    "file": "assets/admin_tables-CUyNRKvb.js",
     "name": "admin_tables",
     "src": "admin/tables/main.js",
     "isEntry": true,
@@ -1523,6 +1533,7 @@
       "_VApp-BTb29ziX.js",
       "_vue-router-CaIhdl13.js",
       "_index-DhXgJQ-f.js",
+      "_useResumableUpload-BwiKRixu.js",
       "__plugin-vue_export-helper-DlAUqK2U.js",
       "_VBreadcrumbs-llP3NRp9.js",
       "_VRow-BLuiM82m.js",

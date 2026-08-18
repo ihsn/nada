@@ -738,6 +738,8 @@ class Tables extends MY_REST_Controller
 		$this->require_access('table', 'edit');
 		
 		try{
+			@set_time_limit(0);
+			@ini_set('max_execution_time', '0');
 			
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
@@ -1489,9 +1491,7 @@ class Tables extends MY_REST_Controller
 				mkdir($staging_dir, 0777, true);
 			}
 			$staging_path = unix_path($staging_dir . '/' . basename($final_file));
-			if (!@copy($final_file, $staging_path)) {
-				throw new Exception('Failed to copy resumable upload to table staging directory');
-			}
+			$this->uploader->relocate_file($final_file, $staging_path);
 
 			return array(
 				'path' => $staging_path,
