@@ -82,24 +82,29 @@
         <v-card-title class="d-flex align-center">
           Upload CSV or ZIP file
           <v-spacer />
-          <v-btn icon="mdi-close" variant="text" @click="showUploadDialog = false" />
+          <v-btn icon="mdi-close" variant="text" :disabled="uploading || deleting || importing" @click="showUploadDialog = false" />
         </v-card-title>
         <v-card-text>
-          <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
+          <p class="text-body-2 text-medium-emphasis mt-2 mb-4">
             Uploading data will delete all existing data in this table and replace it. This cannot be undone.
-          </v-alert>
+          </p>
+          <div class="text-caption text-medium-emphasis mb-1">CSV or ZIP file</div>
           <v-file-input
             v-model="uploadFile"
-            label="Select CSV or ZIP file"
             accept=".csv,.zip"
             variant="outlined"
             density="compact"
-            prepend-icon="mdi-file-upload"
+            :prepend-icon="false"
+            prepend-inner-icon="mdi-file-upload"
+            placeholder="Choose file…"
             show-size
+            clearable
+            hide-details
             :disabled="uploading || deleting || importing"
           />
           <v-switch
             v-model="syncFieldsAfterImport"
+            color="primary"
             label="Sync fields after import (remove fields not in data)"
             density="compact"
             hide-details
@@ -143,7 +148,7 @@
             prepend-icon="mdi-upload"
             @click="uploadData"
           >
-            Upload &amp; import
+            {{ resumeUploadId && uploadStatus?.status === 'error' ? 'Retry upload' : 'Upload & import' }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -193,6 +198,7 @@ const base = () => api.base();
 
 /** v-file-input model: File | File[] | null */
 const uploadFile = ref(null);
+const resumeUploadId = ref(null);
 const uploading = ref(false);
 const importing = ref(false);
 const importCancelled = ref(false);
@@ -248,12 +254,18 @@ watch(previewPage, () => loadPreviewData());
 watch(showUploadDialog, (open) => {
   if (open) {
     uploadFile.value = null;
+    resumeUploadId.value = null;
     uploadStatus.value = null;
     importStatus.value = null;
     uploading.value = false;
     importing.value = false;
     importCancelled.value = false;
     deleting.value = false;
+  }
+});
+watch(selectedUploadFile, (file, prev) => {
+  if (file !== prev && !uploading.value) {
+    resumeUploadId.value = null;
   }
 });
 
@@ -304,13 +316,29 @@ async function uploadData() {
   uploadStatus.value = { status: 'in_progress', message: 'Uploading file…', progress_percent: 0 };
   importStatus.value = null;
   try {
-    const uploadResult = await api.uploadTableFile(props.dbId, props.tableId, file, ({ loaded, total }) => {
-      uploadStatus.value = {
-        status: 'in_progress',
-        message: `Uploading file… ${Math.round((loaded / total) * 100)}%`,
-        progress_percent: Math.round((loaded / total) * 100),
-      };
-    });
+    const uploadResult = await api.uploadTableFile(
+      props.dbId,
+      props.tableId,
+      file,
+      ({ loaded, total, chunkIndex, totalChunks, attempt, maxAttempts }) => {
+        const pct = total ? Math.round((loaded / total) * 100) : 0;
+        let message = `Uploading file… ${pct}%`;
+        if (Number.isInteger(chunkIndex) && totalChunks) {
+          message += ` (chunk ${chunkIndex + 1} of ${totalChunks}`;
+          if (attempt > 1) {
+            message += `, retry ${attempt} of ${maxAttempts}`;
+          }
+          message += ')';
+        }
+        uploadStatus.value = { status: 'in_progress', message, progress_percent: pct };
+      },
+      {
+        uploadId: resumeUploadId.value,
+        onSession: ({ upload_id }) => {
+          resumeUploadId.value = upload_id;
+        },
+      }
+    );
     if (uploadResult.status === 'success') {
       uploadStatus.value = {
         status: 'success',
@@ -318,6 +346,7 @@ async function uploadData() {
         file_path: uploadResult.file_path,
       };
       uploadFile.value = null;
+      resumeUploadId.value = null;
       deleting.value = true;
       try {
         const deleteResponse = await fetch(`${base()}/delete/${props.dbId}/${props.tableId}`, {
@@ -349,7 +378,13 @@ async function uploadData() {
       await loadPreviewData();
     }
   } catch (e) {
-    uploadStatus.value = { status: 'error', message: 'Upload failed: ' + e.message };
+    if (e.uploadId) {
+      resumeUploadId.value = e.uploadId;
+    }
+    uploadStatus.value = {
+      status: 'error',
+      message: 'Upload failed: ' + (e.response?.data?.message || e.message),
+    };
     await loadTableStats();
     await loadPreviewData();
   } finally {
