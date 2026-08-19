@@ -31,9 +31,10 @@ export function useTablesApi() {
    * @param {string} dbId
    * @param {string} tableId
    * @param {File} file
-   * @param {(ev: { loaded: number, total: number }) => void} [onProgress]
+   * @param {(ev: { loaded: number, total: number, chunkIndex?: number, totalChunks?: number, attempt?: number, maxAttempts?: number }) => void} [onProgress]
+   * @param {{ uploadId?: string, onSession?: (ev: { upload_id: string }) => void }} [options]
    */
-  async function uploadTableFile(dbId, tableId, file, onProgress) {
+  async function uploadTableFile(dbId, tableId, file, onProgress, options = {}) {
     const completed = await resumable.uploadFile(file, {
       metadata: {
         source: 'tables',
@@ -42,6 +43,8 @@ export function useTablesApi() {
         table_id: tableId,
       },
       onProgress,
+      uploadId: options.uploadId,
+      onSession: options.onSession,
     });
 
     const { data } = await axios.post(

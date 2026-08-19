@@ -124,6 +124,7 @@ $lang['DDI/XML']="DDI/XML
 ";
 $lang['page not found']="الصفحة غير موجودة";
 $lang['export_to_csv']="تصدير الى CSV";
+$lang['export_to_json']="تصدير الى JSON";
 $lang['translate']="ترجمة";
 
 

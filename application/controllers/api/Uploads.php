@@ -121,6 +121,9 @@ class Uploads extends MY_REST_Controller
 	function chunk_post($upload_id = null)
 	{
 		try {
+			@set_time_limit(0);
+			@ini_set('max_execution_time', '0');
+
 			$chunk_number = $this->get_parameter('chunk_number', 'X-Upload-Chunk-Number');
 			
 			if ($chunk_number === null || $chunk_number === '' || !is_numeric($chunk_number)) {
@@ -424,6 +427,7 @@ class Uploads extends MY_REST_Controller
 			'UPLOAD_COMPLETED' => 'UPLOAD_COMPLETED',
 			'UPLOAD_CANCELLED' => 'UPLOAD_CANCELLED',
 			'CHUNK_OUT_OF_RANGE' => 'CHUNK_OUT_OF_RANGE',
+			'CHUNK_OUT_OF_ORDER' => 'CHUNK_OUT_OF_ORDER',
 			'CHUNK_SIZE_MISMATCH' => 'CHUNK_SIZE_MISMATCH',
 			'FILE_TYPE_NOT_ALLOWED' => 'FILE_TYPE_NOT_ALLOWED',
 			'FILE_TOO_LARGE' => 'FILE_TOO_LARGE',
