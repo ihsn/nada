@@ -623,7 +623,6 @@ class Catalog extends MY_REST_Controller
 			$params = array('codepage' => $pdf_options['report_lang']);
 
 			$this->load->library('pdf_report', $params);
-			$this->load->library('DDI_Browser', '', 'DDI_Browser');
 
 			$survey_folder = $this->Catalog_model->get_survey_path_full($sid);
 
