@@ -67,15 +67,16 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import CatalogStudyCard from './CatalogStudyCard.vue';
 import CatalogSortSelect from './CatalogSortSelect.vue';
-import SemanticHitDebug from './SemanticHitDebug.vue';
 import CatalogPageSizeSelect from './CatalogPageSizeSelect.vue';
 import CatalogImageViewToggle from './CatalogImageViewToggle.vue';
-import CatalogImageGallery from './CatalogImageGallery.vue';
 import { catalogResultsRange } from '../catalogResultsRange';
+
+const SemanticHitDebug = defineAsyncComponent(() => import('./SemanticHitDebug.vue'));
+const CatalogImageGallery = defineAsyncComponent(() => import('./CatalogImageGallery.vue'));
 import {
   isImageTab as checkImageTab,
   isImageGalleryMode,

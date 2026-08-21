@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { fetchJson } from '@/shared/http/fetchJson';
 
 /**
  * @param {object} resource
@@ -31,9 +31,7 @@ export async function resolvePrimaryPdfResourceId(idno, apiBaseUrl) {
   const idnoSeg = encodeURIComponent(String(idno || '').trim());
   if (!idnoSeg) return null;
 
-  const { data } = await axios.get(`${base}${idnoSeg}/resources`, {
-    withCredentials: true,
-  });
+  const data = await fetchJson(`${base}${idnoSeg}/resources`);
 
   const resources = data?.resources;
   if (!Array.isArray(resources)) return null;

@@ -76,14 +76,14 @@ export function normalizeYearQuery(query) {
 }
 
 /**
- * Parse vue-router query object into normalized catalog search state.
- * @param {import('vue-router').LocationQuery} routeQuery
+ * Parse a URL/search query object into normalized catalog search state.
+ * @param {Record<string, string | string[] | null | undefined>} routeQuery
  * @returns {Record<string, string | number>}
  */
 export function parseRouteQuery(routeQuery) {
   const out = { ...DEFAULT_QUERY };
 
-  for (const [key, raw] of Object.entries(routeQuery)) {
+  for (const [key, raw] of Object.entries(routeQuery || {})) {
     if (raw == null) continue;
     const val = Array.isArray(raw) ? raw[0] : raw;
     if (val === '' || val == null) continue;
@@ -107,7 +107,7 @@ export function parseRouteQuery(routeQuery) {
 }
 
 /**
- * Build vue-router query from catalog search state (omit defaults).
+ * Build a URL query object from catalog search state (omit defaults).
  * @param {Record<string, unknown>} query
  * @returns {Record<string, string>}
  */
@@ -131,8 +131,8 @@ export function serializeRouteQuery(query) {
 }
 
 /**
- * Stable fingerprint for matching SSR bootstrap to the current route query.
- * @param {import('vue-router').LocationQuery} routeQuery
+ * Stable fingerprint for matching SSR bootstrap to the current URL query.
+ * @param {Record<string, string | string[] | null | undefined>} routeQuery
  * @returns {string}
  */
 export function catalogQueryFingerprint(routeQuery) {

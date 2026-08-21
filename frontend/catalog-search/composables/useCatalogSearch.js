@@ -1,5 +1,4 @@
-import { reactive, ref, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { reactive, ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { usePublicCatalogConfig } from './usePublicCatalogConfig';
 import { useI18n } from '@/shared/composables/useI18n';
@@ -13,6 +12,7 @@ import {
   isVariableViewTab,
   isCatalogVariableViewEnabled,
 } from '../catalogQuery';
+import { readLocationQuery, writeLocationQuery } from '../catalogLocationQuery';
 import { activeFilterChipColorIndex } from '../catalogFilterChipColors';
 import {
   formatSingleFilterDisplayValue,
@@ -51,13 +51,14 @@ function facetsContextKey(activeRepo, tabType) {
 }
 
 export function useCatalogSearch() {
-  const route = useRoute();
-  const router = useRouter();
   const { apiBaseUrl, siteUrl, siteConfig, config } = useAppConfig();
   const { activeRepo } = usePublicCatalogConfig();
   const { t } = useI18n();
 
-  /** Mutable mirror of route query — updated whenever the URL changes (including back/forward). */
+  /** Source of truth from the browser URL (updated on push/replace and back/forward). */
+  const locationQuery = ref(readLocationQuery());
+
+  /** Mutable mirror of URL query — updated whenever the URL changes (including back/forward). */
   const query = reactive({ ...DEFAULT_QUERY });
 
   const results            = ref(null);
@@ -75,7 +76,7 @@ export function useCatalogSearch() {
   let initialBootstrapConsumed = false;
 
   function applyRouteToQuery() {
-    const parsed = parseRouteQuery(route.query);
+    const parsed = parseRouteQuery(locationQuery.value);
     for (const key of Object.keys(query)) {
       if (!STANDARD_QUERY_KEYS.has(key) && !(key in DEFAULT_QUERY)) {
         delete query[key];
@@ -85,18 +86,29 @@ export function useCatalogSearch() {
   }
 
   /**
-   * Push or replace router query from current `query` state.
-   * Navigation triggers the route watcher → fresh API search.
+   * Push or replace URL query from current `query` state.
+   * URL change triggers the location watcher → fresh API search.
    */
   function navigateFromState(replace = false) {
     const { from, to } = normalizeYearRange(query.from, query.to);
     query.from = from;
     query.to = to;
     const nextQuery = serializeRouteQuery(query);
-    return replace
-      ? router.replace({ query: nextQuery })
-      : router.push({ query: nextQuery });
+    writeLocationQuery(nextQuery, { replace });
+    locationQuery.value = nextQuery;
   }
+
+  function syncFromPopState() {
+    locationQuery.value = readLocationQuery();
+  }
+
+  onMounted(() => {
+    window.addEventListener('popstate', syncFromPopState);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('popstate', syncFromPopState);
+  });
 
   const hasActiveFilters = computed(() =>
     ['country', 'region', 'dtype', 'data_class', 'database', 'type', 'tag', 'from', 'to', 'collection'].some(
@@ -320,7 +332,7 @@ export function useCatalogSearch() {
       return false;
     }
 
-    const currentKey = catalogQueryFingerprint(route.query);
+    const currentKey = catalogQueryFingerprint(locationQuery.value);
     const bootstrapKey = bootstrap.queryKey ?? expectedKey;
     if (currentKey !== bootstrapKey && currentKey !== expectedKey) {
       return false;
@@ -413,7 +425,7 @@ export function useCatalogSearch() {
    * SSR bootstrap is used once when it matches the current query.
    */
   watch(
-    () => route.query,
+    locationQuery,
     async () => {
       applyRouteToQuery();
       if (tryConsumeInitialBootstrap()) {

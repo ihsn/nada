@@ -9,7 +9,7 @@
       clearable
       class="facet-checkbox-list__search mb-2"
       :placeholder="t('apply_filter', 'Filter...')"
-      prepend-inner-icon="mdi-magnify"
+      prepend-inner-icon="$mdi-magnify"
     />
 
     <div class="facet-checkbox-list__items">

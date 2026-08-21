@@ -406,10 +406,10 @@ class Catalog_browse_service {
 
 		$data['current_page'] = $search_options->page;
 		$data['search_options'] = $search_options;
-		$data['data_access_types'] = $this->facets['da_types'];
-		$data['data_classifications'] = $this->facets['data_class'];
-		$data['databases'] = $this->facets['databases'];
-		$data['regions'] = $this->facets['regions'];
+		$data['data_access_types'] = $this->facets['da_types'] ?? array();
+		$data['data_classifications'] = $this->facets['data_class'] ?? array();
+		$data['databases'] = $this->facets['databases'] ?? array();
+		$data['regions'] = $this->facets['regions'] ?? array();
 		$data['sid'] = $search_options->sid;
 
 		if (isset($data['surveys']['found'], $data['surveys']['total']) && $data['surveys']['found'] == $data['surveys']['total']) {

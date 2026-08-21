@@ -188,13 +188,23 @@ if (!function_exists('get_vite_entry_assets')) {
                 }
             }
         }
-        // Some builds omit `name` on entry chunks; match Rollup output filename (e.g. assets/admin_header-*.js).
+        // Some builds omit `name` on entry chunks; match Rollup output filename
+        // (e.g. assets/admin_header-*.js or assets/admin|public/<entry>-*.js).
         if (!$entry_data && preg_match('/^[a-zA-Z0-9_\\-]+$/', $entry)) {
-            $needle = 'assets/' . $entry . '-';
+            $needles = [
+                'assets/' . $entry . '-',
+                'assets/public/' . $entry . '-',
+                'assets/admin/' . $entry . '-',
+            ];
             foreach ($manifest as $details) {
-                if (!empty($details['isEntry']) && isset($details['file']) && strpos($details['file'], $needle) === 0) {
-                    $entry_data = $details;
-                    break;
+                if (empty($details['isEntry']) || !isset($details['file'])) {
+                    continue;
+                }
+                foreach ($needles as $needle) {
+                    if (strpos($details['file'], $needle) === 0) {
+                        $entry_data = $details;
+                        break 2;
+                    }
                 }
             }
         }

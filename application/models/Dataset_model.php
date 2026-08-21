@@ -250,7 +250,7 @@ class Dataset_model extends CI_Model {
             return false;
         }
 
-		$this->db->select("surveys.id, surveys.doi, surveys.repositoryid,surveys.type,surveys.idno,surveys.title,surveys.year_start, 
+		$this->db->select("surveys.id, surveys.doi, surveys.repositoryid,surveys.type,surveys.idno,surveys.title,surveys.subtitle,surveys.year_start, 
 			year_end,nation,surveys.authoring_entity,published,created, changed, varcount, total_views, total_downloads, 
 			surveys.formid,forms.model as data_access_type,link_da as remote_data_url, 
 			surveys.data_class_id, data_classifications.code as data_class_code, data_classifications.title as data_class_title,
@@ -271,6 +271,10 @@ class Dataset_model extends CI_Model {
 	//return survey with metadata and other fields
 	function get_row_detailed($sid)
 	{
+		if (!is_numeric($sid) || is_float($sid)){
+			return false;
+		}
+
 		$this->db->select("surveys.*, 
 			forms.model as data_access_type, 
 			surveys.data_class_id, 

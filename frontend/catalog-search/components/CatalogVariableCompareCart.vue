@@ -16,7 +16,7 @@
             {{ count }}
           </v-chip>
         </span>
-        <v-icon size="20">{{ collapsed ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+        <v-icon size="20">{{ collapsed ? '$mdi-chevron-up' : '$mdi-chevron-down' }}</v-icon>
       </button>
 
       <div v-show="!collapsed" class="variable-compare-cart__body">
@@ -51,7 +51,7 @@
               :aria-label="t('remove')"
               @click="onRemove(item)"
             >
-              <v-icon size="18">mdi-close</v-icon>
+              <v-icon size="18">$mdi-close</v-icon>
             </v-btn>
           </div>
         </div>
@@ -73,7 +73,7 @@
           size="small"
           color="primary"
           variant="flat"
-          append-icon="mdi-open-in-new"
+          append-icon="$mdi-open-in-new"
           @click="onCompare"
         >
           {{ t('compare') }}
@@ -81,6 +81,7 @@
       </div>
 
       <CatalogVariableDetailDialog
+        v-if="detailOpen"
         v-model="detailOpen"
         :study-id="detailStudyId"
         :variable="detailVariable"
@@ -90,11 +91,14 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { defineAsyncComponent, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useVariableCompareCart } from '../composables/useVariableCompareCart';
-import CatalogVariableDetailDialog from './CatalogVariableDetailDialog.vue';
+
+const CatalogVariableDetailDialog = defineAsyncComponent(
+  () => import('./CatalogVariableDetailDialog.vue')
+);
 
 defineOptions({ name: 'CatalogVariableCompareCart' });
 

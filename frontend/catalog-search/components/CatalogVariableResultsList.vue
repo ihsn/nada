@@ -73,7 +73,7 @@
             :title="t('open_in_new_window', 'Open in new window')"
             @click.stop
           >
-            <v-icon size="14">mdi-open-in-new</v-icon>
+            <v-icon size="14">$mdi-open-in-new</v-icon>
           </a>
         </div>
 
@@ -95,7 +95,7 @@
             @click.stop
           >
             {{ row.title }}
-            <v-icon size="12" class="ms-1">mdi-open-in-new</v-icon>
+            <v-icon size="12" class="ms-1">$mdi-open-in-new</v-icon>
           </a>
           <div v-if="studyMeta(row)" class="variable-row__study-meta">
             {{ studyMeta(row) }}
@@ -124,6 +124,7 @@
     />
 
     <CatalogVariableDetailDialog
+      v-if="detailOpen"
       v-model="detailOpen"
       :study-id="detailStudyId"
       :variable="detailVariable"
@@ -132,21 +133,23 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, defineAsyncComponent, ref } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import CatalogSortSelect from './CatalogSortSelect.vue';
 import CatalogPageSizeSelect from './CatalogPageSizeSelect.vue';
-import CatalogVariableDetailDialog from './CatalogVariableDetailDialog.vue';
 import { useVariableCompareCart } from '../composables/useVariableCompareCart';
 import { joinSiteUrl } from '../catalogUrls';
 import { catalogResultsRange } from '../catalogResultsRange';
 import { formatStudyYearRange } from '../catalogDate';
 
+const CatalogVariableDetailDialog = defineAsyncComponent(
+  () => import('./CatalogVariableDetailDialog.vue')
+);
+
 defineOptions({ name: 'CatalogVariableResultsList' });
 
-/** Swap to try: mdi-variable, mdi-code-brackets, mdi-table-column, mdi-numeric */
-const VARIABLE_ROW_ICON = 'mdi-text-box-outline';
+const VARIABLE_ROW_ICON = '$mdi-text-box-outline';
 
 const props = defineProps({
   results: { type: Object, required: true },

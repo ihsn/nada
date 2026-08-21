@@ -1,4 +1,6 @@
-/** Dataset type icons — mirrors legacy surveys.php $type_icons (Font Awesome → MDI). */
+/** Dataset type icons — mirrors legacy surveys.php $type_icons (Font Awesome → MDI SVG). */
+
+import { mdiAlias } from './mdiIcons';
 
 const DATASET_TYPE_ICONS = {
   survey:        'mdi-database',
@@ -10,7 +12,6 @@ const DATASET_TYPE_ICONS = {
   'timeseries-db': 'mdi-database',
   document:      'mdi-file-document-outline',
   table:         'mdi-table',
-  visualization: 'mdi-chart-pie',
   script:        'mdi-file-code-outline',
   image:         'mdi-image',
   video:         'mdi-video',
@@ -18,9 +19,9 @@ const DATASET_TYPE_ICONS = {
 
 /**
  * @param {string|undefined|null} type - surveys.type / dtype
- * @returns {string} MDI icon name
+ * @returns {string} Vuetify SVG alias token (e.g. `$mdi-database`)
  */
 export function datasetTypeIcon(type) {
   const key = String(type || 'survey').toLowerCase();
-  return DATASET_TYPE_ICONS[key] ?? 'mdi-database';
+  return mdiAlias(DATASET_TYPE_ICONS[key] ?? 'mdi-database');
 }

@@ -11,7 +11,7 @@
         color="amber-darken-2"
         variant="flat"
         class="mb-2 font-weight-medium"
-        prepend-icon="mdi-star"
+        prepend-icon="$mdi-star"
       >
         {{ t('featured_study') }}
       </v-chip>
@@ -67,7 +67,7 @@
             class="study-card-meta"
           >
             <div v-if="row.nation || yearRange" class="study-meta-line">
-              <v-icon size="14" class="study-meta-line__icon">mdi-map-marker-outline</v-icon>
+              <v-icon size="14" class="study-meta-line__icon">$mdi-map-marker-outline</v-icon>
               <span v-if="row.nation">{{ row.nation }}</span>
               <span v-if="row.nation && yearRange" class="study-meta-line__sep">&middot;</span>
               <span v-if="yearRange">{{ yearRange }}</span>
@@ -191,7 +191,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { formatCatalogDate, formatStudyYearRange } from '../catalogDate';
@@ -199,9 +199,14 @@ import { parseTimeseriesDimensions, parseTimeseriesFrequency } from '../catalogT
 import { resolveStudyThumbnailUrl } from '../catalogThumbnail';
 import { datasetTypeIcon } from '../catalogDatasetTypeIcons';
 import { joinSiteUrl, catalogSearchUrl } from '../catalogUrls';
-import CatalogStudySemanticPages from './CatalogStudySemanticPages.vue';
 import { catalogDatasetTypeLabel } from '../catalogDatasetTypeLabel';
-import CatalogStudyVariableMatches from './CatalogStudyVariableMatches.vue';
+
+const CatalogStudySemanticPages = defineAsyncComponent(
+  () => import('./CatalogStudySemanticPages.vue')
+);
+const CatalogStudyVariableMatches = defineAsyncComponent(
+  () => import('./CatalogStudyVariableMatches.vue')
+);
 
 defineOptions({ name: 'CatalogStudyCard' });
 
@@ -227,21 +232,21 @@ watch(
 
 /** Solid backgrounds — nada52 corporate palette; white text for readability. */
 const ACCESS_MAP = {
-  open:                { icon: 'mdi-lock-open-variant',    bg: '#814C89' }, // accent-01
-  cc40:                { icon: 'mdi-creative-commons',     bg: '#814C89' },
-  public:              { icon: 'mdi-account-check',        bg: '#529600' }, // accent-03
-  direct:              { icon: 'mdi-database-arrow-down',  bg: '#7FB142' }, // accent-04
-  licensed:            { icon: 'mdi-lock',                 bg: '#0079BD' }, // action-color
-  enclave:             { icon: 'mdi-shield-lock',          bg: '#283593' },
-  remote:              { icon: 'mdi-link-variant',         bg: '#0079BD' },
-  data_na:             { icon: 'mdi-minus-circle-outline', bg: '#546E7A' }, // secondary
-  research:            { icon: 'mdi-flask-outline',        bg: '#0079BD' },
-  research_public:     { icon: 'mdi-flask-outline',        bg: '#529600' },
-  research_license:    { icon: 'mdi-flask-outline',        bg: '#0079BD' },
-  research_public_lic: { icon: 'mdi-flask-outline',        bg: '#0079BD' },
+  open:                { icon: '$mdi-lock-open-variant',    bg: '#814C89' }, // accent-01
+  cc40:                { icon: '$mdi-creative-commons',     bg: '#814C89' },
+  public:              { icon: '$mdi-account-check',        bg: '#529600' }, // accent-03
+  direct:              { icon: '$mdi-database-arrow-down',  bg: '#7FB142' }, // accent-04
+  licensed:            { icon: '$mdi-lock',                 bg: '#0079BD' }, // action-color
+  enclave:             { icon: '$mdi-shield-lock',          bg: '#283593' },
+  remote:              { icon: '$mdi-link-variant',         bg: '#0079BD' },
+  data_na:             { icon: '$mdi-minus-circle-outline', bg: '#546E7A' }, // secondary
+  research:            { icon: '$mdi-flask-outline',        bg: '#0079BD' },
+  research_public:     { icon: '$mdi-flask-outline',        bg: '#529600' },
+  research_license:    { icon: '$mdi-flask-outline',        bg: '#0079BD' },
+  research_public_lic: { icon: '$mdi-flask-outline',        bg: '#0079BD' },
 };
 
-const DEFAULT_ACCESS = { icon: 'mdi-file-document-outline', bg: '#546E7A' };
+const DEFAULT_ACCESS = { icon: '$mdi-file-document-outline', bg: '#546E7A' };
 
 const accessInfo = computed(() => ACCESS_MAP[props.row.form_model] ?? DEFAULT_ACCESS);
 

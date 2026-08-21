@@ -16,7 +16,7 @@
           @click.stop
         >
           <span class="variable-detail-dialog__title-text text-truncate">{{ dialogTitle }}</span>
-          <v-icon size="16" class="variable-detail-dialog__title-icon">mdi-open-in-new</v-icon>
+          <v-icon size="16" class="variable-detail-dialog__title-icon">$mdi-open-in-new</v-icon>
         </a>
         <span v-else class="variable-detail-dialog__title-text text-truncate">
           {{ dialogTitle }}
@@ -30,7 +30,7 @@
           :aria-label="t('cancel')"
           @click="close"
         >
-          <v-icon size="18">mdi-close</v-icon>
+          <v-icon size="18">$mdi-close</v-icon>
         </v-btn>
       </div>
 

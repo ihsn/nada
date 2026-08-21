@@ -51,7 +51,7 @@
             </template>
             <template v-else>
               {{ t('tab_more_types', 'More') }}
-              <v-icon size="16" class="catalog-tab__chevron">mdi-chevron-down</v-icon>
+              <v-icon size="16" class="catalog-tab__chevron">$mdi-chevron-down</v-icon>
             </template>
           </button>
         </template>
@@ -98,7 +98,7 @@
       </button>
       <button ref="measureMoreRef" type="button" class="catalog-tab catalog-tab--more" tabindex="-1">
         {{ t('tab_more_types', 'More') }}
-        <v-icon size="16" class="catalog-tab__chevron">mdi-chevron-down</v-icon>
+        <v-icon size="16" class="catalog-tab__chevron">$mdi-chevron-down</v-icon>
       </button>
       <button
         v-if="widestOverflowType"

@@ -10,7 +10,7 @@
         {{ summaryLabel }}
       </span>
       <v-icon
-        :icon="expanded ? 'mdi-chevron-down' : 'mdi-chevron-right'"
+        :icon="expanded ? '$mdi-chevron-down' : '$mdi-chevron-right'"
         size="18"
         class="study-variable-matches__chevron"
       />
@@ -114,6 +114,7 @@
     </div>
 
     <CatalogVariableDetailDialog
+      v-if="detailOpen"
       v-model="detailOpen"
       :study-id="row.id"
       :variable="detailVariable"
@@ -122,11 +123,14 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useVariableCompareCart } from '../composables/useVariableCompareCart';
-import CatalogVariableDetailDialog from './CatalogVariableDetailDialog.vue';
+
+const CatalogVariableDetailDialog = defineAsyncComponent(
+  () => import('./CatalogVariableDetailDialog.vue')
+);
 
 defineOptions({ name: 'CatalogStudyVariableMatches' });
 

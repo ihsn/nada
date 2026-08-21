@@ -1,6 +1,6 @@
 <template>
   <div class="empty-state text-center pa-12">
-    <v-icon size="72" color="grey-lighten-2" class="mb-4">mdi-text-search-variant</v-icon>
+    <v-icon size="72" color="grey-lighten-2" class="mb-4">$mdi-text-search-variant</v-icon>
     <div class="text-h6 font-weight-medium mb-2">
       {{ t('no_records_found') }}
     </div>
@@ -13,7 +13,7 @@
     <v-btn
       color="primary"
       variant="tonal"
-      prepend-icon="mdi-refresh"
+      prepend-icon="$mdi-refresh"
       @click="emit('reset')"
     >
       {{ t('reset_search') }}

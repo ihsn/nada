@@ -11,13 +11,13 @@
           size="18"
           class="study-semantic-pages-block__heading-icon"
         >
-          mdi-file-pdf-box
+          $mdi-file-pdf-box
         </v-icon>
         <span class="study-semantic-pages-block__heading">
           {{ summaryLabel }}
         </span>
         <v-icon
-          :icon="expanded ? 'mdi-chevron-down' : 'mdi-chevron-right'"
+          :icon="expanded ? '$mdi-chevron-down' : '$mdi-chevron-right'"
           size="18"
           class="study-semantic-pages-block__chevron"
         />
@@ -28,7 +28,7 @@
         @click.stop="openTopPage"
       >
         <v-icon size="14" class="study-semantic-pages-block__preview-link-icon">
-          mdi-eye-outline
+          $mdi-eye-outline
         </v-icon>
         {{ `${t('preview')} ${t('download_pdf')}` }}
       </button>
@@ -47,7 +47,7 @@
             @click="openPage(pageHit)"
           >
             <span class="study-semantic-pages-block__page">
-              <v-icon size="14" class="study-semantic-pages-block__page-icon">mdi-file-pdf-box</v-icon>
+              <v-icon size="14" class="study-semantic-pages-block__page-icon">$mdi-file-pdf-box</v-icon>
               {{ pageTitle(pageHit) }}
             </span>
             <span v-if="hitExcerpt(pageHit)" class="study-semantic-pages-block__excerpt">
@@ -59,6 +59,7 @@
     </div>
 
     <CatalogDocumentPdfDialog
+      v-if="pdfDialogOpen"
       v-model="pdfDialogOpen"
       :row="row"
       :page-hit="pdfPageHit"
@@ -67,9 +68,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
-import CatalogDocumentPdfDialog from './CatalogDocumentPdfDialog.vue';
+
+const CatalogDocumentPdfDialog = defineAsyncComponent(
+  () => import('./CatalogDocumentPdfDialog.vue')
+);
 
 defineOptions({ name: 'CatalogStudySemanticPages' });
 

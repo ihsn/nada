@@ -6,10 +6,10 @@
       :aria-expanded="expanded"
       @click="expanded = !expanded"
     >
-      <v-icon size="14" class="facet-box__filter-icon">mdi-filter-outline</v-icon>
+      <v-icon size="14" class="facet-box__filter-icon">$mdi-filter-outline</v-icon>
       <span class="facet-box__title">{{ title }}</span>
       <v-icon size="18" class="facet-box__chevron">
-        {{ expanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+        {{ expanded ? '$mdi-chevron-up' : '$mdi-chevron-down' }}
       </v-icon>
     </button>
 
@@ -20,7 +20,7 @@
         class="facet-box__clear"
         @click.stop="emit('clear')"
       >
-        <v-icon size="12" start>mdi-close</v-icon>
+        <v-icon size="12" start>$mdi-close</v-icon>
         {{ t('clear') }}
       </button>
     </div>

@@ -722,6 +722,7 @@ class Catalog extends MY_Controller {
 	function compare($option=NULL, $format=NULL)
 	{		
 		$this->lang->load('ddi_fields');
+		$this->lang->load('fields_timeseries');
 		$this->lang->load('catalog_search');
 		$this->load->model("Dataset_model");
 		$this->load->model("Variable_model");
@@ -772,11 +773,6 @@ class Catalog extends MY_Controller {
 			}
 		}
 
-		$view_types=array(
-			'survey'=>'variable_ddi',
-			'geospatial'=>'geospatial_features'
-		);
-
 		foreach($items as $item=>$value){
 			$tmp=explode('/',$value);
 			if (isset($tmp[1])){
@@ -788,7 +784,12 @@ class Catalog extends MY_Controller {
 					'dataset'=>$this->Dataset_model->get_row($tmp[0])
 				);
 
-				$view_name=isset($view_types[$item_data['dataset']['type']]) ? $view_types[$item_data['dataset']['type']] : 'survey';
+				if (empty($item_data['variable']) || empty($item_data['dataset']) || empty($item_data['file'])) {
+					continue;
+				}
+
+				$type=isset($item_data['dataset']['type']) ? $item_data['dataset']['type'] : '';
+				$view_name=catalog_variable_detail_view($type);
 				$item_data['html']=$this->load->view('survey_info/'.$view_name,$item_data,true);
 				$list[]=$item_data;
 			}

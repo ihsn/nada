@@ -379,5 +379,26 @@ if ( ! function_exists('authors_to_string'))
     }
 }
 
+if ( ! function_exists('catalog_variable_detail_view'))
+{
+	/**
+	 * survey_info view basename for a single variable / feature (no path prefix).
+	 *
+	 * @param string $type Catalog data type
+	 * @return string
+	 */
+	function catalog_variable_detail_view($type)
+	{
+		$type = (string) $type;
+		if ($type === 'geospatial') {
+			return 'geospatial_features';
+		}
+		if ($type === 'survey' || $type === 'microdata') {
+			return 'variable_ddi';
+		}
+		return 'timeseries';
+	}
+}
+
 /* End of file metadata_view_helper.php */
 /* Location: ./application/helpers/metadata_view_helper.php */
