@@ -1,22 +1,12 @@
-<?php if (isset($data) && is_array($data) || isset($metadata['doi']) ):?>
-<?php     
-
-if (isset($metadata['doi'])){
-    $doi=$metadata['doi'];
+<?php
+$doi = isset($doi) ? trim((string) $doi) : '';
+if ($doi === '' && isset($metadata['doi'])) {
+    $doi = trim((string) $metadata['doi']);
 }
-else{
-    $doi='';
-    foreach($data as $row){
-        if (isset($row['type']) && strtolower($row['type'])=='doi'){
-            if (isset($row['identifier'])){
-                $doi=$row['identifier'];
-                break;
-            }
-        }
-    }
+if ($doi === '' && isset($data) && is_array($data)) {
+    $doi = display_template_doi_from_identifiers($data);
 }
-
-if (empty($doi)){
+if ($doi === '') {
     return false;
 }
 ?>
@@ -159,5 +149,3 @@ if (empty($doi)){
     });
 
 </script>
-
-<?php endif;?>

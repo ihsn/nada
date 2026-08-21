@@ -28,6 +28,23 @@ class MarkdownParser{
 		$this->parsedown->setMarkupEscaped(true);
 		return $this->parsedown->text($string);
 	}
+
+	/**
+	 * Markdown with embedded HTML allowed (input must already be sanitized, e.g. xss_clean).
+	 *
+	 * @param string|array $string
+	 * @return string
+	 */
+	function parse_richtext($string)
+	{
+		if (is_array($string)){
+			$string=implode("\n",$string);
+		}
+
+		$this->parsedown->setSafeMode(false);
+		$this->parsedown->setMarkupEscaped(false);
+		return $this->parsedown->text($string);
+	}
 }
 // END MarkdownParser Class
 

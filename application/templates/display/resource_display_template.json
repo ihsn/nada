@@ -1,0 +1,67 @@
+{
+    "data_type": "resource",
+    "lang": "en",
+    "name": "Resource display template",
+    "version": "1.0",
+    "description": "Catalog study description layout for external resources. Description leads with title, file/URL, abstract, and description.",
+    "template": {
+        "type": "template",
+        "title": "Resource",
+        "items": [
+            {
+                "type": "section_container",
+                "key": "resource",
+                "title": "Resource description",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "description",
+                        "title": "Description",
+                        "items": [
+                            { "key": "title", "title": "Title", "type": "string" },
+                            { "key": "filename", "title": "File name or URL", "type": "string", "display_options": { "is_uri": true } },
+                            { "key": "abstract", "title": "Abstract", "type": "string" },
+                            { "key": "description", "title": "Description", "type": "string" },
+                            { "key": "dctype", "title": "Resource type", "type": "string" },
+                            { "key": "dcformat", "title": "Resource format", "type": "string" },
+                            { "key": "toc", "title": "Table of contents", "type": "string" },
+                            {
+                                "key": "iframe_embeds",
+                                "title": "Embedded widgets",
+                                "type": "widget",
+                                "display_options": { "renderer": "field_iframe_embed" }
+                            },
+                            {
+                                "key": "widgets.doi.citations",
+                                "title": "Citation",
+                                "type": "widget",
+                                "display_options": { "renderer": "field_doi_citation" }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "authors_and_rights",
+                        "title": "Authors and rights",
+                        "items": [
+                            { "key": "author", "title": "Author", "type": "string" },
+                            { "key": "contributor", "title": "Contributor", "type": "string" },
+                            { "key": "publisher", "title": "Publisher", "type": "string" },
+                            { "key": "rights", "title": "Rights", "type": "string" }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "coverage",
+                        "title": "Coverage",
+                        "items": [
+                            { "key": "dcdate", "title": "Date", "type": "string" },
+                            { "key": "country", "title": "Country", "type": "string" },
+                            { "key": "language", "title": "Language", "type": "string" }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

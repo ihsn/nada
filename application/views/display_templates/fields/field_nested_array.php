@@ -8,7 +8,11 @@
  *  - hide_column_headings - hide column headings 
  */
 
- $columns=$template['props'];
+ $this->load->helper('display_template');
+ $columns=display_template_filter_props($template['props']);
+ if (count($columns) < 1) {
+     return false;
+ }
  $name=$template['title'];
  $hide_field_title=false;
  $hide_column_headings=false;
@@ -72,7 +76,7 @@
     <tr>
         <?php foreach($columns as $column):?>        
         <td>
-            <?php if (in_array($column['type'],array('array','nested_array','simple_array'))):?>
+            <?php if (in_array($column['type'],array('array','nested_array','simple_array','object'))):?>
                 <?php 
                     $column['hide_column_headings']=true;
                     $column['hide_field_title']=true;

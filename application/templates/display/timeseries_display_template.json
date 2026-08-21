@@ -18,7 +18,7 @@
                             "key": "series_description.databases",
                             "title": "Databases",
                             "type": "array",
-                            "display_options": { "field_template": "field_ts_databases" }
+                            "display_options": { "renderer": "field_ts_databases" }
                         },
                         { "key": "series_description.measurement_unit", "title": "Measurement unit", "type": "string" },
                         { "key": "series_description.periodicity", "title": "Periodicity", "type": "string" },
@@ -27,10 +27,7 @@
                             "key": "iframe_embeds",
                             "title": "Embedded widgets",
                             "type": "widget",
-                            "widget_options": {
-                                "data_key": "iframe_embeds",
-                                "widget_field": "widget_default"
-                            }
+                            "display_options": { "renderer": "field_iframe_embed" }
                         },
                         { "key": "series_description.definition_short", "title": "Short definition", "type": "string" },
                         { "key": "series_description.definition_long", "title": "Long definition", "type": "string" },
@@ -241,15 +238,26 @@
                                 { "key": "tag", "title": "Tag", "type": "string", "prop_key": "tags.tag" },
                                 { "key": "tag_group", "title": "Tag group", "type": "string", "prop_key": "tags.tag_group" }
                             ]
+                        },
+                        {
+                            "key": "additional",
+                            "title": "Additional metadata",
+                            "type": "object",
+                            "display_options": { "renderer": "field_object_additional" }
                         }
                     ]
                 },
                 {
                     "type": "section",
-                    "key": "timeseries.data_structure",
-                    "title": "data_structure",
+                    "key": "timeseries.data_structure_reference",
+                    "title": "Data structure",
                     "items": [
-                        { "key": "series_description.data_structure", "title": "Data structure", "type": "string" }
+                        { "key": "data_structure_reference.idno", "title": "DSD idno", "type": "string" },
+                        { "key": "data_structure_reference.agency", "title": "Agency", "type": "string" },
+                        { "key": "data_structure_reference.name", "title": "Maintainable id", "type": "string" },
+                        { "key": "data_structure_reference.version", "title": "Version", "type": "string" },
+                        { "key": "data_structure_reference.uri", "title": "Source URI", "type": "string", "display_options": { "is_uri": true } },
+                        { "key": "data_structure_reference.notes", "title": "Notes", "type": "string" }
                     ]
                 },
                 {
@@ -272,7 +280,7 @@
                             "key": "series_description.bbox",
                             "title": "Bounding box",
                             "type": "array",
-                            "display_options": { "field_template": "field_bounding_box" }
+                            "display_options": { "renderer": "field_bounding_box" }
                         },
                         {
                             "key": "series_description.ref_country",

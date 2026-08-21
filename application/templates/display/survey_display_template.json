@@ -77,12 +77,12 @@
                                         "prop_key": "study_desc.study_info.nation.abbreviation",
                                         "display_type": "text"
                                     }
-                                ]                                
+                                ]
                             },
                             {
                                 "key": "study_desc.series_statement.series_name",
                                 "title": "Study type",
-                                "type": "string",                                
+                                "type": "string",
                                 "display_type": "dropdown-custom"
                             },
                             {
@@ -93,12 +93,9 @@
                             },
                             {
                                 "key": "widgets.default",
-                                "title": "Widget title",
+                                "title": "Embedded widgets",
                                 "type": "widget",
-                                "widget_options": {
-                                    "data_key": "widgets.default",
-                                    "widget_field": "widget_default"
-                                }
+                                "display_options": { "renderer": "field_iframe_embed" }
                             },
                             {
                                 "key": "study_desc.title_statement.identifiers",
@@ -221,10 +218,11 @@
                                         "type": "string",
                                         "prop_key": "study_desc.study_info.topics.uri",
                                         "help_text": "A link (URL) to the controlled vocabulary website.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ]
                             },
@@ -255,14 +253,15 @@
                                         "type": "string",
                                         "prop_key": "study_desc.study_info.keywords.uri",
                                         "help_text": "The URL of the controlled vocabulary from which the keyword is extracted, if any.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ],
                                 "display_options": {
-                                    "field_template": "field_array_tags",
+                                    "renderer": "field_array_tags",
                                     "tag_column": "keyword"
                                 }
                             }
@@ -296,7 +295,7 @@
                                 "key": "study_desc.study_info.universe",
                                 "title": "Universe",
                                 "type": "string",
-                                "help_text": "The universe is the group of persons (or other units of observations, like dwellings, facilities, or other) that are the object of the study and to which any analytic results refer. The universe will rarely cover the entire population of the country. Sample household surveys, for example, may not cover homeless, nomads, diplomats, community households. Population censuses do not cover diplomats. Facility surveys may be limited to facilities of a certain type (e.g., public schools). Try to provide the most detailed information possible on the population covered by the survey\/census, focusing on excluded categories of the population. For household surveys, age, nationality, and residence commonly help to delineate a given universe, but any of a number of factors may be involved, such as sex, race, income, veteran status, criminal convictions, etc. In general, it should be possible to tell from the description of the universe whether a given individual or element (hypothetical or real) is a member of the population under study.",
+                                "help_text": "The universe is the group of persons (or other units of observations, like dwellings, facilities, or other) that are the object of the study and to which any analytic results refer. The universe will rarely cover the entire population of the country. Sample household surveys, for example, may not cover homeless, nomads, diplomats, community households. Population censuses do not cover diplomats. Facility surveys may be limited to facilities of a certain type (e.g., public schools). Try to provide the most detailed information possible on the population covered by the survey/census, focusing on excluded categories of the population. For household surveys, age, nationality, and residence commonly help to delineate a given universe, but any of a number of factors may be involved, such as sex, race, income, veteran status, criminal convictions, etc. In general, it should be possible to tell from the description of the universe whether a given individual or element (hypothetical or real) is a member of the population under study.",
                                 "display_type": "textarea"
                             },
                             {
@@ -338,7 +337,7 @@
                                         "display_type": "text"
                                     }
                                 ],
-                                "help_text": "This element is used to define one or multiple geographic bounding box(es), which are the rectangular fundamental geometric description of the geographic coverage of the data. A bounding box is defined by west and east longitudes and north and south latitudes, and includes the largest geographic extent of the dataset’s geographic coverage. The bounding box provides the geographic coordinates of the top left (north\/west) and bottom-right (south\/east) corners of a rectangular area. This element can be used in catalogs as the first pass of a coordinate-based search. This element is optional, but if the \"Bounding polygon\" element is used, then the \"Bounding box\" element must be included. Also, all 4 components (or none) of the element must be entered. The valid range of latitude in degrees is -90 and +90 for the southern and northern hemisphere, respectively. Longitude is in the range -180 and +180 specifying coordinates west and east of the Prime Meridian, respectively."
+                                "help_text": "This element is used to define one or multiple geographic bounding box(es), which are the rectangular fundamental geometric description of the geographic coverage of the data. A bounding box is defined by west and east longitudes and north and south latitudes, and includes the largest geographic extent of the dataset’s geographic coverage. The bounding box provides the geographic coordinates of the top left (north/west) and bottom-right (south/east) corners of a rectangular area. This element can be used in catalogs as the first pass of a coordinate-based search. This element is optional, but if the \"Bounding polygon\" element is used, then the \"Bounding box\" element must be included. Also, all 4 components (or none) of the element must be entered. The valid range of latitude in degrees is -90 and +90 for the southern and northern hemisphere, respectively. Longitude is in the range -180 and +180 specifying coordinates west and east of the Prime Meridian, respectively."
                             },
                             {
                                 "key": "study_desc.study_info.bound_poly",
@@ -375,7 +374,7 @@
                         "items": [
                             {
                                 "key": "study_desc.authoring_entity",
-                                "title": "Primary producer\/investigator",
+                                "title": "Primary producer/investigator",
                                 "type": "array",
                                 "props": [
                                     {
@@ -617,7 +616,7 @@
                                     {
                                         "key": "study_desc.method.data_collection.sample_frame.custodian",
                                         "title": "Custodian",
-                                        "help_text": "Custodian identifies the agency or individual responsible for creating and\/or maintaining the sample frame.",
+                                        "help_text": "Custodian identifies the agency or individual responsible for creating and/or maintaining the sample frame.",
                                         "type": "string",
                                         "display_type": "text"
                                     },
@@ -639,13 +638,13 @@
                                         "key": "study_desc.method.data_collection.sample_frame.frame_unit.is_primary",
                                         "title": "Units are primary",
                                         "type": "boolean",
-                                        "help_text": "This Boolean attribute (true\/false) indicates whether the sample unit is primary or not.",
+                                        "help_text": "This Boolean attribute (true/false) indicates whether the sample unit is primary or not.",
                                         "display_type": "dropdown"
                                     },
                                     {
                                         "key": "study_desc.method.data_collection.sample_frame.frame_unit.num_of_units",
                                         "title": "Number of units",
-                                        "help_text": "The number of units in the sample frame, possibly with information on its distribution (e.g. by urban\/rural, province, or other).",
+                                        "help_text": "The number of units in the sample frame, possibly with information on its distribution (e.g. by urban/rural, province, or other).",
                                         "type": "string",
                                         "display_type": "text"
                                     },
@@ -687,7 +686,7 @@
                                 "key": "study_desc.method.data_collection.sampling_procedure",
                                 "title": "Sampling procedure",
                                 "type": "string",
-                                "help_text": "This field only applies to sample surveys. It describes the type of sample and sample design used to select the survey respondents to represent the population. This section should include summary information that includes (but is not limited to): sample size (expected and actual) and how the sample size was decided; level of representation of the sample; sample frame used, and listing exercise conducted to update it; sample selection process (e.g., probability proportional to size or over sampling); stratification (implicit and explicit); design omissions in the sample; strategy for absent respondents\/not found\/refusals (replacement or not). Detailed information on the sample design is critical to allow users to adequately calculate sampling errors and confidence intervals for their estimates. To do that, they will need to be able to clearly identify the variables in the dataset that represent the different levels of stratification and the primary sampling unit (PSU).\n\nIn publications and reports, the description of sampling design often contains complex formulas and symbols. As the XML and JSON formats used to store the metadata are plain text files, they cannot contain these complex representations. You may however provide references (title\/author\/date) to documents where such detailed descriptions are provided, and make sure that the documents (or links to the documents) are provided in the catalog where the survey metadata are published.",
+                                "help_text": "This field only applies to sample surveys. It describes the type of sample and sample design used to select the survey respondents to represent the population. This section should include summary information that includes (but is not limited to): sample size (expected and actual) and how the sample size was decided; level of representation of the sample; sample frame used, and listing exercise conducted to update it; sample selection process (e.g., probability proportional to size or over sampling); stratification (implicit and explicit); design omissions in the sample; strategy for absent respondents/not found/refusals (replacement or not). Detailed information on the sample design is critical to allow users to adequately calculate sampling errors and confidence intervals for their estimates. To do that, they will need to be able to clearly identify the variables in the dataset that represent the different levels of stratification and the primary sampling unit (PSU).\n\nIn publications and reports, the description of sampling design often contains complex formulas and symbols. As the XML and JSON formats used to store the metadata are plain text files, they cannot contain these complex representations. You may however provide references (title/author/date) to documents where such detailed descriptions are provided, and make sure that the documents (or links to the documents) are provided in the catalog where the survey metadata are published.",
                                 "display_type": "textarea"
                             },
                             {
@@ -701,7 +700,7 @@
                                 "key": "study_desc.method.analysis_info.response_rate",
                                 "title": "Response rates",
                                 "type": "string",
-                                "help_text": "The response rate is the percentage of sample units that participated in the survey based on the original sample size. Omissions may occur due to refusal to participate, impossibility to locate the respondent, or other reason. This element is used to provide a narrative description of the response rate, possibly by stratum or other criteria, and if possible with an identification of possible causes. If information is available on the causes of non-response (refusal\/not found\/other), it can be reported here. This field can also be used to describe non-responses in population censuses.",
+                                "help_text": "The response rate is the percentage of sample units that participated in the survey based on the original sample size. Omissions may occur due to refusal to participate, impossibility to locate the respondent, or other reason. This element is used to provide a narrative description of the response rate, possibly by stratum or other criteria, and if possible with an identification of possible causes. If information is available on the causes of non-response (refusal/not found/other), it can be reported here. This field can also be used to describe non-responses in population censuses.",
                                 "display_type": "textarea"
                             },
                             {
@@ -723,7 +722,7 @@
                             {
                                 "key": "study_desc.method.data_collection.research_instrument",
                                 "title": "Questionnaires",
-                                "help_text": "The questionnaire (or \"form\", or \"research instrument \") used for collecting the data. The following should be mentioned:\n- List of questionnaires and short description of each (all questionnaires must be provided as external resources)\n- In what language(s) was\/were the questionnaire(s) available?\n- Information on the questionnaire design process (based on a previous questionnaire, based on a standard model questionnaire, review by stakeholders). If a document was compiled that contains the comments provided by the stakeholders on the draft questionnaire, or a report prepared on the questionnaire testing, a reference to these documents can be provided here.",
+                                "help_text": "The questionnaire (or \"form\", or \"research instrument \") used for collecting the data. The following should be mentioned:\n- List of questionnaires and short description of each (all questionnaires must be provided as external resources)\n- In what language(s) was/were the questionnaire(s) available?\n- Information on the questionnaire design process (based on a previous questionnaire, based on a standard model questionnaire, review by stakeholders). If a document was compiled that contains the comments provided by the stakeholders on the draft questionnaire, or a report prepared on the questionnaire testing, a reference to these documents can be provided here.",
                                 "type": "string",
                                 "display_type": "textarea"
                             },
@@ -731,7 +730,7 @@
                                 "key": "study_desc.method.data_collection.instru_development",
                                 "type": "string",
                                 "title": "Instrument development",
-                                "help_text": "Describe any development work on the data collection instrument. This may include a description of the review process, standards followed, and a list of agencies\/people consulted.",
+                                "help_text": "Describe any development work on the data collection instrument. This may include a description of the review process, standards followed, and a list of agencies/people consulted.",
                                 "_ddi_xpath": "stdyDscr.method.dataColl.instrumentDevelopment",
                                 "display_type": "textarea"
                             },
@@ -866,7 +865,7 @@
                                 "key": "study_desc.method.data_collection.coll_mode",
                                 "title": "Mode of data collection",
                                 "help_text": "The mode of data collection is the manner in which the interview was conducted or information was gathered. Ideally, a controlled vocabulary will be used to constrain the entries in this field (which could include items like “telephone interview”, “face-to-face paper and pen interview”, “face-to-face computer-assisted interviews (CAPI)”, “mail questionnaire”, “computer-aided telephone interviews (CATI)”, “self-administered web forms”, “measurement by sensor”, and others.\n\nThis is a repeatable field, as some data collection activities implement multi-mode data collection (for example, a population census can offer respondents the options to submit information via web forms, telephone interviews, mailed forms, or face-to-face interviews. ",
-                                "type": "simple_array",                                
+                                "type": "simple_array",
                                 "display_type": "dropdown-custom"
                             },
                             {
@@ -945,7 +944,7 @@
                             {
                                 "key": "study_desc.method.data_collection.act_min",
                                 "title": "Supervision",
-                                "help_text": "A summary of actions taken to minimize data loss. This includes information on actions such as follow-up visits, supervisory checks, historical matching, estimation, etc. Note that this element does not have to include detailed information on response rates, as a specific metadata element is provided for that purpose in section analysis_info \/ response_rate.",
+                                "help_text": "A summary of actions taken to minimize data loss. This includes information on actions such as follow-up visits, supervisory checks, historical matching, estimation, etc. Note that this element does not have to include detailed information on response rates, as a specific metadata element is provided for that purpose in section analysis_info / response_rate.",
                                 "type": "string",
                                 "enum": [],
                                 "display_type": "textarea"
@@ -1010,7 +1009,7 @@
                             {
                                 "key": "study_desc.study_development.development_activity",
                                 "title": "Study activities",
-                                "help_text": "This section is used to describe the process that led to the production of the final output of the study, from its inception\/design to the dissemination of the final output. Each activity is documented separately. The Generic Statistical Business Process Model (GSBPM) provides a useful decomposition of such a process, which can be used to list the activities to be described. ",
+                                "help_text": "This section is used to describe the process that led to the production of the final output of the study, from its inception/design to the dissemination of the final output. Each activity is documented separately. The Generic Statistical Business Process Model (GSBPM) provides a useful decomposition of such a process, which can be used to list the activities to be described. ",
                                 "type": "nested_array",
                                 "props": [
                                     {
@@ -1018,7 +1017,7 @@
                                         "title": "Type",
                                         "type": "string",
                                         "prop_key": "study_desc.study_development.development_activity.activity_type",
-                                        "help_text": "The type of activity. A controlled vocabulary can be used, possibly comprising the main components of the GSBPM: {Needs specification, Design, Build, Collect, Process, Analyze, Disseminate, Evaluate}).",                                        
+                                        "help_text": "The type of activity. A controlled vocabulary can be used, possibly comprising the main components of the GSBPM: {Needs specification, Design, Build, Collect, Process, Analyze, Disseminate, Evaluate}).",
                                         "display_type": "dropdown-custom"
                                     },
                                     {
@@ -1166,7 +1165,7 @@
                                 "key": "study_desc.method.analysis_info.sampling_error_estimates",
                                 "title": "Estimates of sampling errors",
                                 "type": "string",
-                                "help_text": "Sampling errors are intended to measure how precisely one can estimate a population value from a given sample. For sampling surveys, it is good practice to calculate and publish sampling error. This field is used to provide information on these calculations (not to provide the sampling errors themselves, which should be made available in publications or reports). Information can be provided on which ratios\/indicators have been subjected to the calculation of sampling errors, and on the software used for computing the sampling error. Reference to a report or other document where the results can be found can also be provided.",
+                                "help_text": "Sampling errors are intended to measure how precisely one can estimate a population value from a given sample. For sampling surveys, it is good practice to calculate and publish sampling error. This field is used to provide information on these calculations (not to provide the sampling errors themselves, which should be made available in publications or reports). Information can be provided on which ratios/indicators have been subjected to the calculation of sampling errors, and on the software used for computing the sampling error. Reference to a report or other document where the results can be found can also be provided.",
                                 "display_type": "textarea"
                             },
                             {
@@ -1180,13 +1179,13 @@
                                 "key": "study_desc.study_info.ex_post_evaluation.evaluation_process",
                                 "title": "Evaluation process",
                                 "type": "string",
-                                "help_text": "A description of the ex-post evaluation process. This may include information on the period when the evaluation was conducted, cost\/budget, relevance, institutional or legal arrangements, etc.",
+                                "help_text": "A description of the ex-post evaluation process. This may include information on the period when the evaluation was conducted, cost/budget, relevance, institutional or legal arrangements, etc.",
                                 "display_type": "textarea"
                             },
                             {
                                 "key": "study_desc.study_info.ex_post_evaluation.evaluator",
                                 "title": "Evaluators",
-                                "help_text": "The \"Evaluator\" element identifies the person(s) and\/or organization(s) involved in the ex-post evaluation.",
+                                "help_text": "The \"Evaluator\" element identifies the person(s) and/or organization(s) involved in the ex-post evaluation.",
                                 "type": "array",
                                 "class": "required",
                                 "props": [
@@ -1267,10 +1266,11 @@
                                 "title": "URL for location of dataset",
                                 "help_text": "The URL of the website of the location where the data collection is currently stored.",
                                 "_ddi_xpath": "stdyDscr.dataAccs.setAvail.accsPlac.@URI",
-                                "rules": {
-                                    "is_uri": true
-                                },
-                                "display_type": "text"
+                                "display_type": "text",
+                                "display_options": {
+                                    "is_uri": true,
+                                    "uri_as_icon": true
+                                }
                             },
                             {
                                 "key": "study_desc.data_access.dataset_availability.original_archive",
@@ -1284,7 +1284,7 @@
                                 "key": "study_desc.data_access.dataset_availability.coll_size",
                                 "type": "string",
                                 "title": "Extent of collection",
-                                "help_text": "Extent of the collection. This is a summary of the number of physical files that exist in a collection. We will record here the number of files that contain data and note whether the collection contains other machine-readable documentation and\/or other supplementary files and information such as data dictionaries, data definition statements, or data collection instruments. This element will rarely be used.",
+                                "help_text": "Extent of the collection. This is a summary of the number of physical files that exist in a collection. We will record here the number of files that contain data and note whether the collection contains other machine-readable documentation and/or other supplementary files and information such as data dictionaries, data definition statements, or data collection instruments. This element will rarely be used.",
                                 "_ddi_xpath": "stdyDscr.dataAccs.setAvail.collSize",
                                 "display_type": "textarea"
                             },
@@ -1355,10 +1355,11 @@
                                         "type": "string",
                                         "prop_key": "study_desc.distribution_statement.depositor.uri",
                                         "help_text": "A link (URL) to the depositor website.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ],
                                 "help_text": "The name of the person or institution who provided this study to the archive storing it."
@@ -1416,10 +1417,11 @@
                                         "type": "string",
                                         "prop_key": "study_desc.distribution_statement.distributors.uri",
                                         "help_text": "A link (URL) to the ordering service or download facility website.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ]
                             },
@@ -1448,7 +1450,7 @@
                                         "title": "Name",
                                         "type": "string",
                                         "prop_key": "study_desc.data_access.dataset_use.contact.name",
-                                        "help_text": "Name of the person. Note that in some cases, it might be better to provide a title\/function than the actual name of the person. Keep in mind that people do not stay forever in their position.",
+                                        "help_text": "Name of the person. Note that in some cases, it might be better to provide a title/function than the actual name of the person. Keep in mind that people do not stay forever in their position.",
                                         "display_type": "text"
                                     },
                                     {
@@ -1465,10 +1467,11 @@
                                         "type": "string",
                                         "prop_key": "study_desc.data_access.dataset_use.contact.uri",
                                         "help_text": "URL for the person; it can be the URL of the organization the person belongs to.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     },
                                     {
                                         "key": "email",
@@ -1521,10 +1524,11 @@
                                         "help_text": "The \"Form URL\" element is used to provide a link to an online confidentiality declaration form.",
                                         "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec.@URI",
                                         "prop_key": "study_desc.data_access.dataset_use.conf_dec.form_url",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ]
                             },
@@ -1571,7 +1575,7 @@
                                         "type": "boolean",
                                         "title": "Required",
                                         "help_text": "Indicate if special permissions are required to access a resource. The \"Required\" element is used to aid machine processing of this element. ",
-                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.required",                                        
+                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.required",
                                         "display_type": "dropdown"
                                     },
                                     {
@@ -1588,10 +1592,11 @@
                                         "title": "Form URL",
                                         "help_text": "The \"Form URL\" is used to provide a link to a special on-line permission form.",
                                         "prop_key": "study_desc.data_access.dataset_use.spec_perm.form_url",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     },
                                     {
                                         "key": "form_id",
@@ -1699,10 +1704,11 @@
                                         "type": "string",
                                         "prop_key": "study_desc.distribution_statement.contact.uri",
                                         "help_text": "A link (URL) to the contact mentioned in \"Name\".",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ],
                                 "help_text": "Names and addresses of individuals responsible for the study. Individuals listed as contact persons will be used as resource persons regarding problems or questions raised by users."
@@ -1733,7 +1739,7 @@
                                 "title": "Document ID",
                                 "type": "string",
                                 "required": false,
-                                "help_text": "A unique identifier for the metadata document. This identifier must be unique in the catalog where the metadata are intended to be published. Ideally, the identifier should also be unique globally. This is different from the \"Primary ID\" in section Study description \/ Title statement, although it is good practice to generate identifiers that establish a clear connection between these two identifiers. The Document ID could also include the metadata document version identifier. For example, if the \"Primary identifier\" of the study is “ALB_LSMS_2012”, the \"Document ID\" in the Metadata information could be “IHSN_DDI_v01_ALB_LSMS_2012” if the DDI metadata are produced by the IHSN. Each organization should establish systematic rules to generate such IDs. A validation rule can be set (using a regular expression) in user templates to enforce a specific ID format. The identifier may not contain blank spaces.",
+                                "help_text": "A unique identifier for the metadata document. This identifier must be unique in the catalog where the metadata are intended to be published. Ideally, the identifier should also be unique globally. This is different from the \"Primary ID\" in section Study description / Title statement, although it is good practice to generate identifiers that establish a clear connection between these two identifiers. The Document ID could also include the metadata document version identifier. For example, if the \"Primary identifier\" of the study is “ALB_LSMS_2012”, the \"Document ID\" in the Metadata information could be “IHSN_DDI_v01_ALB_LSMS_2012” if the DDI metadata are produced by the IHSN. Each organization should establish systematic rules to generate such IDs. A validation rule can be set (using a regular expression) in user templates to enforce a specific ID format. The identifier may not contain blank spaces.",
                                 "display_type": "text"
                             },
                             {
@@ -1741,7 +1747,7 @@
                                 "title": "Metadata producers",
                                 "type": "array",
                                 "required": false,
-                                "help_text": "The metadata producer is the person or organization with the financial and\/or administrative responsibility for the processes whereby the metadata document was created. This is a \"Recommended\" element. For catalog administration purposes, information on the producer and on the date of metadata production is useful. ",
+                                "help_text": "The metadata producer is the person or organization with the financial and/or administrative responsibility for the processes whereby the metadata document was created. This is a \"Recommended\" element. For catalog administration purposes, information on the producer and on the date of metadata production is useful. ",
                                 "props": [
                                     {
                                         "key": "name",
@@ -1820,11 +1826,31 @@
                                         "title": "Version notes",
                                         "type": "string",
                                         "required": false,
-                                        "help_text": "This element can be used to clarify information\/annotation regarding this version of the metadata document, for example to indicate what is new or specific in this version comparing with a previous version. ",
+                                        "help_text": "This element can be used to clarify information/annotation regarding this version of the metadata document, for example to indicate what is new or specific in this version comparing with a previous version. ",
                                         "display_type": "textarea"
                                     }
                                 ],
                                 "help_text": ""
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "key": "additional_container",
+                "title": "Additional Fields",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "additional_section",
+                        "title": "Additional metadata",
+                        "items": [
+                            {
+                                "key": "additional",
+                                "title": "Additional metadata",
+                                "type": "object",
+                                "display_options": { "renderer": "field_object_additional" }
                             }
                         ]
                     }
@@ -1839,10 +1865,7 @@
                         "key": "widgets.doi.citations",
                         "title": "citation",
                         "type": "widget",
-                        "widget_options": {
-                            "data_key": "study_desc.title_statement.identifiers",
-                            "widget_field": "doi-citation"
-                        }
+                        "display_options": { "renderer": "field_doi_citation" }
                     }
                 ]
             }

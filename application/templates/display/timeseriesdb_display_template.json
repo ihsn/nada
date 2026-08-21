@@ -167,7 +167,7 @@
                             "key": "database_description.bbox",
                             "title": "Bounding Box",
                             "type": "array",
-                            "display_options": { "field_template": "field_bounding_box" }
+                            "display_options": { "renderer": "field_bounding_box" }
                         },
                         { "key": "database_description.geographic_granularity", "title": "Geographic granularity", "type": "string" },
                         { "key": "database_description.geographic_area_count", "title": "Geographic area count", "type": "string" }
@@ -333,7 +333,7 @@
                         },
                         { "key": "datacite", "title": "DataCite", "type": "array" },
                         { "key": "provenance", "title": "Provenance", "type": "array" },
-                        { "key": "additional", "title": "Additional custom metadata", "type": "array" },
+                        { "key": "additional", "title": "Additional metadata", "type": "object", "display_options": { "renderer": "field_object_additional" } },
                         { "key": "metadata_information.title", "title": "Document title", "type": "string" },
                         { "key": "metadata_information.idno", "title": "Document ID", "type": "string" },
                         {

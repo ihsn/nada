@@ -263,7 +263,7 @@ $route['catalog/(:num)/variable-groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/variable_groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/vargrp'] = "study/variable_groups/$1";
 
-//timeseries db info page
+// Indicator / timeseries study pages
 $route['catalog/(:num)/indicator-chart'] = "study/indicator_chart/$1";
 $route['catalog/(:num)/indicator-table'] = "study/indicator_table/$1";
 $route['catalog/(:num)/indicator-table-export'] = "study/indicator_table_export/$1";
@@ -273,7 +273,6 @@ $route['catalog/(:num)/indicator-observations'] = "study/redirect_indicator_obse
 $route['catalog/(:num)/indicator-structure'] = "study/indicator_structure/$1";
 // Legacy URL: redirects to indicator-chart (or observations/structure) with query preserved.
 $route['catalog/(:num)/indicator-data'] = "study/indicator_data/$1";
-$route['catalog/(:num)/timeseries-db'] = "study/timeseries_db/$1";
 $route['catalog/(:num)/related-series'] = "study/related_series/$1";
 
 $route['catalog/(:num)/variable-groups/(.*)'] = "study/variable_groups/$1/$2";
@@ -305,8 +304,6 @@ $route['catalog/(:num)/get_microdata'] = "study/get_microdata/$1";
 $route['catalog/(:num)/related_materials'] = "study/related_materials/$1";
 $route['catalog/(:num)/related-materials'] = "study/related_materials/$1";
 $route['catalog/(:num)/downloads'] = "study/downloads/$1";
-$route['catalog/(:num)/request-access'] = "study/request_access/$1";
-$route['catalog/(:num)/request-access/(.*)'] = "study/request_access/$1";
 $route['catalog/(:num)/related-datasets'] = "study/related_datasets/$1";
 $route['catalog/(:num)/pdf-documentation'] = "study/pdf_documentation/$1";
 $route['catalog/(:num)/data-api'] = "study/data_api/$1";

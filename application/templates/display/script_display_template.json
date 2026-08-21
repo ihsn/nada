@@ -27,7 +27,7 @@
                                 "type": "string",
                                 "help_text": "The abstract should provide a clear summary of the purposes, objectives and content of the project. An abstract can make reference to the various outputs associated with the research project.",
                                 "display_type": "textarea"
-                            }                            
+                            }
                         ]
                     },
                     {
@@ -45,7 +45,7 @@
                                         "title",
                                         "file_name"
                                     ],
-                                    "field_template": "field_scripts_script"
+                                    "renderer": "field_scripts_script"
                                 },
                                 "props": [
                                     {
@@ -197,10 +197,11 @@
                                                 "type": "string",
                                                 "prop_key": "project_desc.scripts.license.uri",
                                                 "help_text": "License URL",
-                                                "rules": {
-                                                    "is_uri": true
-                                                },
-                                                "display_type": "text"
+                                                "display_type": "text",
+                                                "display_options": {
+                                                    "is_uri": true,
+                                                    "uri_as_icon": true
+                                                }
                                             }
                                         ],
                                         "prop_key": "project_desc.scripts.license",
@@ -236,14 +237,14 @@
                                         "title": "URL",
                                         "prop_key": "project_desc.repository_uri.uri",
                                         "help_text": "A link to the project source code/script repository.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ]
                             },
-                           
                             {
                                 "key": "project_desc.software",
                                 "title": "Software",
@@ -374,10 +375,11 @@
                                                 "type": "string",
                                                 "prop_key": "project_desc.datasets.license_uri",
                                                 "help_text": "The URL of a web page where more information on the license can be obtained.",
-                                                "rules": {
-                                                    "is_uri": true
-                                                },
-                                                "display_type": "text"
+                                                "display_type": "text",
+                                                "display_options": {
+                                                    "is_uri": true,
+                                                    "uri_as_icon": true
+                                                }
                                             },
                                             {
                                                 "key": "uri",
@@ -385,13 +387,14 @@
                                                 "title": "Data URL",
                                                 "prop_key": "project_desc.datasets.uri",
                                                 "help_text": "The URL where the dataset (or a detailed description of it) can be obtained. This can be a link to a data catalog.",
-                                                "rules": {
-                                                    "is_uri": true
-                                                },
-                                                "display_type": "text"
+                                                "display_type": "text",
+                                                "display_options": {
+                                                    "is_uri": true,
+                                                    "uri_as_icon": true
+                                                }
                                             },
                                             {
-                                                "key":"citation",
+                                                "key": "citation",
                                                 "title": "Citation",
                                                 "type": "string",
                                                 "prop_key": "project_desc.datasets.citation",
@@ -561,10 +564,11 @@
                                         "title": "URL",
                                         "prop_key": "project_desc.output.uri",
                                         "help_text": "A link (URL) where the output or information on the output can be found.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     },
                                     {
                                         "key": "doi",
@@ -588,10 +592,11 @@
                                         "type": "string",
                                         "prop_key": "project_desc.output.license_uri",
                                         "help_text": "The URL of a web page where more information on the license can be obtained.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ],
                                 "display_options": {
@@ -606,10 +611,11 @@
                                 "help_text": "URL of the project website.",
                                 "type": "simple_array",
                                 "enum": [],
-                                "rules": {
-                                    "is_uri": true
-                                },
-                                "display_type": "text"
+                                "display_type": "text",
+                                "display_options": {
+                                    "is_uri": true,
+                                    "uri_as_icon": true
+                                }
                             },
                             {
                                 "key": "project_desc.authoring_entity",
@@ -712,10 +718,11 @@
                                         "title": "URL",
                                         "prop_key": "project_desc.contributors.url",
                                         "help_text": "The URL that provides information on the contributor or its affiliate",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ]
                             },
@@ -770,14 +777,15 @@
                                         "title": "URL",
                                         "prop_key": "project_desc.curators.url",
                                         "help_text": "A link to the website of the person or organization mentioned in \"Name\".",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ],
                                 "help_text": "A list of persons and/or organizations in charge of curating the resources associated with the project."
-                            },                           
+                            },
                             {
                                 "key": "project_desc.acknowledgment_statement",
                                 "title": "Acknowledgment statement",
@@ -926,17 +934,18 @@
                                         "type": "string",
                                         "prop_key": "project_desc.keywords.uri",
                                         "help_text": "The URL of the controlled vocabulary from which the keyword is extracted, if any.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ],
                                 "help_text": "A list of keywords that provide information on the core scope and objectives of the research project. Keywords provide a convenient solution to improve the discoverability of the research, as it allows terms and phrases not found elsewhere in the metadata to be indexed and to make a project discoverable by text-based search engines. A controlled vocabulary will preferably be used (although not required), such as the UNESCO Thesaurus. The list provided here can combine keywords from multiple controlled vocabularies, and user-defined keywords.",
                                 "is_recommended": true,
-                                "display_options": {                                    
-                                    "field_template": "field_array_tags",
-                                    "tag_column":"name"
+                                "display_options": {
+                                    "renderer": "field_array_tags",
+                                    "tag_column": "name"
                                 }
                             },
                             {
@@ -982,10 +991,11 @@
                                         "type": "string",
                                         "prop_key": "project_desc.themes.uri",
                                         "help_text": "The URL to the controlled vocabulary used, if any.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ],
                                 "help_text": "A list of themes covered by the research project. A controlled vocabulary will preferably be used. Note that themes will rarely be used as the elements topics and disciplines are more appropriate for most uses. "
@@ -1033,12 +1043,10 @@
                                         "type": "string",
                                         "prop_key": "project_desc.topics.uri",
                                         "help_text": "The URL to the controlled vocabulary used, if any.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
                                         "display_type": "text",
                                         "display_options": {
-                                            "is_uri": true
+                                            "is_uri": true,
+                                            "uri_as_icon": true
                                         }
                                     }
                                 ],
@@ -1087,10 +1095,11 @@
                                         "type": "string",
                                         "prop_key": "project_desc.disciplines.uri",
                                         "help_text": "The URL to the controlled vocabulary used, if any.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ],
                                 "help_text": "Information on the academic disciplines related to the content of the research project. A controlled vocabulary will preferably be used, for example the one provided by the list of academic fields in Wikipedia."
@@ -1098,7 +1107,6 @@
                         ],
                         "help_text": ""
                     },
-                    
                     {
                         "key": "project_desc_container_disclaimer",
                         "title": "Disclaimer",
@@ -1245,10 +1253,11 @@
                                         "type": "string",
                                         "prop_key": "project_desc.license.uri",
                                         "help_text": "A URL to a description of the license, for example “https://creativecommons.org/licenses/by/4.0/”.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     }
                                 ],
                                 "help_text": "Information on the license(s) attached to the research project resources, which defines their terms of use."
@@ -1287,10 +1296,11 @@
                                         "type": "string",
                                         "prop_key": "project_desc.related_projects.uri",
                                         "help_text": "A link (URL) to the related project web page.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
-                                        "display_type": "text"
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
                                     },
                                     {
                                         "key": "note",
@@ -1363,12 +1373,10 @@
                                         "type": "string",
                                         "prop_key": "project_desc.contacts.uri",
                                         "help_text": "URL of the agency or organization of the contact organization. This may be the same as the web page of the project or may be a permanent contact name at an institutional level and not project related. Eventually a project web site may be removed but there may still be need to have a contact. In this case, it is recommended to have a contact that is permanent.",
-                                        "rules": {
-                                            "is_uri": true
-                                        },
                                         "display_type": "text",
                                         "display_options": {
-                                            "is_uri": true
+                                            "is_uri": true,
+                                            "uri_as_icon": true
                                         }
                                     }
                                 ],
@@ -1463,21 +1471,31 @@
                 ]
             },
             {
-                "type":"section",
-                "key":"citations_section",
-                "title":"Citation",
-                "items":[
+                "type": "section",
+                "key": "additional_section",
+                "title": "Additional metadata",
+                "items": [
+                    {
+                        "key": "additional",
+                        "title": "Additional metadata",
+                        "type": "object",
+                        "display_options": { "renderer": "field_object_additional" }
+                    }
+                ]
+            },
+            {
+                "type": "section",
+                "key": "citations_section",
+                "title": "Citation",
+                "items": [
                     {
                         "key": "widgets.doi.citations",
                         "title": "Citation",
                         "type": "widget",
-                        "widget_options":{
-                            "data_key": "project_desc.title_statement.identifiers",
-                            "widget_field":"doi-citation"
-                        }
+                        "display_options": { "renderer": "field_doi_citation" }
                     }
                 ]
-            }            
+            }
         ]
     }
 }

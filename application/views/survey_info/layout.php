@@ -158,7 +158,7 @@ $tab_urls['description']=array(
 		'export-metadata'
 );
 
-if (!$page_tabs['related_materials'] && in_array($tab,$tab_urls['related_materials'])){
+if (empty($page_tabs['related_materials']['show_tab']) && isset($tab) && in_array($tab, $tab_urls['related_materials'])){
 	$active_tab='description';
 }
 
@@ -193,15 +193,6 @@ if($this->config->item("guests_hide_microdata_tab")=='yes' && !$this->ion_auth->
 			</li>
 		<?php endif;?>
 	<?php endforeach;?>
-	
-	<!--review-->
-	<?php if(isset($page_tabs['review_study']) && $page_tabs['review_study']===TRUE):?>                    
-		<li class="nav-item tab-<?php echo $tab_name;?> <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" >
-			<a href="<?php echo site_url('catalog/'.$survey_id.'/review');?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab=='review') ? $active_tab_class : '';?>" role="tab"  data-id="review">
-				<?php echo t('review_study');?>
-			</a>
-		</li>
-	<?php endif;?>
 </ul>
 <!-- end nav tabs -->
 </div>

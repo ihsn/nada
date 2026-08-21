@@ -8,7 +8,11 @@
  *  - hide_column_headings - hide column headings 
  */
 
- $columns=$template['props'];
+ $this->load->helper('display_template');
+ $columns=display_template_filter_props($template['props']);
+ if (count($columns) < 1) {
+     return false;
+ }
  $name=$template['title'];
  $hide_field_title=false;
  $hide_column_headings=false;
@@ -87,16 +91,13 @@
       
         <a href class="collapsed d-block" data-toggle="collapse" data-target="#collapse-<?php echo str_replace(".","_",$template['key'].$idx);?>" aria-expanded="false" aria-controls="collapseOne">          
           <i class="fa mt-1 float-right" aria-hidden="true"></i>
-          <?php if (isset($template['display_options']['header_fields'])):?>
-            <?php foreach($template['display_options']['header_fields'] as $header_field):?>
-              <?php if (isset($row[$header_field]) && trim($row[$header_field])!=''):?>
-                <?php echo isset($row[$header_field]) ? $row[$header_field] : '';?>
-                <?php break;?>
-              <?php endif;?>
-            <?php endforeach;?>
-          <?php else:?>
-            <?php echo $template['title'];?>
-          <?php endif;?>          
+          <?php
+            $record_heading = display_template_nested_record_heading($row, $template);
+            if ($record_heading === '') {
+              $record_heading = isset($template['title']) ? (string) $template['title'] : '';
+            }
+            echo html_escape($record_heading);
+          ?>          
         </a>
       
     </div>

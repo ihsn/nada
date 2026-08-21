@@ -12,7 +12,8 @@
  //"field_template": "field_table_tags",
 //"tag_column":"name"
 
- $columns=$template['props'];
+ $this->load->helper('display_template');
+ $columns=display_template_filter_props($template['props']);
  $badge_class="badge badge-pill badge-light badge-tags";
 
  if(isset($options['badge_class'])){
@@ -29,16 +30,25 @@
     $column_name=$template['display_options']['tag_column'];
  }
  else{
-    echo $this->load->view('display_templates/fields/field_array',null,true);
-    return;
+    $column_name='name';
  }
+ $tag_scalar_def=array(
+    'type'=>'string',
+    'display_options'=>array('format'=>'plain','linkify'=>false),
+ );
 ?>
 <?php if (isset($data) && is_array($data) && count($data)>0 ):?>
-<div class="field-<?php echo $template['key'];?> pb-3">
+<div class="field-<?php echo html_escape($template['key']);?> pb-3">
         <div class="field-title"><?php echo tt('metadata.'.$template['key'],$template['title']);?></div>
         <div class="field-value">
             <?php foreach($data as $row):?>
-                <span class="<?php echo $badge_class;?>"><?php echo $row[$column_name];?></span>
+                <?php
+                    $tag_val = isset($row[$column_name]) ? $row[$column_name] : '';
+                    $tag_html = display_template_render_scalar_value($tag_val, $tag_scalar_def, array('mode'=>'cell'));
+                ?>
+                <?php if ($tag_html !== ''):?>
+                <span class="<?php echo $badge_class;?>"><?php echo $tag_html;?></span>
+                <?php endif;?>
             <?php endforeach;?>
         </div>
 </div>
