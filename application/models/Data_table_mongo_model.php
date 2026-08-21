@@ -2114,53 +2114,47 @@ function format_execution_time($seconds)
 	}
 
 	/**
-	 * Clean and convert CSV values to appropriate data types
-	 * Simplified logic: preserves leading zeros, handles floats and scientific notation
-	 * 
+	 * Clean CSV values. Integers without leading zeros are stored as int;
+	 * floats, scientific notation, codes, and IDs stay strings.
+	 *
 	 * @param mixed $value The value to clean
 	 * @return mixed Cleaned value with proper data type
 	 */
 	private function clean_csv_value($value)
 	{
-		// Convert encoding first
-		$value = mb_convert_encoding($value, 'UTF-8', 'auto');
-		
-		// If empty value, return as-is
 		if ($value === '' || $value === null) {
 			return $value;
 		}
-		
-		// Trim whitespace
+
+		if (!is_string($value)) {
+			return $value;
+		}
+
+		$encoded = mb_convert_encoding($value, 'UTF-8', 'auto');
+		if ($encoded === false) {
+			return $value;
+		}
+		$value = $encoded;
+
 		$trimmed = trim($value);
 		if ($trimmed === '') {
 			return $value;
 		}
-		
-		// Check if value starts with "0" and has length > 1
+
+		// Preserve leading zeros (IDs, codes) and anything with a decimal or
+		// exponent as a string. Do not coerce via arithmetic — values like
+		// "01.1.1" are not numeric and previously triggered a PHP warning.
 		if (strlen($trimmed) > 1 && $trimmed[0] === '0') {
-			// Value has leading zero and length > 1
-			if (strpos($trimmed, '.') !== false) {
-				// Contains period - return as float
-				return (float)($trimmed + 0);
-			} else {
-				// No period - return as string (preserves leading zeros)
-				return $trimmed;
-			}
+			return $trimmed;
 		}
-		
-		// For values without leading zeros or single digit, check if numeric
-		if (is_numeric($trimmed)) {
-			// Check if it's a float (contains decimal point or scientific notation)
-			if (strpos($trimmed, '.') !== false || 
-			    strpos($trimmed, 'e') !== false || 
-			    strpos($trimmed, 'E') !== false) {
-				return (float)($trimmed + 0);
-			} else {
-				return (int)($trimmed + 0);
-			}
+
+		if (is_numeric($trimmed)
+			&& strpos($trimmed, '.') === false
+			&& stripos($trimmed, 'e') === false
+		) {
+			return (int) $trimmed;
 		}
-		
-		// Default: preserve as string
+
 		return $trimmed;
 	}
 
