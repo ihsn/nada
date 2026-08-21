@@ -15,4 +15,4 @@ const app = createApp(App);
 app.use(vuetify);
 app.use(router);
 app.provide(APP_CONFIG_KEY, window.APP_CONFIG || {});
-app.mount('#admin-templates-app');
+app.mount('#admin-display-templates-app');

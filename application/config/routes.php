@@ -345,16 +345,18 @@ $route['api/dashboard/stats'] = "api/dashboard/stats";
 // Admin Site Configurations API — REST_Controller::_remap handles GET/PUT/PATCH/DELETE on
 // api/admin/configurations and POST aliases api/admin/configurations/save|patch|remove.
 
-// Admin Display Templates API
-$route['api/admin/templates/import']                          = 'api/admin/templates/import';
-$route['api/admin/templates/validate']                        = 'api/admin/templates/validate';
-$route['api/admin/templates/default/(:any)/(:any)']           = 'api/admin/templates/default/$1/$2';
-$route['api/admin/templates/(:any)/export']                   = 'api/admin/templates/export/$1';
-$route['api/admin/templates/(:any)/duplicate']                = 'api/admin/templates/duplicate/$1';
-$route['api/admin/templates/(:any)/delete']                   = 'api/admin/templates/delete/$1';
-$route['api/admin/templates/renderers/(:any)']                = 'api/admin/templates/renderers_by_type/$1';
-$route['api/admin/templates/renderers']                       = 'api/admin/templates/renderers';
-$route['api/admin/templates/(:any)']                          = 'api/admin/templates/item/$1';
+// Admin Display Template Manager API
+$route['api/admin/display_templates/import']                          = 'api/admin/display_templates/import';
+$route['api/admin/display_templates/validate']                        = 'api/admin/display_templates/validate';
+$route['api/admin/display_templates/default/(:any)/(:any)']           = 'api/admin/display_templates/default/$1/$2';
+$route['api/admin/display_templates/cores']                           = 'api/admin/display_templates/cores';
+$route['api/admin/display_templates/core/(:any)']                     = 'api/admin/display_templates/core/$1';
+$route['api/admin/display_templates/(:any)/export']                   = 'api/admin/display_templates/export/$1';
+$route['api/admin/display_templates/(:any)/duplicate']                = 'api/admin/display_templates/duplicate/$1';
+$route['api/admin/display_templates/(:any)/delete']                   = 'api/admin/display_templates/delete/$1';
+$route['api/admin/display_templates/renderers/(:any)']                = 'api/admin/display_templates/renderers_by_type/$1';
+$route['api/admin/display_templates/renderers']                       = 'api/admin/display_templates/renderers';
+$route['api/admin/display_templates/(:any)']                          = 'api/admin/display_templates/item/$1';
 
 // Admin Codelists API (nested routes first)
 // REST_Controller::_remap: map to versions/$1 (not versions_get/$1) so versions_get is invoked.

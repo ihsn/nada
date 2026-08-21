@@ -44,8 +44,8 @@ tags:
     description: Admin endpoints for codelist catalogue management and JSON import.
   - name: Timeseries Admin
     description: Admin endpoints for project-level timeseries data and DSD linking.
-  - name: Templates Admin
-    description: Admin endpoints for display templates and renderer registry listing.
+  - name: Display Templates Admin
+    description: Admin endpoints for the display template manager and renderer registry listing.
   - name: Study admin metadata
     description: |
       Attach admin-only custom JSON metadata to catalog studies via the API.
@@ -84,7 +84,6 @@ x-tagGroups:
       - Videos
       - Documents
       - Tables
-      - Visualizations
       - Citations
       - Filestore
       - Reports
@@ -94,7 +93,7 @@ x-tagGroups:
       - Data Structures
       - Codelists Admin
       - Timeseries Admin
-      - Templates Admin
+      - Display Templates Admin
       - Study admin metadata
       - Catalog import
       - Search metadata extract
@@ -1144,38 +1143,6 @@ paths:
             application/json:
               schema:
                 $ref: 'table-schema.json'
-
-  # ----------------------------------------------------------------
-  # Visualizations
-  # ----------------------------------------------------------------
-
-  /datasets/create/visualization/{IDNo}:
-    post:
-      tags:
-        - Visualizations
-      summary: Create visualization
-      description: Create a new visualization
-      operationId: createVisualization
-      parameters:
-        - name: IDNo
-          in: path
-          required: true
-          description: Unique IDNo
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: 'visualization-schema.json'
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: 'visualization-schema.json'
 
   # ----------------------------------------------------------------
   # Datafiles & Variables (Survey / Timeseries)
@@ -3784,15 +3751,15 @@ paths:
           $ref: '#/components/responses/AnalyticsForbidden'
 
   # ----------------------------------------------------------------
-  # Templates Admin
+  # Display Template Manager Admin
   # ----------------------------------------------------------------
 
-  /admin/templates:
+  /admin/display_templates:
     get:
       tags:
-        - Templates Admin
+        - Display Templates Admin
       summary: List display templates
-      operationId: templatesAdminList
+      operationId: displayTemplatesAdminList
       parameters:
         - name: data_type
           in: query
@@ -3812,9 +3779,9 @@ paths:
                 $ref: '#/components/schemas/TemplatesListResponse'
     post:
       tags:
-        - Templates Admin
+        - Display Templates Admin
       summary: Create display template
-      operationId: templatesAdminCreate
+      operationId: displayTemplatesAdminCreate
       requestBody:
         required: true
         content:
@@ -3829,12 +3796,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/TemplateSingleResponse'
 
-  /admin/templates/{uid}:
+  /admin/display_templates/{uid}:
     get:
       tags:
-        - Templates Admin
+        - Display Templates Admin
       summary: Get display template by uid
-      operationId: templatesAdminGet
+      operationId: displayTemplatesAdminGet
       parameters:
         - name: uid
           in: path
@@ -3852,9 +3819,9 @@ paths:
           description: Not found
     post:
       tags:
-        - Templates Admin
+        - Display Templates Admin
       summary: Update display template by uid
-      operationId: templatesAdminUpdate
+      operationId: displayTemplatesAdminUpdate
       parameters:
         - name: uid
           in: path
@@ -3877,12 +3844,45 @@ paths:
         '404':
           description: Not found
 
-  /admin/templates/{uid}/delete:
+  /admin/display_templates/cores:
+    get:
+      tags:
+        - Display Templates Admin
+      summary: List system core display templates
+      operationId: displayTemplatesAdminCoresList
+      parameters:
+        - name: data_type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /admin/display_templates/core/{identifier}:
+    get:
+      tags:
+        - Display Templates Admin
+      summary: Get system core display template by data type or UID
+      operationId: displayTemplatesAdminCoreGet
+      parameters:
+        - name: identifier
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Not found
+
+  /admin/display_templates/{uid}/delete:
     post:
       tags:
-        - Templates Admin
-      summary: Soft-delete display template
-      operationId: templatesAdminDelete
+        - Display Templates Admin
+      summary: Delete display template
+      operationId: displayTemplatesAdminDelete
       parameters:
         - name: uid
           in: path
@@ -3895,12 +3895,12 @@ paths:
         '404':
           description: Not found
 
-  /admin/templates/{uid}/duplicate:
+  /admin/display_templates/{uid}/duplicate:
     post:
       tags:
-        - Templates Admin
+        - Display Templates Admin
       summary: Duplicate display template
-      operationId: templatesAdminDuplicate
+      operationId: displayTemplatesAdminDuplicate
       parameters:
         - name: uid
           in: path
@@ -3915,12 +3915,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/TemplateSingleResponse'
 
-  /admin/templates/default/{data_type}/{uid}:
+  /admin/display_templates/default/{data_type}/{uid}:
     post:
       tags:
-        - Templates Admin
+        - Display Templates Admin
       summary: Set default display template for data type
-      operationId: templatesAdminSetDefault
+      operationId: displayTemplatesAdminSetDefault
       parameters:
         - name: data_type
           in: path
@@ -3938,12 +3938,12 @@ paths:
         '404':
           description: Not found
 
-  /admin/templates/import:
+  /admin/display_templates/import:
     post:
       tags:
-        - Templates Admin
-      summary: Import metadata-editor template into display template
-      operationId: templatesAdminImport
+        - Display Templates Admin
+      summary: Import display template (editor/legacy items[] format)
+      operationId: displayTemplatesAdminImport
       requestBody:
         required: true
         content:
@@ -3958,12 +3958,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/TemplateImportResponse'
 
-  /admin/templates/{uid}/export:
+  /admin/display_templates/{uid}/export:
     get:
       tags:
-        - Templates Admin
+        - Display Templates Admin
       summary: Export display template by uid
-      operationId: templatesAdminExport
+      operationId: displayTemplatesAdminExport
       parameters:
         - name: uid
           in: path
@@ -3980,12 +3980,12 @@ paths:
         '404':
           description: Not found
 
-  /admin/templates/validate:
+  /admin/display_templates/validate:
     post:
       tags:
-        - Templates Admin
+        - Display Templates Admin
       summary: Validate display template payload
-      operationId: templatesAdminValidate
+      operationId: displayTemplatesAdminValidate
       requestBody:
         required: true
         content:
@@ -4002,12 +4002,12 @@ paths:
         '400':
           description: Invalid payload
 
-  /admin/templates/renderers:
+  /admin/display_templates/renderers:
     get:
       tags:
-        - Templates Admin
+        - Display Templates Admin
       summary: List available renderers
-      operationId: templatesAdminRenderersList
+      operationId: displayTemplatesAdminRenderersList
       responses:
         '200':
           description: Successful operation
@@ -4016,12 +4016,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/RenderersListResponse'
 
-  /admin/templates/renderers/{source_type}:
+  /admin/display_templates/renderers/{source_type}:
     get:
       tags:
-        - Templates Admin
+        - Display Templates Admin
       summary: List renderers by source_type
-      operationId: templatesAdminRenderersByType
+      operationId: displayTemplatesAdminRenderersByType
       parameters:
         - name: source_type
           in: path
@@ -4768,6 +4768,28 @@ components:
             message: STUDY_NOT_FOUND
 
   schemas:
+    DisplayTemplateJson:
+      type: object
+      description: |
+        Metadata-editor / legacy display tree. Same schema as editor form templates and
+        `application/templates/display/*_display_template.json` files. Section containers and
+        sections nest via `items[]`; array fields define columns in `props[]`. Fields may include
+        `display_type` and `display_options` for public study pages.
+      required: [type, items]
+      properties:
+        type:
+          type: string
+          enum: [template]
+          example: template
+        title:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      additionalProperties: true
+
     TemplateRecord:
       type: object
       properties:
@@ -4796,8 +4818,7 @@ components:
           type: string
           enum: [draft, published, archived]
         template_json:
-          type: object
-          additionalProperties: true
+          $ref: '#/components/schemas/DisplayTemplateJson'
         default:
           type: boolean
           nullable: true
@@ -4827,8 +4848,7 @@ components:
           type: string
           enum: [draft, published, archived]
         template_json:
-          type: object
-          additionalProperties: true
+          $ref: '#/components/schemas/DisplayTemplateJson'
 
     TemplateUpdateRequest:
       type: object
@@ -4847,11 +4867,13 @@ components:
           type: string
           enum: [draft, published, archived]
         template_json:
-          type: object
-          additionalProperties: true
+          $ref: '#/components/schemas/DisplayTemplateJson'
 
     TemplateImportRequest:
       type: object
+      description: |
+        Import a display template from JSON. `data_type` and `name` are taken from the imported file when present
+        (legacy display export envelope). Optional body fields may override envelope values for programmatic imports.
       properties:
         uid:
           type: string
@@ -4859,8 +4881,10 @@ components:
           type: string
           enum: [system, custom, imported]
         data_type:
+          description: Optional override; normally read from imported JSON (`data_type` on export envelope).
           type: string
         name:
+          description: Optional override; normally read from imported JSON (`name` on export envelope or `title` in tree).
           type: string
         version:
           type: string
@@ -4873,12 +4897,19 @@ components:
         status:
           type: string
           enum: [draft, published, archived]
+        copy_if_uid_exists:
+          type: boolean
+          description: |
+            When true and the imported file includes a `uid` that already exists, create a new template with a
+            generated UID (name suffixed with " - copy"). When false, import fails with a duplicate UID error.
         template:
+          description: |
+            Import payload: display export envelope (`{ data_type, name, template: { type, items[] } }`)
+            or a bare form tree (`{ type, title, items[] }`). May also POST the envelope as the request body root.
           type: object
           additionalProperties: true
         template_json:
-          type: object
-          additionalProperties: true
+          $ref: '#/components/schemas/DisplayTemplateJson'
 
     TemplateSingleResponse:
       type: object
@@ -4926,8 +4957,6 @@ components:
                   type: integer
                 total_fields:
                   type: integer
-                missing_renderer:
-                  type: integer
                 warnings:
                   type: array
                   items:
@@ -4938,8 +4967,7 @@ components:
       required: [template_json]
       properties:
         template_json:
-          type: object
-          additionalProperties: true
+          $ref: '#/components/schemas/DisplayTemplateJson'
 
     TemplateValidateResponse:
       type: object
@@ -6105,7 +6133,6 @@ components:
             - table
             - image
             - script
-            - visualization
             - video
             - timeseriesdb
         published:

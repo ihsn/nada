@@ -2,9 +2,9 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Admin Display Templates page controller (Vue 3 + Vite app)
+ * Admin Display Template Manager page controller (Vue 3 + Vite app)
  */
-class Templates extends MY_Controller {
+class Display_templates extends MY_Controller {
 
 	public function __construct()
 	{
@@ -17,7 +17,7 @@ class Templates extends MY_Controller {
 
 		$this->load->helper('vite_helper');
 		$view_data = [
-			'api_base_url' => site_url('api/admin/templates/'),
+			'api_base_url' => site_url('api/admin/display_templates/'),
 			'site_url' => site_url(),
 			'base_url' => base_url(),
 			'csrf_token' => $this->security->get_csrf_hash(),
@@ -25,8 +25,8 @@ class Templates extends MY_Controller {
 		];
 
 		$page = [
-			'title' => 'Display templates',
-			'content' => $this->load->view('admin/templates/index', $view_data, true),
+			'title' => 'Display template manager',
+			'content' => $this->load->view('admin/display_templates/index', $view_data, true),
 			'hide_breadcrumb' => true,
 			'theme_folder' => 'adminvue',
 		];

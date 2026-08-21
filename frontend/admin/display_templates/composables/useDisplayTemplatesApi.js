@@ -1,8 +1,9 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { formatApiError } from '../utils/apiError';
 
-export function useTemplatesApi() {
+export function useDisplayTemplatesApi() {
   const { apiBaseUrl } = useAppConfig();
   const loading = ref(false);
   const error = ref(null);
@@ -36,7 +37,30 @@ export function useTemplatesApi() {
   async function fetchTemplate(uid) {
     const { data } = await axios.get(`${base()}/${encodeURIComponent(uid)}`);
     if (data.status !== 'success') throw new Error(data.message || 'Failed to fetch');
-    return data.result?.template ?? null;
+    return {
+      template: data.result?.template ?? null,
+      coreTemplate: data.result?.core_template ?? null,
+      coreTemplateParts: data.result?.core_template_parts ?? null,
+      coreTemplateUid: data.result?.core_template_uid ?? null,
+    };
+  }
+
+  async function fetchCoreTemplate(identifier) {
+    const { data } = await axios.get(`${base()}/core/${encodeURIComponent(identifier)}`);
+    if (data.status !== 'success') throw new Error(data.message || 'Failed to fetch core template');
+    return {
+      core: data.result?.core ?? null,
+      coreTemplate: data.result?.core_template ?? null,
+      coreTemplateParts: data.result?.core_template_parts ?? null,
+    };
+  }
+
+  async function fetchCoreTemplates({ data_type } = {}) {
+    const params = {};
+    if (data_type) params.data_type = data_type;
+    const { data } = await axios.get(`${base()}/cores`, { params });
+    if (data.status !== 'success') throw new Error(data.message || 'Failed to fetch core templates');
+    return data.result?.cores ?? [];
   }
 
   async function createTemplate(payload) {
@@ -84,11 +108,15 @@ export function useTemplatesApi() {
   }
 
   async function importTemplate(payload) {
-    const { data } = await axios.post(`${base()}/import`, payload, {
-      headers: jsonHeaders,
-    });
-    if (data.status !== 'success') throw new Error(data.message || 'Import failed');
-    return data.result;
+    try {
+      const { data } = await axios.post(`${base()}/import`, payload, {
+        headers: jsonHeaders,
+      });
+      if (data.status !== 'success') throw new Error(data.message || 'Import failed');
+      return data.result;
+    } catch (e) {
+      throw new Error(formatApiError(e, 'Import failed'));
+    }
   }
 
   async function validatePayload(payload) {
@@ -105,8 +133,12 @@ export function useTemplatesApi() {
     return data.result?.renderers ?? [];
   }
 
-  async function fetchRenderersBySourceType(source_type) {
-    const { data } = await axios.get(`${base()}/renderers/${encodeURIComponent(source_type)}`);
+  async function fetchRenderersBySourceType(source_type, data_type) {
+    const params = {};
+    if (data_type) params.data_type = data_type;
+    const { data } = await axios.get(`${base()}/renderers/${encodeURIComponent(source_type)}`, {
+      params,
+    });
     if (data.status !== 'success') throw new Error(data.message || 'Failed to fetch renderers');
     return data.result?.renderers ?? [];
   }
@@ -122,6 +154,8 @@ export function useTemplatesApi() {
     error,
     fetchTemplates,
     fetchTemplate,
+    fetchCoreTemplate,
+    fetchCoreTemplates,
     createTemplate,
     updateTemplate,
     deleteTemplate,
