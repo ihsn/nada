@@ -24,6 +24,7 @@ class Editor_template_model extends ci_model {
 	);
 
 	private $core_templates=[];
+	private $editor_template_defaults=[];
 	private $ci;
 
     public function __construct()
@@ -42,34 +43,128 @@ class Editor_template_model extends ci_model {
 			throw new Exception("config/editor_templates not loaded");
 		}
 
-		//echo "<pre>";
-		//print_r($config);
-		//die();
-		
-		foreach($config as $key=>$templates){
+		$meta_keys = isset($config['editor_template_meta_keys'])
+			? $config['editor_template_meta_keys']
+			: array(
+				'editor_template_path',
+				'editor_template_custom_path',
+				'editor_template_defaults',
+				'editor_template_meta_keys',
+			);
 
-			foreach($templates as $idx=>$template){
+		if (isset($config['editor_template_defaults']) && is_array($config['editor_template_defaults'])) {
+			$this->editor_template_defaults = $config['editor_template_defaults'];
+		}
 
-				$template_json='';
-				$template_path=APPPATH.'/views/'.$template['template'];
+		foreach ($config as $key => $templates) {
+			if (in_array($key, $meta_keys, true)) {
+				continue;
+			}
 
-				if (file_exists($template_path)){
-					$template_json=$template['template'];//json_decode(file_get_contents($template_path),true);
+			if (!is_array($templates)) {
+				continue;
+			}
+
+			foreach ($templates as $template) {
+				if (!is_array($template) || empty($template['uid'])) {
+					continue;
 				}
-				else{
-					//throw new Exception("template not found" .$template_path);
+
+				// Prefer `file` (APPPATH-relative). Legacy key was `template` under views/.
+				$relative_file = '';
+				if (!empty($template['file'])) {
+					$relative_file = $template['file'];
+				} elseif (!empty($template['template'])) {
+					$relative_file = (strpos($template['template'], 'templates/') === 0)
+						? $template['template']
+						: 'views/'.$template['template'];
 				}
 
-				$this->core_templates[]=array(
-					'uid'=>$template['uid'],
-					'template_type'=>'core',
-					'name'=> $template['name'],
-					'data_type'=>$key,
-					'lang'=>$template['lang'],
-					'template'=>$template_json
+				$resolved_path = $this->resolve_core_template_path($relative_file);
+				$template_ref = $resolved_path ? $relative_file : '';
+
+				$this->core_templates[] = array(
+					'uid' => $template['uid'],
+					'template_type' => 'core',
+					'name' => isset($template['name']) ? $template['name'] : $template['uid'],
+					'data_type' => $key,
+					'lang' => isset($template['lang']) ? $template['lang'] : 'en',
+					'version' => isset($template['version']) ? $template['version'] : null,
+					'description' => isset($template['description']) ? $template['description'] : null,
+					'file' => $relative_file,
+					'template' => $template_ref,
 				);
 			}
 		}
+	}
+
+	/**
+	 * Resolve a core template file path (APPPATH-relative).
+	 * Prefers templates/editor/custom/{basename} when present.
+	 *
+	 * @param string $relative_file Path relative to APPPATH
+	 * @return string|null Absolute path if found
+	 */
+	function resolve_core_template_path($relative_file)
+	{
+		if ($relative_file === '' || $relative_file === null) {
+			return null;
+		}
+
+		$relative_file = ltrim(str_replace('\\', '/', $relative_file), '/');
+		$basename = basename($relative_file);
+		$custom_path = APPPATH.'templates/editor/custom/'.$basename;
+		$core_path = APPPATH.$relative_file;
+
+		if (is_file($custom_path)) {
+			return $custom_path;
+		}
+
+		if (is_file($core_path)) {
+			return $core_path;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Default template UID for a context (catalog|deposit) and data type.
+	 *
+	 * @param string $data_type
+	 * @param string $context
+	 * @return string|null
+	 */
+	function get_default_template_uid($data_type, $context = 'catalog')
+	{
+		if (isset($this->editor_template_defaults[$context][$data_type])) {
+			return $this->editor_template_defaults[$context][$data_type];
+		}
+
+		// Fall back to first registered core for the type
+		$cores = $this->get_core_templates_by_type($data_type);
+		if (!empty($cores[0]['uid'])) {
+			return $cores[0]['uid'];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Load default core template JSON for a context + data type (file registry).
+	 *
+	 * Note: get_default_template($type) is reserved for the DB defaults table row.
+	 *
+	 * @param string $data_type
+	 * @param string $context catalog|deposit
+	 * @return array|null Full template row including decoded `template` JSON
+	 */
+	function get_default_core_template($data_type, $context = 'catalog')
+	{
+		$uid = $this->get_default_template_uid($data_type, $context);
+		if (!$uid) {
+			return null;
+		}
+		return $this->get_template_by_uid($uid);
 	}
 
 	function get_core_template_by_uid($uid)
@@ -145,16 +240,22 @@ class Editor_template_model extends ci_model {
 
 	function get_core_template_json($uid)
 	{
-		foreach($this->core_templates as $template){
-			if ($template['uid']==$uid){				
-				$template_path=APPPATH.'/views/'.$template["template"];
-				if (!file_exists($template_path)){
-					throw new Exception("Template not found:",$template['template']);
-				}
-
-				return json_decode(file_get_contents($template_path),true);
+		foreach ($this->core_templates as $template) {
+			if ($template['uid'] != $uid) {
+				continue;
 			}
-		}		
+
+			$relative = !empty($template['file']) ? $template['file'] : $template['template'];
+			$template_path = $this->resolve_core_template_path($relative);
+
+			if (!$template_path) {
+				throw new Exception('Template not found: '.$relative);
+			}
+
+			return json_decode(file_get_contents($template_path), true);
+		}
+
+		return null;
 	}
 
     /**

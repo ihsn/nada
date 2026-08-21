@@ -1,0 +1,220 @@
+{
+  "type": "template",
+  "title": "Custom metadata",
+  "description": "Flexible template for documenting resources that do not fit existing schemas.",
+  "items": [
+    {
+      "type": "section_container",
+      "key": "metadata_information",
+      "title": "Metadata information",
+      "expanded": true,
+      "items": [
+        {
+          "type": "section",
+          "key": "metadata_information.section",
+          "title": "Document metadata",
+          "items": [
+            {
+              "key": "metadata_information.title",
+              "title": "Document title",
+              "type": "string",
+              "display_type": "text"
+            },
+            {
+              "key": "metadata_information.idno",
+              "title": "Document ID number",
+              "type": "string",
+              "display_type": "text"
+            },
+            {
+              "key": "metadata_information.producers",
+              "title": "Producers",
+              "type": "array",
+              "props": [
+                {
+                  "key": "name",
+                  "title": "Name",
+                  "type": "string",
+                  "prop_key": "metadata_information.producers.name",
+                  "display_type": "text"
+                },
+                {
+                  "key": "abbr",
+                  "title": "Abbreviation",
+                  "type": "string",
+                  "prop_key": "metadata_information.producers.abbr",
+                  "display_type": "text"
+                },
+                {
+                  "key": "affiliation",
+                  "title": "Affiliation",
+                  "type": "string",
+                  "prop_key": "metadata_information.producers.affiliation",
+                  "display_type": "text"
+                },
+                {
+                  "key": "role",
+                  "title": "Role",
+                  "type": "string",
+                  "prop_key": "metadata_information.producers.role",
+                  "display_type": "text"
+                }
+              ]
+            },
+            {
+              "key": "metadata_information.production_date",
+              "title": "Date of Production",
+              "type": "string",
+              "display_type": "date"
+            },
+            {
+              "key": "metadata_information.version",
+              "title": "Document version",
+              "type": "string",
+              "display_type": "text"
+            }
+          ]
+        }
+      ]
+    },    
+    {
+      "type": "section_container",
+      "key": "description",
+      "title": "Description",
+      "expanded": true,
+      "items": [
+        {
+          "type": "section",
+          "key": "description.identification.section",
+          "title": "Identification",
+          "items": [
+            {          
+              "key": "description.identification.metadata_type",
+              "title": "Metadata type",
+              "type": "string",
+              "help_text": "Type of metadata content.",
+              "is_required": true,
+              "_rules": "required|alpha|min:4|max:30",
+              "display_type": "text"
+            },
+            {
+              "key": "description.identification.idno",
+              "title": "Primary ID",
+              "type": "string",
+              "help_text": "Unique identifier used to reference this resource.",
+              "display_type": "text"
+            },
+            {
+              "key": "description.identification.title",
+              "title": "Title",
+              "type": "string",
+              "help_text": "Human-readable title for the resource.",
+              "display_type": "text"
+            },
+            {
+              "key": "description.identification.subtitle",
+              "title": "Subtitle",
+              "type": "string",
+              "help_text": "Subtitle",
+              "display_type": "text"
+            },
+            {
+              "key": "description.identification.authors",
+              "title": "Authors",
+              "type": "array",
+              "help_text": "Authors",
+              "props": [
+                {
+                  "key": "name",
+                  "title": "Name",
+                  "type": "string",
+                  "prop_key": "description.identification.authors.name",
+                  "display_type": "text"
+                },
+                {
+                  "key": "affiliation",
+                  "title": "Affiliation",
+                  "type": "string",
+                  "prop_key": "description.identification.authors.affiliation",
+                  "display_type": "text"
+                },
+                {
+                  "key": "abbr",
+                  "title": "Abbreviation",
+                  "type": "string",
+                  "prop_key": "description.identification.authors.abbr",
+                  "display_type": "text"
+                },
+                {
+                  "key": "role",
+                  "title": "Role",
+                  "type": "string",
+                  "prop_key": "description.identification.authors.role",
+                  "display_type": "text"
+                }
+              ]
+            },
+            {
+              "key": "description.identification.publishers",
+              "title": "Publishers",
+              "type": "array",
+              "help_text": "Publishers",
+              "props": [
+                {
+                  "key": "name",
+                  "title": "Name",
+                  "type": "string",
+                  "prop_key": "description.identification.publishers.name",
+                  "display_type": "text"
+                },
+                {
+                  "key": "affiliation",
+                  "title": "Affiliation",
+                  "type": "string",
+                  "prop_key": "description.identification.publishers.affiliation",
+                  "display_type": "text"
+                },
+                {
+                  "key": "abbr",
+                  "title": "Abbreviation",
+                  "type": "string",
+                  "prop_key": "description.identification.publishers.abbr",
+                  "display_type": "text"
+                },
+                {
+                  "key": "role",
+                  "title": "Role",
+                  "type": "string",
+                  "prop_key": "description.identification.publishers.role",
+                  "display_type": "text"
+                }
+              ]
+            },
+            {
+              "key": "description.identification.description",
+              "title": "Description",
+              "type": "string",
+              "help_text": "Short description summarizing the resource.",
+              "display_type": "textarea"
+            },
+            {
+              "key": "description.identification.spatial",
+              "title": "Spatial",
+              "type": "string",
+              "help_text": "Spatial coverage/extent description or code.",
+              "display_type": "text"
+            },
+            {
+              "key": "description.identification.temporal",
+              "title": "Temporal",
+              "type": "string",
+              "help_text": "Temporal coverage (e.g., date or period).",
+              "display_type": "text"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

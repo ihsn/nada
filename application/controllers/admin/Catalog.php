@@ -1181,8 +1181,6 @@ class Catalog extends MY_Controller {
 	{
 		$this->acl_manager->require_catalog_access();
 
-		$this->template->set_template('admin5');
-		
 		if(!$type){
 			$type=$this->input->get("type");
 		}
@@ -1214,187 +1212,108 @@ class Catalog extends MY_Controller {
 		);
 
 		redirect("admin/catalog/edit/".$sid);
-		return;
-		
-		$template_path="application/metadata_editor_templates/{$type}_form_template.json";
-		$schema_path="application/schemas/{$type}-schema.json";
-
-		if(!file_exists($template_path)){
-			show_error('Template not found::'. $template_path);
-		}
-
-		if(!file_exists($schema_path)){
-			show_error('Schema not found::'. $schema_path);
-		}
-		
-		$options['sid']=null;
-		$options['survey']=array(
-			'title'=>'New survey'
-		);
-
-		$options['type']=$type;
-		$options['metadata_template']=file_get_contents($template_path);
-		$options['metadata_schema']=file_get_contents($schema_path);
-		$options['post_url']=site_url('api/datasets/create/'.$type);
-		$options['metadata']=array();
-		$options['metadata']['merge_options']='replace';
-				
-		//render
-		$content=$this->load->view('metadata_editor/inline',$options, true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
-		
 	}
 
 	/**
-	 * Read a metadata editor template/schema file once per request.
+	 * Load ME-format form template for a study type (catalog context).
 	 *
-	 * @param string $path
-	 * @return string|false
+	 * @param string $type
+	 * @return array{uid: string, name: string, template: array}
 	 */
-	private function _read_study_metadata_file($path)
+	private function _load_catalog_editor_template($type)
 	{
-		static $cache = array();
-		$key = (string) $path;
-		if (! isset($cache[$key])) {
-			$cache[$key] = is_file($key) ? file_get_contents($key) : false;
+		$this->load->model('Editor_template_model');
+		$tpl = $this->Editor_template_model->get_default_core_template($type, 'catalog');
+
+		if (! $tpl || empty($tpl['template']) || ! is_array($tpl['template'])) {
+			show_error('Editor template not found for type: ' . $type);
 		}
-		return $cache[$key];
+
+		$tpl['template'] = $this->_apply_catalog_metadata_template_filters($type, $tpl['template']);
+
+		return $tpl;
 	}
 
 
 	/**
-	 * Build view data for the legacy Vue metadata editor (inline.php).
+	 * Template section keys excluded from the catalog metadata tab (by study type).
 	 *
-	 * @param int|string $id surveys.id
-	 * @param bool       $lazy_metadata When true, metadata is fetched client-side (faster TTFB).
+	 * @param string $type surveys.type
+	 * @return string[]
+	 */
+	private function _catalog_metadata_excluded_template_keys($type)
+	{
+		if ($type === 'geospatial') {
+			return array(
+				'description.feature_catalogue_section',
+			);
+		}
+
+		return array();
+	}
+
+
+	/**
+	 * Remove catalog-metadata-tab sections from an editor template tree.
+	 *
+	 * @param string $type
+	 * @param array  $template
 	 * @return array
 	 */
-	private function _prepare_metadata_editor_options($id, $lazy_metadata = false)
+	private function _apply_catalog_metadata_template_filters($type, array $template)
 	{
-		$survey = $this->dataset_manager->get_row($id);
-
-		if (! $survey) {
-			show_error('Survey was not found');
+		$exclude = $this->_catalog_metadata_excluded_template_keys($type);
+		if (empty($exclude)) {
+			return $template;
 		}
 
-		$this->acl_manager->has_access_or_die('study', 'edit', null, $survey['repositoryid']);
-
-		if ($survey['type'] === 'geospatial') {
-			show_error('GEOSPATIAL-TYPE-NOT-SUPPORTED');
+		if (isset($template['items']) && is_array($template['items'])) {
+			$template['items'] = $this->_filter_editor_template_items($template['items'], $exclude);
 		}
 
-		$template_file = $survey['type'] . '_form_template.json';
-		$template_path = null;
-		$template_locations = array(
-			'application/metadata_editor_templates/custom',
-			'application/metadata_editor_templates',
-		);
-
-		foreach ($template_locations as $path) {
-			if (file_exists($path . '/' . $template_file)) {
-				$template_path = $path . '/' . $template_file;
-				break;
-			}
-		}
-
-		$schema_path = 'application/schemas/' . $survey['type'] . '-schema.json';
-
-		if (! $template_path || ! file_exists($template_path)) {
-			show_error('Template not found::' . $template_file);
-		}
-
-		if (! file_exists($schema_path)) {
-			show_error('Schema not found::' . $schema_path);
-		}
-
-		$metadata = null;
-		if (! $lazy_metadata) {
-			$metadata = $this->dataset_manager->get_metadata($id);
-			if (is_array($metadata)) {
-				if ($survey['type'] === 'survey') {
-					$coll_mode = array_data_get($metadata, 'study_desc.method.data_collection.coll_mode');
-					if (! empty($coll_mode) && ! is_array($coll_mode)) {
-						set_array_nested_value($metadata, 'study_desc.method.data_collection.coll_mode', (array) $coll_mode, '.');
-					}
-				}
-				$metadata['merge_options'] = 'replace';
-			}
-		}
-
-		$options = array(
-			'sid'               => $id,
-			'survey'            => $survey,
-			'type'              => $survey['type'],
-			'metadata'          => $metadata,
-			'metadata_template' => $this->_read_study_metadata_file($template_path),
-			'metadata_schema'   => $this->_read_study_metadata_file($schema_path),
-			'post_url'          => site_url('api/datasets/update/' . $survey['type'] . '/' . $survey['idno']),
-			'lazy_metadata_load'=> (bool) $lazy_metadata,
-			'metadata_api_url'  => site_url('api/admin/catalog/' . (int) $id),
-			'ajv_extra_schemas' => $this->_metadata_editor_ajv_schemas($survey['type']),
-		);
-
-		return $options;
+		return $template;
 	}
 
 
 	/**
-	 * Extra JSON schemas for AJV (read once per request, not in Vue mounted).
-	 *
-	 * @param string $study_type
-	 * @return array<string, string>
+	 * @param array    $items
+	 * @param string[] $exclude_keys
+	 * @return array
 	 */
-	private function _metadata_editor_ajv_schemas($study_type)
+	private function _filter_editor_template_items(array $items, array $exclude_keys)
 	{
-		$schemas = array(
-			'provenance' => 'application/schemas/provenance-schema.json',
-		);
+		$filtered = array();
 
-		if ($study_type === 'survey') {
-			$schemas['survey'] = 'application/schemas/survey-schema.json';
-			$schemas['ddi'] = 'application/schemas/ddi-schema.json';
-			$schemas['datafile'] = 'application/schemas/datafile-schema.json';
-			$schemas['variable'] = 'application/schemas/variable-schema.json';
-		} elseif ($study_type === 'image') {
-			$schemas['image'] = 'application/schemas/image-schema.json';
-			$schemas['iptc'] = 'application/schemas/iptc-pmd-schema.json';
-			$schemas['iptc_shared'] = 'application/schemas/iptc-phovidmdshared-schema.json';
-		}
-
-		$out = array();
-		foreach ($schemas as $key => $path) {
-			$contents = $this->_read_study_metadata_file($path);
-			if ($contents !== false) {
-				$out[$key] = $contents;
+		foreach ($items as $item) {
+			if (! is_array($item)) {
+				continue;
 			}
+
+			$key = isset($item['key']) ? (string) $item['key'] : '';
+			if ($key !== '' && in_array($key, $exclude_keys, true)) {
+				continue;
+			}
+
+			if (isset($item['items']) && is_array($item['items'])) {
+				$item['items'] = $this->_filter_editor_template_items($item['items'], $exclude_keys);
+			}
+
+			$filtered[] = $item;
 		}
 
-		return $out;
+		return $filtered;
 	}
 
 
 	/**
-	 * Render metadata editor HTML (fragment or full document).
-	 *
-	 * @param array $options From _prepare_metadata_editor_options()
-	 * @param bool  $embedded Embed in study edit tab (admin_vue shell)
-	 * @return string
+	 * Standalone metadata editor — redirects to the study edit metadata tab (Vue 3).
 	 */
-	private function _render_metadata_editor_html(array $options, $embedded = false)
-	{
-		$options['embedded'] = (bool) $embedded;
-		return $this->load->view('metadata_editor/inline', $options, true);
-	}
-
-
 	function metadata_editor($id=null)
 	{
-		$options = $this->_prepare_metadata_editor_options($id, true);
-		$this->template->set_template('admin5');
-		$content = $this->_render_metadata_editor_html($options, false);
-		$this->template->write('content', $content, true);
-		$this->template->render();
+		if ( ! is_numeric($id)) {
+			show_error('Invalid parameters were passed');
+		}
+		redirect('admin/catalog/edit/'.$id.'/metadata');
 	}
 
 	function widgets($sid)
@@ -1433,15 +1352,17 @@ class Catalog extends MY_Controller {
 
 		$survey_row = $this->_load_study_edit_shell($id);
 
-		if ($tab === 'metadata') {
-			$meta_options = $this->_prepare_metadata_editor_options($id, true);
-			$survey_row['metadata_editor'] = $this->_render_metadata_editor_html($meta_options, true);
-		}
-
 		if ($tab !== 'metadata') {
 			$survey_row = $this->_append_study_edit_active_tab_config($id, $survey_row, $tab);
 		} else {
-			$survey_row['catalog_sidebar_app_config'] = $this->_study_edit_sidebar_app_config($id, $survey_row);
+			$this->acl_manager->has_access_or_die(
+				'study',
+				'edit',
+				null,
+				isset($survey_row['repositoryid']) ? $survey_row['repositoryid'] : null
+			);
+			// Metadata tab uses full width (no study right sidebar).
+			$survey_row['catalog_metadata_app_config'] = $this->_study_edit_metadata_app_config($id, $survey_row);
 		}
 
 		$this->_render_study_edit_page($id, $survey_row);
@@ -1841,6 +1762,69 @@ class Catalog extends MY_Controller {
 					'col_when'         => 'When',
 					'col_note'         => t('notes'),
 					'col_actions'      => t('actions'),
+				),
+			)
+		);
+	}
+
+
+	/**
+	 * Vue 3 metadata editor config (ME-format templates from editor_templates registry).
+	 *
+	 * @param int|string $id
+	 * @param array      $survey_row
+	 * @return array
+	 */
+	private function _study_edit_metadata_app_config($id, array $survey_row)
+	{
+		$type = isset($survey_row['type']) ? $survey_row['type'] : '';
+		$idno = isset($survey_row['idno']) ? $survey_row['idno'] : '';
+		$tpl = $this->_load_catalog_editor_template($type);
+
+		return array_merge(
+			$this->_study_edit_vue_common($id, $survey_row),
+			array(
+				'studyType'        => $type,
+				'templateUid'      => isset($tpl['uid']) ? $tpl['uid'] : '',
+				'templateName'     => isset($tpl['name']) ? $tpl['name'] : '',
+				'formTemplate'     => $tpl['template'],
+				'metadataApiUrl'   => site_url('api/admin/catalog/' . (int) $id),
+				'updateUrl'        => site_url('api/admin/catalog/update/' . $type . '/' . rawurlencode($idno)),
+				'apiBaseUrl'       => rtrim(site_url('api/admin/catalog'), '/') . '/',
+				'labels'           => array(
+					'metadataTab'            => t('tab_metadata'),
+					'template'               => t('metadata_editor_template'),
+					'reload'                 => t('metadata_reload'),
+					'save'                   => t('save'),
+					'saveUnsaved'            => t('metadata_save_unsaved'),
+					'saved'                  => t('metadata_saved'),
+					'loadFailed'             => t('metadata_load_failed'),
+					'saveFailed'             => t('metadata_save_failed'),
+					'unsavedLeave'           => t('metadata_unsaved_leave'),
+					'unsavedReload'          => t('metadata_unsaved_reload'),
+					'validationFailed'       => t('metadata_validation_failed'),
+					'schemaValidationFailed' => t('metadata_schema_validation_failed'),
+					'requestFailed'          => t('metadata_request_failed'),
+					'selectSection'          => t('metadata_select_section'),
+					'addFromList'            => t('metadata_add_from_list'),
+					'addRow'                 => t('metadata_add_row'),
+					'add'                    => t('metadata_add'),
+					'deleteRow'              => t('metadata_delete_row'),
+					'deleteRowConfirm'       => t('metadata_delete_row_confirm'),
+					'noRows'                 => t('metadata_no_rows'),
+					'noItems'                => t('metadata_no_items'),
+					'showHelp'               => t('metadata_show_help'),
+					'hideHelp'               => t('metadata_hide_help'),
+					'containerOverview'      => t('metadata_container_overview'),
+					'sectionsInGroup'        => t('metadata_sections_in_group'),
+					'nothingEntered'         => t('metadata_nothing_entered'),
+					'noFields'               => t('metadata_no_fields'),
+					'noPreview'              => t('metadata_no_preview'),
+					'editSection'            => t('metadata_edit_section'),
+					'treeNav'                => t('metadata_tree_nav'),
+					'item'                   => t('metadata_item'),
+					'trueLabel'              => t('metadata_true'),
+					'falseLabel'             => t('metadata_false'),
 				),
 			)
 		);

@@ -238,13 +238,26 @@
   display: none !important;
 }
 
-/* Metadata tab — match other study tabs (white panel + padding) */
+/* Metadata tab — full-width editor (no right sidebar); match other study tabs */
 .study-edit-page .study-tab-container--metadata {
   background-color: #fff;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 4px;
   padding: 1.5rem 1.25rem 2rem;
   box-sizing: border-box;
+}
+
+/* Give the Vue metadata app a viewport-capped height so tree/main scroll independently. */
+.study-edit-page #catalog-study-metadata-app {
+  display: block;
+  height: calc(100dvh - 11.5rem);
+  min-height: 420px;
+  max-height: calc(100dvh - 11.5rem);
+}
+
+.study-edit-page #survey.col-md-12 .study-tab-container--metadata {
+  /* Slightly tighter top padding when editor owns the full row */
+  padding-top: 1.25rem;
 }
 
 .study-edit-page .study-metadata-editor-embed--tab {
