@@ -143,7 +143,6 @@ else{
         'timeseries'=>'fa-clock-o',
         'document'=>'fa-file-text-o',
         'table'=>'fa-table',
-        'visualization'=>'fa-pie-chart',
         'script'=>'fa-file-code-o',
         'image'=>'fa-camera',
     );

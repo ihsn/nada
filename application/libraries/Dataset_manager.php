@@ -12,8 +12,7 @@ class Dataset_manager{
         'image'=>'image',
         'video'=>'video',
         'table'=>'table',
-        'script'=>'script',
-        'visualization'=>'visualization'
+        'script'=>'script'
     );
 
     function __construct($params=array())
@@ -29,7 +28,6 @@ class Dataset_manager{
         $this->ci->load->model("Dataset_image_model");
         $this->ci->load->model("Dataset_script_model");
         $this->ci->load->model("Dataset_table_model");
-        $this->ci->load->model("Dataset_visualization_model");
         $this->ci->load->model("Dataset_video_model");
         $this->ci->load->model("Data_classification_model");
         $this->ci->load->helper("Array");

@@ -82,7 +82,6 @@
         'timeseries-db'=>'fa-database',
         'document'=>'fa-file-alt',
         'table'=>'fa-table',
-        'visualization'=>'fa-pie-chart',
         'script'=>'fa-file-code',
         'image'=>'fa-image', 
         'video'=>'fa-video',

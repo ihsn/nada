@@ -919,10 +919,6 @@ class Dataset_model extends CI_Model {
 			'video'         => array(
 				'video_description/description',
 			),
-			'visualization' => array(
-				'visualization_description/description',
-				'visualization_description/narrative',
-			),
 			'image'         => array(
 				'image_description/dcmi/description',
 				'image_description/dcmi/caption',
@@ -1096,7 +1092,6 @@ class Dataset_model extends CI_Model {
 			'document',
 			'image',
 			'video',
-			'visualization',
 		);
 	}
 
@@ -1162,8 +1157,6 @@ class Dataset_model extends CI_Model {
 				return 'ImageObject';
 			case 'document':
 				return $this->get_schema_org_document_type($metadata);
-			case 'visualization':
-				return 'CreativeWork';
 			default:
 				return 'CreativeWork';
 		}
@@ -1345,9 +1338,6 @@ class Dataset_model extends CI_Model {
 			case 'document':
 				$this->apply_schema_org_document_fields($json_ld, $metadata);
 				break;
-			case 'visualization':
-				$this->apply_schema_org_visualization_fields($json_ld, $metadata);
-				break;
 		}
 	}
 
@@ -1471,36 +1461,6 @@ class Dataset_model extends CI_Model {
 
 
 	/**
-	 * @param array $json_ld
-	 * @param array $metadata
-	 * @return void
-	 */
-	private function apply_schema_org_visualization_fields(array &$json_ld, array $metadata)
-	{
-		$genres = array();
-		$types = $this->get_array_nested_value($metadata, 'visualization_description/visualization_types', '/');
-		if (is_array($types)) {
-			if ($this->is_assoc_array($types) && isset($types['type'])) {
-				$types = array($types);
-			}
-			foreach ($types as $entry) {
-				if (!is_array($entry) || empty($entry['type'])) {
-					continue;
-				}
-				$genre = trim((string) $entry['type']);
-				if ($genre !== '') {
-					$genres[] = $genre;
-				}
-			}
-		}
-
-		if (!empty($genres)) {
-			$json_ld['genre'] = count($genres) === 1 ? $genres[0] : $genres;
-		}
-	}
-
-
-	/**
 	 * @param array $survey
 	 * @return string|null
 	 */
@@ -1575,7 +1535,6 @@ class Dataset_model extends CI_Model {
 			'table'         => array('table_description/keywords', 'name'),
 			'video'         => array('video_description/keywords', 'name'),
 			'image'         => array('image_description/dcmi/keywords', 'name'),
-			'visualization' => array('visualization_description/keywords', 'name'),
 		);
 
 		if (!isset($paths[$type])) {
@@ -1629,7 +1588,6 @@ class Dataset_model extends CI_Model {
 			'timeseriesdb'  => 'database_description/authoring_entity',
 			'timeseries-db' => 'database_description/authoring_entity',
 			'table'         => 'table_description/authoring_entity',
-			'visualization' => 'visualization_description/authoring_entity',
 		);
 
 		if (!isset($paths[$type])) {
@@ -1661,7 +1619,6 @@ class Dataset_model extends CI_Model {
 			'geospatial'    => 'metadata_information/producers',
 			'video'         => 'metadata_information/producers',
 			'image'         => 'metadata_information/producers',
-			'visualization' => 'metadata_information/producers',
 		);
 
 		if (!isset($paths[$type])) {

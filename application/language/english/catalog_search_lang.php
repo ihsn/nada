@@ -224,7 +224,6 @@ $lang['tab_script']="Scripts";
 $lang['tab_table']="Tables";
 $lang['tab_timeseries']="Time series";
 $lang['tab_timeseriesdb']="Datasets";
-$lang['tab_visualization']="Visualizations";
 $lang['tab_survey']="Microdata";
 $lang['tab_video']="Videos";
 
@@ -326,7 +325,6 @@ $lang['document_description']="Document Description";
 $lang['table_description']="Table Description";
 $lang['image_description']="Image Description";
 $lang['script_description']="Project Description";
-$lang['visualization_description']="Visualization Description";
 $lang['microdata_description']="Study Description";
 $lang['data_dictionary']="Data Dictionary";
 $lang['get_microdata']="Get Microdata";

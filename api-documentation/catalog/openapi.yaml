@@ -98,7 +98,7 @@ paths:
           in: query
           description: >-
             Filter by dataset type. Common values: `survey`, `geospatial`, `document`,
-            `table`, `timeseries`, `script`, `image`, `video`, `visualization`.
+            `table`, `timeseries`, `script`, `image`, `video`.
             Separate multiple values with a comma.
           schema:
             type: string

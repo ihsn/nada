@@ -3717,7 +3717,6 @@ class Catalog extends MY_REST_Controller
 			'table_description'          => 'table',
 			'image_description'          => 'image',
 			'video_description'          => 'video',
-			'visualization_description'  => 'visualization',
 		);
 		foreach ($section_map as $section => $type) {
 			if (! empty($options[$section]) && is_array($options[$section])) {
