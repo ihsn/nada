@@ -201,11 +201,6 @@ if (!$page_tabs['related_materials'] && in_array($tab,$tab_urls['related_materia
     </li>
     <?php endif;?>
     
-    <?php if(isset($page_tabs['review_study']) && $page_tabs['review_study']===TRUE):?>
-    <!--review-->
-    <li class="tab-review-study ui-state-default ui-corner-top <?php echo ($tab=='review') ? $active_tab_class : '';?>" role="tab" tabindex="-1" aria-controls="tabs-4" aria-labelledby="ui-id-5" aria-selected="false"><a href="<?php echo site_url('catalog/'.$survey_id.'/review');?>" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-review" data-id="review"><?php echo t('review_study');?></a></li>
-    <?php endif;?>
-    
   </ul>
   <div id="tabs-1" aria-labelledby="ui-id-1" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" style="" aria-expanded="true" aria-hidden="false">
   	

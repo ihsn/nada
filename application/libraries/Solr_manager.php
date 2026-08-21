@@ -2408,7 +2408,7 @@ class Solr_manager {
         // Get allowed metadata fields
         $metadata_fields = $this->ci->config->item('solr_survey_metadata_fields');
         if (empty($metadata_fields)) {
-            log_message('warning', 'No survey metadata fields configured');
+            log_message('error', 'No survey metadata fields configured');
             return $result;
         }
         
@@ -2483,7 +2483,7 @@ class Solr_manager {
             $survey_data = array();
             
             if (!isset($surveys_by_id[$survey_id])) {
-                log_message('warning', 'Survey not found for metadata: ' . $survey_id);
+                log_message('error', 'Survey not found for metadata: ' . $survey_id);
                 continue;
             }
             

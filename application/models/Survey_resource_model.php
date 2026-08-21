@@ -2608,7 +2608,7 @@ class Survey_resource_model extends CI_Model {
 						'status' => 'not_found',
 						'reason' => 'File not found on disk'
 					);
-					log_message('warning', "Resource #{$resource_id}: File not found: {$filename}");
+					log_message('error', "Resource #{$resource_id}: File not found: {$filename}");
 					continue;
 				}
 				if (!empty($sync_result['error'])) {

@@ -32,8 +32,6 @@
 </head>
 
 <style>
-  <?php //echo $this->load->view('metadata_editor/bootstrap-forms.css',null,true); 
-  ?><?php //echo $this->load->view('metadata_editor/styles.css', null, true); ?>
 </style>
 
 <body class="layout-top-nav">

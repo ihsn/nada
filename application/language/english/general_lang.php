@@ -37,6 +37,7 @@ $lang['showing %d-%d of %d']="Showing %d-%d of %d";
 $lang['yes']="Yes";
 $lang['no']="No";
 $lang['update']="Update";
+$lang['save']="Save";
 $lang['cancel']="Cancel";
 $lang['confirm_delete']="Confirm Delete";
 $lang['callback_email_exists']="%s already in use, use a different email.";
