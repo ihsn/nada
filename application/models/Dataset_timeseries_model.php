@@ -47,6 +47,8 @@ class Dataset_timeseries_model extends Dataset_model {
 
     function create_dataset($type,$options, $sid=null, $validate_schema=true)
 	{
+        $this->_normalize_data_structure_reference_in_options($options, $sid);
+
 		//validate schema
         if ($validate_schema){
             $this->validate_schema($type,$options);
@@ -91,7 +93,7 @@ class Dataset_timeseries_model extends Dataset_model {
             }
         }
 
-        $study_metadata_sections=array('metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional','data_structure_reference','data_notes');
+        $study_metadata_sections=array('metadata_information','metadata_creation','series_description','provenance','embeddings','lda_topics','tags','additional','data_structure_reference','data_notes');
 
         foreach($study_metadata_sections as $section){		
 			if(array_key_exists($section,$options)){
@@ -193,6 +195,113 @@ class Dataset_timeseries_model extends Dataset_model {
 		return parent::delete($id);
 	}
 
+
+    /**
+     * Expand legacy/partial data_structure_reference before schema validation.
+     * Hydrates from surveys.data_structure_id when the payload omits the link (catalog metadata save).
+     *
+     * @param array $options
+     * @param int|null $sid
+     * @return void
+     */
+    private function _normalize_data_structure_reference_in_options(array &$options, $sid = null)
+    {
+        $refKey = 'data_structure_reference';
+
+        if (array_key_exists($refKey, $options)) {
+            $ref = $options[$refKey];
+            if ($ref === null || $ref === '') {
+                unset($options[$refKey]);
+                return;
+            }
+            if ($this->_is_complete_data_structure_reference($ref)) {
+                return;
+            }
+            $expanded = $this->_expand_data_structure_reference($ref, $sid);
+            if ($expanded) {
+                $options[$refKey] = $expanded;
+            } else {
+                unset($options[$refKey]);
+            }
+            return;
+        }
+
+        if ($sid) {
+            $expanded = $this->_expand_data_structure_reference(null, $sid);
+            if ($expanded) {
+                $options[$refKey] = $expanded;
+            }
+        }
+    }
+
+    /**
+     * @param mixed $ref
+     * @return bool
+     */
+    private function _is_complete_data_structure_reference($ref)
+    {
+        if (!is_array($ref)) {
+            return false;
+        }
+        foreach (['idno', 'agency', 'name', 'version'] as $k) {
+            if (trim((string) ($ref[$k] ?? '')) === '') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @param mixed $ref string idno, partial array, or null (resolve via $sid only)
+     * @param int|null $sid
+     * @return array<string,string>|null
+     */
+    private function _expand_data_structure_reference($ref, $sid = null)
+    {
+        $this->load->model('Data_structure_model');
+        $row = null;
+        $idno = '';
+        if (is_string($ref)) {
+            $idno = trim($ref);
+        } elseif (is_array($ref)) {
+            $idno = trim((string) ($ref['idno'] ?? ''));
+        }
+
+        if ($idno !== '') {
+            $row = $this->Data_structure_model->get_structure_by_idno($idno);
+        }
+
+        if (!$row && $sid) {
+            $survey = $this->db->select('data_structure_id')
+                ->get_where('surveys', ['id' => (int) $sid])
+                ->row_array();
+            $dsdId = isset($survey['data_structure_id']) ? (int) $survey['data_structure_id'] : 0;
+            if ($dsdId > 0) {
+                $row = $this->Data_structure_model->get_structure_by_id($dsdId, false);
+            }
+        }
+
+        if (!$row || !is_array($row)) {
+            return null;
+        }
+
+        $normalized = [
+            'idno'    => (string) ($row['idno'] ?? ''),
+            'agency'  => (string) ($row['agency'] ?? ''),
+            'name'    => (string) ($row['name'] ?? ''),
+            'version' => (string) ($row['version'] ?? ''),
+        ];
+
+        if (is_array($ref)) {
+            foreach (['uri', 'notes'] as $k) {
+                if (!empty($ref[$k])) {
+                    $normalized[$k] = trim((string) $ref[$k]);
+                }
+            }
+        }
+
+        return $this->_is_complete_data_structure_reference($normalized) ? $normalized : null;
+    }
 
     /**
      * Resolve metadata.data_structure_reference (DSD idno) to data_structures.id.
