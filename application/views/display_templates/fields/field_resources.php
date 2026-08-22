@@ -50,7 +50,7 @@ if (count($rows) < 1) {
 .resource-icon { font-size: 35px; padding: 10px; color: #0071bc; }
 </style>
 <div class="field resource-downloads field-<?php echo str_replace('.', '__', html_escape($field_key)); ?>">
-	<div class="field-title"><?php echo tt('metadata.' . $field_key, $field_title); ?></div>
+	<div class="field-title"><?php echo display_template_resolve_title($field_key, $field_title); ?></div>
 	<div class="field-value p-2">
 	<?php foreach ($rows as $resource): ?>
 		<?php

@@ -33,7 +33,7 @@
 ?>
 
 <div id="<?php echo str_replace(".","_",$template['key']);?>" class="mb-3 field-accordion">  
-<div class="field-title"><?php echo t($template['title']);?></div>
+<div class="field-title"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></div>
 
 <div class="row mb-1">
       <div class="col">

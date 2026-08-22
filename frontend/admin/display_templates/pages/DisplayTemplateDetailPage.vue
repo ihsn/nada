@@ -55,8 +55,9 @@
                   />
                   <v-list-item
                     prepend-icon="mdi-star-outline"
-                    title="Set as default"
-                    @click="setDefault"
+                    :title="defaultActionTitle"
+                    :disabled="!canSetAsDefault"
+                    @click="defaultPrompt = true"
                   />
                   <v-divider class="my-1" />
                   <v-list-item
@@ -127,8 +128,9 @@
           </div>
           <div class="dt-main-column">
             <DisplayTemplateMainTabs
-              v-model="mainContentTab"
+              :model-value="mainContentTab"
               :unused-count="unusedFieldCount"
+              @update:model-value="onMainTabChange"
             >
               <template #properties>
                 <DisplayTemplateInspector
@@ -153,6 +155,15 @@
                   @add-part="addCorePart"
                 />
               </template>
+              <template #translations>
+                <DisplayTemplateTranslationsTab
+                  :uid="uidEffective"
+                  :template-root="templateRoot"
+                  :primary-lang="form.lang || model.lang || 'en'"
+                  @dirty="onTranslationsDirty"
+                  @languages-updated="onLanguagesUpdated"
+                />
+              </template>
               <template #json>
                 <DisplayTemplateFieldJsonTab
                   :selection-kind="selectionKind"
@@ -165,6 +176,20 @@
         </div>
       </div>
     </template>
+
+    <v-dialog v-model="defaultPrompt" max-width="440" persistent>
+      <v-card rounded="xl">
+        <v-card-title class="text-h6 pt-6 px-6">Set as default?</v-card-title>
+        <v-card-text class="px-6">This will replace the current default for this type.</v-card-text>
+        <v-card-actions class="px-6 pb-6">
+          <v-spacer />
+          <v-btn variant="text" @click="defaultPrompt = false">Cancel</v-btn>
+          <v-btn color="primary" variant="flat" :loading="settingDefault" @click="doSetDefault">
+            Set as default
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-dialog v-model="deletePrompt" max-width="420" persistent>
       <v-card rounded="xl">
@@ -206,6 +231,7 @@ import DisplayTemplateMainTabs from '../components/DisplayTemplateMainTabs.vue';
 import DisplayTemplateAddFieldsTab from '../components/DisplayTemplateAddFieldsTab.vue';
 import DisplayTemplateInspector from '../components/DisplayTemplateInspector.vue';
 import DisplayTemplateFieldJsonTab from '../components/DisplayTemplateFieldJsonTab.vue';
+import DisplayTemplateTranslationsTab from '../components/DisplayTemplateTranslationsTab.vue';
 import {
   buildAvailableFieldGroups,
   buildAvailableArrayPropParts,
@@ -286,6 +312,15 @@ const isSystemCore = computed(() => {
 
 const isSiteDefault = computed(() => !!model.value?.default);
 
+const canSetAsDefault = computed(() => !isSiteDefault.value && form.value.status === 'published');
+
+const defaultActionTitle = computed(() => {
+  if (form.value.status === 'draft') return 'Draft templates cannot be set as default';
+  if (form.value.status === 'archived') return 'Archived templates cannot be set as default';
+  if (isSiteDefault.value) return 'Default template';
+  return 'Set as default';
+});
+
 const showDefaultNotPublishedWarning = computed(() => {
   if (isSystemCore.value || !isSiteDefault.value) return false;
   return form.value.status !== 'published';
@@ -302,9 +337,12 @@ const validationAlertType = computed(() => {
   if (validationHasWarnings.value) return 'warning';
   return 'success';
 });
+const defaultPrompt = ref(false);
+const settingDefault = ref(false);
 const deletePrompt = ref(false);
 const deleting = ref(false);
 const dirty = ref(false);
+const translationsDirty = ref(false);
 const treeViewMode = ref('structure');
 const suppressStructureDirty = ref(false);
 
@@ -314,6 +352,7 @@ const form = ref({
   version: '',
   status: 'draft',
   template_type: 'custom',
+  lang: 'en',
   organization: '',
   author: '',
   description: '',
@@ -600,7 +639,25 @@ function markDirty() {
   dirty.value = true;
 }
 
-useDirtyLeaveGuard(dirty);
+const pageDirty = computed(() => dirty.value || translationsDirty.value);
+const { confirmLeave } = useDirtyLeaveGuard(pageDirty);
+
+function onMainTabChange(next) {
+  if (next === mainContentTab.value) return;
+  if (mainContentTab.value === 'translations' && translationsDirty.value && !confirmLeave()) {
+    return;
+  }
+  mainContentTab.value = next;
+}
+
+function onTranslationsDirty(value) {
+  translationsDirty.value = !!value;
+}
+
+function onLanguagesUpdated(languages) {
+  if (!model.value) return;
+  model.value = { ...model.value, languages: Array.isArray(languages) ? languages : model.value.languages };
+}
 
 function clearValidationMsg() {
   validationMsg.value = '';
@@ -713,6 +770,7 @@ function applyModel(t, baseline = {}) {
   form.value.version = t.version || '';
   form.value.status = t.status || 'draft';
   form.value.template_type = t.template_type || 'custom';
+  form.value.lang = t.lang || 'en';
   form.value.organization = t.organization != null ? String(t.organization) : '';
   form.value.author = t.author != null ? String(t.author) : '';
   form.value.description = t.description != null ? String(t.description) : '';
@@ -729,6 +787,7 @@ function applyModel(t, baseline = {}) {
   selectTemplateRoot();
   validationMsg.value = '';
   dirty.value = false;
+  translationsDirty.value = false;
 }
 
 /** After save: sync server metadata without rebuilding the tree (keeps selection & expansion). */
@@ -738,6 +797,7 @@ function applySavedTemplate(t, { wasSiteDefault = false } = {}) {
   form.value.name = t.name ?? form.value.name;
   form.value.version = t.version ?? form.value.version;
   form.value.status = t.status ?? form.value.status;
+  form.value.lang = t.lang ?? form.value.lang;
   form.value.organization = t.organization != null ? String(t.organization) : form.value.organization;
   form.value.author = t.author != null ? String(t.author) : form.value.author;
   form.value.description = t.description != null ? String(t.description) : form.value.description;
@@ -1162,6 +1222,7 @@ async function save() {
       organization: (form.value.organization || '').trim() || null,
       author: (form.value.author || '').trim() || null,
       description: (form.value.description || '').trim() || null,
+      lang: (form.value.lang || '').trim() || 'en',
       template_json,
     });
     model.value = updated || model.value;
@@ -1242,15 +1303,20 @@ async function duplicate() {
   }
 }
 
-async function setDefault() {
+async function doSetDefault() {
+  if (!canSetAsDefault.value) return;
+  settingDefault.value = true;
   try {
     await setDefaultTemplate(form.value.data_type, uidEffective.value);
     if (model.value) {
       model.value = { ...model.value, default: true };
     }
+    defaultPrompt.value = false;
     setMessage('Default updated.', 'success');
   } catch (e) {
     setMessage(e?.message || String(e), 'error');
+  } finally {
+    settingDefault.value = false;
   }
 }
 

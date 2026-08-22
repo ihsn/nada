@@ -19,7 +19,7 @@ $list_scalar_def = array(
 <?php if (isset($data) && is_array($data) && count($data) > 0):?>
 <div class="table-responsive field field-<?php echo str_replace('.', '_', html_escape($field_key));?>">
     <?php if ($hide_column_headings !== true):?>
-    <div class="field-title"><?php echo tt('metadata.' . $field_key, $field_title);?></div>
+    <div class="field-title"><?php echo display_template_resolve_title($field_key, $field_title);?></div>
     <?php endif;?>
     <div class="field-value">
         <?php if (isset($data[0]) && is_array($data[0])):?>

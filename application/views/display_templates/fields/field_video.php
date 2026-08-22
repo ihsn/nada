@@ -19,7 +19,7 @@ $hide_field_title = !empty($template['hide_field_title']);
 ?>
 <div class="field video-field field-<?php echo html_escape(str_replace('.', '_', $field_key)); ?>">
 	<?php if (!$hide_field_title && !empty($template['title'])): ?>
-		<div class="field-title"><?php echo tt('metadata.' . $field_key, $template['title']); ?></div>
+		<div class="field-title"><?php echo display_template_resolve_title($field_key, $template['title']); ?></div>
 	<?php endif; ?>
 	<div class="field-value">
 		<div class="embed-responsive embed-responsive-16by9">

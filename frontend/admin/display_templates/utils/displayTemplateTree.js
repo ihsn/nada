@@ -751,6 +751,61 @@ export function dropZoneFromPointer(e, targetNode) {
   return 'after';
 }
 
+/**
+ * Overlay identity: prop_key when set, else key.
+ * @param {TemplateNode|null|undefined} n
+ * @returns {string}
+ */
+export function translationKeyForNode(n) {
+  if (!n || typeof n !== 'object') return '';
+  const propKey = String(n.prop_key || '').trim();
+  if (propKey) return propKey;
+  return String(n.key || '').trim();
+}
+
+/**
+ * Rows for the Translations tab: key | source title.
+ * @param {object|null|undefined} root
+ * @returns {{ key: string, title: string, type: string, kind: string }[]}
+ */
+export function collectTranslationRows(root) {
+  /** @type {{ key: string, title: string, type: string, kind: string }[]} */
+  const rows = [];
+  const seen = new Set();
+
+  /** @param {TemplateNode} node */
+  function add(node) {
+    const key = translationKeyForNode(node);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    const t = String(node.type || '');
+    let kind = 'field';
+    if (t === 'section') kind = 'section';
+    else if (t === 'section_container') kind = 'container';
+    else if (t === 'widget') kind = 'widget';
+    else if (String(node.prop_key || '').trim()) kind = 'prop';
+    rows.push({
+      key,
+      title: node.title != null ? String(node.title) : '',
+      type: t,
+      kind,
+    });
+  }
+
+  /** @param {TemplateNode[]|null|undefined} nodes */
+  function walk(nodes) {
+    for (const n of nodes || []) {
+      if (!n || typeof n !== 'object') continue;
+      add(n);
+      if (Array.isArray(n.items)) walk(n.items);
+      if (Array.isArray(n.props)) walk(n.props);
+    }
+  }
+
+  walk(root?.items);
+  return rows;
+}
+
 /** @deprecated use normalizeTemplateRoot */
 export const normalizeDisplayRoot = normalizeTemplateRoot;
 

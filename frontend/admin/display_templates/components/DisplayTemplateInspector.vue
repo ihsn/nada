@@ -22,6 +22,10 @@
           <div class="dt-fld-label">Status</div>
           <div class="dt-readonly-value">{{ displayValue(form.status) }}</div>
         </div>
+        <div v-if="coreFilePath" class="dt-readonly-item dt-readonly-item-span">
+          <div class="dt-fld-label">File</div>
+          <div class="dt-readonly-value">{{ coreFilePath }}</div>
+        </div>
       </div>
     </template>
 
@@ -70,6 +74,35 @@
             <v-text-field v-model="form.template_type" variant="outlined" density="comfortable" hide-details readonly />
           </div>
         </v-col>
+        <v-col cols="12" md="3">
+          <div class="dt-fld">
+            <div class="dt-fld-label">Language</div>
+            <v-text-field
+              v-model="form.lang"
+              variant="outlined"
+              density="comfortable"
+              hide-details
+              :readonly="readonly"
+              hint="Primary language of titles on the layout (ISO 639-1)."
+              persistent-hint
+              @update:model-value="$emit('dirty')"
+            />
+          </div>
+        </v-col>
+        <v-col v-if="coreFilePath" cols="12">
+          <div class="dt-fld">
+            <div class="dt-fld-label">File</div>
+            <v-text-field
+              :model-value="coreFilePath"
+              variant="outlined"
+              density="comfortable"
+              hide-details
+              readonly
+              hint="JSON on disk (relative to application/). A matching custom/ override is used if present."
+              persistent-hint
+            />
+          </div>
+        </v-col>
         <v-col cols="12" md="6">
           <div class="dt-fld">
             <div class="dt-fld-label">Organization</div>
@@ -84,7 +117,7 @@
         </v-col>
         <v-col cols="12">
           <div class="dt-fld">
-            <div class="dt-fld-label">Description</div>
+            <div class="dt-fld-label">Note</div>
             <v-textarea v-model="form.description" variant="outlined" rows="3" hide-details @update:model-value="$emit('dirty')" />
           </div>
         </v-col>
@@ -462,6 +495,11 @@ function displayValue(value) {
   const text = String(value ?? '').trim();
   return text || '—';
 }
+
+const coreFilePath = computed(() => {
+  const raw = props.model?.file_path || props.model?.file || '';
+  return String(raw).trim();
+});
 
 const node = computed(() => props.selectedNode);
 
@@ -957,6 +995,9 @@ function onFieldKeyChange() {
 }
 .dt-readonly-item {
   min-width: 0;
+}
+.dt-readonly-item-span {
+  grid-column: 1 / -1;
 }
 .dt-readonly-item .dt-fld-label {
   margin-bottom: 8px;

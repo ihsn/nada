@@ -60,7 +60,7 @@ $nested_column_types = array('array', 'nested_array', 'simple_array', 'object');
 ?>
 <div class="<?php echo html_escape($wrapper_class); ?>">
 <?php if ($hide_field_title != true): ?>
-	<div class="field-title"><?php echo tt('metadata.' . $template['key'], $template['title']); ?></div>
+	<div class="field-title"><?php echo display_template_resolve_title($template['key'], $template['title']); ?></div>
 <?php endif; ?>
 <div class="<?php echo html_escape($table_container_class); ?>">
 <table class="<?php echo html_escape($table_class); ?>">

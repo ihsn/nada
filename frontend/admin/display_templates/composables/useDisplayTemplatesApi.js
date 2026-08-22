@@ -149,6 +149,42 @@ export function useDisplayTemplatesApi() {
     return data.result ?? data;
   }
 
+  async function fetchTranslations(uid) {
+    const { data } = await axios.get(`${base()}/${encodeURIComponent(uid)}/translations`);
+    if (data.status !== 'success') throw new Error(data.message || 'Failed to fetch translations');
+    return data.result ?? {};
+  }
+
+  async function addTranslationLang(uid, lang) {
+    const { data } = await axios.post(
+      `${base()}/${encodeURIComponent(uid)}/translations`,
+      { lang },
+      { headers: jsonHeaders }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Failed to add language');
+    return data.result ?? {};
+  }
+
+  async function saveTranslationLang(uid, lang, translations) {
+    const { data } = await axios.post(
+      `${base()}/${encodeURIComponent(uid)}/translations/${encodeURIComponent(lang)}`,
+      { translations },
+      { headers: jsonHeaders }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Failed to save translations');
+    return data.result ?? {};
+  }
+
+  async function removeTranslationLang(uid, lang) {
+    const { data } = await axios.post(
+      `${base()}/${encodeURIComponent(uid)}/translations/${encodeURIComponent(lang)}/remove`,
+      {},
+      { headers: jsonHeaders }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Failed to remove language');
+    return data.result ?? {};
+  }
+
   return {
     loading,
     error,
@@ -166,5 +202,9 @@ export function useDisplayTemplatesApi() {
     fetchRenderers,
     fetchRenderersBySourceType,
     fetchExport,
+    fetchTranslations,
+    addTranslationLang,
+    saveTranslationLang,
+    removeTranslationLang,
   };
 }

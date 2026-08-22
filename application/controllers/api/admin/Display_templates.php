@@ -254,31 +254,6 @@ class Display_templates extends MY_REST_Controller {
 	public function duplicate_post($uid = null)
 	{
 		try {
-			if ($this->Display_template_model->is_core_template_uid($uid)) {
-				$core = $this->Display_template_model->get_template_by_uid($uid);
-				if (!$core || empty($core['template_json'])) {
-					throw new Exception('Core template not found');
-				}
-				$user_id = $this->session->userdata('user_id');
-				$create_options = array(
-					'template_type' => 'custom',
-					'data_type' => $core['data_type'],
-					'name' => $core['name'] . ' - copy',
-					'version' => isset($core['version']) ? $core['version'] : null,
-					'organization' => isset($core['organization']) ? $core['organization'] : null,
-					'author' => isset($core['author']) ? $core['author'] : null,
-					'description' => isset($core['description']) ? $core['description'] : null,
-					'status' => 'draft',
-					'template_json' => $core['template_json'],
-				);
-				$create_options = $this->merge_audit_ids($create_options, true);
-				$template = $this->Display_template_model->create_template($create_options);
-				$this->set_response([
-					'status' => 'success',
-					'result' => ['template' => $template],
-				], REST_Controller::HTTP_CREATED);
-				return;
-			}
 			$user_id = $this->session->userdata('user_id');
 			$template = $this->Display_template_model->duplicate_template($uid, $user_id ? (int) $user_id : null);
 			$this->set_response([
@@ -294,6 +269,127 @@ class Display_templates extends MY_REST_Controller {
 	}
 
 	/**
+	 * GET /api/admin/display_templates/{uid}/translations
+	 */
+	public function translations_get($uid = null)
+	{
+		try {
+			$template = $this->require_template($uid);
+			$this->set_response([
+				'status' => 'success',
+				'result' => $this->Display_template_model->get_translation_bundle($template),
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->respond_template_error($e);
+		}
+	}
+
+	/**
+	 * POST /api/admin/display_templates/{uid}/translations
+	 * Body: { "lang": "fr" }
+	 */
+	public function translations_post($uid = null)
+	{
+		try {
+			$template = $this->require_template($uid);
+			$input = $this->raw_json_input();
+			$lang = is_array($input) && isset($input['lang']) ? $input['lang'] : '';
+			$bundle = $this->Display_template_model->add_translation_lang($template, $lang);
+			$this->set_response([
+				'status' => 'success',
+				'result' => $bundle,
+			], REST_Controller::HTTP_CREATED);
+		} catch (Exception $e) {
+			$this->respond_template_error($e);
+		}
+	}
+
+	/**
+	 * GET /api/admin/display_templates/{uid}/translations/{lang}
+	 */
+	public function translation_item_get($uid = null, $lang = null)
+	{
+		try {
+			$template = $this->require_template($uid);
+			$lang = display_template_normalize_lang($lang, true);
+			$primary = display_template_normalize_lang(isset($template['lang']) ? $template['lang'] : 'en', false);
+			if ($lang === $primary) {
+				throw new Exception('Primary language titles live on the layout');
+			}
+			$this->set_response([
+				'status' => 'success',
+				'result' => array(
+					'lang' => $lang,
+					'translations' => $this->Display_template_model->get_translation_map((int) $template['id'], $lang),
+				),
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->respond_template_error($e);
+		}
+	}
+
+	/**
+	 * POST /api/admin/display_templates/{uid}/translations/{lang}
+	 * Body: { "translations": { "node.key": "Label" } }
+	 */
+	public function translation_item_post($uid = null, $lang = null)
+	{
+		try {
+			$template = $this->require_template($uid);
+			$input = $this->raw_json_input();
+			$map = is_array($input) && isset($input['translations']) ? $input['translations'] : $input;
+			$bundle = $this->Display_template_model->save_translation_lang($template, $lang, $map);
+			$this->set_response([
+				'status' => 'success',
+				'result' => $bundle,
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->respond_template_error($e);
+		}
+	}
+
+	/**
+	 * POST /api/admin/display_templates/{uid}/translations/{lang}/remove
+	 */
+	public function translation_remove_post($uid = null, $lang = null)
+	{
+		try {
+			$template = $this->require_template($uid);
+			$ok = $this->Display_template_model->delete_translation_lang((int) $template['id'], $lang);
+			if (!$ok) {
+				$this->set_response(['status' => 'error', 'message' => 'Not found'], REST_Controller::HTTP_NOT_FOUND);
+				return;
+			}
+			$fresh = $this->Display_template_model->get_template_by_uid($uid);
+			$this->set_response([
+				'status' => 'success',
+				'result' => $this->Display_template_model->get_translation_bundle($fresh),
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->respond_template_error($e);
+		}
+	}
+
+	private function require_template($uid)
+	{
+		$template = $this->Display_template_model->get_template_by_uid($uid);
+		if (!$template) {
+			throw new Exception('Not found');
+		}
+		return $template;
+	}
+
+	private function respond_template_error(Exception $e)
+	{
+		$message = $e->getMessage();
+		$code = ($message === 'Not found') ? REST_Controller::HTTP_NOT_FOUND : REST_Controller::HTTP_BAD_REQUEST;
+		$this->set_response([
+			'status' => 'error',
+			'message' => $message,
+		], $code);
+	}
+
+	/**
 	 * POST /api/admin/display_templates/default/{data_type}/{uid}
 	 */
 	public function default_post($data_type = null, $uid = null)
@@ -306,6 +402,14 @@ class Display_templates extends MY_REST_Controller {
 			}
 			if ($template['data_type'] !== $data_type) {
 				$this->set_response(['status' => 'error', 'message' => 'data_type does not match template'], REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
+			$status = isset($template['status']) ? $template['status'] : '';
+			if ($status !== 'published') {
+				$message = $status === 'draft'
+					? 'Draft templates cannot be set as default'
+					: 'Only published templates can be set as default';
+				$this->set_response(['status' => 'error', 'message' => $message], REST_Controller::HTTP_BAD_REQUEST);
 				return;
 			}
 			$user_id = $this->session->userdata('user_id');
@@ -353,18 +457,29 @@ class Display_templates extends MY_REST_Controller {
 
 			$create_options = array(
 				'uid' => $uid,
-				'template_type' => isset($input['template_type']) ? $input['template_type'] : 'imported',
+				'template_type' => 'imported',
 				'data_type' => $converted['data_type'],
 				'name' => $name,
-				'version' => isset($input['version']) ? $input['version'] : null,
-				'organization' => isset($input['organization']) ? $input['organization'] : null,
-				'author' => isset($input['author']) ? $input['author'] : null,
-				'description' => isset($input['description']) ? $input['description'] : null,
-				'status' => isset($input['status']) ? $input['status'] : 'draft',
+				'version' => $converted['version'],
+				'organization' => $converted['organization'],
+				'author' => $converted['author'],
+				'description' => $converted['description'],
+				'status' => $converted['status'],
+				'lang' => $converted['lang'] !== '' ? $converted['lang'] : 'en',
 				'template_json' => $converted['template_json'],
 			);
 			$create_options = $this->merge_audit_ids($create_options, true);
 			$template = $this->Display_template_model->create_template($create_options);
+			$overlays = array();
+			if (isset($input['translations']) && is_array($input['translations'])) {
+				$overlays = $input['translations'];
+			} elseif (isset($converted['translations']) && is_array($converted['translations'])) {
+				$overlays = $converted['translations'];
+			}
+			if ($overlays) {
+				$this->Display_template_model->replace_translations($template, $overlays);
+				$template = $this->Display_template_model->get_template_by_uid($template['uid']);
+			}
 			$this->set_response([
 				'status' => 'success',
 				'result' => [
@@ -391,9 +506,12 @@ class Display_templates extends MY_REST_Controller {
 				$this->set_response(['status' => 'error', 'message' => 'Not found'], REST_Controller::HTTP_NOT_FOUND);
 				return;
 			}
+			$bundle = $this->Display_template_model->get_translation_bundle($template);
+			$overlays = isset($bundle['overlays']) && is_array($bundle['overlays']) ? $bundle['overlays'] : array();
+			$document = display_template_export_document($template, $overlays);
 			$this->set_response([
 				'status' => 'success',
-				'result' => ['template' => $template],
+				'result' => $document,
 			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {
 			$this->set_response([
@@ -650,6 +768,9 @@ class Display_templates extends MY_REST_Controller {
 			throw new Exception('Import requires JSON with items[] at the root, under "template", or a display export envelope');
 		}
 
+		display_template_import_assert_format_version($input);
+		display_template_import_assert_format_version($raw);
+
 		list($editor_template, $envelope) = $this->resolve_import_editor_tree($raw);
 		if (!$editor_template || !isset($editor_template['items']) || !is_array($editor_template['items'])) {
 			throw new Exception(
@@ -664,7 +785,17 @@ class Display_templates extends MY_REST_Controller {
 			$editor_template['title'] = '';
 		}
 
-		$name = $this->resolve_import_name($input, $raw, $envelope, $editor_template);
+		$catalogue_source = is_array($envelope) ? $envelope : $raw;
+		$catalogue = display_template_import_description($catalogue_source);
+		$input_catalogue = display_template_import_description($input);
+		if ($input_catalogue['name'] !== '') {
+			$catalogue['name'] = $input_catalogue['name'];
+		}
+
+		$name = $catalogue['name'];
+		if ($name === '') {
+			$name = $this->resolve_import_name($input, $raw, $envelope, $editor_template);
+		}
 		$data_type = $this->resolve_import_data_type($input, $raw, $envelope);
 		if ($data_type === '') {
 			throw new Exception('Imported JSON must include data_type (display export envelope or legacy display template file)');
@@ -680,11 +811,45 @@ class Display_templates extends MY_REST_Controller {
 		$summary = $this->summarize_template_tree($editor_template['items']);
 		$summary['skipped_custom_section_containers'] = $skipped_custom;
 
+		$translations = array();
+		if (isset($input['translations']) && is_array($input['translations'])) {
+			$translations = $input['translations'];
+		} elseif (isset($raw['translations']) && is_array($raw['translations'])) {
+			$translations = $raw['translations'];
+		} elseif (is_array($envelope) && isset($envelope['translations']) && is_array($envelope['translations'])) {
+			$translations = $envelope['translations'];
+		}
+
+		$lang = '';
+		if (isset($input['lang'])) {
+			$lang = $input['lang'];
+		} elseif (isset($raw['lang'])) {
+			$lang = $raw['lang'];
+		} elseif (is_array($envelope) && isset($envelope['lang'])) {
+			$lang = $envelope['lang'];
+		}
+
+		$status = 'draft';
+		if (isset($input['status']) && is_string($input['status']) && $input['status'] !== '') {
+			$status = $input['status'];
+		} elseif (isset($raw['status']) && is_string($raw['status']) && $raw['status'] !== '') {
+			$status = $raw['status'];
+		} elseif (is_array($envelope) && isset($envelope['status']) && is_string($envelope['status']) && $envelope['status'] !== '') {
+			$status = $envelope['status'];
+		}
+
 		return array(
 			'uid' => $uid,
 			'data_type' => $data_type,
 			'name' => $name,
+			'lang' => $lang,
+			'status' => $status,
+			'version' => $catalogue['version'],
+			'organization' => $catalogue['organization'],
+			'author' => $catalogue['author'],
+			'description' => $catalogue['description'],
 			'template_json' => $editor_template,
+			'translations' => $translations,
 			'summary' => $summary,
 		);
 	}
@@ -729,6 +894,9 @@ class Display_templates extends MY_REST_Controller {
 	{
 		if (!is_array($input)) {
 			return null;
+		}
+		if (display_template_import_is_document($input)) {
+			return $input;
 		}
 		if (isset($input['data_type']) && isset($input['template']) && is_array($input['template'])) {
 			return $input;
@@ -799,19 +967,22 @@ class Display_templates extends MY_REST_Controller {
 
 	private function resolve_import_uid($input, $raw, $envelope)
 	{
-		$candidates = array();
-		if (isset($input['uid'])) {
-			$candidates[] = trim((string) $input['uid']);
+		$sources = array($input);
+		if (is_array($envelope)) {
+			$sources[] = $envelope;
 		}
-		if (is_array($envelope) && isset($envelope['uid'])) {
-			$candidates[] = trim((string) $envelope['uid']);
+		if (is_array($raw)) {
+			$sources[] = $raw;
 		}
-		if (isset($raw['uid'])) {
-			$candidates[] = trim((string) $raw['uid']);
-		}
-		foreach ($candidates as $uid) {
-			if ($uid !== '') {
-				return $uid;
+		foreach ($sources as $source) {
+			foreach (array('uid', 'identifier', 'idno') as $key) {
+				if (!isset($source[$key])) {
+					continue;
+				}
+				$uid = trim((string) $source[$key]);
+				if ($uid !== '') {
+					return $uid;
+				}
 			}
 		}
 		return '';

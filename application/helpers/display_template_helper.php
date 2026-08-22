@@ -68,6 +68,124 @@ if (!function_exists('display_template_uses_legacy_study_template')) {
 	}
 }
 
+if (!function_exists('display_template_is_allowed_file_path')) {
+	/**
+	 * Relative APPPATH file pointer for a file-backed display template.
+	 *
+	 * @param string $relative_file
+	 * @return bool
+	 */
+	function display_template_is_allowed_file_path($relative_file)
+	{
+		$rel = ltrim(str_replace('\\', '/', (string) $relative_file), '/');
+		if ($rel === '' || strpos($rel, '..') !== false) {
+			return false;
+		}
+		return (strpos($rel, 'templates/display/') === 0 || strpos($rel, 'templates/editor/') === 0);
+	}
+}
+
+if (!function_exists('display_template_shipped_core_registry')) {
+	/**
+	 * Shipped file-backed cores from config/display_templates.php (migrate/sync only).
+	 * Not a runtime catalog — rows live in display_templates after sync.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	function display_template_shipped_core_registry()
+	{
+		static $rows = null;
+		if ($rows !== null) {
+			return $rows;
+		}
+
+		$config = array();
+		$path = APPPATH . 'config/display_templates.php';
+		if (is_file($path)) {
+			include $path;
+		}
+
+		$meta_keys = isset($config['display_template_meta_keys']) && is_array($config['display_template_meta_keys'])
+			? $config['display_template_meta_keys']
+			: array(
+				'display_template_path',
+				'display_template_custom_path',
+				'display_template_defaults',
+				'display_template_meta_keys',
+				'legacy_study_templates',
+			);
+
+		$rows = array();
+		$seen = array();
+		foreach ($config as $key => $templates) {
+			if (in_array($key, $meta_keys, true) || !is_array($templates)) {
+				continue;
+			}
+			foreach ($templates as $template) {
+				if (!is_array($template) || empty($template['uid']) || empty($template['file'])) {
+					continue;
+				}
+				$uid = (string) $template['uid'];
+				if (isset($seen[$uid])) {
+					continue;
+				}
+				$relative_file = ltrim(str_replace('\\', '/', $template['file']), '/');
+				if (!display_template_is_allowed_file_path($relative_file)) {
+					continue;
+				}
+				$seen[$uid] = true;
+				$rows[] = array(
+					'uid' => $uid,
+					'name' => isset($template['name']) ? $template['name'] : $uid,
+					'data_type' => $key,
+					'lang' => isset($template['lang']) && $template['lang'] !== '' ? $template['lang'] : 'en',
+					'version' => isset($template['version']) ? $template['version'] : null,
+					'organization' => isset($template['organization']) ? $template['organization'] : null,
+					'author' => isset($template['author']) ? $template['author'] : null,
+					'description' => isset($template['description']) ? $template['description'] : null,
+					'file_path' => $relative_file,
+				);
+			}
+		}
+
+		return $rows;
+	}
+}
+
+if (!function_exists('display_template_shipped_core_defaults')) {
+	/**
+	 * Fallback default UID per data type from config (migrate/sync only).
+	 *
+	 * @return array<string, string>
+	 */
+	function display_template_shipped_core_defaults()
+	{
+		static $defaults = null;
+		if ($defaults !== null) {
+			return $defaults;
+		}
+
+		$config = array();
+		$path = APPPATH . 'config/display_templates.php';
+		if (is_file($path)) {
+			include $path;
+		}
+
+		$defaults = array();
+		if (isset($config['display_template_defaults']) && is_array($config['display_template_defaults'])) {
+			foreach ($config['display_template_defaults'] as $type => $uid) {
+				$type = trim((string) $type);
+				$uid = trim((string) $uid);
+				if ($type !== '' && $uid !== '') {
+					$defaults[$type] = $uid;
+				}
+			}
+		}
+
+		return $defaults;
+	}
+}
+
 if (!function_exists('display_template_node_is_custom_section_container')) {
 	/**
 	 * Metadata-editor section_container flagged is_custom (data files, variables, DSD, …).
@@ -630,18 +748,180 @@ if (!function_exists('display_template_field_css_class')) {
 	}
 }
 
+if (!function_exists('display_template_iso_languages')) {
+	/**
+	 * @return array<string, array<string, mixed>> lowercase ISO code → iso_languages row
+	 */
+	function display_template_iso_languages()
+	{
+		$CI =& get_instance();
+		$CI->config->load('iso_languages', true);
+		$raw = $CI->config->item('iso_languages', 'iso_languages');
+		if (!is_array($raw)) {
+			return array();
+		}
+		$out = array();
+		foreach ($raw as $code => $info) {
+			$key = strtolower((string) $code);
+			$out[$key] = is_array($info) ? $info : array('name' => $key, 'display' => $key);
+		}
+		return $out;
+	}
+}
+
+if (!function_exists('display_template_normalize_lang')) {
+	/**
+	 * ISO 639-1 (or iso_languages key) lowercase. Accepts CI folder names like "french".
+	 *
+	 * @param string $lang
+	 * @param bool $strict
+	 * @return string
+	 */
+	function display_template_normalize_lang($lang, $strict = true)
+	{
+		$lang = strtolower(str_replace('_', '-', trim((string) $lang)));
+		if ($lang === '') {
+			if ($strict) {
+				throw new Exception('Language is required');
+			}
+			return '';
+		}
+		$iso = display_template_iso_languages();
+		if (isset($iso[$lang])) {
+			return $lang;
+		}
+		foreach ($iso as $code => $info) {
+			$name = isset($info['name']) ? strtolower((string) $info['name']) : '';
+			if ($name !== '' && $name === $lang) {
+				return $code;
+			}
+		}
+		if ($strict) {
+			throw new Exception('Unknown language code: ' . $lang);
+		}
+		return $lang;
+	}
+}
+
+if (!function_exists('display_template_merge_languages')) {
+	/**
+	 * @param string $primary
+	 * @param string[] $overlay_langs
+	 * @return string[]
+	 */
+	function display_template_merge_languages($primary, $overlay_langs)
+	{
+		$primary = display_template_normalize_lang($primary, false);
+		if ($primary === '') {
+			$primary = 'en';
+		}
+		$out = array($primary);
+		foreach ((array) $overlay_langs as $lang) {
+			$code = display_template_normalize_lang($lang, false);
+			if ($code === '' || in_array($code, $out, true)) {
+				continue;
+			}
+			$out[] = $code;
+		}
+		return $out;
+	}
+}
+
+if (!function_exists('display_template_node_lookup_key')) {
+	/**
+	 * Overlay / tt() lookup key for a layout node or array column.
+	 *
+	 * @param array<string, mixed>|null $node
+	 * @return string
+	 */
+	function display_template_node_lookup_key($node)
+	{
+		if (!is_array($node)) {
+			return '';
+		}
+		$prop_key = isset($node['prop_key']) ? trim((string) $node['prop_key']) : '';
+		if ($prop_key !== '') {
+			return $prop_key;
+		}
+		return isset($node['key']) ? trim((string) $node['key']) : '';
+	}
+}
+
+if (!function_exists('display_template_set_title_overlay')) {
+	/**
+	 * @param array<string, string> $map
+	 * @return void
+	 */
+	function display_template_set_title_overlay($map)
+	{
+		$CI =& get_instance();
+		$CI->display_template_title_overlay = is_array($map) ? $map : array();
+	}
+}
+
+if (!function_exists('display_template_title_overlay')) {
+	/**
+	 * @return array<string, string>
+	 */
+	function display_template_title_overlay()
+	{
+		$CI =& get_instance();
+		if (!isset($CI->display_template_title_overlay) || !is_array($CI->display_template_title_overlay)) {
+			return array();
+		}
+		return $CI->display_template_title_overlay;
+	}
+}
+
+if (!function_exists('display_template_overlay_text')) {
+	/**
+	 * @param string $key
+	 * @return string|null
+	 */
+	function display_template_overlay_text($key)
+	{
+		$key = trim((string) $key);
+		if ($key === '') {
+			return null;
+		}
+		$overlay = display_template_title_overlay();
+		if (!isset($overlay[$key])) {
+			return null;
+		}
+		$text = trim((string) $overlay[$key]);
+		return $text === '' ? null : $text;
+	}
+}
+
+if (!function_exists('display_template_resolve_title')) {
+	/**
+	 * Public label: overlay → tt('metadata.{key}') → node title.
+	 *
+	 * @param string $key
+	 * @param string $title
+	 * @return string
+	 */
+	function display_template_resolve_title($key, $title)
+	{
+		$key = trim((string) $key);
+		$over = display_template_overlay_text($key);
+		if ($over !== null) {
+			return $over;
+		}
+		return tt('metadata.' . $key, $title);
+	}
+}
+
 if (!function_exists('display_template_field_label')) {
 	/**
 	 * @param array<string, mixed> $field_def
-	 * @return string Escaped label text
+	 * @return string Label text
 	 */
 	function display_template_field_label($field_def)
 	{
-		$key = isset($field_def['key']) ? (string) $field_def['key'] : '';
-		$prop_key = isset($field_def['prop_key']) ? trim((string) $field_def['prop_key']) : '';
-		$lookup = $prop_key !== '' ? $prop_key : $key;
+		$lookup = display_template_node_lookup_key($field_def);
 		$title = isset($field_def['title']) ? (string) $field_def['title'] : '';
-		return tt('metadata.' . $lookup, $title);
+		return display_template_resolve_title($lookup, $title);
 	}
 }
 
@@ -886,7 +1166,7 @@ if (!function_exists('display_template_render_pdf_nested_cell')) {
 					}
 					$label = isset($prop['title']) ? (string) $prop['title'] : $key;
 					if (isset($prop['prop_key'])) {
-						$label = tt('metadata.' . $prop['prop_key'], $label);
+						$label = display_template_resolve_title($prop['prop_key'], $label);
 					}
 					$parts[] = strip_tags($label) . ': ' . $fragment;
 				}
@@ -1321,6 +1601,105 @@ if (!function_exists('display_template_collect_layout_field_keys')) {
 	}
 }
 
+if (!function_exists('display_template_collect_translation_rows')) {
+	/**
+	 * Layout nodes that can have a translated title (key | source title).
+	 *
+	 * @param mixed $template_json
+	 * @return array<int, array{key: string, title: string, type: string, kind: string}>
+	 */
+	function display_template_collect_translation_rows($template_json)
+	{
+		$rows = array();
+		$seen = array();
+		$items = array();
+		if (is_array($template_json) && isset($template_json['items']) && is_array($template_json['items'])) {
+			$items = $template_json['items'];
+		} elseif (is_array($template_json) && array_values($template_json) === $template_json) {
+			$items = $template_json;
+		}
+		display_template_collect_translation_rows_walk($items, $rows, $seen);
+		return $rows;
+	}
+}
+
+if (!function_exists('display_template_collect_translation_rows_walk')) {
+	/**
+	 * @param mixed $nodes
+	 * @param array<int, array<string, string>> $rows
+	 * @param array<string, bool> $seen
+	 * @return void
+	 */
+	function display_template_collect_translation_rows_walk($nodes, &$rows, &$seen)
+	{
+		if (!is_array($nodes)) {
+			return;
+		}
+		foreach ($nodes as $node) {
+			if (!is_array($node)) {
+				continue;
+			}
+			$key = display_template_node_lookup_key($node);
+			$type = isset($node['type']) ? (string) $node['type'] : '';
+			if ($key !== '' && !isset($seen[$key])) {
+				$kind = 'field';
+				if ($type === 'section') {
+					$kind = 'section';
+				} elseif ($type === 'section_container') {
+					$kind = 'container';
+				} elseif ($type === 'widget') {
+					$kind = 'widget';
+				} elseif (isset($node['prop_key']) && trim((string) $node['prop_key']) !== '') {
+					$kind = 'prop';
+				}
+				$seen[$key] = true;
+				$rows[] = array(
+					'key' => $key,
+					'title' => isset($node['title']) ? (string) $node['title'] : '',
+					'type' => $type,
+					'kind' => $kind,
+				);
+			}
+			if (isset($node['items']) && is_array($node['items'])) {
+				display_template_collect_translation_rows_walk($node['items'], $rows, $seen);
+			}
+			if (isset($node['props']) && is_array($node['props'])) {
+				display_template_collect_translation_rows_walk($node['props'], $rows, $seen);
+			}
+		}
+	}
+}
+
+if (!function_exists('display_template_sanitize_translations_map')) {
+	/**
+	 * @param mixed $map
+	 * @return array<string, string>
+	 */
+	function display_template_sanitize_translations_map($map)
+	{
+		if (is_string($map) && $map !== '') {
+			$decoded = json_decode($map, true);
+			$map = (json_last_error() === JSON_ERROR_NONE) ? $decoded : array();
+		}
+		if (!is_array($map)) {
+			return array();
+		}
+		$out = array();
+		foreach ($map as $key => $value) {
+			$key = trim((string) $key);
+			if ($key === '' || is_int($key) || is_array($value)) {
+				continue;
+			}
+			$text = trim((string) $value);
+			if ($text === '') {
+				continue;
+			}
+			$out[$key] = $text;
+		}
+		return $out;
+	}
+}
+
 if (!function_exists('display_template_array_copy')) {
 	/**
 	 * @param mixed $value
@@ -1427,8 +1806,195 @@ if (!function_exists('display_template_render_additional_field')) {
 		$css = str_replace('.', '_', $key);
 
 		return '<div class="field field-' . html_escape($css) . ' pb-3">'
-			. '<div class="field-title">' . tt('metadata.' . $key, $title) . '</div>'
+			. '<div class="field-title">' . display_template_resolve_title($key, $title) . '</div>'
 			. '<div class="field-value">' . $inner . '</div>'
 			. '</div>';
+	}
+}
+
+if (!function_exists('display_template_export_datetime')) {
+	/**
+	 * @param mixed $value
+	 * @return string|null ISO-8601 UTC
+	 */
+	function display_template_export_datetime($value)
+	{
+		$value = trim((string) $value);
+		if ($value === '') {
+			return null;
+		}
+		$ts = strtotime($value);
+		if ($ts === false) {
+			return $value;
+		}
+		return gmdate('Y-m-d\TH:i:s\Z', $ts);
+	}
+}
+
+if (!function_exists('display_template_nullable_text')) {
+	/**
+	 * @param mixed $value
+	 * @return string|null
+	 */
+	function display_template_nullable_text($value)
+	{
+		if ($value === null) {
+			return null;
+		}
+		$text = trim((string) $value);
+		return $text === '' ? null : $text;
+	}
+}
+
+if (!function_exists('display_template_export_document')) {
+	/**
+	 * Portable display-template document (not an API row).
+	 *
+	 * @param array<string, mixed> $template
+	 * @param array<string, array<string, string>> $overlays
+	 * @return array<string, mixed>
+	 */
+	function display_template_export_document($template, $overlays = array())
+	{
+		if (!is_array($template)) {
+			$template = array();
+		}
+		$tree = isset($template['template_json']) && is_array($template['template_json'])
+			? $template['template_json']
+			: array();
+		if (!isset($tree['type'])) {
+			$tree['type'] = 'template';
+		}
+		if (!isset($tree['items']) || !is_array($tree['items'])) {
+			$tree['items'] = array();
+		}
+		if (!isset($tree['title'])) {
+			$tree['title'] = '';
+		}
+		if (!is_array($overlays)) {
+			$overlays = array();
+		}
+
+		$lang = display_template_normalize_lang(isset($template['lang']) ? $template['lang'] : 'en', false);
+		if ($lang === '') {
+			$lang = 'en';
+		}
+
+		return array(
+			'type' => 'display_template',
+			'@version' => 1,
+			'uid' => isset($template['uid']) ? (string) $template['uid'] : '',
+			'data_type' => isset($template['data_type']) ? (string) $template['data_type'] : '',
+			'lang' => $lang,
+			'status' => isset($template['status']) ? (string) $template['status'] : 'draft',
+			'description' => array(
+				'name' => display_template_nullable_text(isset($template['name']) ? $template['name'] : null),
+				'version' => display_template_nullable_text(isset($template['version']) ? $template['version'] : null),
+				'organization' => display_template_nullable_text(isset($template['organization']) ? $template['organization'] : null),
+				'author' => display_template_nullable_text(isset($template['author']) ? $template['author'] : null),
+				'note' => display_template_nullable_text(isset($template['description']) ? $template['description'] : null),
+				'created' => display_template_export_datetime(isset($template['created_at']) ? $template['created_at'] : ''),
+				'changed' => display_template_export_datetime(isset($template['updated_at']) ? $template['updated_at'] : ''),
+			),
+			'template' => $tree,
+			'translations' => $overlays,
+		);
+	}
+}
+
+if (!function_exists('display_template_import_is_document')) {
+	/**
+	 * @param mixed $doc
+	 * @return bool
+	 */
+	function display_template_import_is_document($doc)
+	{
+		return is_array($doc) && isset($doc['type']) && (string) $doc['type'] === 'display_template';
+	}
+}
+
+if (!function_exists('display_template_import_assert_format_version')) {
+	/**
+	 * @param array<string, mixed> $doc
+	 * @return void
+	 */
+	function display_template_import_assert_format_version($doc)
+	{
+		if (!display_template_import_is_document($doc)) {
+			return;
+		}
+		$raw = null;
+		if (isset($doc['@version'])) {
+			$raw = $doc['@version'];
+		} elseif (isset($doc['format_version'])) {
+			$raw = $doc['format_version'];
+		}
+		if ($raw === null || $raw === '') {
+			return;
+		}
+		if ((int) $raw !== 1) {
+			throw new Exception('Unsupported display template @version: ' . $raw);
+		}
+	}
+}
+
+if (!function_exists('display_template_import_description')) {
+	/**
+	 * Catalogue fields from a portable document or a legacy API-row export.
+	 *
+	 * @param array<string, mixed> $doc
+	 * @return array{name: string, version: ?string, organization: ?string, author: ?string, description: ?string}
+	 */
+	function display_template_import_description($doc)
+	{
+		$block = array();
+		if (isset($doc['description']) && is_array($doc['description']) && !isset($doc['description'][0])) {
+			$block = $doc['description'];
+		}
+
+		$name = '';
+		if (isset($block['name'])) {
+			$name = trim((string) $block['name']);
+		} elseif (isset($doc['name'])) {
+			$name = trim((string) $doc['name']);
+		}
+
+		$note = null;
+		if (isset($block['note'])) {
+			$note = display_template_nullable_text($block['note']);
+		} elseif (isset($block['description']) && is_string($block['description'])) {
+			$note = display_template_nullable_text($block['description']);
+		} elseif (isset($doc['description']) && is_string($doc['description'])) {
+			$note = display_template_nullable_text($doc['description']);
+		}
+
+		$version = null;
+		if (isset($block['version'])) {
+			$version = display_template_nullable_text($block['version']);
+		} elseif (isset($doc['version'])) {
+			$version = display_template_nullable_text($doc['version']);
+		}
+
+		$organization = null;
+		if (isset($block['organization'])) {
+			$organization = display_template_nullable_text($block['organization']);
+		} elseif (isset($doc['organization'])) {
+			$organization = display_template_nullable_text($doc['organization']);
+		}
+
+		$author = null;
+		if (isset($block['author'])) {
+			$author = display_template_nullable_text($block['author']);
+		} elseif (isset($doc['author'])) {
+			$author = display_template_nullable_text($doc['author']);
+		}
+
+		return array(
+			'name' => $name,
+			'version' => $version,
+			'organization' => $organization,
+			'author' => $author,
+			'description' => $note,
+		);
 	}
 }

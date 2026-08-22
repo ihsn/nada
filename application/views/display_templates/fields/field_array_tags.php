@@ -39,7 +39,7 @@
 ?>
 <?php if (isset($data) && is_array($data) && count($data)>0 ):?>
 <div class="field-<?php echo html_escape($template['key']);?> pb-3">
-        <div class="field-title"><?php echo tt('metadata.'.$template['key'],$template['title']);?></div>
+        <div class="field-title"><?php echo display_template_resolve_title($template['key'],$template['title']);?></div>
         <div class="field-value">
             <?php foreach($data as $row):?>
                 <?php

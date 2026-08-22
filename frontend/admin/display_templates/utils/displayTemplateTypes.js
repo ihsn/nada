@@ -176,17 +176,38 @@ export function templatesForTypeGroup(group, templates) {
 }
 
 /**
- * Stable row order within a type group: default first, system cores, then name.
+ * Stable row order within a type group: system cores first, then custom/imported
+ * by last modified (newest first).
  * @param {object[]} rows
  * @returns {object[]}
  */
 export function sortTemplatesForDisplay(rows) {
-  const typeRank = { system: 0, imported: 1, custom: 2 };
   return [...rows].sort((a, b) => {
-    if (!!a.default !== !!b.default) return a.default ? -1 : 1;
-    const ta = typeRank[a.template_type] ?? 9;
-    const tb = typeRank[b.template_type] ?? 9;
-    if (ta !== tb) return ta - tb;
-    return String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
+    const aSystem = isSystemTemplateRow(a) ? 0 : 1;
+    const bSystem = isSystemTemplateRow(b) ? 0 : 1;
+    if (aSystem !== bSystem) return aSystem - bSystem;
+    if (aSystem === 0) {
+      return compareTemplateName(a, b);
+    }
+    const byUpdated = templateTimestamp(b.updated_at) - templateTimestamp(a.updated_at);
+    if (byUpdated !== 0) return byUpdated;
+    return compareTemplateName(a, b);
   });
+}
+
+function isSystemTemplateRow(row) {
+  return row?.template_type === 'system' || !!row?.is_core;
+}
+
+function compareTemplateName(a, b) {
+  return String(a?.name || '').localeCompare(String(b?.name || ''), undefined, { sensitivity: 'base' });
+}
+
+function templateTimestamp(value) {
+  if (!value) return 0;
+  const raw = String(value).trim();
+  if (!raw) return 0;
+  const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T');
+  const ms = Date.parse(normalized);
+  return Number.isNaN(ms) ? 0 : ms;
 }

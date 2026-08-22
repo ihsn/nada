@@ -12,7 +12,7 @@ if ($doi === '') {
 ?>
 
 <div class="mb-2 field field-<?php echo str_replace(".'","-",$template['key']);?>">
-    <div class="font-weight-bold field-title"><?php echo t($template['title']);?></div>
+    <div class="font-weight-bold field-title"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></div>
 
     <div class="doi-citation" ><a target="_blank" href="https://citation.crosscite.org/?doi=<?php echo $doi;?>"><i class="fas fa-spinner fa-spin"></i> loading, please wait...</a></div>
 

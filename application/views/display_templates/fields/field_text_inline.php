@@ -12,7 +12,7 @@
 
     <div class="row border-bottom">
         <div class="col-md-4">
-            <div class="field-title-inline p-1"><?php echo tt($template['title']);?></div>
+            <div class="field-title-inline p-1"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></div>
             <?php  /* <div class="text-secondary"><?php echo $key_part;?></div> */ ?>
         </div>
         <div class="col-md-8 border-left">

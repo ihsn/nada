@@ -18,7 +18,7 @@
  $hide_column_headings=false;
 ?>
 
-<h4 class="field-caption" style="color:red;"><?php echo t($template['title']);?></h4>
+ <h4 class="field-caption" style="color:red;"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></h4>
 
 <?php foreach($data as $row_idx=>$row):?>
     <?php foreach($columns as $column):?>

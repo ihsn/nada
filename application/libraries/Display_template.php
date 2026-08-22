@@ -34,6 +34,7 @@ class Display_template{
         $this->metadata=$metadata;
         $this->template=$template;
         $this->load_translations($metadata['type']);
+        $this->load_title_overlay();
         $this->apply_preprocess_callback();
     }
 
@@ -90,6 +91,24 @@ class Display_template{
         } else {
             log_message('error', 'missing language file ' . $lang_file_path);
         }
+    }
+
+    private function load_title_overlay()
+    {
+        display_template_set_title_overlay(array());
+        $meta = $this->template_resolution;
+        if (!is_array($meta) || empty($meta['id'])) {
+            return;
+        }
+        $iso = function_exists('ci_lang_to_iso') ? ci_lang_to_iso() : 'en';
+        $iso = display_template_normalize_lang($iso, false);
+        $primary = display_template_normalize_lang(isset($meta['lang']) ? $meta['lang'] : 'en', false);
+        if ($iso === '' || $primary === '' || $iso === $primary) {
+            return;
+        }
+        $this->ci->load->model('Display_template_model');
+        $map = $this->ci->Display_template_model->get_translation_map((int) $meta['id'], $iso);
+        display_template_set_title_overlay($map);
     }
     
 
@@ -155,7 +174,9 @@ class Display_template{
             }
 
             if ($item['type']=='section'){
-                $this->sidebar_items_all[$item['key']]=$item['title'];
+                $key = isset($item['key']) ? $item['key'] : '';
+                $over = display_template_overlay_text($key);
+                $this->sidebar_items_all[$key] = $over !== null ? $over : $item['title'];
             }
         }
     }
@@ -200,7 +221,8 @@ class Display_template{
                     $html_=$this->render_section($item);
                     if (!empty($html_)){
                         $output[]=$html_;
-                        $this->sidebar_items[$item['key']]=$item['title'];
+                        $over = display_template_overlay_text($item['key']);
+                        $this->sidebar_items[$item['key']] = $over !== null ? $over : $item['title'];
                     }
                     break;
                 case 'nested_array':
@@ -265,7 +287,12 @@ class Display_template{
         }
         $output=array();
         $output[]='<div class="field-section-container pb-3">';
-        $output[]='<h2 class="field-section" id="'.$item['key'].'">'.tt(strtolower($item['title']),$item['title']).'</h2>';
+        $section_key = isset($item['key']) ? $item['key'] : '';
+        $section_title = display_template_overlay_text($section_key);
+        if ($section_title === null) {
+            $section_title = tt(strtolower($item['title']), $item['title']);
+        }
+        $output[]='<h2 class="field-section" id="'.$item['key'].'">'.$section_title.'</h2>';
 
         if (isset($item['items'])){
             $el_html=$this->render_element($item['items']);
@@ -501,8 +528,10 @@ class Display_template{
     {
         $is_core = !empty($record['is_core']) || (isset($record['template_type']) && $record['template_type'] === 'system');
         return array(
+            'id' => isset($record['id']) ? (int) $record['id'] : 0,
             'uid' => isset($record['uid']) ? (string) $record['uid'] : '',
             'name' => isset($record['name']) ? (string) $record['name'] : '',
+            'lang' => isset($record['lang']) ? (string) $record['lang'] : 'en',
             'data_type' => isset($record['data_type']) ? (string) $record['data_type'] : (string) $lookup_type,
             'template_type' => isset($record['template_type']) ? (string) $record['template_type'] : '',
             'status' => isset($record['status']) ? (string) $record['status'] : '',

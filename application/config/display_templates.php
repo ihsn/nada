@@ -2,15 +2,17 @@
 
 /*
 |--------------------------------------------------------------------------
-| Core display templates
+| Shipped display template cores (seed only)
 |--------------------------------------------------------------------------
 |
-| File-based cores for the display template manager and catalog fallback.
+| This file is not a runtime catalog. After migrate, cores are rows in
+| display_templates with source=file and file_path pointing at JSON on disk.
+| Display_template_model::sync_shipped_cores() reads this list on upgrade.
 |
 | Dedicated catalog display cores live under application/templates/display/
 | for survey, script, timeseries, timeseries-db, geospatial, document, table,
 | image, video, and resource. Catalog fallback uses display_template_defaults
-| (*-system-en display seeds).
+| (*-system-en display seeds) when a data type has no site default yet.
 |
 | Additional registry rows are Metadata Editor / IHSN variants under
 | application/templates/editor/. They appear in the display template manager;
@@ -26,6 +28,8 @@
 |
 | Custom overrides: {same-directory}/custom/{same-filename}
 |   e.g. application/templates/display/custom/survey_display_template.json
+|
+| legacy_study_templates is still read at runtime by display_template_helper.
 |
 */
 

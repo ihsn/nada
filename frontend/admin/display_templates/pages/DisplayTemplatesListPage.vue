@@ -108,7 +108,8 @@
                     icon
                     variant="text"
                     size="small"
-                    :title="item.default ? 'Default template' : 'Set as default'"
+                    :disabled="!canSetAsDefault(item) && !item.default"
+                    :title="defaultActionTitle(item)"
                     @click="onSetDefault(item)"
                   >
                     <v-icon :icon="item.default ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'" />
@@ -136,11 +137,33 @@
                 </template>
 
                 <template #item.lang="{ item }">
-                  <span class="text-body-2">{{ item.lang || '—' }}</span>
+                  <div class="d-flex flex-wrap ga-1">
+                    <v-chip
+                      v-for="code in languagesForItem(item)"
+                      :key="code"
+                      size="x-small"
+                      variant="tonal"
+                      :color="code === (item.lang || 'en') ? 'primary' : undefined"
+                    >
+                      {{ code }}
+                    </v-chip>
+                  </div>
                 </template>
 
                 <template #item.version="{ item }">
                   <span class="text-body-2">{{ item.version || '—' }}</span>
+                </template>
+
+                <template #item.created_at="{ item }">
+                  <span class="text-body-2 text-medium-emphasis" :title="formatDateTime(item.created_at)">
+                    {{ formatDate(item.created_at) }}
+                  </span>
+                </template>
+
+                <template #item.updated_at="{ item }">
+                  <span class="text-body-2 text-medium-emphasis" :title="formatDateTime(item.updated_at)">
+                    {{ formatDate(item.updated_at) }}
+                  </span>
                 </template>
 
                 <template #item.actions="{ item }">
@@ -167,7 +190,8 @@
                       />
                       <v-list-item
                         prepend-icon="mdi-star-outline"
-                        title="Set as default"
+                        :title="defaultActionTitle(item)"
+                        :disabled="!canSetAsDefault(item)"
                         @click="onSetDefault(item)"
                       />
                       <v-divider class="my-1" />
@@ -208,9 +232,10 @@
             {{ importError }}
           </v-alert>
           <p class="text-body-2 text-medium-emphasis mb-3">
-            Paste or upload display template JSON. <code>data_type</code> and <code>name</code> are read from the file
-            (display export envelope or metadata-editor form template). The tree uses
-            <code>items[]</code> at the root or under <code>template.items</code>.
+            Paste or upload a display template document
+            (<code>type: display_template</code>) or a metadata-editor tree.
+            Name and note are read from <code>description</code>. The layout is
+            <code>template.items</code>.
           </p>
           <v-file-input
             v-model="importFile"
@@ -240,6 +265,20 @@
           <v-spacer />
           <v-btn variant="text" @click="importDlg = false">Cancel</v-btn>
           <v-btn color="primary" variant="flat" :loading="savingImport" @click="doImport">Import</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="defaultDlg.show" max-width="440" persistent>
+      <v-card rounded="xl">
+        <v-card-title class="text-h6 font-weight-semibold pt-6 px-6">Set as default?</v-card-title>
+        <v-card-text class="px-6">This will replace the current default for this type.</v-card-text>
+        <v-card-actions class="px-6 pb-6">
+          <v-spacer />
+          <v-btn variant="text" @click="defaultDlg.show = false">Cancel</v-btn>
+          <v-btn color="primary" variant="flat" :loading="defaultDlg.busy" @click="doSetDefault">
+            Set as default
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -285,9 +324,11 @@ const headers = [
   { title: 'Default', key: 'default', sortable: false, width: '72px' },
   { title: 'Name', key: 'name', sortable: false },
   { title: 'Type', key: 'template_type', sortable: false, width: '110px' },
-  { title: 'Language', key: 'lang', sortable: false, width: '96px' },
+  { title: 'Languages', key: 'lang', sortable: false, width: '140px' },
   { title: 'Version', key: 'version', sortable: false, width: '96px' },
   { title: 'Status', key: 'status', sortable: false, width: '120px' },
+  { title: 'Created', key: 'created_at', sortable: false, width: '120px' },
+  { title: 'Updated', key: 'updated_at', sortable: false, width: '120px' },
   { title: '', key: 'actions', sortable: false, width: '56px', align: 'end' },
 ];
 
@@ -337,8 +378,43 @@ function templateTypeLabel(type) {
   return 'Custom';
 }
 
+function parseTemplateDate(value) {
+  if (!value) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T');
+  const date = new Date(normalized);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatDate(value) {
+  const date = parseTemplateDate(value);
+  if (!date) return '—';
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function formatDateTime(value) {
+  const date = parseTemplateDate(value);
+  if (!date) return '';
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 function isSystemTemplate(item) {
   return item?.template_type === 'system' || item?.is_core;
+}
+
+function languagesForItem(item) {
+  if (Array.isArray(item?.languages) && item.languages.length) {
+    return item.languages;
+  }
+  const primary = String(item?.lang || '').trim();
+  return primary ? [primary] : ['en'];
 }
 
 function openTemplate(item) {
@@ -435,13 +511,41 @@ async function onDuplicate(item) {
   }
 }
 
-async function onSetDefault(item) {
+function isPublished(item) {
+  return item?.status === 'published';
+}
+
+function canSetAsDefault(item) {
+  return !!(item?.uid && !item.default && isPublished(item));
+}
+
+function defaultActionTitle(item) {
+  if (item?.status === 'draft') return 'Draft templates cannot be set as default';
+  if (item?.status === 'archived') return 'Archived templates cannot be set as default';
+  if (item?.default) return 'Default template';
+  return 'Set as default';
+}
+
+const defaultDlg = ref({ show: false, item: null, busy: false });
+
+function onSetDefault(item) {
+  if (!canSetAsDefault(item)) return;
+  defaultDlg.value = { show: true, item, busy: false };
+}
+
+async function doSetDefault() {
+  const item = defaultDlg.value.item;
+  if (!canSetAsDefault(item)) return;
+  defaultDlg.value.busy = true;
   try {
     await setDefaultTemplate(item.data_type, item.uid);
+    defaultDlg.value.show = false;
     setMessage(`Default for ${item.data_type} set.`, 'success');
     await load();
   } catch (e) {
     setMessage(e?.message || String(e), 'error');
+  } finally {
+    defaultDlg.value.busy = false;
   }
 }
 

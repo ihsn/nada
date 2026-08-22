@@ -24,7 +24,7 @@ if (count($data) < 1) {
 
 $field_key = isset($template['key']) ? (string) $template['key'] : 'field';
 $css_id = str_replace('.', '_', $field_key);
-$root_title = tt('metadata.' . $field_key, isset($template['title']) ? $template['title'] : '');
+$root_title = display_template_resolve_title($field_key, isset($template['title']) ? $template['title'] : '');
 $view_data = array(
 	'resources' => isset($resources) ? $resources : array(),
 );

@@ -54,7 +54,7 @@
 <?php if ( ($html_output!='') || $show_empty==true ):?>
     <div class="mb-2 field field-<?php echo str_replace(".'","-",$template['key']);?>">
         <?php if ($hide_field_title!=true):?>
-            <h5 class="field-title"><?php echo t($template['title']);?></h5>
+            <h5 class="field-title"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></h5>
         <?php endif;?>
         <div><?php echo $html_output;?></div>
     </div>

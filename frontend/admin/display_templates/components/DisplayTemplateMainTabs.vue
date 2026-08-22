@@ -14,6 +14,7 @@
           {{ unusedCount }}
         </v-chip>
       </v-tab>
+      <v-tab value="translations" prepend-icon="mdi-translate">Translations</v-tab>
       <v-tab value="json" prepend-icon="mdi-code-json">JSON</v-tab>
     </v-tabs>
     <v-divider />
@@ -26,6 +27,11 @@
       <div v-show="tabModel === 'add-fields'" class="dt-main-tab-panel">
         <div class="dt-main-tab-scroll pa-4 pa-md-6">
           <slot name="add-fields" />
+        </div>
+      </div>
+      <div v-show="tabModel === 'translations'" class="dt-main-tab-panel">
+        <div class="dt-main-tab-fill pa-4 pa-md-6">
+          <slot name="translations" />
         </div>
       </div>
       <div v-show="tabModel === 'json'" class="dt-main-tab-panel">
@@ -79,5 +85,16 @@ const tabModel = computed({
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+.dt-main-tab-fill {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.dt-main-tab-fill > :deep(*) {
+  flex: 1 1 0;
+  min-height: 0;
 }
 </style>

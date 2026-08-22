@@ -52,7 +52,7 @@ if (count($slides) < 1) {
 .carousel-indicators .active { background-color: #f8f9fa; }
 </style>
 <div class="field resource-photo field-<?php echo str_replace('.', '__', html_escape($field_key)); ?>">
-	<div class="field-title"><?php echo tt('metadata.' . $field_key, $field_title); ?></div>
+	<div class="field-title"><?php echo display_template_resolve_title($field_key, $field_title); ?></div>
 	<div class="field-value">
 		<div id="photoGallery" class="carousel-container carousel slide" data-ride="carousel" data-interval="false">
 			<ol class="carousel-indicators gallery-indicators">
