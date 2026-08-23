@@ -37,7 +37,7 @@ const { t } = useI18n();
 
 <style scoped>
 .image-view-toggle :deep(.v-btn) {
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   letter-spacing: 0;
   text-transform: none;
 }

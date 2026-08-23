@@ -1,7 +1,7 @@
 <template>
   <div class="catalog-variable-results-list">
     <div class="results-toolbar d-flex align-center flex-wrap mb-4" style="gap: 12px;">
-      <div class="text-body-2 text-medium-emphasis flex-shrink-0">
+      <div class="catalog-results-count flex-shrink-0">
         {{ resultsCountLabel }}
       </div>
 
@@ -105,7 +105,7 @@
     </div>
 
     <div v-if="totalPages > 1" class="d-flex justify-space-between align-center mt-6 flex-wrap" style="gap: 12px;">
-      <div class="text-caption text-medium-emphasis">
+      <div class="catalog-pagination-status">
         {{ t('showing_pages', 'Page %s of %s', query.page, totalPages.toLocaleString()) }}
       </div>
       <v-pagination
@@ -269,7 +269,7 @@ function onPage(p) {
 }
 
 .variable-row__icon-glyph {
-  color: #1565c0 !important;
+  color: var(--catalog-link, #1565c0) !important;
 }
 
 .variable-row__body {
@@ -294,10 +294,10 @@ function onPage(p) {
   padding: 0;
   background: transparent;
   text-align: left;
-  font-size: 0.9375rem;
+  font-size: var(--catalog-font-title, 1.25rem);
   font-weight: 600;
   line-height: 1.35;
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   cursor: pointer;
 }
 
@@ -307,27 +307,27 @@ function onPage(p) {
 
 .variable-row__open {
   flex-shrink: 0;
-  color: rgba(26, 35, 50, 0.4);
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
   line-height: 1;
   padding-top: 1px;
 }
 
 .variable-row__open:hover {
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
 }
 
 .variable-row__qstn {
   margin-top: 4px;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  color: rgba(26, 35, 50, 0.72);
+  font-size: var(--catalog-font-body, 1rem);
+  line-height: 1.5;
+  color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
 }
 
 .variable-row__file {
   margin-top: 4px;
-  font-size: 0.8125rem;
-  line-height: 1.35;
-  color: rgba(26, 35, 50, 0.55);
+  font-size: var(--catalog-font-ui, 0.875rem);
+  line-height: 1.4;
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 
 .variable-row__file-label {
@@ -336,9 +336,9 @@ function onPage(p) {
 
 .variable-row__study {
   margin-top: 6px;
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   line-height: 1.4;
-  color: rgba(26, 35, 50, 0.6);
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 
 .variable-row__study-link {
@@ -347,7 +347,7 @@ function onPage(p) {
 }
 
 .variable-row__study-link:hover {
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   text-decoration: underline;
 }
 

@@ -352,21 +352,22 @@ function onPage(page) {
 }
 
 .collection-title {
-  font-size: 1.5em;
+  font-size: var(--catalog-font-count, 1.5rem);
   font-weight: 600;
   line-height: 1.3;
   margin-bottom: 0.25rem;
+  color: var(--catalog-text, #1a2332);
 }
 
 .collection-description {
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.7);
+  font-size: var(--catalog-font-body, 1rem);
+  color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
 }
 
 .repo-badge {
   display: inline-block;
   font-weight: normal;
-  font-size: 14px;
+  font-size: var(--catalog-font-ui, 0.875rem);
   border: 1px solid gainsboro;
   border-radius: 10rem;
   padding: 0.25em 0.6em;
@@ -431,6 +432,7 @@ function onPage(page) {
 }
 
 .results-option-switch :deep(.v-label) {
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 </style>

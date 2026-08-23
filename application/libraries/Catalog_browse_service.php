@@ -412,7 +412,12 @@ class Catalog_browse_service {
 		$data['regions'] = $this->facets['regions'] ?? array();
 		$data['sid'] = $search_options->sid;
 
-		if (isset($data['surveys']['found'], $data['surveys']['total']) && $data['surveys']['found'] == $data['surveys']['total']) {
+		$page = isset($data['current_page']) ? (int) $data['current_page'] : 1;
+		if (
+			$page <= 1
+			&& isset($data['surveys']['found'], $data['surveys']['total'])
+			&& $data['surveys']['found'] == $data['surveys']['total']
+		) {
 			$data['featured_studies'] = $this->CI->Repository_model->get_featured_study($this->active_repo_id, $this->active_tab);
 		}
 

@@ -21,9 +21,12 @@ import {
 
 const FILTER_KEYS = ['country', 'region', 'dtype', 'data_class', 'type', 'tag', 'from', 'to', 'collection', 'sk', 'database'];
 
-/** Merge featured studies at top and dedupe, matching legacy surveys.php behavior. */
+/** Merge featured studies at top and dedupe. Featured pins belong on page 1 only. */
 function mergeFeaturedRows(result, featuredStudies) {
   if (!result?.rows || !Array.isArray(featuredStudies) || !featuredStudies.length) {
+    return result;
+  }
+  if (Number(result.page ?? 1) > 1) {
     return result;
   }
 

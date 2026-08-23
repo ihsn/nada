@@ -327,7 +327,7 @@ function onTab(value) {
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   background: transparent;
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-weight: 500;
   font-family: inherit;
   color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
@@ -339,13 +339,13 @@ function onTab(value) {
 }
 
 .catalog-tab:hover {
-  color: #1976d2;
+  color: var(--catalog-link, #1565c0);
 }
 
 .catalog-tab--active {
-  color: #1976d2;
+  color: var(--catalog-link, #1565c0);
   font-weight: 600;
-  border-bottom-color: #1976d2;
+  border-bottom-color: var(--catalog-link, #1565c0);
 }
 
 .catalog-tab--more .catalog-tab__chevron {
@@ -357,10 +357,10 @@ function onTab(value) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(25, 118, 210, 0.1);
-  color: #1976d2;
+  background: rgba(21, 101, 192, 0.1);
+  color: var(--catalog-link, #1565c0);
   border-radius: 10px;
-  font-size: 0.7rem;
+  font-size: var(--catalog-font-small, 0.75rem);
   font-weight: 600;
   padding: 1px 7px;
   margin-left: 6px;
@@ -368,7 +368,7 @@ function onTab(value) {
 }
 
 .catalog-tab--active .tab-count {
-  background: rgba(25, 118, 210, 0.18);
+  background: rgba(21, 101, 192, 0.18);
 }
 
 .catalog-more-list {
@@ -378,6 +378,6 @@ function onTab(value) {
 }
 
 .catalog-more-count {
-  font-size: 0.75rem;
+  font-size: var(--catalog-font-small, 0.75rem);
 }
 </style>

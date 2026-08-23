@@ -1,5 +1,6 @@
 import 'vuetify/styles';
 import '@/assets/base.css';
+import './catalogSearch.css';
 import { createApp } from 'vue';
 import { createVuetify } from 'vuetify';
 import { appTheme } from '@/theme';

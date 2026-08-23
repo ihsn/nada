@@ -223,7 +223,7 @@ function catalog_browse_page_url($page, $repositoryid = null)
 }
 
 /**
- * Merge featured studies ahead of result rows (mirrors Vue mergeFeaturedRows).
+ * Merge featured studies ahead of result rows on page 1 (mirrors Vue mergeFeaturedRows).
  *
  * @param array<string, mixed> $bootstrap
  * @return array<int, array<string, mixed>>
@@ -236,7 +236,8 @@ function catalog_browse_merge_featured_rows(array $bootstrap)
 		? $bootstrap['featured_studies']
 		: array();
 
-	if (($bootstrap['search_type'] ?? '') === 'variable' || $featured === array()) {
+	$page = isset($result['page']) ? (int) $result['page'] : 1;
+	if ($page > 1 || ($bootstrap['search_type'] ?? '') === 'variable' || $featured === array()) {
 		return $rows;
 	}
 

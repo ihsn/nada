@@ -123,7 +123,7 @@ const hasVisibleItems = computed(() =>
 
 <style scoped>
 .facet-checkbox-list__search :deep(.v-field) {
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   background: #fff;
 }
 
@@ -134,9 +134,9 @@ const hasVisibleItems = computed(() =>
 }
 
 .facet-group-title {
-  font-size: 0.7rem;
+  font-size: var(--catalog-font-small, 0.75rem);
   font-weight: 700;
-  color: #545b62;
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
   margin: 10px 0 6px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -152,9 +152,9 @@ const hasVisibleItems = computed(() =>
   gap: 8px;
   padding: 4px 2px;
   cursor: pointer;
-  font-size: 0.8125rem;
-  line-height: 1.35;
-  color: rgba(0, 0, 0, 0.82);
+  font-size: var(--catalog-font-ui, 0.875rem);
+  line-height: 1.4;
+  color: var(--catalog-text, #1a2332);
 }
 
 .facet-checkbox-item--hidden {
@@ -162,18 +162,18 @@ const hasVisibleItems = computed(() =>
 }
 
 .facet-checkbox-item:hover {
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
 }
 
 .facet-checkbox-item__input {
   margin-top: 3px;
   flex-shrink: 0;
-  accent-color: #1976d2;
+  accent-color: var(--catalog-link, #1565c0);
 }
 
 .facet-checkbox-item__count {
-  color: rgba(0, 0, 0, 0.45);
-  font-size: 0.75rem;
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
+  font-size: var(--catalog-font-small, 0.75rem);
 }
 
 .facet-checkbox-list__items::-webkit-scrollbar {

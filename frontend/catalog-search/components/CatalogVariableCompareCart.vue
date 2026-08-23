@@ -178,11 +178,11 @@ function openVariableDialog(item) {
   width: 100%;
   padding: 12px 14px;
   border: 0;
-  background: #1565c0;
+  background: var(--catalog-link, #1565c0);
   color: #fff;
   cursor: pointer;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-weight: 600;
 }
 
@@ -241,9 +241,9 @@ function openVariableDialog(item) {
   padding: 0;
   background: transparent;
   text-align: left;
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-weight: 600;
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -255,7 +255,7 @@ function openVariableDialog(item) {
 
 .variable-compare-cart__item-idno {
   margin-top: 2px;
-  color: rgba(26, 35, 50, 0.55);
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
 }
 
 .variable-compare-cart__actions {

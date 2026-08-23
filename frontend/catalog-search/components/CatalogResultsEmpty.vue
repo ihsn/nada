@@ -4,10 +4,10 @@
     <div class="text-h6 font-weight-medium mb-2">
       {{ t('no_records_found') }}
     </div>
-    <div v-if="keyword" class="text-body-2 text-medium-emphasis mb-1">
+    <div v-if="keyword" class="empty-state__hint mb-1">
       <strong>&ldquo;{{ keyword }}&rdquo;</strong>
     </div>
-    <div class="text-body-2 text-medium-emphasis mb-6">
+    <div class="empty-state__hint mb-6">
       {{ t('catalog_search_empty_hint') }}
     </div>
     <v-btn
@@ -39,5 +39,10 @@ const { t } = useI18n();
   border: 1px dashed rgba(0, 0, 0, 0.12);
   border-radius: 12px;
   background: #fafafa;
+}
+
+.empty-state__hint {
+  font-size: var(--catalog-font-body, 1rem);
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 </style>

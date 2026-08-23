@@ -57,7 +57,7 @@
             <a :href="row.url" class="study-title text-body-1 font-weight-semibold">
               {{ row.title }}
             </a>
-            <div v-if="row.subtitle" class="study-subtitle text-caption text-medium-emphasis">
+            <div v-if="row.subtitle" class="study-subtitle">
               {{ row.subtitle }}
             </div>
           </div>
@@ -102,7 +102,7 @@
             <span v-else>{{ timeseriesDatabase.title }}</span>
           </div>
 
-          <div v-if="showAbstract && row.abstract" class="study-abstract text-body-2 text-medium-emphasis">
+          <div v-if="showAbstract && row.abstract" class="study-abstract">
             <template v-if="abstractExpanded || !abstractNeedsTruncation">
               {{ row.abstract }}
               <a
@@ -390,8 +390,8 @@ function goToCollection(repositoryid) {
 }
 
 .abstract-toggle {
-  font-size: 0.875rem;
-  color: #1976d2;
+  font-size: var(--catalog-font-ui, 0.875rem);
+  color: var(--catalog-link, #1565c0);
   text-decoration: none;
   margin-left: 0.25rem;
   white-space: nowrap;
@@ -467,8 +467,8 @@ function goToCollection(repositoryid) {
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
-  font-size: 0.9375rem;
-  line-height: 1.45;
+  font-size: var(--catalog-font-body, 1rem);
+  line-height: 1.5;
   color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
 }
 
@@ -482,15 +482,16 @@ function goToCollection(repositoryid) {
 }
 
 .study-meta-line--author {
-  font-size: 0.875rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-style: italic;
   color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 
 .study-abstract {
-  font-size: 0.9375rem;
+  font-size: var(--catalog-font-body, 1rem);
   line-height: 1.5;
   margin-top: 2px;
+  color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
 }
 
 .study-dimensions {
@@ -502,7 +503,7 @@ function goToCollection(repositoryid) {
 }
 
 .study-dimensions__label {
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-weight: 600;
   color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
@@ -558,9 +559,10 @@ function goToCollection(repositoryid) {
 
 .study-title {
   margin: 0;
-  font-size: 1.0625rem;
-  line-height: 1.4;
-  color: #1565c0;
+  font-size: var(--catalog-font-title, 1.25rem);
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--catalog-link, #1565c0);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -573,8 +575,9 @@ function goToCollection(repositoryid) {
 
 .study-subtitle {
   margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.35;
+  font-size: var(--catalog-font-ui, 0.875rem);
+  line-height: 1.4;
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 
 .study-card-footer {
@@ -585,9 +588,9 @@ function goToCollection(repositoryid) {
   margin-top: 4px;
   padding-top: 6px;
   border-top: 1px solid var(--catalog-border-subtle, rgba(15, 23, 42, 0.11));
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-small, 0.75rem);
   line-height: 1.5;
-  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.56));
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
 }
 
 .collection-chip :deep(.v-chip__content) {
@@ -603,7 +606,7 @@ function goToCollection(repositoryid) {
 }
 
 .study-card-footer__label {
-  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.56));
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
   font-weight: 400;
 }
 
@@ -613,7 +616,7 @@ function goToCollection(repositoryid) {
 }
 
 .study-card-footer__link {
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   font-weight: 500;
   text-decoration: none;
 }
