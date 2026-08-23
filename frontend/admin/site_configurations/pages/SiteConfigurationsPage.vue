@@ -50,6 +50,46 @@ const activeSection = computed(() =>
 const settings = ref({});
 const meta = ref({});
 const langRows = ref([]);
+const useDisplayByType = ref({});
+
+const DEFAULT_STUDY_TYPES = [
+  { value: 'survey', titleKey: 'legacy_study_type_survey' },
+  { value: 'script', titleKey: 'legacy_study_type_script' },
+  { value: 'timeseries', titleKey: 'legacy_study_type_timeseries' },
+  { value: 'timeseries-db', titleKey: 'legacy_study_type_timeseries_db' },
+  { value: 'geospatial', titleKey: 'legacy_study_type_geospatial' },
+  { value: 'document', titleKey: 'legacy_study_type_document' },
+  { value: 'table', titleKey: 'legacy_study_type_table' },
+  { value: 'image', titleKey: 'legacy_study_type_image' },
+  { value: 'video', titleKey: 'legacy_study_type_video' },
+];
+
+const catalogStudyTypes = computed(() => {
+  const fromMeta = meta.value?.catalog_study_types;
+  if (Array.isArray(fromMeta) && fromMeta.length) {
+    return fromMeta;
+  }
+  return DEFAULT_STUDY_TYPES.map((row) => ({
+    value: row.value,
+    title: tr(row.titleKey),
+  }));
+});
+
+function hydrateDisplaySwitches(listed) {
+  const raw = Array.isArray(listed) ? listed : [];
+  const map = {};
+  for (const row of catalogStudyTypes.value) {
+    const value = row.value;
+    map[value] = !raw.includes(value) && !(value === 'timeseries-db' && raw.includes('timeseriesdb'));
+  }
+  useDisplayByType.value = map;
+}
+
+function legacyPayloadFromSwitches() {
+  return catalogStudyTypes.value
+    .map((row) => row.value)
+    .filter((value) => useDisplayByType.value[value] === false);
+}
 const loading = ref(true);
 const saving = ref(false);
 const snackbar = ref(false);
@@ -149,6 +189,8 @@ function pickSectionPayload(sectionId) {
   for (const k of def.keys) {
     if (k === 'supported_languages') {
       out[k] = supportedPayloadFromRows();
+    } else if (k === 'legacy_study_templates') {
+      out[k] = legacyPayloadFromSwitches();
     } else if (settings.value[k] !== undefined) {
       out[k] = settings.value[k];
     }
@@ -167,6 +209,7 @@ async function reloadAll() {
   settings.value = { ...s };
   meta.value = { ...m };
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
+  hydrateDisplaySwitches(settings.value.legacy_study_templates);
 }
 
 async function loadTestEmailSection() {
@@ -760,6 +803,49 @@ onMounted(async () => {
                 </div>
               </v-col>
             </v-row>
+            </div>
+          </v-card>
+
+          <!-- Display templates -->
+          <v-card v-show="activeSection === 'display_templates'" elevation="1" rounded="lg" class="bg-surface">
+            <div class="pa-4 site-config-card-inner">
+              <div class="site-config-card__header d-flex align-center justify-space-between flex-wrap gap-3">
+                <h2 class="site-config-card__title">
+                  {{ currentTitle }}
+                </h2>
+                <v-btn
+                  v-if="saveVisible"
+                  color="primary"
+                  :loading="saving"
+                  prepend-icon="mdi-content-save"
+                  @click="saveCurrentSection"
+                >
+                  {{ tr('update') }}
+                </v-btn>
+              </div>
+              <v-row dense>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('legacy_study_templates') }}</label>
+                  <div class="site-config-field__hint mb-3">{{ tr('legacy_study_templates_note') }}</div>
+                  <div
+                    v-for="row in catalogStudyTypes"
+                    :key="row.value"
+                    class="d-flex align-center ga-3 mt-1 flex-wrap"
+                  >
+                    <span class="text-body-2" style="min-width: 14rem;">{{ row.title }}</span>
+                    <v-switch
+                      v-model="useDisplayByType[row.value]"
+                      color="primary"
+                      density="comfortable"
+                      hide-details
+                      inset
+                    />
+                    <span class="text-body-2 text-medium-emphasis">
+                      {{ useDisplayByType[row.value] ? tr('legacy_study_templates_json') : tr('legacy_study_templates_php') }}
+                    </span>
+                  </div>
+                </v-col>
+              </v-row>
             </div>
           </v-card>
 

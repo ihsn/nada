@@ -4,6 +4,96 @@
  * Display template layout helpers (public catalog rendering).
  */
 
+if (!function_exists('display_template_catalog_study_types')) {
+	/**
+	 * Catalog study-description types that can use JSON display templates.
+	 *
+	 * @return string[]
+	 */
+	function display_template_catalog_study_types()
+	{
+		return array(
+			'survey',
+			'script',
+			'timeseries',
+			'timeseries-db',
+			'geospatial',
+			'document',
+			'table',
+			'image',
+			'video',
+		);
+	}
+}
+
+if (!function_exists('display_template_normalize_legacy_study_types')) {
+	/**
+	 * @param mixed $raw List or map of data types
+	 * @return string[]
+	 */
+	function display_template_normalize_legacy_study_types($raw)
+	{
+		$types = array();
+		if (!is_array($raw)) {
+			return $types;
+		}
+
+		$allowed = display_template_catalog_study_types();
+		foreach ($raw as $key => $value) {
+			if (is_int($key)) {
+				$type = trim((string) $value);
+			} elseif ($value) {
+				$type = trim((string) $key);
+			} else {
+				continue;
+			}
+			if ($type === 'timeseriesdb') {
+				$type = 'timeseries-db';
+			}
+			if ($type === '' || !in_array($type, $allowed, true) || in_array($type, $types, true)) {
+				continue;
+			}
+			$types[] = $type;
+		}
+
+		return $types;
+	}
+}
+
+if (!function_exists('display_template_legacy_study_templates_raw')) {
+	/**
+	 * Site setting first, then display_templates.php fallback.
+	 *
+	 * @return mixed
+	 */
+	function display_template_legacy_study_templates_raw()
+	{
+		$CI = function_exists('get_instance') ? get_instance() : null;
+		if ($CI && isset($CI->config)) {
+			$from_config = $CI->config->item('legacy_study_templates');
+			if ($from_config !== FALSE && $from_config !== null) {
+				if (is_string($from_config) && $from_config !== '') {
+					$decoded = json_decode($from_config, true);
+					if (json_last_error() === JSON_ERROR_NONE) {
+						$from_config = $decoded;
+					}
+				}
+				if (is_array($from_config)) {
+					return $from_config;
+				}
+			}
+		}
+
+		$config = array();
+		$path = APPPATH . 'config/display_templates.php';
+		if (is_file($path)) {
+			include $path;
+		}
+
+		return isset($config['legacy_study_templates']) ? $config['legacy_study_templates'] : array();
+	}
+}
+
 if (!function_exists('display_template_legacy_study_template_types')) {
 	/**
 	 * Data types configured to use PHP metadata_templates views on the catalog page.
@@ -17,31 +107,9 @@ if (!function_exists('display_template_legacy_study_template_types')) {
 			return $types;
 		}
 
-		$config = array();
-		$path = APPPATH . 'config/display_templates.php';
-		if (is_file($path)) {
-			include $path;
-		}
-
-		$raw = isset($config['legacy_study_templates']) ? $config['legacy_study_templates'] : array();
-		$types = array();
-		if (!is_array($raw)) {
-			return $types;
-		}
-
-		foreach ($raw as $key => $value) {
-			if (is_int($key)) {
-				$type = trim((string) $value);
-			} elseif ($value) {
-				$type = trim((string) $key);
-			} else {
-				continue;
-			}
-			if ($type !== '') {
-				$types[] = $type;
-			}
-		}
-
+		$types = display_template_normalize_legacy_study_types(
+			display_template_legacy_study_templates_raw()
+		);
 		return $types;
 	}
 }
@@ -183,6 +251,71 @@ if (!function_exists('display_template_shipped_core_defaults')) {
 		}
 
 		return $defaults;
+	}
+}
+
+if (!function_exists('display_template_shipped_translations_relative')) {
+	/**
+	 * Sidecar next to a core layout: {basename}.translations.json
+	 *
+	 * @param string $relative_file Core JSON path relative to APPPATH
+	 * @return string
+	 */
+	function display_template_shipped_translations_relative($relative_file)
+	{
+		$rel = ltrim(str_replace('\\', '/', (string) $relative_file), '/');
+		if ($rel === '' || !display_template_is_allowed_file_path($rel)) {
+			return '';
+		}
+		if (!preg_match('/\.json$/i', $rel) || preg_match('/\.translations\.json$/i', $rel)) {
+			return '';
+		}
+		return preg_replace('/\.json$/i', '.translations.json', $rel);
+	}
+}
+
+if (!function_exists('display_template_load_shipped_translations')) {
+	/**
+	 * Overlay maps shipped with a core. Custom sidecar wins when present.
+	 *
+	 * @param string $relative_file
+	 * @return array<string, array<string, string>> lang => key => title
+	 */
+	function display_template_load_shipped_translations($relative_file)
+	{
+		$sidecar = display_template_shipped_translations_relative($relative_file);
+		if ($sidecar === '') {
+			return array();
+		}
+		$basename = basename($sidecar);
+		$dir = dirname(ltrim(str_replace('\\', '/', (string) $relative_file), '/'));
+		$custom_dir = ($dir === '.' || $dir === '') ? 'custom' : $dir . '/custom';
+		$candidates = array(
+			APPPATH . $custom_dir . '/' . $basename,
+			APPPATH . $sidecar,
+		);
+		foreach ($candidates as $path) {
+			if (!is_file($path)) {
+				continue;
+			}
+			$decoded = json_decode(file_get_contents($path), true);
+			if (!is_array($decoded)) {
+				continue;
+			}
+			$out = array();
+			foreach ($decoded as $lang => $map) {
+				$code = display_template_normalize_lang($lang, false);
+				if ($code === '') {
+					continue;
+				}
+				$clean = display_template_sanitize_translations_map($map);
+				if ($clean !== array()) {
+					$out[$code] = $clean;
+				}
+			}
+			return $out;
+		}
+		return array();
 	}
 }
 

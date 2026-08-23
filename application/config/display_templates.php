@@ -23,11 +23,16 @@
 |
 | Paths in `file` are relative to APPPATH (application/).
 | Registry keys use NADA catalog data types (survey, timeseries, …).
-| Default-core UIDs match Metadata Editor system cores so existing site
-| defaults and duplicates keep resolving.
+| Display default UIDs are {data-type}-system-en (survey-system-en, …).
+| Editor cores keep their own UIDs (microdata-system-en for the DDI form).
 |
 | Custom overrides: {same-directory}/custom/{same-filename}
 |   e.g. application/templates/display/custom/survey_display_template.json
+|
+| Optional overlay titles: {same-basename}.translations.json
+|   e.g. application/templates/display/survey_display_template.translations.json
+|   Seeded into display_template_translations on migrate/sync. Custom sidecar
+|   in {same-directory}/custom/ wins when present.
 |
 | legacy_study_templates is still read at runtime by display_template_helper.
 |
@@ -49,7 +54,7 @@ $config['display_template_custom_path'] = 'templates/display/custom';
  * Each entry: uid, name, lang, file (relative to APPPATH).
  */
 $config['survey'][] = array(
-	'uid'         => 'microdata-system-en',
+	'uid'         => 'survey-system-en',
 	'name'        => 'Survey display template',
 	'lang'        => 'en',
 	'description' => 'Catalog study description layout for microdata.',
@@ -345,7 +350,7 @@ $config['resource'][] = array(
 |
 */
 $config['display_template_defaults'] = array(
-	'survey'        => 'microdata-system-en',
+	'survey'        => 'survey-system-en',
 	'timeseries'    => 'timeseries-system-en',
 	'timeseries-db' => 'timeseries-db-system-en',
 	'timeseriesdb'  => 'timeseries-db-system-en',
@@ -362,6 +367,9 @@ $config['display_template_defaults'] = array(
 |--------------------------------------------------------------------------
 | Legacy PHP study templates (optional)
 |--------------------------------------------------------------------------
+|
+| Fallback only. Site Configurations → Display templates stores
+| legacy_study_templates in the configurations table and wins when that key is present.
 |
 | Catalog study-description pages use JSON display templates by default.
 | List data types here to use the older PHP views under

@@ -72,6 +72,20 @@ $lang['collection_search_weight']="Filtre par collection";
 $lang['instruction_weight']="Les types de filtre sont classés en fonction de leur importance dans l'ordre croissant. ";
 $lang['edit_email_settings']="Pour configurer le courrier électronique, consultez le fichier <em>config/email.php</em>.";
 $lang['test_email_configurations']="Tester les configurations de messagerie";
+$lang['display_templates']="Modèles d'affichage";
+$lang['legacy_study_templates']="Mise en page de la description d'étude";
+$lang['legacy_study_templates_note']="Les modèles d'affichage JSON sont utilisés par défaut. Désactivez un type pour utiliser l'ancienne page PHP.";
+$lang['legacy_study_templates_json']="Modèle d'affichage";
+$lang['legacy_study_templates_php']="Ancienne page PHP";
+$lang['legacy_study_type_survey']="Enquête (microdonnées)";
+$lang['legacy_study_type_script']="Script";
+$lang['legacy_study_type_timeseries']="Série temporelle";
+$lang['legacy_study_type_timeseries_db']="Base de séries temporelles";
+$lang['legacy_study_type_geospatial']="Géospatial";
+$lang['legacy_study_type_document']="Document";
+$lang['legacy_study_type_table']="Tableau";
+$lang['legacy_study_type_image']="Image";
+$lang['legacy_study_type_video']="Vidéo";
 
 
 /* End of file configurations */

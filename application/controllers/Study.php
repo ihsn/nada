@@ -128,7 +128,7 @@ class Study extends MY_Controller {
 
 	/**
 	 * Catalog study-description uses JSON display templates unless this type
-	 * is listed in config/display_templates.php legacy_study_templates.
+	 * is listed in site setting legacy_study_templates.
 	 *
 	 * @param string $type
 	 * @return bool

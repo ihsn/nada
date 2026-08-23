@@ -247,6 +247,14 @@ class Display_template_model extends CI_Model {
 			));
 		}
 
+		foreach ($cores as $core) {
+			$this->sync_shipped_core_translations(
+				$core['uid'],
+				$core['file_path'],
+				isset($core['lang']) ? $core['lang'] : 'en'
+			);
+		}
+
 		$defaults = display_template_shipped_core_defaults();
 		foreach ($defaults as $data_type => $uid) {
 			if ($this->get_default_template($data_type)) {
@@ -707,6 +715,50 @@ class Display_template_model extends CI_Model {
 		$this->db->where('template_id', $template_id);
 		$this->db->where('lang', $lang);
 		return $this->db->delete($this->table_translations);
+	}
+
+	/**
+	 * Seed overlay locales from {layout}.translations.json. Fills missing keys
+	 * only; does not overwrite strings already stored for the template.
+	 *
+	 * @param string $uid
+	 * @param string $file_path
+	 * @param string $primary_lang
+	 * @return void
+	 */
+	public function sync_shipped_core_translations($uid, $file_path, $primary_lang = 'en')
+	{
+		if (!$this->translations_table_ready()) {
+			return;
+		}
+		$row = $this->get_stored_row($uid);
+		if (!$row || empty($row['id'])) {
+			return;
+		}
+		$overlays = display_template_load_shipped_translations($file_path);
+		if ($overlays === array()) {
+			return;
+		}
+		$primary = display_template_normalize_lang(
+			$primary_lang !== '' ? $primary_lang : (isset($row['lang']) ? $row['lang'] : 'en'),
+			false
+		);
+		foreach ($overlays as $lang => $map) {
+			if ($lang === $primary || $map === array()) {
+				continue;
+			}
+			$existing = $this->get_translation_map((int) $row['id'], $lang);
+			$merged = $existing;
+			foreach ($map as $key => $text) {
+				if (!isset($merged[$key]) || trim((string) $merged[$key]) === '') {
+					$merged[$key] = $text;
+				}
+			}
+			if ($merged === $existing && $this->translation_row((int) $row['id'], $lang)) {
+				continue;
+			}
+			$this->save_translation_lang($row, $lang, $merged);
+		}
 	}
 
 	public function replace_translations($template, $overlays)
