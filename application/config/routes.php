@@ -116,6 +116,11 @@ $route['api/admin/search-metadata-extract/studies']             = 'api/admin/sea
 $route['api/admin/search-metadata-extract/citations/(:num)']    = 'api/admin/search_metadata_extract/citations/$1';
 $route['api/admin/search-metadata-extract/variables/(:any)']     = 'api/admin/search_metadata_extract/variables/$1';
 
+$route['api/admin/search-index/status']                         = 'api/admin/search_index/status';
+$route['api/admin/search-index/queue/(:num)/ack']               = 'api/admin/search_index/ack/$1';
+$route['api/admin/search-index/queue']                          = 'api/admin/search_index/queue';
+$route['api/admin/search-index/requeue']                        = 'api/admin/search_index/requeue';
+
 $route['api/admin/catalog/data-access-codelist']         = 'api/admin/catalog/data_access_codelist';
 $route['api/admin/catalog/data-access-options']          = 'api/admin/catalog/data_access_options';
 $route['api/admin/catalog/data-classifications']         = 'api/admin/data_classifications';

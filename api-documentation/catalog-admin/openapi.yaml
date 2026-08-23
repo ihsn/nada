@@ -54,6 +54,13 @@ tags:
     description: |
       Admin endpoints that expose catalog study and citation metadata in a canonical shape for external indexers (OpenSearch, Solr, etc.).
       All endpoints require an admin API key (`X-API-KEY`).
+  - name: Search index
+    description: |
+      Change queue for keeping an external search index in sync with the catalog.
+      One configured `search_provider` at a time. Database search does not write queue rows.
+      Documents stay on Search metadata extract. Deletes are tombstones on the queue (`fetch_document` is false).
+      Ack must send the `changed` value from the poll (409 if the row was coalesced).
+      All endpoints require an admin API key (`X-API-KEY`).
   - name: Catalog import
     description: |
       Import studies into the admin catalog from DDI/XML, dataset JSON/JSONL, or study package ZIP files.
@@ -97,6 +104,7 @@ x-tagGroups:
       - Study admin metadata
       - Catalog import
       - Search metadata extract
+      - Search index
 
 security:
   - ApiKeyAuth: []
@@ -4600,6 +4608,139 @@ paths:
         '404':
           $ref: '#/components/responses/SearchMetadataExtractNotFound'
 
+  /admin/search-index/status:
+    get:
+      tags:
+        - Search index
+      summary: Queue and state counts
+      operationId: searchIndexStatus
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIndexStatusResponse'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+
+  /admin/search-index/queue:
+    get:
+      tags:
+        - Search index
+      summary: List pending or failed queue items
+      operationId: searchIndexQueueList
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, failed]
+            default: pending
+        - name: object_type
+          in: query
+          schema:
+            type: string
+            enum: [survey, citation]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+            minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIndexQueueListResponse'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+
+  /admin/search-index/queue/{id}/ack:
+    post:
+      tags:
+        - Search index
+      summary: Ack a queue item
+      description: |
+        Send the `changed` timestamp from the poll. If the row was coalesced,
+        NADA returns 409 `QUEUE_CHANGED` and keeps the row.
+        `result=indexed` means the event was applied, including a successful engine delete.
+      operationId: searchIndexQueueAck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [result, changed]
+              properties:
+                result:
+                  type: string
+                  enum: [indexed, failed]
+                changed:
+                  type: integer
+                  description: Unix time from the queued item
+                error:
+                  type: string
+      responses:
+        '200':
+          description: Applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchIndexAckResponse'
+        '400':
+          $ref: '#/components/responses/SearchIndexFailed'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+        '404':
+          $ref: '#/components/responses/SearchIndexFailed'
+        '409':
+          $ref: '#/components/responses/SearchIndexFailed'
+
+  /admin/search-index/requeue:
+    post:
+      tags:
+        - Search index
+      summary: Requeue one object or reset failed rows
+      operationId: searchIndexRequeue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  required: [object_type, object_id]
+                  properties:
+                    object_type:
+                      type: string
+                      enum: [survey, citation]
+                    object_id:
+                      type: integer
+                - type: object
+                  required: [status]
+                  properties:
+                    status:
+                      type: string
+                      enum: [failed]
+      responses:
+        '200':
+          description: Success
+        '400':
+          $ref: '#/components/responses/SearchIndexFailed'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+
 # ----------------------------------------------------------------
 # Security & Components
 # ----------------------------------------------------------------
@@ -4766,6 +4907,15 @@ components:
           example:
             status: failed
             message: STUDY_NOT_FOUND
+    SearchIndexFailed:
+      description: Tracking or queue error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SearchMetadataExtractErrorResponse'
+          example:
+            status: failed
+            message: QUEUE_CHANGED
 
   schemas:
     DisplayTemplateJson:
@@ -6110,6 +6260,92 @@ components:
             citations:
               type: integer
               description: Total citations
+
+    SearchIndexStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        search_provider:
+          type: string
+          example: semantic
+        tracking_enabled:
+          type: boolean
+        queue:
+          type: object
+          properties:
+            pending:
+              type: integer
+            failed:
+              type: integer
+        state:
+          type: object
+          properties:
+            indexed:
+              type: integer
+            pending:
+              type: integer
+            failed:
+              type: integer
+            deleted:
+              type: integer
+
+    SearchIndexQueueItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        object_type:
+          type: string
+          enum: [survey, citation]
+        object_id:
+          type: integer
+        object_key:
+          type: string
+          description: Study idno or citation uuid
+        change_class:
+          type: string
+          enum: [upsert_full, upsert_partial, variables, delete]
+        status:
+          type: string
+          enum: [pending, failed]
+        attempts:
+          type: integer
+        last_error:
+          type: string
+          nullable: true
+        changed:
+          type: integer
+        fetch_document:
+          type: boolean
+
+    SearchIndexQueueListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        tracking_enabled:
+          type: boolean
+        total:
+          type: integer
+        limit:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchIndexQueueItem'
+
+    SearchIndexAckResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        applied:
+          type: boolean
+        result:
+          type: string
+          enum: [indexed, failed, deleted]
 
     SearchMetadataExtractStudyDocument:
       type: object

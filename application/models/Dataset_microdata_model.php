@@ -175,17 +175,8 @@ class Dataset_microdata_model extends Dataset_model {
         $this->db->where('id', $sid);
         $this->db->update('surveys', ['var_keywords' => $var_keywords]);
 
-        $provider = $this->config->item('search_provider');
-        if ($provider === 'solr') {
-            $this->load->library('Solr_manager');
-            $this->solr_manager->delete_document('var_survey_id:' . $sid);
-            $this->solr_manager->import_survey_variables($sid);
-            return;
-        }
-        if ($provider === 'opensearch') {
-            $this->load->library('OpenSearch/OpenSearch_manager');
-            $this->opensearch_manager->index_survey_variables($sid);
-        }
+        $this->load->library('Search_index_manager');
+        $this->search_index_manager->handle_event('surveys', $sid, 'variables', false);
     }
 
     

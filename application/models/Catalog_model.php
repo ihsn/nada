@@ -689,6 +689,9 @@ class Catalog_model extends CI_Model {
 	*/
 	function delete($id)
 	{
+		$this->load->library('Search_index_manager');
+		$this->search_index_manager->handle_event('surveys', $id, 'delete', true);
+
 		try {
 			$this->load->model('Timeseries_mongo_model');
 			$this->Timeseries_mongo_model->delete_observations_for_sid_all_indicator_collections((int) $id);

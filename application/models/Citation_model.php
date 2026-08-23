@@ -698,6 +698,9 @@ class Citation_model extends CI_Model {
 	*/
 	function delete($id)
 	{
+		$this->load->library('Search_index_manager');
+		$this->search_index_manager->handle_event('citations', $id, 'delete', true);
+
 		//delete from citations table
         $this->delete_attachment($id);
 		$this->db->where('id', $id);

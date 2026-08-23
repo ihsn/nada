@@ -2163,3 +2163,28 @@ CREATE TABLE [display_templates_default] (
 
 CREATE NONCLUSTERED INDEX [idx_display_default_template_uid] ON [display_templates_default] ([template_uid] ASC);
 
+CREATE TABLE search_index_queue (
+  id INT NOT NULL IDENTITY(1,1),
+  object_type VARCHAR(32) NOT NULL,
+  object_id INT NOT NULL,
+  object_key VARCHAR(200) NOT NULL,
+  change_class VARCHAR(32) NOT NULL,
+  status VARCHAR(16) NOT NULL CONSTRAINT df_search_index_queue_status DEFAULT 'pending',
+  attempts INT NOT NULL CONSTRAINT df_search_index_queue_attempts DEFAULT 0,
+  last_error VARCHAR(500) NULL,
+  changed INT NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT uk_search_index_queue_object UNIQUE (object_type, object_id)
+);
+CREATE NONCLUSTERED INDEX idx_search_index_queue_status_changed ON search_index_queue (status, changed);
+
+CREATE TABLE search_index_state (
+  object_type VARCHAR(32) NOT NULL,
+  object_id INT NOT NULL,
+  object_key VARCHAR(200) NOT NULL,
+  status VARCHAR(16) NOT NULL,
+  changed INT NOT NULL,
+  PRIMARY KEY (object_type, object_id)
+);
+CREATE NONCLUSTERED INDEX idx_search_index_state_status ON search_index_state (status);
+
