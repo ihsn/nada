@@ -1,7 +1,7 @@
 {
 	"type": "template",
 	"title": "Proyecto de documento",
-	"uid": "document-system-es",
+	"uid": "display-document-system-es",
 	"data_type": "document",
 	"lang": "es",
 	"template_type": "custom",

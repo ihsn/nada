@@ -9,9 +9,15 @@
 | Paths in `file` are relative to APPPATH (application/).
 |
 | Registry keys use NADA catalog data types (survey, timeseries, …).
-| UIDs match Metadata Editor system cores for interoperability.
+| UIDs are edit-{legacy-id} so they never collide with display-* UIDs.
 |
-| Optional site overrides: application/templates/editor/custom/{same-filename}
+| Site overrides (same basename wins over the shipped file):
+|   {userdata_path}/templates/editor/{filename}
+|   e.g. userdata/templates/editor/edit_survey_form_template.json
+|
+| To use a different override directory, set editor_template_custom_path.
+| Empty = {userdata_path}/templates/editor. Switching a type's form is done
+| by changing editor_template_defaults below (no admin UI).
 |
 */
 
@@ -21,107 +27,108 @@
 $config['editor_template_path'] = 'templates/editor';
 
 /**
- * Optional custom override directory (relative to APPPATH).
- * If a file with the same basename exists here, it wins over the core file.
+ * Optional override directory (relative or absolute).
+ * Empty: {userdata_path}/templates/editor.
+ * Same basename as the registered `file` wins over the shipped core.
  */
-$config['editor_template_custom_path'] = 'templates/editor/custom';
+$config['editor_template_custom_path'] = '';
 
 /**
  * Core template registry, keyed by NADA data type.
  * Each entry: uid, name, lang, file (relative to APPPATH).
  */
 $config['survey'][] = array(
-	'uid'  => 'microdata-system-en',
+	'uid'  => 'edit-microdata-system-en',
 	'name' => 'Microdata DDI 2.5 EN',
 	'lang' => 'en',
-	'file' => 'templates/editor/survey_form_template.json',
+	'file' => 'templates/editor/edit_survey_form_template.json',
 );
 
 $config['timeseries'][] = array(
-	'uid'         => 'timeseries-system-en',
+	'uid'         => 'edit-timeseries-system-en',
 	'name'        => 'Indicator IHSN Schema 1.0 EN',
 	'lang'        => 'en',
 	'version'     => '1.0',
 	'description' => 'Core template for indicators and time series (IHSN schema).',
-	'file'        => 'templates/editor/timeseries_form_template.json',
+	'file'        => 'templates/editor/edit_timeseries_form_template.json',
 );
 
 $config['timeseries-db'][] = array(
-	'uid'  => 'timeseries-db-system-en',
+	'uid'  => 'edit-timeseries-db-system-en',
 	'name' => 'Database IHSN Schema 1.0 EN',
 	'lang' => 'en',
-	'file' => 'templates/editor/timeseries-db_form_template.json',
+	'file' => 'templates/editor/edit_timeseries-db_form_template.json',
 );
 
 // Alias used by some NADA code paths
 $config['timeseriesdb'][] = array(
-	'uid'  => 'timeseries-db-system-en',
+	'uid'  => 'edit-timeseries-db-system-en',
 	'name' => 'Database IHSN Schema 1.0 EN',
 	'lang' => 'en',
-	'file' => 'templates/editor/timeseries-db_form_template.json',
+	'file' => 'templates/editor/edit_timeseries-db_form_template.json',
 );
 
 $config['script'][] = array(
-	'uid'  => 'script-system-en',
+	'uid'  => 'edit-script-system-en',
 	'name' => 'Script IHSN Schema 1.0 EN',
 	'lang' => 'en',
-	'file' => 'templates/editor/script_form_template.json',
+	'file' => 'templates/editor/edit_script_form_template.json',
 );
 
 $config['geospatial'][] = array(
-	'uid'  => 'geospatial-system-en',
+	'uid'  => 'edit-geospatial-system-en',
 	'name' => 'Geospatial schema',
 	'lang' => 'en',
-	'file' => 'templates/editor/geospatial_form_template.json',
+	'file' => 'templates/editor/edit_geospatial_form_template.json',
 );
 
 $config['document'][] = array(
-	'uid'  => 'document-system-en',
+	'uid'  => 'edit-document-system-en',
 	'name' => 'Document IHSN Schema 1.0 EN',
 	'lang' => 'en',
-	'file' => 'templates/editor/document_form_template.json',
+	'file' => 'templates/editor/edit_document_form_template.json',
 );
 
 $config['table'][] = array(
-	'uid'  => 'table-system-en',
+	'uid'  => 'edit-table-system-en',
 	'name' => 'Table IHSN Schema 1.0 EN',
 	'lang' => 'en',
-	'file' => 'templates/editor/table_form_template.json',
+	'file' => 'templates/editor/edit_table_form_template.json',
 );
 
 $config['image'][] = array(
-	'uid'  => 'image-system-en',
+	'uid'  => 'edit-image-system-en',
 	'name' => 'Image IHSN Schema (DCMI and IPTC)',
 	'lang' => 'en',
-	'file' => 'templates/editor/image_form_template.json',
+	'file' => 'templates/editor/edit_image_form_template.json',
 );
 
 $config['image'][] = array(
-	'uid'  => 'image-system-dcmi',
+	'uid'  => 'edit-image-system-dcmi',
 	'name' => 'Image IHSN Schema (DCMI option) 1.0 EN',
 	'lang' => 'en',
-	'file' => 'templates/editor/image_dcmi_form_template.json',
+	'file' => 'templates/editor/edit_image_dcmi_form_template.json',
 );
 
 $config['image'][] = array(
-	'uid'  => 'image-system-iptc',
+	'uid'  => 'edit-image-system-iptc',
 	'name' => 'Image IHSN Schema (IPTC option) 1.0 EN',
 	'lang' => 'en',
-	'file' => 'templates/editor/image_iptc_form_template.json',
+	'file' => 'templates/editor/edit_image_iptc_form_template.json',
 );
 
 $config['video'][] = array(
-	'uid'  => 'video-system-en',
+	'uid'  => 'edit-video-system-en',
 	'name' => 'Video IHSN Schema 1.0 EN',
 	'lang' => 'en',
-	'file' => 'templates/editor/video_form_template.json',
+	'file' => 'templates/editor/edit_video_form_template.json',
 );
 
 $config['resource'][] = array(
-	'uid'  => 'resource-system-en',
+	'uid'  => 'edit-resource-system-en',
 	'name' => 'External resource schema',
 	'lang' => 'en',
-	'file' => 'templates/editor/resource_form_template.json',
+	'file' => 'templates/editor/edit_resource_form_template.json',
 );
 
 /*
@@ -131,37 +138,37 @@ $config['resource'][] = array(
 |
 | Contexts:
 |   catalog — built-in catalog metadata editor
-|   deposit — data deposit study form (same cores until deposit subsets exist)
+|   deposit — reserved for the data-deposit migration (same cores for now)
 |
 | Each UID must exist in the registry above for that data type.
 |
 */
 $config['editor_template_defaults'] = array(
 	'catalog' => array(
-		'survey'        => 'microdata-system-en',
-		'timeseries'    => 'timeseries-system-en',
-		'timeseries-db' => 'timeseries-db-system-en',
-		'timeseriesdb'  => 'timeseries-db-system-en',
-		'script'        => 'script-system-en',
-		'geospatial'    => 'geospatial-system-en',
-		'document'      => 'document-system-en',
-		'table'         => 'table-system-en',
-		'image'         => 'image-system-en',
-		'video'         => 'video-system-en',
-		'resource'      => 'resource-system-en',
+		'survey'        => 'edit-microdata-system-en',
+		'timeseries'    => 'edit-timeseries-system-en',
+		'timeseries-db' => 'edit-timeseries-db-system-en',
+		'timeseriesdb'  => 'edit-timeseries-db-system-en',
+		'script'        => 'edit-script-system-en',
+		'geospatial'    => 'edit-geospatial-system-en',
+		'document'      => 'edit-document-system-en',
+		'table'         => 'edit-table-system-en',
+		'image'         => 'edit-image-system-en',
+		'video'         => 'edit-video-system-en',
+		'resource'      => 'edit-resource-system-en',
 	),
 	'deposit' => array(
-		'survey'        => 'microdata-system-en',
-		'timeseries'    => 'timeseries-system-en',
-		'timeseries-db' => 'timeseries-db-system-en',
-		'timeseriesdb'  => 'timeseries-db-system-en',
-		'script'        => 'script-system-en',
-		'geospatial'    => 'geospatial-system-en',
-		'document'      => 'document-system-en',
-		'table'         => 'table-system-en',
-		'image'         => 'image-system-en',
-		'video'         => 'video-system-en',
-		'resource'      => 'resource-system-en',
+		'survey'        => 'edit-microdata-system-en',
+		'timeseries'    => 'edit-timeseries-system-en',
+		'timeseries-db' => 'edit-timeseries-db-system-en',
+		'timeseriesdb'  => 'edit-timeseries-db-system-en',
+		'script'        => 'edit-script-system-en',
+		'geospatial'    => 'edit-geospatial-system-en',
+		'document'      => 'edit-document-system-en',
+		'table'         => 'edit-table-system-en',
+		'image'         => 'edit-image-system-en',
+		'video'         => 'edit-video-system-en',
+		'resource'      => 'edit-resource-system-en',
 	),
 );
 

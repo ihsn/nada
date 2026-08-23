@@ -35,7 +35,7 @@
                                 { "key": "type", "title": "Type", "type": "string", "prop_key": "description.identificationInfo.citation.date.type" }
                             ]},
                             {
-                                "key": "description.distributionInfo.transferOptions.onLine",
+                                "key": "resources",
                                 "title": "Graphic overview",
                                 "type": "array",
                                 "display_options": { "renderer": "field_photo_gallery" }
@@ -172,7 +172,7 @@
                                 "display_options": { "renderer": "field_geog_contact" }
                             },
                             {
-                                "key": "description.distributionInfo.transferOptions.onLine",
+                                "key": "resources",
                                 "title": "Online resources",
                                 "type": "array",
                                 "display_options": { "renderer": "field_resources", "exclude": "pic" }

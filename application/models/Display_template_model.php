@@ -377,7 +377,7 @@ class Display_template_model extends CI_Model {
 		$cores = $this->get_core_templates_by_type($data_type);
 		foreach ($cores as $core) {
 			$path = isset($core['file_path']) ? (string) $core['file_path'] : '';
-			if (strpos($path, '_display_template.json') !== false) {
+			if (strpos($path, 'templates/display/') !== false) {
 				return $core['uid'];
 			}
 		}
