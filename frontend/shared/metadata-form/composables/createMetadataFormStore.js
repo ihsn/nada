@@ -21,8 +21,11 @@ export function createMetadataFormStore(initial = {}) {
       const part = parts[i];
       const next = parts[i + 1];
       const nextIsIndex = /^\d+$/.test(next);
-      if (cur[part] === undefined || cur[part] === null) {
+      const curVal = cur[part];
+      if (curVal === undefined || curVal === null || typeof curVal !== 'object') {
         cur[part] = nextIsIndex ? [] : {};
+      } else if (nextIsIndex && !Array.isArray(curVal)) {
+        cur[part] = [];
       }
       cur = cur[part];
     }

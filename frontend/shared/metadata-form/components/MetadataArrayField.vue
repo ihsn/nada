@@ -9,8 +9,7 @@ import { emptyRowForProps, enumToSelectItems, normalizeProps } from '../utils/en
 import { useMetadataFormStore } from '../composables/useMetadataFormStore';
 import MetadataArrayGrid from './MetadataArrayGrid.vue';
 import MetadataFieldHelp from './MetadataFieldHelp.vue';
-import MetadataFieldInput from './MetadataFieldInput.vue';
-import MetadataSimpleArrayField from './MetadataSimpleArrayField.vue';
+import MetadataPropNode from './MetadataPropNode.vue';
 import { useMetadataFormLabels } from '../composables/useMetadataFormLabels';
 
 const props = defineProps({
@@ -52,14 +51,8 @@ function removeRow(index) {
   rows.value = next;
 }
 
-function rowPath(index, propKey) {
-  return `${props.path}.${index}.${propKey}`;
-}
-
-function isScalarProp(prop) {
-  return !['array', 'nested_array', 'simple_array', 'section', 'section_container'].includes(
-    prop.type
-  );
+function rowBasePath(index) {
+  return `${props.path}.${index}`;
 }
 
 const enumQuickAdds = computed(() => {
@@ -129,23 +122,12 @@ function addFromEnum(item) {
         />
       </v-card-title>
       <v-card-text class="pt-0">
-        <template v-for="prop in propDefs" :key="prop.key">
-          <MetadataArrayField
-            v-if="prop.type === 'array' || prop.type === 'nested_array'"
-            :field="prop"
-            :path="rowPath(index, prop.key)"
-          />
-          <MetadataSimpleArrayField
-            v-else-if="prop.type === 'simple_array'"
-            :field="prop"
-            :path="rowPath(index, prop.key)"
-          />
-          <MetadataFieldInput
-            v-else-if="isScalarProp(prop)"
-            :field="prop"
-            :path="rowPath(index, prop.key)"
-          />
-        </template>
+        <MetadataPropNode
+          v-for="prop in propDefs"
+          :key="prop.key"
+          :prop="prop"
+          :parent-path="rowBasePath(index)"
+        />
       </v-card-text>
     </v-card>
   </div>

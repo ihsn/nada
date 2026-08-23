@@ -79,6 +79,62 @@ export function isArrayType(type) {
   return type === 'array' || type === 'nested_array' || type === 'simple_array';
 }
 
+export function isBoundingBoxDisplay(field) {
+  return !!(field && String(field.display_type || '') === 'bounding_box');
+}
+
+/**
+ * Children of an ME section. Nested-array sections use props[]; top-level use items[].
+ */
+export function sectionChildDefs(field) {
+  if (!field || typeof field !== 'object') return [];
+  const fromProps = normalizeProps(field.props);
+  if (fromProps.length) return fromProps;
+  return normalizeProps(field.items);
+}
+
+const BBOX_SIDES = ['west', 'east', 'south', 'north'];
+const BBOX_SIDE_RE = {
+  west: /west/i,
+  east: /east/i,
+  south: /south/i,
+  north: /north/i,
+};
+
+/**
+ * Resolve west/east/south/north keys for a bounding_box section.
+ * Option keys (and child field keys) are relative to the parent row, not the section key.
+ *
+ * @returns {Record<string, { key: string, field: object }>}
+ */
+export function resolveBoundingBoxSides(field) {
+  const options =
+    field?.bounding_box_options && typeof field.bounding_box_options === 'object'
+      ? field.bounding_box_options
+      : {};
+  const props = sectionChildDefs(field);
+  const out = {};
+  BBOX_SIDES.forEach((side) => {
+    const fromOpt = options[side] != null && options[side] !== '' ? String(options[side]) : '';
+    const byKey = fromOpt ? props.find((p) => p.key === fromOpt) : null;
+    const byName = props.find((p) => BBOX_SIDE_RE[side].test(p.key || ''));
+    const key = fromOpt || byKey?.key || byName?.key;
+    if (!key) return;
+    out[side] = {
+      key,
+      field:
+        byKey ||
+        byName || {
+          key,
+          type: 'number',
+          title: side.charAt(0).toUpperCase() + side.slice(1),
+          display_type: 'text',
+        },
+    };
+  });
+  return out;
+}
+
 /**
  * Normalize props to an array of prop definitions.
  */
@@ -102,6 +158,10 @@ export function emptyRowForProps(props) {
   normalizeProps(props).forEach((p) => {
     const k = p.key;
     if (!k) return;
+    // Sections are UI groups; child keys are relative to the parent row.
+    if (p.type === 'section' || p.type === 'section_container') {
+      return;
+    }
     if (p.type === 'array' || p.type === 'nested_array' || p.type === 'simple_array') {
       row[k] = [];
     } else if (p.type === 'boolean') {

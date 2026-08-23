@@ -24,6 +24,11 @@ export const DEFAULT_METADATA_FORM_LABELS = {
   item: 'Item',
   trueLabel: 'True',
   falseLabel: 'False',
+  drawBoundingBox: 'Draw on map',
+  cancelDrawBoundingBox: 'Cancel draw',
+  clearBoundingBox: 'Clear box',
+  boundingBoxHint: 'Click and drag on the map to draw a box, or enter coordinates.',
+  boundingBoxDrawHint: 'Drag on the map to set the bounding box.',
 };
 
 /**

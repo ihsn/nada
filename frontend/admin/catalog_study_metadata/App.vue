@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import MetadataFormEditor from '@/shared/metadata-form/components/MetadataFormEditor.vue';
 import { pruneEmpty } from '@/shared/metadata-form/composables/createMetadataFormStore';
@@ -17,6 +17,9 @@ const loadError = ref('');
 const saveError = ref('');
 /** @type {import('vue').Ref<Array<{ property: string, message: string }>>} */
 const saveErrors = ref([]);
+const saveAlertKind = ref('error');
+const allowSaveAnyway = ref(false);
+const saveAnywaySnapshot = ref('');
 const snackbar = ref({ show: false, text: '', color: 'success' });
 const formRef = ref(null);
 const saveAlertEl = ref(null);
@@ -39,7 +42,6 @@ const { isDirty, markClean, confirmReload } = useUnsavedChangesGuard({
 const lbl = computed(() => {
   const labels = config.value?.labels || {};
   return {
-    metadataTab: labels.metadataTab || 'Metadata',
     template: labels.template || 'Template',
     reload: labels.reload || 'Reload',
     save: labels.save || 'Save',
@@ -51,6 +53,11 @@ const lbl = computed(() => {
     unsavedReload: labels.unsavedReload || 'You have unsaved changes. Reload and discard them?',
     validationFailed: labels.validationFailed || 'Validation failed',
     schemaValidationFailed: labels.schemaValidationFailed || 'Schema validation failed',
+    saveAnyway: labels.saveAnyway || 'Save with errors',
+    saveAnywayConfirm:
+      labels.saveAnywayConfirm ||
+      'Schema validation failed. Save these changes anyway? The issues listed will remain.',
+    savedWithSchemaIssues: labels.savedWithSchemaIssues || 'Metadata saved with schema issues',
     requestFailed: labels.requestFailed || 'Request failed',
     selectSection: labels.selectSection || 'Select a section or field from the tree.',
     addFromList: labels.addFromList || 'Add from list',
@@ -76,6 +83,12 @@ const lbl = computed(() => {
     item: labels.item || 'Item',
     trueLabel: labels.trueLabel || 'True',
     falseLabel: labels.falseLabel || 'False',
+    drawBoundingBox: labels.drawBoundingBox || 'Draw on map',
+    cancelDrawBoundingBox: labels.cancelDrawBoundingBox || 'Cancel draw',
+    clearBoundingBox: labels.clearBoundingBox || 'Clear box',
+    boundingBoxHint:
+      labels.boundingBoxHint || 'Click and drag on the map to draw a box, or enter coordinates.',
+    boundingBoxDrawHint: labels.boundingBoxDrawHint || 'Drag on the map to set the bounding box.',
   };
 });
 
@@ -104,6 +117,11 @@ const formLabels = computed(() => {
     item: l.item,
     trueLabel: l.trueLabel,
     falseLabel: l.falseLabel,
+    drawBoundingBox: l.drawBoundingBox,
+    cancelDrawBoundingBox: l.cancelDrawBoundingBox,
+    clearBoundingBox: l.clearBoundingBox,
+    boundingBoxHint: l.boundingBoxHint,
+    boundingBoxDrawHint: l.boundingBoxDrawHint,
   };
 });
 
@@ -111,6 +129,7 @@ const formTemplate = computed(() => config.value?.formTemplate || { items: [] })
 const templateName = computed(
   () => config.value?.templateName || formTemplate.value?.title || ''
 );
+const templateUid = computed(() => String(config.value?.templateUid || '').trim());
 
 const errorLabels = computed(() => ({
   validationFailed: lbl.value.validationFailed,
@@ -126,6 +145,17 @@ function showSnack(text, color = 'success') {
 function clearSaveErrors() {
   saveError.value = '';
   saveErrors.value = [];
+  saveAlertKind.value = 'error';
+  allowSaveAnyway.value = false;
+  saveAnywaySnapshot.value = '';
+}
+
+function formFingerprint() {
+  try {
+    return JSON.stringify(formRef.value?.getPayload?.() || {});
+  } catch {
+    return '';
+  }
 }
 
 /** Form-editable metadata only (exclude operational / separately managed fields). */
@@ -200,33 +230,72 @@ async function onReload() {
   await load();
 }
 
-async function onSave() {
+async function applySavedMetadata() {
+  const latest = await fetchMetadata();
+  const full = latest && typeof latest === 'object' ? latest : {};
+  preservedDsdReference.value = Object.prototype.hasOwnProperty.call(full, 'data_structure_reference')
+    ? full.data_structure_reference
+    : null;
+  metadata.value = toFormMetadata(full);
+  formRef.value?.replaceData?.(metadata.value);
+  await nextTick();
+  markClean();
+}
+
+async function runSave({ ignoreSchemaErrors = false } = {}) {
   saving.value = true;
-  clearSaveErrors();
+  if (!ignoreSchemaErrors) {
+    clearSaveErrors();
+  }
   try {
     const raw = formRef.value?.getPayload?.() || {};
     const payload = await buildSavePayload(raw);
-    await saveMetadata(payload);
-    const latest = await fetchMetadata();
-    const full = latest && typeof latest === 'object' ? latest : {};
-    preservedDsdReference.value = Object.prototype.hasOwnProperty.call(full, 'data_structure_reference')
-      ? full.data_structure_reference
-      : null;
-    metadata.value = toFormMetadata(full);
-    formRef.value?.replaceData?.(metadata.value);
-    await nextTick();
-    markClean();
-    showSnack(lbl.value.saved, 'success');
+    await saveMetadata(payload, { ignoreSchemaErrors });
+    await applySavedMetadata();
+    if (ignoreSchemaErrors) {
+      saveAlertKind.value = 'warning';
+      saveError.value = lbl.value.savedWithSchemaIssues;
+      allowSaveAnyway.value = false;
+      showSnack(lbl.value.savedWithSchemaIssues, 'warning');
+      await revealSaveErrors();
+    } else {
+      clearSaveErrors();
+      showSnack(lbl.value.saved, 'success');
+    }
   } catch (e) {
     const extracted = extractApiError(e, errorLabels.value);
+    saveAlertKind.value = 'error';
     saveError.value = extracted.message || lbl.value.saveFailed;
     saveErrors.value = extracted.errors || [];
+    allowSaveAnyway.value = !!extracted.isSchemaError;
+    saveAnywaySnapshot.value = allowSaveAnyway.value ? formFingerprint() : '';
     showSnack(saveError.value, 'error');
     await revealSaveErrors();
   } finally {
     saving.value = false;
   }
 }
+
+async function onSave() {
+  await runSave();
+}
+
+async function onSaveAnyway() {
+  if (!allowSaveAnyway.value || saving.value) return;
+  if (!window.confirm(lbl.value.saveAnywayConfirm)) return;
+  await runSave({ ignoreSchemaErrors: true });
+}
+
+watch(
+  () => formRef.value?.store?.state?.data,
+  () => {
+    if (!allowSaveAnyway.value || !saveAnywaySnapshot.value) return;
+    if (formFingerprint() !== saveAnywaySnapshot.value) {
+      allowSaveAnyway.value = false;
+    }
+  },
+  { deep: true }
+);
 
 onMounted(load);
 </script>
@@ -241,14 +310,11 @@ onMounted(load);
       <div class="csm-shell">
         <div class="csm-toolbar d-flex align-center justify-space-between flex-wrap ga-2">
           <p class="csm-context text-body-2 mb-0">
-            <span class="csm-context-tab font-weight-semibold">{{ lbl.metadataTab }}</span>
-            <template v-if="templateName">
-              <span class="csm-context-sep" aria-hidden="true">·</span>
-              <span class="csm-context-item">
-                <span class="csm-context-label">{{ lbl.template }}:</span>
-                <span class="csm-context-value">{{ templateName }}</span>
-              </span>
-            </template>
+            <span v-if="templateName || templateUid" class="csm-context-item">
+              <span class="csm-context-label">{{ lbl.template }}:</span>
+              <span v-if="templateName" class="csm-context-value">{{ templateName }}</span>
+              <span v-if="templateUid" class="csm-context-uid">({{ templateUid }})</span>
+            </span>
           </p>
           <div class="d-flex ga-2">
             <v-btn
@@ -262,11 +328,21 @@ onMounted(load);
             <v-btn
               color="primary"
               class="text-none"
-              :loading="saving"
-              :disabled="loading"
+              :loading="saving && !allowSaveAnyway"
+              :disabled="loading || saving"
               @click="onSave"
             >
               {{ saveLabel }}
+            </v-btn>
+            <v-btn
+              v-if="allowSaveAnyway"
+              color="warning"
+              class="text-none"
+              :loading="saving"
+              :disabled="loading"
+              @click="onSaveAnyway"
+            >
+              {{ lbl.saveAnyway }}
             </v-btn>
           </div>
         </div>
@@ -276,7 +352,13 @@ onMounted(load);
         </v-alert>
 
         <div v-if="saveError" ref="saveAlertEl" class="csm-save-errors ma-2">
-          <v-alert type="error" variant="tonal" density="compact" closable @click:close="clearSaveErrors">
+          <v-alert
+            :type="saveAlertKind"
+            variant="tonal"
+            density="compact"
+            closable
+            @click:close="clearSaveErrors"
+          >
             <div class="font-weight-medium">{{ saveError }}</div>
             <div v-if="saveErrors.length" class="csm-save-errors-list mt-2">
               <div
@@ -354,13 +436,6 @@ onMounted(load);
   word-break: break-word;
   color: rgba(var(--v-theme-on-surface), 0.87);
 }
-.csm-context-tab {
-  color: rgba(var(--v-theme-on-surface), 0.87);
-}
-.csm-context-sep {
-  margin: 0 0.35em;
-  opacity: 0.45;
-}
 .csm-context-label {
   color: rgba(var(--v-theme-on-surface), 0.58);
   margin-right: 0.2em;
@@ -368,6 +443,14 @@ onMounted(load);
 .csm-context-value {
   font-weight: 600;
   color: rgba(var(--v-theme-on-surface), 0.92);
+}
+.csm-context-uid {
+  display: inline;
+  margin-left: 0.35em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8em;
+  font-weight: 400;
+  color: rgba(var(--v-theme-on-surface), 0.5);
 }
 .csm-save-errors {
   flex-shrink: 0;
