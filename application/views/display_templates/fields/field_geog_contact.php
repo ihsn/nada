@@ -24,61 +24,62 @@ $field_title = isset($template['title']) ? (string) $template['title'] : $field_
 	<div class="field-value">
 		<?php if (isset($data[0]) && is_array($data[0])): ?>
 		<?php foreach ($data as $row): ?>
-			<?php if (get_field_value('individualName', $row)): ?>
+			<?php if (!is_array($row)) { continue; } ?>
+			<?php if (array_data_get($row, 'individualName')): ?>
 				<div>
-					<?php echo html_escape(get_field_value('individualName', $row)); ?>
-					<?php if (get_field_value('role', $row)): ?>
-					<span class="contact-role"> (<?php echo html_escape(get_field_value('role', $row)); ?>)</span>
+					<?php echo html_escape(array_data_get($row, 'individualName')); ?>
+					<?php if (array_data_get($row, 'role')): ?>
+					<span class="contact-role"> (<?php echo html_escape(array_data_get($row, 'role')); ?>)</span>
 					<?php endif; ?>
 				</div>
 			<?php endif; ?>
 
-			<?php if (get_field_value('organisationName', $row)): ?>
-				<div><?php echo html_escape(get_field_value('organisationName', $row)); ?></div>
+			<?php if (array_data_get($row, 'organisationName')): ?>
+				<div><?php echo html_escape(array_data_get($row, 'organisationName')); ?></div>
 			<?php endif; ?>
 
-			<?php if (get_field_value('positionName', $row)): ?>
-				<div><?php echo html_escape(get_field_value('positionName', $row)); ?></div>
-			<?php endif; ?>
-
-			<div>
-			<?php if (get_field_value('contactInfo.phone.voice', $row)): ?>
-				<span class="pr-2">Phone: <?php echo html_escape(get_field_value('contactInfo.phone.voice', $row)); ?></span>
-			<?php endif; ?>
-			<?php if (get_field_value('contactInfo.phone.facsimile', $row)): ?>
-				<span class="pr-2">Fax: <?php echo html_escape(get_field_value('contactInfo.phone.facsimile', $row)); ?></span>
-			<?php endif; ?>
-			</div>
-
-			<?php if (get_field_value('contactInfo.address.deliveryPoint', $row)): ?>
-				<div><?php echo html_escape(get_field_value('contactInfo.address.deliveryPoint', $row)); ?></div>
+			<?php if (array_data_get($row, 'positionName')): ?>
+				<div><?php echo html_escape(array_data_get($row, 'positionName')); ?></div>
 			<?php endif; ?>
 
 			<div>
-			<?php if (get_field_value('contactInfo.address.city', $row)): ?>
-				<span class="mr-2"><?php echo html_escape(get_field_value('contactInfo.address.city', $row)); ?></span>
+			<?php if (array_data_get($row, 'contactInfo.phone.voice')): ?>
+				<span class="pr-2">Phone: <?php echo html_escape(array_data_get($row, 'contactInfo.phone.voice')); ?></span>
 			<?php endif; ?>
-			<?php if (get_field_value('contactInfo.address.postalCode', $row)): ?>
-				<span><?php echo html_escape(get_field_value('contactInfo.address.postalCode', $row)); ?></span>
+			<?php if (array_data_get($row, 'contactInfo.phone.facsimile')): ?>
+				<span class="pr-2">Fax: <?php echo html_escape(array_data_get($row, 'contactInfo.phone.facsimile')); ?></span>
 			<?php endif; ?>
 			</div>
 
-			<?php if (get_field_value('contactInfo.address.country', $row)): ?>
-				<div><?php echo html_escape(get_field_value('contactInfo.address.country', $row)); ?></div>
+			<?php if (array_data_get($row, 'contactInfo.address.deliveryPoint')): ?>
+				<div><?php echo html_escape(array_data_get($row, 'contactInfo.address.deliveryPoint')); ?></div>
 			<?php endif; ?>
 
-			<?php if (get_field_value('contactInfo.address.elctronicMailAddress', $row)): ?>
-				<div><?php echo html_escape(get_field_value('contactInfo.address.elctronicMailAddress', $row)); ?></div>
+			<div>
+			<?php if (array_data_get($row, 'contactInfo.address.city')): ?>
+				<span class="mr-2"><?php echo html_escape(array_data_get($row, 'contactInfo.address.city')); ?></span>
 			<?php endif; ?>
-			<?php if (get_field_value('contactInfo.address.electronicMailAddress', $row)): ?>
-				<div><?php echo html_escape(get_field_value('contactInfo.address.electronicMailAddress', $row)); ?></div>
+			<?php if (array_data_get($row, 'contactInfo.address.postalCode')): ?>
+				<span><?php echo html_escape(array_data_get($row, 'contactInfo.address.postalCode')); ?></span>
+			<?php endif; ?>
+			</div>
+
+			<?php if (array_data_get($row, 'contactInfo.address.country')): ?>
+				<div><?php echo html_escape(array_data_get($row, 'contactInfo.address.country')); ?></div>
 			<?php endif; ?>
 
-			<?php if (get_field_value('contactInfo.onlineResource.linkage', $row)): ?>
-				<div><?php echo html_escape(get_field_value('contactInfo.onlineResource.linkage', $row)); ?></div>
+			<?php if (array_data_get($row, 'contactInfo.address.elctronicMailAddress')): ?>
+				<div><?php echo html_escape(array_data_get($row, 'contactInfo.address.elctronicMailAddress')); ?></div>
 			<?php endif; ?>
-			<?php if (get_field_value('contactInfo.onlineResource.name', $row)): ?>
-				<div><?php echo html_escape(get_field_value('contactInfo.onlineResource.name', $row)); ?></div>
+			<?php if (array_data_get($row, 'contactInfo.address.electronicMailAddress')): ?>
+				<div><?php echo html_escape(array_data_get($row, 'contactInfo.address.electronicMailAddress')); ?></div>
+			<?php endif; ?>
+
+			<?php if (array_data_get($row, 'contactInfo.onlineResource.linkage')): ?>
+				<div><?php echo html_escape(array_data_get($row, 'contactInfo.onlineResource.linkage')); ?></div>
+			<?php endif; ?>
+			<?php if (array_data_get($row, 'contactInfo.onlineResource.name')): ?>
+				<div><?php echo html_escape(array_data_get($row, 'contactInfo.onlineResource.name')); ?></div>
 			<?php endif; ?>
 
 			<br class="border-bottom mb-2"/>

@@ -44,10 +44,10 @@ $field_title = isset($template['title']) ? (string) $template['title'] : $field_
 			<?php foreach ($row['source'] as $source): ?>
 				<tr>
 					<td><?php echo isset($source['description']) ? html_escape($source['description']) : ''; ?></td>
-					<td><?php echo html_escape((string) get_field_value('sourceCitation.title', $source)); ?></td>
+					<td><?php echo html_escape((string) array_data_get($source, 'sourceCitation.title')); ?></td>
 					<td>
 					<?php echo $this->load->view('display_templates/fields/field_geog_contact', array(
-						'data' => get_field_value('sourceCitation.citedResponsibleParty', $source),
+						'data' => array_data_get($source, 'sourceCitation.citedResponsibleParty'),
 						'template' => array(
 							'key' => $field_key . '.source',
 							'title' => '',
