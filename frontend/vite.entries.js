@@ -11,6 +11,7 @@ export const publicEntries = {
     'catalog/study_indicator_data_public/main.js'
   ),
   pdf_viewer: path.resolve(__dirname, 'pdf-viewer/main.js'),
+  datadeposit: path.resolve(__dirname, 'datadeposit/main.js'),
 };
 
 /** Admin Vite entries — kept out of the public chunk graph. */
@@ -71,6 +72,7 @@ export const adminEntries = {
   admin_tables: path.resolve(__dirname, 'admin/tables/main.js'),
   admin_facets: path.resolve(__dirname, 'admin/facets/main.js'),
   admin_menu: path.resolve(__dirname, 'admin/menu/main.js'),
+  admin_datadeposit: path.resolve(__dirname, 'admin/datadeposit/main.js'),
 };
 
 export const allEntries = {

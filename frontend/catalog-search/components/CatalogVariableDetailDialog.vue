@@ -162,7 +162,8 @@ watch(
     if (open && props.variable?.vid) {
       loadHtml();
     }
-  }
+  },
+  { immediate: true }
 );
 </script>
 

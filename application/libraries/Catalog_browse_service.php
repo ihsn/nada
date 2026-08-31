@@ -511,7 +511,7 @@ class Catalog_browse_service {
 					$result['rows'][$idx]['variable_url'] = site_url('catalog/' . $sid . '/variable/' . $vid);
 					$result['rows'][$idx]['study_url'] = site_url('catalog/' . $sid);
 				} else {
-					$result['rows'][$idx]['url'] = site_url('catalog/' . $row['id']);
+					$result['rows'][$idx]['url'] = site_url('catalog/' . ($row['id'] ?? ''));
 				}
 			}
 		}
@@ -536,7 +536,7 @@ class Catalog_browse_service {
 		if (isset($data['featured_studies']) && is_array($data['featured_studies'])) {
 			$featured = $data['featured_studies'];
 			foreach ($featured as $idx => $study) {
-				$featured[$idx]['url'] = site_url('catalog/' . $study['id']);
+				$featured[$idx]['url'] = site_url('catalog/' . ($study['id'] ?? ''));
 				if (!isset($featured[$idx]['form_model']) && isset($study['model'])) {
 					$featured[$idx]['form_model'] = $study['model'];
 				}

@@ -21,7 +21,8 @@ class Site_Menu
 		
 		$this->ci->lang->load('site_menu');
 		//$this->ci->output->enable_profiler(TRUE);
-		$this->ci->load->config("site_menus");		
+		$this->ci->load->config("site_menus");
+		$this->ci->load->helper('datadeposit');
 	}
 
 	/**
@@ -30,7 +31,21 @@ class Site_Menu
 	**/
 	function get_menu_items_array()
 	{
-		return $this->ci->config->item("site_menu");
+		$items = $this->ci->config->item("site_menu");
+		if (!is_array($items)) {
+			return array();
+		}
+		if (datadeposit_is_enabled()) {
+			return $items;
+		}
+		$filtered = array();
+		foreach ($items as $item) {
+			if (isset($item['url']) && $item['url'] === 'admin/datadeposit') {
+				continue;
+			}
+			$filtered[] = $item;
+		}
+		return $filtered;
 	}
 
 	/**

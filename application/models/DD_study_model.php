@@ -78,19 +78,5 @@ class DD_study_model extends CI_Model {
 			->where('id', $id);
 		return $q->get()->result_array();
 	}
-  
-  
-  public function insert_study($data) 
-  {
-	return $this->db->insert('dd_study', $data);
-  }
-  
-  
-  public function update_study($id, $data) 
-  {
-	 $d = $this->db->where('id', $id)
-	  	->update('dd_study', $data);
-	 return $d;
-  }
-    
+
 }

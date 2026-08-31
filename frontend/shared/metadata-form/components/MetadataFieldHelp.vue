@@ -2,8 +2,9 @@
 /**
  * Field label with ME-style collapsible help (question icon, collapsed by default).
  */
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useMetadataFormLabels } from '../composables/useMetadataFormLabels';
+import { useMetadataFormUi } from '../composables/useMetadataFormUi';
 
 defineProps({
   label: { type: String, default: '' },
@@ -13,11 +14,14 @@ defineProps({
   dense: { type: Boolean, default: false },
 });
 
-const open = ref(false);
+const localOpen = ref(false);
 const labels = useMetadataFormLabels();
+const ui = useMetadataFormUi();
+const open = computed(() => !!(ui?.showAllHelp?.value || localOpen.value));
 
 function toggle() {
-  open.value = !open.value;
+  if (ui?.showAllHelp?.value) return;
+  localOpen.value = !localOpen.value;
 }
 </script>
 
@@ -41,9 +45,11 @@ function toggle() {
         <v-icon size="16">{{ open ? 'mdi-help-circle' : 'mdi-help-circle-outline' }}</v-icon>
       </button>
     </div>
-    <div v-if="helpText && open" class="mf-help-text text-caption text-medium-emphasis">
-      {{ helpText }}
-    </div>
+    <div
+      v-if="helpText && open"
+      class="mf-help-text text-caption text-medium-emphasis"
+      v-html="helpText"
+    />
   </div>
 </template>
 
@@ -86,7 +92,17 @@ function toggle() {
 .mf-help-text {
   margin-top: 4px;
   margin-bottom: 6px;
-  white-space: pre-wrap;
-  line-height: 1.4;
+  line-height: 1.45;
+}
+.mf-help-text :deep(p) {
+  margin: 0 0 0.5em;
+}
+.mf-help-text :deep(p:last-child) {
+  margin-bottom: 0;
+}
+.mf-help-text :deep(ul),
+.mf-help-text :deep(ol) {
+  margin: 0.25em 0 0.5em;
+  padding-left: 1.25em;
 }
 </style>

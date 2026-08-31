@@ -450,68 +450,7 @@ class Catalog extends MY_REST_Controller
 
 		try {
 			$data = $this->catalog_browse_service->run_search($load_facets);
-
-			if ($data['search_type'] === 'variable') {
-				$result = isset($data['variables']) ? $data['variables'] : array('found' => 0, 'rows' => array());
-			} else {
-				$result = isset($data['surveys']) ? $data['surveys'] : array('found' => 0, 'rows' => array());
-			}
-
-			if (isset($result['rows'])) {
-				$result['page'] = $data['current_page'];
-				array_walk($result['rows'], 'unix_date_to_gmt', array('created', 'changed'));
-				foreach ($result['rows'] as $idx => $row) {
-					$result['rows'][$idx]['url'] = site_url('catalog/' . $row['id']);
-				}
-			}
-
-			if (isset($result['semantic_facets'])) {
-				unset($result['semantic_facets']);
-			}
-			if (isset($result['facet_mode'])) {
-				unset($result['facet_mode']);
-			}
-
-			$this->load->helper('catalog');
-			$result = catalog_browse_sanitize_search_result($result);
-
-			$response = array(
-				'status' => 'success',
-				'result' => $result,
-				'search_type' => $data['search_type'],
-				'tab_type' => $this->catalog_browse_service->active_tab,
-				'tabs' => $this->catalog_browse_service->build_tabs($data),
-				'site' => $this->catalog_browse_service->site_config_for_client(),
-				'enabled_filters' => $this->catalog_browse_service->enabled_filters,
-			);
-
-			if ($load_facets) {
-				$response['facets'] = $this->catalog_browse_service->facets;
-			}
-
-			if (isset($data['featured_studies'])) {
-				$featured = $data['featured_studies'];
-				if (is_array($featured)) {
-					foreach ($featured as $idx => $study) {
-						$featured[$idx]['url'] = site_url('catalog/' . $study['id']);
-						if (!isset($featured[$idx]['form_model']) && isset($study['model'])) {
-							$featured[$idx]['form_model'] = $study['model'];
-						}
-						array_walk($featured[$idx], 'unix_date_to_gmt_row', array('created', 'changed'));
-					}
-				}
-				$response['featured_studies'] = $featured;
-			}
-			if (isset($data['related_collections'])) {
-				$response['related_collections'] = $data['related_collections'];
-			}
-			if (!empty($result['semantic_note'])) {
-				$response['semantic_note'] = $result['semantic_note'];
-			}
-			if (!empty($result['semantic_fallback'])) {
-				$response['semantic_fallback'] = $result['semantic_fallback'];
-			}
-
+			$response = $this->catalog_browse_service->build_browse_client_response($data, $load_facets);
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		} catch (RuntimeException $e) {
 			$response = array('status' => 'failed', 'message' => $e->getMessage());

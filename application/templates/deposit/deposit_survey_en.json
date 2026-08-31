@@ -1,0 +1,702 @@
+{
+  "type": "template",
+  "title": "Data deposit — microdata",
+  "items": [
+    {
+      "type": "section_container",
+      "key": "study_desc",
+      "title": "Study description",
+      "expanded": true,
+      "items": [
+        {
+          "type": "section",
+          "key": "study_desc.title_statement",
+          "title": "Identification",
+          "expanded": true,
+          "items": [
+            {
+              "key": "study_desc.title_statement.title",
+              "title": "Title",
+              "type": "string",
+              "is_required": true,
+              "display_type": "text",
+              "help_text": "This element is \"Required\". Provide here the full authoritative title for the study. Make sure to use a unique name for each distinct study. The title should indicate the time period covered. For example, in a country conducting monthly labor force surveys, the title of a study would be like “Labor Force Survey, December 2020”. When a survey spans two years (for example, a household income and expenditure survey conducted over a period of 12 months from June 2020 to June 2021), the range of years can be provided in the title, for example “Household Income and Expenditure Survey 2020-2021”. The title of a survey should be its official name as stated on the survey questionnaire or in other study documents (report, etc.). Including the country name in the title is optional (another metadata element is used to identify the reference countries). Pay attention to the consistent use of capitalization in the title."
+            },
+            {
+              "key": "study_desc.title_statement.sub_title",
+              "title": "Subtitle",
+              "type": "string",
+              "display_type": "text",
+              "help_text": "The sub-title is a secondary title used to amplify or state certain limitations on the main title, for example to add information usually associated with a sequential qualifier for a survey. For example, we may have “[country] Universal Primary Education Project, Impact Evaluation Survey 2007” as Title, and “Baseline dataset” as Subtitle. Note that this information could also be entered as a Title with no Subtitle: “[country] Universal Primary Education Project, Impact Evaluation Survey 2007 - Baseline dataset”."
+            },
+            {
+              "key": "study_desc.title_statement.alternate_title",
+              "title": "Abbreviation",
+              "type": "string",
+              "display_type": "text",
+              "help_text": "The alternate title will typically be used to capture the abbreviation of the survey title. Many surveys are known and referred to by their acronym. The survey reference year(s) may be included. For example, the \"Demographic and Health Survey 2012\" would be abbreviated as \"DHS 2012\", or the \"Living Standards Measurement Study 2020-2012\" as \"LSMS 2020-2021\"."
+            },
+            {
+              "key": "study_desc.title_statement.translated_title",
+              "title": "Translated title",
+              "type": "string",
+              "display_type": "text",
+              "help_text": "In countries with more than one official language, a translation of the title may be provided here. Likewise, the translated title may simply be a translation into English from a country’s own language. Special characters should be properly displayed, such as accents and other stress marks or different alphabets."
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "key": "study_desc.series_statement",
+          "title": "Series",
+          "items": [
+            {
+              "key": "study_desc.series_statement.series_name",
+              "title": "Study type / series name",
+              "type": "string",
+              "display_type": "text",
+              "help_text": "A study may be repeated at regular intervals (such as an annual labor force survey), or be part of an international survey program (such as the MICS, DHS, LSMS and others). The name of the series to which the study belongs is captured in this element. For example, \"Living Standards Measurement Study (LSMS)\" or \"Demographic and Health Survey (DHS)\" or \"Multiple Indicator Cluster Survey VII (MICS7)\". A description of the series can be provided in the element \"Series information\"."
+            },
+            {
+              "key": "study_desc.series_statement.series_info",
+              "title": "Series information",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "A study may be repeated at regular intervals (such as an annual labor force survey), or be part of an international survey program (such as the MICS, DHS, LSMS and others). The name of the series to which the study belongs is captured in this element. For example, \"Living Standards Measurement Study (LSMS)\" or \"Demographic and Health Survey (DHS)\" or \"Multiple Indicator Cluster Survey VII (MICS7)\". The name of the series is provided in element \"Series name\". The element \"Series description\" will contain a brief description of the characteristics of the series, including when it started, how many rounds were already implemented, and who is in charge would be provided here."
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "key": "study_desc.version_statement",
+          "title": "Version",
+          "items": [
+            {
+              "key": "study_desc.version_statement.version",
+              "title": "Version",
+              "type": "string",
+              "display_type": "text",
+              "help_text": "The version number, also known as release or edition. The version statement should contain a version number followed by a version label. The version number should follow a standard convention to be adopted by the data repository. We recommend that larger series be defined by a number to the left of a decimal and iterations of the same series by a sequential number that identifies the release. The left number could for example be (0) for the raw, unedited dataset; (1) for the edited dataset, non anonymized, available for internal use at the data producing agency; and (2) the edited dataset, prepared for dissemination to secondary users (possibly anonymized). For example:\n- v0: Basic raw data, resulting from the data capture process, before any data editing is implemented.\n- v1.0: Edited data, first iteration, for internal use only.\n- v1.1: Edited data, second iteration, for internal use only.\n- v2.1: Edited data, anonymized and packaged for public distribution."
+            },
+            {
+              "key": "study_desc.version_statement.version_date",
+              "title": "Version date",
+              "type": "string",
+              "display_type": "text",
+              "help_text": "The reference date for this version of the dataset. The use of the ISO 8601 standard is highly recommended for the formatting of the date (YYYY-MM-DD). A regular expression can be provided in \"Validation rules\" in user templates to validate the information entered in this element."
+            },
+            {
+              "key": "study_desc.version_statement.version_notes",
+              "title": "Version notes",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "Version notes should provide a brief report on the changes made through the versioning process. The note should indicate how this version differs from other versions of the same dataset."
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "key": "study_desc.study_info",
+          "title": "Overview",
+          "expanded": true,
+          "items": [
+            {
+              "key": "study_desc.study_info.abstract",
+              "title": "Abstract",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "An un-formatted summary describing the purpose, nature, and scope of the data collection, special characteristics of its contents, major subject areas covered, and what questions the primary investigator(s) attempted to answer when they conducted the study. The summary should ideally be between 50 and 5000 characters long. The abstract should provide a clear summary of the purposes, objectives and content of the survey. It should be written by a researcher or survey statistician aware of the study. Inclusion of this element is recommended.",
+              "is_recommended": true
+            },
+            {
+              "key": "study_desc.study_info.data_kind",
+              "title": "Kind of data",
+              "type": "string",
+              "display_type": "dropdown-custom",
+              "enum": [
+                {
+                  "code": "Sample survey data [ssd]",
+                  "label": "Sample survey data [ssd]"
+                },
+                {
+                  "code": "Census/enumeration data [cen]",
+                  "label": "Census/enumeration data [cen]"
+                },
+                {
+                  "code": "Administrative records data [adm]",
+                  "label": "Administrative records data [adm]"
+                },
+                {
+                  "code": "Aggregate data [agg]",
+                  "label": "Aggregate data [agg]"
+                },
+                {
+                  "code": "Clinical data [cli]",
+                  "label": "Clinical data [cli]"
+                },
+                {
+                  "code": "Event/Transaction data [evn]",
+                  "label": "Event/Transaction data [evn]"
+                },
+                {
+                  "code": "Observation data/ratings [obs]",
+                  "label": "Observation data/ratings [obs]"
+                },
+                {
+                  "code": "Process-produced data [pro]",
+                  "label": "Process-produced data [pro]"
+                }
+              ],
+              "help_text": "This field describes the main type of microdata generated by the study: survey data, census/enumeration data, aggregate data, clinical data, event/transaction data, program source code, machine-readable text, administrative records data, experimental data, psychological test, textual data, coded textual, coded documents, time budget diaries, observation data/ratings, process-produced data, etc. A controlled vocabulary should be used in user templates as this information may be used to build facets (filters) in a catalog user interface."
+            },
+            {
+              "key": "study_desc.study_info.analysis_unit",
+              "title": "Unit of analysis",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "A study can have multiple units of analysis. This field will list the various units that can be analyzed. For example, a Living Standard Measurement Study (LSMS) may have collected data on households and their members (individuals), on dwelling characteristics, on prices in local markets, on household enterprises, on agricultural plots, and on characteristics of health and education facilities in the sample areas."
+            }
+          ],
+          "help_text": "This section contains information about the data collection's scope across several dimensions, including substantive content, geography, and time."
+        },
+        {
+          "type": "section",
+          "key": "study_desc.study_info.scope",
+          "title": "Scope",
+          "items": [
+            {
+              "key": "study_desc.study_info.topics",
+              "title": "Topics",
+              "type": "array",
+              "props": [
+                {
+                  "key": "topic",
+                  "title": "Topic",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The label of the topic."
+                },
+                {
+                  "key": "vocab",
+                  "title": "Vocabulary",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The controlled vocabulary, if any, from which the concept `title’ was taken."
+                },
+                {
+                  "key": "uri",
+                  "title": "URL",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "A URL to a website where an electronic copy and more information on the classification can be obtained."
+                }
+              ],
+              "help_text": "Topics indicate the broad substantive topic(s) that the dataset covers. A topic classification facilitates referencing and searches in electronic survey catalogs; topics should thus be selected from a standard controlled vocabulary, for example the CESSDA Topics classification (a typology of topics available in 11 languages), or the Journal of Economic Literature (JEL) Classification System. Note that you may combine topics from more than one controlled vocabulary."
+            },
+            {
+              "key": "study_desc.study_info.keywords",
+              "title": "Keywords",
+              "type": "array",
+              "props": [
+                {
+                  "key": "keyword",
+                  "title": "Keyword",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "A keyword (or phrase)."
+                },
+                {
+                  "key": "vocab",
+                  "title": "Vocabulary",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The controlled vocabulary, if any, from which the concept `title’ was taken."
+                },
+                {
+                  "key": "uri",
+                  "title": "URL",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "A URL to a website where an electronic copy and more information on the classification can be obtained."
+                }
+              ],
+              "help_text": "Keywords are words or phrases that describe salient aspects of what the dataset is about. The addition of keywords can significantly improve the discoverability of data and is thus recommended. Keywords can summarize and improve the description of the content or subject matter of a resource. Keywords can be selected from a standard thesaurus, preferably an international, multilingual thesaurus. Or they can be suggested by machine learning models. A controlled vocabulary can be used in user templates.",
+              "is_recommended": true
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "key": "study_desc.study_info.coverage",
+          "title": "Coverage",
+          "items": [
+            {
+              "key": "study_desc.study_info.nation",
+              "title": "Country",
+              "type": "array",
+              "is_required": true,
+              "props": [
+                {
+                  "key": "name",
+                  "title": "Name",
+                  "type": "string",
+                  "display_type": "text"
+                },
+                {
+                  "key": "abbreviation",
+                  "title": "Code",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The abbreviation will contain a country code, preferably the 3-letter ISO 3166-1 country code."
+                }
+              ],
+              "help_text": "Indicates the country or countries (or “economies”, or “territories”) covered in the study (but not the sub-national geographic areas). If the study covers more than one country, they will be entered separately. Consistent country names and spelling should be used across an organization (for example, if \"Democratic Republic of Congo\" is the recommended name for the organization, the information should should not be entered as \"Congo, Democratic Republic\", \"Congo, Dem. Rep.\", \"DR Congo\", or other option). In user templates, a controlled vocabulary can be set at the country name level, at the country code level, or at the combined name/code level."
+            },
+            {
+              "key": "study_desc.study_info.geog_coverage",
+              "title": "Geographic coverage",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "Information on the geographic coverage of the study. This includes the total geographic scope of the data, and any additional levels of geographic coding provided in the variables. Typical entries will be “National coverage”, “Urban areas”, “Rural areas”, “State of …”, “Capital city”, etc. This does not describe where the data were collected; it describes which area the data are representative of. This means for example that a sample survey could be declared as having a national coverage even if some districts of the country where not included in the sample, as long as the sample is nationally representative. A controlled vocabulary can be provided in user templates."
+            },
+            {
+              "key": "study_desc.study_info.universe",
+              "title": "Universe",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "The universe is the group of persons (or other units of observations, like dwellings, facilities, or other) that are the object of the study and to which any analytic results refer. The universe will rarely cover the entire population of the country. Sample household surveys, for example, may not cover homeless, nomads, diplomats, community households. Population censuses do not cover diplomats. Facility surveys may be limited to facilities of a certain type (e.g., public schools). Try to provide the most detailed information possible on the population covered by the survey/census, focusing on excluded categories of the population. For household surveys, age, nationality, and residence commonly help to delineate a given universe, but any of a number of factors may be involved, such as sex, race, income, veteran status, criminal convictions, etc. In general, it should be possible to tell from the description of the universe whether a given individual or element (hypothetical or real) is a member of the population under study."
+            },
+            {
+              "key": "study_desc.study_info.coll_dates",
+              "title": "Dates of data collection",
+              "type": "array",
+              "props": [
+                {
+                  "key": "start",
+                  "title": "Start",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "Date the data collection started (for the specified cycle, if any). Enter the date preferably in ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). A validation rule can be set in user templates to enforce a specific date format."
+                },
+                {
+                  "key": "end",
+                  "title": "End",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "Date the data collection ended (for the specified cycle, if any). Enter the date preferably in ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). A validation rule can be set in user templates to enforce a specific date format."
+                },
+                {
+                  "key": "cycle",
+                  "title": "Cycle",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "Identification of the cycle of data collection. The cycle attribute permits specification of the relevant cycle, wave, or round of data. For example, a household consumption survey could visit households in four phases (one per quarter). Each quarter would be a cycle, and the specific dates of data collection for each quarter would be entered."
+                }
+              ],
+              "help_text": "Contains the date(s) when the data were collected, which may be different from the dates the data refer to (see \"Time periods\" element in section \"Geographic and time coverage\"). For example, data may be collected over a period of two weeks (\"Dates of data collection\") about household expenditures during a reference week (\"Time period\") preceding the beginning of data collection.",
+              "is_recommended": true
+            },
+            {
+              "key": "study_desc.study_info.time_periods",
+              "title": "Time periods",
+              "type": "array",
+              "props": [
+                {
+                  "key": "start",
+                  "title": "Start",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "Date the data collection started (for the specified cycle, if any). Enter the date preferably in ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). A validation rule can be set in user templates to enforce a specific date format."
+                },
+                {
+                  "key": "end",
+                  "title": "End",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "Date the data collection ended (for the specified cycle, if any). Enter the date preferably in ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). A validation rule can be set in user templates to enforce a specific date format."
+                },
+                {
+                  "key": "cycle",
+                  "title": "Cycle",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "Identification of the cycle of data collection. The cycle attribute permits specification of the relevant cycle, wave, or round of data. For example, a household consumption survey could visit households in four phases (one per quarter). Each quarter would be a cycle, and the specific dates of data collection for each quarter would be entered."
+                }
+              ],
+              "help_text": "This refers to the time period (also known as span) covered by the data. It does not necessarily correspond to the dates of data collection (a specific element \"Dates of data collection\" is also available in the standard)."
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "key": "study_desc.production_statement",
+          "title": "Producers and sponsors",
+          "items": [
+            {
+              "key": "study_desc.authoring_entity",
+              "title": "Primary investigator",
+              "type": "array",
+              "props": [
+                {
+                  "key": "name",
+                  "title": "Name",
+                  "type": "string",
+                  "display_type": "text"
+                },
+                {
+                  "key": "affiliation",
+                  "title": "Affiliation",
+                  "type": "string",
+                  "display_type": "text"
+                }
+              ],
+              "help_text": "The name and affiliation of the person, corporate body, or agency responsible for the study’s substantive and intellectual content (the \"authoring entity\" or “primary investigator”). Generally, in a survey, the authoring entity will be the institution implementing the survey. Repeat the element for each authoring entity, and enter the “Affiliation” when relevant. If various institutions have been equally involved as main investigators, then should all be listed. This only includes the agencies responsible for the implementation of the study, not sponsoring agencies or entities providing technical assistance (for which other metadata elements are available). The order in which authoring entities are listed is discretionary. It can be alphabetic or by significance of contribution. Individual persons can also be mentioned, if not prohibited by privacy protection rules."
+            },
+            {
+              "key": "study_desc.production_statement.producers",
+              "title": "Other producers",
+              "type": "array",
+              "props": [
+                {
+                  "key": "name",
+                  "title": "Name",
+                  "type": "string",
+                  "display_type": "text"
+                },
+                {
+                  "key": "abbr",
+                  "title": "Abbreviation",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The official abbreviation of the organization mentioned in \"Name\"."
+                },
+                {
+                  "key": "affiliation",
+                  "title": "Affiliation",
+                  "type": "string",
+                  "display_type": "text"
+                },
+                {
+                  "key": "role",
+                  "title": "Role",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The specific role played by the individual or organization mentioned in \"Name\" in the evaluation process."
+                }
+              ],
+              "help_text": "This field is used to list other parties and persons that have played a significant but not the leading technical role in implementing and producing the data (which will be listed in \"Authoring entity\"). Do not include here the financial sponsors, who should be listed in \"Funding agencies\"."
+            },
+            {
+              "key": "study_desc.production_statement.funding_agencies",
+              "title": "Funding",
+              "type": "array",
+              "props": [
+                {
+                  "key": "name",
+                  "title": "Agency",
+                  "type": "string",
+                  "display_type": "text"
+                },
+                {
+                  "key": "abbr",
+                  "title": "Abbreviation",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The official abbreviation of the organization mentioned in \"Name\"."
+                },
+                {
+                  "key": "grant",
+                  "title": "Grant number",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The grant number. If an agency has provided more than one grant, list them all separated with a “;”."
+                },
+                {
+                  "key": "role",
+                  "title": "Role",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The specific role played by the individual or organization mentioned in \"Name\" in the evaluation process."
+                }
+              ],
+              "help_text": "The source(s) of funds for the production of the study. If different funding agencies sponsored different stages of the production process, use the role attribute to distinguish them."
+            },
+            {
+              "key": "study_desc.oth_id",
+              "title": "Acknowledgements",
+              "type": "array",
+              "props": [
+                {
+                  "key": "name",
+                  "title": "Name",
+                  "type": "string",
+                  "display_type": "text"
+                },
+                {
+                  "key": "affiliation",
+                  "title": "Affiliation",
+                  "type": "string",
+                  "display_type": "text"
+                },
+                {
+                  "key": "role",
+                  "title": "Role",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The specific role played by the individual or organization mentioned in \"Name\" in the evaluation process."
+                }
+              ],
+              "help_text": "This element is used to acknowledge any other people and organizations that have in some form contributed to the study. This does not include other producers which should be listed in \"Other producers\", and financial sponsors which should be listed in the element \"Funding agencies\"."
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "key": "study_desc.method",
+          "title": "Methodology",
+          "items": [
+            {
+              "key": "study_desc.method.data_collection.sampling_procedure",
+              "title": "Sampling procedure",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "This field only applies to sample surveys. It describes the type of sample and sample design used to select the survey respondents to represent the population. This section should include summary information that includes (but is not limited to): sample size (expected and actual) and how the sample size was decided; level of representation of the sample; sample frame used, and listing exercise conducted to update it; sample selection process (e.g., probability proportional to size or over sampling); stratification (implicit and explicit); design omissions in the sample; strategy for absent respondents/not found/refusals (replacement or not). Detailed information on the sample design is critical to allow users to adequately calculate sampling errors and confidence intervals for their estimates. To do that, they will need to be able to clearly identify the variables in the dataset that represent the different levels of stratification and the primary sampling unit (PSU).\n\nIn publications and reports, the description of sampling design often contains complex formulas and symbols. As the XML and JSON formats used to store the metadata are plain text files, they cannot contain these complex representations. You may however provide references (title/author/date) to documents where such detailed descriptions are provided, and make sure that the documents (or links to the documents) are provided in the catalog where the survey metadata are published."
+            },
+            {
+              "key": "study_desc.method.data_collection.sampling_deviation",
+              "title": "Deviations from sample design",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "Sometimes the reality of the field requires a deviation from the sampling design (for example due to difficulty to access to zones due to weather problems, political instability, etc). If for any reason, the sample design has deviated, this can be reported here. This element will provide information indicating the correspondence as well as the possible discrepancies between the sampled units (obtained) and available statistics for the population (age, sex-ratio, marital status, etc.) as a whole."
+            },
+            {
+              "key": "study_desc.method.data_collection.weight",
+              "title": "Weighting",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "This field only applies to sample surveys. The use of sampling procedures may make it necessary to apply weights to produce accurate statistical results. Describe here the criteria for using weights in analysis of a collection, and provide a list of variables used as weighting coefficient. If more than one variable is a weighting variable, describe how these variables differ from each other and what the purpose of each one of them is."
+            },
+            {
+              "key": "study_desc.method.data_collection.coll_mode",
+              "title": "Mode of data collection",
+              "type": "string",
+              "display_type": "text",
+              "help_text": "The mode of data collection is the manner in which the interview was conducted or information was gathered. Ideally, a controlled vocabulary will be used to constrain the entries in this field (which could include items like “telephone interview”, “face-to-face paper and pen interview”, “face-to-face computer-assisted interviews (CAPI)”, “mail questionnaire”, “computer-aided telephone interviews (CATI)”, “self-administered web forms”, “measurement by sensor”, and others.\n\nThis is a repeatable field, as some data collection activities implement multi-mode data collection (for example, a population census can offer respondents the options to submit information via web forms, telephone interviews, mailed forms, or face-to-face interviews."
+            },
+            {
+              "key": "study_desc.method.data_collection.data_collectors",
+              "title": "Data collectors",
+              "type": "array",
+              "props": [
+                {
+                  "key": "name",
+                  "title": "Name",
+                  "type": "string",
+                  "display_type": "text"
+                },
+                {
+                  "key": "abbr",
+                  "title": "Abbreviation",
+                  "type": "string",
+                  "display_type": "text",
+                  "help_text": "The official abbreviation of the organization mentioned in \"Name\"."
+                },
+                {
+                  "key": "affiliation",
+                  "title": "Affiliation",
+                  "type": "string",
+                  "display_type": "text"
+                }
+              ],
+              "help_text": "The entity (individual, agency, or institution) responsible for administering the questionnaire or interview or compiling the data."
+            },
+            {
+              "key": "study_desc.method.data_collection.coll_situation",
+              "title": "Collection notes",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "A description of noteworthy aspects of the data collection situation. Includes information on factors such as cooperativeness of respondents, duration of interviews, number of call-backs, etc."
+            },
+            {
+              "key": "study_desc.method.data_collection.res_instru",
+              "title": "Questionnaires",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "Describe the questionnaire(s) used for data collection, including modules, languages, and whether the instruments are uploaded with this project."
+            },
+            {
+              "key": "study_desc.method.data_collection.act_min",
+              "title": "Supervision",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "A summary of actions taken to minimize data loss. This includes information on actions such as follow-up visits, supervisory checks, historical matching, estimation, etc. Note that this element does not have to include detailed information on response rates, as a specific metadata element is provided for that purpose in section analysis_info / response_rate."
+            },
+            {
+              "key": "study_desc.method.data_collection.cleaning_operations",
+              "title": "Data editing",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "A description of the methods used to clean or edit the data, e.g., consistency checking, wild code checking, etc. The data editing should contain information on how the data was treated or controlled for in terms of consistency and coherence. This item does not concern the data entry phase but only the editing of data whether manual or automatic. It should provide answers to questions like: Was a hot-deck or a cold-deck technique used to edit the data? Were corrections made automatically (by program), or by visual control of the questionnaire? What software was used? If materials are available (specifications for data editing, report on data editing, programs used for data editing), they should be listed here and provided as external resources in data catalogs (the best documentation of data editing consists of well-documented reproducible scripts)."
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "key": "study_desc.method.analysis",
+          "title": "Appraisal",
+          "items": [
+            {
+              "key": "study_desc.method.analysis_info.response_rate",
+              "title": "Response rates",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "The response rate is the percentage of sample units that participated in the survey based on the original sample size. Omissions may occur due to refusal to participate, impossibility to locate the respondent, or other reason. This element is used to provide a narrative description of the response rate, possibly by stratum or other criteria, and if possible with an identification of possible causes. If information is available on the causes of non-response (refusal/not found/other), it can be reported here. This field can also be used to describe non-responses in population censuses."
+            },
+            {
+              "key": "study_desc.method.analysis_info.sampling_error_estimates",
+              "title": "Estimates of sampling error",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "Sampling errors are intended to measure how precisely one can estimate a population value from a given sample. For sampling surveys, it is good practice to calculate and publish sampling error. This field is used to provide information on these calculations (not to provide the sampling errors themselves, which should be made available in publications or reports). Information can be provided on which ratios/indicators have been subjected to the calculation of sampling errors, and on the software used for computing the sampling error. Reference to a report or other document where the results can be found can also be provided."
+            },
+            {
+              "key": "study_desc.method.analysis_info.data_appraisal",
+              "title": "Other appraisal",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "This section is used to report any other action taken to assess the reliability of the data, or any observations regarding data quality. Describe here issues such as response variance, interviewer and response bias, question bias, etc. For a population census, this can include information on the main results of a post enumeration survey (a report should be provided in external resources and mentioned here); it can also include relevant comparisons with data from other sources that can be used as benchmarks."
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "key": "study_desc.data_access",
+          "title": "Data access",
+          "items": [
+            {
+              "key": "study_desc.data_access.dataset_use.conf_dec",
+              "title": "Confidentiality",
+              "type": "array",
+              "props": [
+                {
+                  "key": "txt",
+                  "title": "Statement",
+                  "type": "string",
+                  "display_type": "textarea",
+                  "help_text": "A statement on the special permissions required to access the dataset."
+                }
+              ],
+              "help_text": "This element is used to determine if signing of a confidentiality declaration is needed to access a resource. We may indicate here what Affidavit of Confidentiality must be signed before the data can be accessed. Another option is to include this information in the element \"Access conditions\". If there is no confidentiality issue, this field can be left blank."
+            },
+            {
+              "key": "study_desc.data_access.dataset_use.cit_req",
+              "title": "Citation requirement",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "A citation requirement that indicates the way that the dataset should be referenced when cited in any publication. Providing a citation requirement will guarantee that the data producer gets proper credit, and that results of analysis can be linked to the proper version of the dataset. The data access policy should explicitly mention the obligation to comply with the citation requirement. The citation should include at least the primary investigator, the name and abbreviation of the dataset, the reference year, and the version number. Include also a website where the data or information on the data is made available by the official data depositor. Ideally, the citation requirement will include a DOI (see the DataCite website for recommendations)."
+            },
+            {
+              "key": "study_desc.data_access.dataset_use.conditions",
+              "title": "Access conditions",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "Indicates any additional information that will assist the user in understanding the access and use conditions of the data collection. Note that if this information is subject to change, it should not be captured in the study metadata but provided in a data catalog page."
+            },
+            {
+              "key": "study_desc.data_access.dataset_use.disclaimer",
+              "title": "Disclaimer",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "A disclaimer limits the liability that the data producer or data custodian has regarding the use of the data. A standard legal statement should be used for all datasets from a same agency. The following formulation could be used: The user of the data acknowledges that the original collector of the data, the authorized distributor of the data, and the relevant funding agency bear no responsibility for use of the data or for interpretations or inferences based upon such uses."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section_container",
+      "key": "citations",
+      "title": "Citations",
+      "items": [
+        {
+          "type": "section",
+          "key": "citations_section",
+          "title": "Related citations",
+          "expanded": true,
+          "items": [
+            {
+              "key": "citations",
+              "title": "Citations",
+              "type": "array",
+              "help_text": "Paste each citation in BibTeX, RIS, EndNote, or a standard text style (Chicago, APA).",
+              "props": [
+                {
+                  "key": "format",
+                  "title": "Format",
+                  "type": "string",
+                  "display_type": "dropdown",
+                  "enum": [
+                    {
+                      "code": "bibtex",
+                      "label": "BibTeX"
+                    },
+                    {
+                      "code": "ris",
+                      "label": "RIS"
+                    },
+                    {
+                      "code": "endnote",
+                      "label": "EndNote"
+                    },
+                    {
+                      "code": "chicago",
+                      "label": "Chicago"
+                    },
+                    {
+                      "code": "apa",
+                      "label": "APA"
+                    },
+                    {
+                      "code": "other",
+                      "label": "Other"
+                    }
+                  ]
+                },
+                {
+                  "key": "text",
+                  "title": "Citation",
+                  "type": "string",
+                  "display_type": "textarea",
+                  "is_required": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "help_text": "Paste each citation in BibTeX, RIS, EndNote, or a standard text style (Chicago, APA)."
+    },
+    {
+      "type": "section_container",
+      "key": "additional_container",
+      "title": "Additional fields",
+      "items": [
+        {
+          "type": "section",
+          "key": "additional_section",
+          "title": "Catalog",
+          "expanded": true,
+          "items": [
+            {
+              "key": "additional.catalog_study_id",
+              "title": "Catalog study ID",
+              "type": "string",
+              "display_type": "text",
+              "help_text": "Optional identifier of the related catalog study (free text, not a catalog link)."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

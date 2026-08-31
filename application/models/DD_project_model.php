@@ -25,7 +25,8 @@ class DD_project_model extends CI_Model {
         'created_on',
         'last_modified',
         'created_by',
-        'status'
+        'status',
+        'data_type'
     );
 
 
@@ -139,36 +140,6 @@ class DD_project_model extends CI_Model {
 		 return $this->db->get('dd_projects')->result();
 	}
 	
-	public function import_from_project($uid, $from_id, $to_id) 
-	{
-		$ci =& get_instance();
-		$ci->load->model('DD_study_model');
-		$uid = (int) $uid;
-
-		$q = $this->db->select('id, email')
-			->from('users')
-			->where('id', $uid);
-			
-		$user = $q->get()->result();
-		
-		if (!$this->has_access($from_id, $user[0]->email) || !$this->has_access($to_id, $user[0]->email)) {
-			return false;
-		}
-
-		$data   = $this->DD_study_model->get_study($from_id);
-		$insert = array();
-		
-		foreach((array)$data[0] as $key => $field) {
-			$insert[$key] = $field;
-		}
-		
-		unset($insert['id']);
-		unset($insert['ident_title']);
-		$this->DD_study_model->update_study($to_id, $insert);
-		return true;
-	}
-		
-
     //get projects by user
     public function get_user_projects($uid, $order='created_on', $order_by = 'desc', $limit = 1000, $offset = 0)
     {
@@ -183,23 +154,76 @@ class DD_project_model extends CI_Model {
      *
      * Return a list of projects by user
 	**/
-	public function projects ($uid, $order='created_on', $order_by = 'desc', $limit = 1000, $offset = 0) 
+	public function projects ($uid, $order='created_on', $order_by = 'desc', $limit = 0, $offset = 0, $keywords = '', $status = '') 
 	{
-		$uid = (int) $uid;
-		$q = $this->db->select('id, email')
-			->from('users')
-			->where('id', $uid);
-			
-		$user = $q->get()->result();
-		
-		//return projects owned and collborated by the user
-		$q = $this->db->select('dd_projects.*, dd_collaborators.access')
-			->from('dd_projects')
-			->join('dd_collaborators','dd_collaborators.pid=dd_projects.id','left')
-			->where('dd_collaborators.email', $user[0]->email)
-			->order_by($order, $order_by);
+		$email = $this->_user_email_by_uid($uid);
+		if ($email === '') {
+			return array();
+		}
 
-	  return $q->get()->result();
+		$allowed = array('title', 'created_by', 'status', 'created_on', 'last_modified', 'id');
+		if (!in_array($order, $allowed, true)) {
+			$order = 'created_on';
+		}
+		$order_by = strtolower((string) $order_by) === 'asc' ? 'asc' : 'desc';
+
+		$this->db->select('dd_projects.*, dd_collaborators.access');
+		$this->_projects_for_email($email, $keywords, $status);
+		$this->db->order_by('dd_projects.'.$order, $order_by);
+
+		$limit = (int) $limit;
+		$offset = max(0, (int) $offset);
+		if ($limit > 0) {
+			$this->db->limit($limit, $offset);
+		}
+
+		return $this->db->get()->result();
+	}
+
+	public function count_projects($uid, $keywords = '', $status = '')
+	{
+		$email = $this->_user_email_by_uid($uid);
+		if ($email === '') {
+			return 0;
+		}
+
+		$this->db->select('dd_projects.id');
+		$this->_projects_for_email($email, $keywords, $status);
+		return (int) $this->db->count_all_results();
+	}
+
+	private function _user_email_by_uid($uid)
+	{
+		$row = $this->db->select('email')
+			->from('users')
+			->where('id', (int) $uid)
+			->get()
+			->row();
+		return ($row && isset($row->email)) ? (string) $row->email : '';
+	}
+
+	private function _projects_for_email($email, $keywords = '', $status = '')
+	{
+		$this->db->from('dd_projects');
+		$this->db->join('dd_collaborators', 'dd_collaborators.pid=dd_projects.id', 'left');
+		$this->db->where('dd_collaborators.email', $email);
+
+		$allowed_status = array('draft', 'submitted', 'accepted', 'processed', 'closed');
+		$status = strtolower(trim((string) $status));
+		if ($status !== '' && in_array($status, $allowed_status, true)) {
+			$this->db->where('dd_projects.status', $status);
+		}
+
+		$keywords = trim((string) $keywords);
+		if ($keywords === '') {
+			return;
+		}
+
+		$this->db->group_start();
+		$this->db->like('dd_projects.title', $keywords);
+		$this->db->or_like('dd_projects.description', $keywords);
+		$this->db->or_like('dd_projects.created_by', $keywords);
+		$this->db->group_end();
 	}
 	
 	
@@ -377,6 +401,10 @@ class DD_project_model extends CI_Model {
 	
 	public function set_study_id($id,$study_id)
 	{
+		if ($this->get_schema_version($id) >= 2) {
+			return false;
+		}
+
 		$options=array(
 			'ident_ddp_id'=>$study_id
 		);
@@ -438,6 +466,10 @@ class DD_project_model extends CI_Model {
 			}
 		}
 		
+		if (empty($options['data_type'])) {
+			$options['data_type'] = 'survey';
+		}
+
 		$options['data_folder_path']=md5(date("U"));
 		
 		$this->db->trans_start();
@@ -483,13 +515,31 @@ class DD_project_model extends CI_Model {
 			}
 		}
 		
-		//create study description row
-		$study_options=array(
-				'id'          => $id,
-				'ident_title' => $data['title']
-		);
-		
-		$this->db->insert('dd_study',$study_options);
+		if ($this->db->field_exists('schema_version', 'dd_projects')) {
+			$title = isset($data['title']) ? $data['title'] : '';
+			$data_type = isset($options['data_type']) ? $options['data_type'] : 'survey';
+			$metadata = array();
+			if ($data_type === 'survey') {
+				$metadata = array(
+					'study_desc' => array(
+						'title_statement' => array(
+							'title' => $title,
+						),
+					),
+				);
+			}
+			$v2 = array(
+				'schema_version' => 2,
+			);
+			if ($this->db->field_exists('metadata', 'dd_projects')) {
+				$v2['metadata'] = json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+			}
+			if ($this->db->field_exists('submission', 'dd_projects')) {
+				$v2['submission'] = '{}';
+			}
+			$this->db->where('id', $id);
+			$this->db->update('dd_projects', $v2);
+		}
 		
 		$this->db->trans_complete();
 		
@@ -584,6 +634,73 @@ class DD_project_model extends CI_Model {
 	* Get pending tasks by project
 	*
 	**/
+	public function get_schema_version($id)
+	{
+		if (!$this->db->field_exists('schema_version', 'dd_projects')) {
+			return 1;
+		}
+
+		$row = $this->db->select('schema_version')
+			->from('dd_projects')
+			->where('id', (int) $id)
+			->get()
+			->row_array();
+
+		return $row && isset($row['schema_version']) ? (int) $row['schema_version'] : 1;
+	}
+
+	public function get_metadata_json($id)
+	{
+		return $this->get_json_column($id, 'metadata');
+	}
+
+	public function get_submission_json($id)
+	{
+		return $this->get_json_column($id, 'submission');
+	}
+
+	public function get_json_column($id, $column)
+	{
+		$allowed = array('metadata', 'submission');
+		if (!in_array($column, $allowed, true) || !$this->db->field_exists($column, 'dd_projects')) {
+			return array();
+		}
+
+		$row = $this->db->select($column)
+			->from('dd_projects')
+			->where('id', (int) $id)
+			->get()
+			->row_array();
+
+		if (!$row || !isset($row[$column]) || $row[$column] === null || $row[$column] === '') {
+			return array();
+		}
+
+		$decoded = json_decode($row[$column], true);
+		return is_array($decoded) ? $decoded : array();
+	}
+
+	public function save_json_column($id, $column, array $data)
+	{
+		$allowed = array('metadata', 'submission');
+		if (!in_array($column, $allowed, true) || !$this->db->field_exists($column, 'dd_projects')) {
+			return false;
+		}
+
+		$encoded = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		if ($encoded === false) {
+			return false;
+		}
+
+		$options = array($column => $encoded);
+		if ($this->db->field_exists('last_modified', 'dd_projects')) {
+			$options['last_modified'] = date('U');
+		}
+
+		$this->db->where('id', (int) $id);
+		return $this->db->update('dd_projects', $options);
+	}
+
 	public function get_pending_tasks($pid)
 	{
 		$output=array(
@@ -591,20 +708,40 @@ class DD_project_model extends CI_Model {
 			'attached_files'			=>0,
 			'attached_citations'		=>0
 		);
-		
-		//check all required fields are filled
-		$this->db->select('coverage_country,coll_dates');
-		$this->db->where('id',$pid);
-		$study_row=$this->db->get('dd_study')->row_array();
-		
-		if ($study_row)
-		{
-			foreach($study_row as $key=>$value)
+
+		if ($this->get_schema_version($pid) >= 2) {
+			$metadata = $this->get_metadata_json($pid);
+			$title = '';
+			if (isset($metadata['study_desc']['title_statement']['title'])) {
+				$title = trim((string) $metadata['study_desc']['title_statement']['title']);
+			}
+			$nations = isset($metadata['study_desc']['study_info']['nation'])
+				? $metadata['study_desc']['study_info']['nation']
+				: array();
+			if ($title === '') {
+				$output['incomplete_study_fields']++;
+			}
+			if (!is_array($nations) || count($nations) === 0) {
+				$output['incomplete_study_fields']++;
+			}
+			if (isset($metadata['citations']) && is_array($metadata['citations'])) {
+				$output['attached_citations'] = count($metadata['citations']);
+			}
+		} else {
+			//check all required fields are filled
+			$this->db->select('coverage_country,coll_dates');
+			$this->db->where('id',$pid);
+			$study_row=$this->db->get('dd_study')->row_array();
+			
+			if ($study_row)
 			{
-				$value=json_decode($value);
-				if(!$value)
+				foreach($study_row as $key=>$value)
 				{
-					$output['incomplete_study_fields']++;
+					$value=json_decode($value);
+					if(!$value)
+					{
+						$output['incomplete_study_fields']++;
+					}
 				}
 			}
 		}
@@ -619,14 +756,16 @@ class DD_project_model extends CI_Model {
 			$output['attached_files']=$resources_count['total'];
 		}
 		
-		//check if citations been attached
-		$this->db->select('count(*) as total');
-		$this->db->where('pid',$pid);
-		$citations_count=$this->db->get('dd_citations')->row_array();
-		
-		if($citations_count)
-		{
-			$output['attached_citations']=$citations_count['total'];
+		if ($this->get_schema_version($pid) < 2) {
+			//check if citations been attached
+			$this->db->select('count(*) as total');
+			$this->db->where('pid',$pid);
+			$citations_count=$this->db->get('dd_citations')->row_array();
+			
+			if($citations_count)
+			{
+				$output['attached_citations']=$citations_count['total'];
+			}
 		}
 		
 		return $output;
@@ -699,236 +838,92 @@ class DD_project_model extends CI_Model {
 		return $stats;
 	}
 	
-	public function all_projects_by_filter($status=NULL, $order='dd_projects.created_on', $order_by='desc',$search_keywords=NULL)
+	public function admin_project_counts()
 	{
-        $order="dd_projects.created_on";
-		$q = $this->db->select('dd_projects.id,dd_projects.title,dd_projects.status,dd_projects.shortname, dd_projects.last_modified, dd_projects.created_on,dd_projects.created_by, dd_tasks.id as task_id,dd_tasks.user_id as task_user_id, users.username as task_user, dd_tasks.status as task_status')
+		$counts = array(
+			'all' => 0,
+			'draft' => 0,
+			'submitted' => 0,
+			'processed' => 0,
+			'accepted' => 0,
+			'closed' => 0,
+			'requested' => 0,
+		);
+
+		$rows = $this->db
+			->select('status, COUNT(*) AS n')
 			->from('dd_projects')
-            ->join('dd_tasks','dd_tasks.project_id=dd_projects.id','left')
-            ->join('users','dd_tasks.user_id=users.id','left')
-			->order_by($order, $order_by);
+			->group_by('status')
+			->get()
+			->result();
 
-			if ($status){
-				$this->db->where('dd_projects.status', $status);
+		foreach ($rows as $row) {
+			$n = (int) $row->n;
+			$counts['all'] += $n;
+			$key = strtolower((string) $row->status);
+			if (isset($counts[$key])) {
+				$counts[$key] = $n;
 			}
+		}
 
-            if($search_keywords)
-            {
-                $keywords_arr=explode(" ",$search_keywords);
-                foreach($keywords_arr as $keyword) {
-                    $escaped_keywords = $this->db->escape('%'.$keyword.'%');
-                    $where = sprintf('(title like %s OR description like %s OR created_by like %s OR shortname like %s)',
-                        $escaped_keywords,
-                        $escaped_keywords,
-                        $escaped_keywords,
-                        $escaped_keywords
-                    );
-                    $this->db->where($where,NULL,FALSE);
-                }
-            }
+		$counts['requested'] = (int) $this->db
+			->where('requested_reopen', 1)
+			->count_all_results('dd_projects');
 
-        $result=$q->get()->result();
-		return $result;
+		return $counts;
 	}
 
-	public function all_projects_requested_reopen() {
-		$q = $this->db->select('*')
+	public function all_projects_by_filter($status=NULL, $order='created_on', $order_by='desc',$search_keywords=NULL, $requested_reopen=false)
+	{
+		$sort_map = array(
+			'status' => 'dd_projects.status',
+			'title' => 'dd_projects.title',
+			'last_modified' => 'dd_projects.last_modified',
+			'created_on' => 'dd_projects.created_on',
+			'created_by' => 'dd_projects.created_by',
+		);
+		$order_key = is_string($order) ? $order : 'created_on';
+		$order_col = isset($sort_map[$order_key])
+			? $sort_map[$order_key]
+			: (in_array($order_key, $sort_map, true) ? $order_key : 'dd_projects.created_on');
+		$dir = (strtolower((string) $order_by) === 'asc') ? 'asc' : 'desc';
+
+		$q = $this->db->select('dd_projects.id,dd_projects.title,dd_projects.status,dd_projects.shortname, dd_projects.last_modified, dd_projects.created_on,dd_projects.created_by, dd_projects.requested_reopen, dd_tasks.id as task_id,dd_tasks.user_id as task_user_id, users.username as task_user, dd_tasks.status as task_status')
 			->from('dd_projects')
-			->where('requested_reopen', 1);
+			->join('dd_tasks','dd_tasks.project_id=dd_projects.id','left')
+			->join('users','dd_tasks.user_id=users.id','left')
+			->order_by($order_col, $dir);
+
+		if ($requested_reopen) {
+			$this->db->where('dd_projects.requested_reopen', 1);
+		} elseif ($status) {
+			$this->db->where('dd_projects.status', $status);
+		}
+
+		if ($search_keywords) {
+			$keywords_arr = explode(' ', $search_keywords);
+			foreach ($keywords_arr as $keyword) {
+				$keyword = trim($keyword);
+				if ($keyword === '') {
+					continue;
+				}
+				$escaped_keywords = $this->db->escape('%'.$keyword.'%');
+				$where = sprintf(
+					'(dd_projects.title like %s OR dd_projects.description like %s OR dd_projects.created_by like %s OR dd_projects.shortname like %s)',
+					$escaped_keywords,
+					$escaped_keywords,
+					$escaped_keywords,
+					$escaped_keywords
+				);
+				$this->db->where($where, NULL, FALSE);
+			}
+		}
+
 		return $q->get()->result();
 	}
 
-
-	private function decode_json_data($data) {
-		return ($data) ? json_decode($data) : null;
+	public function all_projects_requested_reopen($order='created_on', $order_by='desc', $search_keywords=NULL) {
+		return $this->all_projects_by_filter(NULL, $order, $order_by, $search_keywords, true);
 	}
 
-	//get project summary
-	public function get_project_summary($id)
-	{		
-		$ci =& get_instance();
-		
-		$ci->load->model('DD_resource_model');
-		$ci->load->model('DD_study_model');
-		$ci->load->model('DD_citation_model');
-
-		//get request data
-        $data['project'][0] = (object)$this->get_by_id($id);
-		$data['row']     = $ci->DD_study_model->get_study($data['project'][0]->id);
-		$data['files']   = $ci->DD_resource_model->get_project_resources_to_array($id);
-		$data['fields']  = $ci->config->item('datadeposit');
-		$data['citations']=$ci->DD_citation_model->get_citations_by_project($id);
-		
-		//get project owner
-		$data['project'][0]->owner=$this->get_owner($id);
-            
-       //get project collaborators
-        $data['project'][0]->collaborators=$this->get_collaborators($id);
-		
-        $this->_study_grid_ids         = array();
-		$grids                         = array();
-		$grids['methods']              = array(
-			'titles' => array (
-				'Text'           => 'text', 
-				'Vocabulary'     => 'vocab',
-				'Vocabulary URI' => 'uri'
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->overview_methods) ? $data['row'][0]->overview_methods : null))
-		);
-		$grids['topic_class']          = array(
-			'titles' => array (
-				'Text'           => 'text', 
-				'Vocabulary'     => 'vocab',
-				'Vocabulary URI' => 'uri'
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->scope_class) ? $data['row'][0]->scope_class : null))
-		);
-		$grids['country']              = array(
-			'titles' => array (
-				'Name'           => 'name', 
-				'Abbreviation'   => 'abbr'
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->coverage_country) ? $data['row'][0]->coverage_country : null))
-		);
-		$grids['prim_investigator']    = array(
-			'titles' => array (
-				'Name'         => 'name', 
-				'Affiliation'  => 'affiliation'
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->prod_s_investigator) ? $data['row'][0]->prod_s_investigator : null))
-		);
-		$grids['other_producers']      = array(
-			'titles' => array (
-				'Name'         => 'name', 
-				'Abbreviation' => 'abbr',
-				'Affiliation'  => 'affiliation',
-				'Role'         => 'role'
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->prod_s_other_prod) ? $data['row'][0]->prod_s_other_prod : null))
-		);
-		$grids['funding']              = array(
-			'titles' => array (
-				'Name'         => 'name', 
-				'Abbreviation' => 'abbr',
-				'Affiliation'  => 'affiliation',
-				'Role'         => 'role'
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->prod_s_funding) ? $data['row'][0]->prod_s_funding : null))
-		);
-		$grids['acknowledgements']     = array(
-			'titles' => array (
-				'Name'         => 'name', 
-				'Affiliation'  => 'affiliation',
-				'Role'         => 'role'
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->prod_s_acknowledgements) ? $data['row'][0]->prod_s_acknowledgements : null))
-		);
-		$grids['dates_datacollection'] = array(
-			'titles' => array (
-				'Start'     => 'start', 
-				'End'       => 'end',
-				'Cycle'     => 'cycle'
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->coll_dates) ? $data['row'][0]->coll_dates : null))
-		);
-		$grids['time_periods']         = array(
-			'titles' => array (
-				'Start'     => 'start', 
-				'End'       => 'end',
-				'Cycle'     => 'cycle'
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->coll_periods) ? $data['row'][0]->coll_periods : null))
-		);
-		$grids['data_collectors']      = array(
-			'titles' => array (
-				'Name'         => 'name', 
-				'Abbreviation' => 'abbr',
-				'Affiliation'  => 'affiliation',
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->coll_collectors) ? $data['row'][0]->coll_collectors : null))
-		);
-		$grids['access_authority']     = array(
-			'titles' => array (
-				'Name'         => 'name', 
-				'Affiliation'  => 'affiliation',
-				'Email'        => 'email',
-				'URI'          => 'uri',
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->access_authority) ? $data['row'][0]->access_authority : null))
-		);
-		$grids['contacts']             = array(
-			'titles' => array (
-				'Name'         => 'name', 
-				'Affiliation'  => 'affiliation',
-				'Email'        => 'email',
-				'URI'          => 'uri',
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->contacts_contacts) ? $data['row'][0]->contacts_contacts : null))
-			);
-		$grids['impact_wb_lead']    = array(
-			'titles' => array (
-				'Name'         => 'name', 
-				'Affiliation'  => 'affiliation',
-				'Email'        => 'email',
-				'URI'          => 'uri',
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->impact_wb_lead) ? $data['row'][0]->impact_wb_lead : null))
-		);
-		$grids['impact_wb_members']    = array(
-			'titles' => array (
-				'Name'         => 'name', 
-				'Affiliation'  => 'affiliation',
-				'Email'        => 'email',
-				'URI'          => 'uri',
-			),
-			'data'  => $this->decode_json_data((isset($data['row'][0]->impact_wb_members) ? $data['row'][0]->impact_wb_members : null))
-		);
-
-		// add our grids to the data variable with their html representation
-		foreach ($grids as $grid_id => $grid_data) 
-		{
-			//$data[$grid_id] = $this->_summary_study_grid($grid_id, $grid_data, true);
-			$data[$grid_id] = $this->print_single_grid($grid_data['titles'],$grid_data['data']);
-		}	
-		
-		$content     = $this->load->view('datadeposit/project_review', $data, true);
-		
-		return $content;
-	}
-	
-	
-	private function print_single_grid($columns,$data)
-	{
-		if (!$data)
-		{
-			return;
-		}
-	
-		$output= '<table border="1" class="grid-table">';
-		$output.= '<tr class="grid-table-header">';
-		foreach($columns as $column)
-		{
-			$output.= '<th>'.$column.'</th>';
-		}
-		$output.= '</tr>';
-		
-		//$data=json_decode($data);
-		
-		foreach($data as $row)
-		{
-			$output.= '<tr>';
-			foreach($row as $value)
-			{
-				$output.= '<td>'.$value.'</td>';
-			}
-			$output.= '</tr>';
-		}
-		
-		$output.= '</table>';
-		
-		return $output;
-	}
-
-	
 }
-

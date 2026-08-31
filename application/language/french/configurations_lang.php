@@ -73,6 +73,7 @@ $lang['instruction_weight']="Les types de filtre sont classés en fonction de le
 $lang['edit_email_settings']="Pour configurer le courrier électronique, consultez le fichier <em>config/email.php</em>.";
 $lang['test_email_configurations']="Tester les configurations de messagerie";
 $lang['display_templates']="Modèles d'affichage";
+$lang['open_display_manager']="Ouvrir le gestionnaire d'affichage";
 $lang['legacy_study_templates']="Mise en page de la description d'étude";
 $lang['legacy_study_templates_note']="Les modèles d'affichage JSON sont utilisés par défaut. Désactivez un type pour utiliser l'ancienne page PHP.";
 $lang['legacy_study_templates_json']="Modèle d'affichage";
@@ -86,6 +87,15 @@ $lang['legacy_study_type_document']="Document";
 $lang['legacy_study_type_table']="Tableau";
 $lang['legacy_study_type_image']="Image";
 $lang['legacy_study_type_video']="Vidéo";
+$lang['datadeposit_settings']="Dépôt de données";
+$lang['datadeposit_status']="Statut";
+$lang['datadeposit_status_enabled']="Activé";
+$lang['datadeposit_status_disabled']="Non activé";
+$lang['datadeposit_status_note']="Pour activer ou désactiver le dépôt de données, définissez enable_datadeposit dans application/config/datadeposit.php, puis rechargez cette page.";
+$lang['deposit_max_upload_size']="Taille maximale d’un fichier (Mo)";
+$lang['deposit_max_upload_size_note']="Taille maximale en mégaoctets pour un fichier déposé dans un projet.";
+$lang['datadeposit_allowed_types']="Types de fichiers autorisés";
+$lang['datadeposit_allowed_types_note']="Définis dans application/config/config.php (allowed_resource_types). Non modifiables ici.";
 
 
 /* End of file configurations */

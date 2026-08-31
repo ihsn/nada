@@ -14,9 +14,13 @@ const store = useMetadataFormStore();
 const displayType = computed(() => resolveDisplayType(props.field));
 const helpText = computed(() => props.field.help_text || props.field.help || '');
 const label = computed(() => props.field.title || props.field.key || '');
-const required = computed(
-  () => !!(props.field.is_required || props.field.required || props.field.isRequired)
-);
+const required = computed(() => {
+  if (props.field.is_required || props.field.required || props.field.isRequired) return true;
+  const when = props.field.required_when;
+  if (!when) return false;
+  const flag = store.getValue(when);
+  return flag === true || flag === 1 || flag === '1' || flag === 'true';
+});
 
 const model = computed({
   get() {
@@ -76,6 +80,14 @@ const allowCustom = computed(() => displayType.value === 'dropdown-custom');
       density="compact"
       hide-details="auto"
       :label="label"
+    />
+    <v-text-field
+      v-else-if="displayType === 'date' || field.type === 'date'"
+      v-model="model"
+      type="date"
+      density="compact"
+      variant="outlined"
+      hide-details="auto"
     />
     <v-text-field
       v-else

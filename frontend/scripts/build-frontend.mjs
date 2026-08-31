@@ -59,7 +59,9 @@ function mergeManifests() {
 
   const adminEntries = Object.values(merged).filter((e) => e.isEntry && e.name?.startsWith('admin_')).length;
   const publicEntries = Object.values(merged).filter(
-    (e) => e.isEntry && (e.name?.startsWith('catalog_') || e.name === 'pdf_viewer')
+    (e) =>
+      e.isEntry &&
+      (e.name?.startsWith('catalog_') || e.name === 'pdf_viewer' || e.name === 'datadeposit')
   ).length;
 
   console.log(

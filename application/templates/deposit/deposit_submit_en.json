@@ -1,0 +1,143 @@
+{
+  "type": "template",
+  "title": "Submit project",
+  "items": [
+    {
+      "type": "section_container",
+      "key": "submission",
+      "title": "Submission",
+      "expanded": true,
+      "items": [
+        {
+          "type": "section",
+          "key": "submission.access",
+          "title": "Access and catalog",
+          "expanded": true,
+          "items": [
+            {
+              "key": "access_policy",
+              "title": "Suggested access policy",
+              "type": "string",
+              "is_required": true,
+              "display_type": "dropdown",
+              "enum": [
+                {
+                  "code": "Direct Access",
+                  "label": "Direct Access"
+                },
+                {
+                  "code": "Public Use Files",
+                  "label": "Public Use Files"
+                },
+                {
+                  "code": "Licensed Access",
+                  "label": "Licensed Access"
+                },
+                {
+                  "code": "Data Enclave",
+                  "label": "Data Enclave"
+                },
+                {
+                  "code": "Not Defined",
+                  "label": "Not Defined"
+                }
+              ],
+              "help_text": "The access policy you recommend for this dataset after review."
+            },
+            {
+              "key": "to_catalog",
+              "title": "Catalog to publish",
+              "type": "string",
+              "display_type": "dropdown",
+              "enum": [
+                {
+                  "code": "Internal",
+                  "label": "Internal"
+                },
+                {
+                  "code": "External",
+                  "label": "External"
+                }
+              ],
+              "help_text": "Choose Internal to share with staff only, or External to publish publicly. External studies are typically also listed internally."
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "key": "submission.embargo",
+          "title": "Embargo",
+          "expanded": true,
+          "items": [
+            {
+              "key": "is_embargoed",
+              "title": "Embargoed",
+              "type": "boolean",
+              "display_type": "boolean",
+              "help_text": "Check if the data should not be released yet."
+            },
+            {
+              "key": "embargo_end",
+              "title": "Embargo expiry date",
+              "type": "string",
+              "display_type": "date",
+              "required_when": "is_embargoed",
+              "help_text": "Date when the embargo ends and the data may be released (YYYY-MM-DD)."
+            },
+            {
+              "key": "embargoed",
+              "title": "Notes on embargo",
+              "type": "string",
+              "display_type": "textarea",
+              "required_when": "is_embargoed",
+              "help_text": "Describe the embargo period and any conditions that must be met before release."
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "key": "submission.disclosure",
+          "title": "Disclosure and notes",
+          "expanded": true,
+          "items": [
+            {
+              "key": "disclosure_risk",
+              "title": "Disclosure risk",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "List identifying or otherwise sensitive variables that should be suppressed before distribution."
+            },
+            {
+              "key": "key_variables",
+              "title": "Key variables",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "List variables that could identify respondents, such as names, official ID numbers, or precise coordinates."
+            },
+            {
+              "key": "sensitive_variables",
+              "title": "Sensitive variables",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "List variables that are sensitive in this study setting (for example ethnicity or religion) even if they are not direct identifiers."
+            },
+            {
+              "key": "library_notes",
+              "title": "Notes to the library",
+              "type": "string",
+              "display_type": "textarea",
+              "help_text": "Optional notes or special instructions for the library review team."
+            },
+            {
+              "key": "cc",
+              "title": "CC",
+              "type": "string",
+              "display_type": "text",
+              "help_text": "Optional extra email addresses for the submission receipt."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

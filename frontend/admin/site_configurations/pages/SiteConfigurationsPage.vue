@@ -9,7 +9,7 @@ import '../site-config-layout.css';
 defineOptions({ name: 'SiteConfigurationsPage' });
 
 const route = useRoute();
-const { config } = useAppConfig();
+const { config, siteUrl } = useAppConfig();
 const { fetchSettings, fetchMeta, saveSettings, fetchTestEmailForm, sendTestEmail } =
   useSiteConfigurationsApi();
 
@@ -47,6 +47,10 @@ function tr(key) {
 const activeSection = computed(() =>
   typeof route.params.section === 'string' ? route.params.section : 'general',
 );
+const displayManagerUrl = computed(() => {
+  const base = String(siteUrl.value || '').replace(/\/$/, '');
+  return `${base}/admin/display_templates`;
+});
 const settings = ref({});
 const meta = ref({});
 const langRows = ref([]);
@@ -206,6 +210,9 @@ async function reloadAll() {
   if (s.semantic_search_debug === undefined || s.semantic_search_debug === '') {
     s.semantic_search_debug = 'false';
   }
+  if (s.deposit_max_upload_size === undefined || s.deposit_max_upload_size === '') {
+    s.deposit_max_upload_size = '2048';
+  }
   settings.value = { ...s };
   meta.value = { ...m };
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
@@ -306,6 +313,16 @@ const saveVisible = computed(() => {
 });
 
 const pathsOk = computed(() => meta.value?.paths_ok || {});
+
+const depositMeta = computed(() => meta.value?.datadeposit || {});
+const depositEnabled = computed(() => depositMeta.value?.enabled === true);
+const depositAllowedTypes = computed(() => {
+  const list = depositMeta.value?.allowed_resource_types;
+  return Array.isArray(list) ? list : [];
+});
+const depositAllowedTypesLabel = computed(() =>
+  depositAllowedTypes.value.length ? depositAllowedTypes.value.join(', ') : '—',
+);
 
 const PAGE_ALERT_MS = 4000;
 let pageAlertTimer;
@@ -813,15 +830,24 @@ onMounted(async () => {
                 <h2 class="site-config-card__title">
                   {{ currentTitle }}
                 </h2>
-                <v-btn
-                  v-if="saveVisible"
-                  color="primary"
-                  :loading="saving"
-                  prepend-icon="mdi-content-save"
-                  @click="saveCurrentSection"
-                >
-                  {{ tr('update') }}
-                </v-btn>
+                <div class="d-flex align-center ga-2 flex-wrap">
+                  <v-btn
+                    variant="outlined"
+                    prepend-icon="mdi-open-in-new"
+                    :href="displayManagerUrl"
+                  >
+                    {{ tr('open_display_manager') }}
+                  </v-btn>
+                  <v-btn
+                    v-if="saveVisible"
+                    color="primary"
+                    :loading="saving"
+                    prepend-icon="mdi-content-save"
+                    @click="saveCurrentSection"
+                  >
+                    {{ tr('update') }}
+                  </v-btn>
+                </div>
               </div>
               <v-row dense>
                 <v-col cols="12">
@@ -844,6 +870,63 @@ onMounted(async () => {
                       {{ useDisplayByType[row.value] ? tr('legacy_study_templates_json') : tr('legacy_study_templates_php') }}
                     </span>
                   </div>
+                </v-col>
+              </v-row>
+            </div>
+          </v-card>
+
+          <!-- Data deposit -->
+          <v-card v-show="activeSection === 'datadeposit'" elevation="1" rounded="lg" class="bg-surface">
+            <div class="pa-4 site-config-card-inner">
+              <div class="site-config-card__header d-flex align-center justify-space-between flex-wrap gap-3">
+                <h2 class="site-config-card__title">
+                  {{ currentTitle }}
+                </h2>
+                <v-btn
+                  v-if="saveVisible"
+                  color="primary"
+                  :loading="saving"
+                  prepend-icon="mdi-content-save"
+                  @click="saveCurrentSection"
+                >
+                  {{ tr('update') }}
+                </v-btn>
+              </div>
+              <v-row dense>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('datadeposit_status') }}</label>
+                  <div class="mt-2">
+                    <v-chip
+                      :color="depositEnabled ? 'success' : 'warning'"
+                      variant="tonal"
+                      size="small"
+                    >
+                      {{ depositEnabled ? tr('datadeposit_status_enabled') : tr('datadeposit_status_disabled') }}
+                    </v-chip>
+                  </div>
+                  <div class="site-config-field__hint mt-2">{{ tr('datadeposit_status_note') }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('deposit_max_upload_size') }}</label>
+                  <div class="site-config-field--fixed-width">
+                    <v-text-field
+                      v-model="settings.deposit_max_upload_size"
+                      variant="outlined"
+                      density="comfortable"
+                      type="number"
+                      min="1"
+                      max="16384"
+                      hide-details="auto"
+                    />
+                  </div>
+                  <div class="site-config-field__hint">{{ tr('deposit_max_upload_size_note') }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('datadeposit_allowed_types') }}</label>
+                  <div class="text-body-2 mt-2" style="word-break: break-word;">
+                    {{ depositAllowedTypesLabel }}
+                  </div>
+                  <div class="site-config-field__hint mt-2">{{ tr('datadeposit_allowed_types_note') }}</div>
                 </v-col>
               </v-row>
             </div>

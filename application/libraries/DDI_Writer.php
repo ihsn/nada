@@ -173,6 +173,64 @@ class DDI_Writer
         $writer->endDocument();        
     }
 
+    /**
+     * DDI 2.5 codebook from NADA survey JSON (study description only).
+     * No catalog study id, fileDscr, or variables.
+     *
+     * @param array  $metadata study JSON (study_desc, …)
+     * @param string $idno     codebook ID
+     * @param string $output   'php://output', file path, or 'memory' to return XML
+     * @return string|null XML when $output is 'memory'
+     */
+    function generate_ddi_from_metadata(array $metadata, $idno, $output = 'php://output')
+    {
+        $idno = trim((string) $idno);
+        if ($idno === '') {
+            $idno = 'UNKNOWN';
+        }
+        $dataset = array(
+            'type'     => 'survey',
+            'idno'     => $idno,
+            'metadata' => $metadata,
+        );
+
+        $writer = new XMLWriter;
+        $to_memory = ($output === 'memory');
+        if ($to_memory) {
+            $writer->openMemory();
+        } else {
+            $writer->openURI($output);
+        }
+        $writer->startDocument('1.0', 'UTF-8');
+        $writer->startElement('codeBook');
+        $writer->writeAttribute('version', '2.5');
+        $writer->writeAttribute('ID', $idno);
+        $writer->writeAttribute('xml-lang', 'en');
+        $writer->writeAttribute('xmlns', 'ddi:codebook:2_5');
+        $writer->writeAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+        $writer->writeAttribute('xsi:schemaLocation', 'ddi:codebook:2_5 https://ddialliance.org/Specification/DDI-Codebook/2.5/XMLSchema/codebook.xsd');
+        $writer->writeRaw("\n");
+        $doc_xml = $this->get_doc_desc_xml($metadata);
+        $study_xml = $this->get_study_desc_xml($dataset);
+        if (!is_string($doc_xml) || $doc_xml === '' || !is_string($study_xml) || $study_xml === '') {
+            throw new Exception('DDI study description XML failed');
+        }
+        $writer->writeRaw($doc_xml);
+        $writer->writeRaw("\n");
+        $writer->writeRaw($study_xml);
+        $writer->writeRaw("\n");
+        $writer->startElement('dataDscr');
+        $writer->writeRaw("\n");
+        $writer->endElement();
+        $writer->endElement();
+        $writer->endDocument();
+
+        if ($to_memory) {
+            return $writer->outputMemory();
+        }
+        return null;
+    }
+
 
     function get_doc_desc_xml($data)
     {
@@ -193,7 +251,8 @@ class DDI_Writer
         ]);
 
         //doc_desc/producers
-        $producers=new \Adbar\Dot($dataset_metadata->get('doc_desc.producers'));
+        $producers_raw = $dataset_metadata->get('doc_desc.producers');
+        $producers = new \Adbar\Dot(is_array($producers_raw) ? $producers_raw : []);
         foreach($producers->all() as $idx=>$producer){
             $doc_desc->set([
                 'citation.prodStmt.producer.'.$idx.'._value'=>$producers["{$idx}.name"],

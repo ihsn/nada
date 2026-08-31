@@ -38,6 +38,11 @@ export const SECTION_DEFS = [
     keys: ['legacy_study_templates'],
   },
   {
+    id: 'datadeposit',
+    titleKey: 'datadeposit_settings',
+    keys: ['deposit_max_upload_size'],
+  },
+  {
     id: 'search',
     titleKey: 'fulltext_search',
     keys: ['search_provider', 'semantic_search_url', 'semantic_search_api_key', 'semantic_search_debug'],

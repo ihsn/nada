@@ -50,6 +50,10 @@ class MY_Controller extends CI_Controller
 		
 		// Apply Content Security Policy headers
 		$this->csp_library->apply_headers();
+
+		if (method_exists($this, 'before_auth')) {
+			$this->before_auth();
+		}
 		
 		//require authentication for protected pages e.g. admin	
 		if ($skip===FALSE){

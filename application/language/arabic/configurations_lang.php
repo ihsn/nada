@@ -73,6 +73,15 @@ $lang['collection_search_weight']="تصفية/فلترة حسب المجموعة
 $lang['instruction_weight']="تتحكم الأوزان في ترتيب الفلترة والتصنيف. الفلترة يتم ترتيبها حسب الأوزان تصاعديا. ";
 $lang['edit_email_settings']="لتهيئة البريد الإلكتروني ، راجع ملف <em> config / email.php </em>.";
 $lang['test_email_configurations']="اختبار إعدادات البريد الإلكتروني";
+$lang['datadeposit_settings']="إيداع البيانات";
+$lang['datadeposit_status']="الحالة";
+$lang['datadeposit_status_enabled']="مفعّل";
+$lang['datadeposit_status_disabled']="غير مفعّل";
+$lang['datadeposit_status_note']="لتفعيل أو تعطيل إيداع البيانات، عيّن enable_datadeposit في application/config/datadeposit.php ثم أعد تحميل هذه الصفحة.";
+$lang['deposit_max_upload_size']="الحد الأقصى لحجم الملف (ميغابايت)";
+$lang['deposit_max_upload_size_note']="الحد الأقصى بالميغابايت لملف واحد يُرفع إلى مشروع إيداع.";
+$lang['datadeposit_allowed_types']="أنواع الملفات المسموح بها";
+$lang['datadeposit_allowed_types_note']="تُضبط في application/config/config.php (allowed_resource_types). لا يمكن تعديلها من هنا.";
 
 
 /* End of file configurations */

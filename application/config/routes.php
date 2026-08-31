@@ -59,6 +59,48 @@ $route['schemas/(:any)'] = 'schemas/serve/$1';
 
 ///////////////////////// API routes ////////////////////////////////////////
 
+// Depositor Vue API (collaborator auth). Not api/datadeposits (legacy staff read)
+// and not api/admin/datadeposit (staff review).
+$route['api/datadeposit/(:num)/metadata'] = 'api/datadeposit/metadata/$1';
+$route['api/datadeposit/(:num)/submission'] = 'api/datadeposit/submission/$1';
+$route['api/datadeposit/(:num)/submit'] = 'api/datadeposit/submit/$1';
+$route['api/datadeposit/(:num)/files/delete'] = 'api/datadeposit/files_delete/$1';
+$route['api/datadeposit/(:num)/files/(:num)/download'] = 'api/datadeposit/files_download/$1/$2';
+$route['api/datadeposit/(:num)/files/(:num)'] = 'api/datadeposit/files_item/$1/$2';
+$route['api/datadeposit/(:num)/files'] = 'api/datadeposit/files/$1';
+$route['api/datadeposit/(:num)/delete'] = 'api/datadeposit/delete_item/$1';
+$route['api/datadeposit/(:num)/reopen'] = 'api/datadeposit/reopen/$1';
+$route['api/datadeposit/(:num)/email'] = 'api/datadeposit/email/$1';
+$route['api/datadeposit/(:num)/export/(:any)'] = 'api/datadeposit/export/$1/$2';
+$route['api/datadeposit/(:num)/validate'] = 'api/datadeposit/validate/$1';
+$route['api/datadeposit/(:num)/import'] = 'api/datadeposit/import/$1';
+$route['api/datadeposit/(:num)'] = 'api/datadeposit/item/$1';
+$route['api/datadeposit'] = 'api/datadeposit';
+
+// Staff data-deposit admin (ACL datadeposit). Not the depositor API above.
+$route['api/admin/datadeposit/projects/(:num)/files/(:num)/download'] = 'api/admin/datadeposit/projects_files_download/$1/$2';
+$route['api/admin/datadeposit/projects/(:num)/export/(:any)'] = 'api/admin/datadeposit/projects_export/$1/$2';
+$route['api/admin/datadeposit/projects/(:num)/process'] = 'api/admin/datadeposit/projects_process/$1';
+$route['api/admin/datadeposit/projects/(:num)/communicate'] = 'api/admin/datadeposit/projects_communicate/$1';
+$route['api/admin/datadeposit/projects/(:num)/history'] = 'api/admin/datadeposit/projects_history/$1';
+$route['api/admin/datadeposit/projects/(:num)/delete'] = 'api/admin/datadeposit/projects_delete/$1';
+$route['api/admin/datadeposit/projects/(:num)/assign'] = 'api/admin/datadeposit/projects_assign/$1';
+$route['api/admin/datadeposit/delete'] = 'api/admin/datadeposit/delete';
+$route['api/admin/datadeposit/tasks/my'] = 'api/admin/datadeposit/tasks_my';
+$route['api/admin/datadeposit/tasks/(:num)/update'] = 'api/admin/datadeposit/tasks_update/$1';
+$route['api/admin/datadeposit/tasks/(:num)/delete'] = 'api/admin/datadeposit/tasks_delete/$1';
+$route['api/admin/datadeposit/tasks/(:num)'] = 'api/admin/datadeposit/tasks_item/$1';
+$route['api/admin/datadeposit/tasks'] = 'api/admin/datadeposit/tasks';
+$route['api/admin/datadeposit/projects/(:num)'] = 'api/admin/datadeposit/projects/$1';
+$route['api/admin/datadeposit'] = 'api/admin/datadeposit';
+$route['api/admin/datadeposit/(:any)'] = 'api/admin/datadeposit/$1';
+
+// Legacy staff read API. Export/download use v2 (same as /api/admin/datadeposit).
+$route['api/datadeposits/(:num)/export/(:any)'] = 'api/datadeposits/export/$2/$1';
+$route['api/datadeposits/export/(:any)/(:num)'] = 'api/datadeposits/export/$1/$2';
+$route['api/datadeposits/(:num)/download/(:num)'] = 'api/datadeposits/download/$1/$2';
+$route['api/datadeposits/download/(:num)/(:num)'] = 'api/datadeposits/download/$1/$2';
+
 //data deposit project - resources
 $route['api/datadeposits/(:num)/resources'] = "api/datadeposits/resources/$1";
 $route['api/datadeposits/(:num)/resources/(:num)'] = "api/datadeposits/resources/$1/$2";
@@ -218,6 +260,8 @@ $route['api/admin/collections/(:any)/datasets'] = "api/admin/collections/dataset
 $route['api/collections/(:any)/datasets'] = "api/admin/collections/datasets/$1";
 $route['api/collections'] = 'api/admin/collections';
 $route['api/collections/(.*)'] = 'api/admin/collections/$1';
+
+$route['api/tables/import_errors/(:any)/(:any)'] = "api/tables/import_errors/$1/$2";
 
 //Tables API - fields endpoints (new format: /api/tables/fields/{db_id}/{table_id})
 $route['api/tables/fields/(:any)/(:any)/sync'] = "api/tables/fields_sync/$1/$2";
@@ -454,11 +498,14 @@ $route['admin/catalog/batch-refresh'] = 'admin/catalog/batch_refresh_page';
 $route['admin/catalog/batch-generate'] = 'admin/catalog/batch_generate_page';
 
 //data deposit
-$route['admin/datadeposit/tasks/info/(.*)'] = "admin/datadeposittasks/info/$1";
+$route['admin/datadeposit/projects/(:num)/(:any)'] = 'admin/datadeposit/projects/$1/$2';
+$route['admin/datadeposit/projects/(:num)'] = 'admin/datadeposit/projects/$1';
+$route['admin/datadeposit/summary/(:num)'] = 'admin/datadeposit/summary/$1';
+$route['admin/datadeposit/tasks/info/(:num)'] = 'admin/datadeposit/task_info/$1';
 $route['admin/datadeposit/tasks/update/(:num)/(:num)'] = "admin/datadeposittasks/update/$1/$2";
 $route['admin/datadeposit/tasks/delete/(:num)'] = "admin/datadeposittasks/delete/$1";
-$route['admin/datadeposit/tasks/my_tasks'] = "admin/datadeposittasks/my_tasks";
-$route['admin/datadeposit/tasks'] = "admin/datadeposittasks";
+$route['admin/datadeposit/tasks/my_tasks'] = 'admin/datadeposit/my_tasks';
+$route['admin/datadeposit/tasks'] = 'admin/datadeposit/tasks';
 
 
 

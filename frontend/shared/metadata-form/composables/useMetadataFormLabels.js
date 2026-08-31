@@ -13,6 +13,13 @@ export const DEFAULT_METADATA_FORM_LABELS = {
   noItems: 'No items yet.',
   showHelp: 'Show help',
   hideHelp: 'Hide help',
+  showAllHelp: 'Show all help',
+  hideAllHelp: 'Hide all help',
+  filterAll: 'All',
+  filterRequired: 'Required',
+  filterRecommended: 'Recommended',
+  searchFields: 'Search fields',
+  noMatchingFields: 'No matching fields.',
   containerOverview:
     'Overview of this group. Select a section in the tree (or below) to edit fields.',
   sectionsInGroup: 'Sections in this group',

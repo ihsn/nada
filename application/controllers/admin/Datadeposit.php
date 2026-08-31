@@ -6,15 +6,20 @@ class Datadeposit extends MY_Controller {
 	public function __construct() 
 	{
 		parent::__construct();
-		$this->load->model('DD_project_model');
-		$this->load->model('DD_study_model');
-		$this->lang->load("dashboard");
+		$this->load->helper('datadeposit');
+		$this->load->language('dd_projects');
 		$this->lang->load('general');
+		$this->template->set_template('admin5');
+
+		if (!datadeposit_is_enabled()) {
+			return;
+		}
+
+		$this->load->model('DD_project_model');
+		$this->lang->load("dashboard");
 		$this->load->library('form_validation');
 		$this->lang->load('licensed_request');
-		$this->load->language('dd_projects');
-		$this->template->set_template('admin5');	
-		//$this->_get_active_project();
+		$this->lang->load('catalog_admin');
 		
 		$this->load->config("datadeposit");
 		
@@ -23,334 +28,132 @@ class Datadeposit extends MY_Controller {
 		$this->storage_location = $this->storage_location['resources'];
 
 		$this->acl_manager->has_access_or_die('datadeposit', 'view');
-
-		//$this->output->enable_profiler(TRUE);
 	}
 	
-	public function index() 
+	public function index()
 	{
-		$result['fields']   = array(
-			'title'		 => 'Title',
-			'shortname'  => 'Short name',
-			'created_on' => 'Created on',    
-			'created_by' => 'Created by',
-			'status'     => 'Status'
+		$this->_render_admin_datadeposit_vue_shell();
+	}
+
+	public function tasks()
+	{
+		$this->_render_admin_datadeposit_vue_shell(t('Active tasks'));
+	}
+
+	public function my_tasks()
+	{
+		$this->_render_admin_datadeposit_vue_shell(t('My Tasks'));
+	}
+
+	public function task_info($task_id = null)
+	{
+		if (!is_numeric($task_id)) {
+			show_404();
+		}
+
+		$this->load->model('DD_tasks_model');
+		$task = $this->DD_tasks_model->select_single($task_id);
+		if (!$task) {
+			show_404();
+		}
+
+		$this->_render_admin_datadeposit_vue_shell(t('Task info'));
+	}
+
+	/**
+	 * Shared config for the staff data-deposit Vue app.
+	 *
+	 * @return array
+	 */
+	private function _admin_datadeposit_vue_view_data()
+	{
+		$this->load->helper('vite_helper');
+		$pu = parse_url(site_url('admin/datadeposit'));
+		$rpath = isset($pu['path']) ? $pu['path'] : '/admin/datadeposit';
+
+		return array(
+			'api_base_url' => site_url('api/admin/datadeposit/'),
+			'site_url' => site_url(),
+			'base_url' => base_url(),
+			'csrf_token' => $this->security->get_csrf_hash(),
+			'csrf_token_name' => $this->security->get_csrf_token_name(),
+			'assets_base' => base_url('frontend/dist/'),
+			'translations' => $this->lang->language,
+			'router_path_base' => $rpath,
+			'can_edit' => $this->acl_manager->user_has_access('datadeposit', 'edit'),
+			'can_delete' => $this->acl_manager->user_has_access('datadeposit', 'delete'),
 		);
+	}
 
-		$this->sort_by    = $this->input->get('sort_by')    ? $this->input->get('sort_by'): 'created_on';
-		$this->sort_order = $this->input->get('sort_order') ? $this->input->get('sort_order'): 'desc';
-        $search_keywords=$this->input->get("keywords",true);
-		
-		//get array of db rows
-		if ($this->input->get('filter') && $this->input->get('filter')!='all' ) 
-		{
-			if ($this->input->get('filter') == 'requested') {
-				$result['projects'] = $this->Projects_model->all_projects_requested_reopen();
-			} 
-			else if (in_array($this->input->get('filter'), array('submitted', 'accepted', 'draft', 'processed','closed'))) {
-				$result['projects']=$this->DD_project_model->all_projects_by_filter($this->input->get('filter'), $this->sort_by, $this->sort_order,$search_keywords);
-			} 
-		}
-		else 
-		{
-			$result['projects']=$this->DD_project_model->all_projects_by_filter(NULL,$this->sort_by, $this->sort_order,$search_keywords);
-		}
+	/**
+	 * Render Vue 3 shell for staff data deposit.
+	 *
+	 * @param string|null $html_title
+	 * @return void
+	 */
+	private function _render_disabled()
+	{
+		$page = array(
+			'title' => t('title_project_management'),
+			'content' => $this->load->view('admin/datadeposit/disabled', null, true),
+			'hide_breadcrumb' => true,
+			'theme_folder' => 'adminvue',
+		);
+		$this->load->view('layouts/admin_vue', $page);
+	}
 
-        $this->load->model('DD_tasks_team_model');
-        $result['tasks_team']=$this->DD_tasks_team_model->get_tasks_team_array();
-
-		$result['can_edit'] = $this->acl_manager->user_has_access('datadeposit', 'edit');
-		$result['can_delete'] = $this->acl_manager->user_has_access('datadeposit', 'delete');
-
-		//$result['stats'] = $this->DD_project_model->stats();
-		
-		$this->sort_by    = $this->input->get('sort_by')    ? $this->input->get('sort_by'): 'created_on';
-		$this->sort_order = $this->input->get('sort_order') ? $this->input->get('sort_order'): 'desc';
-		
-		//get array of db rows		
-		//$result['submitted']=$this->DD_project_model->all_projects_by_filter('submitted', $this->sort_by, $this->sort_order);
-		//$result['requested']=$this->DD_project_model->all_projects_requested_reopen();
-				
-		//load the contents of the page into a variable
-		$content=$this->load->view('datadeposit/admin_index', $result,true);
-
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('title_project_management'),true);
-	  	$this->template->render();	
-	}	
+	private function _render_admin_datadeposit_vue_shell($html_title = null, $blank = false)
+	{
+		$view_data = $this->_admin_datadeposit_vue_view_data();
+		$page = array(
+			'title' => $html_title !== null ? $html_title : t('title_project_management'),
+			'content' => $this->load->view('admin/datadeposit/index', $view_data, true),
+			'hide_breadcrumb' => true,
+			'theme_folder' => 'adminvue',
+		);
+		$layout = $blank ? 'layouts/admin_vue_blank' : 'layouts/admin_vue';
+		$this->load->view($layout, $page);
+	}
 	
-	function id($id=null)
+	function projects($id=null, $tab=null)
 	{
 		if (!is_numeric($id))
-        {
-            show_404();
-        }
+		{
+			show_404();
+		}
 
-        /*$this->template->add_css('javascript/jquery/themes/base/jquery.ui.all.css');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.core.min.js');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.widget.min.js');
-		$this->template->add_js('javascript/jquery/ui/minified/jquery.ui.tabs.min.js');	*/
-		//$this->template->add_css('themes/datadeposit/styles-admin.css');
+		$project = $this->DD_project_model->get_by_id($id);
+		if (!$project)
+		{
+			show_404();
+		}
 
-		$data['project_id']=$id;
-		$data['project']=(object)$this->DD_project_model->get_by_id($id);
-		$data['project_summary']=$this->DD_project_model->get_project_summary($id);
-		$data['study_id']=$this->DD_project_model->get_study_id($id);
-		$data['can_edit'] = $this->acl_manager->user_has_access('datadeposit', 'edit');
-		$data['can_delete'] = $this->acl_manager->user_has_access('datadeposit', 'delete');
-		$content=$this->load->view('datadeposit/admin_process_project',$data,true);
-	
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('title_project_management'),true);
-	  	$this->template->render();
+		$title = !empty($project['title']) ? $project['title'] : t('title_project_management');
+		$this->_render_admin_datadeposit_vue_shell($title);
 	}
-	
-	//process project e.g. change project status
-	function tab_process($id)
-	{
-		$this->acl_manager->has_access_or_die('datadeposit', 'edit');
 
-		if ($this->input->post("status"))
-		{
-			$options=array(
-				'status'=>$this->input->post("status",true),
-				'comments'=>$this->input->post("comments",true)		
-			);
-						
-			$result=$this->DD_project_model->update($id,$options);
-			$this->DD_project_model->write_history($id, $status=$options['status'],$comment=$options['comments']);
-			
-			if ($result && $this->input->post('assign_study_id'))
-			{
-				//update study id
-				$this->DD_project_model->set_study_id($id,$this->input->post('assign_study_id',true));
-			}
-			
-			//email notifications
-			if ($result && (int)$this->input->post("notify")===1)
-			{
-				$this->send_project_update_notification($id,$options['comments']);
-			}
-			
-			$output=NULL;
-			
-			if ($result)
-			{
-				$output=array(
-					'status'=>'success',
-					'message'=>'Project status updated successfully!'
-				);				
-			}
-			else
-			{
-				$output=array(
-					'status'=>'error',
-					'message'=>'Failed to update project status'
-				);				
-			}
-			
-			die(json_encode($output));			
-		}
-	
-		 $data['project']=(object)$this->DD_project_model->get_by_id($id);
-		 $data['study_id']=$this->DD_project_model->get_study_id($id);
-		 $this->load->view('datadeposit/tab_process',$data);
-	}
-	
-	
-	private function send_project_update_notification($id,$comments=NULL)
+	public function _remap($method, $params = array())
 	{
-		$project=(object)$this->DD_project_model->get_by_id($id);
-		$project_url=site_url().'/datadeposit/summary/'.$id;
-		$subject='[Status updated - #'.$id.'] - '.$project->title;		
-		$message='Project status was updated, to see the project visit: '.$project_url;
-		
-		if ($comments)
-		{
-			$message.='<div style="margin-top:15px;">Admin comments:</div>';
-			$message.='<div style="font-weight:bold;margin-top:10px;">'.$comments.'</div>';
+		if (!datadeposit_is_enabled()) {
+			$this->_render_disabled();
+			return;
 		}
-		
-				
-		$to=$this->DD_project_model->get_project_owner_email($id);//email of project owner
-		$collabs = implode(',', $this->DD_project_model->get_collaborators($id));
-		$cc=$collabs;
 
-		$this->email_project($id, $to, $cc, $bcc=NULL, $subject,$message);
-	}
-	
-	
-	function tab_files($id)
-	{
-		$this->load->model('DD_resource_model');
-		$data['files']= $this->DD_resource_model->get_project_resources_to_array($id);
-		$data['storage_location']=$this->storage_location;
-		$data['project_storage_location']=$this->DD_project_model->get_project_fullpath($id);
-		$this->load->view('datadeposit/tab_files',$data);
-	}
-	
-	function tab_history($id)
-	{
-		$data['history']=$this->DD_project_model->history_id($id);
-		$this->load->view('datadeposit/tab_history',$data);
-	}
-	
-	
-	function tab_communicate($id)
-	{
-		$this->acl_manager->has_access_or_die('datadeposit', 'edit');
-
-		if ($this->input->post("body"))
-		{
-			$this->load->helper('email');
-			$this->load->library('email');
-		
-			$options=array(
-				'to'		=>	$this->input->post("to",true),
-				'cc'		=>	$this->input->post("cc",true),
-				'subject'	=>	$this->input->post('subject',true),
-				'body'		=>	$this->input->post('body',true),
-			);
-			
-			$errors=array();
-			
-			//validation
-			if (!$options['body']){
-				$errors[]="Message body is required.";			
-			}
-			
-			if (!$options['subject']){
-				$errors[]="Message body is required.";			
-			}
-			
-			if (!valid_email($options['to'])){
-				$errors[]="Email recipient (TO) is required.";			
-			}
-			
-			$options['body']=nl2br($options['body']);
-			
-			$result=false;
-			$output=NULL;
-
-			if (count($errors)==0)
-			{
-				$this->DD_project_model->write_history($id, $status="",$comment='<i>Email:</i>'.$options['body']);
-				
-				//send email			
-				$result= $this->email_project($id, $options['to'], $options['cc'], $bcc=NULL, $options['subject'],$options['body']);
-			}
-				
-			if (count($errors)==0 && $result==true)
-			{
-				$output=array(
-					'status'=>'success',
-					'message'=>'Email was sent!'
-				);				
-			}
-			else
-			{
-				$output=array(
-					'status'=>'error',
-					'message'=>'Failed to send email. Check all form fields and try again.'
-				);				
-			}
-			
-			die(json_encode($output));
+		$keep = array(
+			'index',
+			'tasks',
+			'my_tasks',
+			'task_info',
+			'projects',
+			'summary',
+			'assign',
+			'old_folder_paths',
+			'update_folder_paths',
+		);
+		if (in_array($method, $keep, true) && method_exists($this, $method)) {
+			return call_user_func_array(array($this, $method), $params);
 		}
-		
-		$data['project']=(object)$this->DD_project_model->get_by_id($id);
-		$this->load->view('datadeposit/tab_communicate',$data);
-	}
-	
-	/**
-	*
-	* Email project summary
-	* Note: Duplicate function - move to model/library
-	**/
-	private function email_project($id, $to, $cc, $bcc, $subject,$message)
-	{
-		//$id=27;
-		//$to='';
-		
-		$this->load->helper('email');
-		$this->load->library('email');
-		
-		//$project_title=$this->DD_project_model->get_title_by_id($id);
-		//$current_user_name=$this->session->userdata('username');
-
-		//get formatted project summary
-		$data['content']=$this->DD_project_model->get_project_summary($id);
-		$data['message']=$message;
-
-		//format html for email
-		$css= file_get_contents(APPPATH.'../themes/datadeposit/email.css');
-		$contents=$this->load->view('datadeposit/emails/template', $data,TRUE);
-		
-		//convert external styles to inline styles
-		$this->load->library('CssToInlineStyles');
-		$this->csstoinlinestyles->setCSS($css);
-		$this->csstoinlinestyles->setHTML($contents);
-		$contents=$this->csstoinlinestyles->convert();
-		
-		$this->email->clear();
-		$this->email->initialize();
-		$this->email->to($to);
-		
-		if ($cc){
-			$this->email->cc($cc);
-		}
-		if ($bcc){
-			$this->email->bcc($bcc);
-		}
-		
-		$this->email->subject($subject);
-		$this->email->message($contents);
-		
-		if (!@$this->email->send()) 
-		{
-			/*echo ("EMAIL_FAILED");
-			echo $this->email->print_debugger();
-			exit;*/
-			return false;
-		}
-		else
-		{
-			//die ("EMAIL_SENT");
-			return true;
-		}	
-	}
-	
-	function download($resource_id,$project_id)
-	{
-		//get project data folder path
-		$project_folder_path=$this->DD_project_model->get_project_fullpath($project_id);
-		
-		if (!$project_folder_path)
-		{
-			show_error("PROJECT_DATA_FOLDER_NOT_SET");
-		}
-		
-		$this->load->helper('download');
-		$this->load->model('DD_resource_model');
-		$this->lang->load("resource_manager");
-		$this->load->model('managefiles_model');
-				
-		$resource = $this->DD_resource_model->get_project_resource($resource_id);
-		
-		if (!$resource)
-		{
-			show_error("FILE_NOT_FOUND");
-		}
-		
-		$resource_path=unix_path($project_folder_path.'/'.$resource[0]->filename);
-		
-		if (!file_exists($resource_path))
-		{
-			show_error("FILE_NOT_FOUND:".$resource_path);
-		}
-		
-		force_download3($resource_path,$resource[0]->filename);
-
+		show_404();
 	}
 	
 	
@@ -404,134 +207,22 @@ class Datadeposit extends MY_Controller {
 			}
 		}
 	}
-	
-	
-	/**
-	* Delete one or more records
-	* note: to use with ajax/json, pass the ajax as querystring
-	* 
-	* id 	int or comma seperate string
-	*/
-	function delete($id)
-	{			
-		$this->acl_manager->has_access_or_die('datadeposit', 'delete');
-
-		//array of id to be deleted
-		$delete_arr=array();
-	
-		//is ajax call
-		$ajax=$this->input->get_post('ajax');
-
-		if (!is_numeric($id))
-		{
-			$tmp_arr=explode(",",$id);
-		
-			foreach($tmp_arr as $key=>$value)
-			{
-				if (is_numeric($value))
-				{
-					$delete_arr[]=$value;
-				}
-			}
-			
-			if (count($delete_arr)==0)
-			{
-				//for ajax return JSON output
-				if ($ajax!='')
-				{
-					echo json_encode(array('error'=>"invalid id was provided") );
-					exit;
-				}
-				
-				$this->session->set_flashdata('error', 'Invalid id was provided.');
-				redirect('admin/datadeposit',"refresh");
-			}	
-		}		
-		else
-		{
-			$delete_arr[]=$id;
-		}
-		
-		if ($this->input->post('cancel')!='')
-		{
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/datadeposit');
-			}	
-		}
-		else if ($this->input->post('submit')!='')
-		{
-			foreach($delete_arr as $item)
-			{
-				//log
-				$this->db_logger->write_log('data-deposit',$this->session->userdata('username'). ' deleted project '.$item. ' - '.$this->DD_project_model->get_title_by_id($item) ,'delete');
-
-				
-				//delete
-				$this->DD_project_model->delete($item);
-			}
-
-			//for ajax calls, return output as JSON						
-			if ($ajax!='')
-			{
-				echo json_encode(array('success'=>"true") );
-				exit;
-			}
-						
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/datadeposit');
-			}	
-		}
-		else
-		{
-			$items=array(); //list of deleted items
-			
-			foreach($delete_arr as $item)
-			{
-				//get project title
-				$project_title=$this->DD_project_model->get_title_by_id($item);
-				
-				//exists
-				if ($project_title)
-				{
-					$items[]=$project_title;
-				}	
-			}
-			
-			//ask for confirmation
-			$content=$this->load->view('resources/delete', array('deleted_items'=>$items),true);
-			
-			$this->template->write('content', $content,true);
-	  		$this->template->render();
-		}		
-	}
-
 
     public function summary($id) {
 
-        $this->template->set_template('blank');
-        //$this->template->add_css('themes/datadeposit/styles-admin.css');
-        //$this->template->add_css('body{padding:20px;}','embed');
+		if (!is_numeric($id))
+		{
+			show_404();
+		}
 
-        $content=$this->DD_project_model->get_project_summary($id);
-        $this->template->write('content', $content,true);
-        $this->template->write('title', t('title_project_management'),true);
-        $this->template->render();
+		$project = $this->DD_project_model->get_by_id($id);
+		if (!$project || empty($project['id']))
+		{
+			show_404();
+		}
+
+		$title = !empty($project['title']) ? $project['title'] : t('summary');
+		$this->_render_admin_datadeposit_vue_shell($title, true);
     }
 
 
@@ -540,54 +231,19 @@ class Datadeposit extends MY_Controller {
     {
         $this->acl_manager->has_access_or_die('datadeposit', 'edit');
 
-        $this->load->model('user_model');
-        $this->load->model('DD_tasks_model');
-        $this->load->model('DD_tasks_team_model');
-
-        //validation rules
-        $this->form_validation->set_rules('user_id', t('User'), 'xss_clean|required|max_length[10]|numeric');
-
-        //process form
-        if ($this->form_validation->run() == TRUE) {
-
-            $user_id=$this->input->post("user_id");
-            $current_user_id=$this->session->userdata('user_id');
-
-            $db_result = $this->DD_tasks_model->assign_task($project_id,$user_id,$current_user_id);
-
-            if ($db_result === TRUE)
-            {
-                $task_options=array(
-                    'assigned_by'=>$current_user_id,
-                    'assigned_to'=>$user_id,
-                    'project_id'=>$project_id,
-                    'status'=>0
-                );
-
-                //send email notification
-                $this->DD_tasks_model->send_status_notification($task_options);
-
-                //redirect
-                $this->session->set_flashdata('message', t('form_update_success'));
-                redirect("admin/datadeposit", "refresh");
-            }
-            else
-            {
-                //update failed
-                $this->form_validation->set_error(t('form_update_fail'));
-            }
+        if (!is_numeric($project_id))
+        {
+            show_404();
         }
 
+        $project = $this->DD_project_model->get_by_id($project_id);
+        if (!$project)
+        {
+            show_404();
+        }
 
-        $data['project_id']=$project_id;
-        $data['project']=(object)$this->DD_project_model->get_by_id($project_id);
-
-        $data['tasks_team']=$this->DD_tasks_team_model->get_tasks_team_array();
-        $content=$this->load->view('datadeposit/assign_task',$data,true);
-
-        $this->template->write('content', $content,true);
-        $this->template->write('title', t('title_project_management'),true);
-        $this->template->render();
+        $title = !empty($project['title']) ? $project['title'] : t('Assign task');
+        $this->_render_admin_datadeposit_vue_shell($title);
     }
 
 

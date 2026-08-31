@@ -25,6 +25,7 @@
 | Registry keys use NADA catalog data types (survey, timeseries, …).
 | Display default UIDs are display-{data-type}-system-en.
 | Editor form UIDs are edit-* (see editor_templates.php). IHSN extras use display-{legacy-uid}.
+| Data-deposit forms are deposit-* (see deposit_templates.php).
 |
 | Custom overrides: {same-directory}/custom/{same-filename}
 |   e.g. application/templates/display/custom/display_survey_template.json

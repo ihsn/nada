@@ -1,8 +1,10 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { normalizeNodeId, nodeKey } from '../utils/nodeIds';
+import { isRequiredField, nodeVisibleInTree } from '../utils/fieldFlags';
 import { useMetadataNav } from '../composables/useMetadataNav';
 import { useMetadataFormLabels } from '../composables/useMetadataFormLabels';
+import { useMetadataFormUi } from '../composables/useMetadataFormUi';
 
 const props = defineProps({
   node: { type: Object, required: true },
@@ -11,14 +13,23 @@ const props = defineProps({
 
 const nav = useMetadataNav();
 const labels = useMetadataFormLabels();
+const ui = useMetadataFormUi();
 const key = computed(() => nodeKey(props.node, `d${props.depth}`));
 const nodeId = computed(() => normalizeNodeId(key.value));
-const hasChildren = computed(
-  () => Array.isArray(props.node.items) && props.node.items.filter((x) => x && typeof x === 'object').length > 0
+const filterState = computed(() => ({
+  mode: ui?.fieldFilter?.value || 'all',
+  query: ui?.treeQuery?.value || '',
+}));
+const filtering = computed(
+  () => filterState.value.mode !== 'all' || String(filterState.value.query).trim() !== ''
 );
-const children = computed(() =>
-  (props.node.items || []).filter((x) => x && typeof x === 'object')
-);
+const children = computed(() => {
+  const all = (props.node.items || []).filter((x) => x && typeof x === 'object');
+  if (!filtering.value) return all;
+  return all.filter((child) => nodeVisibleInTree(child, filterState.value));
+});
+const hasChildren = computed(() => children.value.length > 0);
+const required = computed(() => isRequiredField(props.node));
 const title = computed(
   () => props.node.title || props.node.key || props.node.id || labels.value.item
 );
@@ -53,9 +64,9 @@ const containsActive = computed(() => {
 });
 
 watch(
-  containsActive,
-  (v) => {
-    if (v) showChildren.value = true;
+  [containsActive, filtering],
+  ([active, filtered]) => {
+    if (active || filtered) showChildren.value = true;
   },
   { immediate: true }
 );
@@ -106,7 +117,7 @@ function onClick(e) {
         <v-icon size="16">{{ branchIcon }}</v-icon>
       </button>
       <v-icon v-else size="16" class="mf-tree-leaf-icon">{{ leafIcon }}</v-icon>
-      <span class="mf-tree-label">{{ title }}</span>
+      <span class="mf-tree-label" :class="{ 'mf-tree-label--required': required }">{{ title }}</span>
     </div>
 
     <div v-if="hasChildren && showChildren" class="mf-tree-children" role="group">
@@ -160,6 +171,10 @@ function onClick(e) {
 }
 .mf-tree-label {
   word-break: break-word;
+}
+.mf-tree-label--required {
+  font-weight: 700;
+  color: rgba(var(--v-theme-on-surface), 0.92);
 }
 .mf-tree-children {
   margin-left: 14px;

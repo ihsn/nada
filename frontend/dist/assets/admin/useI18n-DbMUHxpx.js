@@ -1,0 +1,1 @@
+import{l as d}from"./router-Bj9VPDt6.js";function a(){const r=d(()=>(typeof window<"u"&&window.APP_CONFIG?.translations)??{});function u(t,e,...n){const i=r.value[t]??e??t;if(n.length===0)return i;let o=0;return String(i).replace(/%(?:s|d)/g,s=>n[o]!==void 0?String(n[o++]):s)}return{t:u}}export{a as u};

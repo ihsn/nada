@@ -1,11 +1,14 @@
 <script setup>
-import { computed, toRef, watch } from 'vue';
+import { computed, toRaw, toRef, watch } from 'vue';
+import { isEqual } from 'lodash';
 import { provideMetadataFormStore } from '../composables/useMetadataFormStore';
 import { createMetadataFormStore } from '../composables/createMetadataFormStore';
 import { createMetadataNav, provideMetadataNav } from '../composables/useMetadataNav';
 import { provideMetadataFormLabels } from '../composables/useMetadataFormLabels';
+import { createMetadataFormUi, provideMetadataFormUi } from '../composables/useMetadataFormUi';
 import MetadataFormTree from './MetadataFormTree.vue';
 import MetadataActiveSection from './MetadataActiveSection.vue';
+import MetadataStackedForm from './MetadataStackedForm.vue';
 
 const props = defineProps({
   /** Root template object: { type, title, items } or { template: { items } } */
@@ -13,12 +16,19 @@ const props = defineProps({
   /** Initial metadata object */
   modelValue: { type: Object, default: () => ({}) },
   showTree: { type: Boolean, default: true },
+  /** tree = catalog (default); stacked = full-width sections, no tree */
+  layout: { type: String, default: 'tree' },
   labels: { type: Object, default: () => ({}) },
 });
+
+const emit = defineEmits(['update:modelValue']);
+
+const isStacked = computed(() => props.layout === 'stacked' || props.layout === 'panels');
 
 const store = createMetadataFormStore(props.modelValue || {});
 provideMetadataFormStore(store);
 const labels = provideMetadataFormLabels(toRef(props, 'labels'));
+provideMetadataFormUi(createMetadataFormUi());
 
 const rootItems = computed(() => {
   const t = props.formTemplate || {};
@@ -40,13 +50,33 @@ watch(
   { immediate: true }
 );
 
+let syncing = false;
+
 watch(
   () => props.modelValue,
   (v) => {
-    if (v && v !== store.state.data) {
-      store.replaceData(v);
+    if (syncing) return;
+    const incoming = v && typeof v === 'object' ? v : {};
+    if (!isEqual(toRaw(incoming), toRaw(store.state.data))) {
+      syncing = true;
+      store.replaceData(incoming);
+      syncing = false;
     }
   }
+);
+
+watch(
+  () => store.state.data,
+  () => {
+    if (syncing) return;
+    const payload = store.getPayload();
+    if (!isEqual(payload, toRaw(props.modelValue || {}))) {
+      syncing = true;
+      emit('update:modelValue', payload);
+      syncing = false;
+    }
+  },
+  { deep: true }
 );
 
 const activeNode = computed(() => nav.activeNode.value);
@@ -60,8 +90,9 @@ defineExpose({
 </script>
 
 <template>
-  <div class="mf-editor">
-    <div class="mf-editor-layout" :class="{ 'mf-editor-layout--no-tree': !showTree }">
+  <div class="mf-editor" :class="{ 'mf-editor--stacked': isStacked }">
+    <MetadataStackedForm v-if="isStacked" :items="rootItems" />
+    <div v-else class="mf-editor-layout" :class="{ 'mf-editor-layout--no-tree': !showTree }">
       <aside v-if="showTree" class="mf-editor-tree">
         <MetadataFormTree :items="rootItems" />
       </aside>
@@ -82,9 +113,12 @@ defineExpose({
   display: flex;
   flex-direction: column;
 }
+.mf-editor--stacked {
+  height: auto;
+}
 .mf-editor-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
   gap: 0;
   align-items: stretch;
   flex: 1 1 auto;
@@ -93,14 +127,15 @@ defineExpose({
   border: 1px solid rgba(var(--v-theme-on-surface), 0.1);
   border-radius: 8px;
   overflow: hidden;
-  background: rgb(var(--v-theme-surface));
+  background: rgba(var(--v-theme-on-surface), 0.02);
 }
 .mf-editor-layout--no-tree {
   grid-template-columns: 1fr;
+  background: rgb(var(--v-theme-surface));
 }
 .mf-editor-tree {
   border-right: 1px solid rgba(var(--v-theme-on-surface), 0.1);
-  background: rgba(var(--v-theme-on-surface), 0.02);
+  background: transparent;
   padding: 12px 8px;
   min-height: 0;
   max-height: 100%;
@@ -120,6 +155,7 @@ defineExpose({
   overflow: auto;
   overscroll-behavior: contain;
   padding: 16px 18px 48px;
+  background: rgb(var(--v-theme-surface));
 }
 @media (max-width: 960px) {
   .mf-editor-layout {

@@ -5,6 +5,7 @@
  */
 import { computed, ref } from 'vue';
 import { useMetadataFormLabels } from '../composables/useMetadataFormLabels';
+import { useMetadataFormUi } from '../composables/useMetadataFormUi';
 import {
   isBoundingBoxDisplay,
   resolveBoundingBoxSides,
@@ -19,6 +20,7 @@ const props = defineProps({
 });
 
 const labels = useMetadataFormLabels();
+const ui = useMetadataFormUi();
 const open = ref(true);
 const helpOpen = ref(false);
 const isBbox = computed(() => isBoundingBoxDisplay(props.field));
@@ -29,9 +31,11 @@ const children = computed(() => {
   return all.filter((p) => p.key && !used.has(p.key));
 });
 const helpText = computed(() => props.field.help_text || props.field.help || '');
+const helpShown = computed(() => !!(helpText.value && (ui?.showAllHelp?.value || helpOpen.value)));
 const label = computed(() => props.field.title || props.field.key || '');
 
 function toggleHelp() {
+  if (ui?.showAllHelp?.value) return;
   helpOpen.value = !helpOpen.value;
 }
 </script>
@@ -47,17 +51,15 @@ function toggleHelp() {
         v-if="helpText"
         type="button"
         class="mf-nested-section-help-btn"
-        :class="{ 'mf-nested-section-help-btn--open': helpOpen }"
-        :aria-label="helpOpen ? labels.hideHelp : labels.showHelp"
+        :class="{ 'mf-nested-section-help-btn--open': helpShown }"
+        :aria-label="helpShown ? labels.hideHelp : labels.showHelp"
         @click="toggleHelp"
       >
-        <v-icon size="16">{{ helpOpen ? 'mdi-help-circle' : 'mdi-help-circle-outline' }}</v-icon>
+        <v-icon size="16">{{ helpShown ? 'mdi-help-circle' : 'mdi-help-circle-outline' }}</v-icon>
       </button>
     </div>
     <div v-show="open" class="mf-nested-section-body">
-      <p v-if="helpText && helpOpen" class="mf-nested-section-help text-caption text-medium-emphasis">
-        {{ helpText }}
-      </p>
+      <p v-if="helpShown" class="mf-nested-section-help text-caption text-medium-emphasis" v-html="helpText" />
       <MetadataBoundingBoxField
         v-if="isBbox"
         :field="field"

@@ -9,11 +9,12 @@
 | Paths in `file` are relative to APPPATH (application/).
 |
 | Registry keys use NADA catalog data types (survey, timeseries, …).
-| UIDs are edit-{legacy-id} so they never collide with display-* UIDs.
+| UIDs are edit-* so they never collide with display-* or deposit-* UIDs.
+|
+| Data-deposit forms are a separate registry: config/deposit_templates.php.
 |
 | Site overrides (same basename wins over the shipped file):
 |   {userdata_path}/templates/editor/{filename}
-|   e.g. userdata/templates/editor/edit_survey_form_template.json
 |
 | To use a different override directory, set editor_template_custom_path.
 | Empty = {userdata_path}/templates/editor. Switching a type's form is done
@@ -133,43 +134,25 @@ $config['resource'][] = array(
 
 /*
 |--------------------------------------------------------------------------
-| Default template UID per context and data type
+| Default template UID per catalog data type
 |--------------------------------------------------------------------------
 |
-| Contexts:
-|   catalog — built-in catalog metadata editor
-|   deposit — reserved for the data-deposit migration (same cores for now)
-|
 | Each UID must exist in the registry above for that data type.
+| Deposit defaults live in config/deposit_templates.php.
 |
 */
 $config['editor_template_defaults'] = array(
-	'catalog' => array(
-		'survey'        => 'edit-microdata-system-en',
-		'timeseries'    => 'edit-timeseries-system-en',
-		'timeseries-db' => 'edit-timeseries-db-system-en',
-		'timeseriesdb'  => 'edit-timeseries-db-system-en',
-		'script'        => 'edit-script-system-en',
-		'geospatial'    => 'edit-geospatial-system-en',
-		'document'      => 'edit-document-system-en',
-		'table'         => 'edit-table-system-en',
-		'image'         => 'edit-image-system-en',
-		'video'         => 'edit-video-system-en',
-		'resource'      => 'edit-resource-system-en',
-	),
-	'deposit' => array(
-		'survey'        => 'edit-microdata-system-en',
-		'timeseries'    => 'edit-timeseries-system-en',
-		'timeseries-db' => 'edit-timeseries-db-system-en',
-		'timeseriesdb'  => 'edit-timeseries-db-system-en',
-		'script'        => 'edit-script-system-en',
-		'geospatial'    => 'edit-geospatial-system-en',
-		'document'      => 'edit-document-system-en',
-		'table'         => 'edit-table-system-en',
-		'image'         => 'edit-image-system-en',
-		'video'         => 'edit-video-system-en',
-		'resource'      => 'edit-resource-system-en',
-	),
+	'survey'        => 'edit-microdata-system-en',
+	'timeseries'    => 'edit-timeseries-system-en',
+	'timeseries-db' => 'edit-timeseries-db-system-en',
+	'timeseriesdb'  => 'edit-timeseries-db-system-en',
+	'script'        => 'edit-script-system-en',
+	'geospatial'    => 'edit-geospatial-system-en',
+	'document'      => 'edit-document-system-en',
+	'table'         => 'edit-table-system-en',
+	'image'         => 'edit-image-system-en',
+	'video'         => 'edit-video-system-en',
+	'resource'      => 'edit-resource-system-en',
 );
 
 /**

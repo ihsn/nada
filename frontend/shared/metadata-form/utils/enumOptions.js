@@ -59,6 +59,7 @@ export function resolveDisplayType(field) {
   if (t === 'textarea') return 'textarea';
   if (t === 'dropdown') return 'dropdown';
   if (t === 'boolean') return 'dropdown';
+  if (t === 'date') return 'date';
   if (t === 'integer' || t === 'number') return 'text';
   return 'text';
 }

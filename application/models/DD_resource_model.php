@@ -173,19 +173,28 @@ class DD_resource_model extends CI_Model {
 					$options[$key]=$value;
 				}	
 			}
-	
-			//check resource already exists for the project
-			$resource_id=$this->resource_exists($pid,$data['filename']);
+			$options['project_id'] = $pid;
+
+			$filename = isset($data['filename']) ? $data['filename'] : '';
+			$resource_id=$this->resource_exists($pid,$filename);
 			if (!$resource_id)
 			{
-				//insert new
-				return $this->db->insert('dd_project_resources', $options);
+				$this->db->insert('dd_project_resources', $options);
+				return $this->db->insert_id();
 			}
-			else //update resource
-			{
-				$options['description']='found andu dpate';
-				return $this->update_project_resource($resource_id,$options);
-			}	
+
+			// Same filename: keep type/title/description; refresh size and timestamp only.
+			$update = array();
+			if (isset($options['filesize'])) {
+				$update['filesize'] = $options['filesize'];
+			}
+			if (isset($options['created'])) {
+				$update['created'] = $options['created'];
+			}
+			if ($update) {
+				$this->update_project_resource($resource_id, $update);
+			}
+			return $resource_id;
 	}
 	
 	

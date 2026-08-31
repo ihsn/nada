@@ -7,11 +7,13 @@
  */
 import { computed, ref } from 'vue';
 import { isEditableSection, isSectionContainer, isSectionType } from '../utils/enumOptions';
+import { nodeVisibleInForm } from '../utils/fieldFlags';
 import { fieldDomId, nodeKey } from '../utils/nodeIds';
 import { useMetadataNav } from '../composables/useMetadataNav';
 import { hasDisplayableContent } from '../utils/previewContent';
 import { useMetadataFormStore } from '../composables/useMetadataFormStore';
 import { useMetadataFormLabels } from '../composables/useMetadataFormLabels';
+import { useMetadataFormUi } from '../composables/useMetadataFormUi';
 import MetadataFieldInput from './MetadataFieldInput.vue';
 import MetadataArrayField from './MetadataArrayField.vue';
 import MetadataSimpleArrayField from './MetadataSimpleArrayField.vue';
@@ -25,15 +27,26 @@ const props = defineProps({
 const nav = useMetadataNav();
 const store = useMetadataFormStore();
 const labels = useMetadataFormLabels();
+const ui = useMetadataFormUi();
 
 const title = computed(() => props.node.title || props.node.key || '');
 const helpText = computed(() => props.node.help_text || props.node.help || '');
 const helpOpen = ref(false);
+const helpShown = computed(() => !!(helpText.value && (ui?.showAllHelp?.value || helpOpen.value)));
 const isContainer = computed(() => isSectionContainer(props.node.type));
 const isSection = computed(() => isEditableSection(props.node.type));
-const children = computed(() =>
-  Array.isArray(props.node.items) ? props.node.items.filter((x) => x && typeof x === 'object') : []
-);
+const filterState = computed(() => ({
+  mode: ui?.fieldFilter?.value || 'all',
+  query: ui?.treeQuery?.value || '',
+}));
+const children = computed(() => {
+  const all = Array.isArray(props.node.items)
+    ? props.node.items.filter((x) => x && typeof x === 'object')
+    : [];
+  const state = filterState.value;
+  if (state.mode === 'all' && !String(state.query || '').trim()) return all;
+  return all.filter((child) => nodeVisibleInForm(child, state));
+});
 const childSections = computed(() => children.value.filter((c) => isSectionType(c.type)));
 const domId = computed(() => fieldDomId(nodeKey(props.node, '')));
 const hasPreviewContent = computed(() =>
@@ -66,14 +79,18 @@ function openChild(child) {
           v-if="helpText"
           type="button"
           class="mf-active-help-btn"
-          :class="{ 'mf-active-help-btn--open': helpOpen }"
-          :aria-label="helpOpen ? labels.hideHelp : labels.showHelp"
+          :class="{ 'mf-active-help-btn--open': helpShown }"
+          :aria-label="helpShown ? labels.hideHelp : labels.showHelp"
           @click="helpOpen = !helpOpen"
         >
-          <v-icon size="18">{{ helpOpen ? 'mdi-help-circle' : 'mdi-help-circle-outline' }}</v-icon>
+          <v-icon size="18">{{ helpShown ? 'mdi-help-circle' : 'mdi-help-circle-outline' }}</v-icon>
         </button>
       </div>
-      <p v-if="helpText && helpOpen" class="text-body-2 text-medium-emphasis mb-0">{{ helpText }}</p>
+      <div
+        v-if="helpShown"
+        class="text-body-2 text-medium-emphasis mb-0 mf-active-help-text"
+        v-html="helpText"
+      />
       <p v-if="isContainer" class="text-caption text-medium-emphasis mt-1 mb-0">
         {{ labels.containerOverview }}
       </p>
@@ -167,6 +184,17 @@ function openChild(child) {
 .mf-active-help-btn:hover,
 .mf-active-help-btn--open {
   color: rgb(var(--v-theme-primary));
+}
+.mf-active-help-text :deep(p) {
+  margin: 0 0 0.5em;
+}
+.mf-active-help-text :deep(p:last-child) {
+  margin-bottom: 0;
+}
+.mf-active-help-text :deep(ul),
+.mf-active-help-text :deep(ol) {
+  margin: 0.25em 0 0.5em;
+  padding-left: 1.25em;
 }
 .mf-child-section-links {
   padding: 10px 12px;

@@ -1,10 +1,15 @@
 <?php
 
 /**
- * File-registry editor templates (catalog metadata forms).
+ * File-registry form templates (catalog metadata editor + data deposit).
  *
- * Cores come from config/editor_templates.php. Site overrides are a same-basename
- * file in one directory: editor_template_custom_path, or {userdata_path}/templates/editor.
+ * Catalog cores: config/editor_templates.php.
+ * Deposit cores: config/deposit_templates.php.
+ * Same ME JSON shape and loader; separate files, UIDs, and override dirs.
+ *
+ * Site overrides (same basename):
+ *   {userdata_path}/templates/editor/{filename}
+ *   {userdata_path}/templates/deposit/{filename}
  */
 class Editor_template_model extends ci_model {
 
@@ -12,6 +17,16 @@ class Editor_template_model extends ci_model {
 	private $editor_template_defaults = array();
 	private $editor_template_custom_path = '';
 	private $ci;
+
+	private static $registry_meta_keys = array(
+		'editor_template_path',
+		'editor_template_custom_path',
+		'editor_template_defaults',
+		'editor_template_meta_keys',
+		'deposit_template_path',
+		'deposit_template_defaults',
+		'deposit_template_meta_keys',
+	);
 
 	public function __construct()
 	{
@@ -22,27 +37,70 @@ class Editor_template_model extends ci_model {
 
 	function init_core_templates()
 	{
-		require_once(APPPATH.'config/editor_templates.php');
+		$editor = $this->load_registry_file(APPPATH.'config/editor_templates.php');
+		$this->apply_registry($editor, 'catalog');
 
-		if (!isset($config)) {
-			throw new Exception("config/editor_templates not loaded");
+		$deposit_path = APPPATH.'config/deposit_templates.php';
+		if (is_file($deposit_path)) {
+			$deposit = $this->load_registry_file($deposit_path);
+			$this->apply_registry($deposit, 'deposit');
+		}
+	}
+
+	/**
+	 * Load a registry PHP file that assigns $config.
+	 *
+	 * @param string $path
+	 * @return array
+	 */
+	private function load_registry_file($path)
+	{
+		if (!is_file($path)) {
+			throw new Exception('Template registry not found: '.$path);
 		}
 
-		$meta_keys = isset($config['editor_template_meta_keys'])
-			? $config['editor_template_meta_keys']
-			: array(
-				'editor_template_path',
-				'editor_template_custom_path',
-				'editor_template_defaults',
-				'editor_template_meta_keys',
-			);
+		$config = array();
+		require $path;
 
-		if (isset($config['editor_template_defaults']) && is_array($config['editor_template_defaults'])) {
-			$this->editor_template_defaults = $config['editor_template_defaults'];
+		if (!isset($config) || !is_array($config) || count($config) === 0) {
+			throw new Exception('Template registry not loaded: '.$path);
 		}
 
-		if (isset($config['editor_template_custom_path'])) {
-			$this->editor_template_custom_path = (string) $config['editor_template_custom_path'];
+		return $config;
+	}
+
+	/**
+	 * Merge one registry file into the in-memory list and defaults map.
+	 *
+	 * @param array  $config
+	 * @param string $context catalog|deposit
+	 * @return void
+	 */
+	private function apply_registry($config, $context)
+	{
+		$meta_keys = self::$registry_meta_keys;
+		if ($context === 'catalog' && isset($config['editor_template_meta_keys']) && is_array($config['editor_template_meta_keys'])) {
+			$meta_keys = array_values(array_unique(array_merge($meta_keys, $config['editor_template_meta_keys'])));
+		}
+		if ($context === 'deposit' && isset($config['deposit_template_meta_keys']) && is_array($config['deposit_template_meta_keys'])) {
+			$meta_keys = array_values(array_unique(array_merge($meta_keys, $config['deposit_template_meta_keys'])));
+		}
+
+		if ($context === 'catalog') {
+			if (isset($config['editor_template_custom_path'])) {
+				$this->editor_template_custom_path = (string) $config['editor_template_custom_path'];
+			}
+			if (isset($config['editor_template_defaults']) && is_array($config['editor_template_defaults'])) {
+				$this->editor_template_defaults['catalog'] = $this->catalog_defaults_map($config['editor_template_defaults']);
+			}
+		}
+
+		if ($context === 'deposit') {
+			if (isset($config['deposit_template_defaults']) && is_array($config['deposit_template_defaults'])) {
+				$this->editor_template_defaults['deposit'] = $config['deposit_template_defaults'];
+			} elseif (isset($config['editor_template_defaults']['deposit']) && is_array($config['editor_template_defaults']['deposit'])) {
+				$this->editor_template_defaults['deposit'] = $config['editor_template_defaults']['deposit'];
+			}
 		}
 
 		foreach ($config as $key => $templates) {
@@ -77,6 +135,7 @@ class Editor_template_model extends ci_model {
 					'template_type' => 'core',
 					'name' => isset($template['name']) ? $template['name'] : $template['uid'],
 					'data_type' => $key,
+					'context' => isset($template['context']) ? $template['context'] : $context,
 					'lang' => isset($template['lang']) ? $template['lang'] : 'en',
 					'version' => isset($template['version']) ? $template['version'] : null,
 					'description' => isset($template['description']) ? $template['description'] : null,
@@ -85,6 +144,21 @@ class Editor_template_model extends ci_model {
 				);
 			}
 		}
+	}
+
+	/**
+	 * Accept flat type=>uid maps or the older nested ['catalog'=>...].
+	 *
+	 * @param array $defaults
+	 * @return array
+	 */
+	private function catalog_defaults_map($defaults)
+	{
+		if (isset($defaults['catalog']) && is_array($defaults['catalog'])) {
+			$defaults = $defaults['catalog'];
+		}
+		unset($defaults['deposit']);
+		return $defaults;
 	}
 
 	/**
@@ -105,6 +179,28 @@ class Editor_template_model extends ci_model {
 		}
 
 		return rtrim(str_replace('\\', '/', (string) $userdata), '/').'/templates/editor';
+	}
+
+	/**
+	 * Override directory for a registered file.
+	 * Deposit templates: {userdata_path}/templates/deposit.
+	 * Editor templates: get_override_directory().
+	 *
+	 * @param string $relative_file Path relative to APPPATH
+	 * @return string
+	 */
+	function get_override_directory_for_file($relative_file)
+	{
+		$relative_file = ltrim(str_replace('\\', '/', (string) $relative_file), '/');
+		if (strpos($relative_file, 'templates/deposit/') === 0) {
+			$userdata = $this->ci->config->item('userdata_path');
+			if ($userdata === null || $userdata === false || trim((string) $userdata) === '') {
+				return '';
+			}
+			return rtrim(str_replace('\\', '/', (string) $userdata), '/').'/templates/deposit';
+		}
+
+		return $this->get_override_directory();
 	}
 
 	/**
@@ -130,7 +226,7 @@ class Editor_template_model extends ci_model {
 			return null;
 		}
 
-		$override_dir = $this->get_override_directory();
+		$override_dir = $this->get_override_directory_for_file($relative_file);
 		if ($override_dir !== '') {
 			$custom_path = $override_dir.'/'.$basename;
 			if (is_file($custom_path)) {
@@ -148,6 +244,7 @@ class Editor_template_model extends ci_model {
 
 	/**
 	 * Default template UID for a context (catalog|deposit) and data type.
+	 * Deposit types without a deposit-owned default fall back to the catalog core.
 	 *
 	 * @param string $data_type
 	 * @param string $context
@@ -159,9 +256,16 @@ class Editor_template_model extends ci_model {
 			return $this->editor_template_defaults[$context][$data_type];
 		}
 
-		$cores = $this->get_core_templates_by_type($data_type);
+		$cores = $this->get_core_templates_by_type($data_type, $context);
 		if (!empty($cores[0]['uid'])) {
 			return $cores[0]['uid'];
+		}
+
+		if ($context === 'deposit') {
+			$cores = $this->get_core_templates_by_type($data_type, 'catalog');
+			if (!empty($cores[0]['uid'])) {
+				return $cores[0]['uid'];
+			}
 		}
 
 		return null;
@@ -192,13 +296,18 @@ class Editor_template_model extends ci_model {
 		}
 	}
 
-	function get_core_templates_by_type($type)
+	function get_core_templates_by_type($type, $context = 'catalog')
 	{
 		$templates_ = array();
 		foreach ($this->core_templates as $template) {
-			if ($type == $template['data_type']) {
-				$templates_[] = $template;
+			if ($type != $template['data_type']) {
+				continue;
 			}
+			$row_context = isset($template['context']) ? $template['context'] : 'catalog';
+			if ($row_context !== $context) {
+				continue;
+			}
+			$templates_[] = $template;
 		}
 		return $templates_;
 	}

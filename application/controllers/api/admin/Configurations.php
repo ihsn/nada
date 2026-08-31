@@ -167,6 +167,7 @@ class Configurations extends MY_REST_Controller
 					'ddi_import_folder'  => ($ddi_import !== '' && is_dir($ddi_import)),
 				),
 				'catalog_study_types'       => $catalog_study_types,
+				'datadeposit'               => $this->datadeposit_meta(),
 			);
 
 			$this->set_response(
@@ -553,8 +554,28 @@ class Configurations extends MY_REST_Controller
 					throw new Exception('INVALID_VALUE:semantic_search_debug');
 				}
 			}
+
+			if ($key === 'deposit_max_upload_size')
+			{
+				$mb = (int) $value;
+				if ($mb < 1 || $mb > 16384)
+				{
+					throw new Exception('INVALID_VALUE:deposit_max_upload_size');
+				}
+				$value = (string) $mb;
+			}
 		}
 		unset($value);
+	}
+
+	protected function datadeposit_meta()
+	{
+		$this->load->helper('datadeposit');
+		return array(
+			'enabled' => datadeposit_is_enabled(),
+			'allowed_resource_types' => datadeposit_allowed_resource_types(),
+			'enable_config_file' => 'application/config/datadeposit.php',
+		);
 	}
 
 	protected function language_folder_exists($folder)

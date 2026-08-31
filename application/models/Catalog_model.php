@@ -492,71 +492,82 @@ class Catalog_model extends CI_Model {
 		$this->db->select('*');
 		$this->db->where('survey_id', $id); 
 		$rows=$this->db->get('resources')->result_array();
-		
-		$line_br="\r\n";
-		
-		$rdf='<?xml version=\'1.0\' encoding=\'UTF-8\'?>'.$line_br;
-		$rdf.='<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/">'.$line_br;
-		
-		foreach($rows as $row)
-		{
-			$row=(object)$row;
-			
-			$download_link=htmlspecialchars($row->filename);
-			if($this->form_validation->valid_url($row->filename)){
-				$download_link=htmlspecialchars($row->filename);
-			}else{
-				$download_link=site_url("catalog/{$row->survey_id}/download/{$row->resource_id}/".rawurlencode($row->filename) );
+
+		foreach ($rows as $i => $row) {
+			$filename = isset($row['filename']) ? $row['filename'] : '';
+			if ($this->form_validation->valid_url($filename)) {
+				$rows[$i]['rdf_about'] = $filename;
+			} else {
+				$rows[$i]['rdf_about'] = site_url(
+					'catalog/'.$row['survey_id'].'/download/'.$row['resource_id'].'/'.rawurlencode($filename)
+				);
+			}
+		}
+
+		return $this->rdf_xml_from_resources($rows);
+	}
+
+	/**
+	 * Dublin Core RDF/XML for external resources (catalog or data deposit).
+	 * Uses row['rdf_about'] when set, otherwise filename.
+	 *
+	 * @param array $rows
+	 * @return string
+	 */
+	function rdf_xml_from_resources(array $rows)
+	{
+		$line_br = "\r\n";
+		$rdf = '<?xml version=\'1.0\' encoding=\'UTF-8\'?>'.$line_br;
+		$rdf .= '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/">'.$line_br;
+
+		foreach ($rows as $row) {
+			$row = (object) $row;
+			$about = '';
+			if (isset($row->rdf_about) && $row->rdf_about !== '') {
+				$about = $row->rdf_about;
+			} elseif (isset($row->filename)) {
+				$about = $row->filename;
 			}
 
-			$rdf.=sprintf('<rdf:Description rdf:about="%s">',htmlentities($download_link,ENT_QUOTES,'UTF-8'));
-			$rdf.='<rdf:label><![CDATA['.$row->title.']]></rdf:label>';
-			$rdf.='<dc:title><![CDATA['.$row->title.']]></dc:title>';
-			
-			if ($row->author)
-			{
-				$rdf.='<dc:creator><![CDATA['.$row->author.']]></dc:creator>';
-			}	
-			if ($row->publisher)
-			{			
-				$rdf.='<dc:publisher><![CDATA['.$row->publisher.']]></dc:publisher>';
+			$rdf .= sprintf('<rdf:Description rdf:about="%s">', htmlentities($about, ENT_QUOTES, 'UTF-8'));
+			$title = isset($row->title) ? $row->title : '';
+			$rdf .= '<rdf:label><![CDATA['.$title.']]></rdf:label>';
+			$rdf .= '<dc:title><![CDATA['.$title.']]></dc:title>';
+
+			if (!empty($row->author)) {
+				$rdf .= '<dc:creator><![CDATA['.$row->author.']]></dc:creator>';
 			}
-			if ($row->contributor)
-			{
-				$rdf.='<dc:contributor><![CDATA['.$row->contributor.']]></dc:contributor>';
-			}	
-			if ($row->dcdate)
-			{
-				$rdf.='<dcterms:created>'.$row->dcdate.'</dcterms:created>';
-			}	
-			if ($row->dcformat)
-			{
-				$rdf.='<dc:format><![CDATA['.$row->dcformat.']]></dc:format>';
-			}	
-			if ($row->dctype)
-			{
-				$rdf.='<dc:type><![CDATA['.$row->dctype.']]></dc:type>';
-			}	
-			if ($row->country)
-			{
-				$rdf.='<dcterms:spatial><![CDATA['.$row->country.']]></dcterms:spatial>';
-			}	
-			if ($row->description)
-			{
-				$rdf.='<dc:description><![CDATA['.$row->description.']]></dc:description>';							
-			}	
-			if ($row->toc)
-			{
-				$rdf.='<dcterms:tableOfContents><![CDATA['.$row->toc.']]></dcterms:tableOfContents>';
-			}	
-			if ($row->abstract)
-			{
-				$rdf.='<dcterms:abstract><![CDATA['.$row->abstract.']]></dcterms:abstract>';
+			if (!empty($row->publisher)) {
+				$rdf .= '<dc:publisher><![CDATA['.$row->publisher.']]></dc:publisher>';
 			}
-			$rdf.='</rdf:Description>'.$line_br;
+			if (!empty($row->contributor)) {
+				$rdf .= '<dc:contributor><![CDATA['.$row->contributor.']]></dc:contributor>';
+			}
+			if (!empty($row->dcdate)) {
+				$rdf .= '<dcterms:created>'.$row->dcdate.'</dcterms:created>';
+			}
+			if (!empty($row->dcformat)) {
+				$rdf .= '<dc:format><![CDATA['.$row->dcformat.']]></dc:format>';
+			}
+			if (!empty($row->dctype)) {
+				$rdf .= '<dc:type><![CDATA['.$row->dctype.']]></dc:type>';
+			}
+			if (!empty($row->country)) {
+				$rdf .= '<dcterms:spatial><![CDATA['.$row->country.']]></dcterms:spatial>';
+			}
+			if (!empty($row->description)) {
+				$rdf .= '<dc:description><![CDATA['.$row->description.']]></dc:description>';
+			}
+			if (!empty($row->toc)) {
+				$rdf .= '<dcterms:tableOfContents><![CDATA['.$row->toc.']]></dcterms:tableOfContents>';
+			}
+			if (!empty($row->abstract)) {
+				$rdf .= '<dcterms:abstract><![CDATA['.$row->abstract.']]></dcterms:abstract>';
+			}
+			$rdf .= '</rdf:Description>'.$line_br;
 		}
-		$rdf.='</rdf:RDF>';
-		
+		$rdf .= '</rdf:RDF>';
+
 		return $rdf;
 	}
 	
