@@ -46,10 +46,12 @@ export function useStudyFilesApi() {
 
   /**
    * @param {string} token — row.base64 from list API
+   * POST …/files/{token}/delete: same as DELETE …/files/{token} when DELETE is blocked.
    */
   async function deleteFile(token) {
-    const { data } = await axios.delete(
-      `${catalogBase()}${sidPart()}/files/${encodeURIComponent(token)}`,
+    const { data } = await axios.post(
+      `${catalogBase()}${sidPart()}/files/${encodeURIComponent(token)}/delete`,
+      {},
       {
         params: { id_format: 'id' },
         withCredentials: true,
