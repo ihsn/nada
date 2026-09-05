@@ -676,10 +676,18 @@ class Catalog_search_solr
             case 'collections':
             case 'type':
             case 'dtype':
-                if (!is_array($value)) return array();
-                return array_values(array_filter(array_map(function($item) {
-                    return is_numeric($item) ? (int)$item : trim(strip_tags((string)$item));
-                }, $value)));
+                // Browse tab_type is a string; type facet / filter_catalog_type_param is an array.
+                if (is_string($value) && $value !== '') {
+                    $value = array_map('trim', explode(',', $value));
+                }
+                if (!is_array($value)) {
+                    return array();
+                }
+                return array_values(array_filter(array_map(function ($item) {
+                    return is_numeric($item) ? (int) $item : trim(strip_tags((string) $item));
+                }, $value), function ($item) {
+                    return $item !== '' && $item !== null;
+                }));
             case 'sort_by':
                 return array_key_exists($value, $this->sort_allowed_fields) ? $value : '';
             case 'sort_order':
