@@ -90,7 +90,7 @@
                     $var_country_info=array_filter(array($row['nation'], $row['idno']));
                     $var_country_info=implode(" - ", $var_country_info);
                     ?>
-                    <div class="row vrow pb-2 mb-2 border-bottom" valign="top" data-url="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']); ?>" data-url-target="_blank" data-title="<?php echo $row['labl'];?>" title="<?php echo t('variable_info');?>">
+                    <div class="row vrow pb-2 mb-2 border-bottom" valign="top" data-url="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']); ?>" data-url-target="_blank" data-title="<?php echo html_escape($row['labl']);?>" title="<?php echo t('variable_info');?>">
                         <div class="col-md-1" title="<?php echo t('mark_for_variable_comparison');?>">
                             <input type="checkbox" class="nada-form-check-input compare" value="<?php echo $row['sid'].'/'
                                 .$row['vid']
@@ -100,14 +100,14 @@
                             <?php $title=array_unique(array_filter(array($row['name'],$row['labl'])));?>
                             <?php $title=implode(" - ", $title);?>
                             <div class="title font-weight-bold">
-                                <a href="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']);?>" target="_blank" class="dlg link" title="<?php t('variable_info');?>"><?php echo $title;?></a>
+                                <a href="<?php echo site_url('catalog/'.$row['sid'].'/variable/'.$row['vid']);?>" target="_blank" class="dlg link" title="<?php t('variable_info');?>"><?php echo html_escape($title);?></a>
                             </div>
                             <?php if(isset($row['qstn'])):?>
-                            <div class="qstn" ><?php echo (isset($row['qstn']) && $row['qstn']!=='') ? $row['qstn'] : 'n/a'; ?></div>
+                            <div class="qstn" ><?php echo (isset($row['qstn']) && $row['qstn']!=='') ? html_escape($row['qstn']) : 'n/a'; ?></div>
                             <?php endif;?>
                             <div class="var-subtitle var-study-link mt-2">
-                                <a target="_blank" href="<?php echo site_url('catalog/'.$row['sid']);?>"><?php echo $row['title']; ?> <i class="fa fa-external-link" aria-hidden="true"></i></a>
-                                <div><?php echo $var_country_info; ?></div>
+                                <a target="_blank" href="<?php echo site_url('catalog/'.$row['sid']);?>"><?php echo html_escape($row['title']); ?> <i class="fa fa-external-link" aria-hidden="true"></i></a>
+                                <div><?php echo html_escape($var_country_info); ?></div>
                             </div>
                         </div>
                     </div>

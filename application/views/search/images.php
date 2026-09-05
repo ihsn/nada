@@ -130,7 +130,7 @@ if (in_array($tab_type, array('document', 'timeseries', 'script'))) {
         <ul>
             <?php foreach ($surveys['rows'] as $row) : ?>
 
-                <li data-placement="top" data-toggle="tooltip" data-html="true" title="<?php echo $row['title']; ?>">
+                <li data-placement="top" data-toggle="tooltip" data-html="true" title="<?php echo html_escape($row['title']); ?>">
                     <a href="<?php echo site_url('catalog/' . $row['id']); ?>">
                         <?php if (!empty($row['thumbnail'])) : ?>
                             <img alt="" src="<?php echo base_url(); ?>files/thumbnails/<?php echo basename($row['thumbnail']); ?>" class="img-fluid shadow-sm" />
@@ -158,15 +158,15 @@ if (in_array($tab_type, array('document', 'timeseries', 'script'))) {
 
                 <div class="<?php echo $body_col_class; ?>">
                     <h5 class="wb-card-title title">
-                        <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" class="d-flex" >   
-                            <i class="fa fa-image fa-nada-icon wb-title-icon"></i>             
-                            <span><?php echo $row['title'];?></span>
+                        <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo html_escape($row['title']); ?>" class="d-flex" >
+                            <i class="fa fa-image fa-nada-icon wb-title-icon"></i>
+                            <span><?php echo html_escape($row['title']);?></span>
                         </a>
                     </h5>
 
                     <div class="study-country">
                         <?php if (isset($row['nation']) && $row['nation'] != '') : ?>
-                            <?php echo $row['nation'] . ','; ?>
+                            <?php echo html_escape($row['nation']) . ','; ?>
                         <?php endif; ?>
                         <?php
                         $survey_year = array();
@@ -179,11 +179,11 @@ if (in_array($tab_type, array('document', 'timeseries', 'script'))) {
                     <div class="sub-title">
                         <?php if (isset($row['authoring_entity'])) : ?>
                             <div>
-                                <span class="study-by"><?php echo $row['authoring_entity']; ?></span>
+                                <span class="study-by"><?php echo html_escape($row['authoring_entity']); ?></span>
                             </div>
                         <?php endif; ?>
                         <?php if (isset($row['repo_title']) && $row['repo_title'] != '') : ?>
-                            <div class="owner-collection"><?php echo t('catalog_owned_by') ?>: <a href="<?php echo site_url('catalog/' . $row['repositoryid']); ?>"><?php echo $row['repo_title']; ?></a></div>
+                            <div class="owner-collection"><?php echo t('catalog_owned_by') ?>: <a href="<?php echo site_url('catalog/' . $row['repositoryid']); ?>"><?php echo html_escape($row['repo_title']); ?></a></div>
                         <?php endif; ?>
                     </div>
                     <div class="survey-stats">

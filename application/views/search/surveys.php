@@ -206,20 +206,20 @@ if (isset($featured_studies) && is_array($featured_studies) ){
         <div class="row">            
             <div class="<?php echo $row_col2_class;?>">                
                 <h5 class="wb-card-title title">
-                    <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" class="d-flex" >   
-                        <i class="fa <?php echo isset($type_icons[$row['type']]) ? $type_icons[$row['type']] : 'fa-database';?> fa-nada-icon wb-title-icon"></i>             
+                    <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo html_escape($row['title']); ?>" class="d-flex" >
+                        <i class="fa <?php echo isset($type_icons[$row['type']]) ? $type_icons[$row['type']] : 'fa-database';?> fa-nada-icon wb-title-icon"></i>
                         <span>
-                            <?php echo $row['title'];?>
+                            <?php echo html_escape($row['title']);?>
                             <?php if(isset($row['subtitle'])):?>
-                                <div class="study-subtitle"><?php echo $row['subtitle'];?></div>
+                                <div class="study-subtitle"><?php echo html_escape($row['subtitle']);?></div>
                             <?php endif;?>
                         </span>
                     </a>
                 </h5>
-                
+
                 <div class="study-country">
                     <?php if (isset($row['nation']) && $row['nation']!=''):?>
-                            <?php echo $row['nation']. ',';?>
+                            <?php echo html_escape($row['nation']). ',';?>
                     <?php endif;?>
                     <?php 
                         $survey_year=array();
@@ -247,7 +247,7 @@ if (isset($featured_studies) && is_array($featured_studies) ){
                 <div class="sub-title">
                     <?php if (isset($row['authoring_entity'])):?>
                     <div>
-                        <span class="study-by" style="font-size:14px;"><?php echo $row['authoring_entity'];?></span>
+                        <span class="study-by" style="font-size:14px;"><?php echo html_escape($row['authoring_entity']);?></span>
                     </div>
                     <?php endif;?>
 
@@ -285,7 +285,7 @@ if (isset($featured_studies) && is_array($featured_studies) ){
                 </div>
                 <div class="survey-stats">
                 <span class="study-idno">
-                        <span class="wb-label"><?php echo t('ID')?>:</span> <span class="text-dark wb-value"><?php echo $row['idno'];?></span>
+                        <span class="wb-label"><?php echo t('ID')?>:</span> <span class="text-dark wb-value"><?php echo html_escape($row['idno']);?></span>
                     </span>
 
                     <?php /*<span><?php echo t('created_on');?>: <?php echo date('M d, Y',$row['created']);?></span> */ ?>
@@ -320,7 +320,7 @@ if (isset($featured_studies) && is_array($featured_studies) ){
                     <?php if(isset($data_classifications) && !empty($row['data_class_id'])):?>
                         <?php if(isset($data_classifications[$row['data_class_id']]['code'])):?>
                             <span class="badge wb-badge-outline wb-badge-data-class wb-badge-data-class-<?php echo $data_classifications[$row['data_class_id']]['code'];?>">                       
-                                <?php echo $data_classifications[$row['data_class_id']]['title'];?>
+                                <?php echo html_escape($data_classifications[$row['data_class_id']]['title']);?>
                             </span>
                         <?php endif;?>
                     <?php endif;?>

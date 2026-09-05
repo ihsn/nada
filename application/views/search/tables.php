@@ -101,11 +101,11 @@ else{
                 </div>
                 <div class="col-10 col-lg-11">
                     <h4 class="pr-5">
-                        <a href="<?php echo site_url('catalog/'.$featured_studies['id']); ?>"  title="<?php echo $featured_studies['title']; ?>"><?php echo $featured_studies['title'];?>
+                        <a href="<?php echo site_url('catalog/'.$featured_studies['id']); ?>"  title="<?php echo html_escape($featured_studies['title']); ?>"><?php echo html_escape($featured_studies['title']);?>
                         </a>
                     </h4>
                     <div class="study-country">
-                        <?php echo $featured_studies['nation']. ',';?>
+                        <?php echo html_escape($featured_studies['nation']). ',';?>
                         <?php
                         $survey_year=array();
                         $survey_year[$featured_studies['year_start']]=$featured_studies['year_start'];
@@ -114,12 +114,12 @@ else{
                         ?>
                         <?php echo $survey_year!=0 ? $survey_year : '';?>
                     </div>
-                    <div class="sub-title">                                                 
-                        <?php echo $featured_studies['authoring_entity'];?>
-                        
+                    <div class="sub-title">
+                        <?php echo html_escape($featured_studies['authoring_entity']);?>
+
                         <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
                             <div class="owner-collection">
-                                <?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a>
+                                <?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo html_escape($row['repo_title']);?></a>
                             </div>
                         <?php endif;?>
                     </div>
@@ -171,8 +171,8 @@ else{
         
         <div class="col-10 col-lg-11">            
             <h5 class="title">
-                <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo $row['title']; ?>" >                
-                    <?php echo $row['title'];?> 
+                <a href="<?php echo site_url('catalog/'.$row['id']); ?>"  title="<?php echo html_escape($row['title']); ?>" >
+                    <?php echo html_escape($row['title']);?>
                     <?php /*?>
                     <?php if(isset($licenses) && !empty($row['license_id'])):?>
                     <span class="dataset-license-label ">
@@ -186,7 +186,7 @@ else{
             
             <div class="study-country">
                 <?php if (isset($row['nation']) && $row['nation']!=''):?>
-                        <?php echo $row['nation']. ',';?>
+                        <?php echo html_escape($row['nation']). ',';?>
                 <?php endif;?>
                 <?php 
                     $survey_year=array();
@@ -199,11 +199,11 @@ else{
             <div class="sub-title">
                 <?php if (isset($row['authoring_entity'])):?>
                 <div>
-                    <span class="study-by"><?php echo $row['authoring_entity'];?></span>
+                    <span class="study-by"><?php echo html_escape($row['authoring_entity']);?></span>
                 </div>
                 <?php endif;?>
                 <?php if (isset($row['repo_title']) && $row['repo_title']!=''):?>
-                    <div class="owner-collection"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo $row['repo_title'];?></a></div>
+                    <div class="owner-collection"><?php echo t('catalog_owned_by')?>: <a href="<?php echo site_url('catalog/'.$row['repositoryid']);?>"><?php echo html_escape($row['repo_title']);?></a></div>
                 <?php endif;?>
             </div>
             <div class="survey-stats">                

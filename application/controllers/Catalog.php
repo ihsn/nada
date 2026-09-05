@@ -567,8 +567,7 @@ class Catalog extends MY_Controller {
 				$rows=$output['surveys']['rows'];
 				$cols=explode(",",'id,idno,title,nation,authoring_entity,year_start,year_end,created,changed');
 				$filename='search-'.date("m-d-y-his").'.csv';
-				header('Content-Encoding: UTF-8');
-				header( 'Content-Type: text/csv' );
+				header( 'Content-Type: text/csv; charset=UTF-8' );
 				header( 'Content-Disposition: attachment;filename='.$filename);
 				$fp = fopen('php://output', 'w');
 
