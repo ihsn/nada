@@ -23,6 +23,9 @@ class Dataset_geospatial_model extends Dataset_model {
 
     function create_dataset($type,$options,$sid=null, $validate_schema=true)
 	{
+        // Catalog files are stored in resources, not in the geospatial JSON blob.
+        $external_resources=$this->take_transfer_option_online_resources($options);
+
 		//validate schema
         if ($validate_schema){
             $this->validate_schema($type,$options);
@@ -65,14 +68,6 @@ class Dataset_geospatial_model extends Dataset_model {
             }
         }
 
-        //external resources
-        $external_resources=$this->get_array_nested_value($options,'metadata/description/distributionInfo/transferOptions/onLine');
-        
-        //remove external resource from metadata
-        if($external_resources){
-            unset($options['metadata']['description']['distributionInfo']['transferOptions']['onLine']);
-        }
-
 		//start transaction
 		$this->db->trans_start();
 
@@ -111,11 +106,11 @@ class Dataset_geospatial_model extends Dataset_model {
         
         //merge/replace metadata
         if ($merge_metadata==true){
-            $metadata=$this->get_metadata($sid);
+            $metadata=parent::get_metadata($sid);
             
             if(is_array($metadata)){
                 unset($metadata['idno']);
-                // get_metadata() reattaches featureType from tables; do not treat that as caller input.
+                // Feature types live in data_files/variables, not the JSON blob.
                 if (isset($metadata['description']['feature_catalogue']['featureType'])){
                     unset($metadata['description']['feature_catalogue']['featureType']);
                 }
@@ -215,29 +210,6 @@ class Dataset_geospatial_model extends Dataset_model {
     function get_metadata($sid)
     {
         $metadata= parent::get_metadata($sid);
-
-        $res_fields="resource_id,dctype,dcformat,title,author,dcdate,country,language,contributor,publisher,rights,description, abstract,toc,filename";
-        $external_resources=$this->Survey_resource_model->get_survey_resources($sid, $res_fields);
-        
-        $online_resources=array();
-
-        //add download link
-        foreach($external_resources as $resource_filename => $resource){
-            if (!$this->form_validation->valid_url($resource['filename']) && !empty($resource['filename'])){
-                //$resource['filename']=site_url("catalog/{$sid}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
-               $external_resources[$resource_filename]['filename']=site_url("catalog/{$sid}/download/{$resource['resource_id']}/".rawurlencode($resource['filename']) );
-            }
-            
-            //unset null fields
-            foreach($resource as $key=>$value){
-                if (!$value){
-                    unset($external_resources[$resource_filename][$key]);
-                }
-            }            
-        }
-
-        //add external resources
-        $metadata['description']['distributionInfo']['transferOptions']['onLine']=$external_resources;
 
         $feature_types=$this->get_feature_types_from_tables($sid);
         if (!empty($feature_types)){
@@ -496,5 +468,84 @@ class Dataset_geospatial_model extends Dataset_model {
         }
 
         return implode(" ",$output);
+    }
+
+    /**
+     * Move transferOptions.onLine rows into the resources table payload and
+     * remove them from the JSON document. Accepts the legacy object shape and
+     * the schema list of { transferSize, onLine }.
+     */
+    private function take_transfer_option_online_resources(&$options)
+    {
+        $collected=array();
+
+        if (isset($options['description']) && is_array($options['description'])) {
+            $collected=array_merge($collected, $this->strip_transfer_option_online($options['description']));
+        }
+        if (isset($options['metadata']['description']) && is_array($options['metadata']['description'])) {
+            $collected=array_merge($collected, $this->strip_transfer_option_online($options['metadata']['description']));
+        }
+
+        return $collected;
+    }
+
+    private function strip_transfer_option_online(&$description)
+    {
+        if (!isset($description['distributionInfo']['transferOptions'])) {
+            return array();
+        }
+
+        $to=$description['distributionInfo']['transferOptions'];
+        $collected=array();
+
+        if ($this->is_schema_list($to)) {
+            foreach ($to as $i => $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                if (isset($item['onLine']) && is_array($item['onLine'])) {
+                    foreach ($item['onLine'] as $row) {
+                        if (is_array($row)) {
+                            $collected[]=$row;
+                        }
+                    }
+                    unset($to[$i]['onLine']);
+                }
+                if (isset($to[$i]) && is_array($to[$i]) && $to[$i]===array()) {
+                    unset($to[$i]);
+                }
+            }
+            $to=array_values($to);
+            if ($to===array()) {
+                unset($description['distributionInfo']['transferOptions']);
+            } else {
+                $description['distributionInfo']['transferOptions']=$to;
+            }
+            return $collected;
+        }
+
+        if (is_array($to)) {
+            if (isset($to['onLine']) && is_array($to['onLine'])) {
+                foreach ($to['onLine'] as $row) {
+                    if (is_array($row)) {
+                        $collected[]=$row;
+                    }
+                }
+            }
+            unset($description['distributionInfo']['transferOptions']);
+        }
+
+        return $collected;
+    }
+
+    private function is_schema_list($value)
+    {
+        if (!is_array($value)) {
+            return false;
+        }
+        if ($value===array()) {
+            return true;
+        }
+        return array_keys($value)===range(0, count($value)-1);
     }
 }

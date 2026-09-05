@@ -358,7 +358,7 @@ class Display_template{
         }
         $resources = $this->ci->Survey_resource_model->generate_download_link($resources);
 
-        if ($renderer_key === 'field_photo_gallery' && isset($item['key']) && $item['key'] === 'resources') {
+        if ($this->display_uses_catalog_resources($renderer_key, isset($item['key']) ? (string) $item['key'] : '')) {
             $value = $resources;
         }
 
@@ -382,6 +382,22 @@ class Display_template{
             $view_data,
             true
         );
+    }
+
+    /**
+     * Catalog files live on the study row (`resources`), not in geospatial JSON.
+     */
+    private function display_uses_catalog_resources($renderer_key, $key)
+    {
+        if ($renderer_key !== 'field_photo_gallery' && $renderer_key !== 'field_resources') {
+            return false;
+        }
+        if ($key === 'resources' || $key === 'transferOptions.onLine') {
+            return true;
+        }
+        $suffix = 'transferOptions.onLine';
+        $len = strlen($suffix);
+        return strlen($key) >= $len && substr($key, -$len) === $suffix;
     }
 
     /** @deprecated Use render_composite() */
