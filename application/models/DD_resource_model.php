@@ -168,7 +168,7 @@ class DD_resource_model extends CI_Model {
 			$options=array();
 			foreach($data as $key=>$value)
 			{
-				if(in_array($key,$allowed_fields))
+				if(in_array($key,$allowed_fields) && $this->db->field_exists($key, 'dd_project_resources'))
 				{
 					$options[$key]=$value;
 				}	
@@ -217,8 +217,19 @@ class DD_resource_model extends CI_Model {
 	
 	function update_project_resource($id, $data) 
 	{
+		$options = array();
+		foreach ($data as $key => $value) {
+			if ($key === 'id' || ! $this->db->field_exists($key, 'dd_project_resources')) {
+				continue;
+			}
+			$options[$key] = $value;
+		}
+		if (! $options) {
+			return true;
+		}
+
 		return $this->db->where('id', $id)
-				->update('dd_project_resources', $data);
+				->update('dd_project_resources', $options);
 	}
 	
 	function get_project_resources_to_array($pid) 
