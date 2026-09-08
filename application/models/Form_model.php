@@ -169,16 +169,32 @@ class Form_model extends CI_Model {
 			$dtypes=explode(",",$dtypes);
 		}
 
-		$data_types=$this->get_all();
+		$data_types=(array)$this->get_all();
 		$data_types_list=array();
+		$formid_list=array();
+
 		foreach($data_types as $type){
 			$data_types_list[$type['model']]=$type['formid'];
+			//accept a raw formid as well as a model name
+			$formid_list[(string)$type['formid']]=$type['formid'];
 		}
 
 		$output=array();
 
 		foreach($dtypes as $type){
-			$output[]=isset($data_types_list[$type]) ? $data_types_list[$type] : '-1';
+			$type=trim((string)$type);
+
+			if(isset($data_types_list[$type])){
+				$output[]=$data_types_list[$type];
+			}
+			elseif(isset($formid_list[$type])){
+				$output[]=$formid_list[$type];
+			}
+			else{
+				//unknown data access type — sentinel so the filter matches nothing
+				//rather than being dropped from the query
+				$output[]='-1';
+			}
 		}
 
 		return $output;

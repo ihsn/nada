@@ -228,13 +228,26 @@ class Catalog_browse_service {
 
 	protected function is_numeric_array($arr_str)
 	{
-		$arr = explode(',', $arr_str);
-		foreach ($arr as $val) {
-			if ( ! is_numeric($val)) {
-				return '';
+		if (! class_exists('Catalog_filter_guard', false)) {
+			require_once APPPATH . 'libraries/Catalog_filter_guard.php';
+		}
+
+		$raw = trim((string) $arr_str);
+
+		if ($raw === '') {
+			//no sid filter requested
+			return '';
+		}
+
+		foreach (explode(',', $raw) as $val) {
+			if ( ! is_numeric(trim($val))) {
+				//ids were supplied but at least one is not numeric — fail closed so the
+				//filter yields no results instead of being dropped from the WHERE
+				return Catalog_filter_guard::NO_MATCH_ID;
 			}
 		}
-		return $arr_str;
+
+		return $raw;
 	}
 
 	/**

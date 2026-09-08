@@ -11,6 +11,8 @@
  * Public interface matches catalog_search_mysql so Catalog_search.php
  * can swap backends transparently.
  *
+ * @see Catalog_country_resolver for country filter value resolution.
+ *
  * Variable search (vsearch / v_quick_search) and per-study var_found badges
  * delegate to MySQL via db_fallback() — same as classic catalog cards.
  *
@@ -34,6 +36,11 @@
  * totals and tab counts come from a dual MySQL query (filter universe size, no
  * keyword) via db_fallback() — same UX as other drivers; empty trailing pages are OK.
  */
+
+if (! class_exists('Catalog_country_resolver', false)) {
+    require_once dirname(__FILE__) . '/Catalog_country_resolver.php';
+}
+
 class catalog_search_semantic
 {
     /** NADA surveys.type codes that rename to a different semantic API filters.type */
@@ -449,10 +456,12 @@ class catalog_search_semantic
      */
     private function resolve_country_ids(): array
     {
-        $countries = $this->normalise_array($this->countries);
+        //accepts country IDs, names, ISO2/ISO3 codes and aliases, in any mix.
+        //unresolvable values fail closed (no results) rather than dropping the filter.
+        $countries = Catalog_country_resolver::resolve($this->countries);
 
-        if (!empty($countries) && !is_numeric($countries[0])) {
-            $countries = $this->get_country_id_by_name($countries);
+        if (Catalog_country_resolver::is_no_match($countries)) {
+            return $countries;
         }
 
         $iso3 = trim($this->country_iso3 ?? '');

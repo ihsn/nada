@@ -340,8 +340,9 @@ class Solr_manager {
                 surveys.id as survey_uid,
                 surveys.idno as idno,
                 surveys.doi,
-                surveys.formid,        
-                forms.model as form_model,    
+                surveys.formid,
+                surveys.data_class_id,
+                forms.model as form_model,
                 surveys.title as title,
                 nation,
                 surveys.year_start,
@@ -388,6 +389,7 @@ class Solr_manager {
         $batch_countries = $this->batch_load_survey_countries($survey_ids);
         $batch_repositories = $this->batch_load_survey_repositories($survey_ids);
         $batch_years = $this->batch_load_survey_years($survey_ids);
+        $batch_tags = $this->batch_load_survey_tags($survey_ids);
         $batch_user_facets = $this->batch_load_user_facets($survey_ids);
         
         // Batch load regions for all unique countries across all surveys
@@ -408,6 +410,9 @@ class Solr_manager {
             $rows[$key]['repositories'] = $this->merge_survey_repository_ids($row['repositoryid'] ?? null, $secondary_repos);
             //survey years - use batch loaded data
             $rows[$key]['years'] = isset($batch_years[$row['survey_uid']]) ? $batch_years[$row['survey_uid']] : array();
+
+            //survey tags - use batch loaded data
+            $rows[$key]['tags'] = isset($batch_tags[$row['survey_uid']]) ? $batch_tags[$row['survey_uid']] : array();
 
             //regions - use batch loaded data
             $rows[$key]['regions'] = $this->derive_regions_from_countries_batch($rows[$key]['countries'], $regions_by_country);
@@ -908,6 +913,7 @@ class Solr_manager {
         surveys.idno as idno,
         surveys.doi,
         surveys.formid,
+        surveys.data_class_id,
         surveys.thumbnail,
         surveys.type as dataset_type,
         surveys.title,
@@ -956,6 +962,8 @@ class Solr_manager {
         );
         //survey years
         $survey['years']=$this->load_survey_years($survey['survey_uid']);
+        //survey tags
+        $survey['tags']=$this->load_survey_tags($survey['survey_uid']);
         $survey['regions']=$this->derive_regions_from_countries($survey['countries']);
         
         //extract methodology from metadata
@@ -1803,12 +1811,62 @@ class Solr_manager {
      * @param array $survey_ids Array of survey IDs
      * @return array Years indexed by survey ID
      */
+    /**
+     * Batch load tags for multiple surveys
+     * @param array $survey_ids Array of survey IDs
+     * @return array Tags indexed by survey ID
+     */
+    private function batch_load_survey_tags($survey_ids)
+    {
+        if (empty($survey_ids)) {
+            return array();
+        }
+
+        $this->ci->db->select('sid, tag');
+        $this->ci->db->where_in('sid', $survey_ids);
+        $this->ci->db->where("tag !=", '');
+        $result = $this->ci->db->get('survey_tags')->result_array();
+
+        $tags_by_survey = array();
+        foreach ($result as $row) {
+            if (!isset($tags_by_survey[$row['sid']])) {
+                $tags_by_survey[$row['sid']] = array();
+            }
+            $tags_by_survey[$row['sid']][] = $row['tag'];
+        }
+
+        return $tags_by_survey;
+    }
+
+    /**
+     * Load tags for a single survey
+     * @param int $sid Survey ID
+     * @return array Array of tag values
+     */
+    function load_survey_tags($sid)
+    {
+        $this->ci->db->select('tag');
+        $this->ci->db->where('sid', $sid);
+        $this->ci->db->where("tag !=", '');
+        $result = $this->ci->db->get('survey_tags')->result_array();
+
+        $output = array();
+
+        if ($result) {
+            foreach ($result as $row) {
+                $output[] = $row['tag'];
+            }
+        }
+
+        return $output;
+    }
+
     private function batch_load_survey_years($survey_ids)
     {
         if (empty($survey_ids)) {
             return array();
         }
-        
+
         $this->ci->db->select('sid, data_coll_year');
         $this->ci->db->where_in('sid', $survey_ids);
         $this->ci->db->where('data_coll_year >', 0);

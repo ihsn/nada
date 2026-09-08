@@ -1296,6 +1296,8 @@ CREATE TABLE region_countries (
   PRIMARY KEY (id)
 ) ;
 
+CREATE NONCLUSTERED INDEX idx_region_countries_region ON [dbo].[region_countries] ([region_id] ASC) INCLUDE ([country_id]);
+
 
 --
 -- Table structure for table survey_notes

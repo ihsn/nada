@@ -1215,7 +1215,8 @@ CREATE TABLE `region_countries` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `region_id` int(11) DEFAULT NULL,
   `country_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_region_countries_region` (`region_id`,`country_id`)
 ) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

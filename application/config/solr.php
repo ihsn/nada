@@ -310,6 +310,26 @@ $config['solr_schema_fields'] = array(
             'multiValued' => true,
             'docValues' => true
         ),
+        // Data classification filter (surveys.data_class_id)
+        array(
+            'name' => 'data_class_id',
+            'type' => 'pint',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => false,
+            'docValues' => true
+        ),
+        // Tag filter (survey_tags.tag). Uses the 'lowercase' type (KeywordTokenizer +
+        // LowerCaseFilter): the whole tag is one token, so multi-word tags stay intact, and
+        // matching is case-insensitive to match the DB drivers, where `tag IN (...)` runs
+        // under a case-insensitive collation. Not docValues — that is invalid on a TextField.
+        array(
+            'name' => 'tags',
+            'type' => 'lowercase',
+            'indexed' => true,
+            'stored' => true,
+            'multiValued' => true
+        ),
         // Status and metadata fields
         array(
             'name' => 'published',

@@ -7,6 +7,14 @@ if (! class_exists('Catalog_study_sort', false)) {
     require_once APPPATH . 'libraries/Catalog_study_sort.php';
 }
 
+if (! class_exists('Catalog_country_resolver', false)) {
+    require_once APPPATH . 'libraries/Catalog_country_resolver.php';
+}
+
+if (! class_exists('Catalog_filter_guard', false)) {
+    require_once APPPATH . 'libraries/Catalog_filter_guard.php';
+}
+
 /**
  * Catalog search implementation for Apache Solr (Solarium client).
  *
@@ -31,6 +39,12 @@ class Catalog_search_solr
     var $type              = array();
     var $dtype             = array();
     var $sid               = '';
+    //initialize() only copies params for declared properties — without these the
+    //country_iso3, data_class and tag filters were silently dropped before they
+    //ever reached a builder
+    var $country_iso3      = '';
+    var $data_class        = array();
+    var $tags              = array();
     var $created           = '';
     var $debug             = false;
     var $params            = null;
@@ -179,10 +193,14 @@ class Catalog_search_solr
         // Filters
         $this->apply_filter($query, 'dataset_type', $this->_build_dataset_type_query(), 'tag_dataset_type');
         $this->apply_filter($query, 'countries',    $this->_build_countries_query());
+        $this->apply_filter($query, 'countries_iso3', $this->_build_countries_iso3_query());
         $this->apply_filter($query, 'regions',      $this->_build_regions_query());
         $this->apply_filter($query, 'topics',       $this->_build_topics_query());
         $this->apply_filter($query, 'collections',  $this->_build_collections_query());
         $this->apply_filter($query, 'dtype',        $this->_build_dtype_query());
+        $this->apply_filter($query, 'data_class',   $this->_build_data_class_query());
+        $this->apply_filter($query, 'tags',         $this->_build_tags_query());
+        $this->apply_filter($query, 'sid',          $this->_build_sid_query());
         $this->apply_filter($query, 'varcount',     $this->_build_varcount_query());
         $this->apply_filter($query, 'created',      $this->_build_created_query());
 
@@ -213,7 +231,7 @@ class Catalog_search_solr
         $this->apply_sorting($query, $this->study_keywords);
 
         $query->setStart($offset)->setRows($limit);
-        $query->setFields(array(
+        $study_fields = array(
             'id:survey_uid', 'idno', 'doi',
             'type:dataset_type', 'title', 'subtitle', 'nation',
             'abstract',
@@ -222,7 +240,8 @@ class Catalog_search_solr
             'created', 'changed', 'year_start', 'year_end',
             'authoring_entity', 'data_class_id',
             'rank:score', 'thumbnail', 'varcount',
-        ));
+        );
+        $query->setFields($study_fields);
 
         if ($this->debug) {
             $query->getDebug();
@@ -242,7 +261,7 @@ class Catalog_search_solr
             $type_counts = $this->get_dataset_type_counts_from_solr();
         }
 
-        $docs = $resultset->getData()['response']['docs'];
+        $docs = $this->normalize_docs($resultset->getData()['response']['docs'], $study_fields);
 
         $result = array(
             'found'                 => $resultset->getNumFound(),
@@ -407,29 +426,86 @@ class Catalog_search_solr
 
     private function _build_topics_query()
     {
-        $ids = array_filter(array_map('intval', (array)$this->topics));
-        if (empty($ids)) return false;
+        $supplied = array_filter((array)$this->topics, 'strlen');
+        $ids = array_filter(array_map('intval', $supplied));
+        if (empty($ids)) {
+            return empty($supplied) ? false : Catalog_filter_guard::NO_MATCH_SOLR;
+        }
         return 'topics_id:(' . implode(' OR ', $ids) . ')';
     }
 
     private function _build_countries_query()
     {
-        $countries = (array)$this->countries;
-        if (empty($countries)) return false;
+        //accepts country IDs, names, ISO2/ISO3 codes and aliases, in any mix.
+        //unresolvable values fail closed (no results) rather than dropping the filter.
+        $ids = Catalog_country_resolver::resolve($this->countries);
+        if (empty($ids)) return false;
 
-        if (!is_numeric($countries[0])) {
-            $countries = $this->get_country_id_by_name($countries);
+        //the resolver's -1 sentinel cannot be emitted as a term here: Lucene reads a leading
+        //"-" as the NOT operator, so countries:(-1) would return everything except country 1.
+        if (Catalog_country_resolver::is_no_match($ids)) {
+            return Catalog_filter_guard::NO_MATCH_SOLR;
         }
 
-        $ids = array_filter(array_map('intval', $countries));
-        if (empty($ids)) return false;
-        return 'countries:(' . implode(' OR ', $ids) . ')';
+        return 'countries:(' . implode(' OR ', array_map('intval', $ids)) . ')';
+    }
+
+    /**
+     * ISO3 country codes. Mirrors the DB drivers: only 3-character codes are considered,
+     * and codes that resolve to nothing fail closed.
+     */
+    private function _build_countries_iso3_query()
+    {
+        $raw = trim((string)$this->country_iso3);
+        if ($raw === '') return false;
+
+        $codes = array();
+        foreach (explode(',', $raw) as $code) {
+            $code = trim($code);
+            if (strlen($code) === 3) {
+                $codes[] = $code;
+            }
+        }
+
+        if (empty($codes)) return Catalog_filter_guard::NO_MATCH_SOLR;
+
+        $ids = Catalog_country_resolver::resolve($codes);
+        if (empty($ids) || Catalog_country_resolver::is_no_match($ids)) {
+            return Catalog_filter_guard::NO_MATCH_SOLR;
+        }
+
+        return 'countries:(' . implode(' OR ', array_map('intval', $ids)) . ')';
+    }
+
+    /**
+     * Restrict to an explicit list of survey ids.
+     */
+    private function _build_sid_query()
+    {
+        $raw = trim((string)$this->sid);
+        if ($raw === '') return false;
+
+        $ids = array();
+        foreach (explode(',', $raw) as $item) {
+            $item = trim($item);
+            if (is_numeric($item) && (int)$item > 0) {
+                $ids[] = (int)$item;
+            }
+        }
+
+        if (empty($ids)) return Catalog_filter_guard::NO_MATCH_SOLR;
+
+        return 'survey_uid:(' . implode(' OR ', $ids) . ')';
     }
 
     private function _build_regions_query()
     {
-        $ids = array_filter(array_map('intval', (array)$this->regions));
-        if (empty($ids)) return false;
+        $supplied = array_filter((array)$this->regions, 'strlen');
+        $ids = array_filter(array_map('intval', $supplied));
+        if (empty($ids)) {
+            //nothing supplied -> no filter; supplied but all invalid -> fail closed
+            return empty($supplied) ? false : Catalog_filter_guard::NO_MATCH_SOLR;
+        }
         return 'regions:(' . implode(' OR ', $ids) . ')';
     }
 
@@ -462,32 +538,63 @@ class Catalog_search_solr
 
     private function _build_dataset_type_query()
     {
-        $types = array_filter(array_map('trim', (array)$this->type));
+        $types = array_filter(array_map('trim', (array)$this->type), 'strlen');
         if (empty($types)) return false;
         // Strip all chars that are not safe in a Solr term
         $safe = array_filter(array_map(function($t) {
             return preg_replace('/[^a-zA-Z0-9_\-]/', '', $t);
-        }, $types));
-        if (empty($safe)) return false;
+        }, $types), 'strlen');
+        if (empty($safe)) return Catalog_filter_guard::NO_MATCH_SOLR;
         return 'dataset_type:(' . implode(' OR ', $safe) . ')';
     }
 
     private function _build_collections_query()
     {
-        $repos = array_filter(array_map('trim', (array)$this->collections));
+        $repos = array_filter(array_map('trim', (array)$this->collections), 'strlen');
         if (empty($repos)) return false;
         $safe = array_filter(array_map(function($r) {
             return preg_replace('/[^a-zA-Z0-9_\-]/', '', $r);
-        }, $repos));
-        if (empty($safe)) return false;
+        }, $repos), 'strlen');
+        if (empty($safe)) return Catalog_filter_guard::NO_MATCH_SOLR;
         return 'repositories:(' . implode(' OR ', $safe) . ')';
     }
 
     private function _build_dtype_query()
     {
-        $ids = array_filter(array_map('intval', (array)$this->dtype));
-        if (empty($ids)) return false;
+        $supplied = array_filter((array)$this->dtype, 'strlen');
+        $ids = array_filter(array_map('intval', $supplied));
+        if (empty($ids)) {
+            //nothing supplied -> no filter; supplied but all invalid -> fail closed
+            return empty($supplied) ? false : Catalog_filter_guard::NO_MATCH_SOLR;
+        }
         return 'formid:(' . implode(' OR ', $ids) . ')';
+    }
+
+    private function _build_data_class_query()
+    {
+        $supplied = array_filter((array)$this->data_class, 'strlen');
+        $ids = array_filter(array_map('intval', $supplied));
+        if (empty($ids)) {
+            return empty($supplied) ? false : Catalog_filter_guard::NO_MATCH_SOLR;
+        }
+        return 'data_class_id:(' . implode(' OR ', $ids) . ')';
+    }
+
+    private function _build_tags_query()
+    {
+        $supplied = array_filter(array_map('trim', (array)$this->tags), 'strlen');
+        if (empty($supplied)) return false;
+
+        $helper = $this->solr_client->createSelect()->getHelper();
+
+        $terms = array();
+        foreach ($supplied as $tag) {
+            $terms[] = $helper->escapePhrase($tag);
+        }
+
+        if (empty($terms)) return Catalog_filter_guard::NO_MATCH_SOLR;
+
+        return 'tags:(' . implode(' OR ', $terms) . ')';
     }
 
     private function _build_varcount_query()
@@ -514,9 +621,41 @@ class Catalog_search_solr
 
     protected function _build_facet_query($facet_name, $values)
     {
-        $values = array_filter(array_map('intval', (array)$values));
-        if (empty($values)) return false;
+        $supplied = array_filter((array)$values, 'strlen');
+        $values = array_filter(array_map('intval', $supplied));
+        if (empty($values)) {
+            return empty($supplied) ? false : Catalog_filter_guard::NO_MATCH_SOLR;
+        }
         return $facet_name . ':(' . implode(' OR ', $values) . ')';
+    }
+
+    /**
+     * Give Solr result rows the same shape the DB drivers return.
+     *
+     * Solr omits any field that is absent or empty on a document, so rows come back with keys
+     * missing — while a SQL SELECT always returns every column (NULL when empty). Consumers
+     * such as the CSV export and the card views index these keys directly, so a missing key
+     * raises "Undefined array key". Fill any field that was requested but not returned.
+     *
+     * @param array $docs   Raw Solr documents
+     * @param array $fields The setFields() list, entries optionally "alias:solr_field"
+     * @return array
+     */
+    private function normalize_docs(array $docs, array $fields)
+    {
+        $keys = array();
+        foreach ($fields as $field) {
+            $pos    = strpos($field, ':');
+            $keys[] = ($pos !== false) ? substr($field, 0, $pos) : $field;
+        }
+
+        $template = array_fill_keys($keys, null);
+
+        foreach ($docs as $idx => $doc) {
+            $docs[$idx] = array_merge($template, (array)$doc);
+        }
+
+        return $docs;
     }
 
     // -------------------------------------------------------------------------

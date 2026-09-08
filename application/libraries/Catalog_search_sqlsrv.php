@@ -6,8 +6,17 @@
  *
  * @category	Data Catalog Search
  *
- */ 
-class Catalog_search_sqlsrv{ 
+ */
+
+if (! class_exists('Catalog_country_resolver', false)) {
+	require_once dirname(__FILE__) . '/Catalog_country_resolver.php';
+}
+
+if (! class_exists('Catalog_filter_guard', false)) {
+	require_once dirname(__FILE__) . '/Catalog_filter_guard.php';
+}
+
+class Catalog_search_sqlsrv{
 	
 	var $ci;
 
@@ -445,23 +454,32 @@ class Catalog_search_sqlsrv{
 
 	protected function _build_sid_query()
 	{
-		$sid=explode(",",$this->sid);
-		
+		$raw=trim((string)$this->sid);
+
+		if ($raw==='')
+		{
+			//no sid filter requested
+			return FALSE;
+		}
+
+		$sid=explode(",",$raw);
+
 		$sid_list=array();
 		foreach($sid as $item)
 		{
 			if (is_numeric($item))
 			{
 				$sid_list[]=$item;
-			}	
+			}
 		}
-		
+
 		if (count($sid_list)>0)
-		{		
+		{
 			return sprintf('surveys.id in (%s)',implode(",",$sid_list));
 		}
-		
-		return FALSE;
+
+		//ids were supplied but none were numeric — fail closed
+		return Catalog_filter_guard::NO_MATCH;
 	}
 
 	protected function _build_search_where_sql($include_type = true, $include_study = true)
@@ -692,46 +710,20 @@ class Catalog_search_sqlsrv{
 	*/
 	function _build_countries_query()
 	{
-		$countries=$this->countries;//must always be an array
+		//accepts country IDs, names, ISO2/ISO3 codes and aliases, in any mix.
+		//unresolvable values fail closed (no results) rather than dropping the filter.
+		$countries=Catalog_country_resolver::resolve($this->countries);
 
-		if (!is_array($countries))
+		if (empty($countries))
 		{
-			return FALSE;
-		}
-		
-		$countries_list=array();
-		
-		//check if country[] param contains the country name instead of country id
-		if (isset($countries[0]) && !is_numeric($countries[0]))
-		{
-			//get country id by name
-			$countries=$this->get_country_id_by_name($countries);
-		}
-
-		foreach($countries  as $country)
-		{
-			if (is_numeric($country))
-			{
-				$countries_list[]=intval($country);
-			}	
-		}
-
-		if ( count($countries_list)>0)
-		{
-			$countries= implode(',',$countries_list);
-		}
-		else
-		{
+			//no country filter requested
 			return FALSE;
 		}
 
-		//countries
-		if ($countries!='')
-		{
-			return sprintf('surveys.id in (select sid from survey_countries where cid in (%s))',$countries);
-		}
-		
-		return FALSE;
+		return sprintf(
+			'surveys.id in (select sid from survey_countries where cid in (%s))',
+			implode(',', array_map('intval', $countries))
+		);
 	}
 	
 	
@@ -827,8 +819,9 @@ class Catalog_search_sqlsrv{
 		{
 			return sprintf(' f.formid in (%s)',$types_str);
 		}
-		
-		return FALSE;	
+
+		//values were supplied but none were valid — fail closed
+		return Catalog_filter_guard::NO_MATCH;
 	}
 	
 		
@@ -1335,8 +1328,9 @@ class Catalog_search_sqlsrv{
 		if ($types_str!=''){
 			return sprintf(' surveys.data_class_id in (%s)',$types_str);
 		}
-		
-		return FALSE;	
+
+		//values were supplied but none were valid — fail closed
+		return Catalog_filter_guard::NO_MATCH;
 	}
 
 
@@ -1373,7 +1367,8 @@ class Catalog_search_sqlsrv{
         }
         else
         {
-            return FALSE;
+            //codes were supplied but none were a usable ISO3 value — fail closed
+            return Catalog_filter_guard::NO_MATCH;
         }
 
         if ($countries!='')
@@ -1382,7 +1377,7 @@ class Catalog_search_sqlsrv{
                 inner join survey_countries  on countries.countryid=survey_countries.cid  where countries.iso in (%s))',$countries);
         }
 
-        return FALSE;
+        return Catalog_filter_guard::NO_MATCH;
     }
 
 	protected function _build_regions_query()
@@ -1407,7 +1402,8 @@ class Catalog_search_sqlsrv{
 					where region_countries.region_id in (%s))',$regions);
 		}
 
-		return FALSE;
+		//values were supplied but none were valid — fail closed
+		return Catalog_filter_guard::NO_MATCH;
 	}
 
 
