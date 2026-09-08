@@ -264,10 +264,10 @@ class Schema_util
             throw new Exception("INVALID_SCHEMA: ".$schema_name.". Supported schemas are:". implode(", " , $schemas));
         }
 
-        $schema_file="api-documentation/catalog-admin/".$schema_name."-schema.json";
+        $schema_file = APPPATH . "schemas/" . $schema_name . "-schema.json";
 
 		if(!file_exists($schema_file)){
-			throw new Exception("INVALID-DATASET-TYPE-NO-SCHEMA-DEFINED");
+			throw new Exception("INVALID-DATASET-TYPE-NO-SCHEMA-DEFINED: ".$schema_name);
         }
 
         $schema_file_path='file://' .unix_path(realpath($schema_file));
