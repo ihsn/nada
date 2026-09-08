@@ -24,8 +24,7 @@ New projects created after the upgrade are already v2. The importer skips them u
 
 - [ ] Database backup (mandatory)
 - [ ] Deploy the new application code
-- [ ] Run platform migrations: `php index.php cli/migrate latest`  
-      That installs `dd_*` tables if they are missing (`install/schema.dd.mysql.sql` or `install/schema.dd.sqlsrv.sql`) and adds `dd_projects.schema_version` (default 1 on existing rows) plus `dd_projects.submission`. See [NADA56_UPGRADE_README.md](NADA56_UPGRADE_README.md).
+- [ ] Run platform migrations: `php index.php cli/migrate latest`
 - [ ] Turn the feature on: `enable_datadeposit` = `true` in `application/config/datadeposit.php` (default is off)
 - [ ] Test on a copy of the database first if you can
 
@@ -47,7 +46,7 @@ Run from the NADA root (same directory as `index.php`).
 
 ### 1. Dump
 
-Snapshot each project from the live tables (generic legacy JSON, not IHSN metadata). File bytes are not included.
+Snapshot each project from the live tables (generic legacy JSON). 
 
 ```bash
 php index.php cli/datadeposit/dump          # all projects
@@ -95,25 +94,15 @@ Import:
 php index.php cli/datadeposit/show 42
 ```
 
-Confirm `schema_version` is 2, study title, countries, citation count, and submission keys. Then open the same project in the depositor (`/datadeposit/study/{id}`) and in staff admin (`/admin/datadeposit/projects/{id}`).
+Confirm `schema_version` is 2, study title, countries, citation count, and submission keys. Then open the same project in the depositor (`/datadeposit/study/{id}`) and on admin view (`/admin/datadeposit/projects/{id}`).
 
 ---
 
-## After import
-
-- v2 projects use the Vue UI and REST APIs.
-- Keep the dump directory until you are satisfied (copy it off the server).
-- Folder-path repair (legacy md5 folders) is separate:  
-  `php index.php cli/datadeposit/old_folder_paths`  
-  `php index.php cli/datadeposit/update_folder_paths`
-
----
 
 ## Troubleshooting
 
 | Issue | Likely cause | Action |
 |-------|--------------|--------|
-| `schema_version / submission columns missing` | Migrations not applied | `php index.php cli/migrate latest` |
 | Import skips every project | They are already v2 | Expected for new projects; use `force` only to redo |
 | Vue study form is empty | Project still v1, or import not run | Run dump / verify / import; do not save first |
 | Verify: projects in DB but not in manifest | New project created after dump | Dump again, then import |
