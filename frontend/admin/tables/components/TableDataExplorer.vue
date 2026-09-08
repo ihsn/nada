@@ -127,12 +127,24 @@
           </v-alert>
           <v-alert v-if="importStatus" :type="importAlertType" variant="tonal" density="compact" class="mt-4">
             <div class="font-weight-medium mb-2">{{ importStatus.message }}</div>
+            <div v-if="importStatus.summary" class="text-caption mb-2">{{ importStatus.summary }}</div>
             <v-progress-linear
               v-if="importStatus.progress_percent !== undefined && importing"
               :model-value="importStatus.progress_percent"
               height="20"
               rounded
             />
+            <v-btn
+              v-if="importStatus.errors_count > 0 && !importing"
+              size="small"
+              class="mt-2"
+              variant="outlined"
+              prepend-icon="mdi-download"
+              :loading="downloadingErrors"
+              @click="downloadErrors"
+            >
+              Download skipped-row log ({{ importStatus.errors_count.toLocaleString() }})
+            </v-btn>
           </v-alert>
         </v-card-text>
         <v-card-actions>
@@ -204,6 +216,7 @@ const importing = ref(false);
 const importCancelled = ref(false);
 const uploadStatus = ref(null);
 const importStatus = ref(null);
+const downloadingErrors = ref(false);
 const showUploadDialog = ref(false);
 const showDeleteDialog = ref(false);
 const syncFieldsAfterImport = ref(true);
@@ -236,6 +249,51 @@ const importAlertType = computed(() => {
   if (s === 'warning') return 'warning';
   return 'info';
 });
+
+function formatImportCounts(progress) {
+  const inserted = progress.rows_inserted ?? progress.total_rows_processed ?? 0;
+  const read = progress.csv_records_read ?? 0;
+  const blank = progress.rows_blank ?? 0;
+  const failed = progress.rows_failed ?? 0;
+  const warned = progress.rows_warned ?? 0;
+  const parts = [`${inserted.toLocaleString()} inserted`];
+  if (read) parts.unshift(`${read.toLocaleString()} CSV rows read`);
+  if (blank) parts.push(`${blank.toLocaleString()} blank`);
+  if (failed) parts.push(`${failed.toLocaleString()} failed`);
+  if (warned) parts.push(`${warned.toLocaleString()} extra-column warnings`);
+  return parts.join(' · ');
+}
+
+function importUiStatus(progress) {
+  const status = progress.import_status || 'in_progress';
+  if (status === 'completed') return 'success';
+  if (status === 'completed_with_errors') return 'warning';
+  if (status === 'failed') return 'error';
+  return 'in_progress';
+}
+
+function importHeadline(progress, fallbackMessage) {
+  const status = progress.import_status || 'in_progress';
+  if (status === 'completed') return fallbackMessage || 'Import completed';
+  if (status === 'completed_with_errors') return fallbackMessage || 'Import completed with skipped or failed rows';
+  if (status === 'failed') return fallbackMessage || 'Import finished with an accounting mismatch';
+  return `Importing… ${progress.progress_percent || 0}%`;
+}
+
+async function downloadErrors() {
+  downloadingErrors.value = true;
+  try {
+    await api.downloadImportErrors(props.dbId, props.tableId);
+  } catch (e) {
+    importStatus.value = {
+      ...importStatus.value,
+      status: 'error',
+      message: (importStatus.value?.message || 'Import finished') + ' (could not download error log: ' + (e.message || 'error') + ')',
+    };
+  } finally {
+    downloadingErrors.value = false;
+  }
+}
 
 const truncatedPreviewData = computed(() => {
   if (!previewData.value?.length) return [];
@@ -408,16 +466,18 @@ async function importData() {
       importResult = await response.json();
       if (importResult.status === 'success') {
         const progress = importResult.progress || {};
+        const terminal = ['completed', 'completed_with_errors', 'failed'].includes(progress.import_status);
         importStatus.value = {
-          status: progress.import_status === 'completed' ? 'success' : 'in_progress',
-          message:
-            progress.import_status === 'completed'
-              ? 'Import completed successfully'
-              : `Importing… ${progress.progress_percent || 0}%`,
+          status: importUiStatus(progress),
+          message: terminal
+            ? importResult.message || importHeadline(progress)
+            : importHeadline(progress),
+          summary: formatImportCounts(progress),
           progress_percent: progress.progress_percent || 0,
           import_status: progress.import_status || 'in_progress',
+          errors_count: progress.errors_count || 0,
         };
-        hasMore = progress.has_more === true && progress.import_status !== 'completed';
+        hasMore = progress.has_more === true && !terminal;
         if (hasMore && !importCancelled.value) {
           await new Promise((r) => setTimeout(r, 500));
         }
@@ -445,7 +505,12 @@ async function importData() {
           console.error('Error syncing fields:', e);
         }
       }
-      showUploadDialog.value = false;
+      const hadRowIssues = (importStatus.value?.errors_count || 0) > 0
+        || importStatus.value?.import_status === 'completed_with_errors'
+        || importStatus.value?.import_status === 'failed';
+      if (!hadRowIssues) {
+        showUploadDialog.value = false;
+      }
       await loadTableStats();
       await loadPreviewData();
       emit('fields-changed');
