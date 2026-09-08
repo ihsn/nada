@@ -7,7 +7,8 @@ require_once(APPPATH . 'core/MY_Migration.php');
  * Expand dd_projects for the deposit JSON model.
  *
  * Adds schema_version (1 = legacy, 2 = new blobs) and submission JSON.
- * Reuses the existing unused metadata column for the study document.
+ * Study JSON lives on dd_projects.metadata. Add that column if missing
+ * via 20260908130001 — do not assume the unused column already exists.
  * Does not drop or rename dd_study / dd_citations.
  */
 class Migration_Datadeposit_schema_version extends MY_Migration {
