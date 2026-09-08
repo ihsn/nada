@@ -96,7 +96,11 @@ export function extractApiError(err, labels = {}) {
   if (/^Request failed with status code \d+/i.test(displayMessage)) {
     displayMessage = errors.length ? validationFailed + issueSuffix(errors.length, labels) : saveFailed;
   }
-  if (displayMessage === 'SCHEMA_VALIDATION_FAILED' || /^SCHEMA_VALIDATION_FAILED/i.test(displayMessage)) {
+  const isSchemaError =
+    displayMessage === 'SCHEMA_VALIDATION_FAILED' ||
+    /^SCHEMA_VALIDATION_FAILED/i.test(displayMessage) ||
+    /^SCHEMA_VALIDATION_FAILED/i.test(String(message));
+  if (isSchemaError) {
     displayMessage = errors.length
       ? schemaValidationFailed + issueSuffix(errors.length, labels)
       : schemaValidationFailed;
@@ -110,6 +114,7 @@ export function extractApiError(err, labels = {}) {
   return {
     message: displayMessage,
     errors,
+    isSchemaError,
     status: data?.status || null,
     raw: data,
   };

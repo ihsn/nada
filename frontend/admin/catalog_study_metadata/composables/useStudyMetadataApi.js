@@ -50,11 +50,14 @@ export function useStudyMetadataApi() {
     }
   }
 
-  async function saveMetadata(payload) {
+  async function saveMetadata(payload, options = {}) {
     const url = updateUrl();
     if (!url) throw new Error('updateUrl missing');
     // Default server behavior merges partial metadata (legacy inline editor); do not use replace.
     const body = { ...(payload || {}) };
+    if (options.ignoreSchemaErrors) {
+      body.ignore_schema_errors = true;
+    }
     try {
       const { data } = await axios.post(url, body, {
         headers: { 'Content-Type': 'application/json', ...csrfHeaders() },

@@ -171,6 +171,8 @@ class Catalog extends MY_REST_Controller
 
 			$dataset = $this->dataset_manager->get_row($sid);
 
+			$ignore_schema_errors = $this->_catalog_ignore_schema_errors($options);
+
 			$options['changed_by'] = $user_id;
 			$options['changed'] = date("U");
 
@@ -185,7 +187,7 @@ class Catalog extends MY_REST_Controller
 			$options = array_merge($dataset, $options);
 
 			if ($type == 'survey' || $type == 'document' || $type == 'table' || $type == 'geospatial' || $type == 'image' || $type == 'video' || $type == 'timeseries' || $type == 'timeseriesdb') {
-				$dataset_id = $this->dataset_manager->update_dataset($sid, $type, $options, $merge_metadata);
+				$dataset_id = $this->dataset_manager->update_dataset($sid, $type, $options, $merge_metadata, !$ignore_schema_errors);
 			}
 			else {
 				$metadata = $this->dataset_manager->get_metadata($sid);
@@ -208,6 +210,9 @@ class Catalog extends MY_REST_Controller
 					'view' => site_url('catalog/' . $dataset['id']),
 				),
 			);
+			if ($ignore_schema_errors) {
+				$response['schema_validation_skipped'] = true;
+			}
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
@@ -226,6 +231,19 @@ class Catalog extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * Admin-only one-shot opt-in. Do not persist on the study.
+	 */
+	private function _catalog_ignore_schema_errors(&$options)
+	{
+		if (! is_array($options) || ! array_key_exists('ignore_schema_errors', $options)) {
+			return false;
+		}
+		$raw = $options['ignore_schema_errors'];
+		unset($options['ignore_schema_errors']);
+		return ($raw === true || $raw === 1 || $raw === '1' || $raw === 'true' || $raw === 'yes');
 	}
 
 
