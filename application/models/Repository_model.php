@@ -190,9 +190,39 @@ class Repository_model extends CI_Model {
 
 		//update db
 		$this->db->where($key_field, $id);
-		$result=$this->db->update('repositories', $data); 
+		$result=$this->db->update('repositories', $data);
 
-		return $result;		
+		if ($result){
+			$repo=$this->select_single($id);
+			if ($repo){
+				$this->reindex_repository_surveys($repo['repositoryid']);
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	* Queue a search index refresh for every survey belonging to a repository.
+	*
+	* Repository fields (e.g. title, ispublished) are denormalized into each
+	* survey's search index document, but survey rows themselves are not
+	* touched when a repository is edited/deleted, so no db.after.update event
+	* fires for them unless we emit it here explicitly.
+	**/
+	private function reindex_repository_surveys($repositoryid)
+	{
+		if ($repositoryid===NULL || $repositoryid===''){
+			return;
+		}
+
+		$this->db->select('id');
+		$this->db->where('repositoryid',$repositoryid);
+		$sids=array_column($this->db->get('surveys')->result_array(),'id');
+
+		if (!empty($sids)){
+			$this->events->emit('db.after.update', 'surveys', $sids, 'refresh');
+		}
 	}
 
 
@@ -282,10 +312,14 @@ class Repository_model extends CI_Model {
 		}
 		
 		$repo=$this->select_single($id);
-		
+
+		$this->db->select('id');
+		$this->db->where('repositoryid',$repo['repositoryid']);
+		$affected_sids=array_column($this->db->get('surveys')->result_array(),'id');
+
 		$this->db->where('id',$id);
 		$this->db->delete('repositories');
-		
+
 		//remove from survey_repos
 		$this->db->where('repositoryid',$repo['repositoryid']);
 		$this->db->delete('survey_repos');
@@ -293,6 +327,10 @@ class Repository_model extends CI_Model {
 		//update surveys
 		$this->db->where('repositoryid',$repo['repositoryid']);
 		$this->db->update('surveys',array('repositoryid'=>'central'));
+
+		if (!empty($affected_sids)){
+			$this->events->emit('db.after.update', 'surveys', $affected_sids, 'refresh');
+		}
 	}
 
 

@@ -1229,6 +1229,7 @@ class Datasets extends MY_REST_Controller
 				//update ID
 				$result=$this->dataset_manager->update_sid($old_sid,$new_id);
 
+				$this->events->emit('db.after.delete', 'surveys', $old_sid);
 				$this->events->emit('db.after.update', 'surveys', $new_id,'refresh');
 
 				$response=array(

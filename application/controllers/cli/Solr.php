@@ -324,9 +324,51 @@ class Solr extends CI_Controller {
     }
     
     /**
+     * Reconcile SOLR with the database by diffing document IDs and healing
+     * just the additions/deletions, instead of a full reindex.
+     *
+     * Covers studies (doctype 1) and citations (doctype 3) only — variables
+     * are not diffable this way yet and still require a full index_variables run.
+     *
+     * Usage: php index.php cli/solr/synchronize_index [dry_run]
+     */
+    public function synchronize_index($dry_run = 'false') {
+        $is_dry_run = ($dry_run === 'true' || $dry_run === '1');
+
+        echo "Synchronizing SOLR index with database" . ($is_dry_run ? " (dry run)" : "") . "...\n";
+        echo "Note: only studies and citations are covered; variables need a full index_variables run.\n\n";
+
+        $doctypes = array(1 => 'studies', 3 => 'citations');
+
+        try {
+            foreach ($doctypes as $doctype => $label) {
+                echo "[{$label}] checking...\n";
+                $result = $this->solr_manager->synchronize_by_document_type($doctype, $is_dry_run);
+
+                $deleted = isset($result['solr_deleted']) ? count($result['solr_deleted']) : 0;
+                $added   = isset($result['new_docs']) ? count($result['new_docs']) : 0;
+
+                echo "  stale in SOLR (removed" . ($is_dry_run ? ", dry run" : "") . "): {$deleted}\n";
+                echo "  missing from SOLR (added" . ($is_dry_run ? ", dry run" : "") . "): {$added}\n";
+            }
+
+            if (!$is_dry_run) {
+                $this->solr_manager->commit_index_changes();
+                echo "\nDone. Changes committed.\n";
+            } else {
+                echo "\nDry run complete. No changes made.\n";
+            }
+
+        } catch (Exception $e) {
+            echo "Error synchronizing index: " . $e->getMessage() . "\n";
+            exit(1);
+        }
+    }
+
+    /**
      * Get SOLR index status
      * Returns JSON with counts from both SOLR and database
-     * 
+     *
      * Usage: php index.php cli/solr/status
      */
     public function status() {
@@ -456,6 +498,7 @@ class Solr extends CI_Controller {
         echo "  index_studies [start_row]              - Index all studies (surveys)\n";
         echo "  index_variables [start_row] [limit] [batch_size] - Index all variables\n";
         echo "  index_citations [start_row]            - Index all citations\n";
+        echo "  synchronize_index [dry_run]            - Heal added/deleted studies & citations (skips variables)\n";
         echo "  schema_citations [replace]             - Create/update citation schema fields only\n";
         echo "  clean_index                             - Clear the SOLR index\n";
         echo "  clean_citations                         - Delete only citation documents\n";
