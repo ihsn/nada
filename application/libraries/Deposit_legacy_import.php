@@ -111,7 +111,7 @@ class Deposit_legacy_import
 					$result['ok']++;
 				}
 				$result['projects'][] = $row;
-			} catch (Exception $e) {
+			} catch (Throwable $e) {
 				$result['failed']++;
 				$result['failures'][] = array(
 					'id'      => $id,
@@ -141,7 +141,7 @@ class Deposit_legacy_import
 				}
 				$study_desc = $this->prune_empty($study_desc);
 			}
-		} catch (Exception $e) {
+		} catch (Throwable $e) {
 			$warnings[] = 'DDI parse failed: '.$e->getMessage();
 		}
 

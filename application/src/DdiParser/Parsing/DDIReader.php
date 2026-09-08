@@ -591,7 +591,7 @@ class DDIReader implements ReaderInterface
 
         while ($reader->read()) {
             if ($reader->nodeType == \XMLReader::ELEMENT && $reader->localName == 'varGrp') {
-                $xml_obj     = simplexml_load_string($reader->readOuterXML());
+                $xml_obj     = $this->simplexml_from_outer_xml($reader->readOuterXML());
                 $parent_path = 'codeBook/dataDscr/' . $xml_obj->getName();
                 $output      = [];
                 $var_grp     = $this->get_child_elements_array($xml_obj, $parent_path, $output);
@@ -673,7 +673,7 @@ class DDIReader implements ReaderInterface
                 && in_array($xml_reader->localName, ['docDscr', 'stdyDscr'])
                 && $section === $xml_reader->localName
             ) {
-                $xml_obj     = simplexml_load_string($xml_reader->readOuterXML());
+                $xml_obj     = $this->simplexml_from_outer_xml($xml_reader->readOuterXML());
                 $parent_path = 'codeBook/' . $xml_obj->getName();
                 $key_values  = $this->get_child_elements_array($xml_obj, $parent_path, $key_values);
                 break;
@@ -682,7 +682,7 @@ class DDIReader implements ReaderInterface
                 && $xml_reader->localName == 'fileDscr'
                 && $section == 'fileDscr'
             ) {
-                $xml_obj     = simplexml_load_string($xml_reader->readOuterXML());
+                $xml_obj     = $this->simplexml_from_outer_xml($xml_reader->readOuterXML());
                 $parent_path = 'codeBook/' . $xml_obj->getName();
                 $key_values  = $this->get_child_elements_array($xml_obj, $parent_path, $key_values);
 
@@ -697,6 +697,27 @@ class DDIReader implements ReaderInterface
 
         $xml_reader->close();
         return $key_values;
+    }
+
+    /**
+     * @param string $xml
+     * @return \SimpleXMLElement
+     * @throws \Exception
+     */
+    private function simplexml_from_outer_xml(string $xml): \SimpleXMLElement
+    {
+        $previous = libxml_use_internal_errors(true);
+        $xml_obj = simplexml_load_string($xml);
+        $error = libxml_get_last_error();
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        if ($xml_obj instanceof \SimpleXMLElement) {
+            return $xml_obj;
+        }
+
+        $detail = $error ? trim($error->message) : 'simplexml_load_string returned false';
+        throw new \Exception('Invalid DDI XML fragment: '.$detail);
     }
 
 

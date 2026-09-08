@@ -174,7 +174,7 @@ class Datadeposit extends CI_Controller
 			try {
 				$row = $this->deposit_legacy_import->import_project($id, $dry, $force);
 				$this->print_import_row($row);
-			} catch (Exception $e) {
+			} catch (Throwable $e) {
 				echo "Error: ".$e->getMessage()."\n";
 				exit(1);
 			}
