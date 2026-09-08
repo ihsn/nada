@@ -21,6 +21,8 @@ $lang['Countries']="国家";
 $lang['Regions']="地区";
 $lang['Vocabularies']="词汇";
 $lang['Central Data Catalog']="中央数据目录";
+$lang['Data tables']="数据表";
+$lang['Display manager']="显示管理器";
 
 
 /* End of file site_menu_lang.php */

@@ -25,6 +25,8 @@ $lang['Bulk data access']="الوصول إلى البيانات بالجملة";
 $lang['Facets']="جوانب";
 $lang['Translate']="ترجمة";
 $lang['Data deposit']="إيداع البيانات";
+$lang['Data tables']="جداول البيانات";
+$lang['Display manager']="مدير العرض";
 
 
 /* End of file site_menu */
