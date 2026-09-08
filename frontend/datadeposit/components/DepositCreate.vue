@@ -113,7 +113,7 @@ async function submitCreate() {
           </div>
         </v-alert>
 
-        <div class="dd-info-field">
+        <div v-if="projectTypes.length > 1" class="dd-info-field">
           <label class="dd-info-label">{{ lbl.projectType }} <span class="text-error">*</span></label>
           <p class="text-caption text-medium-emphasis mb-3">{{ lbl.projectTypeHelp }}</p>
           <div class="dd-type-grid" role="radiogroup" :aria-label="lbl.projectType">

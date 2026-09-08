@@ -1118,7 +1118,7 @@
     ]
   },
   "admin/datadeposit/main.js": {
-    "file": "assets/admin/admin_datadeposit-BqsmK3nF.js",
+    "file": "assets/admin/admin_datadeposit-rN6NMIYz.js",
     "name": "admin_datadeposit",
     "src": "admin/datadeposit/main.js",
     "isEntry": true,
@@ -1158,7 +1158,7 @@
       "_VPagination-CYVNeZtS.js"
     ],
     "css": [
-      "assets/admin/admin_datadeposit-D6xRUkP7.css"
+      "assets/admin/admin_datadeposit-CMK68KNJ.css"
     ]
   },
   "admin/ddi_upload/main.js": {
@@ -2091,7 +2091,7 @@
     ]
   },
   "datadeposit/main.js": {
-    "file": "assets/public/datadeposit-9jrw9vwi.js",
+    "file": "assets/public/datadeposit-D9MSJuym.js",
     "name": "datadeposit",
     "src": "datadeposit/main.js",
     "isEntry": true,
@@ -2110,7 +2110,7 @@
       "_VExpansionPanels-CDUzSxMY.js"
     ],
     "css": [
-      "assets/public/datadeposit-Dza9fsEf.css",
+      "assets/public/datadeposit-BEtZyzNJ.css",
       "assets/public/materialdesignicons-f3sFGprf.css"
     ],
     "assets": [

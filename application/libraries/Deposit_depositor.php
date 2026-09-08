@@ -94,6 +94,22 @@ class Deposit_depositor
 		);
 	}
 
+	/**
+	 * Types the depositor may choose when creating a project.
+	 * This phase is survey (microdata) only.
+	 */
+	public function creatable_project_types()
+	{
+		$allowed = array('survey');
+		$out = array();
+		foreach ($this->project_types() as $row) {
+			if (in_array($row['value'], $allowed, true)) {
+				$out[] = $row;
+			}
+		}
+		return $out;
+	}
+
 	public function normalize_data_type($value, $strict = false)
 	{
 		$type = strtolower(trim((string) $value));
@@ -203,7 +219,11 @@ class Deposit_depositor
 		} elseif (isset($incoming['dataType'])) {
 			$data_type_raw = trim((string) $incoming['dataType']);
 		}
-		$data_type = $this->normalize_data_type($data_type_raw, true);
+		$data_type = $this->normalize_data_type($data_type_raw === '' ? 'survey' : $data_type_raw, true);
+		$creatable = array();
+		foreach ($this->creatable_project_types() as $row) {
+			$creatable[] = $row['value'];
+		}
 		$errors = array();
 
 		if ($title === '') {
@@ -219,7 +239,7 @@ class Deposit_depositor
 		if (strlen($description) > 1000) {
 			$errors[] = array('property' => 'description', 'message' => 'Description is too long');
 		}
-		if ($data_type === null) {
+		if ($data_type === null || !in_array($data_type, $creatable, true)) {
 			$errors[] = array('property' => 'data_type', 'message' => 'Invalid project type');
 		}
 
@@ -1210,6 +1230,100 @@ class Deposit_depositor
 	}
 
 	/**
+	 * Staff ZIP: project + study metadata, DDI, resource JSON/RDF, uploaded files.
+	 *
+	 * @return array{path: string, filename: string}
+	 */
+	public function admin_export_package($id, $actor_email)
+	{
+		if (!class_exists('ZipArchive')) {
+			$this->fail('ZIP_NOT_AVAILABLE', 500);
+		}
+
+		$row = $this->ci->DD_project_model->get_by_id($id);
+		if (!$row || empty($row['id'])) {
+			$this->fail('NOT_FOUND', 404);
+		}
+
+		$id = (int) $id;
+		$stamp = date('Y_m_d');
+		$prefix = $id.'_'.$stamp;
+		$filename = strtolower($prefix.'_package.zip');
+		$tmp = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR)
+			.DIRECTORY_SEPARATOR
+			.'dd-package-'.$id.'-'.str_replace('.', '', uniqid('', true)).'.zip';
+
+		$zip = new ZipArchive();
+		if ($zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+			$this->fail('ZIP_CREATE_FAILED', 500);
+		}
+
+		try {
+			set_time_limit(600);
+			$data_type = $this->normalize_data_type(isset($row['data_type']) ? $row['data_type'] : 'survey');
+
+			$zip->addFromString(
+				$prefix.'_project.json',
+				$this->export_encode_json($this->export_project_json($id, $row, $data_type))
+			);
+			$zip->addFromString(
+				$prefix.'_metadata.json',
+				$this->export_encode_json($this->export_metadata_json($id, $data_type))
+			);
+			$zip->addFromString(
+				$prefix.'_external_resources.json',
+				$this->export_encode_json($this->export_external_resources($id))
+			);
+			$zip->addFromString($prefix.'_rdf.xml', $this->export_resources_rdf_xml($id));
+
+			if ($data_type === 'survey') {
+				try {
+					$zip->addFromString($prefix.'_ddi.xml', $this->export_ddi_xml($id, $row));
+				} catch (Deposit_depositor_exception $e) {
+					// Keep the package if DDI generation fails; JSON is still included.
+				}
+			}
+
+			$used = array();
+			foreach ($this->ci->DD_resource_model->get_project_resources($id) as $file) {
+				$fid = isset($file['id']) ? (int) $file['id'] : 0;
+				if (!$fid) {
+					continue;
+				}
+				try {
+					$disk = $this->file_disk_path($id, $fid);
+				} catch (Deposit_depositor_exception $e) {
+					continue;
+				}
+				$entry = $this->unique_zip_basename($disk['filename'], $used);
+				$zip->addFile($disk['path'], 'files/'.$entry);
+			}
+		} catch (Exception $e) {
+			$zip->close();
+			@unlink($tmp);
+			if ($e instanceof Deposit_depositor_exception) {
+				throw $e;
+			}
+			$this->fail('ZIP_CREATE_FAILED', 500);
+		}
+
+		$zip->close();
+		if (!is_file($tmp) || filesize($tmp) === 0) {
+			@unlink($tmp);
+			$this->fail('ZIP_CREATE_FAILED', 500);
+		}
+
+		$title = isset($row['title']) ? (string) $row['title'] : '';
+		$status = isset($row['status']) ? (string) $row['status'] : '';
+		$this->write_history($this->export_history_comment('zip', $title), $id, $status, $actor_email);
+
+		return array(
+			'path'     => $tmp,
+			'filename' => $filename,
+		);
+	}
+
+	/**
 	 * @return array{filename: string, mime: string, body: string}
 	 */
 	protected function export_project_file($id, $format)
@@ -1285,6 +1399,7 @@ class Deposit_depositor
 			'project'            => 'Study '.$title.' exported as project JSON',
 			'rdf'                => 'Study '.$title.' exported as RDF',
 			'external_resources' => 'Study '.$title.' exported as external resources JSON',
+			'zip'                => 'Study '.$title.' exported as package',
 		);
 		return isset($labels[$format]) ? $labels[$format] : 'Study '.$title.' exported';
 	}
@@ -1411,6 +1526,28 @@ class Deposit_depositor
 			return new stdClass();
 		}
 		return $value;
+	}
+
+	protected function unique_zip_basename($filename, array &$used)
+	{
+		$name = basename(str_replace(array('\\', '/'), '_', (string) $filename));
+		$name = preg_replace('/[^\w.\- ()\[\]]+/u', '_', $name);
+		$name = trim((string) $name, '._');
+		if ($name === '') {
+			$name = 'file';
+		}
+
+		$candidate = $name;
+		$n = 1;
+		while (isset($used[$candidate])) {
+			$info = pathinfo($name);
+			$stem = isset($info['filename']) ? $info['filename'] : $name;
+			$ext = (isset($info['extension']) && $info['extension'] !== '') ? '.'.$info['extension'] : '';
+			$candidate = $stem.'_'.$n.$ext;
+			$n++;
+		}
+		$used[$candidate] = true;
+		return $candidate;
 	}
 
 	public function update_project(array $user, $id, array $incoming)

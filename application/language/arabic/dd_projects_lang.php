@@ -208,6 +208,7 @@ $lang['dd_export_json'] = 'البيانات الوصفية (JSON)';
 $lang['dd_export_project_json'] = 'المشروع (JSON)';
 $lang['dd_export_rdf'] = 'الموارد الخارجية (RDF)';
 $lang['dd_export_external_json'] = 'الموارد الخارجية (JSON)';
+$lang['dd_export_package'] = 'تنزيل الحزمة';
 $lang['dd_import_metadata'] = 'استيراد البيانات الوصفية';
 $lang['dd_import_metadata_help'] = 'يستبدل هذا وصف الدراسة الحالي ولا يمكن التراجع عنه.';
 $lang['dd_import_from_project'] = 'من مشروع';

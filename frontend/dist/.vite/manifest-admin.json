@@ -1118,7 +1118,7 @@
     ]
   },
   "admin/datadeposit/main.js": {
-    "file": "assets/admin/admin_datadeposit-BqsmK3nF.js",
+    "file": "assets/admin/admin_datadeposit-rN6NMIYz.js",
     "name": "admin_datadeposit",
     "src": "admin/datadeposit/main.js",
     "isEntry": true,
@@ -1158,7 +1158,7 @@
       "_VPagination-CYVNeZtS.js"
     ],
     "css": [
-      "assets/admin/admin_datadeposit-D6xRUkP7.css"
+      "assets/admin/admin_datadeposit-CMK68KNJ.css"
     ]
   },
   "admin/ddi_upload/main.js": {

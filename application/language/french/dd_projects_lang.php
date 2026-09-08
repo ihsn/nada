@@ -62,6 +62,7 @@ $lang['dd_export_json'] = 'Métadonnées (JSON)';
 $lang['dd_export_project_json'] = 'Projet (JSON)';
 $lang['dd_export_rdf'] = 'Ressources externes (RDF)';
 $lang['dd_export_external_json'] = 'Ressources externes (JSON)';
+$lang['dd_export_package'] = 'Télécharger le paquet';
 $lang['dd_import_metadata'] = 'Importer les métadonnées';
 $lang['dd_import_metadata_help'] = 'Cela remplace la description actuelle de l’étude et ne peut pas être annulé.';
 $lang['dd_import_from_project'] = 'Depuis un projet';

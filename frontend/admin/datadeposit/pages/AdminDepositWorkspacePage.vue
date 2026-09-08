@@ -47,6 +47,12 @@
         <a :href="exportHref('json')" class="text-primary text-decoration-none">
           {{ t('JSON', 'JSON') }}
         </a>
+        <template v-if="canEdit">
+          <span class="text-medium-emphasis"> | </span>
+          <a :href="exportHref('zip')" class="text-primary text-decoration-none">
+            {{ t('dd_export_package', 'Download package') }}
+          </a>
+        </template>
       </div>
 
       <v-tabs v-model="tab" color="primary" class="mb-4">

@@ -1,8 +1,17 @@
 <template>
   <v-card class="admin-catalog-surface pa-4" rounded="lg" elevation="1">
-    <h2 class="text-subtitle-1 font-weight-semibold mb-3">
-      {{ t('dd_files_in_folder', 'Files in project folder') }}
-    </h2>
+    <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
+      <h2 class="text-subtitle-1 font-weight-semibold mb-0">
+        {{ t('dd_files_in_folder', 'Files in project folder') }}
+      </h2>
+      <a
+        v-if="canEdit && projectId"
+        :href="exportUrl(projectId, 'zip')"
+        class="text-primary text-decoration-none text-body-2"
+      >
+        {{ t('dd_export_package', 'Download package') }}
+      </a>
+    </div>
 
     <div class="dd-storage-path mb-4">
       <div class="text-caption text-medium-emphasis mb-1">
@@ -61,7 +70,7 @@ defineOptions({ name: 'AdminDepositFilesTab' });
 
 const { t } = useI18n();
 const { canEdit } = useAppConfig();
-const { fileDownloadUrl } = useAdminDepositApi();
+const { fileDownloadUrl, exportUrl } = useAdminDepositApi();
 
 const projectId = computed(() => props.project?.id);
 const files = computed(() => (Array.isArray(props.project?.files) ? props.project.files : []));

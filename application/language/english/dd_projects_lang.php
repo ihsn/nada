@@ -226,6 +226,7 @@ $lang['dd_export_json'] = 'Metadata (JSON)';
 $lang['dd_export_project_json'] = 'Project (JSON)';
 $lang['dd_export_rdf'] = 'External resources (RDF)';
 $lang['dd_export_external_json'] = 'External resources (JSON)';
+$lang['dd_export_package'] = 'Download package';
 $lang['dd_import_metadata'] = 'Import metadata';
 $lang['dd_import_metadata_help'] = 'This replaces the current study description and cannot be undone.';
 $lang['dd_import_from_project'] = 'From a project';

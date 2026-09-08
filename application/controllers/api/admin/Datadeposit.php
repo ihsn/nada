@@ -124,19 +124,38 @@ class Datadeposit extends MY_REST_Controller
 
 	/**
 	 * GET /api/admin/datadeposit/projects/{id}/export/{format}
-	 * format: ddi | json | metadata | project | rdf | external_resources
+	 * format: ddi | json | metadata | project | rdf | external_resources | zip
+	 * zip is staff-only (ACL edit) and includes uploaded files.
 	 */
 	public function projects_export_get($id = null, $format = null)
 	{
 		try {
-			$this->require_access('datadeposit', 'view');
-
 			if (!is_numeric($id)) {
 				throw new Exception('Project was not found');
 			}
 
+			$format = strtolower(trim((string) $format));
 			$user = $this->api_user();
 			$actor = ($user && isset($user->email)) ? (string) $user->email : '';
+
+			if ($format === 'zip') {
+				$this->require_access('datadeposit', 'edit');
+				$file = $this->deposit_depositor->admin_export_package($id, $actor);
+				if (!isset($file['path']) || !is_file($file['path'])) {
+					throw new Exception('FAILED_TO_CREATE_PACKAGE');
+				}
+
+				header('Content-Type: application/zip');
+				header('Content-Disposition: attachment; filename="'.$file['filename'].'"');
+				header('Content-Length: '.filesize($file['path']));
+				header('Cache-Control: no-cache, must-revalidate');
+				header('Expires: 0');
+				readfile($file['path']);
+				@unlink($file['path']);
+				exit;
+			}
+
+			$this->require_access('datadeposit', 'view');
 			$file = $this->deposit_depositor->admin_export_project($id, $format, $actor);
 			$this->load->helper('download');
 			force_download($file['filename'], $file['body']);

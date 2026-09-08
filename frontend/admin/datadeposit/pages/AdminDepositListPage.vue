@@ -213,6 +213,12 @@
                       :to="{ name: 'admin-deposit-workspace', params: { id: String(item.id) } }"
                     />
                     <v-list-item
+                      v-if="canEdit"
+                      prepend-icon="mdi-folder-zip-outline"
+                      :title="t('dd_export_package', 'Download package')"
+                      :href="exportUrl(item.id, 'zip')"
+                    />
+                    <v-list-item
                       v-if="canDelete"
                       prepend-icon="mdi-delete"
                       :title="t('delete', 'Delete')"
@@ -249,7 +255,7 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const { siteUrl, canEdit, canDelete } = useAppConfig();
-const { loading, searchProjects, deleteProjects } = useAdminDepositApi();
+const { loading, searchProjects, deleteProjects, exportUrl } = useAdminDepositApi();
 
 const STATUS_FILTERS = ['all', 'draft', 'submitted', 'processed', 'accepted', 'closed', 'requested'];
 

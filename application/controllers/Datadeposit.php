@@ -161,7 +161,7 @@ class Datadeposit extends MY_Controller
 			'uploadsApiUrl'        => rtrim(site_url('api/uploads'), '/').'/',
 			'allowedResourceTypes' => $this->config->item('allowed_resource_types'),
 			'depositMaxUploadMb'   => datadeposit_max_upload_mb(),
-			'projectTypes'         => $this->_deposit_project_types(),
+			'projectTypes'         => $this->_deposit_creatable_project_types(),
 			'flashMessage'         => (string) $this->session->flashdata('message'),
 			'flashError'           => (string) $this->session->flashdata('error'),
 			'labels'               => $this->_deposit_vue_labels(),
@@ -400,18 +400,15 @@ class Datadeposit extends MY_Controller
 	private function _deposit_project_types()
 	{
 		$this->lang->load('catalog_search');
+		$this->load->library('Deposit_depositor');
+		return $this->deposit_depositor->project_types();
+	}
 
-		return array(
-			array('value' => 'survey', 'title' => t('dataset_type_survey'), 'icon' => 'mdi-database'),
-			array('value' => 'timeseries', 'title' => t('tab_timeseries'), 'icon' => 'mdi-chart-line'),
-			array('value' => 'timeseries-db', 'title' => t('tab_timeseriesdb'), 'icon' => 'mdi-chart-box-outline'),
-			array('value' => 'geospatial', 'title' => t('dataset_type_geospatial'), 'icon' => 'mdi-map-outline'),
-			array('value' => 'document', 'title' => t('dataset_type_document'), 'icon' => 'mdi-file-document-outline'),
-			array('value' => 'table', 'title' => t('dataset_type_table'), 'icon' => 'mdi-table'),
-			array('value' => 'image', 'title' => t('dataset_type_image'), 'icon' => 'mdi-image-outline'),
-			array('value' => 'script', 'title' => t('tab_script'), 'icon' => 'mdi-code-braces'),
-			array('value' => 'video', 'title' => t('tab_video'), 'icon' => 'mdi-video-outline'),
-		);
+	private function _deposit_creatable_project_types()
+	{
+		$this->lang->load('catalog_search');
+		$this->load->library('Deposit_depositor');
+		return $this->deposit_depositor->creatable_project_types();
 	}
 
 	private function _deposit_allowed_data_types()
