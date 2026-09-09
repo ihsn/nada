@@ -13,8 +13,8 @@ class Migration_Display_templates_platform extends MY_Migration {
 	{
 		$this->create_display_templates_schema();
 		$this->remove_visualization_survey_type();
-		$this->file_backed_cores();
 		$this->create_translations_table();
+		$this->file_backed_cores();
 		$this->sync_shipped_overlays();
 		$this->rename_survey_core_uid();
 		$this->legacy_study_templates_configuration();
@@ -87,71 +87,78 @@ class Migration_Display_templates_platform extends MY_Migration {
 			return;
 		}
 
-		if (!$this->db->table_exists('display_templates')) {
-			$this->assert_db_query($this->db->query("
-				CREATE TABLE display_templates (
-					id BIGINT NOT NULL IDENTITY(1,1),
-					uid VARCHAR(191) NOT NULL,
-					template_type VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_template_type DEFAULT 'custom',
-					source VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline',
-					data_type VARCHAR(64) NOT NULL,
-					lang VARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en',
-					name VARCHAR(255) NOT NULL,
-					version VARCHAR(50) NULL,
-					organization VARCHAR(255) NULL,
-					author VARCHAR(255) NULL,
-					description NVARCHAR(MAX) NULL,
-					status VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_status DEFAULT 'draft',
-					template_json NVARCHAR(MAX) NULL,
-					file_path VARCHAR(255) NULL,
-					is_deleted BIT NOT NULL CONSTRAINT df_display_templates_is_deleted DEFAULT 0,
-					created_by INT NULL,
-					changed_by INT NULL,
-					created_at DATETIME2 NOT NULL CONSTRAINT df_display_templates_created_at DEFAULT SYSDATETIME(),
-					updated_at DATETIME2 NOT NULL CONSTRAINT df_display_templates_updated_at DEFAULT SYSDATETIME(),
-					PRIMARY KEY (id),
-					CONSTRAINT ck_display_templates_template_type CHECK (template_type IN ('system','custom','imported')),
-					CONSTRAINT ck_display_templates_source CHECK (source IN ('inline','file')),
-					CONSTRAINT ck_display_templates_status CHECK (status IN ('draft','published','archived')),
-					CONSTRAINT unq_display_templates_uid UNIQUE (uid),
-					CONSTRAINT ck_display_templates_template_json_isjson CHECK (template_json IS NULL OR ISJSON(template_json)=1)
-				)
-			"), 'create display_templates');
-			$this->forget_table_cache();
-			$this->assert_db_query(
-				$this->db->query('CREATE INDEX idx_display_templates_type_status ON display_templates (data_type, status)'),
-				'index display_templates type_status'
-			);
-			$this->assert_db_query(
-				$this->db->query('CREATE INDEX idx_display_templates_template_type ON display_templates (template_type)'),
-				'index display_templates template_type'
-			);
-			$this->assert_db_query(
-				$this->db->query('CREATE INDEX idx_display_templates_not_deleted ON display_templates (is_deleted, data_type)'),
-				'index display_templates not_deleted'
-			);
-		}
+		$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.display_templates', N'U') IS NULL
+BEGIN
+	CREATE TABLE dbo.display_templates (
+		id BIGINT NOT NULL IDENTITY(1,1),
+		uid VARCHAR(191) NOT NULL,
+		template_type VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_template_type DEFAULT 'custom',
+		source VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline',
+		data_type VARCHAR(64) NOT NULL,
+		lang VARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en',
+		name VARCHAR(255) NOT NULL,
+		version VARCHAR(50) NULL,
+		organization VARCHAR(255) NULL,
+		author VARCHAR(255) NULL,
+		description NVARCHAR(MAX) NULL,
+		status VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_status DEFAULT 'draft',
+		template_json NVARCHAR(MAX) NULL,
+		file_path VARCHAR(255) NULL,
+		is_deleted BIT NOT NULL CONSTRAINT df_display_templates_is_deleted DEFAULT 0,
+		created_by INT NULL,
+		changed_by INT NULL,
+		created_at DATETIME2 NOT NULL CONSTRAINT df_display_templates_created_at DEFAULT SYSDATETIME(),
+		updated_at DATETIME2 NOT NULL CONSTRAINT df_display_templates_updated_at DEFAULT SYSDATETIME(),
+		PRIMARY KEY (id),
+		CONSTRAINT ck_display_templates_template_type CHECK (template_type IN ('system','custom','imported')),
+		CONSTRAINT ck_display_templates_source CHECK (source IN ('inline','file')),
+		CONSTRAINT ck_display_templates_status CHECK (status IN ('draft','published','archived')),
+		CONSTRAINT unq_display_templates_uid UNIQUE (uid),
+		CONSTRAINT ck_display_templates_template_json_isjson CHECK (template_json IS NULL OR ISJSON(template_json)=1)
+	)
+END
+		"), 'create display_templates');
+		$this->forget_table_cache();
 
-		if (!$this->db->table_exists('display_templates_default')) {
-			$this->assert_db_query($this->db->query("
-				CREATE TABLE display_templates_default (
-					id BIGINT NOT NULL IDENTITY(1,1),
-					data_type VARCHAR(64) NOT NULL,
-					template_uid VARCHAR(191) NOT NULL,
-					created_by INT NULL,
-					updated_by INT NULL,
-					created_at DATETIME2 NOT NULL CONSTRAINT df_display_templates_default_created_at DEFAULT SYSDATETIME(),
-					updated_at DATETIME2 NOT NULL CONSTRAINT df_display_templates_default_updated_at DEFAULT SYSDATETIME(),
-					PRIMARY KEY (id),
-					CONSTRAINT unq_display_default_type UNIQUE (data_type)
-				)
-			"), 'create display_templates_default');
-			$this->forget_table_cache();
-			$this->assert_db_query(
-				$this->db->query('CREATE INDEX idx_display_default_template_uid ON display_templates_default (template_uid)'),
-				'index display_templates_default template_uid'
-			);
-		}
+		$this->sqlsrv_create_index_if_missing(
+			'display_templates',
+			'idx_display_templates_type_status',
+			'CREATE INDEX idx_display_templates_type_status ON dbo.display_templates (data_type, status)'
+		);
+		$this->sqlsrv_create_index_if_missing(
+			'display_templates',
+			'idx_display_templates_template_type',
+			'CREATE INDEX idx_display_templates_template_type ON dbo.display_templates (template_type)'
+		);
+		$this->sqlsrv_create_index_if_missing(
+			'display_templates',
+			'idx_display_templates_not_deleted',
+			'CREATE INDEX idx_display_templates_not_deleted ON dbo.display_templates (is_deleted, data_type)'
+		);
+
+		$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.display_templates_default', N'U') IS NULL
+BEGIN
+	CREATE TABLE dbo.display_templates_default (
+		id BIGINT NOT NULL IDENTITY(1,1),
+		data_type VARCHAR(64) NOT NULL,
+		template_uid VARCHAR(191) NOT NULL,
+		created_by INT NULL,
+		updated_by INT NULL,
+		created_at DATETIME2 NOT NULL CONSTRAINT df_display_templates_default_created_at DEFAULT SYSDATETIME(),
+		updated_at DATETIME2 NOT NULL CONSTRAINT df_display_templates_default_updated_at DEFAULT SYSDATETIME(),
+		PRIMARY KEY (id),
+		CONSTRAINT unq_display_default_type UNIQUE (data_type)
+	)
+END
+		"), 'create display_templates_default');
+		$this->forget_table_cache();
+		$this->sqlsrv_create_index_if_missing(
+			'display_templates_default',
+			'idx_display_default_template_uid',
+			'CREATE INDEX idx_display_default_template_uid ON dbo.display_templates_default (template_uid)'
+		);
 	}
 
 	private function remove_visualization_survey_type()
@@ -203,41 +210,49 @@ class Migration_Display_templates_platform extends MY_Migration {
 				'make display_templates.template_json nullable'
 			);
 		} elseif ($driver === 'sqlsrv') {
-			if (!$this->db->field_exists('source', 'display_templates')) {
-				$this->assert_db_query(
-					$this->db->query("ALTER TABLE display_templates ADD source VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline'"),
-					'add display_templates.source'
-				);
-			}
-			if (!$this->sqlsrv_check_exists('ck_display_templates_source')) {
-				$this->assert_db_query(
-					$this->db->query("ALTER TABLE display_templates ADD CONSTRAINT ck_display_templates_source CHECK (source IN ('inline','file'))"),
-					'add display_templates.source check'
-				);
-			}
-			if (!$this->db->field_exists('lang', 'display_templates')) {
-				$this->assert_db_query(
-					$this->db->query("ALTER TABLE display_templates ADD lang VARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en'"),
-					'add display_templates.lang'
-				);
-			}
-			if (!$this->db->field_exists('file_path', 'display_templates')) {
-				$this->assert_db_query(
-					$this->db->query("ALTER TABLE display_templates ADD file_path VARCHAR(255) NULL"),
-					'add display_templates.file_path'
-				);
-			}
-			$this->drop_sqlsrv_constraint('display_templates', 'ck_display_templates_template_json_isjson');
-			$this->assert_db_query(
-				$this->db->query("ALTER TABLE display_templates ALTER COLUMN template_json NVARCHAR(MAX) NULL"),
-				'make display_templates.template_json nullable'
-			);
-			if (!$this->sqlsrv_check_exists('ck_display_templates_template_json_isjson')) {
-				$this->assert_db_query(
-					$this->db->query("ALTER TABLE display_templates ADD CONSTRAINT ck_display_templates_template_json_isjson CHECK (template_json IS NULL OR ISJSON(template_json)=1)"),
-					'add display_templates.template_json check'
-				);
-			}
+			$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.display_templates', N'source') IS NULL
+BEGIN
+	ALTER TABLE dbo.display_templates ADD source VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline'
+END
+			"), 'add display_templates.source');
+			$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.display_templates', N'source') IS NOT NULL
+AND OBJECT_ID(N'dbo.ck_display_templates_source', N'C') IS NULL
+BEGIN
+	ALTER TABLE dbo.display_templates ADD CONSTRAINT ck_display_templates_source CHECK (source IN ('inline','file'))
+END
+			"), 'add display_templates.source check');
+			$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.display_templates', N'lang') IS NULL
+BEGIN
+	ALTER TABLE dbo.display_templates ADD lang VARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en'
+END
+			"), 'add display_templates.lang');
+			$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.display_templates', N'file_path') IS NULL
+BEGIN
+	ALTER TABLE dbo.display_templates ADD file_path VARCHAR(255) NULL
+END
+			"), 'add display_templates.file_path');
+			$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.ck_display_templates_template_json_isjson', N'C') IS NOT NULL
+	ALTER TABLE dbo.display_templates DROP CONSTRAINT ck_display_templates_template_json_isjson
+			"), 'drop display_templates.template_json check');
+			$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
+	ALTER TABLE dbo.display_templates ALTER COLUMN template_json NVARCHAR(MAX) NULL
+			"), 'make display_templates.template_json nullable');
+			$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.ck_display_templates_template_json_isjson', N'C') IS NULL
+BEGIN
+	ALTER TABLE dbo.display_templates ADD CONSTRAINT ck_display_templates_template_json_isjson CHECK (template_json IS NULL OR ISJSON(template_json)=1)
+END
+			"), 'add display_templates.template_json check');
 		}
 
 		$this->sync_shipped_cores();
@@ -245,14 +260,13 @@ class Migration_Display_templates_platform extends MY_Migration {
 
 	private function create_translations_table()
 	{
-		if (!$this->db->table_exists('display_templates')
-			|| $this->db->table_exists('display_template_translations')
-		) {
-			return;
-		}
-
 		$driver = $this->db->dbdriver;
 		if (in_array($driver, array('mysql', 'mysqli'))) {
+			if (!$this->db->table_exists('display_templates')
+				|| $this->db->table_exists('display_template_translations')
+			) {
+				return;
+			}
 			$this->assert_db_query($this->db->query("
 				CREATE TABLE `display_template_translations` (
 					`id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -268,24 +282,33 @@ class Migration_Display_templates_platform extends MY_Migration {
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 			"), 'create display_template_translations');
 			$this->forget_table_cache();
-		} elseif ($driver === 'sqlsrv') {
-			$this->assert_db_query($this->db->query("
-				CREATE TABLE display_template_translations (
-					id BIGINT NOT NULL IDENTITY(1,1),
-					template_id BIGINT NOT NULL,
-					lang VARCHAR(16) NOT NULL,
-					translations NVARCHAR(MAX) NOT NULL,
-					created_at DATETIME2 NOT NULL CONSTRAINT df_display_template_translations_created_at DEFAULT SYSDATETIME(),
-					updated_at DATETIME2 NOT NULL CONSTRAINT df_display_template_translations_updated_at DEFAULT SYSDATETIME(),
-					PRIMARY KEY (id),
-					CONSTRAINT unq_display_template_translations_template_lang UNIQUE (template_id, lang),
-					CONSTRAINT ck_display_template_translations_json CHECK (ISJSON(translations)=1),
-					CONSTRAINT fk_display_template_translations_template
-						FOREIGN KEY (template_id) REFERENCES display_templates (id) ON DELETE CASCADE
-				)
-			"), 'create display_template_translations');
-			$this->forget_table_cache();
+			return;
 		}
+
+		if ($driver !== 'sqlsrv') {
+			return;
+		}
+
+		$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
+AND OBJECT_ID(N'dbo.display_template_translations', N'U') IS NULL
+BEGIN
+	CREATE TABLE dbo.display_template_translations (
+		id BIGINT NOT NULL IDENTITY(1,1),
+		template_id BIGINT NOT NULL,
+		lang VARCHAR(16) NOT NULL,
+		translations NVARCHAR(MAX) NOT NULL,
+		created_at DATETIME2 NOT NULL CONSTRAINT df_display_template_translations_created_at DEFAULT SYSDATETIME(),
+		updated_at DATETIME2 NOT NULL CONSTRAINT df_display_template_translations_updated_at DEFAULT SYSDATETIME(),
+		PRIMARY KEY (id),
+		CONSTRAINT unq_display_template_translations_template_lang UNIQUE (template_id, lang),
+		CONSTRAINT ck_display_template_translations_json CHECK (ISJSON(translations)=1),
+		CONSTRAINT fk_display_template_translations_template
+			FOREIGN KEY (template_id) REFERENCES dbo.display_templates (id) ON DELETE CASCADE
+	)
+END
+		"), 'create display_template_translations');
+		$this->forget_table_cache();
 	}
 
 	private function sync_shipped_overlays()
@@ -414,21 +437,18 @@ class Migration_Display_templates_platform extends MY_Migration {
 		$this->Display_template_model->sync_shipped_cores();
 	}
 
-	private function sqlsrv_check_exists($name)
+	private function sqlsrv_create_index_if_missing($table, $index, $sql)
 	{
-		$sql = "SELECT 1 FROM sys.check_constraints WHERE name = " . $this->db->escape($name);
-		$q = $this->db->query($sql);
-		return $q && $q->num_rows() > 0;
-	}
-
-	private function drop_sqlsrv_constraint($table, $name)
-	{
-		if ($this->sqlsrv_check_exists($name)) {
-			$this->assert_db_query(
-				$this->db->query('ALTER TABLE ' . $table . ' DROP CONSTRAINT ' . $name),
-				'drop constraint '.$name
-			);
-		}
+		$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.{$table}', N'U') IS NOT NULL
+AND NOT EXISTS (
+	SELECT 1 FROM sys.indexes
+	WHERE name = N'{$index}' AND object_id = OBJECT_ID(N'dbo.{$table}')
+)
+BEGIN
+	{$sql}
+END
+		"), 'index '.$index);
 	}
 
 	private function remap_uid($old, $new)
