@@ -1929,14 +1929,17 @@ CREATE TABLE `display_templates` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `uid` VARCHAR(191) NOT NULL,
   `template_type` ENUM('system','custom','imported') NOT NULL DEFAULT 'custom',
+  `source` ENUM('inline','file') NOT NULL DEFAULT 'inline',
   `data_type` VARCHAR(64) NOT NULL,
+  `lang` VARCHAR(16) NOT NULL DEFAULT 'en',
   `name` VARCHAR(255) NOT NULL,
   `version` VARCHAR(50) DEFAULT NULL,
   `organization` VARCHAR(255) DEFAULT NULL,
   `author` VARCHAR(255) DEFAULT NULL,
   `description` TEXT DEFAULT NULL,
   `status` ENUM('draft','published','archived') NOT NULL DEFAULT 'draft',
-  `template_json` JSON NOT NULL,
+  `template_json` JSON DEFAULT NULL,
+  `file_path` VARCHAR(255) DEFAULT NULL,
   `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
   `created_by` INT UNSIGNED DEFAULT NULL,
   `changed_by` INT UNSIGNED DEFAULT NULL,
@@ -1961,6 +1964,20 @@ CREATE TABLE `display_templates_default` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_display_default_type` (`data_type`),
   KEY `idx_display_default_template_uid` (`template_uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE `display_template_translations` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `template_id` BIGINT UNSIGNED NOT NULL,
+  `lang` VARCHAR(16) NOT NULL,
+  `translations` JSON NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_display_template_translations_template_lang` (`template_id`,`lang`),
+  CONSTRAINT `fk_display_template_translations_template`
+    FOREIGN KEY (`template_id`) REFERENCES `display_templates` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

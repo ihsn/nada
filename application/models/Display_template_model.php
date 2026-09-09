@@ -206,46 +206,58 @@ class Display_template_model extends CI_Model {
 	public function sync_shipped_cores()
 	{
 		$cores = display_template_shipped_core_registry();
+		if ($cores === array()) {
+			throw new Exception('Shipped display template registry is empty');
+		}
+
 		foreach ($cores as $core) {
 			$existing = $this->get_stored_row($core['uid']);
 			if ($existing) {
 				if ($this->is_file_backed($existing) || $existing['template_type'] === 'system') {
-					$this->db->where('uid', $core['uid'])->update($this->table, array(
-						'name' => $core['name'],
-						'data_type' => $core['data_type'],
-						'lang' => $core['lang'],
-						'version' => $core['version'],
-						'organization' => $core['organization'],
-						'author' => $core['author'],
-						'description' => $core['description'],
-						'template_type' => 'system',
-						'source' => 'file',
-						'file_path' => $core['file_path'],
-						'status' => 'published',
-						'is_deleted' => 0,
-						'template_json' => null,
-					));
+					$this->assert_db_write(
+						$this->db->where('uid', $core['uid'])->update($this->table, array(
+							'name' => $core['name'],
+							'data_type' => $core['data_type'],
+							'lang' => $core['lang'],
+							'version' => $core['version'],
+							'organization' => $core['organization'],
+							'author' => $core['author'],
+							'description' => $core['description'],
+							'template_type' => 'system',
+							'source' => 'file',
+							'file_path' => $core['file_path'],
+							'status' => 'published',
+							'is_deleted' => 0,
+							'template_json' => null,
+						)),
+						'Failed to update shipped display template '.$core['uid']
+					);
 				}
 				continue;
 			}
 
-			$this->db->insert($this->table, array(
-				'uid' => $core['uid'],
-				'template_type' => 'system',
-				'source' => 'file',
-				'data_type' => $core['data_type'],
-				'lang' => $core['lang'],
-				'name' => $core['name'],
-				'version' => $core['version'],
-				'organization' => $core['organization'],
-				'author' => $core['author'],
-				'description' => $core['description'],
-				'status' => 'published',
-				'template_json' => null,
-				'file_path' => $core['file_path'],
-				'is_deleted' => 0,
-			));
+			$this->assert_db_write(
+				$this->db->insert($this->table, array(
+					'uid' => $core['uid'],
+					'template_type' => 'system',
+					'source' => 'file',
+					'data_type' => $core['data_type'],
+					'lang' => $core['lang'],
+					'name' => $core['name'],
+					'version' => $core['version'],
+					'organization' => $core['organization'],
+					'author' => $core['author'],
+					'description' => $core['description'],
+					'status' => 'published',
+					'template_json' => null,
+					'file_path' => $core['file_path'],
+					'is_deleted' => 0,
+				)),
+				'Failed to insert shipped display template '.$core['uid']
+			);
 		}
+
+		$this->assert_shipped_cores_stored($cores);
 
 		foreach ($cores as $core) {
 			$this->sync_shipped_core_translations(
@@ -263,10 +275,41 @@ class Display_template_model extends CI_Model {
 			if (!$this->get_stored_row($uid)) {
 				continue;
 			}
-			$this->db->insert($this->table_defaults, array(
-				'data_type' => $data_type,
-				'template_uid' => $uid,
-			));
+			$this->assert_db_write(
+				$this->db->insert($this->table_defaults, array(
+					'data_type' => $data_type,
+					'template_uid' => $uid,
+				)),
+				'Failed to insert default display template for '.$data_type
+			);
+		}
+	}
+
+	private function assert_db_write($ok, $context)
+	{
+		if ($ok !== FALSE) {
+			return;
+		}
+		$error = $this->db->error();
+		$code = isset($error['code']) ? $error['code'] : '';
+		$message = isset($error['message']) ? $error['message'] : 'unknown error';
+		$detail = ($code !== '' && $code !== 0)
+			? $context.' (error '.$code.'): '.$message
+			: $context.': '.$message;
+		throw new Exception($detail);
+	}
+
+	private function assert_shipped_cores_stored($cores)
+	{
+		$missing = array();
+		foreach ($cores as $core) {
+			$uid = isset($core['uid']) ? (string) $core['uid'] : '';
+			if ($uid === '' || !$this->get_stored_row($uid)) {
+				$missing[] = $uid !== '' ? $uid : '(missing uid)';
+			}
+		}
+		if ($missing !== array()) {
+			throw new Exception('Failed to seed shipped display template cores: '.implode(', ', $missing));
 		}
 	}
 
