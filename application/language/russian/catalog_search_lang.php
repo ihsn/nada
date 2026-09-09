@@ -101,6 +101,7 @@ $lang['legend_data_direct']="Прямой доступ";
 $lang['legend_data_public']="Файлы общего пользования  ";
 $lang['legend_data_licensed']="Лицензированные базы данных ";
 $lang['legend_data_enclave']="Анклав данных";
+$lang['legend_data_data_enclave']="Анклав данных";
 $lang['legend_data_remote']="Данные доступны из внешнего репозитория ";
 $lang['legend_data_data_na']="Микроданные не доступны";
 $lang['no_variables_to_compare']="Вы не выбрали переменные для сравнения. Пожалуйста, вернитесь, выберите переменные и повторите операцию сравнения.";

@@ -104,6 +104,7 @@ $lang['legend_data_direct']="Accès direct";
 $lang['legend_data_public']="Fichiers d'utilisation publique";
 $lang['legend_data_licensed']="Fichiers sous licence";
 $lang['legend_data_enclave']="Centre des Données";
+$lang['legend_data_data_enclave']="Centre des Données";
 $lang['legend_data_open']="Accès ouvert aux données";
 $lang['legend_data_remote']="Données disponibles dans une archive externe";
 $lang['legend_data_data_na']="Microdonnées non disponibles";

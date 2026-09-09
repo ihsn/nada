@@ -186,6 +186,7 @@
 import { computed } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { catalogDatasetTypeLabel } from '../catalogDatasetTypeLabel';
+import { dataAccessLabel, dataClassLabel } from '../catalogFilterLabels';
 import CatalogFacetBox from './CatalogFacetBox.vue';
 import CatalogFacetCheckboxList from './CatalogFacetCheckboxList.vue';
 import { normalizeYearRange } from '../catalogQuery';
@@ -304,7 +305,7 @@ const typeItems = computed(() =>
 const dtypeItems = computed(() =>
   dictToItems(
     props.facets?.da_types,
-    (i) => t(i.title, i.code),
+    (i) => dataAccessLabel(i, t),
     (i, key) => String(key)
   )
 );
@@ -312,7 +313,7 @@ const dtypeItems = computed(() =>
 const dataClassItems = computed(() =>
   dictToItems(
     props.facets?.data_class,
-    (i) => t(i.title, i.code),
+    (i) => dataClassLabel(i, t),
     (i) => String(i.id)
   )
 );
