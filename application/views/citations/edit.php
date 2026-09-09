@@ -293,7 +293,7 @@ label, legend {
           <div class="col-md-6">
             <div class="form-group" style="padding-right:10px;">
               <label for="doi"><?php echo t('doi');?></label>
-              <input name="doi" class="form-control" type="text" id="doi" size="50"  value="<?php echo get_form_value('doi',isset($doi) ? $doi : ''); ?>"/>
+              <input name="doi" class="form-control" type="text" id="doi" size="50" maxlength="255" value="<?php echo get_form_value('doi',isset($doi) ? $doi : ''); ?>"/>
             </div>
           </div>
           <div class="col-md-6">

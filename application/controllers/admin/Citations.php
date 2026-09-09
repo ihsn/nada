@@ -178,7 +178,7 @@ class Citations extends MY_Controller {
         $this->form_validation->set_rules('volume', 'Volume', 'xss_clean|trim|max_length[45]');
         $this->form_validation->set_rules('issue', 'Issue', 'xss_clean|trim|max_length[45]');
         $this->form_validation->set_rules('pub_year', 'Year', 'xss_clean|trim|max_length[4]|is_numeric');
-        $this->form_validation->set_rules('doi', 'DOI', 'xss_clean|trim|max_length[45]');
+        $this->form_validation->set_rules('doi', 'DOI', 'xss_clean|trim|max_length[255]');
         $this->form_validation->set_rules('flag', t('flag_as'), 'xss_clean|trim|max_length[45]');
         $this->form_validation->set_rules('published', t('published'), 'xss_clean|trim|is_numeric');
 
