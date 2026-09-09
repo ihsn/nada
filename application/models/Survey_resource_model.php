@@ -2043,25 +2043,33 @@ class Survey_resource_model extends CI_Model {
 	
 	function get_zip_archive_info($filepath)
 	{
-		$zip_content=get_zip_archive_list($filepath);
+		$this->load->helper('array');
 
-		if (!$zip_content){
+		try {
+			$zip_content=get_zip_archive_list($filepath);
+
+			if (!$zip_content){
+				return false;
+			}
+
+			$output=[];
+
+			//convert to a nested array
+			foreach($zip_content as $key=>$value){
+
+				//remove last slash
+				if (substr($key, -1) == '/'){				
+					$key=substr($key, 0, -1);
+				}
+				set_array_nested_value($output, $parents=$key, $value, $glue = '/');
+			}
+
+			return $output;
+		}
+		catch (Throwable $e) {
+			log_message('error', 'Zip archive preview failed: '.$e->getMessage());
 			return false;
 		}
-
-		$output=[];
-
-		//convert to a nested array
-		foreach($zip_content as $key=>$value){
-
-			//remove last slash
-			if (substr($key, -1) == '/'){				
-				$key=substr($key, 0, -1);
-			}
-			set_array_nested_value($output, $parents=$key, $value, $glue = '/');
-		}
-
-		return $output;
 	}
 
 

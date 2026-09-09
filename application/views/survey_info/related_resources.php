@@ -244,13 +244,25 @@ $fields_arr = array(
                                         </tr>
 
                                         <?php if (!$is_url && $ext == 'zip'): ?>
-                                            <?php $zip_content = $this->Survey_resource_model->get_zip_archive_info($survey_folder . '/' . $row['filename']); ?>
+                                            <?php
+                                            $zip_content = false;
+                                            $zip_preview_html = '';
+                                            try {
+                                                $zip_content = $this->Survey_resource_model->get_zip_archive_info($survey_folder . '/' . $row['filename']);
+                                                if ($zip_content) {
+                                                    $zip_preview_html = $this->load->view('survey_info/zip_preview', array('data' => $zip_content, 'resource_id' => $row['resource_id']), true);
+                                                }
+                                            } catch (Throwable $e) {
+                                                log_message('error', 'Zip preview failed: '.$e->getMessage());
+                                                $zip_content = false;
+                                            }
+                                            ?>
                                             <?php if ($zip_content): ?>
                                                 <tr>
                                                     <td class="caption"><?php echo t('Zip preview'); ?></td>
                                                     <td>
                                                         <div style="max-height: 500px; overflow: auto;" class="zip-preview">
-                                                            <?php echo $this->load->view('survey_info/zip_preview', array('data' => $zip_content, 'resource_id' => $row['resource_id']), true); ?>
+                                                            <?php echo $zip_preview_html; ?>
                                                         </div>
                                                     </td>
                                                 </tr>
