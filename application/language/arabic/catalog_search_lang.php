@@ -105,6 +105,7 @@ $lang['legend_data_direct']="الوصول المباشر إلى البيانات
 $lang['legend_data_public']="ملفات البيانات المؤهلة للإستخدام العام";
 $lang['legend_data_licensed']="ملفات بيانات بموجب ترخيص";
 $lang['legend_data_enclave']="البيانات الجزئية في المركز";
+$lang['legend_data_data_enclave']="البيانات الجزئية في المركز";
 $lang['legend_data_open']="الوصول المفتوح للبيانات";
 $lang['legend_data_remote']="البيانات المتاحة من خلال مستودع خارجي";
 $lang['legend_data_data_na']="البيانات غير المتوفرة";

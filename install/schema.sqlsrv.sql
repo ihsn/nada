@@ -2126,14 +2126,17 @@ CREATE TABLE [display_templates] (
     [id] bigint NOT NULL IDENTITY(1,1),
     [uid] nvarchar(191) NOT NULL,
     [template_type] nvarchar(20) NOT NULL DEFAULT 'custom',
+    [source] nvarchar(20) NOT NULL DEFAULT 'inline',
     [data_type] nvarchar(64) NOT NULL,
+    [lang] nvarchar(16) NOT NULL DEFAULT 'en',
     [name] nvarchar(255) NOT NULL,
     [version] nvarchar(50) NULL,
     [organization] nvarchar(255) NULL,
     [author] nvarchar(255) NULL,
     [description] nvarchar(max) NULL,
     [status] nvarchar(20) NOT NULL DEFAULT 'draft',
-    [template_json] nvarchar(max) NOT NULL,
+    [template_json] nvarchar(max) NULL,
+    [file_path] nvarchar(255) NULL,
     [is_deleted] bit NOT NULL DEFAULT 0,
     [created_by] int NULL,
     [changed_by] int NULL,
@@ -2142,8 +2145,9 @@ CREATE TABLE [display_templates] (
     PRIMARY KEY ([id]),
     CONSTRAINT [unq_display_templates_uid] UNIQUE ([uid]),
     CONSTRAINT [ck_display_templates_template_type] CHECK ([template_type] IN ('system','custom','imported')),
+    CONSTRAINT [ck_display_templates_source] CHECK ([source] IN ('inline','file')),
     CONSTRAINT [ck_display_templates_status] CHECK ([status] IN ('draft','published','archived')),
-    CONSTRAINT [ck_display_templates_template_json_isjson] CHECK (ISJSON([template_json])=1)
+    CONSTRAINT [ck_display_templates_template_json_isjson] CHECK ([template_json] IS NULL OR ISJSON([template_json])=1)
 );
 
 CREATE NONCLUSTERED INDEX [idx_display_templates_type_status] ON [display_templates] ([data_type] ASC, [status] ASC);
@@ -2164,6 +2168,20 @@ CREATE TABLE [display_templates_default] (
 );
 
 CREATE NONCLUSTERED INDEX [idx_display_default_template_uid] ON [display_templates_default] ([template_uid] ASC);
+
+CREATE TABLE [display_template_translations] (
+    [id] bigint NOT NULL IDENTITY(1,1),
+    [template_id] bigint NOT NULL,
+    [lang] nvarchar(16) NOT NULL,
+    [translations] nvarchar(max) NOT NULL,
+    [created_at] datetime2 NOT NULL DEFAULT SYSDATETIME(),
+    [updated_at] datetime2 NOT NULL DEFAULT SYSDATETIME(),
+    PRIMARY KEY ([id]),
+    CONSTRAINT [unq_display_template_translations_template_lang] UNIQUE ([template_id], [lang]),
+    CONSTRAINT [ck_display_template_translations_json] CHECK (ISJSON([translations])=1),
+    CONSTRAINT [fk_display_template_translations_template]
+        FOREIGN KEY ([template_id]) REFERENCES [display_templates] ([id]) ON DELETE CASCADE
+);
 
 CREATE TABLE search_index_queue (
   id INT NOT NULL IDENTITY(1,1),

@@ -22,18 +22,40 @@ function resolveCollection(id, facets) {
   return null;
 }
 
+/**
+ * License / data-access facet label.
+ * PHP already translates `title`; look up legend_data_{code} so Vue does not
+ * treat the translated title as a missing i18n key and fall back to the code.
+ */
+export function dataAccessLabel(item, translate) {
+  if (!item) return '';
+  const code = item.code != null && item.code !== '' ? String(item.code) : '';
+  const fallback = item.title || code;
+  if (!translate || !code) return fallback;
+  return translate(`legend_data_${code}`, fallback);
+}
+
+/** Data classification facet label (`data_class_{code}`). */
+export function dataClassLabel(item, translate) {
+  if (!item) return '';
+  const code = item.code != null && item.code !== '' ? String(item.code) : '';
+  const fallback = item.title || code;
+  if (!translate || !code) return fallback;
+  return translate(`data_class_${code}`, fallback);
+}
+
 function resolveDtype(id, facets, translate) {
   const types = facets?.da_types;
   if (!types) return null;
   const item = types[id] ?? Object.values(types).find((t) => String(t.code) === String(id));
   if (!item) return null;
-  return translate ? translate(item.title, item.code) : item.title;
+  return dataAccessLabel(item, translate);
 }
 
 function resolveDataClass(id, facets, translate) {
   const item = facets?.data_class?.[id];
   if (!item) return null;
-  return translate ? translate(item.title, item.code) : item.title;
+  return dataClassLabel(item, translate);
 }
 
 function resolveDatasetType(id, facets, translate) {

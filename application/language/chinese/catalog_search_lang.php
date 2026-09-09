@@ -101,6 +101,7 @@ $lang['legend_data_direct']="直接访问";
 $lang['legend_data_public']="公共使用文件";
 $lang['legend_data_licensed']="许可数据文件";
 $lang['legend_data_enclave']="数据飞地";
+$lang['legend_data_data_enclave']="数据飞地";
 $lang['legend_data_remote']="数据可从外部信息库获得";
 $lang['legend_data_data_na']="微观数据不可获得";
 $lang['no_variables_to_compare']="您还没有选择任何变量进行比较。请返回并选择一些变量，然后再次运行比较。";

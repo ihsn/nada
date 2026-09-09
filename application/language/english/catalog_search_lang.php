@@ -109,6 +109,7 @@ $lang['legend_data_direct']="Direct data access";
 $lang['legend_data_public']="Public use data files";
 $lang['legend_data_licensed']="Licensed data files";
 $lang['legend_data_enclave']="Data enclave";
+$lang['legend_data_data_enclave']="Data enclave";
 $lang['legend_data_open']="Open data access";
 $lang['legend_data_remote']="Data available from external repository";
 $lang['legend_data_data_na']="Data not available";

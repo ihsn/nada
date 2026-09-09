@@ -99,6 +99,7 @@ $lang['legend_direct_access']="Acesso Directo";
 $lang['legend_data_public']="Arquivo de uso público";
 $lang['legend_data_licensed']="Arquivo de datos con Licencia";
 $lang['legend_data_enclave']="Dados enclave";
+$lang['legend_data_data_enclave']="Dados enclave";
 $lang['legend_data_remote']="Dados disponiveis no repositorio externo";
 $lang['no_variables_to_compare']="Não foi seleccionado nenhuma variável para comparar. Favor volte atrás e seleccione algumas variaveis e logo execute a comparação de n0vo.";
 $lang['refno']="ID de Referencia ";

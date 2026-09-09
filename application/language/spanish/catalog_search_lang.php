@@ -104,6 +104,7 @@ $lang['legend_data_direct']="Acceso directo a los datos";
 $lang['legend_data_public']="Archivos de uso público";
 $lang['legend_data_licensed']="Archivos de datos con Licencia de acceso";
 $lang['legend_data_enclave']="Banco de datos dentro del INE";
+$lang['legend_data_data_enclave']="Banco de datos dentro del INE";
 $lang['legend_data_open']="Acceso a datos abiertos";
 $lang['legend_data_remote']="Datos disponibles en repositorio externo";
 $lang['legend_data_data_na']="No hay microdatos disponibles";

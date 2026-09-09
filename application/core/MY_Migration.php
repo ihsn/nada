@@ -372,6 +372,17 @@ class MY_Migration extends CI_Migration {
     }
 
     /**
+     * Drop CI3's cached table list after raw CREATE/DROP TABLE.
+     * dbforge updates this cache; $this->db->query() does not.
+     *
+     * @return void
+     */
+    protected function forget_table_cache()
+    {
+        unset($this->db->data_cache['table_names']);
+    }
+
+    /**
      * Run archived migration steps bundled into a consolidated release migration.
      * Each step must be idempotent (safe to re-run after partial failure).
      *

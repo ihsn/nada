@@ -6,6 +6,40 @@ export const STANDARD_QUERY_KEYS = new Set([
   'view', 'vk', 'vf', 'image_view',
 ]);
 
+/** PHP array query keys: country[] → country */
+export function normalizeQueryKey(key) {
+  const k = String(key ?? '');
+  return k.endsWith('[]') ? k.slice(0, -2) : k;
+}
+
+function queryValueToString(raw) {
+  if (raw == null) return '';
+  if (Array.isArray(raw)) {
+    return raw.filter((v) => v != null && v !== '').map(String).join(',');
+  }
+  return String(raw);
+}
+
+function assignParsedQueryValue(out, key, val) {
+  if (key === 'page') {
+    out.page = Math.max(1, parseInt(String(val), 10) || 1);
+    return;
+  }
+  if (key === 'ps') {
+    out.ps = parseInt(String(val), 10) || 15;
+    return;
+  }
+
+  const existing = out[key];
+  const isDefault = Object.prototype.hasOwnProperty.call(DEFAULT_QUERY, key)
+    && existing === DEFAULT_QUERY[key];
+  if (!isDefault && existing != null && existing !== '' && String(existing) !== String(val)) {
+    out[key] = `${existing},${val}`;
+    return;
+  }
+  out[key] = String(val);
+}
+
 /** Tabs where study/variable view toggle is offered (legacy search_nav_bar.php + microdata code). */
 export function isVariableViewTab(tabType) {
   const tab = tabType || '';
@@ -83,20 +117,12 @@ export function normalizeYearQuery(query) {
 export function parseRouteQuery(routeQuery) {
   const out = { ...DEFAULT_QUERY };
 
-  for (const [key, raw] of Object.entries(routeQuery || {})) {
+  for (const [rawKey, raw] of Object.entries(routeQuery || {})) {
     if (raw == null) continue;
-    const val = Array.isArray(raw) ? raw[0] : raw;
-    if (val === '' || val == null) continue;
-
-    if (key === 'page') {
-      out.page = Math.max(1, parseInt(String(val), 10) || 1);
-    } else if (key === 'ps') {
-      out.ps = parseInt(String(val), 10) || 15;
-    } else if (Object.prototype.hasOwnProperty.call(DEFAULT_QUERY, key)) {
-      out[key] = String(val);
-    } else {
-      out[key] = String(val);
-    }
+    const key = normalizeQueryKey(rawKey);
+    const val = queryValueToString(raw);
+    if (val === '') continue;
+    assignParsedQueryValue(out, key, val);
   }
 
   const years = normalizeYearRange(out.from, out.to);
@@ -122,8 +148,12 @@ export function serializeRouteQuery(query) {
   }
 
   for (const key of Object.keys(query)) {
-    if (!STANDARD_QUERY_KEYS.has(key) && query[key] !== '' && query[key] != null) {
-      out[key] = String(query[key]);
+    const norm = normalizeQueryKey(key);
+    if (STANDARD_QUERY_KEYS.has(norm) || Object.prototype.hasOwnProperty.call(DEFAULT_QUERY, norm)) {
+      continue;
+    }
+    if (query[key] !== '' && query[key] != null) {
+      out[norm] = String(query[key]);
     }
   }
 

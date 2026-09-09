@@ -228,8 +228,8 @@
     "file": "assets/public/VSwitch-CaOOdN36.css",
     "src": "_VSwitch-CaOOdN36.css"
   },
-  "_index-BOeqtr82.js": {
-    "file": "assets/public/index-BOeqtr82.js",
+  "_index-DhXgJQ-f.js": {
+    "file": "assets/public/index-DhXgJQ-f.js",
     "name": "index"
   },
   "_materialdesignicons-f3sFGprf.css": {
@@ -247,16 +247,16 @@
       "_VApp-BipbZKIw.js"
     ]
   },
-  "_usePublicTimeseriesApi-KyBfp11P.js": {
-    "file": "assets/public/usePublicTimeseriesApi-KyBfp11P.js",
+  "_usePublicTimeseriesApi-C7LzZT-q.js": {
+    "file": "assets/public/usePublicTimeseriesApi-C7LzZT-q.js",
     "name": "usePublicTimeseriesApi",
     "imports": [
-      "_index-BOeqtr82.js",
+      "_index-DhXgJQ-f.js",
       "_VApp-BipbZKIw.js"
     ]
   },
   "catalog-search/components/CatalogDocumentPdfDialog.vue": {
-    "file": "assets/public/CatalogDocumentPdfDialog-DKSGx9tU.js",
+    "file": "assets/public/CatalogDocumentPdfDialog-CkXyMdo1.js",
     "name": "CatalogDocumentPdfDialog",
     "src": "catalog-search/components/CatalogDocumentPdfDialog.vue",
     "isDynamicEntry": true,
@@ -280,7 +280,7 @@
     ]
   },
   "catalog-search/components/CatalogImageGallery.vue": {
-    "file": "assets/public/CatalogImageGallery-BlYXuU_y.js",
+    "file": "assets/public/CatalogImageGallery-CvLtGHNG.js",
     "name": "CatalogImageGallery",
     "src": "catalog-search/components/CatalogImageGallery.vue",
     "isDynamicEntry": true,
@@ -302,7 +302,7 @@
     ]
   },
   "catalog-search/components/CatalogStudySemanticPages.vue": {
-    "file": "assets/public/CatalogStudySemanticPages-B6L9Kixe.js",
+    "file": "assets/public/CatalogStudySemanticPages-Dqlszkld.js",
     "name": "CatalogStudySemanticPages",
     "src": "catalog-search/components/CatalogStudySemanticPages.vue",
     "isDynamicEntry": true,
@@ -320,7 +320,7 @@
     ]
   },
   "catalog-search/components/CatalogStudyVariableMatches.vue": {
-    "file": "assets/public/CatalogStudyVariableMatches-C1XOXpak.js",
+    "file": "assets/public/CatalogStudyVariableMatches-BiDcfjco.js",
     "name": "CatalogStudyVariableMatches",
     "src": "catalog-search/components/CatalogStudyVariableMatches.vue",
     "isDynamicEntry": true,
@@ -346,7 +346,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableCompareCart.vue": {
-    "file": "assets/public/CatalogVariableCompareCart-DHF4wsKA.js",
+    "file": "assets/public/CatalogVariableCompareCart-DRFu_zKU.js",
     "name": "CatalogVariableCompareCart",
     "src": "catalog-search/components/CatalogVariableCompareCart.vue",
     "isDynamicEntry": true,
@@ -371,7 +371,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableDetailDialog.vue": {
-    "file": "assets/public/CatalogVariableDetailDialog-qW1yqpCl.js",
+    "file": "assets/public/CatalogVariableDetailDialog-J3w4fbOc.js",
     "name": "CatalogVariableDetailDialog",
     "src": "catalog-search/components/CatalogVariableDetailDialog.vue",
     "isDynamicEntry": true,
@@ -394,7 +394,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableResultsList.vue": {
-    "file": "assets/public/CatalogVariableResultsList-DX_jnaFz.js",
+    "file": "assets/public/CatalogVariableResultsList-DMpzmatd.js",
     "name": "CatalogVariableResultsList",
     "src": "catalog-search/components/CatalogVariableResultsList.vue",
     "isDynamicEntry": true,
@@ -446,7 +446,7 @@
     ]
   },
   "catalog-search/main.js": {
-    "file": "assets/public/catalog_search-DnvVjj5d.js",
+    "file": "assets/public/catalog_search-_VjzdZ54.js",
     "name": "catalog_search",
     "src": "catalog-search/main.js",
     "isEntry": true,
@@ -472,11 +472,11 @@
       "catalog-search/components/CatalogVariableCompareCart.vue"
     ],
     "css": [
-      "assets/public/catalog_search-CjrBgIVK.css"
+      "assets/public/catalog_search-D_TKzibt.css"
     ]
   },
   "catalog/study_indicator_data_public/main.js": {
-    "file": "assets/public/catalog_study_indicator_data-DOcwI09N.js",
+    "file": "assets/public/catalog_study_indicator_data-BoAirrr9.js",
     "name": "catalog_study_indicator_data",
     "src": "catalog/study_indicator_data_public/main.js",
     "isEntry": true,
@@ -502,14 +502,14 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorChartTab.vue": {
-    "file": "assets/public/IndicatorChartTab-DGJa_r6E.js",
+    "file": "assets/public/IndicatorChartTab-BBOzReM4.js",
     "name": "IndicatorChartTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorChartTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-BipbZKIw.js",
       "_IndicatorEmbedDialog-CyShguEY.js",
-      "_usePublicTimeseriesApi-KyBfp11P.js",
+      "_usePublicTimeseriesApi-C7LzZT-q.js",
       "_VChip-BY-Zsb2-.js",
       "_VRow-D76IKcIF.js",
       "_VCard-DBKiEN8b.js",
@@ -520,7 +520,7 @@
       "_VCheckbox-Ba_GbTH8.js",
       "_VExpansionPanels-CDUzSxMY.js",
       "_VDialog-Dg6ky5f0.js",
-      "_index-BOeqtr82.js",
+      "_index-DhXgJQ-f.js",
       "_VMain-BeLT2AuK.js",
       "_VPagination-Cchc6DPE.js"
     ],
@@ -529,14 +529,14 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorDataApiTab.vue": {
-    "file": "assets/public/IndicatorDataApiTab-Cuum6Vrb.js",
+    "file": "assets/public/IndicatorDataApiTab-BnZoQfvN.js",
     "name": "IndicatorDataApiTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorDataApiTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-BipbZKIw.js",
-      "_index-BOeqtr82.js",
-      "_usePublicTimeseriesApi-KyBfp11P.js",
+      "_index-DhXgJQ-f.js",
+      "_usePublicTimeseriesApi-C7LzZT-q.js",
       "_VChip-BY-Zsb2-.js",
       "_VExpansionPanels-CDUzSxMY.js",
       "_VDataTable-DCv_Odlf.js",
@@ -550,19 +550,19 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorStructureTab.vue": {
-    "file": "assets/public/IndicatorStructureTab-CwbhpBRi.js",
+    "file": "assets/public/IndicatorStructureTab-CtnglPVC.js",
     "name": "IndicatorStructureTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorStructureTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-BipbZKIw.js",
-      "_usePublicTimeseriesApi-KyBfp11P.js",
+      "_usePublicTimeseriesApi-C7LzZT-q.js",
       "_VChip-BY-Zsb2-.js",
       "_VRow-D76IKcIF.js",
       "_VCard-DBKiEN8b.js",
       "_VSelect-BAIRfDFh.js",
       "_VDataTable-DCv_Odlf.js",
-      "_index-BOeqtr82.js",
+      "_index-DhXgJQ-f.js",
       "_VMain-BeLT2AuK.js",
       "_VPagination-Cchc6DPE.js"
     ],
@@ -571,14 +571,14 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue": {
-    "file": "assets/public/IndicatorTableTab-CEilgNO7.js",
+    "file": "assets/public/IndicatorTableTab-Bo03EDNN.js",
     "name": "IndicatorTableTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-BipbZKIw.js",
       "_IndicatorEmbedDialog-CyShguEY.js",
-      "_usePublicTimeseriesApi-KyBfp11P.js",
+      "_usePublicTimeseriesApi-C7LzZT-q.js",
       "_VChip-BY-Zsb2-.js",
       "_VExpansionPanels-CDUzSxMY.js",
       "_VCheckbox-Ba_GbTH8.js",
@@ -587,7 +587,7 @@
       "_VCard-DBKiEN8b.js",
       "_VCombobox-CS3ANgok.js",
       "_VDialog-Dg6ky5f0.js",
-      "_index-BOeqtr82.js",
+      "_index-DhXgJQ-f.js",
       "_VMain-BeLT2AuK.js"
     ],
     "css": [
@@ -595,14 +595,14 @@
     ]
   },
   "datadeposit/main.js": {
-    "file": "assets/public/datadeposit-D9MSJuym.js",
+    "file": "assets/public/datadeposit-D4n8pYtH.js",
     "name": "datadeposit",
     "src": "datadeposit/main.js",
     "isEntry": true,
     "imports": [
       "_VApp-BipbZKIw.js",
       "_VMain-BeLT2AuK.js",
-      "_index-BOeqtr82.js",
+      "_index-DhXgJQ-f.js",
       "_VSelect-BAIRfDFh.js",
       "_VChip-BY-Zsb2-.js",
       "_VPagination-Cchc6DPE.js",
