@@ -7,9 +7,8 @@ require_once(APPPATH . 'core/MY_Migration.php');
  * Add dd_projects.data_type on catalogs that already had the table.
  *
  * Fresh CREATE from schema.dd.{mysql,sqlsrv}.sql already includes the column.
- * 20260829120001 skips CREATE when dd_projects exists and only adds
- * schema_version / submission, so upgraded SQL Server (and old MySQL)
- * catalogs can still miss data_type. Create-project then fails with 42S22/207.
+ * datadeposit_install_tables skips CREATE when dd_projects exists, so upgraded
+ * SQL Server (and old MySQL) catalogs can still miss data_type.
  */
 class Migration_Datadeposit_projects_data_type extends MY_Migration {
 

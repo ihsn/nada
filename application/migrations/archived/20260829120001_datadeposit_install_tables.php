@@ -6,9 +6,9 @@ require_once(APPPATH . 'core/MY_Migration.php');
 /**
  * Install data-deposit tables when missing (MySQL + SQL Server).
  *
- * Reads install/schema.dd.{mysql,sqlsrv}.sql. Then applies the v1-safe
- * column adds from 20260823220001 (schema_version default 1, submission)
- * for catalogs that already had the old schema.dd file.
+ * Reads install/schema.dd.{mysql,sqlsrv}.sql. Column adds for catalogs
+ * that already had dd_projects run as later archived steps in the
+ * datadeposit_platform bundle (schema_version, data_type, metadata, resources).
  */
 class Migration_Datadeposit_install_tables extends MY_Migration {
 
@@ -27,10 +27,6 @@ class Migration_Datadeposit_install_tables extends MY_Migration {
 		} else {
 			log_message('info', 'Migration_Datadeposit_install_tables: dd_projects exists, skip CREATE');
 		}
-
-		require_once APPPATH.'migrations/20260823220001_datadeposit_schema_version.php';
-		$alter = new Migration_Datadeposit_schema_version();
-		$alter->up();
 	}
 
 	public function down()

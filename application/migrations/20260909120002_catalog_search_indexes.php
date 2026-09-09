@@ -4,14 +4,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 require_once(APPPATH . 'core/MY_Migration.php');
 
 /**
- * Legacy admin menu URL cleanup (site_menu table).
+ * Search index queue/state plus catalog sidebar filter indexes.
  */
-class Migration_Admin_menu_url_cleanup extends MY_Migration {
+class Migration_Catalog_search_indexes extends MY_Migration {
 
 	public function up()
 	{
 		$this->run_archived_steps(array(
-			'20260705120001_migrate_site_menu_repositories_urls.php',
+			'20260822180001_create_search_index_schema.php',
+			'20260906120001_catalog_search_filter_indexes.php',
 		));
 	}
 
