@@ -1,8 +1,5 @@
 <?php
-	$extensions=array('xslt','xml');
-	if(phpversion() >= 5) {
-		$extensions=array(
-					'xsl'=>'',
+	$extensions=array(
 					'xml'=>'',
 					'simplexml'=>'',
 					'xmlreader'=>'',
@@ -10,7 +7,6 @@
 					"zip"=>'<span class="optional">'.t('optional').'</span>',
 					"mbstring"=>'<span class="optional">'.t('optional').'</span>'
 					);
-	}
 	
 	$dbextensions=array($this->db->dbdriver);
 	

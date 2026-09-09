@@ -11,11 +11,11 @@
       @update:model-value="emit('update:modelValue', $event)"
     >
       <v-btn value="details" size="small" class="text-none">
-        <v-icon start size="16">mdi-format-list-bulleted</v-icon>
+        <v-icon start size="16">$mdi-format-list-bulleted</v-icon>
         {{ t('image_details_view', 'Details view') }}
       </v-btn>
       <v-btn value="gallery" size="small" class="text-none">
-        <v-icon start size="16">mdi-view-grid</v-icon>
+        <v-icon start size="16">$mdi-view-grid</v-icon>
         {{ t('image_gallery_view', 'Gallery view') }}
       </v-btn>
     </v-btn-toggle>
@@ -37,7 +37,7 @@ const { t } = useI18n();
 
 <style scoped>
 .image-view-toggle :deep(.v-btn) {
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   letter-spacing: 0;
   text-transform: none;
 }

@@ -8,8 +8,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *
  * Usage:
  *   $this->load->library('Indicator_table_export');
- *   $html  = $this->indicator_table_export->build_html($records, $row_dims, $col_dims, $tp_comp, $time_order, $label_map, $options);
- *   $bytes = $this->indicator_table_export->build_xlsx($records, $row_dims, $col_dims, $tp_comp, $time_order, $label_map, $options);
+ *   $this->indicator_table_export->export_and_stream($sid, $ctx, $query, $idno, $dataset_title);
+ *   $html  = $this->indicator_table_export->build_html($records, $row_dims, $col_dims, $tp_comp, $time_order, $label_map, $sort_map, $options);
+ *   $bytes = $this->indicator_table_export->build_xlsx($records, $row_dims, $col_dims, $tp_comp, $time_order, $label_map, $sort_map, $options);
  */
 class Indicator_table_export {
 
@@ -93,6 +94,154 @@ class Indicator_table_export {
 			$pivot['show_row_labels'],
 			$dataset_title
 		);
+	}
+
+	/**
+	 * Fetch observations, build pivot maps, and stream HTML or XLSX.
+	 *
+	 * Query keys match the catalog Vue export URL (geo, period, table_rows, table_cols, format).
+	 *
+	 * @param int    $sid
+	 * @param array  $ctx   DSD context with dsd_id and components
+	 * @param array  $query Request query (GET)
+	 * @param string $idno
+	 * @param string $dataset_title
+	 */
+	public function export_and_stream($sid, array $ctx, array $query, $idno, $dataset_title = '')
+	{
+		$CI =& get_instance();
+		$CI->load->model('Timeseries_mongo_model');
+		$CI->load->model('Codelist_item_model');
+
+		if (!isset($query['d']) || !is_array($query['d'])) {
+			$query['d'] = [];
+		}
+		if (!empty($query['geo'])) {
+			$query['d']['geography'] = $query['geo'];
+		}
+		if (!empty($query['period'])) {
+			$query['d']['periodicity'] = $query['period'];
+		}
+
+		$components = isset($ctx['components']) && is_array($ctx['components']) ? $ctx['components'] : [];
+		$filter = $CI->Timeseries_mongo_model->build_observation_query_filter(
+			(int) $sid,
+			$components,
+			$query
+		);
+		$rows = $CI->Timeseries_mongo_model->find_observations($ctx['dsd_id'], $filter, [
+			'limit' => 10000,
+			'skip'  => 0,
+			'sort'  => ['_ts_year' => 1, '_ts_period_start' => 1],
+		]);
+
+		$obs = [];
+		foreach ($rows as $doc) {
+			$arr = json_decode(json_encode($doc), true);
+			if (!is_array($arr)) {
+				continue;
+			}
+			$strip = $CI->Timeseries_mongo_model->strip_public_observation_fields($arr);
+			$obs[] = $CI->Timeseries_mongo_model->append_public_observation_timeseries_fields($arr, $strip);
+		}
+		$built = $CI->Timeseries_mongo_model->build_catalog_chart_records($obs, $components);
+		$records = isset($built['records']) && is_array($built['records']) ? $built['records'] : [];
+
+		$row_dims = $this->_decode_dim_list(isset($query['table_rows']) ? $query['table_rows'] : '');
+		$col_dims = $this->_decode_dim_list(isset($query['table_cols']) ? $query['table_cols'] : '');
+		$time_order = (isset($query['table_time_order']) && $query['table_time_order'] === 'desc') ? 'desc' : 'asc';
+
+		$tp_comp = $CI->Timeseries_mongo_model->get_component_name_for_column_type($components, 'time_period');
+		if ($tp_comp === null) {
+			$tp_comp = '';
+		}
+
+		$maps = $this->_codelist_maps($CI, $components, $tp_comp);
+		$options = ['dataset_title' => (string) $dataset_title];
+		$safe_idno = preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $idno);
+		$format = strtolower(trim(isset($query['format']) ? (string) $query['format'] : ''));
+
+		if ($format === 'xlsx') {
+			$bytes = $this->build_xlsx(
+				$records, $row_dims, $col_dims, $tp_comp, $time_order,
+				$maps['label_map'], $maps['sort_map'], $options
+			);
+			$this->_stream_download($bytes, $safe_idno . '_table.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+		}
+
+		$html = $this->build_html(
+			$records, $row_dims, $col_dims, $tp_comp, $time_order,
+			$maps['label_map'], $maps['sort_map'], $options
+		);
+		$this->_stream_download($html, $safe_idno . '_table.html', 'text/html; charset=UTF-8');
+	}
+
+	/**
+	 * @param mixed $raw
+	 * @return array
+	 */
+	private function _decode_dim_list($raw)
+	{
+		$raw = trim((string) $raw);
+		if ($raw === '') {
+			return [];
+		}
+		$parts = array_map('trim', explode(',', $raw));
+		$parts = array_filter($parts, function ($p) {
+			return $p !== '';
+		});
+		return array_values(array_map('rawurldecode', $parts));
+	}
+
+	/**
+	 * @param object $CI
+	 * @param array  $components
+	 * @param string $tp_comp
+	 * @return array{label_map: array, sort_map: array}
+	 */
+	private function _codelist_maps($CI, array $components, $tp_comp)
+	{
+		$label_map = [];
+		$sort_map = [];
+		foreach ($components as $comp) {
+			if (!is_array($comp) || empty($comp['name'])) {
+				continue;
+			}
+			$comp_name = (string) $comp['name'];
+			$codelist_id = isset($comp['codelist_id']) ? (int) $comp['codelist_id'] : 0;
+			if ($codelist_id <= 0) {
+				continue;
+			}
+			$items = $CI->Codelist_item_model->get_items_by_codelist($codelist_id, false);
+			$map = [];
+			$order = [];
+			foreach ($items as $idx => $item) {
+				$code = isset($item['code']) ? (string) $item['code'] : '';
+				$title = isset($item['title']) ? (string) $item['title'] : $code;
+				if ($code !== '') {
+					$map[$code] = $title !== '' ? $title : $code;
+					$order[$code] = $idx;
+				}
+			}
+			$col_type = isset($comp['column_type']) ? (string) $comp['column_type'] : '';
+			if ($col_type === 'time_period' || ($tp_comp !== '' && $comp_name === $tp_comp)) {
+				$label_map[self::TIME_PERIOD_SENTINEL] = $map;
+				$sort_map[self::TIME_PERIOD_SENTINEL] = $order;
+			} else {
+				$label_map[$comp_name] = $map;
+				$sort_map[$comp_name] = $order;
+			}
+		}
+		return ['label_map' => $label_map, 'sort_map' => $sort_map];
+	}
+
+	private function _stream_download($body, $filename, $content_type)
+	{
+		header('Content-Type: ' . $content_type);
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+		header('Cache-Control: no-cache, no-store');
+		echo $body;
+		exit;
 	}
 
 	// ── Private: shared pivot builder ─────────────────────────────────────────

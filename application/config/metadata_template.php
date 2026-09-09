@@ -11,8 +11,11 @@
 |
 | @template - path to the view file - all metadata is passed to the view as an
 | array and is upto the template to format
-| 
-| @language_translations - language file containing the translations for fields names/labels
+|
+| Field-label language files: config/metadata_field_languages.php
+| (language_translations is filled from that map).
+|
+| Catalog display preprocess: config/metadata_field_languages.php
 |
 */
 
@@ -20,105 +23,57 @@
 //config format to support multiple formats for each type of data
 $config['survey']=array(
         'template' => 'metadata_templates/survey-template',
-        'language_translations'=>'ddi_fields'
 ); 
 
 $config['timeseries']=array(
     'template' => 'metadata_templates/timeseries-template',
-    'language_translations'=>'fields_timeseries'
 ); 
 
 $config['timeseriesdb']=array(
     'template' => 'metadata_templates/timeseriesdb-template',
-    'language_translations'=>'fields_timeseriesdb'
 ); 
 
 $config['timeseries-db']=array(
     'template' => 'metadata_templates/timeseriesdb-template',
-    'language_translations'=>'fields_timeseriesdb'
 );
 
 
 $config['script']=array(
     'template' => 'metadata_templates/script-template',
-    'language_translations'=>'fields_scripts'
 ); 
 
 
 //geospatial template/view
 $config['geospatial']=array(
         'template' => 'metadata_templates/geospatial-iso19139',
-        'language_translations'=>'iso19139_fields'
 );
 
 //document
 $config['document']=array(
     'template' => 'metadata_templates/document-template',
-    'language_translations'=>'fields_document'
 ); 
 
 //table
 $config['table']=array(
     'template' => 'metadata_templates/table-template',
-    'language_translations'=>'fields_table'
 ); 
 
 //image
 $config['image']=array(
     'template' => 'metadata_templates/image-template',
-    'language_translations'=>'fields_image'
 ); 
 
-
-//visualization
-$config['visualization']=array(
-    'template' => 'metadata_templates/visualization-template',
-    'language_translations'=>'fields_visualization'
-); 
 
 //video
 $config['video']=array(
     'template' => 'metadata_templates/video-template',
-    'language_translations'=>'fields_video'
-); 
-
-
-/**
- * 
- * Metadata preprocess callback
- * 
- * This callback is called before the metadata is rendered 
- * 
- * @param array $metadata - metadata array
- * 
- * @return array $metadata - metadata array
- * 
- * example usage:
- * 
- * $config['metadata_template_preprocess_metadata']=array(
- *    'function'=>'preprocess_metadata',
- *    'file'=>'application/hooks/metadata_template_preprocess_metadata.php',
- *    "debug"=>false
- * );
- * 
- * Create a file: application/hooks/metadata_template_preprocess_metadata.php
- * 
- * <?php
- * function preprocess_metadata($metadata)
- * {
- *   //load codeigniter instance
- *   $ci=& get_instance();
- * 
- *   //do something with metadata
- *   return $metadata;
- * }
- * 
- * 
- **/
-
-/*
-$config['metadata_template_preprocess_metadata']=array(
-    'function'=>'preprocess_metadata',
-    'file'=>'application/hooks/metadata_template_preprocess_metadata.php'
 );
-*/
+
+include APPPATH . 'config/metadata_field_languages.php';
+if (isset($config['metadata_field_languages']) && is_array($config['metadata_field_languages'])) {
+	foreach ($config['metadata_field_languages'] as $type => $lang_file) {
+		if (isset($config[$type]) && is_array($config[$type]) && !isset($config[$type][0])) {
+			$config[$type]['language_translations'] = $lang_file;
+		}
+	}
+}

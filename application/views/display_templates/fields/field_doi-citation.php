@@ -1,28 +1,18 @@
-<?php if (isset($data) && is_array($data) || isset($metadata['doi']) ):?>
-<?php     
-
-if (isset($metadata['doi'])){
-    $doi=$metadata['doi'];
+<?php
+$doi = isset($doi) ? trim((string) $doi) : '';
+if ($doi === '' && isset($metadata['doi'])) {
+    $doi = trim((string) $metadata['doi']);
 }
-else{
-    $doi='';
-    foreach($data as $row){
-        if (isset($row['type']) && strtolower($row['type'])=='doi'){
-            if (isset($row['identifier'])){
-                $doi=$row['identifier'];
-                break;
-            }
-        }
-    }
+if ($doi === '' && isset($data) && is_array($data)) {
+    $doi = display_template_doi_from_identifiers($data);
 }
-
-if (empty($doi)){
+if ($doi === '') {
     return false;
 }
 ?>
 
 <div class="mb-2 field field-<?php echo str_replace(".'","-",$template['key']);?>">
-    <div class="font-weight-bold field-title"><?php echo t($template['title']);?></div>
+    <div class="font-weight-bold field-title"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></div>
 
     <div class="doi-citation" ><a target="_blank" href="https://citation.crosscite.org/?doi=<?php echo $doi;?>"><i class="fas fa-spinner fa-spin"></i> loading, please wait...</a></div>
 
@@ -159,5 +149,3 @@ if (empty($doi)){
     });
 
 </script>
-
-<?php endif;?>

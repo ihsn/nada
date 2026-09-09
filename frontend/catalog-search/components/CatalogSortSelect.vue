@@ -48,14 +48,14 @@ function onSelect(composite) {
 
 <style scoped>
 .sort-select :deep(.v-field__input) {
-  font-size: 0.75rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   padding-top: 2px;
   padding-bottom: 2px;
   min-height: unset;
 }
 
 .sort-select :deep(.v-select__selection-text) {
-  font-size: 0.75rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
 }
 
 .sort-select :deep(.v-field) {
@@ -71,7 +71,7 @@ function onSelect(composite) {
 }
 
 .sort-select-menu .v-list-item-title {
-  font-size: 0.6875rem !important;
+  font-size: var(--catalog-font-ui, 0.875rem) !important;
   line-height: 1.25;
 }
 </style>

@@ -21,6 +21,8 @@ $lang['Countries']="Страны ";
 $lang['Regions']="Регионы";
 $lang['Vocabularies']="Словари";
 $lang['Central Data Catalog']="Центральный Каталог Данных";
+$lang['Data tables']="Таблицы данных";
+$lang['Display manager']="Менеджер отображения";
 
 
 /* End of file site_menu_lang.php */

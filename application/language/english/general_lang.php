@@ -37,6 +37,7 @@ $lang['showing %d-%d of %d']="Showing %d-%d of %d";
 $lang['yes']="Yes";
 $lang['no']="No";
 $lang['update']="Update";
+$lang['save']="Save";
 $lang['cancel']="Cancel";
 $lang['confirm_delete']="Confirm Delete";
 $lang['callback_email_exists']="%s already in use, use a different email.";
@@ -125,6 +126,7 @@ $lang['JSON']="JSON";
 $lang['DDI/XML']="DDI/XML";
 $lang['page not found']='Page not found';
 $lang['export_to_csv']="Export to CSV";
+$lang['export_to_json']="Export to JSON";
 
 $lang['translate']="Translate";
 $lang['get_reproducibility_package']="Get Reproducibility Package";

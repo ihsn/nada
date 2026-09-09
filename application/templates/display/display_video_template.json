@@ -1,0 +1,1024 @@
+{
+    "data_type": "video",
+    "lang": "en",
+    "name": "Video display template",
+    "version": "1.0",
+    "description": "Catalog study description layout for videos. Description leads with title, player, ID, and description. DataCite, provenance, and additional are appended.",
+    "template": {
+        "type": "template",
+        "title": "Video",
+        "items": [
+            {
+                "type": "section_container",
+                "key": "video",
+                "title": "Video description",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "description",
+                        "title": "Description",
+                        "items": [
+                            {
+                                "key": "video_description.title",
+                                "title": "Title",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.embed_url",
+                                "title": "Video",
+                                "type": "string",
+                                "display_options": {
+                                    "renderer": "field_video"
+                                }
+                            },
+                            {
+                                "key": "video_description.idno",
+                                "title": "Primary ID",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.description",
+                                "title": "Description",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.alt_title",
+                                "title": "Alternate title",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.video_url",
+                                "title": "Video URL",
+                                "type": "string",
+                                "display_options": {
+                                    "is_uri": true
+                                }
+                            },
+                            {
+                                "key": "video_description.video_provider",
+                                "title": "Video provider",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.identifiers",
+                                "title": "Other identifiers",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "type",
+                                        "title": "Type",
+                                        "type": "string",
+                                        "prop_key": "video_description.identifiers.type"
+                                    },
+                                    {
+                                        "key": "identifier",
+                                        "title": "Identifier",
+                                        "type": "string",
+                                        "prop_key": "video_description.identifiers.identifier"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.date_created",
+                                "title": "Date created",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.date_published",
+                                "title": "Date published",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.version",
+                                "title": "Version",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.status",
+                                "title": "Status",
+                                "type": "string"
+                            },
+                            {
+                                "key": "tags",
+                                "title": "Tags",
+                                "type": "array",
+                                "display_options": {
+                                    "renderer": "field_array_tags",
+                                    "tag_column": "tag"
+                                },
+                                "props": [
+                                    {
+                                        "key": "tag",
+                                        "title": "Tag",
+                                        "type": "string",
+                                        "prop_key": "tags.tag"
+                                    },
+                                    {
+                                        "key": "tag_group",
+                                        "title": "Tag group",
+                                        "type": "string",
+                                        "prop_key": "tags.tag_group"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "iframe_embeds",
+                                "title": "Embedded widgets",
+                                "type": "widget",
+                                "display_options": {
+                                    "renderer": "field_iframe_embed"
+                                }
+                            },
+                            {
+                                "key": "widgets.doi.citations",
+                                "title": "Citation",
+                                "type": "widget",
+                                "display_options": {
+                                    "renderer": "field_doi_citation",
+                                    "data_key": "video_description.identifiers"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "authors_and_contributors",
+                        "title": "Authors and contributors",
+                        "items": [
+                            {
+                                "key": "video_description.creator",
+                                "title": "Creator",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.production_company",
+                                "title": "Production company",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.recorded_at",
+                                "title": "Recorded at",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.publisher",
+                                "title": "Publisher",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.translators",
+                                "title": "Translators",
+                                "type": "array",
+                                "display_options": {
+                                    "renderer": "field_authors"
+                                },
+                                "props": [
+                                    {
+                                        "key": "first_name",
+                                        "title": "First name",
+                                        "type": "string",
+                                        "prop_key": "video_description.translators.first_name"
+                                    },
+                                    {
+                                        "key": "initial",
+                                        "title": "Initial",
+                                        "type": "string",
+                                        "prop_key": "video_description.translators.initial"
+                                    },
+                                    {
+                                        "key": "last_name",
+                                        "title": "Last name",
+                                        "type": "string",
+                                        "prop_key": "video_description.translators.last_name"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "video_description.translators.affiliation"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.sponsors",
+                                "title": "Sponsors",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "video_description.sponsors.name"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "video_description.sponsors.abbr"
+                                    },
+                                    {
+                                        "key": "grant",
+                                        "title": "Grant",
+                                        "type": "string",
+                                        "prop_key": "video_description.sponsors.grant"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "video_description.sponsors.role"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.contributors",
+                                "title": "Other contributors",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "video_description.contributors.name"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "video_description.contributors.affiliation"
+                                    },
+                                    {
+                                        "key": "abbreviation",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "video_description.contributors.abbreviation"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "video_description.contributors.role"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URI",
+                                        "type": "string",
+                                        "prop_key": "video_description.contributors.uri",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.credit_text",
+                                "title": "Credits",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.contacts",
+                                "title": "Contacts",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "video_description.contacts.name"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "video_description.contacts.role"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "video_description.contacts.affiliation"
+                                    },
+                                    {
+                                        "key": "email",
+                                        "title": "Email",
+                                        "type": "string",
+                                        "prop_key": "video_description.contacts.email"
+                                    },
+                                    {
+                                        "key": "telephone",
+                                        "title": "Telephone",
+                                        "type": "string",
+                                        "prop_key": "video_description.contacts.telephone"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "video_description.contacts.uri",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "content",
+                        "title": "Content",
+                        "items": [
+                            {
+                                "key": "video_description.genre",
+                                "title": "Genre",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.audience",
+                                "title": "Audience",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.keywords",
+                                "title": "Keywords",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Keyword",
+                                        "type": "string",
+                                        "prop_key": "video_description.keywords.name"
+                                    },
+                                    {
+                                        "key": "vocabulary",
+                                        "title": "Vocabulary",
+                                        "type": "string",
+                                        "prop_key": "video_description.keywords.vocabulary"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "video_description.keywords.uri",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.topics",
+                                "title": "Topics",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "id",
+                                        "title": "ID",
+                                        "type": "string",
+                                        "prop_key": "video_description.topics.id"
+                                    },
+                                    {
+                                        "key": "name",
+                                        "title": "Topic",
+                                        "type": "string",
+                                        "prop_key": "video_description.topics.name"
+                                    },
+                                    {
+                                        "key": "parent_id",
+                                        "title": "Parent ID",
+                                        "type": "string",
+                                        "prop_key": "video_description.topics.parent_id"
+                                    },
+                                    {
+                                        "key": "vocabulary",
+                                        "title": "Vocabulary",
+                                        "type": "string",
+                                        "prop_key": "video_description.topics.vocabulary"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "video_description.topics.uri",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.persons",
+                                "title": "Persons",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "video_description.persons.name"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "video_description.persons.role"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.main_entity",
+                                "title": "Main entity",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.transcript",
+                                "title": "Transcript",
+                                "type": "nested_array",
+                                "display_options": {
+                                    "renderer": "field_array_stacked",
+                                    "header_fields": [
+                                        "language_code"
+                                    ]
+                                },
+                                "props": [
+                                    {
+                                        "key": "language_code",
+                                        "title": "Language code",
+                                        "type": "string",
+                                        "prop_key": "video_description.transcript.language_code"
+                                    },
+                                    {
+                                        "key": "language_name",
+                                        "title": "Language name",
+                                        "type": "string",
+                                        "prop_key": "video_description.transcript.language_name"
+                                    },
+                                    {
+                                        "key": "text",
+                                        "title": "Text",
+                                        "type": "string",
+                                        "prop_key": "video_description.transcript.text"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.album",
+                                "title": "Album",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "video_description.album.name"
+                                    },
+                                    {
+                                        "key": "description",
+                                        "title": "Description",
+                                        "type": "string",
+                                        "prop_key": "video_description.album.description"
+                                    },
+                                    {
+                                        "key": "owner",
+                                        "title": "Owner",
+                                        "type": "string",
+                                        "prop_key": "video_description.album.owner"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "video_description.album.uri",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.language",
+                                "title": "Languages",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "video_description.language.name"
+                                    },
+                                    {
+                                        "key": "code",
+                                        "title": "Code",
+                                        "type": "string",
+                                        "prop_key": "video_description.language.code"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.is_based_on",
+                                "title": "Is based on",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.is_part_of",
+                                "title": "Is part of",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.relations",
+                                "title": "Relations",
+                                "type": "simple_array",
+                                "display_options": {
+                                    "renderer": "field_array_badge"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "coverage",
+                        "title": "Coverage",
+                        "items": [
+                            {
+                                "key": "video_description.country",
+                                "title": "Country",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "video_description.country.name"
+                                    },
+                                    {
+                                        "key": "code",
+                                        "title": "Code",
+                                        "type": "string",
+                                        "prop_key": "video_description.country.code"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.spatial_coverage",
+                                "title": "Spatial coverage",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.bbox",
+                                "title": "Bounding box",
+                                "type": "array",
+                                "display_options": {
+                                    "renderer": "field_bounding_box"
+                                },
+                                "props": [
+                                    {
+                                        "key": "west",
+                                        "title": "West",
+                                        "type": "string",
+                                        "prop_key": "video_description.bbox.west"
+                                    },
+                                    {
+                                        "key": "east",
+                                        "title": "East",
+                                        "type": "string",
+                                        "prop_key": "video_description.bbox.east"
+                                    },
+                                    {
+                                        "key": "south",
+                                        "title": "South",
+                                        "type": "string",
+                                        "prop_key": "video_description.bbox.south"
+                                    },
+                                    {
+                                        "key": "north",
+                                        "title": "North",
+                                        "type": "string",
+                                        "prop_key": "video_description.bbox.north"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "video_description.content_reference_time",
+                                "title": "Reference time",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.temporal_coverage",
+                                "title": "Temporal coverage",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "access_and_rights",
+                        "title": "Access and rights",
+                        "items": [
+                            {
+                                "key": "video_description.repository",
+                                "title": "Repository",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.rights",
+                                "title": "Rights",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.copyright_holder",
+                                "title": "Copyright holder",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.copyright_notice",
+                                "title": "Copyright notice",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.copyright_year",
+                                "title": "Copyright year",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.citation",
+                                "title": "Citation",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "technical",
+                        "title": "Technical information",
+                        "items": [
+                            {
+                                "key": "video_description.media",
+                                "title": "Media",
+                                "type": "simple_array",
+                                "display_options": {
+                                    "renderer": "field_array_badge"
+                                }
+                            },
+                            {
+                                "key": "video_description.duration",
+                                "title": "Duration",
+                                "type": "string"
+                            },
+                            {
+                                "key": "video_description.encoding_format",
+                                "title": "Encoding format",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "metadata_production",
+                        "title": "Metadata production",
+                        "items": [
+                            {
+                                "key": "metadata_information.title",
+                                "title": "Document title",
+                                "type": "string"
+                            },
+                            {
+                                "key": "metadata_information.idno",
+                                "title": "Document ID",
+                                "type": "string"
+                            },
+                            {
+                                "key": "metadata_information.producers",
+                                "title": "Metadata producers",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "metadata_information.producers.name"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbrevation",
+                                        "type": "string",
+                                        "prop_key": "metadata_information.producers.abbr"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "metadata_information.producers.affiliation"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "metadata_information.producers.role"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "metadata_information.production_date",
+                                "title": "Production date",
+                                "type": "string"
+                            },
+                            {
+                                "key": "metadata_information.version",
+                                "title": "Version",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "key": "datacite_container",
+                "title": "DataCite",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "datacite_section",
+                        "title": "DataCite",
+                        "items": [
+                            {
+                                "key": "datacite.doi",
+                                "title": "DOI",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.prefix",
+                                "title": "Prefix",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.suffix",
+                                "title": "Suffix",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.creators",
+                                "title": "Creators",
+                                "type": "nested_array",
+                                "display_options": {
+                                    "renderer": "field_array_stacked",
+                                    "header_fields": [
+                                        "name"
+                                    ]
+                                },
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "datacite.creators.name"
+                                    },
+                                    {
+                                        "key": "nameType",
+                                        "title": "Name type",
+                                        "type": "string",
+                                        "prop_key": "datacite.creators.nameType"
+                                    },
+                                    {
+                                        "key": "givenName",
+                                        "title": "Given name",
+                                        "type": "string",
+                                        "prop_key": "datacite.creators.givenName"
+                                    },
+                                    {
+                                        "key": "familyName",
+                                        "title": "Family name",
+                                        "type": "string",
+                                        "prop_key": "datacite.creators.familyName"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "array",
+                                        "prop_key": "datacite.creators.affiliation",
+                                        "props": [
+                                            {
+                                                "key": "affiliationIdentifier",
+                                                "title": "Affiliation identifier",
+                                                "type": "string",
+                                                "prop_key": "datacite.creators.affiliation.affiliationIdentifier"
+                                            },
+                                            {
+                                                "key": "affiliationIdentifierScheme",
+                                                "title": "Affiliation identifier scheme",
+                                                "type": "string",
+                                                "prop_key": "datacite.creators.affiliation.affiliationIdentifierScheme"
+                                            },
+                                            {
+                                                "key": "name",
+                                                "title": "Name",
+                                                "type": "string",
+                                                "prop_key": "datacite.creators.affiliation.name"
+                                            },
+                                            {
+                                                "key": "schemeUri",
+                                                "title": "Schema URI",
+                                                "type": "string",
+                                                "prop_key": "datacite.creators.affiliation.schemeUri"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "datacite.titles",
+                                "title": "Titles",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "title",
+                                        "title": "Title",
+                                        "type": "string",
+                                        "prop_key": "datacite.titles.title"
+                                    },
+                                    {
+                                        "key": "titleType",
+                                        "title": "Title type",
+                                        "type": "string",
+                                        "prop_key": "datacite.titles.titleType"
+                                    },
+                                    {
+                                        "key": "lang",
+                                        "title": "Language",
+                                        "type": "string",
+                                        "prop_key": "datacite.titles.lang"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "datacite.publisher",
+                                "title": "Publisher",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.publicationYear",
+                                "title": "Publication year",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.types.resourceType",
+                                "title": "Resource type",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.types.resourceTypeGeneral",
+                                "title": "Resource type general",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.url",
+                                "title": "URL",
+                                "type": "string",
+                                "display_options": {
+                                    "is_uri": true
+                                }
+                            },
+                            {
+                                "key": "datacite.language",
+                                "title": "Language",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "key": "provenance_container",
+                "title": "Provenance",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "provenance",
+                        "title": "Provenance",
+                        "items": [
+                            {
+                                "key": "provenance.original_repository.repository_name",
+                                "title": "Repository name",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.original_repository.url",
+                                "title": "URL",
+                                "type": "string",
+                                "display_options": {
+                                    "is_uri": true
+                                }
+                            },
+                            {
+                                "key": "provenance.original_repository.dataset_identifier",
+                                "title": "Dataset identifier",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.original_repository.doi",
+                                "title": "DOI",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.original_repository.dataset_title",
+                                "title": "Dataset title",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.original_repository.date_published",
+                                "title": "Dataset published date (YYYY-MM-DD)",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.original_repository.notes",
+                                "title": "Notes",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.source_repository",
+                                "title": "Source repositories",
+                                "type": "nested_array",
+                                "display_options": {
+                                    "renderer": "field_array_stacked",
+                                    "header_fields": [
+                                        "repository_name"
+                                    ]
+                                },
+                                "props": [
+                                    {
+                                        "key": "repository_name",
+                                        "title": "Repository name",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.repository_name"
+                                    },
+                                    {
+                                        "key": "url",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.url",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    },
+                                    {
+                                        "key": "dataset_identifier",
+                                        "title": "Dataset identifier",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.dataset_identifier"
+                                    },
+                                    {
+                                        "key": "dataset_title",
+                                        "title": "Dataset title",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.dataset_title"
+                                    },
+                                    {
+                                        "key": "date_acquired",
+                                        "title": "Date acquired (YYYY-MM-DD)",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.date_acquired"
+                                    },
+                                    {
+                                        "key": "acquisition_mode",
+                                        "title": "Acquisition mode",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.acquisition_mode"
+                                    },
+                                    {
+                                        "key": "notes",
+                                        "title": "Notes",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.notes"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "key": "additional_container",
+                "title": "Additional Fields",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "additional_section",
+                        "title": "Additional metadata",
+                        "items": [
+                            {
+                                "key": "additional",
+                                "title": "Additional metadata",
+                                "type": "object",
+                                "display_options": {
+                                    "renderer": "field_object_additional"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

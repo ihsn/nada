@@ -72,6 +72,30 @@ $lang['collection_search_weight']="Filtro por colección";
 $lang['instruction_weight']="La posición controla el orden de los filtros. Los filtros son ordenados por la posición en forma ascendente.";
 $lang['edit_email_settings']="Para configurar el correo electrónico, consulte el archivo <em>config/email.php</em>";
 $lang['test_email_configurations']="Probar configuraciones de correo electrónico";
+$lang['display_templates']="Plantillas de visualización";
+$lang['open_display_manager']="Abrir el administrador de visualización";
+$lang['legacy_study_templates']="Diseño de la descripción del estudio";
+$lang['legacy_study_templates_note']="Las plantillas de visualización JSON se usan de forma predeterminada. Desactive un tipo para usar la página PHP anterior.";
+$lang['legacy_study_templates_json']="Plantilla de visualización";
+$lang['legacy_study_templates_php']="Página PHP anterior";
+$lang['legacy_study_type_survey']="Encuesta (microdatos)";
+$lang['legacy_study_type_script']="Script";
+$lang['legacy_study_type_timeseries']="Serie temporal";
+$lang['legacy_study_type_timeseries_db']="Base de series temporales";
+$lang['legacy_study_type_geospatial']="Geoespacial";
+$lang['legacy_study_type_document']="Documento";
+$lang['legacy_study_type_table']="Tabla";
+$lang['legacy_study_type_image']="Imagen";
+$lang['legacy_study_type_video']="Video";
+$lang['datadeposit_settings']="Depósito de datos";
+$lang['datadeposit_status']="Estado";
+$lang['datadeposit_status_enabled']="Habilitado";
+$lang['datadeposit_status_disabled']="No habilitado";
+$lang['datadeposit_status_note']="Para habilitar o deshabilitar el depósito de datos, establezca enable_datadeposit en application/config/datadeposit.php y vuelva a cargar esta página.";
+$lang['deposit_max_upload_size']="Tamaño máximo de archivo (MB)";
+$lang['deposit_max_upload_size_note']="Tamaño máximo en megabytes para un archivo cargado en un proyecto de depósito.";
+$lang['datadeposit_allowed_types']="Tipos de archivo permitidos";
+$lang['datadeposit_allowed_types_note']="Se definen en application/config/config.php (allowed_resource_types). No se pueden editar aquí.";
 
 
 /* End of file configurations */

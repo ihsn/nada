@@ -42,65 +42,35 @@ class Tables extends MY_REST_Controller
 				$offset = (int)$this->input->get("offset");
 			}
 
-			$table_types=(array)$this->Data_table_mongo_model->get_table_types_list($db_id);
-			$table_storage_info=(array)$this->Data_table_mongo_model->get_tables_list();
-
-			// Check if user is authenticated
+			$page = $this->Data_table_mongo_model->get_table_types_paginated($db_id, $limit, $offset);
+			$table_types = $page['tables'];
+			$total = $page['total'];
 			$is_authenticated = $this->get_api_user_id() !== false;
 
-			$output=array();
-
-			foreach($table_types as $table_id=>$table)
-			{
-				if (array_key_exists($table_id,$table_storage_info)){
-					$table_types[$table_id]['rows_count']=$table_storage_info[$table_id]['count'];
-					// Only include storage_size and index info if user is authenticated
-					if ($is_authenticated) {
-						$table_types[$table_id]['storage_size']=$table_storage_info[$table_id]['storageSize'].'M';
-						$table_types[$table_id]['nindexes']=$table_storage_info[$table_id]['nindexes'];
-						$table_types[$table_id]['indexNames']=$table_storage_info[$table_id]['indexNames'];
-					}
+			foreach ($table_types as $coll_id => $table) {
+				if (!isset($table['table_id']) || !isset($table['db_id'])) {
+					continue;
 				}
-
-				if(isset($table['table_id']) && isset($table['db_id'])){
-				$table_types[$table_id]['_links']= array(
-					"info" => array(
-						"href" => site_url('/api/tables/info/'.$table['db_id'].'/'.$table['table_id'])
+				if (!$is_authenticated) {
+					unset($table_types[$coll_id]['storage_size'], $table_types[$coll_id]['nindexes'], $table_types[$coll_id]['indexNames']);
+				}
+				$table_types[$coll_id]['_links'] = array(
+					'info' => array(
+						'href' => site_url('/api/tables/info/'.$table['db_id'].'/'.$table['table_id'])
 					),
-					"data" => array(
-						"href" => site_url('/api/tables/data/'.$table['db_id'].'/'.$table['table_id'])
+					'data' => array(
+						'href' => site_url('/api/tables/data/'.$table['db_id'].'/'.$table['table_id'])
 					)
 				);
-				}
 			}
-			
-			foreach($table_storage_info as $table_id=>$table){
-				if (!array_key_exists($table_id,$table_types)){
-					$table_types[$table_id]=$table;
-				}
-			}
-			
-			// Filter out entries that don't have both db_id and table_id
-			$filtered_tables = array();
-			foreach($table_types as $table_id=>$table){
-				if(isset($table['db_id']) && isset($table['table_id'])){
-					$filtered_tables[$table_id] = $table;
-				}
-			}
-			
-			// Get total count before pagination
-			$total = count($filtered_tables);
-			
-			// Apply pagination
-			$paginated_tables = array_slice($filtered_tables, $offset, $limit, true);
-			
+
 			$response=array(
                 'status'=>'success',
-				'tables'=>$paginated_tables,
+				'tables'=>$table_types,
 				'total'=>$total,
 				'limit'=>$limit,
 				'offset'=>$offset,
-				'count'=>count($paginated_tables)
+				'count'=>count($table_types)
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -738,6 +708,8 @@ class Tables extends MY_REST_Controller
 		$this->require_access('table', 'edit');
 		
 		try{
+			@set_time_limit(0);
+			@ini_set('max_execution_time', '0');
 			
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
@@ -788,6 +760,24 @@ class Tables extends MY_REST_Controller
 	}
 
 
+
+	function import_errors_get($db_id=null, $table_id=null)
+	{
+		$this->require_access('table', 'edit');
+
+		try {
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->Data_table_mongo_model->download_import_errors_file($db_id, $table_id);
+			die();
+		} catch (Exception $e) {
+			$error_output = array(
+				'status' => 'failed',
+				'message' => $e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 
 	/**
 	 * Import CSV data into table using chunked processing
@@ -1134,16 +1124,7 @@ class Tables extends MY_REST_Controller
 			}
 
             $data_result = $this->Data_table_mongo_model->delete_table_data($db_id, $table_id);
-            
-            $this->Data_table_mongo_model->update_import_progress($db_id, $table_id, array(
-                'byte_offset_end' => 0,
-                'total_rows_processed' => 0,
-                'import_status' => 'ready',
-                'import_started_at' => null,
-                'import_completed_at' => null,
-                'last_import_at' => null,
-                'progress_percent' => 0
-            ));
+            $this->Data_table_mongo_model->reset_import_progress($db_id, $table_id);
             
             $definition_result = 0;
             if ($delete_definition) {
@@ -1489,9 +1470,7 @@ class Tables extends MY_REST_Controller
 				mkdir($staging_dir, 0777, true);
 			}
 			$staging_path = unix_path($staging_dir . '/' . basename($final_file));
-			if (!@copy($final_file, $staging_path)) {
-				throw new Exception('Failed to copy resumable upload to table staging directory');
-			}
+			$this->uploader->relocate_file($final_file, $staging_path);
 
 			return array(
 				'path' => $staging_path,

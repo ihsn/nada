@@ -211,7 +211,6 @@ $lang['tab_table']="Tablas
 ";
 $lang['tab_timeseries']="Series de tiempo";
 $lang['tab_timeseriesdb']="Conjuntos de datos";
-$lang['tab_visualization']="Visualizaciones";
 $lang['tab_survey']="Microdatos";
 $lang['tab_video']="Videos";
 $lang['from']="De";
@@ -289,7 +288,6 @@ $lang['document_description']="Descripción del documento";
 $lang['table_description']="Descripción de la tabla";
 $lang['image_description']="Descripción de la imagen";
 $lang['script_description']="Descripción del Proyecto";
-$lang['visualization_description']="Descripción de visualización";
 $lang['microdata_description']="Descripción del estudio";
 $lang['data_dictionary']="Descripción de los datos";
 $lang['get_microdata']="Obtener microdatos";

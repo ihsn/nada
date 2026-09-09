@@ -277,6 +277,32 @@ class User_model extends CI_Model {
 		return $this->db->count_all_results();
 	}
 
+	/**
+	 * Rows for user directory export (id, email, first_name, last_name).
+	 *
+	 * @return list<array{id:mixed,email:mixed,first_name:mixed,last_name:mixed}>
+	 */
+	function get_export_rows()
+	{
+		$this->db->flush_cache();
+
+		$users = $this->tables['users'];
+		$meta  = $this->tables['meta'];
+
+		$this->db->select(sprintf(
+			'%s.id, %s.email, %s.first_name, %s.last_name',
+			$users,
+			$users,
+			$meta,
+			$meta
+		));
+		$this->db->from($users);
+		$this->db->join($meta, sprintf('%s.user_id = %s.id', $meta, $users), 'left');
+		$this->db->order_by($users . '.id', 'asc');
+
+		return $this->db->get()->result_array();
+	}
+
 	function getSingle($userid)
 	{
 		$this->db->where('id', $userid);

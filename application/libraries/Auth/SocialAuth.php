@@ -433,7 +433,7 @@ class SocialAuth extends DefaultAuth implements AuthInterface {
 		try {
 			$email = $this->orcid_get_email($access_token, $orcid);
 		} catch (Exception $e) {
-			log_message('warning', 'Failed to get email from ORCID API: ' . $e->getMessage());
+			log_message('error', 'Failed to get email from ORCID API: ' . $e->getMessage());
 		}
 
 		return [
@@ -493,7 +493,7 @@ class SocialAuth extends DefaultAuth implements AuthInterface {
 		try {
 			$email = $this->github_get_email($access_token);
 		} catch (Exception $e) {
-			log_message('warning', 'Failed to get email from GitHub API: ' . $e->getMessage());
+			log_message('error', 'Failed to get email from GitHub API: ' . $e->getMessage());
 		}
 
 		// Get name safely
@@ -576,7 +576,7 @@ class SocialAuth extends DefaultAuth implements AuthInterface {
 		try {
 			$email = $this->linkedin_get_email($access_token);
 		} catch (Exception $e) {
-			log_message('warning', 'Failed to get email from LinkedIn API: ' . $e->getMessage());
+			log_message('error', 'Failed to get email from LinkedIn API: ' . $e->getMessage());
 		}
 
 		// Get name safely
@@ -667,7 +667,7 @@ class SocialAuth extends DefaultAuth implements AuthInterface {
 		} catch (\GuzzleHttp\Exception\RequestException $e) {
 			log_message('error', 'LinkedIn email request failed: ' . $e->getMessage());
 		} catch (Exception $e) {
-			log_message('warning', 'LinkedIn email extraction failed: ' . $e->getMessage());
+			log_message('error', 'LinkedIn email extraction failed: ' . $e->getMessage());
 		}
 
 		return null;
@@ -710,7 +710,7 @@ class SocialAuth extends DefaultAuth implements AuthInterface {
 				return $result['email'][0]['email'];
 			}
 		} catch (Exception $e) {
-			log_message('warning', 'ORCID email extraction failed: ' . $e->getMessage());
+			log_message('error', 'ORCID email extraction failed: ' . $e->getMessage());
 		}
 
 		return null;
@@ -755,7 +755,7 @@ class SocialAuth extends DefaultAuth implements AuthInterface {
 		} catch (\GuzzleHttp\Exception\RequestException $e) {
 			log_message('error', 'GitHub email request failed: ' . $e->getMessage());
 		} catch (Exception $e) {
-			log_message('warning', 'GitHub email extraction failed: ' . $e->getMessage());
+			log_message('error', 'GitHub email extraction failed: ' . $e->getMessage());
 		}
 
 		return null;

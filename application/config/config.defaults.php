@@ -22,6 +22,7 @@ $config['guests_hide_microdata_tab']='no';
 $config['data_classifications_enabled']='yes';
 $config['data_types_nav_bar']='no';
 $config['max_resource_upload_size']='3000';
+$config['deposit_max_upload_size']='2048';
 $config['admin_header_background']='#212121';
 $config['search_provider']='db';
 $config['semantic_search_url']='';

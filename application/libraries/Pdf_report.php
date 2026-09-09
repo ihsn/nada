@@ -27,22 +27,14 @@ class PDF_Report{
 		//to use core fonts only - works only for latin languages
 		//$this->ci->load->library('my_mpdf',array('codepage'=>$codepage, 'mode'=>'c'));
 
-		//$this->ci->load->helper('xslt_helper');
-		//$this->ci->lang->load("ddibrowser");
-
 		$this->ci->load->model("Dataset_model");
 		$this->ci->load->model("Catalog_model");
-		$this->ci->load->model("Survey_type_model");
-        $this->ci->load->model("Survey_resource_model");
-        $this->ci->load->model("Citation_model");
+		$this->ci->load->model("Survey_resource_model");
 		$this->ci->load->model("Data_file_model");
-		$this->ci->load->model("Related_study_model");
 		$this->ci->load->model("Variable_model");
-		$this->ci->load->model("Timeseries_db_model");
-		$this->ci->load->model("Widget_model");
-		
-		$this->ci->load->library("Metadata_template");
+
 		$this->ci->load->library("Dataset_manager");
+		$this->ci->load->library("Display_template");
 
 		$this->ci->load->helper("resource_helper");
 		$this->ci->load->helper("metadata_view");
@@ -79,6 +71,7 @@ class PDF_Report{
 
 		$stylesheet='body,html,*{font-size:12px;font-family:arial,verdana}'."\r\n";
 		$stylesheet.= @file_get_contents(APPPATH.'views/pdf_reports/ddi.css');
+		$stylesheet.= @file_get_contents(APPPATH.'views/pdf_reports/display-overview.css');
         $mpdf->WriteHTML($stylesheet,1);
 
         //footer
@@ -162,10 +155,8 @@ class PDF_Report{
     }
 
 	/**
-	 * 
-	 * 
-	 * Get study level metadata as HTML
-	 * 
+	 * Study-description chapter: same display core as the catalog page, PDF-safe
+	 * (no widgets, accordion expanded as stacked records).
 	 */
 	function study_metadata_html($sid=NULL)
 	{
@@ -176,13 +167,13 @@ class PDF_Report{
 		}
 
 		$survey['metadata']=(array)$this->ci->dataset_manager->get_metadata($sid,$survey['type']);
-		$survey['resources']=$this->ci->Survey_resource_model->get_survey_resources_group_by_filename($sid);
+		$resources=$this->ci->Survey_resource_model->get_survey_resources($sid);
+		$survey['resources']=is_array($resources) ? $resources : array();
 
-        $template_path='pdf_reports/survey-template';
-		
-		$this->ci->metadata_template->initialize($survey['type'],$survey, $template_path);
-		$output=$this->ci->metadata_template->render_html();
-		return $output;
+		$this->ci->load->helper('pdf_html');
+		$html=$this->ci->display_template->render_body_html($survey, 'pdf');
+		$html=pdf_prepare_mpdf_html($html);
+		return '<div class="study-metadata">'.$html.'</div>';
 	}
 
 

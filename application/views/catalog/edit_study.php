@@ -80,7 +80,8 @@ $message = $this->session->flashdata('message');
 </div>
 
 
-	<div id="survey" class="col-md-9">
+	<?php $is_metadata_tab = ($selected_page === 'metadata'); ?>
+	<div id="survey" class="<?php echo $is_metadata_tab ? 'col-md-12' : 'col-md-9'; ?>">
 
 		<div>
 			<!-- Nav tabs -->
@@ -134,7 +135,7 @@ $message = $this->session->flashdata('message');
 					$this->load->view('catalog/edit_study_files');
 				break;
 				case 'metadata':
-					echo $metadata_editor;
+					$this->load->view('catalog/edit_study_metadata');
 				break;
 				case 'analytics':
 					$this->load->view('catalog/edit_study_analytics');
@@ -152,10 +153,12 @@ $message = $this->session->flashdata('message');
 	</div>
 	<!--end survey info block-->
 
+<?php if (! $is_metadata_tab): ?>
 <div class="right-sidebar col-md-3">
 <?php $this->load->view('catalog/edit_study_sidebar'); ?>
 </div>
 <!-- end-right-bar -->
+<?php endif; ?>
 
 </div>
 <!--end-row-->

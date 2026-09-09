@@ -415,7 +415,7 @@ if ( ! function_exists('_parse_attributes'))
 			$str = preg_replace($mail_pattern, '<a href="mailto:$1$2">$1$2</a>', $str);
 			
 			//urls
-			$url_pattern = '/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/';   
+			$url_pattern = '/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/[^\s<]*)?/';   
 			return preg_replace($url_pattern, '<a href="$0" target="_blank" title="$0">$0</a>', $str);
 
 			/*

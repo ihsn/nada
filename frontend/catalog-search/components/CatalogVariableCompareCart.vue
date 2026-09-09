@@ -16,7 +16,7 @@
             {{ count }}
           </v-chip>
         </span>
-        <v-icon size="20">{{ collapsed ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+        <v-icon size="20">{{ collapsed ? '$mdi-chevron-up' : '$mdi-chevron-down' }}</v-icon>
       </button>
 
       <div v-show="!collapsed" class="variable-compare-cart__body">
@@ -51,7 +51,7 @@
               :aria-label="t('remove')"
               @click="onRemove(item)"
             >
-              <v-icon size="18">mdi-close</v-icon>
+              <v-icon size="18">$mdi-close</v-icon>
             </v-btn>
           </div>
         </div>
@@ -73,7 +73,7 @@
           size="small"
           color="primary"
           variant="flat"
-          append-icon="mdi-open-in-new"
+          append-icon="$mdi-open-in-new"
           @click="onCompare"
         >
           {{ t('compare') }}
@@ -81,6 +81,7 @@
       </div>
 
       <CatalogVariableDetailDialog
+        v-if="detailOpen"
         v-model="detailOpen"
         :study-id="detailStudyId"
         :variable="detailVariable"
@@ -90,11 +91,14 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { defineAsyncComponent, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useVariableCompareCart } from '../composables/useVariableCompareCart';
-import CatalogVariableDetailDialog from './CatalogVariableDetailDialog.vue';
+
+const CatalogVariableDetailDialog = defineAsyncComponent(
+  () => import('./CatalogVariableDetailDialog.vue')
+);
 
 defineOptions({ name: 'CatalogVariableCompareCart' });
 
@@ -174,11 +178,11 @@ function openVariableDialog(item) {
   width: 100%;
   padding: 12px 14px;
   border: 0;
-  background: #1565c0;
+  background: var(--catalog-link, #1565c0);
   color: #fff;
   cursor: pointer;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-weight: 600;
 }
 
@@ -237,9 +241,9 @@ function openVariableDialog(item) {
   padding: 0;
   background: transparent;
   text-align: left;
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-weight: 600;
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -251,7 +255,7 @@ function openVariableDialog(item) {
 
 .variable-compare-cart__item-idno {
   margin-top: 2px;
-  color: rgba(26, 35, 50, 0.55);
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
 }
 
 .variable-compare-cart__actions {

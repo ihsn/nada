@@ -47,4 +47,24 @@ class Schema_validator
             }
         }
 
+    function collect_errors($schema_path, $data)
+    {
+        if (!file_exists($schema_path)) {
+            return array();
+        }
+
+        $validator = new JsonSchema\Validator;
+        $validator->validate(
+            $data,
+            (object) array('$ref' => 'file://'.unix_path(realpath($schema_path))),
+            Constraint::CHECK_MODE_TYPE_CAST + Constraint::CHECK_MODE_COERCE_TYPES
+        );
+
+        if ($validator->isValid()) {
+            return array();
+        }
+        $errors = $validator->getErrors();
+        return is_array($errors) ? $errors : array();
+    }
+
     }//end-class

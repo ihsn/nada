@@ -1215,7 +1215,8 @@ CREATE TABLE `region_countries` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `region_id` int(11) DEFAULT NULL,
   `country_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_region_countries_region` (`region_id`,`country_id`)
 ) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1441,6 +1442,7 @@ INSERT INTO `configurations` VALUES ('collection_search_weight','5',NULL,NULL,NU
 INSERT INTO `configurations` VALUES ('da_search','no',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('da_search_weight','2',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('data_classifications_enabled','yes','Enable data classifications',NULL,NULL);
+INSERT INTO `configurations` VALUES ('legacy_study_templates','[]','Study description layout','JSON list of catalog types that still use PHP metadata_templates views.',NULL);
 INSERT INTO `configurations` VALUES ('db_version','5.0.0','Database version',NULL,NULL);
 INSERT INTO `configurations` VALUES ('ddi_import_folder','imports','Survey catalog import folder',NULL,NULL);
 INSERT INTO `configurations` VALUES ('default_home_page','home','Default home page','Default home page',NULL);
@@ -1515,7 +1517,6 @@ INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(4,'document','Doc
 INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(5,'table','Table',70);
 INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(6,'image','Photo',40);
 INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(7,'script','Script',30);
-INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(8,'visualization','Visualization',60);
 INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(9,'video','Video',40);
 INSERT INTO `survey_types`(`id`,`code`,`title`, weight) VALUES(10,'timeseriesdb','Datasets',75);
 
@@ -1961,4 +1962,34 @@ CREATE TABLE `display_templates_default` (
   UNIQUE KEY `uk_display_default_type` (`data_type`),
   KEY `idx_display_default_template_uid` (`template_uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- search index change tracking
+-- ============================================================
+
+CREATE TABLE `search_index_queue` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `object_type` VARCHAR(32) NOT NULL,
+  `object_id` INT(11) NOT NULL,
+  `object_key` VARCHAR(200) NOT NULL,
+  `change_class` VARCHAR(32) NOT NULL,
+  `status` VARCHAR(16) NOT NULL DEFAULT 'pending',
+  `attempts` INT(11) NOT NULL DEFAULT 0,
+  `last_error` VARCHAR(500) DEFAULT NULL,
+  `changed` INT(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_search_index_queue_object` (`object_type`, `object_id`),
+  KEY `idx_search_index_queue_status_changed` (`status`, `changed`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `search_index_state` (
+  `object_type` VARCHAR(32) NOT NULL,
+  `object_id` INT(11) NOT NULL,
+  `object_key` VARCHAR(200) NOT NULL,
+  `status` VARCHAR(16) NOT NULL,
+  `changed` INT(11) NOT NULL,
+  PRIMARY KEY (`object_type`, `object_id`),
+  KEY `idx_search_index_state_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

@@ -18,7 +18,7 @@
               <div class="mb-2">
                 <a :href="aboutRepoUrl" class="repo-badge">{{ t('about') }}</a>
                 <a :href="centralCatalogUrl" class="repo-badge">
-                  <v-icon size="12" class="me-1">mdi-arrow-left</v-icon>
+                  <v-icon size="12" class="me-1">$mdi-arrow-left</v-icon>
                   {{ t('central_data_catalog') }}
                 </a>
               </div>
@@ -187,34 +187,43 @@
       </v-container>
     </v-main>
 
-    <CatalogVariableCompareCart />
+    <CatalogVariableCompareCart v-if="compareCartCount > 0" />
   </v-app>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { usePublicCatalogConfig } from '../composables/usePublicCatalogConfig';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useCatalogSearch } from '../composables/useCatalogSearch';
+import { useVariableCompareCart } from '../composables/useVariableCompareCart';
 import CatalogSearchBar    from '../components/CatalogSearchBar.vue';
 import CatalogTabs         from '../components/CatalogTabs.vue';
 import CatalogFacets       from '../components/CatalogFacets.vue';
 import CatalogViewToggle          from '../components/CatalogViewToggle.vue';
 import CatalogResultsList         from '../components/CatalogResultsList.vue';
-import CatalogVariableResultsList from '../components/CatalogVariableResultsList.vue';
 import CatalogResultsEmpty        from '../components/CatalogResultsEmpty.vue';
-import SemanticSearchDebug           from '../components/SemanticSearchDebug.vue';
-import CatalogVariableCompareCart    from '../components/CatalogVariableCompareCart.vue';
 import { joinSiteUrl, catalogSearchUrl } from '../catalogUrls';
 import { activeFilterChipBackground } from '../catalogFilterChipColors';
 import { defaultCatalogIconUrl, resolveCollectionThumbnailUrl } from '../catalogThumbnail';
+
+const CatalogVariableResultsList = defineAsyncComponent(
+  () => import('../components/CatalogVariableResultsList.vue')
+);
+const SemanticSearchDebug = defineAsyncComponent(
+  () => import('../components/SemanticSearchDebug.vue')
+);
+const CatalogVariableCompareCart = defineAsyncComponent(
+  () => import('../components/CatalogVariableCompareCart.vue')
+);
 
 defineOptions({ name: 'CatalogSearchPage' });
 
 const { siteConfig, baseUrl } = useAppConfig();
 const { activeRepoInfo } = usePublicCatalogConfig();
 const { t } = useI18n();
+const { count: compareCartCount } = useVariableCompareCart();
 
 const {
   query, results, facets, tabs, site, semanticDebug,
@@ -343,21 +352,22 @@ function onPage(page) {
 }
 
 .collection-title {
-  font-size: 1.5em;
+  font-size: var(--catalog-font-count, 1.5rem);
   font-weight: 600;
   line-height: 1.3;
   margin-bottom: 0.25rem;
+  color: var(--catalog-text, #1a2332);
 }
 
 .collection-description {
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.7);
+  font-size: var(--catalog-font-body, 1rem);
+  color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
 }
 
 .repo-badge {
   display: inline-block;
   font-weight: normal;
-  font-size: 14px;
+  font-size: var(--catalog-font-ui, 0.875rem);
   border: 1px solid gainsboro;
   border-radius: 10rem;
   padding: 0.25em 0.6em;
@@ -422,6 +432,7 @@ function onPage(page) {
 }
 
 .results-option-switch :deep(.v-label) {
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 </style>

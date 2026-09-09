@@ -9,7 +9,7 @@ import '../site-config-layout.css';
 defineOptions({ name: 'SiteConfigurationsPage' });
 
 const route = useRoute();
-const { config } = useAppConfig();
+const { config, siteUrl } = useAppConfig();
 const { fetchSettings, fetchMeta, saveSettings, fetchTestEmailForm, sendTestEmail } =
   useSiteConfigurationsApi();
 
@@ -47,9 +47,53 @@ function tr(key) {
 const activeSection = computed(() =>
   typeof route.params.section === 'string' ? route.params.section : 'general',
 );
+const displayManagerUrl = computed(() => {
+  const base = String(siteUrl.value || '').replace(/\/$/, '');
+  return `${base}/admin/display_templates`;
+});
 const settings = ref({});
 const meta = ref({});
 const langRows = ref([]);
+const useDisplayByType = ref({});
+
+const DEFAULT_STUDY_TYPES = [
+  { value: 'survey', titleKey: 'legacy_study_type_survey' },
+  { value: 'script', titleKey: 'legacy_study_type_script' },
+  { value: 'timeseries', titleKey: 'legacy_study_type_timeseries' },
+  { value: 'timeseries-db', titleKey: 'legacy_study_type_timeseries_db' },
+  { value: 'geospatial', titleKey: 'legacy_study_type_geospatial' },
+  { value: 'document', titleKey: 'legacy_study_type_document' },
+  { value: 'table', titleKey: 'legacy_study_type_table' },
+  { value: 'image', titleKey: 'legacy_study_type_image' },
+  { value: 'video', titleKey: 'legacy_study_type_video' },
+];
+
+const catalogStudyTypes = computed(() => {
+  const fromMeta = meta.value?.catalog_study_types;
+  if (Array.isArray(fromMeta) && fromMeta.length) {
+    return fromMeta;
+  }
+  return DEFAULT_STUDY_TYPES.map((row) => ({
+    value: row.value,
+    title: tr(row.titleKey),
+  }));
+});
+
+function hydrateDisplaySwitches(listed) {
+  const raw = Array.isArray(listed) ? listed : [];
+  const map = {};
+  for (const row of catalogStudyTypes.value) {
+    const value = row.value;
+    map[value] = !raw.includes(value) && !(value === 'timeseries-db' && raw.includes('timeseriesdb'));
+  }
+  useDisplayByType.value = map;
+}
+
+function legacyPayloadFromSwitches() {
+  return catalogStudyTypes.value
+    .map((row) => row.value)
+    .filter((value) => useDisplayByType.value[value] === false);
+}
 const loading = ref(true);
 const saving = ref(false);
 const snackbar = ref(false);
@@ -149,6 +193,8 @@ function pickSectionPayload(sectionId) {
   for (const k of def.keys) {
     if (k === 'supported_languages') {
       out[k] = supportedPayloadFromRows();
+    } else if (k === 'legacy_study_templates') {
+      out[k] = legacyPayloadFromSwitches();
     } else if (settings.value[k] !== undefined) {
       out[k] = settings.value[k];
     }
@@ -164,9 +210,13 @@ async function reloadAll() {
   if (s.semantic_search_debug === undefined || s.semantic_search_debug === '') {
     s.semantic_search_debug = 'false';
   }
+  if (s.deposit_max_upload_size === undefined || s.deposit_max_upload_size === '') {
+    s.deposit_max_upload_size = '2048';
+  }
   settings.value = { ...s };
   meta.value = { ...m };
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
+  hydrateDisplaySwitches(settings.value.legacy_study_templates);
 }
 
 async function loadTestEmailSection() {
@@ -263,6 +313,16 @@ const saveVisible = computed(() => {
 });
 
 const pathsOk = computed(() => meta.value?.paths_ok || {});
+
+const depositMeta = computed(() => meta.value?.datadeposit || {});
+const depositEnabled = computed(() => depositMeta.value?.enabled === true);
+const depositAllowedTypes = computed(() => {
+  const list = depositMeta.value?.allowed_resource_types;
+  return Array.isArray(list) ? list : [];
+});
+const depositAllowedTypesLabel = computed(() =>
+  depositAllowedTypes.value.length ? depositAllowedTypes.value.join(', ') : '—',
+);
 
 const PAGE_ALERT_MS = 4000;
 let pageAlertTimer;
@@ -760,6 +820,115 @@ onMounted(async () => {
                 </div>
               </v-col>
             </v-row>
+            </div>
+          </v-card>
+
+          <!-- Display templates -->
+          <v-card v-show="activeSection === 'display_templates'" elevation="1" rounded="lg" class="bg-surface">
+            <div class="pa-4 site-config-card-inner">
+              <div class="site-config-card__header d-flex align-center justify-space-between flex-wrap gap-3">
+                <h2 class="site-config-card__title">
+                  {{ currentTitle }}
+                </h2>
+                <div class="d-flex align-center ga-2 flex-wrap">
+                  <v-btn
+                    variant="outlined"
+                    prepend-icon="mdi-open-in-new"
+                    :href="displayManagerUrl"
+                  >
+                    {{ tr('open_display_manager') }}
+                  </v-btn>
+                  <v-btn
+                    v-if="saveVisible"
+                    color="primary"
+                    :loading="saving"
+                    prepend-icon="mdi-content-save"
+                    @click="saveCurrentSection"
+                  >
+                    {{ tr('update') }}
+                  </v-btn>
+                </div>
+              </div>
+              <v-row dense>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('legacy_study_templates') }}</label>
+                  <div class="site-config-field__hint mb-3">{{ tr('legacy_study_templates_note') }}</div>
+                  <div
+                    v-for="row in catalogStudyTypes"
+                    :key="row.value"
+                    class="d-flex align-center ga-3 mt-1 flex-wrap"
+                  >
+                    <span class="text-body-2" style="min-width: 14rem;">{{ row.title }}</span>
+                    <v-switch
+                      v-model="useDisplayByType[row.value]"
+                      color="primary"
+                      density="comfortable"
+                      hide-details
+                      inset
+                    />
+                    <span class="text-body-2 text-medium-emphasis">
+                      {{ useDisplayByType[row.value] ? tr('legacy_study_templates_json') : tr('legacy_study_templates_php') }}
+                    </span>
+                  </div>
+                </v-col>
+              </v-row>
+            </div>
+          </v-card>
+
+          <!-- Data deposit -->
+          <v-card v-show="activeSection === 'datadeposit'" elevation="1" rounded="lg" class="bg-surface">
+            <div class="pa-4 site-config-card-inner">
+              <div class="site-config-card__header d-flex align-center justify-space-between flex-wrap gap-3">
+                <h2 class="site-config-card__title">
+                  {{ currentTitle }}
+                </h2>
+                <v-btn
+                  v-if="saveVisible"
+                  color="primary"
+                  :loading="saving"
+                  prepend-icon="mdi-content-save"
+                  @click="saveCurrentSection"
+                >
+                  {{ tr('update') }}
+                </v-btn>
+              </div>
+              <v-row dense>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('datadeposit_status') }}</label>
+                  <div class="mt-2">
+                    <v-chip
+                      :color="depositEnabled ? 'success' : 'warning'"
+                      variant="tonal"
+                      size="small"
+                    >
+                      {{ depositEnabled ? tr('datadeposit_status_enabled') : tr('datadeposit_status_disabled') }}
+                    </v-chip>
+                  </div>
+                  <div class="site-config-field__hint mt-2">{{ tr('datadeposit_status_note') }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('deposit_max_upload_size') }}</label>
+                  <div class="site-config-field--fixed-width">
+                    <v-text-field
+                      v-model="settings.deposit_max_upload_size"
+                      variant="outlined"
+                      density="comfortable"
+                      type="number"
+                      min="1"
+                      max="16384"
+                      hide-details="auto"
+                    />
+                  </div>
+                  <div class="site-config-field__hint">{{ tr('deposit_max_upload_size_note') }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <label class="site-config-field__label">{{ tr('datadeposit_allowed_types') }}</label>
+                  <div class="text-body-2 mt-2" style="word-break: break-word;">
+                    {{ depositAllowedTypesLabel }}
+                  </div>
+                  <div class="site-config-field__hint mt-2">{{ tr('datadeposit_allowed_types_note') }}</div>
+                </v-col>
+              </v-row>
             </div>
           </v-card>
 

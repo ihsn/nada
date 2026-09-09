@@ -78,6 +78,9 @@ class Catalog_public_search_vue {
 		);
 
 		$content = $controller->load->view('catalog_vue/index', $data, true);
+
+		// Lean public shell: Bootstrap/FA for nav only — no Google Fonts or classic catalog CSS.
+		$controller->template->set_template('public_vue');
 		$controller->template->write('title', t('data_catalog'), true);
 		$controller->template->write('content', $content, true);
 		$controller->template->render();

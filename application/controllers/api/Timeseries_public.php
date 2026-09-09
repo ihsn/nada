@@ -195,116 +195,20 @@ class Timeseries_public extends MY_REST_Controller {
 			$ctx = $this->_context_from_idno_public($idno);
 			$this->_assert_public_indicator_timeseries_released((int) $ctx['sid']);
 
-			// ── Fetch observations (reuse chart pipeline) ─────────────────────
-			$query = (array) $this->input->get();
-
-			// The export URL uses browser-format filter keys ('geo', 'period') written by
-			// buildIndicatorFilterQueryParams in the Vue. build_observation_query_filter expects
-			// d[geography] / d[periodicity] (API format). Translate before passing.
-			if (!isset($query['d']) || !is_array($query['d'])) {
-				$query['d'] = [];
-			}
-			if (!empty($query['geo'])) {
-				$query['d']['geography'] = $query['geo'];
-			}
-			if (!empty($query['period'])) {
-				$query['d']['periodicity'] = $query['period'];
-			}
-
-			$filter = $this->Timeseries_mongo_model->build_observation_query_filter(
-				(int) $ctx['sid'],
-				$ctx['components'],
-				$query
-			);
-			$max_rows = 10000;
-			$rows = $this->Timeseries_mongo_model->find_observations($ctx['dsd_id'], $filter, [
-				'limit' => $max_rows,
-				'skip'  => 0,
-				'sort'  => ['_ts_year' => 1, '_ts_period_start' => 1],
-			]);
-			$list = $this->_bson_list_to_array($rows);
-			$obs  = [];
-			foreach ($list as $row) {
-				$arr   = is_array($row) ? $row : [];
-				$strip = $this->Timeseries_mongo_model->strip_public_observation_fields($arr);
-				$obs[] = $this->Timeseries_mongo_model->append_public_observation_timeseries_fields($arr, $strip);
-			}
-			$built   = $this->Timeseries_mongo_model->build_catalog_chart_records($obs, $ctx['components']);
-			$records = isset($built['records']) && is_array($built['records']) ? $built['records'] : [];
-
-			// ── Parse layout params ───────────────────────────────────────────
-			$row_dims_raw = trim((string) $this->input->get('table_rows'));
-			$col_dims_raw = trim((string) $this->input->get('table_cols'));
-			$time_order   = $this->input->get('table_time_order') === 'desc' ? 'desc' : 'asc';
-
-			$split_dims = function ($raw) {
-				$raw = trim((string) $raw);
-				if ($raw === '') return [];
-				$parts = array_map('trim', explode(',', $raw));
-				$parts = array_filter($parts, function ($p) { return $p !== ''; });
-				return array_values(array_map('rawurldecode', $parts));
-			};
-			$row_dims = $split_dims($row_dims_raw);
-			$col_dims = $split_dims($col_dims_raw);
-
-			// ── Time-period component name ────────────────────────────────────
-			$tp_comp = $this->Timeseries_mongo_model->get_component_name_for_column_type($ctx['components'], 'time_period');
-			if ($tp_comp === null) $tp_comp = '';
-
-			// ── Build label map from codelists ────────────────────────────────
-			$label_map = [];
-			foreach ($ctx['components'] as $comp) {
-				if (!is_array($comp) || empty($comp['name'])) continue;
-				$comp_name   = (string) $comp['name'];
-				$codelist_id = isset($comp['codelist_id']) ? (int) $comp['codelist_id'] : 0;
-				if ($codelist_id <= 0) continue;
-				$items = $this->Codelist_item_model->get_items_by_codelist($codelist_id, false);
-				$map   = [];
-				foreach ($items as $item) {
-					$code  = isset($item['code'])  ? (string) $item['code']  : '';
-					$title = isset($item['title']) ? (string) $item['title'] : $code;
-					if ($code !== '') $map[$code] = $title !== '' ? $title : $code;
-				}
-				$col_type = isset($comp['column_type']) ? (string) $comp['column_type'] : '';
-				if ($col_type === 'time_period' || ($tp_comp !== '' && $comp_name === $tp_comp)) {
-					$label_map[\Indicator_table_export::TIME_PERIOD_SENTINEL] = $map;
-				} else {
-					$label_map[$comp_name] = $map;
-				}
-			}
-
-			// ── Build and stream HTML ─────────────────────────────────────────
 			$dataset_title = '';
 			$row = $this->Dataset_model->get_row((int) $ctx['sid']);
-			if ($row && !empty($row['title'])) $dataset_title = (string) $row['title'];
-
-			$this->load->library('Indicator_table_export');
-
-			$format = strtolower(trim((string) $this->input->get('format')));
-			if ($format === 'xlsx') {
-				$bytes    = $this->indicator_table_export->build_xlsx(
-					$records, $row_dims, $col_dims, $tp_comp, $time_order, $label_map,
-					['dataset_title' => $dataset_title]
-				);
-				$filename = preg_replace('/[^A-Za-z0-9._-]/', '_', $ctx['idno']) . '_table.xlsx';
-				header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-				header('Content-Disposition: attachment; filename="' . $filename . '"');
-				header('Cache-Control: no-cache, no-store');
-				echo $bytes;
-				exit;
+			if ($row && !empty($row['title'])) {
+				$dataset_title = (string) $row['title'];
 			}
 
-			// Default: HTML
-			$html     = $this->indicator_table_export->build_html(
-				$records, $row_dims, $col_dims, $tp_comp, $time_order, $label_map,
-				['dataset_title' => $dataset_title]
+			$this->load->library('Indicator_table_export');
+			$this->indicator_table_export->export_and_stream(
+				(int) $ctx['sid'],
+				$ctx,
+				(array) $this->input->get(),
+				$ctx['idno'],
+				$dataset_title
 			);
-			$filename = preg_replace('/[^A-Za-z0-9._-]/', '_', $ctx['idno']) . '_table.html';
-			header('Content-Type: text/html; charset=UTF-8');
-			header('Content-Disposition: attachment; filename="' . $filename . '"');
-			header('Cache-Control: no-cache, no-store');
-			echo $html;
-			exit;
 		} catch (Exception $e) {
 			$this->_error_response($e);
 		}

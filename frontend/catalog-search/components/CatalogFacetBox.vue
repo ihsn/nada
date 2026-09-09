@@ -6,10 +6,10 @@
       :aria-expanded="expanded"
       @click="expanded = !expanded"
     >
-      <v-icon size="14" class="facet-box__filter-icon">mdi-filter-outline</v-icon>
+      <v-icon size="14" class="facet-box__filter-icon">$mdi-filter-outline</v-icon>
       <span class="facet-box__title">{{ title }}</span>
       <v-icon size="18" class="facet-box__chevron">
-        {{ expanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+        {{ expanded ? '$mdi-chevron-up' : '$mdi-chevron-down' }}
       </v-icon>
     </button>
 
@@ -20,7 +20,7 @@
         class="facet-box__clear"
         @click.stop="emit('clear')"
       >
-        <v-icon size="12" start>mdi-close</v-icon>
+        <v-icon size="12" start>$mdi-close</v-icon>
         {{ t('clear') }}
       </button>
     </div>
@@ -68,9 +68,9 @@ const expanded = ref(false);
   padding: 0;
   cursor: pointer;
   text-align: left;
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.78);
+  color: var(--catalog-text, #1a2332);
   text-transform: capitalize;
 }
 
@@ -87,12 +87,12 @@ const expanded = ref(false);
   align-items: center;
   gap: 8px;
   margin-top: 6px;
-  font-size: 0.75rem;
-  color: rgba(0, 0, 0, 0.45);
+  font-size: var(--catalog-font-ui, 0.875rem);
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
 }
 
 .facet-box__subtitle--active {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 
 .facet-box__clear {
@@ -101,8 +101,8 @@ const expanded = ref(false);
   border: none;
   background: transparent;
   padding: 0 0 0 8px;
-  font-size: 0.75rem;
-  color: #1976d2;
+  font-size: var(--catalog-font-ui, 0.875rem);
+  color: var(--catalog-link, #1565c0);
   cursor: pointer;
 }
 

@@ -26,6 +26,11 @@
   }
 
   $show_table=isset($options['show_table']) ? $options['show_table'] : true;
+  $this->load->helper('display_template');
+  $cell_scalar_def=array(
+    'type'=>'string',
+    'display_options'=>array('format'=>'plain','linkify'=>false),
+  );
 ?>
 
 <?php if($show_table):?>
@@ -39,7 +44,12 @@
   <?php foreach($data as $row):?>
     <tr>
       <?php foreach($columns as $col_key=>$col_label):?>
-        <td><?php echo isset($row[$col_key]) ? $row[$col_key] : 'x';?></td>    
+        <td><?php
+          $cell_val = isset($row[$col_key]) ? $row[$col_key] : '';
+          echo $cell_val !== '' && $cell_val !== null
+            ? display_template_render_scalar_value($cell_val, $cell_scalar_def, array('mode'=>'cell'))
+            : 'x';
+        ?></td>
       <?php endforeach;?>
     </tr>
   <?php endforeach;?>

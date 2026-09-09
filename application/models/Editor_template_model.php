@@ -1,432 +1,346 @@
 <?php
 
 /**
- * 
- * Editor templates
- * 
+ * File-registry form templates (catalog metadata editor + data deposit).
+ *
+ * Catalog cores: config/editor_templates.php.
+ * Deposit cores: config/deposit_templates.php.
+ * Same ME JSON shape and loader; separate files, UIDs, and override dirs.
+ *
+ * Site overrides (same basename):
+ *   {userdata_path}/templates/editor/{filename}
+ *   {userdata_path}/templates/deposit/{filename}
  */
-
 class Editor_template_model extends ci_model {
- 
-	private $fields=array(
-		"id",
-		"uid",
-		"data_type", 
-		"lang", 
-		"name", 
-		"version", 
-		"organization", 
-		"author", 
-		"description", 
-		"template", 
-		"created", 
-		"changed"
-	);
 
-	private $core_templates=[];
+	private $core_templates = array();
+	private $editor_template_defaults = array();
+	private $editor_template_custom_path = '';
 	private $ci;
 
-    public function __construct()
-    {
-        parent::__construct();		
+	private static $registry_meta_keys = array(
+		'editor_template_path',
+		'editor_template_custom_path',
+		'editor_template_defaults',
+		'editor_template_meta_keys',
+		'deposit_template_path',
+		'deposit_template_defaults',
+		'deposit_template_meta_keys',
+	);
+
+	public function __construct()
+	{
+		parent::__construct();
 		$this->ci =& get_instance();
 		$this->init_core_templates();
-    }
-
+	}
 
 	function init_core_templates()
 	{
-		require_once(APPPATH.'config/editor_templates.php');
+		$editor = $this->load_registry_file(APPPATH.'config/editor_templates.php');
+		$this->apply_registry($editor, 'catalog');
 
-		if (!isset($config)){		
-			throw new Exception("config/editor_templates not loaded");
+		$deposit_path = APPPATH.'config/deposit_templates.php';
+		if (is_file($deposit_path)) {
+			$deposit = $this->load_registry_file($deposit_path);
+			$this->apply_registry($deposit, 'deposit');
+		}
+	}
+
+	/**
+	 * Load a registry PHP file that assigns $config.
+	 *
+	 * @param string $path
+	 * @return array
+	 */
+	private function load_registry_file($path)
+	{
+		if (!is_file($path)) {
+			throw new Exception('Template registry not found: '.$path);
 		}
 
-		//echo "<pre>";
-		//print_r($config);
-		//die();
-		
-		foreach($config as $key=>$templates){
+		$config = array();
+		require $path;
 
-			foreach($templates as $idx=>$template){
+		if (!isset($config) || !is_array($config) || count($config) === 0) {
+			throw new Exception('Template registry not loaded: '.$path);
+		}
 
-				$template_json='';
-				$template_path=APPPATH.'/views/'.$template['template'];
+		return $config;
+	}
 
-				if (file_exists($template_path)){
-					$template_json=$template['template'];//json_decode(file_get_contents($template_path),true);
+	/**
+	 * Merge one registry file into the in-memory list and defaults map.
+	 *
+	 * @param array  $config
+	 * @param string $context catalog|deposit
+	 * @return void
+	 */
+	private function apply_registry($config, $context)
+	{
+		$meta_keys = self::$registry_meta_keys;
+		if ($context === 'catalog' && isset($config['editor_template_meta_keys']) && is_array($config['editor_template_meta_keys'])) {
+			$meta_keys = array_values(array_unique(array_merge($meta_keys, $config['editor_template_meta_keys'])));
+		}
+		if ($context === 'deposit' && isset($config['deposit_template_meta_keys']) && is_array($config['deposit_template_meta_keys'])) {
+			$meta_keys = array_values(array_unique(array_merge($meta_keys, $config['deposit_template_meta_keys'])));
+		}
+
+		if ($context === 'catalog') {
+			if (isset($config['editor_template_custom_path'])) {
+				$this->editor_template_custom_path = (string) $config['editor_template_custom_path'];
+			}
+			if (isset($config['editor_template_defaults']) && is_array($config['editor_template_defaults'])) {
+				$this->editor_template_defaults['catalog'] = $this->catalog_defaults_map($config['editor_template_defaults']);
+			}
+		}
+
+		if ($context === 'deposit') {
+			if (isset($config['deposit_template_defaults']) && is_array($config['deposit_template_defaults'])) {
+				$this->editor_template_defaults['deposit'] = $config['deposit_template_defaults'];
+			} elseif (isset($config['editor_template_defaults']['deposit']) && is_array($config['editor_template_defaults']['deposit'])) {
+				$this->editor_template_defaults['deposit'] = $config['editor_template_defaults']['deposit'];
+			}
+		}
+
+		foreach ($config as $key => $templates) {
+			if (in_array($key, $meta_keys, true)) {
+				continue;
+			}
+
+			if (!is_array($templates)) {
+				continue;
+			}
+
+			foreach ($templates as $template) {
+				if (!is_array($template) || empty($template['uid'])) {
+					continue;
 				}
-				else{
-					//throw new Exception("template not found" .$template_path);
+
+				// Prefer `file` (APPPATH-relative). Legacy key was `template` under views/.
+				$relative_file = '';
+				if (!empty($template['file'])) {
+					$relative_file = $template['file'];
+				} elseif (!empty($template['template'])) {
+					$relative_file = (strpos($template['template'], 'templates/') === 0)
+						? $template['template']
+						: 'views/'.$template['template'];
 				}
 
-				$this->core_templates[]=array(
-					'uid'=>$template['uid'],
-					'template_type'=>'core',
-					'name'=> $template['name'],
-					'data_type'=>$key,
-					'lang'=>$template['lang'],
-					'template'=>$template_json
+				$resolved_path = $this->resolve_core_template_path($relative_file);
+				$template_ref = $resolved_path ? $relative_file : '';
+
+				$this->core_templates[] = array(
+					'uid' => $template['uid'],
+					'template_type' => 'core',
+					'name' => isset($template['name']) ? $template['name'] : $template['uid'],
+					'data_type' => $key,
+					'context' => isset($template['context']) ? $template['context'] : $context,
+					'lang' => isset($template['lang']) ? $template['lang'] : 'en',
+					'version' => isset($template['version']) ? $template['version'] : null,
+					'description' => isset($template['description']) ? $template['description'] : null,
+					'file' => $relative_file,
+					'template' => $template_ref,
 				);
 			}
 		}
 	}
 
+	/**
+	 * Accept flat type=>uid maps or the older nested ['catalog'=>...].
+	 *
+	 * @param array $defaults
+	 * @return array
+	 */
+	private function catalog_defaults_map($defaults)
+	{
+		if (isset($defaults['catalog']) && is_array($defaults['catalog'])) {
+			$defaults = $defaults['catalog'];
+		}
+		unset($defaults['deposit']);
+		return $defaults;
+	}
+
+	/**
+	 * Override directory: configured path, or {userdata_path}/templates/editor.
+	 *
+	 * @return string
+	 */
+	function get_override_directory()
+	{
+		$configured = trim(str_replace('\\', '/', $this->editor_template_custom_path));
+		if ($configured !== '') {
+			return rtrim($configured, '/');
+		}
+
+		$userdata = $this->ci->config->item('userdata_path');
+		if ($userdata === null || $userdata === false || trim((string) $userdata) === '') {
+			return '';
+		}
+
+		return rtrim(str_replace('\\', '/', (string) $userdata), '/').'/templates/editor';
+	}
+
+	/**
+	 * Override directory for a registered file.
+	 * Deposit templates: {userdata_path}/templates/deposit.
+	 * Editor templates: get_override_directory().
+	 *
+	 * @param string $relative_file Path relative to APPPATH
+	 * @return string
+	 */
+	function get_override_directory_for_file($relative_file)
+	{
+		$relative_file = ltrim(str_replace('\\', '/', (string) $relative_file), '/');
+		if (strpos($relative_file, 'templates/deposit/') === 0) {
+			$userdata = $this->ci->config->item('userdata_path');
+			if ($userdata === null || $userdata === false || trim((string) $userdata) === '') {
+				return '';
+			}
+			return rtrim(str_replace('\\', '/', (string) $userdata), '/').'/templates/deposit';
+		}
+
+		return $this->get_override_directory();
+	}
+
+	/**
+	 * Resolve a registered template file.
+	 * Prefers {override_dir}/{basename}, then APPPATH/{file}.
+	 *
+	 * @param string $relative_file Path relative to APPPATH
+	 * @return string|null Absolute or cwd-relative path if found
+	 */
+	function resolve_core_template_path($relative_file)
+	{
+		if ($relative_file === '' || $relative_file === null) {
+			return null;
+		}
+
+		$relative_file = ltrim(str_replace('\\', '/', $relative_file), '/');
+		if ($relative_file === '' || strpos($relative_file, '..') !== false) {
+			return null;
+		}
+
+		$basename = basename($relative_file);
+		if ($basename === '' || $basename === '.' || $basename === '..') {
+			return null;
+		}
+
+		$override_dir = $this->get_override_directory_for_file($relative_file);
+		if ($override_dir !== '') {
+			$custom_path = $override_dir.'/'.$basename;
+			if (is_file($custom_path)) {
+				return $custom_path;
+			}
+		}
+
+		$core_path = APPPATH.$relative_file;
+		if (is_file($core_path)) {
+			return $core_path;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Default template UID for a context (catalog|deposit) and data type.
+	 * Deposit types without a deposit-owned default fall back to the catalog core.
+	 *
+	 * @param string $data_type
+	 * @param string $context
+	 * @return string|null
+	 */
+	function get_default_template_uid($data_type, $context = 'catalog')
+	{
+		if (isset($this->editor_template_defaults[$context][$data_type])) {
+			return $this->editor_template_defaults[$context][$data_type];
+		}
+
+		$cores = $this->get_core_templates_by_type($data_type, $context);
+		if (!empty($cores[0]['uid'])) {
+			return $cores[0]['uid'];
+		}
+
+		if ($context === 'deposit') {
+			$cores = $this->get_core_templates_by_type($data_type, 'catalog');
+			if (!empty($cores[0]['uid'])) {
+				return $cores[0]['uid'];
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Load default core template JSON for a context + data type (file registry).
+	 *
+	 * @param string $data_type
+	 * @param string $context catalog|deposit
+	 * @return array|null Full template row including decoded `template` JSON
+	 */
+	function get_default_core_template($data_type, $context = 'catalog')
+	{
+		$uid = $this->get_default_template_uid($data_type, $context);
+		if (!$uid) {
+			return null;
+		}
+		return $this->get_template_by_uid($uid);
+	}
+
 	function get_core_template_by_uid($uid)
 	{
-		foreach($this->core_templates as $template){
-			if ($template['uid']==$uid){
+		foreach ($this->core_templates as $template) {
+			if ($template['uid'] == $uid) {
 				return $template;
 			}
 		}
 	}
 
-	function get_core_templates_by_type($type)
+	function get_core_templates_by_type($type, $context = 'catalog')
 	{
-		$templates_=array();
-		foreach($this->core_templates as $idx=>$template){
-			if ($type==$template['data_type']){
-				$templates_[]= $template;
+		$templates_ = array();
+		foreach ($this->core_templates as $template) {
+			if ($type != $template['data_type']) {
+				continue;
 			}
+			$row_context = isset($template['context']) ? $template['context'] : 'catalog';
+			if ($row_context !== $context) {
+				continue;
+			}
+			$templates_[] = $template;
 		}
 		return $templates_;
 	}
 
-
-	function get_custom_template_by_uid($uid)
-	{
-		return $this->select_single($uid);
-	}
-
 	function get_template_by_uid($uid)
 	{
-		//check core
-		$template=$this->get_core_template_by_uid($uid);
-		if ($template){
-			$template['template']=$this->get_core_template_json($template['uid']);
+		$template = $this->get_core_template_by_uid($uid);
+		if ($template) {
+			$template['template'] = $this->get_core_template_json($template['uid']);
 			return $template;
 		}
 
-		//custom
-		$template=$this->get_custom_template_by_uid($uid);
-		if ($template){
-			$template['template']=json_decode($template['template'],true);
-		}
-		return $template;
-	}
-
-	function get_templates_by_type($type)
-	{
-		$fields=array_diff($this->fields,["template"]);
-		$fields[]="'custom' as template_type";
-		$this->db->select($fields);
-		$this->db->order_by('name','ASC');
-		$this->db->order_by('changed','DESC');
-		$this->db->where("data_type",$type);
-		$result= $this->db->get('editor_templates')->result_array();
-
-		$core=$this->get_core_template_by_data_type($type);
-
-		array_splice($result,0,0,$core);
-		return $result;
-	}
-
-	function get_core_template_by_data_type($data_type)
-	{
-		$core_=array();
-		foreach($this->core_templates as $template){
-			if ($template['data_type']==$data_type){
-				$core_[]=$template;
-			}
-		}
-		
-		return $core_;
+		return null;
 	}
 
 	function get_core_template_json($uid)
 	{
-		foreach($this->core_templates as $template){
-			if ($template['uid']==$uid){				
-				$template_path=APPPATH.'/views/'.$template["template"];
-				if (!file_exists($template_path)){
-					throw new Exception("Template not found:",$template['template']);
-				}
-
-				return json_decode(file_get_contents($template_path),true);
+		foreach ($this->core_templates as $template) {
+			if ($template['uid'] != $uid) {
+				continue;
 			}
-		}		
-	}
 
-    /**
-	*
-	* Return all templates
-	*
-	**/
-	function select_all()
-	{
-		$fields=array_diff($this->fields,["template"]);
-		$fields[]="'custom' as template_type";
-		$this->db->select($fields);
-		$this->db->order_by('name','ASC');
-		$this->db->order_by('changed','DESC');
-		$result= $this->db->get('editor_templates')->result_array();
+			$relative = !empty($template['file']) ? $template['file'] : $template['template'];
+			$template_path = $this->resolve_core_template_path($relative);
 
-		$default_templates=$this->get_all_default_templates();
-
-		$defaults=array();
-		foreach($default_templates as $row)
-		{
-			$defaults[$row['data_type']]=$row['template_uid'];
-		}
-
-		foreach($result as $idx=>$row)
-		{
-			if (isset($defaults[$row['data_type']]) && $defaults[$row['data_type']] == $row['uid']){				
-				$result[$idx]["default"]=true;
-			}else
-			{
-				$result[$idx]["default"]=false;
+			if (!$template_path) {
+				throw new Exception('Template not found: '.$relative);
 			}
+
+			return json_decode(file_get_contents($template_path), true);
 		}
 
-		$core_templates=$this->core_templates;
-		foreach($core_templates as $idx=>$row)
-		{
-			if (isset($defaults[$row['data_type']]) && $defaults[$row['data_type']] == $row['uid']){				
-				$core_templates[$idx]["default"]=true;
-			}else
-			{
-				$core_templates[$idx]["default"]=false;
-			}
-		}	
-
-		return [
-			'core'=>$core_templates,
-			'custom'=>$result
-		];
+		return null;
 	}
 
-    function select_single($uid)
-	{
-		$this->db->select('*');
-		$this->db->where('uid',$uid);
-		return $this->db->get('editor_templates')->row_array();
-	}
-
-	function check_uid_exists($uid)
-	{
-		$this->db->select('uid');
-		$this->db->where('uid',$uid);
-		$result=$this->db->get('editor_templates')->row_array();
-
-		if (isset($result['uid'])){
-			return true;
-		}
-		return false;
-	}
-
-    function delete($uid)
-	{		
-        $this->db->where('uid',$uid);
-		return $this->db->delete('editor_templates');
-	}
-
-    /**
-	*
-	*	uid
-	* 	options	array
-	**/
-	function update($uid,$options)
-	{
-		//allowed fields
-		$valid_fields=$this->fields;
-		unset($valid_fields['id']);
-		unset($valid_fields['uid']);
-
-		$options['changed']=date("U");		
-		$update_arr=array();
-
-		foreach($options as $key=>$value){
-			if (in_array($key,$valid_fields)){
-				$update_arr[$key]=$value;
-			}
-		}
-
-		if (isset($update_arr['template'])){
-			$update_arr['template']= json_encode($update_arr['template']);
-		}
-		
-		$this->db->where('uid', $uid);
-		$result=$this->db->update('editor_templates', $update_arr); 		
-		return $result;		
-	}
-
-	function create_template($options)
-	{
-
-		$template_options=array();
-
-		if (isset($options['result']['template'])){
-			$options=$options['result'];
-		}
-
-		foreach($options as $key=>$value){
-			if (in_array($key,$this->fields)){
-				$template_options[$key]=$value;
-			}
-		}
-
-		if (isset($template_options['id'])){
-			unset($template_options["id"]);
-		}
-
-		if (!isset($template_options['data_type'])){
-			throw new Exception("Template::Data type is not set");
-		}
-
-		if (!isset($template_options['uid'])){
-			$template_options["uid"]=md5($template_options['data_type'].'-'.mt_rand());
-		}
-		else{
-			$exists=$this->check_uid_exists($template_options['uid']);
-
-			if ($exists==true){
-				throw new Exception("Template with UID already exists");
-			}
-		}
-
-
-		if (isset($template_options['template'])){
-			$template_options['template']=json_encode($template_options['template']);
-		}
-
-		$template_options["created"]=date("U");
-		$template_options["changed"]=date("U");
-
-		return $this->insert($template_options);
-	}
-	
-	
-	/**
-	* 
-	*	Create new template
-	*
-	**/
-	function insert($options)
-	{
-		//allowed fields
-		$valid_fields=$this->fields;
-
-		$options['created']=date("U");
-		$options['changed']=date("U");
-
-		$data=array();
-		foreach($options as $key=>$value){
-			if (in_array($key,$valid_fields)){
-				$data[$key]=$value;
-			}
-		}
-
-		$this->db->insert('editor_templates', $data); 		
-		return $this->db->insert_id();
-	}
-
-
-	function duplicate_template($uid)
-	{
-		//check core template for uid
-		$template=$this->get_core_template_by_uid($uid);
-		$template_json='';
-
-		if(!$template){
-			$template=$this->get_custom_template_by_uid($uid);
-			if($template){
-				$template['template']=json_decode($template['template'],true);
-			}
-		}else{
-			$template['template']=$this->get_core_template_json($template['uid']);
-		}
-
-		if(!$template){
-			throw new Exception("Template ".$uid. " not found");
-		}
-
-		//create template
-		$template_options=array(
-			"uid"=>md5($template['data_type'].'-'.mt_rand()),
-			"data_type"=>$template['data_type'],
-			"lang"=>'en', 
-			"name"=>$template['name']. ' - copy', 
-			"template"=>json_encode($template['template']),
-			"created"=>date("U"), 
-			"changed"=>date("U")
-		);
-		
-		return array(
-			'id'=>$this->insert($template_options),
-			'uid'=>$template_options['uid']
-		);
-	}
-
-	function get_template_parts_by_uid($uid)
-	{
-		$template=$this->get_template_by_uid($uid);
-
-		if($template)
-		{
-			$output=[];
-			$this->get_template_part($template,null,$output);
-			return $output;
-		}
-	}
-
-	function get_template_part($items, $parent = null, &$output)
-	{
-		foreach ($items as $item) {
-			if (isset($item['items'])) {
-				$parent_ = isset($item['key']) ? $item['key'] : null;
-				$this->get_template_part($item['items'], $parent_, $output);
-			}
-			if (isset($item['key'])) {
-				$item["parent"] = $parent;
-				$output[$item['key']] = $item;
-			}
-		}
-	}
-
-
-	function get_all_default_templates()
-	{
-		$this->db->select("*");
-		return $this->db->get("editor_templates_default")->result_array();
-	}
-
-	function get_default_template($type)
-	{
-		$this->db->select("*");
-		$this->db->where("data_type",$type);
-		return $this->db->get("editor_templates_default")->row_array();
-	}
-
-	function set_default_template($type,$template_uid)
-	{
-		$this->remove_default_template($type);
-
-		$options=array(
-			'template_uid'=>$template_uid,
-			'data_type'=>$type
-		);
-
-		return $this->db->insert("editor_templates_default",$options);
-	}
-
-	function remove_default_template($type)
-	{
-		$this->db->where("data_type",$type);
-		return $this->db->delete("editor_templates_default");
-	}
-
-
-
-    
 }

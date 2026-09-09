@@ -10,6 +10,7 @@
 class Breadcrumb
 {
 	private $ci;
+	private $disabled = false;
 
 	/**
 	 * Constructor - Initializes and references CI
@@ -19,6 +20,11 @@ class Breadcrumb
 		log_message('debug', "Breadcrumb Class Initialized.");
 		$this->ci =& get_instance();
 	}
+
+	public function disable()
+	{
+		$this->disabled = true;
+	}
 	
 	/**
 	*
@@ -26,6 +32,9 @@ class Breadcrumb
 	*/
 	function generate()
 	{
+		if ($this->disabled) {
+			return array();
+		}
 		$this->ci->lang->load('breadcrumbs');
 		$breadcrumbs=array();
 		$breadcrumbs['']=t('Home');
@@ -238,29 +247,24 @@ class Breadcrumb
 			case 'datadeposit':
 					$breadcrumbs['data-deposit']=t('datadeposit');
 					$breadcrumbs['datadeposit/projects']=t('my_projects');
-					$dd_array=array('summary', 'update', 'submit_review','study','datafiles','citations');
+					$dd_array=array('summary', 'study', 'email');
 					if(isset($segments[2]) && in_array($segments[2], $dd_array) && isset($segments[3]))
 					{
 							$title = $this->get_data_deposit_project_title($segments[3]);
 							if (strlen($title) > 100) {
 								$title = substr($title, 0, 100) . '...';
 							}
-							// always to project information
-							$breadcrumbs['datadeposit/update/'. $segments[3]] = $title;
+							$breadcrumbs['datadeposit/study/'. $segments[3]] = $title;
 					}
 
 					if (count($segments)>1)
 					{
-						$segments[2] = str_replace(
-							array('datafiles', 'submit_review', 'edit_citation', 'add_citations', 'create', 'request_reopen', 'update', 'delete_resource'), 
-							array('data files', 'Review and Submit', 'edit citation', 'new citation', 'new',    'reopen',         'edit',   'delete'), 
-						$segments[2]);
 						$id          = isset($segments[3]) && is_numeric($segments[3]) ? $segments[3] : '';
 						if ($segments[2] != 'projects') {
-							$breadcrumbs[] = ucfirst($segments[2]);					
+							$breadcrumbs[] = ucfirst($segments[2]);
 						}
 					}
-					
+
 			break;
 
 			case 'access_licensed':
@@ -647,6 +651,9 @@ class Breadcrumb
 	
 	function to_string($seperator=" / ")
 	{
+		if ($this->disabled) {
+			return '';
+		}
 		$data=array('breadcrumbs'=>$this->to_array());
 		return $this->ci->load->view("breadcrumbs",$data,TRUE);
 		//return implode($seperator,$this->generate());

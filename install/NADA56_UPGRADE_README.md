@@ -75,7 +75,7 @@ The web UI is **not** suitable for the initial upgrade from an older schema beca
 
 ## Fresh installs
 
-New installations should use the current `install/schema.mysql.sql` (or SQL Server equivalent). The schema already includes all changes from these migrations. You do not need to run migrations unless you installed from an older schema file.
+New installations run `install/schema.mysql.sql` (or `schema.sqlsrv.sql`) plus `install/schema.dd.{mysql,sqlsrv}.sql`. The main schema already includes the catalog migrations. You do not need to run `migrate latest` unless you installed from an older schema file. Data deposit stays off until `enable_datadeposit` is true.
 
 ---
 
@@ -94,6 +94,16 @@ New installations should use the current `install/schema.mysql.sql` (or SQL Serv
 ## Rollback
 
 Migrations are **one-way**. To revert, restore from the database backup taken before upgrade.
+
+---
+
+## Data Deposit
+
+`migrate latest` installs the `dd_*` tables when they are missing (from `install/schema.dd.mysql.sql` or `install/schema.dd.sqlsrv.sql`). The feature stays off until you set `enable_datadeposit` to `true` in `application/config/datadeposit.php`. The admin “Data deposit” menu is hidden while it is off. Site settings → Data deposit shows that status (not a toggle), the max deposit file size in MB, and the allowed file types (read-only).
+
+Fresh installs also run that SQL file from the web installer.
+
+Existing deposit projects stay on schema version 1 (`dd_study` / `dd_citations`) until you import them. The Vue UI reads JSON on `dd_projects`. See [DATADEPOSIT_MIGRATION.md](DATADEPOSIT_MIGRATION.md).
 
 ---
 

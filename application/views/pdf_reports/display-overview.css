@@ -1,0 +1,76 @@
+/* Catalog display-template overview in mPDF (no sidebar, no widgets). */
+
+.study-metadata h2{
+	border-bottom:1px solid #cccccc;
+	padding-bottom:5px;
+	margin-bottom:16px;
+	padding-top:16px;
+	font-size:16px;
+	page-break-after:avoid;
+}
+
+.field-section-container .field-section-container h2{
+	font-size:14px;
+}
+
+.study-metadata .field-title{
+	text-transform:uppercase;
+	margin-top:12px;
+	margin-bottom:4px;
+	font-weight:bold;
+	font-size:11px;
+	page-break-after:avoid;
+}
+
+.study-metadata h4.field-title{
+	margin-top:0;
+}
+
+.study-metadata .field-value{
+	margin-bottom:8px;
+	line-height:140%;
+}
+
+.study-metadata table{
+	border-collapse:collapse;
+	width:100%;
+	margin-bottom:10px;
+	font-size:11px;
+}
+
+.study-metadata table th,
+.study-metadata table td{
+	border:1px solid #d9d9d9;
+	padding:4px 6px;
+	vertical-align:top;
+	text-align:left;
+}
+
+.study-metadata table th{
+	background:#f7f4f4;
+	font-weight:bold;
+}
+
+.study-metadata .field-array-nested table{
+	width:auto;
+	margin:0;
+	min-width:8rem;
+}
+
+.study-metadata .field-array-stacked{
+	margin-bottom:10px;
+}
+
+.study-metadata .table-responsive{
+	width:100%;
+	overflow:visible;
+}
+
+.study-metadata .pdf-nested-array{
+	margin:0.15em 0;
+}
+
+.study-metadata .pdf-nested-row{
+	margin:0.1em 0;
+	font-size:8pt;
+}

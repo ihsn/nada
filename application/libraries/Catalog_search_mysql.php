@@ -7,7 +7,16 @@
  * @category	Data Catalog Search
  * @link		-
  *
- */ 
+ */
+
+if (! class_exists('Catalog_country_resolver', false)) {
+	require_once dirname(__FILE__) . '/Catalog_country_resolver.php';
+}
+
+if (! class_exists('Catalog_filter_guard', false)) {
+	require_once dirname(__FILE__) . '/Catalog_filter_guard.php';
+}
+
 class Catalog_search_mysql{
 	
 	var $ci;
@@ -119,21 +128,13 @@ class Catalog_search_mysql{
 			return $idno_result;
 		}
 
-		$type=$this->_build_dataset_type_query();
+		//keyword clause is needed separately for the rank_ column; repository for the catalog total
 		$study=$this->_build_study_query();
-		$topics=$this->_build_topics_query();
-		$countries=$this->_build_countries_query();
-		$regions=$this->_build_regions_query();
-		$tags=$this->_build_tags_query();
-		$collections=$this->_build_collections_query();
-		$years=$this->_build_years_query();
 		$repository=$this->_build_repository_query();
-		$dtype=$this->_build_dtype_query();
-		$data_classification=$this->_build_data_classification_query();
-		$database=$this->_build_database_query();
-		$sid=$this->_build_sid_query();
-		$created=$this->_build_created_query();
-        $countries_iso3=$this->_build_countries_iso3_query();
+
+		//single WHERE shared by the row query and the found-count so the two can never disagree
+		$where=$this->_build_search_where_sql(true, true);
+
 		$sort_order=in_array($this->sort_order,$this->sort_allowed_order) ? $this->sort_order : 'ASC';
 
 		$sort_by='surveys.title';
@@ -175,29 +176,6 @@ class Catalog_search_mysql{
             $sort_options[3]=array('sort_by'=>'surveys.total_views', 'sort_order'=>'desc');
 		}
 
-		//array of all options
-		$where_list=array($study,$topics,$countries,$years,$repository,$collections,$dtype,$database,$sid,$countries_iso3,$created,$data_classification,$tags,$type,$regions);
-		
-		foreach($this->user_facets as $fc){
-			if (array_key_exists($fc['name'],$this->params)){
-				$facet_query=$this->_build_facet_query($fc['name'],$this->params[$fc['name']]);
-				if($facet_query){
-					$where_list[]=$facet_query;
-				}
-			}
-		}
-		
-		//create combined where clause
-		$where='';
-		
-		foreach($where_list as $stmt)
-		{
-			if ($stmt===FALSE || $stmt==='') {
-				continue;
-			}
-			$where .= ($where==='' ? '' : "\r\n AND ") . $stmt;
-		}
-		
 		//study fields returned by the select statement
 		$study_fields='surveys.id as id, surveys.type, surveys.idno as idno, surveys.doi, surveys.title,surveys.subtitle,surveys.nation,surveys.authoring_entity';
 		$study_fields.=',forms.model as form_model, surveys.data_class_id, surveys.year_start,surveys.year_end, surveys.thumbnail';
@@ -211,8 +189,8 @@ class Catalog_search_mysql{
 			$study_fields.=', '.$study. ' as rank_';
 		}
 
-		//study search
-		$this->ci->db->select("SQL_CALC_FOUND_ROWS $study_fields ",FALSE);
+		//study search (row page only; the total match count is a separate lean COUNT query below)
+		$this->ci->db->select($study_fields,FALSE);
 		$this->ci->db->from('surveys');
 		$this->ci->db->join('forms','surveys.formid=forms.formid','left');
 		$this->ci->db->join('repositories','surveys.repositoryid=repositories.repositoryid','left');
@@ -243,10 +221,9 @@ class Catalog_search_mysql{
 			return FALSE;
 		}
 		
-		//get total search result count
-		$query_found_rows=$this->ci->db->query('select FOUND_ROWS() as rowcount',FALSE)->row_array();		
-		$this->search_found_rows=$query_found_rows['rowcount'];
-		
+		//total search result count: same WHERE as the row query, but no display joins, no sort, no rank column
+		$this->search_found_rows=$this->count_surveys_with_where($where);
+
 		//get total surveys in db
 		$this->ci->db->select('count(*) as rowcount');
 		$this->ci->db->where('published',1);
@@ -323,15 +300,26 @@ class Catalog_search_mysql{
 	 */
 	protected function count_surveys_with_filters($include_type = true, $include_study = true)
 	{
-		$where = $this->_build_search_where_sql($include_type, $include_study);
+		return $this->count_surveys_with_where($this->_build_search_where_sql($include_type, $include_study));
+	}
 
+	/**
+	 * Lean COUNT(*) of published surveys for a prebuilt WHERE fragment.
+	 *
+	 * Only joins what the filters can reference: forms (dtype -> forms.formid). The repositories and
+	 * timeseries joins used by the row query are display-only and are deliberately left out.
+	 *
+	 * @param string $where Combined SQL WHERE fragment from _build_search_where_sql()
+	 * @return int
+	 */
+	protected function count_surveys_with_where($where)
+	{
 		$this->ci->db->select('count(*) as rowcount', FALSE);
 		$this->ci->db->from('surveys');
 		$this->ci->db->join('forms', 'surveys.formid=forms.formid', 'left');
-		$this->ci->db->join('repositories', 'surveys.repositoryid=repositories.repositoryid', 'left');
 		$this->ci->db->where('surveys.published', 1);
 
-		if ($where !== '') {
+		if ($where !== '' && $where !== FALSE && $where !== NULL) {
 			$this->ci->db->where($where, NULL, FALSE);
 		}
 
@@ -358,12 +346,13 @@ class Catalog_search_mysql{
 		$repository = $this->_build_repository_query();
 		$dtype = $this->_build_dtype_query();
 		$data_classification = $this->_build_data_classification_query();
+		$database = $this->_build_database_query();
 		$sid = $this->_build_sid_query();
 		$created = $this->_build_created_query();
 		$countries_iso3 = $this->_build_countries_iso3_query();
 
 		$where_list = array(
-			$study, $topics, $countries, $years, $repository, $collections, $dtype,
+			$study, $topics, $countries, $years, $repository, $collections, $dtype, $database,
 			$sid, $countries_iso3, $created, $data_classification, $tags, $type, $regions,
 		);
 
@@ -796,43 +785,20 @@ class Catalog_search_mysql{
 	*/
 	protected function _build_countries_query()
 	{
-		$countries=$this->countries;//must always be an array
+		//accepts country IDs, names, ISO2/ISO3 codes and aliases, in any mix.
+		//unresolvable values fail closed (no results) rather than dropping the filter.
+		$countries=Catalog_country_resolver::resolve($this->countries);
 
-		if (!is_array($countries))
+		if (empty($countries))
 		{
-			return FALSE;
-		}
-		
-		$countries_list=array();
-		
-		//check if country[] param contains the country name instead of country id
-		if (isset($countries[0]) && !is_numeric($countries[0]))
-		{
-			//get country id by name
-			$countries=$this->get_country_id_by_name($countries);
-		}
-		
-		foreach($countries  as $country)
-		{
-			//escape country names for db
-			$countries_list[]=(int)$country;
-		}
-
-		if ( count($countries_list)>0)
-		{
-			$countries= implode(',',$countries_list);
-		}
-		else
-		{
+			//no country filter requested
 			return FALSE;
 		}
 
-		if ($countries!='')
-		{
-			return sprintf('surveys.id in (select sid from survey_countries where cid in (%s))',$countries);
-		}
-		
-		return FALSE;
+		return sprintf(
+			'surveys.id in (select sid from survey_countries where cid in (%s))',
+			implode(',', array_map('intval', $countries))
+		);
 	}
 
 
@@ -865,8 +831,9 @@ class Catalog_search_mysql{
 				inner join survey_countries on region_countries.country_id=survey_countries.cid
 					where region_countries.region_id in (%s))',$regions);
 		}
-		
-		return FALSE;
+
+		//values were supplied but none were valid — fail closed
+		return Catalog_filter_guard::NO_MATCH;
 	}
 
 
@@ -903,7 +870,8 @@ class Catalog_search_mysql{
         }
         else
         {
-            return FALSE;
+            //codes were supplied but none were a usable ISO3 value — fail closed
+            return Catalog_filter_guard::NO_MATCH;
         }
 
         if ($countries!='')
@@ -912,7 +880,7 @@ class Catalog_search_mysql{
                 inner join survey_countries  on countries.countryid=survey_countries.cid  where countries.iso in (%s))',$countries);
         }
 
-        return FALSE;
+        return Catalog_filter_guard::NO_MATCH;
     }
 	
 	protected function _normalize_year_range()
@@ -950,23 +918,32 @@ class Catalog_search_mysql{
 	
 	protected function _build_sid_query()
 	{
-		$sid=explode(",",$this->sid);
-		
+		$raw=trim((string)$this->sid);
+
+		if ($raw==='')
+		{
+			//no sid filter requested
+			return FALSE;
+		}
+
+		$sid=explode(",",$raw);
+
 		$sid_list=array();
 		foreach($sid as $item)
 		{
 			if (is_numeric($item))
 			{
 				$sid_list[]=$item;
-			}	
+			}
 		}
-		
+
 		if (count($sid_list)>0)
-		{		
+		{
 			return sprintf('surveys.id in (%s)',implode(",",$sid_list));
 		}
-		
-		return FALSE;
+
+		//ids were supplied but none were numeric — fail closed
+		return Catalog_filter_guard::NO_MATCH;
 	}
 
 	protected function _build_created_query()
@@ -1210,7 +1187,7 @@ class Catalog_search_mysql{
 
 		$this->ci->db->limit($limit, $offset);
 		$this->ci->db->select(
-			'SQL_CALC_FOUND_ROWS v.uid, v.name, v.labl, v.qstn, v.vid, v.fid, v.sid,'
+			'v.uid, v.name, v.labl, v.qstn, v.vid, v.fid, v.sid,'
 			. ' surveys.title AS title, surveys.idno, surveys.nation,'
 			. ' surveys.year_start, surveys.year_end, surveys.authoring_entity',
 			FALSE
@@ -1226,10 +1203,9 @@ class Catalog_search_mysql{
 		}
 
 		$result=$this->ci->db->get("variables as v")->result_array();
-		
-		//get total search result count
-		$query_found_rows=$this->ci->db->query('select FOUND_ROWS() as rowcount',FALSE)->row_array();
-		$found_rows=$query_found_rows['rowcount'];
+
+		//total match count: same WHERE and filter joins as above, no sort, no limit
+		$found_rows=$this->vsearch_count($where, $dtype);
 
 		$tmp['found']=$found_rows;
 		$tmp['total']=$this->get_total_variable_count();
@@ -1239,6 +1215,31 @@ class Catalog_search_mysql{
 		return $tmp;
 	}
 
+
+	/**
+	 * Lean COUNT(*) for the catalog-wide variable search.
+	 *
+	 * @param string       $where Combined WHERE fragment built in vsearch()
+	 * @param string|false $dtype Data-access-type clause; when set the forms join is required
+	 * @return int
+	 */
+	protected function vsearch_count($where, $dtype = FALSE)
+	{
+		$this->ci->db->select('count(*) as rowcount', FALSE);
+		$this->ci->db->from('variables as v');
+		$this->ci->db->join('surveys', 'v.sid = surveys.id', 'inner');
+		if ($dtype !== FALSE && $dtype !== '') {
+			$this->ci->db->join('forms', 'surveys.formid = forms.formid', 'left');
+		}
+		$this->ci->db->where('surveys.published', 1);
+		if ($where !== '') {
+			$this->ci->db->where($where, NULL, FALSE);
+		}
+
+		$row = $this->ci->db->get()->row_array();
+
+		return (int) ($row['rowcount'] ?? 0);
+	}
 
     function get_total_variable_count()
     {
@@ -1277,15 +1278,19 @@ class Catalog_search_mysql{
 
 		//search
 		$this->ci->db->limit($limit, $offset);
-		$this->ci->db->select("SQL_CALC_FOUND_ROWS v.uid,v.name,v.labl,v.vid,v.qstn,v.fid", FALSE);
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn,v.fid", FALSE);
 		$this->ci->db->order_by($sort_by, $sort_order);
-		$this->ci->db->where($where);
+		$this->ci->db->where($where, NULL, FALSE);
 		$this->ci->db->where('sid', $sid);
 
 		$result = $this->ci->db->get("variables as v")->result_array();
 
-		$found_row = $this->ci->db->query('SELECT FOUND_ROWS() as rowcount', FALSE)->row_array();
-		$found     = (int)$found_row['rowcount'];
+		//matching rows for this study (separate lean count, no sort/limit)
+		$this->ci->db->select('count(*) as rowcount', FALSE);
+		$this->ci->db->where($where, NULL, FALSE);
+		$this->ci->db->where('sid', $sid);
+		$found_row = $this->ci->db->get('variables as v')->row_array();
+		$found     = (int) ($found_row['rowcount'] ?? 0);
 
 		$this->ci->db->where('sid', $sid);
 		$total = $this->ci->db->count_all_results('variables');
@@ -1334,8 +1339,9 @@ class Catalog_search_mysql{
 		if ($types_str!=''){
 			return sprintf(' forms.formid in (%s)',$types_str);
 		}
-		
-		return FALSE;	
+
+		//values were supplied but none were valid — fail closed
+		return Catalog_filter_guard::NO_MATCH;
 	}
 
 
@@ -1358,8 +1364,9 @@ class Catalog_search_mysql{
 		if ($types_str!=''){
 			return sprintf(' surveys.data_class_id in (%s)',$types_str);
 		}
-		
-		return FALSE;
+
+		//values were supplied but none were valid — fail closed
+		return Catalog_filter_guard::NO_MATCH;
 	}
 
 

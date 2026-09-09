@@ -325,6 +325,7 @@ $lang['var_qstn_qstnlit']="السؤال الحرفي";
 $lang['var_qstn_preqtxt']="السؤال القبلي";
 $lang['var_qstn_postqtxt']="السؤال البعدي";
 $lang['var_qstn_ivuinstr']="تعليمات المقابل";
+$lang['var_qstn_ivulnstr']="تعليمات المقابل";
 $lang['data_file']="ملف البيانات";
 $lang['overview']="نبذة";
 $lang['contacts']="جهات الاتصال";

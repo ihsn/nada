@@ -18,7 +18,7 @@
             variant="text"
             size="x-small"
             density="compact"
-            prepend-icon="mdi-open-in-new"
+            prepend-icon="$mdi-open-in-new"
             @click.stop
           >
             {{ t('open_in_new_window', 'Open in new window') }}
@@ -32,7 +32,7 @@
             :aria-label="t('cancel')"
             @click="close"
           >
-            <v-icon size="18">mdi-close</v-icon>
+            <v-icon size="18">$mdi-close</v-icon>
           </v-btn>
         </div>
       </div>

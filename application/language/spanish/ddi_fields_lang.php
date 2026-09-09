@@ -325,6 +325,7 @@ $lang['var_qstn_qstnlit']="Pregunta literal";
 $lang['var_qstn_preqtxt']="Texto previo a la pregunta (Pre-pregunta)";
 $lang['var_qstn_postqtxt']="Texto posterior a la pregunta (Post-pregunta)";
 $lang['var_qstn_ivuinstr']="Instrucciones para el encuestador";
+$lang['var_qstn_ivulnstr']="Instrucciones para el encuestador";
 $lang['data_file']="Archivo de datos";
 $lang['overview']="Descripción general";
 $lang['contacts']="Contactos";

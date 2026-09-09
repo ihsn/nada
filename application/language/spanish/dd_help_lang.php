@@ -257,7 +257,7 @@ $lang['suggested_access_policy_help']="<p> Seleccione la política de acceso ade
 $lang['study_help']="Por favor, complete los campos en cada una de las siguientes secciones. Proporcionar información detallada aquí acelerará el proceso de publicación del estudio. También facilita a los usuarios de los datos encontrar la información que necesitan y, por lo tanto, disminuye la necesidad de que los usuarios se pongan en contacto con el productor de datos para obtener aclaraciones. Solo tres campos son obligatorios para el proceso de envío. Si el tiempo o la información disponible no permiten completar todos los campos, solicitamos que se completen al menos los campos obligatorios y recomendados.";
 $lang['create_title']="Proporcione el título completo de su proyecto.";
 $lang['create_short']="Proporcione un acrónimo corto para su proyecto. (por ejemplo, UZB HBS 1998)";
-$lang['create_collab']="Proporcione la dirección de correo electrónico de otros miembros del personal del Banco Mundial que puedan estar autorizados a editar este proyecto.";
+$lang['create_collab']="Añada las direcciones de correo electrónico de las personas que pueden editar este proyecto.";
 $lang['create_desc']="Proporcione una descripción detallada de su proyecto.";
 $lang['help_subtitle']="Proporcione un subtítulo corto para su encuesta.
 ";

@@ -16,7 +16,7 @@
           @click.stop
         >
           <span class="variable-detail-dialog__title-text text-truncate">{{ dialogTitle }}</span>
-          <v-icon size="16" class="variable-detail-dialog__title-icon">mdi-open-in-new</v-icon>
+          <v-icon size="16" class="variable-detail-dialog__title-icon">$mdi-open-in-new</v-icon>
         </a>
         <span v-else class="variable-detail-dialog__title-text text-truncate">
           {{ dialogTitle }}
@@ -30,7 +30,7 @@
           :aria-label="t('cancel')"
           @click="close"
         >
-          <v-icon size="18">mdi-close</v-icon>
+          <v-icon size="18">$mdi-close</v-icon>
         </v-btn>
       </div>
 
@@ -162,7 +162,8 @@ watch(
     if (open && props.variable?.vid) {
       loadHtml();
     }
-  }
+  },
+  { immediate: true }
 );
 </script>
 
@@ -194,7 +195,7 @@ watch(
 }
 
 .variable-detail-dialog__title-link:hover {
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
 }
 
 .variable-detail-dialog__title-link:hover .variable-detail-dialog__title-text {
@@ -203,7 +204,7 @@ watch(
 
 .variable-detail-dialog__title-text {
   min-width: 0;
-  font-size: 0.875rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-weight: 600;
   line-height: 1.3;
 }
@@ -248,28 +249,28 @@ watch(
 
 .variable-detail-html :deep(h3),
 .variable-detail-html :deep(h5) {
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   margin: 0.65rem 0 0.35rem;
   line-height: 1.3;
 }
 
 .variable-detail-html :deep(.var-file) {
   margin: 0 0 0.5rem;
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
 }
 
 .variable-detail-html :deep(.fld-inline) {
   margin-bottom: 0.2rem;
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   line-height: 1.35;
 }
 
 .variable-detail-html :deep(.fld-name) {
-  color: rgba(26, 35, 50, 0.55);
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
 }
 
 .variable-detail-html :deep(a) {
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   overflow-wrap: anywhere;
 }
 

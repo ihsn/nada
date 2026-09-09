@@ -228,13 +228,26 @@ class Catalog_browse_service {
 
 	protected function is_numeric_array($arr_str)
 	{
-		$arr = explode(',', $arr_str);
-		foreach ($arr as $val) {
-			if ( ! is_numeric($val)) {
-				return '';
+		if (! class_exists('Catalog_filter_guard', false)) {
+			require_once APPPATH . 'libraries/Catalog_filter_guard.php';
+		}
+
+		$raw = trim((string) $arr_str);
+
+		if ($raw === '') {
+			//no sid filter requested
+			return '';
+		}
+
+		foreach (explode(',', $raw) as $val) {
+			if ( ! is_numeric(trim($val))) {
+				//ids were supplied but at least one is not numeric — fail closed so the
+				//filter yields no results instead of being dropped from the WHERE
+				return Catalog_filter_guard::NO_MATCH_ID;
 			}
 		}
-		return $arr_str;
+
+		return $raw;
 	}
 
 	/**
@@ -406,13 +419,18 @@ class Catalog_browse_service {
 
 		$data['current_page'] = $search_options->page;
 		$data['search_options'] = $search_options;
-		$data['data_access_types'] = $this->facets['da_types'];
-		$data['data_classifications'] = $this->facets['data_class'];
-		$data['databases'] = $this->facets['databases'];
-		$data['regions'] = $this->facets['regions'];
+		$data['data_access_types'] = $this->facets['da_types'] ?? array();
+		$data['data_classifications'] = $this->facets['data_class'] ?? array();
+		$data['databases'] = $this->facets['databases'] ?? array();
+		$data['regions'] = $this->facets['regions'] ?? array();
 		$data['sid'] = $search_options->sid;
 
-		if (isset($data['surveys']['found'], $data['surveys']['total']) && $data['surveys']['found'] == $data['surveys']['total']) {
+		$page = isset($data['current_page']) ? (int) $data['current_page'] : 1;
+		if (
+			$page <= 1
+			&& isset($data['surveys']['found'], $data['surveys']['total'])
+			&& $data['surveys']['found'] == $data['surveys']['total']
+		) {
 			$data['featured_studies'] = $this->CI->Repository_model->get_featured_study($this->active_repo_id, $this->active_tab);
 		}
 
@@ -506,7 +524,7 @@ class Catalog_browse_service {
 					$result['rows'][$idx]['variable_url'] = site_url('catalog/' . $sid . '/variable/' . $vid);
 					$result['rows'][$idx]['study_url'] = site_url('catalog/' . $sid);
 				} else {
-					$result['rows'][$idx]['url'] = site_url('catalog/' . $row['id']);
+					$result['rows'][$idx]['url'] = site_url('catalog/' . ($row['id'] ?? ''));
 				}
 			}
 		}
@@ -531,7 +549,7 @@ class Catalog_browse_service {
 		if (isset($data['featured_studies']) && is_array($data['featured_studies'])) {
 			$featured = $data['featured_studies'];
 			foreach ($featured as $idx => $study) {
-				$featured[$idx]['url'] = site_url('catalog/' . $study['id']);
+				$featured[$idx]['url'] = site_url('catalog/' . ($study['id'] ?? ''));
 				if (!isset($featured[$idx]['form_model']) && isset($study['model'])) {
 					$featured[$idx]['form_model'] = $study['model'];
 				}

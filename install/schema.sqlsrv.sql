@@ -1296,6 +1296,8 @@ CREATE TABLE region_countries (
   PRIMARY KEY (id)
 ) ;
 
+CREATE NONCLUSTERED INDEX idx_region_countries_region ON [dbo].[region_countries] ([region_id] ASC) INCLUDE ([country_id]);
+
 
 --
 -- Table structure for table survey_notes
@@ -1650,7 +1652,6 @@ INSERT INTO survey_types(id,code,title, weight) VALUES(4,'document','Document',5
 INSERT INTO survey_types(id,code,title, weight) VALUES(5,'table','Table',70);
 INSERT INTO survey_types(id,code,title, weight) VALUES(6,'image','Photo',40);
 INSERT INTO survey_types(id,code,title, weight) VALUES(7,'script','Script',30);
-INSERT INTO survey_types(id,code,title, weight) VALUES(8,'visualization','Visualization',60);
 INSERT INTO survey_types(id,code,title, weight) VALUES(9,'video','Video',40);
 INSERT INTO survey_types(id,code,title, weight) VALUES(10,'timeseriesdb','Datasets',75);
 set IDENTITY_INSERT survey_types OFF;
@@ -2163,4 +2164,29 @@ CREATE TABLE [display_templates_default] (
 );
 
 CREATE NONCLUSTERED INDEX [idx_display_default_template_uid] ON [display_templates_default] ([template_uid] ASC);
+
+CREATE TABLE search_index_queue (
+  id INT NOT NULL IDENTITY(1,1),
+  object_type VARCHAR(32) NOT NULL,
+  object_id INT NOT NULL,
+  object_key VARCHAR(200) NOT NULL,
+  change_class VARCHAR(32) NOT NULL,
+  status VARCHAR(16) NOT NULL CONSTRAINT df_search_index_queue_status DEFAULT 'pending',
+  attempts INT NOT NULL CONSTRAINT df_search_index_queue_attempts DEFAULT 0,
+  last_error VARCHAR(500) NULL,
+  changed INT NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT uk_search_index_queue_object UNIQUE (object_type, object_id)
+);
+CREATE NONCLUSTERED INDEX idx_search_index_queue_status_changed ON search_index_queue (status, changed);
+
+CREATE TABLE search_index_state (
+  object_type VARCHAR(32) NOT NULL,
+  object_id INT NOT NULL,
+  object_key VARCHAR(200) NOT NULL,
+  status VARCHAR(16) NOT NULL,
+  changed INT NOT NULL,
+  PRIMARY KEY (object_type, object_id)
+);
+CREATE NONCLUSTERED INDEX idx_search_index_state_status ON search_index_state (status);
 

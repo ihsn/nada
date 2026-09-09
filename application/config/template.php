@@ -97,6 +97,25 @@ $template['embed_chart']['theme_folder'] = 'nada52';
 $template['embed_table']['template'] = '../../themes/nada52/embed_table';
 $template['embed_table']['theme_folder'] = 'nada52';
 
+// Public Vue catalog search — lean head (no Google Fonts / classic catalog CSS)
+$template['public_vue']['template'] = '../../themes/'.$theme_name.'/layout_vue';
+$template['public_vue']['theme_folder'] = $theme_name;
+$template['public_vue']['regions'] = array(
+  'header'=>array('content' => array('<h1>heading 1</h1>')),
+  'title',
+  'content'=>array('content' => array('<div>content not set</div>')),
+  'sidebar',
+  'search_filters',
+  'footer',
+  'breadcrumb',
+  'survey_title',
+  'section_url',
+  'ddi_sidebar'
+);
+$template['public_vue']['parser'] = 'parser';
+$template['public_vue']['parser_method'] = 'parse';
+$template['public_vue']['parse_template'] = FALSE;
+
 
 //box template file with only the body and no layout
 $template['box']['template'] = '../../themes/opendata/box';

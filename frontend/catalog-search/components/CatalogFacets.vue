@@ -9,7 +9,7 @@
     >
       <v-row dense>
         <v-col cols="6">
-          <div class="text-caption text-medium-emphasis mb-1">{{ t('from') }}</div>
+          <div class="facet-year-label mb-1">{{ t('from') }}</div>
           <v-select
             :model-value="query.from || null"
             :items="yearOptions"
@@ -21,7 +21,7 @@
           />
         </v-col>
         <v-col cols="6">
-          <div class="text-caption text-medium-emphasis mb-1">{{ t('to') }}</div>
+          <div class="facet-year-label mb-1">{{ t('to') }}</div>
           <v-select
             :model-value="query.to || null"
             :items="yearOptions"
@@ -355,5 +355,10 @@ const userFacets = computed(() => {
 .catalog-facets {
   position: sticky;
   top: 56px;
+}
+
+.facet-year-label {
+  font-size: var(--catalog-font-ui, 0.875rem);
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 </style>

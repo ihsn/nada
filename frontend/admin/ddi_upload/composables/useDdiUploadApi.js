@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useResumableUpload } from '@/shared/composables/useResumableUpload';
 
 /**
  * Admin catalog study upload / import.
@@ -8,17 +9,11 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
  * Package ZIP: api/uploads (chunked) + api/admin/catalog/import_package/*
  */
 export function useDdiUploadApi() {
-  const { apiBaseUrl, csrfToken, csrfTokenName, config } = useAppConfig();
+  const { apiBaseUrl, csrfToken, csrfTokenName } = useAppConfig();
+  const resumable = useResumableUpload();
 
   function catalogBase() {
     return String(apiBaseUrl.value || '').replace(/\/+$/, '') + '/';
-  }
-
-  function uploadsBase() {
-    const u = config.value?.uploadsApiUrl;
-    if (u) return String(u).replace(/\/+$/, '') + '/';
-    const site = String(config.value?.siteUrl || '').replace(/\/+$/, '');
-    return `${site}/api/uploads/`;
   }
 
   function csrfHeaders() {
@@ -51,85 +46,21 @@ export function useDdiUploadApi() {
     return data;
   }
 
-  async function fetchUploadLimits() {
-    try {
-      const { data } = await axios.get(`${uploadsBase()}limits`, { withCredentials: true });
-      if (data.status === 'success' && data.limits) return data.limits;
-    } catch {
-      /* ignore */
-    }
-    return null;
-  }
-
   /**
    * Resumable upload for package ZIP; returns upload_id when complete.
    */
   async function uploadPackageZip(file, onProgress) {
-    const limits = await fetchUploadLimits();
-    const maxChunk = limits?.max_chunk_size ? Number(limits.max_chunk_size) : 5 * 1024 * 1024;
-    const chunkSize = Math.max(256 * 1024, Math.min(maxChunk || 5 * 1024 * 1024, 8 * 1024 * 1024));
-    const totalChunks = Math.ceil(file.size / chunkSize);
-
-    const { data: initData } = await axios.post(
-      `${uploadsBase()}init`,
-      {
-        filename: file.name,
-        total_size: file.size,
-        total_chunks: totalChunks,
-        chunk_size: chunkSize,
-        metadata: {
-          purpose: 'package_import',
-          allowed_types: 'zip',
-          source: 'admin_ddi_upload',
-        },
+    const completed = await resumable.uploadFile(file, {
+      metadata: {
+        purpose: 'package_import',
+        allowed_types: 'zip',
+        source: 'admin_ddi_upload',
       },
-      {
-        withCredentials: true,
-        headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
-      }
-    );
-    if (initData.status !== 'success' || !initData.upload_id) {
-      throw new Error(initData.message || 'INIT_UPLOAD_FAILED');
-    }
-    const uploadId = initData.upload_id;
-
-    const uploaded = new Set();
-    try {
-      const { data: st } = await axios.get(`${uploadsBase()}status/${uploadId}`, { withCredentials: true });
-      if (st.status === 'success' && Array.isArray(st.uploaded_chunks)) {
-        st.uploaded_chunks.forEach((n) => uploaded.add(Number(n)));
-      }
-    } catch {
-      /* fresh */
-    }
-
-    let loaded = 0;
-    for (let i = 0; i < totalChunks; i++) {
-      if (uploaded.has(i)) {
-        loaded += i === totalChunks - 1 ? file.size - i * chunkSize : chunkSize;
-        if (onProgress) onProgress({ phase: 'upload', loaded: Math.min(loaded, file.size), total: file.size });
-        continue;
-      }
-      const start = i * chunkSize;
-      const end = Math.min(start + chunkSize, file.size);
-      const blob = file.slice(start, end);
-      const { data: ch } = await axios.post(`${uploadsBase()}chunk/${uploadId}`, blob, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/octet-stream',
-          'X-Upload-Chunk-Number': String(i),
-          'X-Upload-Chunk-Size': String(blob.size),
-          ...csrfHeaders(),
-        },
-      });
-      if (ch.status !== 'success') {
-        throw new Error(ch.message || `CHUNK_FAILED_${i}`);
-      }
-      loaded += blob.size;
-      if (onProgress) onProgress({ phase: 'upload', loaded: Math.min(loaded, file.size), total: file.size });
-    }
-
-    return uploadId;
+      onProgress: onProgress
+        ? (ev) => onProgress({ phase: 'upload', loaded: ev.loaded, total: ev.total })
+        : undefined,
+    });
+    return completed.upload_id;
   }
 
   async function packageImportRequest(path, body) {

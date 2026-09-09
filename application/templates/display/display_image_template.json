@@ -1,0 +1,1585 @@
+{
+    "data_type": "image",
+    "lang": "en",
+    "name": "Image display template",
+    "version": "1.0",
+    "description": "Catalog study description layout for images (combined DCMI and IPTC). Empty sections stay hidden. DataCite, provenance, and additional are appended.",
+    "template": {
+        "type": "template",
+        "title": "Image",
+        "items": [
+            {
+                "type": "section_container",
+                "key": "image",
+                "title": "Image description",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "description",
+                        "title": "Description",
+                        "items": [
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.title",
+                                "title": "Title",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.title",
+                                "title": "Title",
+                                "type": "string"
+                            },
+                            {
+                                "key": "resources",
+                                "title": "Images",
+                                "type": "array",
+                                "display_options": {
+                                    "renderer": "field_photo_gallery"
+                                }
+                            },
+                            {
+                                "key": "image_description.idno",
+                                "title": "Primary ID",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.description",
+                                "title": "Description",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.description",
+                                "title": "Description",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.caption",
+                                "title": "Caption",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.identifiers",
+                                "title": "Other identifiers",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "type",
+                                        "title": "Identifier type",
+                                        "type": "string",
+                                        "prop_key": "image_description.identifiers.type"
+                                    },
+                                    {
+                                        "key": "identifier",
+                                        "title": "Identifier",
+                                        "type": "string",
+                                        "prop_key": "image_description.identifiers.identifier"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.album",
+                                "title": "Album",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.album.name"
+                                    },
+                                    {
+                                        "key": "description",
+                                        "title": "Description",
+                                        "type": "string",
+                                        "prop_key": "image_description.album.description"
+                                    },
+                                    {
+                                        "key": "owner",
+                                        "title": "Owner",
+                                        "type": "string",
+                                        "prop_key": "image_description.album.owner"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URI",
+                                        "type": "string",
+                                        "prop_key": "image_description.album.uri",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "tags",
+                                "title": "Tags",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "tag",
+                                        "title": "Tag",
+                                        "type": "string",
+                                        "prop_key": "tags.tag"
+                                    },
+                                    {
+                                        "key": "tag_group",
+                                        "title": "Tag group",
+                                        "type": "string",
+                                        "prop_key": "tags.tag_group"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "iframe_embeds",
+                                "title": "Embedded widgets",
+                                "type": "widget",
+                                "display_options": {
+                                    "renderer": "field_iframe_embed"
+                                }
+                            },
+                            {
+                                "key": "widgets.doi.citations",
+                                "title": "Citation",
+                                "type": "widget",
+                                "display_options": {
+                                    "renderer": "field_doi_citation",
+                                    "data_key": "image_description.identifiers"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "dcmi_description",
+                        "title": "DCMI",
+                        "items": [
+                            {
+                                "key": "image_description.dcmi.type",
+                                "title": "Resource type",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.date",
+                                "title": "Date",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.keywords",
+                                "title": "Keywords",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.keywords.name"
+                                    },
+                                    {
+                                        "key": "vocabulary",
+                                        "title": "Vocabulary",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.keywords.vocabulary"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.keywords.uri",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.dcmi.topics",
+                                "title": "Topics",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "id",
+                                        "title": "ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.topics.id"
+                                    },
+                                    {
+                                        "key": "name",
+                                        "title": "Topic",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.topics.name"
+                                    },
+                                    {
+                                        "key": "parent_id",
+                                        "title": "Parent topic Identifier",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.topics.parent_id"
+                                    },
+                                    {
+                                        "key": "vocabulary",
+                                        "title": "Vocabulary",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.topics.vocabulary"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.topics.uri",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.dcmi.country",
+                                "title": "Countries",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.country.name"
+                                    },
+                                    {
+                                        "key": "code",
+                                        "title": "Country code",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.country.code"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.dcmi.coverage",
+                                "title": "Geographic coverage",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.gps.latitude",
+                                "title": "Latitude",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.gps.longitude",
+                                "title": "Longitude",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.gps.altitude",
+                                "title": "Altitude",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.format",
+                                "title": "Format",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.languages",
+                                "title": "Language",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.languages.name"
+                                    },
+                                    {
+                                        "key": "code",
+                                        "title": "Code",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.languages.code"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.dcmi.relations",
+                                "title": "Relations",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.relations.name"
+                                    },
+                                    {
+                                        "key": "type",
+                                        "title": "Type",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.relations.type"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "image_description.dcmi.relations.uri",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.dcmi.note",
+                                "title": "Note",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "dcmi_authors",
+                        "title": "DCMI authors and rights",
+                        "items": [
+                            {
+                                "key": "image_description.dcmi.creator",
+                                "title": "Creator",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.contributor",
+                                "title": "Contributor",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.publisher",
+                                "title": "Publisher",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.rights",
+                                "title": "Rights",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.dcmi.source",
+                                "title": "Source",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "iptc_description",
+                        "title": "Photo details",
+                        "items": [
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.headline",
+                                "title": "Headline",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.captionWriter",
+                                "title": "Caption writer",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.dateCreated",
+                                "title": "Date created",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.eventName",
+                                "title": "Event name",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.keywords",
+                                "title": "Keywords",
+                                "type": "simple_array",
+                                "display_options": {
+                                    "renderer": "field_array_badge"
+                                }
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.sceneCodes",
+                                "title": "Scene codes",
+                                "type": "simple_array",
+                                "display_options": {
+                                    "renderer": "field_array_badge"
+                                }
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.sceneCodesLabelled",
+                                "title": "Scene codes labelled",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "code",
+                                        "title": "Scene code (6 digits)",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.sceneCodesLabelled.code"
+                                    },
+                                    {
+                                        "key": "label",
+                                        "title": "Label",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.sceneCodesLabelled.label"
+                                    },
+                                    {
+                                        "key": "description",
+                                        "title": "Description",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.sceneCodesLabelled.description"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.subjectCodes",
+                                "title": "Subject codes",
+                                "type": "simple_array",
+                                "display_options": {
+                                    "renderer": "field_array_badge"
+                                }
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.subjectCodesLabelled",
+                                "title": "Subject codes labelled",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "code",
+                                        "title": "Scene code (6 digits)",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.subjectCodesLabelled.code"
+                                    },
+                                    {
+                                        "key": "label",
+                                        "title": "Label",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.subjectCodesLabelled.label"
+                                    },
+                                    {
+                                        "key": "description",
+                                        "title": "Description",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.subjectCodesLabelled.description"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.genres",
+                                "title": "Genres",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "cvId",
+                                        "title": "CV-Term CV ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.genres.cvId"
+                                    },
+                                    {
+                                        "key": "cvTermName",
+                                        "title": "CV-Term Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.genres.cvTermName"
+                                    },
+                                    {
+                                        "key": "cvTermId",
+                                        "title": "CV-Term ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.genres.cvTermId"
+                                    },
+                                    {
+                                        "key": "cvTermRefinedAbout",
+                                        "title": "About",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.genres.cvTermRefinedAbout"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.intellectualGenre",
+                                "title": "Intellectual genre",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.imageRating",
+                                "title": "Image rating",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.digitalImageGuid",
+                                "title": "Digital Image GUID",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.imageSupplierImageId",
+                                "title": "Image supplier image ID",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.digitalSourceType",
+                                "title": "Digital source type",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.registryEntries",
+                                "title": "Registry entries",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.registryEntries.role"
+                                    },
+                                    {
+                                        "key": "assetIdentifier",
+                                        "title": "Asset Identifier",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.registryEntries.assetIdentifier"
+                                    },
+                                    {
+                                        "key": "registryIdentifier",
+                                        "title": "Registry Identifier",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.registryEntries.registryIdentifier"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.aboutCvTerms",
+                                "title": "About CV terms",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "cvid",
+                                        "title": "ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.aboutCvTerms.cvid"
+                                    },
+                                    {
+                                        "key": "cvTermName",
+                                        "title": "Term name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.aboutCvTerms.cvTermName"
+                                    },
+                                    {
+                                        "key": "cvTermId",
+                                        "title": "Term ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.aboutCvTerms.cvTermId"
+                                    },
+                                    {
+                                        "key": "cvTermRefinedAbout",
+                                        "title": "Details",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.aboutCvTerms.cvTermRefinedAbout"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "iptc_creators",
+                        "title": "Creators",
+                        "items": [
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.creatorNames",
+                                "title": "Creator name",
+                                "type": "simple_array",
+                                "display_options": {
+                                    "renderer": "field_array_badge"
+                                }
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo",
+                                "title": "Contact information ",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "country",
+                                        "title": "Country",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.country"
+                                    },
+                                    {
+                                        "key": "emailwork",
+                                        "title": "Email (work)",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.emailwork"
+                                    },
+                                    {
+                                        "key": "region",
+                                        "title": "Region (State/ province)",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.region"
+                                    },
+                                    {
+                                        "key": "phonework",
+                                        "title": "Phone (work)",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.phonework"
+                                    },
+                                    {
+                                        "key": "weburlwork",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.weburlwork",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    },
+                                    {
+                                        "key": "address",
+                                        "title": "Address",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.address"
+                                    },
+                                    {
+                                        "key": "city",
+                                        "title": "City",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.city"
+                                    },
+                                    {
+                                        "key": "postalCode",
+                                        "title": "Postal code",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.postalCode"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.creditLine",
+                                "title": "Credit",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.jobid",
+                                "title": "Job ID",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.jobtitle",
+                                "title": "Creator job title",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.source",
+                                "title": "Source",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.supplier",
+                                "title": "Supplier",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.supplier.name"
+                                    },
+                                    {
+                                        "key": "identifiers",
+                                        "title": "Identifier",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.supplier.identifiers"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "iptc_location",
+                        "title": "Location",
+                        "items": [
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown",
+                                "title": "Location shown",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "city",
+                                        "title": "City",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.city"
+                                    },
+                                    {
+                                        "key": "countryCode",
+                                        "title": "Country ISO Code",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.countryCode"
+                                    },
+                                    {
+                                        "key": "countryName",
+                                        "title": "Country Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.countryName"
+                                    },
+                                    {
+                                        "key": "gpsAltitude",
+                                        "title": "GPS-Altitude",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.gpsAltitude"
+                                    },
+                                    {
+                                        "key": "gpsLatitude",
+                                        "title": "GPS-Lattitude",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.gpsLatitude"
+                                    },
+                                    {
+                                        "key": "gpsLongitude",
+                                        "title": "GPS-Longitude",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.gpsLongitude"
+                                    },
+                                    {
+                                        "key": "identifiers",
+                                        "title": "Identifiers",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.identifiers"
+                                    },
+                                    {
+                                        "key": "name",
+                                        "title": "Location Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.name"
+                                    },
+                                    {
+                                        "key": "provinceState",
+                                        "title": "Province State",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.provinceState"
+                                    },
+                                    {
+                                        "key": "sublocation",
+                                        "title": "Sub Location",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.sublocation"
+                                    },
+                                    {
+                                        "key": "worldRegion",
+                                        "title": "World Region",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.locationsShown.worldRegion"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "iptc_rights",
+                        "title": "Copyright and usage",
+                        "items": [
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.copyrightNotice",
+                                "title": "Copyright notice",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.copyrightOwners",
+                                "title": "Copyright owners",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.copyrightOwners.name"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.copyrightOwners.role"
+                                    },
+                                    {
+                                        "key": "identifiers",
+                                        "title": "Identifiers",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.copyrightOwners.identifiers"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.usageTerms",
+                                "title": "Usage terms",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.embdEncRightsExpr",
+                                "title": "Rights expression",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "encRightsExpr",
+                                        "title": "Encoded Rights Expression",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.embdEncRightsExpr.encRightsExpr"
+                                    },
+                                    {
+                                        "key": "rightsExprEncType",
+                                        "title": "Encoding type",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.embdEncRightsExpr.rightsExprEncType"
+                                    },
+                                    {
+                                        "key": "rightsExprLangId",
+                                        "title": "Rights Expression Language ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.embdEncRightsExpr.rightsExprLangId"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr",
+                                "title": "Linked rights expression",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "linkedRightsExpr",
+                                        "title": "Link to Encoded Rights Expression",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.linkedRightsExpr"
+                                    },
+                                    {
+                                        "key": "rightsExprEncType",
+                                        "title": "Encoding type",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.rightsExprEncType"
+                                    },
+                                    {
+                                        "key": "rightsExprLangId",
+                                        "title": "Rights Expression Language ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.linkedEncRightsExpr.rightsExprLangId"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.webstatementRights",
+                                "title": "Web statement rights",
+                                "type": "string",
+                                "display_options": {
+                                    "is_uri": true
+                                }
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.instructions",
+                                "title": "Instructions to users",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "iptc_content",
+                        "title": "People and objects",
+                        "items": [
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects",
+                                "title": "Art work or object",
+                                "type": "nested_array",
+                                "display_options": {
+                                    "renderer": "field_array_stacked",
+                                    "header_fields": [
+                                        "circaDateCreated"
+                                    ]
+                                },
+                                "props": [
+                                    {
+                                        "key": "circaDateCreated",
+                                        "title": "Circa Date Created",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.circaDateCreated"
+                                    },
+                                    {
+                                        "key": "contentDescription",
+                                        "title": "Content Description",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.contentDescription"
+                                    },
+                                    {
+                                        "key": "contributionDescription",
+                                        "title": "Contribution Description",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.contributionDescription"
+                                    },
+                                    {
+                                        "key": "copyrightNotice",
+                                        "title": "Copyright Notice",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.copyrightNotice"
+                                    },
+                                    {
+                                        "key": "creatorIdentifiers",
+                                        "title": "Creator Identifier",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.creatorIdentifiers"
+                                    },
+                                    {
+                                        "key": "creatorNames",
+                                        "title": "Creator Name",
+                                        "type": "simple_array",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.creatorNames",
+                                        "display_options": {
+                                            "renderer": "field_array_badge"
+                                        }
+                                    },
+                                    {
+                                        "key": "currentCopyrightOwnerIdentifier",
+                                        "title": "Current Copyright Owner",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.currentCopyrightOwnerIdentifier"
+                                    },
+                                    {
+                                        "key": "currentCopyrightOwnerName",
+                                        "title": "Current Copyright Owner Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.currentCopyrightOwnerName"
+                                    },
+                                    {
+                                        "key": "currentLicensorIdentifier",
+                                        "title": "Current Licensor ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.currentLicensorIdentifier"
+                                    },
+                                    {
+                                        "key": "currentLicensorName",
+                                        "title": "Current Licensor Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.currentLicensorName"
+                                    },
+                                    {
+                                        "key": "dateCreated",
+                                        "title": "Date Created",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.dateCreated"
+                                    },
+                                    {
+                                        "key": "physicalDescription",
+                                        "title": "Physical Description",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.physicalDescription"
+                                    },
+                                    {
+                                        "key": "source",
+                                        "title": "Source",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.source"
+                                    },
+                                    {
+                                        "key": "sourceInventoryNr",
+                                        "title": "Source Inventory Number",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.sourceInventoryNr"
+                                    },
+                                    {
+                                        "key": "sourceInventoryUrl",
+                                        "title": "Source Inventory URL",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.sourceInventoryUrl",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    },
+                                    {
+                                        "key": "stylePeriod",
+                                        "title": "Style Period",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.stylePeriod"
+                                    },
+                                    {
+                                        "key": "title",
+                                        "title": "Title",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.artworkOrObjects.title"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.personInImageNames",
+                                "title": "Persons shown (names)",
+                                "type": "simple_array",
+                                "display_options": {
+                                    "renderer": "field_array_badge"
+                                }
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.personsShown",
+                                "title": "Persons shown (detail)",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.personsShown.name"
+                                    },
+                                    {
+                                        "key": "description",
+                                        "title": "Description",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.personsShown.description"
+                                    },
+                                    {
+                                        "key": "identifiers",
+                                        "title": "Identifiers",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.personsShown.identifiers"
+                                    },
+                                    {
+                                        "key": "characteristics",
+                                        "title": "Characterstics",
+                                        "type": "array",
+                                        "props": [
+                                            {
+                                                "key": "cvId",
+                                                "title": "CV-Term CV ID {CV-Term detail}",
+                                                "type": "string",
+                                                "prop_key": "image_description.iptc.photoVideoMetadataIPTC.personsShown.characteristics.cvId"
+                                            },
+                                            {
+                                                "key": "cvTermName",
+                                                "title": "CV-Term Name",
+                                                "type": "string",
+                                                "prop_key": "image_description.iptc.photoVideoMetadataIPTC.personsShown.characteristics.description"
+                                            },
+                                            {
+                                                "key": "cvTermId",
+                                                "title": "CV-Term ID",
+                                                "type": "string",
+                                                "prop_key": "image_description.iptc.photoVideoMetadataIPTC.personsShown.characteristics.cvTermId"
+                                            },
+                                            {
+                                                "key": "cvTermRefinedAbout",
+                                                "title": "Refined 'about' Relationship of the CV-Term {CV-Term detail}",
+                                                "type": "string",
+                                                "prop_key": "image_description.iptc.photoVideoMetadataIPTC.personsShown.characteristics.cvTermRefinedAbout"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.modelAges",
+                                "title": "Model ages",
+                                "type": "simple_array",
+                                "display_options": {
+                                    "renderer": "field_array_badge"
+                                }
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.additionalModelInfo",
+                                "title": "Additional model information",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.minorModelAgeDisclosure",
+                                "title": "Minor model age disclosure",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.modelReleaseDocuments",
+                                "title": "Model release documents",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.modelReleaseStatus",
+                                "title": "Model release status",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "cvId",
+                                        "title": "CV-Term CV ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.modelReleaseStatus.cvId"
+                                    },
+                                    {
+                                        "key": "cvTermName",
+                                        "title": "CV-Term Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.modelReleaseStatus.cvTermName"
+                                    },
+                                    {
+                                        "key": "cvTermId",
+                                        "title": "CV-Term ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.modelReleaseStatus.cvTermId"
+                                    },
+                                    {
+                                        "key": "cvTermRefinedAbout",
+                                        "title": "About",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.modelReleaseStatus.cvTermRefinedAbout"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.organisationInImageNames",
+                                "title": "Organization in image name",
+                                "type": "simple_array",
+                                "display_options": {
+                                    "renderer": "field_array_badge"
+                                }
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.organisationInImageCodes",
+                                "title": "Organization in image codes",
+                                "type": "simple_array",
+                                "display_options": {
+                                    "renderer": "field_array_badge"
+                                }
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.productsShown",
+                                "title": "Products shown",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "description",
+                                        "title": "Description",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.productsShown.description"
+                                    },
+                                    {
+                                        "key": "gtin",
+                                        "title": "GTIN (Global Trade Item Number)",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.productsShown.gtin"
+                                    },
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.productsShown.name"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.maxAvailHeight",
+                                "title": "Maximum available height",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.maxAvailWidth",
+                                "title": "Maximum available width",
+                                "type": "string"
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.propertyReleaseStatus",
+                                "title": "Property release status",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "cvId",
+                                        "title": "CV-Term CV ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.propertyReleaseStatus.cvId"
+                                    },
+                                    {
+                                        "key": "cvTermName",
+                                        "title": "CV-Term Name",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.propertyReleaseStatus.cvTermName"
+                                    },
+                                    {
+                                        "key": "cvTermId",
+                                        "title": "CV-Term ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.propertyReleaseStatus.cvTermId"
+                                    },
+                                    {
+                                        "key": "cvTermRefinedAbout",
+                                        "title": "About",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.propertyReleaseStatus.cvTermRefinedAbout"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "image_description.iptc.photoVideoMetadataIPTC.propertyReleaseDocuments",
+                                "title": "Property release documents",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "license",
+                        "title": "License",
+                        "items": [
+                            {
+                                "key": "image_description.license",
+                                "title": "License",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "License",
+                                        "type": "string",
+                                        "prop_key": "image_description.license.name"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URI",
+                                        "type": "string",
+                                        "prop_key": "image_description.license.uri",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "metadata_production",
+                        "title": "Metadata production",
+                        "items": [
+                            {
+                                "key": "metadata_information.title",
+                                "title": "Document title",
+                                "type": "string"
+                            },
+                            {
+                                "key": "metadata_information.idno",
+                                "title": "Document identifier",
+                                "type": "string"
+                            },
+                            {
+                                "key": "metadata_information.producers",
+                                "title": "Metadata producer",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "metadata_information.producers.name"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "metadata_information.producers.abbr"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "metadata_information.producers.affiliation"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "metadata_information.producers.role"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "metadata_information.production_date",
+                                "title": "Production date",
+                                "type": "string"
+                            },
+                            {
+                                "key": "metadata_information.version",
+                                "title": "Document version",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "key": "datacite_container",
+                "title": "DataCite",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "datacite_section",
+                        "title": "DataCite",
+                        "items": [
+                            {
+                                "key": "datacite.doi",
+                                "title": "DOI",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.prefix",
+                                "title": "Prefix",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.suffix",
+                                "title": "Suffix",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.creators",
+                                "title": "Creators",
+                                "type": "nested_array",
+                                "display_options": {
+                                    "renderer": "field_array_stacked",
+                                    "header_fields": [
+                                        "name"
+                                    ]
+                                },
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "datacite.creators.name"
+                                    },
+                                    {
+                                        "key": "nameType",
+                                        "title": "Name type",
+                                        "type": "string",
+                                        "prop_key": "datacite.creators.nameType"
+                                    },
+                                    {
+                                        "key": "givenName",
+                                        "title": "Given name",
+                                        "type": "string",
+                                        "prop_key": "datacite.creators.givenName"
+                                    },
+                                    {
+                                        "key": "familyName",
+                                        "title": "Family name",
+                                        "type": "string",
+                                        "prop_key": "datacite.creators.familyName"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "array",
+                                        "prop_key": "datacite.creators.affiliation",
+                                        "props": [
+                                            {
+                                                "key": "affiliationIdentifier",
+                                                "title": "Affiliation identifier",
+                                                "type": "string",
+                                                "prop_key": "datacite.creators.affiliation.affiliationIdentifier"
+                                            },
+                                            {
+                                                "key": "affiliationIdentifierScheme",
+                                                "title": "Affiliation identifier scheme",
+                                                "type": "string",
+                                                "prop_key": "datacite.creators.affiliation.affiliationIdentifierScheme"
+                                            },
+                                            {
+                                                "key": "name",
+                                                "title": "Name",
+                                                "type": "string",
+                                                "prop_key": "datacite.creators.affiliation.name"
+                                            },
+                                            {
+                                                "key": "schemeUri",
+                                                "title": "Schema URI",
+                                                "type": "string",
+                                                "prop_key": "datacite.creators.affiliation.schemeUri"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "datacite.titles",
+                                "title": "Titles",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "title",
+                                        "title": "Title",
+                                        "type": "string",
+                                        "prop_key": "datacite.titles.title"
+                                    },
+                                    {
+                                        "key": "titleType",
+                                        "title": "Title type",
+                                        "type": "string",
+                                        "prop_key": "datacite.titles.titleType"
+                                    },
+                                    {
+                                        "key": "lang",
+                                        "title": "Language",
+                                        "type": "string",
+                                        "prop_key": "datacite.titles.lang"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "datacite.publisher",
+                                "title": "Publisher",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.publicationYear",
+                                "title": "Publication year",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.types.resourceType",
+                                "title": "Resource type",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.types.resourceTypeGeneral",
+                                "title": "Resource type general",
+                                "type": "string"
+                            },
+                            {
+                                "key": "datacite.url",
+                                "title": "URL",
+                                "type": "string",
+                                "display_options": {
+                                    "is_uri": true
+                                }
+                            },
+                            {
+                                "key": "datacite.language",
+                                "title": "Language",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "key": "provenance_container",
+                "title": "Provenance",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "provenance",
+                        "title": "Provenance",
+                        "items": [
+                            {
+                                "key": "provenance.original_repository.repository_name",
+                                "title": "Repository name",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.original_repository.url",
+                                "title": "URL",
+                                "type": "string",
+                                "display_options": {
+                                    "is_uri": true
+                                }
+                            },
+                            {
+                                "key": "provenance.original_repository.dataset_identifier",
+                                "title": "Dataset identifier",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.original_repository.doi",
+                                "title": "DOI",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.original_repository.dataset_title",
+                                "title": "Dataset title",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.original_repository.date_published",
+                                "title": "Dataset published date (YYYY-MM-DD)",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.original_repository.notes",
+                                "title": "Notes",
+                                "type": "string"
+                            },
+                            {
+                                "key": "provenance.source_repository",
+                                "title": "Source repositories",
+                                "type": "nested_array",
+                                "display_options": {
+                                    "renderer": "field_array_stacked",
+                                    "header_fields": [
+                                        "repository_name"
+                                    ]
+                                },
+                                "props": [
+                                    {
+                                        "key": "repository_name",
+                                        "title": "Repository name",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.repository_name"
+                                    },
+                                    {
+                                        "key": "url",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.url",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    },
+                                    {
+                                        "key": "dataset_identifier",
+                                        "title": "Dataset identifier",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.dataset_identifier"
+                                    },
+                                    {
+                                        "key": "dataset_title",
+                                        "title": "Dataset title",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.dataset_title"
+                                    },
+                                    {
+                                        "key": "date_acquired",
+                                        "title": "Date acquired (YYYY-MM-DD)",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.date_acquired"
+                                    },
+                                    {
+                                        "key": "acquisition_mode",
+                                        "title": "Acquisition mode",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.acquisition_mode"
+                                    },
+                                    {
+                                        "key": "notes",
+                                        "title": "Notes",
+                                        "type": "string",
+                                        "prop_key": "provenance.source_repository.notes"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "key": "additional_container",
+                "title": "Additional Fields",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "additional_section",
+                        "title": "Additional metadata",
+                        "items": [
+                            {
+                                "key": "additional",
+                                "title": "Additional metadata",
+                                "type": "object",
+                                "display_options": {
+                                    "renderer": "field_object_additional"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

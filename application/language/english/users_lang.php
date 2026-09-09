@@ -210,6 +210,8 @@ $lang['error_occurred']="An error occurred.";
 $lang['confirm_bulk_delete_users']="Are you sure you want to delete the selected user(s)? This cannot be undone.";
 $lang['confirm_bulk_activate_users']="Activate the selected user(s)?";
 $lang['confirm_bulk_deactivate_users']="Deactivate the selected user(s)?";
+$lang['export_to_csv']="Export to CSV";
+$lang['export_to_json']="Export to JSON";
 
 
 

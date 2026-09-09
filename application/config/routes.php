@@ -54,9 +54,52 @@ $route['translate_uri_dashes'] = FALSE;
 
 
 // Schema files served from application/schemas/ (web-inaccessible directory)
+$route['schemas/openapi/(:any)'] = 'schemas/openapi/$1';
 $route['schemas/(:any)'] = 'schemas/serve/$1';
 
 ///////////////////////// API routes ////////////////////////////////////////
+
+// Depositor Vue API (collaborator auth). Not api/datadeposits (legacy staff read)
+// and not api/admin/datadeposit (staff review).
+$route['api/datadeposit/(:num)/metadata'] = 'api/datadeposit/metadata/$1';
+$route['api/datadeposit/(:num)/submission'] = 'api/datadeposit/submission/$1';
+$route['api/datadeposit/(:num)/submit'] = 'api/datadeposit/submit/$1';
+$route['api/datadeposit/(:num)/files/delete'] = 'api/datadeposit/files_delete/$1';
+$route['api/datadeposit/(:num)/files/(:num)/download'] = 'api/datadeposit/files_download/$1/$2';
+$route['api/datadeposit/(:num)/files/(:num)'] = 'api/datadeposit/files_item/$1/$2';
+$route['api/datadeposit/(:num)/files'] = 'api/datadeposit/files/$1';
+$route['api/datadeposit/(:num)/delete'] = 'api/datadeposit/delete_item/$1';
+$route['api/datadeposit/(:num)/reopen'] = 'api/datadeposit/reopen/$1';
+$route['api/datadeposit/(:num)/email'] = 'api/datadeposit/email/$1';
+$route['api/datadeposit/(:num)/export/(:any)'] = 'api/datadeposit/export/$1/$2';
+$route['api/datadeposit/(:num)/validate'] = 'api/datadeposit/validate/$1';
+$route['api/datadeposit/(:num)/import'] = 'api/datadeposit/import/$1';
+$route['api/datadeposit/(:num)'] = 'api/datadeposit/item/$1';
+$route['api/datadeposit'] = 'api/datadeposit';
+
+// Staff data-deposit admin (ACL datadeposit). Not the depositor API above.
+$route['api/admin/datadeposit/projects/(:num)/files/(:num)/download'] = 'api/admin/datadeposit/projects_files_download/$1/$2';
+$route['api/admin/datadeposit/projects/(:num)/export/(:any)'] = 'api/admin/datadeposit/projects_export/$1/$2';
+$route['api/admin/datadeposit/projects/(:num)/process'] = 'api/admin/datadeposit/projects_process/$1';
+$route['api/admin/datadeposit/projects/(:num)/communicate'] = 'api/admin/datadeposit/projects_communicate/$1';
+$route['api/admin/datadeposit/projects/(:num)/history'] = 'api/admin/datadeposit/projects_history/$1';
+$route['api/admin/datadeposit/projects/(:num)/delete'] = 'api/admin/datadeposit/projects_delete/$1';
+$route['api/admin/datadeposit/projects/(:num)/assign'] = 'api/admin/datadeposit/projects_assign/$1';
+$route['api/admin/datadeposit/delete'] = 'api/admin/datadeposit/delete';
+$route['api/admin/datadeposit/tasks/my'] = 'api/admin/datadeposit/tasks_my';
+$route['api/admin/datadeposit/tasks/(:num)/update'] = 'api/admin/datadeposit/tasks_update/$1';
+$route['api/admin/datadeposit/tasks/(:num)/delete'] = 'api/admin/datadeposit/tasks_delete/$1';
+$route['api/admin/datadeposit/tasks/(:num)'] = 'api/admin/datadeposit/tasks_item/$1';
+$route['api/admin/datadeposit/tasks'] = 'api/admin/datadeposit/tasks';
+$route['api/admin/datadeposit/projects/(:num)'] = 'api/admin/datadeposit/projects/$1';
+$route['api/admin/datadeposit'] = 'api/admin/datadeposit';
+$route['api/admin/datadeposit/(:any)'] = 'api/admin/datadeposit/$1';
+
+// Legacy staff read API. Export/download use v2 (same as /api/admin/datadeposit).
+$route['api/datadeposits/(:num)/export/(:any)'] = 'api/datadeposits/export/$2/$1';
+$route['api/datadeposits/export/(:any)/(:num)'] = 'api/datadeposits/export/$1/$2';
+$route['api/datadeposits/(:num)/download/(:num)'] = 'api/datadeposits/download/$1/$2';
+$route['api/datadeposits/download/(:num)/(:num)'] = 'api/datadeposits/download/$1/$2';
 
 //data deposit project - resources
 $route['api/datadeposits/(:num)/resources'] = "api/datadeposits/resources/$1";
@@ -115,6 +158,11 @@ $route['api/admin/search-metadata-extract/studies/(:any)']      = 'api/admin/sea
 $route['api/admin/search-metadata-extract/studies']             = 'api/admin/search_metadata_extract/studies';
 $route['api/admin/search-metadata-extract/citations/(:num)']    = 'api/admin/search_metadata_extract/citations/$1';
 $route['api/admin/search-metadata-extract/variables/(:any)']     = 'api/admin/search_metadata_extract/variables/$1';
+
+$route['api/admin/search-index/status']                         = 'api/admin/search_index/status';
+$route['api/admin/search-index/queue/(:num)/ack']               = 'api/admin/search_index/ack/$1';
+$route['api/admin/search-index/queue']                          = 'api/admin/search_index/queue';
+$route['api/admin/search-index/requeue']                        = 'api/admin/search_index/requeue';
 
 $route['api/admin/catalog/data-access-codelist']         = 'api/admin/catalog/data_access_codelist';
 $route['api/admin/catalog/data-access-options']          = 'api/admin/catalog/data_access_options';
@@ -213,6 +261,8 @@ $route['api/collections/(:any)/datasets'] = "api/admin/collections/datasets/$1";
 $route['api/collections'] = 'api/admin/collections';
 $route['api/collections/(.*)'] = 'api/admin/collections/$1';
 
+$route['api/tables/import_errors/(:any)/(:any)'] = "api/tables/import_errors/$1/$2";
+
 //Tables API - fields endpoints (new format: /api/tables/fields/{db_id}/{table_id})
 $route['api/tables/fields/(:any)/(:any)/sync'] = "api/tables/fields_sync/$1/$2";
 $route['api/tables/fields/(:any)/(:any)/populate'] = "api/tables/fields_populate/$1/$2";
@@ -263,7 +313,7 @@ $route['catalog/(:num)/variable-groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/variable_groups'] = "study/variable_groups/$1";
 $route['catalog/(:num)/vargrp'] = "study/variable_groups/$1";
 
-//timeseries db info page
+// Indicator / timeseries study pages
 $route['catalog/(:num)/indicator-chart'] = "study/indicator_chart/$1";
 $route['catalog/(:num)/indicator-table'] = "study/indicator_table/$1";
 $route['catalog/(:num)/indicator-table-export'] = "study/indicator_table_export/$1";
@@ -273,7 +323,6 @@ $route['catalog/(:num)/indicator-observations'] = "study/redirect_indicator_obse
 $route['catalog/(:num)/indicator-structure'] = "study/indicator_structure/$1";
 // Legacy URL: redirects to indicator-chart (or observations/structure) with query preserved.
 $route['catalog/(:num)/indicator-data'] = "study/indicator_data/$1";
-$route['catalog/(:num)/timeseries-db'] = "study/timeseries_db/$1";
 $route['catalog/(:num)/related-series'] = "study/related_series/$1";
 
 $route['catalog/(:num)/variable-groups/(.*)'] = "study/variable_groups/$1/$2";
@@ -305,8 +354,6 @@ $route['catalog/(:num)/get_microdata'] = "study/get_microdata/$1";
 $route['catalog/(:num)/related_materials'] = "study/related_materials/$1";
 $route['catalog/(:num)/related-materials'] = "study/related_materials/$1";
 $route['catalog/(:num)/downloads'] = "study/downloads/$1";
-$route['catalog/(:num)/request-access'] = "study/request_access/$1";
-$route['catalog/(:num)/request-access/(.*)'] = "study/request_access/$1";
 $route['catalog/(:num)/related-datasets'] = "study/related_datasets/$1";
 $route['catalog/(:num)/pdf-documentation'] = "study/pdf_documentation/$1";
 $route['catalog/(:num)/data-api'] = "study/data_api/$1";
@@ -348,16 +395,21 @@ $route['api/dashboard/stats'] = "api/dashboard/stats";
 // Admin Site Configurations API — REST_Controller::_remap handles GET/PUT/PATCH/DELETE on
 // api/admin/configurations and POST aliases api/admin/configurations/save|patch|remove.
 
-// Admin Display Templates API
-$route['api/admin/templates/import']                          = 'api/admin/templates/import';
-$route['api/admin/templates/validate']                        = 'api/admin/templates/validate';
-$route['api/admin/templates/default/(:any)/(:any)']           = 'api/admin/templates/default/$1/$2';
-$route['api/admin/templates/(:any)/export']                   = 'api/admin/templates/export/$1';
-$route['api/admin/templates/(:any)/duplicate']                = 'api/admin/templates/duplicate/$1';
-$route['api/admin/templates/(:any)/delete']                   = 'api/admin/templates/delete/$1';
-$route['api/admin/templates/renderers/(:any)']                = 'api/admin/templates/renderers_by_type/$1';
-$route['api/admin/templates/renderers']                       = 'api/admin/templates/renderers';
-$route['api/admin/templates/(:any)']                          = 'api/admin/templates/item/$1';
+// Admin Display Template Manager API
+$route['api/admin/display_templates/import']                          = 'api/admin/display_templates/import';
+$route['api/admin/display_templates/validate']                        = 'api/admin/display_templates/validate';
+$route['api/admin/display_templates/default/(:any)/(:any)']           = 'api/admin/display_templates/default/$1/$2';
+$route['api/admin/display_templates/cores']                           = 'api/admin/display_templates/cores';
+$route['api/admin/display_templates/core/(:any)']                     = 'api/admin/display_templates/core/$1';
+$route['api/admin/display_templates/(:any)/translations/(:any)/remove'] = 'api/admin/display_templates/translation_remove/$1/$2';
+$route['api/admin/display_templates/(:any)/translations/(:any)']        = 'api/admin/display_templates/translation_item/$1/$2';
+$route['api/admin/display_templates/(:any)/translations']               = 'api/admin/display_templates/translations/$1';
+$route['api/admin/display_templates/(:any)/export']                   = 'api/admin/display_templates/export/$1';
+$route['api/admin/display_templates/(:any)/duplicate']                = 'api/admin/display_templates/duplicate/$1';
+$route['api/admin/display_templates/(:any)/delete']                   = 'api/admin/display_templates/delete/$1';
+$route['api/admin/display_templates/renderers/(:any)']                = 'api/admin/display_templates/renderers_by_type/$1';
+$route['api/admin/display_templates/renderers']                       = 'api/admin/display_templates/renderers';
+$route['api/admin/display_templates/(:any)']                          = 'api/admin/display_templates/item/$1';
 
 // Admin Codelists API (nested routes first)
 // REST_Controller::_remap: map to versions/$1 (not versions_get/$1) so versions_get is invoked.
@@ -446,11 +498,14 @@ $route['admin/catalog/batch-refresh'] = 'admin/catalog/batch_refresh_page';
 $route['admin/catalog/batch-generate'] = 'admin/catalog/batch_generate_page';
 
 //data deposit
-$route['admin/datadeposit/tasks/info/(.*)'] = "admin/datadeposittasks/info/$1";
+$route['admin/datadeposit/projects/(:num)/(:any)'] = 'admin/datadeposit/projects/$1/$2';
+$route['admin/datadeposit/projects/(:num)'] = 'admin/datadeposit/projects/$1';
+$route['admin/datadeposit/summary/(:num)'] = 'admin/datadeposit/summary/$1';
+$route['admin/datadeposit/tasks/info/(:num)'] = 'admin/datadeposit/task_info/$1';
 $route['admin/datadeposit/tasks/update/(:num)/(:num)'] = "admin/datadeposittasks/update/$1/$2";
 $route['admin/datadeposit/tasks/delete/(:num)'] = "admin/datadeposittasks/delete/$1";
-$route['admin/datadeposit/tasks/my_tasks'] = "admin/datadeposittasks/my_tasks";
-$route['admin/datadeposit/tasks'] = "admin/datadeposittasks";
+$route['admin/datadeposit/tasks/my_tasks'] = 'admin/datadeposit/my_tasks';
+$route['admin/datadeposit/tasks'] = 'admin/datadeposit/tasks';
 
 
 

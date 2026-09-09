@@ -2,7 +2,7 @@
   <div class="catalog-results-list">
     <!-- View options + sort bar -->
     <div class="results-toolbar d-flex align-center flex-wrap mb-4" style="gap: 12px;">
-      <div class="text-body-2 text-medium-emphasis flex-shrink-0">
+      <div class="catalog-results-count flex-shrink-0">
         {{ resultsCountLabel }}
       </div>
 
@@ -46,7 +46,7 @@
     </template>
 
     <div v-if="totalPages > 1" class="d-flex justify-space-between align-center mt-6 flex-wrap" style="gap: 12px;">
-      <div class="text-caption text-medium-emphasis">
+      <div class="catalog-pagination-status">
         {{ t('showing_pages', 'Page %s of %s', query.page, totalPages.toLocaleString()) }}
       </div>
       <v-pagination
@@ -67,15 +67,16 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import CatalogStudyCard from './CatalogStudyCard.vue';
 import CatalogSortSelect from './CatalogSortSelect.vue';
-import SemanticHitDebug from './SemanticHitDebug.vue';
 import CatalogPageSizeSelect from './CatalogPageSizeSelect.vue';
 import CatalogImageViewToggle from './CatalogImageViewToggle.vue';
-import CatalogImageGallery from './CatalogImageGallery.vue';
 import { catalogResultsRange } from '../catalogResultsRange';
+
+const SemanticHitDebug = defineAsyncComponent(() => import('./SemanticHitDebug.vue'));
+const CatalogImageGallery = defineAsyncComponent(() => import('./CatalogImageGallery.vue'));
 import {
   isImageTab as checkImageTab,
   isImageGalleryMode,

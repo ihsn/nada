@@ -26,7 +26,7 @@
           :aria-label="t('reset_search')"
           @click="onReset"
         >
-          <v-icon size="20" class="search-shell__icon-glyph">mdi-close-circle</v-icon>
+          <v-icon size="20" class="search-shell__icon-glyph">$mdi-close-circle</v-icon>
         </button>
       </Transition>
 
@@ -45,7 +45,7 @@
           width="2"
           class="search-shell__icon-glyph"
         />
-        <v-icon v-else size="22" class="search-shell__icon-glyph">mdi-magnify</v-icon>
+        <v-icon v-else size="22" class="search-shell__icon-glyph">$mdi-magnify</v-icon>
       </button>
     </form>
   </div>

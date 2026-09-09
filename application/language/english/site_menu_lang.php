@@ -28,6 +28,8 @@ $lang['Central Data Catalog']="Central Data Catalog";
 $lang['Facets']="Facets";
 $lang['Translate']="Translate";
 $lang['Data deposit']='Data deposit';
+$lang['Data tables']='Data tables';
+$lang['Display manager']='Display manager';
 $lang['Database migration']='Database updates';
 
 /* End of file site_menu_lang.php */

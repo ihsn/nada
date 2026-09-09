@@ -33,7 +33,6 @@ class Utils extends MY_REST_Controller
             }
 
             $rdf_fields=$this->rdf_parser->fields;
-            $rdf_fields['additional']='99';
 
             $result=array();
             foreach($rdf_array as $row){

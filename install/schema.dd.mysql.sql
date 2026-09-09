@@ -1,11 +1,12 @@
-
 --
--- Table structure for table `dd_citation_authors`
+-- Data deposit tables (MySQL)
+-- Used by the web installer and by migrations (execute_sql_file).
+-- Safe to re-run: CREATE IF NOT EXISTS + INSERT IGNORE. No DROP.
+-- Fresh dd_projects.schema_version defaults to 2. Existing catalogs that
+-- already have dd_projects keep their rows; column adds are a separate migration.
 --
 
-DROP TABLE IF EXISTS `dd_citation_authors`;
-
-CREATE TABLE `dd_citation_authors` (
+CREATE TABLE IF NOT EXISTS `dd_citation_authors` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `cid` int(11) DEFAULT NULL,
   `fname` varchar(255) DEFAULT NULL,
@@ -13,18 +14,9 @@ CREATE TABLE `dd_citation_authors` (
   `initial` varchar(255) DEFAULT NULL,
   `author_type` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
-
---
--- Table structure for table `dd_citations`
---
-
-DROP TABLE IF EXISTS `dd_citations`;
-
-
-CREATE TABLE `dd_citations` (
+CREATE TABLE IF NOT EXISTS `dd_citations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pid` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
@@ -61,34 +53,17 @@ CREATE TABLE `dd_citations` (
   `owner` varchar(255) DEFAULT NULL,
   `country` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-)  AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
---
--- Table structure for table `dd_collaborators`
---
-
-DROP TABLE IF EXISTS `dd_collaborators`;
-
-
-CREATE TABLE `dd_collaborators` (
+CREATE TABLE IF NOT EXISTS `dd_collaborators` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pid` int(11) NOT NULL,
   `email` varchar(255) NOT NULL,
   `access` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-)  AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
-
---
--- Table structure for table `dd_datadeposit_history`
---
-
-DROP TABLE IF EXISTS `dd_datadeposit_history`;
-
-
-CREATE TABLE `dd_datadeposit_history` (
+CREATE TABLE IF NOT EXISTS `dd_datadeposit_history` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `project_id` int(11) NOT NULL,
   `user_identity` varchar(100) NOT NULL,
@@ -96,66 +71,50 @@ CREATE TABLE `dd_datadeposit_history` (
   `project_status` varchar(100) NOT NULL,
   `comments` text,
   PRIMARY KEY (`id`)
-)  AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
-
---
--- Table structure for table `dd_kind_of_data`
---
-
-DROP TABLE IF EXISTS `dd_kind_of_data`;
-
-
-CREATE TABLE `dd_kind_of_data` (
+CREATE TABLE IF NOT EXISTS `dd_kind_of_data` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `kindofdata` varchar(200) NOT NULL,
   PRIMARY KEY (`id`)
-)  AUTO_INCREMENT=11 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+INSERT IGNORE INTO `dd_kind_of_data` (`id`, `kindofdata`) VALUES
+(1,'--'),
+(2,'Sample survey data [ssd]'),
+(3,'Census/enumeration data [cen]'),
+(4,'Administrative records data [adm]'),
+(5,'Aggregate data [agg]'),
+(6,'Clinical data [cli]'),
+(7,'Event/Transaction data [evn]'),
+(8,'Observation data/ratings [obs]'),
+(9,'Process-produced data [pro]'),
+(10,'Time budget dairies [tbd]');
 
---
--- Dumping data for table `dd_kind_of_data`
---
-
-LOCK TABLES `dd_kind_of_data` WRITE;
-/*!40000 ALTER TABLE `dd_kind_of_data` DISABLE KEYS */;
-INSERT INTO `dd_kind_of_data` VALUES (1,'--'),(2,'Sample survey data [ssd]'),(3,'Census/enumeration data [cen]'),(4,'Administrative records data [adm]'),(5,'Aggregate data [agg]'),(6,'Clinical data [cli]'),(7,'Event/Transaction data [evn]'),(8,'Observation data/ratings [obs]'),(9,'Process-produced data [pro]'),(10,'Time budget dairies [tbd]');
-/*!40000 ALTER TABLE `dd_kind_of_data` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `dd_overview_methods`
---
-
-DROP TABLE IF EXISTS `dd_overview_methods`;
-
-
-CREATE TABLE `dd_overview_methods` (
+CREATE TABLE IF NOT EXISTS `dd_overview_methods` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `method` text NOT NULL,
   PRIMARY KEY (`id`)
-)  AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+INSERT IGNORE INTO `dd_overview_methods` (`id`, `method`) VALUES
+(1,'--'),
+(2,'Propensity Score Matching'),
+(3,'Pipeline Comparison'),
+(4,'Other Matching Methods'),
+(5,'Instrumental Variables'),
+(6,'Simulated Counterfactual'),
+(7,'Single Difference'),
+(8,'Difference in Means'),
+(9,'Difference-in-Difference'),
+(10,'Regression Discontinuity Design'),
+(11,'Duration Model'),
+(12,'Non-Experimental'),
+(13,'Natural Experiment'),
+(14,'Other'),
+(15,'Randomization');
 
---
--- Dumping data for table `dd_overview_methods`
---
-
-LOCK TABLES `dd_overview_methods` WRITE;
-/*!40000 ALTER TABLE `dd_overview_methods` DISABLE KEYS */;
-INSERT INTO `dd_overview_methods` VALUES (1,'--'),(2,'Propensity Score Matching'),(3,'Pipeline Comparison'),(4,'Other Matching Methods'),(5,'Instrumental Variables'),(6,'Simulated Counterfactual'),(7,'Single Difference'),(8,'Difference in Means'),(9,'Difference-in-Difference'),(10,'Regression Discontinuity Design'),(11,'Duration Model'),(12,'Non-Experimental'),(13,'Natural Experiment'),(14,'Other'),(15,'Randomization');
-/*!40000 ALTER TABLE `dd_overview_methods` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `dd_project_resources`
---
-
-DROP TABLE IF EXISTS `dd_project_resources`;
-
-
-CREATE TABLE `dd_project_resources` (
+CREATE TABLE IF NOT EXISTS `dd_project_resources` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `project_id` int(11) DEFAULT NULL,
   `title` varchar(255) DEFAULT NULL,
@@ -167,42 +126,22 @@ CREATE TABLE `dd_project_resources` (
   `dcformat` varchar(100) DEFAULT NULL,
   `filesize` double DEFAULT NULL,
   PRIMARY KEY (`id`)
-)  AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
-
---
--- Table structure for table `dd_project_status_types`
---
-
-DROP TABLE IF EXISTS `dd_project_status_types`;
-
-
-CREATE TABLE `dd_project_status_types` (
+CREATE TABLE IF NOT EXISTS `dd_project_status_types` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `status` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-)  AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+INSERT IGNORE INTO `dd_project_status_types` (`id`, `status`) VALUES
+(1,'submitted'),
+(2,'accepted'),
+(3,'draft'),
+(4,'closed'),
+(5,'processed');
 
---
--- Dumping data for table `dd_project_status_types`
---
-
-LOCK TABLES `dd_project_status_types` WRITE;
-/*!40000 ALTER TABLE `dd_project_status_types` DISABLE KEYS */;
-INSERT INTO `dd_project_status_types` VALUES (1,'submitted'),(2,'accepted'),(3,'draft'),(4,'closed');
-/*!40000 ALTER TABLE `dd_project_status_types` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `dd_projects`
---
-
-DROP TABLE IF EXISTS `dd_projects`;
-
-
-CREATE TABLE `dd_projects` (
+CREATE TABLE IF NOT EXISTS `dd_projects` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `created_by` varchar(300) NOT NULL,
   `title` varchar(300) NOT NULL,
@@ -210,6 +149,7 @@ CREATE TABLE `dd_projects` (
   `data_type` varchar(20) DEFAULT NULL,
   `last_modified` int(11) NOT NULL,
   `status` varchar(20) NOT NULL DEFAULT 'draft',
+  `schema_version` tinyint unsigned NOT NULL DEFAULT 2,
   `description` text NOT NULL,
   `shortname` varchar(50) NOT NULL,
   `collaborators` text,
@@ -229,25 +169,17 @@ CREATE TABLE `dd_projects` (
   `to_catalog` varchar(45) DEFAULT NULL,
   `is_embargoed` int(11) DEFAULT NULL,
   `embargoed` varchar(500) DEFAULT NULL,
-  `disclosure_risk` varchar(500) DEFAULT NULL, 
-  `key_variables` varchar(500) DEFAULT NULL, 
-  `sensitive_variables` varchar(500) DEFAULT NULL, 
+  `disclosure_risk` varchar(500) DEFAULT NULL,
+  `key_variables` varchar(500) DEFAULT NULL,
+  `sensitive_variables` varchar(500) DEFAULT NULL,
   `requested_reopen` tinyint(4) DEFAULT NULL,
   `requested_when` int(11) DEFAULT NULL,
-  `metadata` text,
+  `metadata` mediumtext,
+  `submission` mediumtext,
   PRIMARY KEY (`id`)
-)  AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
-
---
--- Table structure for table `dd_study`
---
-
-DROP TABLE IF EXISTS `dd_study`;
-
-
-CREATE TABLE `dd_study` (
+CREATE TABLE IF NOT EXISTS `dd_study` (
   `id` int(11) NOT NULL DEFAULT '0',
   `ident_title` text,
   `ident_abbr` text,
@@ -310,42 +242,34 @@ CREATE TABLE `dd_study` (
   `impact_wb_members` text,
   `impact_wb_description` text,
   PRIMARY KEY (`id`)
-)  DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
-
---
--- Table structure for table `dd_study_type`
---
-
-DROP TABLE IF EXISTS `dd_study_type`;
-
-
-CREATE TABLE `dd_study_type` (
+CREATE TABLE IF NOT EXISTS `dd_study_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `studytype` varchar(250) NOT NULL,
   PRIMARY KEY (`id`)
-)  AUTO_INCREMENT=18 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+INSERT IGNORE INTO `dd_study_type` (`id`, `studytype`) VALUES
+(1,'--'),
+(2,'1-2-3 Survey, phase 3 [hh/123-3]'),
+(3,'Administrative Records, Health [ad/hea]'),
+(4,'Administrative Records, Education [ad/edu]'),
+(5,'Administrative Records, Other [ad/oth]'),
+(6,'Aggricultural Census [ag/census]'),
+(7,'Agricultural Survey [ag/oth]'),
+(8,'Child Labor Survey [hh/cls]'),
+(9,'Core Welfare Indicators Questionnaire [hh/cwiq]'),
+(10,'Demographic and Health Survey [hh/dhs]'),
+(11,'Demographic and Health Survey, Round 1 [hh/dhs-1]'),
+(12,'Demographic and Health Survey, Round 2 [hh/dhs-2]'),
+(13,'Demographic and Health Survey, Round 3 [hh/dhs-3]'),
+(14,'Demographic and Health Survey, Round 4 [hh/dhs-4]'),
+(15,'Demographic and Health Survey, Interim [hh/dhs-int]'),
+(16,'Demographic and Health Survey, Special [hh/dhs-sp]'),
+(17,'Enterprise Survey [en/oth]');
 
---
--- Dumping data for table `dd_study_type`
---
-
-LOCK TABLES `dd_study_type` WRITE;
-/*!40000 ALTER TABLE `dd_study_type` DISABLE KEYS */;
-INSERT INTO `dd_study_type` VALUES (1,'--'),(2,'1-2-3 Survey, phase 3 [hh/123-3]'),(3,'Administrative Records, Health [ad/hea]'),(4,'Administrative Records, Education [ad/edu]'),(5,'Administrative Records, Other [ad/oth]'),(6,'Aggricultural Census [ag/census]'),(7,'Agricultural Survey [ag/oth]'),(8,'Child Labor Survey [hh/cls]'),(9,'Core Welfare Indicators Questionnaire [hh/cwiq]'),(10,'Demographic and Health Survey [hh/dhs]'),(11,'Demographic and Health Survey, Round 1 [hh/dhs-1]'),(12,'Demographic and Health Survey, Round 2 [hh/dhs-2]'),(13,'Demographic and Health Survey, Round 3 [hh/dhs-3]'),(14,'Demographic and Health Survey, Round 4 [hh/dhs-4]'),(15,'Demographic and Health Survey, Interim [hh/dhs-int]'),(16,'Demographic and Health Survey, Special [hh/dhs-sp]'),(17,'Enterprise Survey [en/oth]');
-/*!40000 ALTER TABLE `dd_study_type` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `dd_tasks`
---
-
-DROP TABLE IF EXISTS `dd_tasks`;
-
-
-CREATE TABLE `dd_tasks` (
+CREATE TABLE IF NOT EXISTS `dd_tasks` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `project_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
@@ -355,29 +279,10 @@ CREATE TABLE `dd_tasks` (
   `status` int(11) NOT NULL,
   `comments` text,
   PRIMARY KEY (`id`)
-)  DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
-
---
--- Table structure for table `dd_tasks_team`
---
-
-DROP TABLE IF EXISTS `dd_tasks_team`;
-
-
-CREATE TABLE `dd_tasks_team` (
+CREATE TABLE IF NOT EXISTS `dd_tasks_team` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-)  DEFAULT CHARSET=utf8;
-
-
-
---
--- Add data deposit to site admin menu
---
-
-INSERT INTO `site_menu` VALUES 
-(100,0,'Data deposit','admin/datadeposit',100,0,'datadeposit');
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

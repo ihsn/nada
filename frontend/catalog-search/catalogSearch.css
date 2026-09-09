@@ -1,0 +1,29 @@
+/**
+ * Public catalog search — type scale and body size.
+ * Imported after @/assets/base.css so 16px wins over the admin 14px default.
+ * Tokens live in themes/nada52/css/catalog-vue-chrome.css (loaded on the PHP shell).
+ */
+
+body {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.catalog-vue-wrapper,
+#public-catalog-vue-app,
+.catalog-vue-wrapper .v-application {
+  font-size: 16px;
+  color: var(--catalog-text, #1a2332);
+}
+
+.catalog-results-count {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--catalog-text, #1a2332);
+}
+
+.catalog-pagination-status {
+  font-size: var(--catalog-font-ui, 0.875rem);
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
+}

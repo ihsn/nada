@@ -3,12 +3,41 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 import path from 'path'
+import { fileURLToPath } from 'url'
+import { adminEntries, publicEntries, allEntries } from './vite.entries.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+/**
+ * VITE_BUILD_TARGET:
+ * - unset / "all"  — every entry (dev server; single-graph prod if used alone)
+ * - "admin"        — admin entries only (isolated chunk graph)
+ * - "public"       — public catalog / PDF entries only (isolated chunk graph)
+ *
+ * Production builds use scripts/build-frontend.mjs (admin then public, merge manifests)
+ * so the public catalog never shares vendor chunks with admin.
+ */
+function resolveEntries(target) {
+  if (target === 'admin') return adminEntries
+  if (target === 'public') return publicEntries
+  return allEntries
+}
+
+function resolveManifest(target) {
+  if (target === 'admin') return '.vite/manifest-admin.json'
+  if (target === 'public') return '.vite/manifest-public.json'
+  return true
+}
 
 // https://vite.dev/config/
 // Use relative base so the build is portable. PHP passes full asset URLs when loading
 // (base_url() in script/link tags), so the correct base is determined at runtime.
 export default defineConfig(({ command }) => {
-  const isDev = command === 'serve';
+  const isDev = command === 'serve'
+  const buildTarget = (process.env.VITE_BUILD_TARGET || 'all').toLowerCase()
+  const entries = resolveEntries(buildTarget)
+  const emptyOutDir = buildTarget === 'admin' || buildTarget === 'all'
+
   return {
     plugins: [
       vue({
@@ -24,38 +53,18 @@ export default defineConfig(({ command }) => {
     },
     base: isDev ? '/' : './',
     build: {
-      manifest: true,
+      manifest: resolveManifest(buildTarget),
+      emptyOutDir,
       rollupOptions: {
-        input: {
-          admin_header: path.resolve(__dirname, 'admin/header/main.js'),
-          admin_dashboard: path.resolve(__dirname, 'admin/dashboard/main.js'),
-          admin_catalog: path.resolve(__dirname, 'admin/catalog/main.js'),
-          admin_catalog_study_overview: path.resolve(__dirname, 'admin/catalog_study_overview/main.js'),
-          admin_catalog_study_files: path.resolve(__dirname, 'admin/catalog_study_files/main.js'),
-          admin_catalog_study_resources: path.resolve(__dirname, 'admin/catalog_study_resources/main.js'),
-          admin_catalog_study_citations: path.resolve(__dirname, 'admin/catalog_study_citations/main.js'),
-          admin_catalog_study_notes: path.resolve(__dirname, 'admin/catalog_study_notes/main.js'),
-          admin_catalog_study_related_data: path.resolve(__dirname, 'admin/catalog_study_related_data/main.js'),
-          admin_catalog_study_analytics: path.resolve(__dirname, 'admin/catalog_study_analytics/main.js'),
-          admin_catalog_study_sidebar: path.resolve(__dirname, 'admin/catalog_study_sidebar/main.js'),
-          admin_catalog_study_edit_breadcrumbs: path.resolve(__dirname, 'admin/catalog_study_edit_breadcrumbs/main.js'),
-          admin_ddi_upload: path.resolve(__dirname, 'admin/ddi_upload/main.js'),
-          admin_licensed_requests: path.resolve(__dirname, 'admin/licensed_requests/main.js'),
-          admin_bulk_data_access: path.resolve(__dirname, 'admin/bulk_data_access/main.js'),
-          admin_codelists: path.resolve(__dirname, 'admin/codelists/main.js'),
-          admin_data_structures: path.resolve(__dirname, 'admin/data_structures/main.js'),
-          admin_templates: path.resolve(__dirname, 'admin/templates/main.js'),
-          admin_study_timeseries_data: path.resolve(__dirname, 'admin/study_timeseries_data/main.js'),
-          catalog_study_indicator_data: path.resolve(__dirname, 'catalog/study_indicator_data_public/main.js'),
-          admin_collections: path.resolve(__dirname, 'admin/collections/main.js'),
-          admin_site_configurations: path.resolve(__dirname, 'admin/site_configurations/main.js'),
-          admin_ui_kit: path.resolve(__dirname, 'admin/ui_kit/main.js'),
-          admin_tables: path.resolve(__dirname, 'admin/tables/main.js'),
-          admin_facets: path.resolve(__dirname, 'admin/facets/main.js'),
-          admin_menu: path.resolve(__dirname, 'admin/menu/main.js'),
-          catalog_search: path.resolve(__dirname, 'catalog-search/main.js'),
-          pdf_viewer: path.resolve(__dirname, 'pdf-viewer/main.js'),
-        },
+        input: entries,
+        output: buildTarget === 'admin' || buildTarget === 'public'
+          ? {
+              // Separate folders so public never reuses admin chunk filenames.
+              entryFileNames: `assets/${buildTarget}/[name]-[hash].js`,
+              chunkFileNames: `assets/${buildTarget}/[name]-[hash].js`,
+              assetFileNames: `assets/${buildTarget}/[name]-[hash][extname]`,
+            }
+          : undefined,
       },
       outDir: 'dist',
     },

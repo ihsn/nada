@@ -20,44 +20,19 @@ class Events extends Emitter {
     function __construct()
     {
         $this->ci = &get_instance();
-        $this->solr_listeners();
-        $this->opensearch_listeners();
-    }
-
-
-    /**
-     * Event listeners for SOLR indexing
-     */
-    function solr_listeners()
-    {
-        $search_provider = $this->ci->config->item('search_provider');
-
-        if ($search_provider !== 'solr') {
-            return;
-        }
-
-        $this->ci->load->library('Solr_manager');
-
-        $this->_add_delta_listeners(function($object_type, $object_id, $action) {
-            $this->ci->solr_manager->process_delta_update($object_type, $action, $object_id);
-        });
+        $this->search_index_listeners();
     }
 
     /**
-     * Event listeners for OpenSearch indexing
+     * Queue catalog changes for the configured search provider.
+     * Database search is a no-op inside Search_index_manager.
      */
-    function opensearch_listeners()
+    function search_index_listeners()
     {
-        $search_provider = $this->ci->config->item('search_provider');
+        $this->ci->load->library('Search_index_manager');
 
-        if ($search_provider !== 'opensearch') {
-            return;
-        }
-
-        $this->ci->load->library('OpenSearch/OpenSearch_manager');
-
-        $this->_add_delta_listeners(function($object_type, $object_id, $action) {
-            $this->ci->opensearch_manager->process_delta_update($object_type, $action, $object_id);
+        $this->_add_delta_listeners(function($object_type, $object_id, $action, $is_delete) {
+            $this->ci->search_index_manager->handle_event($object_type, $object_id, $action, $is_delete);
         });
     }
 
@@ -65,7 +40,7 @@ class Events extends Emitter {
      * Register db.after.update and db.after.delete listeners that call $handler
      * for each object_id (scalar or array).
      *
-     * @param callable $handler  function(string $object_type, int $object_id, string $action)
+     * @param callable $handler  function(string $object_type, int $object_id, string $action, bool $is_delete)
      */
     private function _add_delta_listeners(callable $handler)
     {
@@ -74,11 +49,10 @@ class Events extends Emitter {
             $ids = is_array($object_id) ? $object_id : array($object_id);
             try {
                 foreach ($ids as $id) {
-                    $handler($object_type, $id, $action);
+                    $handler($object_type, $id, $action, false);
                 }
             } catch (Exception $e) {
                 log_message('error', 'event-exception - ' . $e->getMessage());
-                throw $e;
             }
         });
 
@@ -87,11 +61,10 @@ class Events extends Emitter {
             $ids = is_array($object_id) ? $object_id : array($object_id);
             try {
                 foreach ($ids as $id) {
-                    $handler($object_type, $id, $action);
+                    $handler($object_type, $id, $action, true);
                 }
             } catch (Exception $e) {
                 log_message('error', 'event-exception - ' . $e->getMessage());
-                throw $e;
             }
         });
     }

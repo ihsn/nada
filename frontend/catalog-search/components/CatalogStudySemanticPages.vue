@@ -11,13 +11,13 @@
           size="18"
           class="study-semantic-pages-block__heading-icon"
         >
-          mdi-file-pdf-box
+          $mdi-file-pdf-box
         </v-icon>
         <span class="study-semantic-pages-block__heading">
           {{ summaryLabel }}
         </span>
         <v-icon
-          :icon="expanded ? 'mdi-chevron-down' : 'mdi-chevron-right'"
+          :icon="expanded ? '$mdi-chevron-down' : '$mdi-chevron-right'"
           size="18"
           class="study-semantic-pages-block__chevron"
         />
@@ -28,7 +28,7 @@
         @click.stop="openTopPage"
       >
         <v-icon size="14" class="study-semantic-pages-block__preview-link-icon">
-          mdi-eye-outline
+          $mdi-eye-outline
         </v-icon>
         {{ `${t('preview')} ${t('download_pdf')}` }}
       </button>
@@ -47,7 +47,7 @@
             @click="openPage(pageHit)"
           >
             <span class="study-semantic-pages-block__page">
-              <v-icon size="14" class="study-semantic-pages-block__page-icon">mdi-file-pdf-box</v-icon>
+              <v-icon size="14" class="study-semantic-pages-block__page-icon">$mdi-file-pdf-box</v-icon>
               {{ pageTitle(pageHit) }}
             </span>
             <span v-if="hitExcerpt(pageHit)" class="study-semantic-pages-block__excerpt">
@@ -59,6 +59,7 @@
     </div>
 
     <CatalogDocumentPdfDialog
+      v-if="pdfDialogOpen"
       v-model="pdfDialogOpen"
       :row="row"
       :page-hit="pdfPageHit"
@@ -67,9 +68,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
-import CatalogDocumentPdfDialog from './CatalogDocumentPdfDialog.vue';
+
+const CatalogDocumentPdfDialog = defineAsyncComponent(
+  () => import('./CatalogDocumentPdfDialog.vue')
+);
 
 defineOptions({ name: 'CatalogStudySemanticPages' });
 
@@ -164,13 +168,13 @@ watch(
   text-align: left;
   cursor: pointer;
   color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
-  font-size: 0.875rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   line-height: 1.4;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .study-semantic-pages-block__toggle:hover {
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   background: rgba(255, 255, 255, 0.55);
 }
 
@@ -201,9 +205,9 @@ watch(
   padding: 4px 6px;
   background: transparent;
   cursor: pointer;
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   font-weight: 500;
-  font-size: 0.75rem;
+  font-size: var(--catalog-font-small, 0.75rem);
   line-height: 1.3;
   white-space: nowrap;
 }
@@ -265,9 +269,9 @@ watch(
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-weight: 600;
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   line-height: 1.3;
 }
 
@@ -277,7 +281,7 @@ watch(
 }
 
 .study-semantic-pages-block__excerpt {
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   line-height: 1.45;
   color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
   overflow-wrap: anywhere;

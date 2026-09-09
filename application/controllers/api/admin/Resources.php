@@ -210,9 +210,7 @@ class Resources extends MY_REST_Controller
 						throw new Exception("SURVEY_FOLDER_NOT_FOUND");
 					}
 					$dest_file = unix_path($survey_folder . '/' . basename($final_file));
-					if (!copy($final_file, $dest_file)) {
-						throw new Exception("FILE_COPY_FAILED");
-					}
+					$this->uploader->relocate_file($final_file, $dest_file, false);
 
 					$options['filename'] = basename($final_file);
 					$upload_result = [

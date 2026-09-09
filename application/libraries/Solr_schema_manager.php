@@ -874,7 +874,7 @@ class Solr_schema_manager {
             if (in_array($key, $updatable_properties)) {
                 $update_data[$key] = $value;
             } else {
-                log_message('warning', 'Property \'' . $key . '\' cannot be updated for field \'' . $field_name . '\'');
+                log_message('error', 'Property \'' . $key . '\' cannot be updated for field \'' . $field_name . '\'');
             }
         }
         

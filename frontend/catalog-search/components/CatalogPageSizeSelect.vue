@@ -1,6 +1,6 @@
 <template>
   <div class="catalog-page-size">
-    <span class="catalog-page-size__label text-caption text-medium-emphasis">
+    <span class="catalog-page-size__label">
       {{ t('select_number_of_records_per_page') }}:
     </span>
     <div class="catalog-page-size__options" role="group" :aria-label="t('select_number_of_records_per_page')">
@@ -45,7 +45,9 @@ const PAGE_SIZES = [15, 30, 50];
 }
 
 .catalog-page-size__label {
+  font-size: var(--catalog-font-ui, 0.875rem);
   line-height: 1.4;
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 
 .catalog-page-size__options {
@@ -65,8 +67,8 @@ const PAGE_SIZES = [15, 30, 50];
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 4px;
   background: #e9ecef;
-  color: rgb(var(--v-theme-primary, 25, 118, 210));
-  font-size: 12px;
+  color: rgb(var(--v-theme-primary, 21, 101, 192));
+  font-size: var(--catalog-font-small, 0.75rem);
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
@@ -79,19 +81,19 @@ const PAGE_SIZES = [15, 30, 50];
 }
 
 .catalog-page-size__btn:focus-visible {
-  outline: 2px solid rgb(var(--v-theme-primary, 25, 118, 210));
+  outline: 2px solid rgb(var(--v-theme-primary, 21, 101, 192));
   outline-offset: 2px;
 }
 
 .catalog-page-size__btn--active {
-  background: rgb(var(--v-theme-primary, 25, 118, 210));
-  border-color: rgb(var(--v-theme-primary, 25, 118, 210));
+  background: rgb(var(--v-theme-primary, 21, 101, 192));
+  border-color: rgb(var(--v-theme-primary, 21, 101, 192));
   color: #fff;
   font-weight: 600;
 }
 
 .catalog-page-size__btn--active:hover {
-  background: rgb(var(--v-theme-primary, 25, 118, 210));
+  background: rgb(var(--v-theme-primary, 21, 101, 192));
   filter: brightness(0.95);
 }
 </style>

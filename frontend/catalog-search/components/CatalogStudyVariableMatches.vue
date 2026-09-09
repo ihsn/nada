@@ -10,7 +10,7 @@
         {{ summaryLabel }}
       </span>
       <v-icon
-        :icon="expanded ? 'mdi-chevron-down' : 'mdi-chevron-right'"
+        :icon="expanded ? '$mdi-chevron-down' : '$mdi-chevron-right'"
         size="18"
         class="study-variable-matches__chevron"
       />
@@ -114,6 +114,7 @@
     </div>
 
     <CatalogVariableDetailDialog
+      v-if="detailOpen"
       v-model="detailOpen"
       :study-id="row.id"
       :variable="detailVariable"
@@ -122,11 +123,14 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useVariableCompareCart } from '../composables/useVariableCompareCart';
-import CatalogVariableDetailDialog from './CatalogVariableDetailDialog.vue';
+
+const CatalogVariableDetailDialog = defineAsyncComponent(
+  () => import('./CatalogVariableDetailDialog.vue')
+);
 
 defineOptions({ name: 'CatalogStudyVariableMatches' });
 
@@ -299,13 +303,13 @@ function onToggle() {
   text-align: left;
   cursor: pointer;
   color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
-  font-size: 0.875rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   line-height: 1.4;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .study-variable-matches__toggle:hover {
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   background: rgba(255, 255, 255, 0.55);
 }
 
@@ -345,7 +349,7 @@ function onToggle() {
 .study-variable-matches__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
 }
 
 .study-variable-matches__table th,
@@ -358,7 +362,7 @@ function onToggle() {
 
 .study-variable-matches__table th {
   font-weight: 600;
-  color: rgba(26, 35, 50, 0.55);
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
   background: #fff;
   position: sticky;
   top: 0;
@@ -379,7 +383,7 @@ function onToggle() {
   background: transparent;
   text-align: left;
   cursor: pointer;
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   font-weight: 500;
   font-size: inherit;
   font-family: inherit;
@@ -396,7 +400,7 @@ function onToggle() {
 }
 
 .study-variable-matches__var-link--label:hover {
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
 }
 
 .study-variable-matches__file {
@@ -421,9 +425,9 @@ function onToggle() {
   border: 0;
   padding: 0;
   background: transparent;
-  font-size: 0.75rem;
+  font-size: var(--catalog-font-small, 0.75rem);
   font-weight: 600;
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   cursor: pointer;
   text-transform: capitalize;
 }

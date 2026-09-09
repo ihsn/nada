@@ -82,24 +82,29 @@
         <v-card-title class="d-flex align-center">
           Upload CSV or ZIP file
           <v-spacer />
-          <v-btn icon="mdi-close" variant="text" @click="showUploadDialog = false" />
+          <v-btn icon="mdi-close" variant="text" :disabled="uploading || deleting || importing" @click="showUploadDialog = false" />
         </v-card-title>
         <v-card-text>
-          <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
+          <p class="text-body-2 text-medium-emphasis mt-2 mb-4">
             Uploading data will delete all existing data in this table and replace it. This cannot be undone.
-          </v-alert>
+          </p>
+          <div class="text-caption text-medium-emphasis mb-1">CSV or ZIP file</div>
           <v-file-input
             v-model="uploadFile"
-            label="Select CSV or ZIP file"
             accept=".csv,.zip"
             variant="outlined"
             density="compact"
-            prepend-icon="mdi-file-upload"
+            :prepend-icon="false"
+            prepend-inner-icon="mdi-file-upload"
+            placeholder="Choose file…"
             show-size
+            clearable
+            hide-details
             :disabled="uploading || deleting || importing"
           />
           <v-switch
             v-model="syncFieldsAfterImport"
+            color="primary"
             label="Sync fields after import (remove fields not in data)"
             density="compact"
             hide-details
@@ -122,12 +127,24 @@
           </v-alert>
           <v-alert v-if="importStatus" :type="importAlertType" variant="tonal" density="compact" class="mt-4">
             <div class="font-weight-medium mb-2">{{ importStatus.message }}</div>
+            <div v-if="importStatus.summary" class="text-caption mb-2">{{ importStatus.summary }}</div>
             <v-progress-linear
               v-if="importStatus.progress_percent !== undefined && importing"
               :model-value="importStatus.progress_percent"
               height="20"
               rounded
             />
+            <v-btn
+              v-if="importStatus.errors_count > 0 && !importing"
+              size="small"
+              class="mt-2"
+              variant="outlined"
+              prepend-icon="mdi-download"
+              :loading="downloadingErrors"
+              @click="downloadErrors"
+            >
+              Download skipped-row log ({{ importStatus.errors_count.toLocaleString() }})
+            </v-btn>
           </v-alert>
         </v-card-text>
         <v-card-actions>
@@ -139,11 +156,11 @@
           <v-btn
             color="primary"
             :loading="uploading || deleting || importing"
-            :disabled="!uploadFile?.length || uploading || deleting || importing"
+            :disabled="!selectedUploadFile || uploading || deleting || importing"
             prepend-icon="mdi-upload"
             @click="uploadData"
           >
-            Upload &amp; import
+            {{ resumeUploadId && uploadStatus?.status === 'error' ? 'Retry upload' : 'Upload & import' }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -191,12 +208,15 @@ const emit = defineEmits(['fields-changed']);
 const api = useTablesApi();
 const base = () => api.base();
 
-const uploadFile = ref([]);
+/** v-file-input model: File | File[] | null */
+const uploadFile = ref(null);
+const resumeUploadId = ref(null);
 const uploading = ref(false);
 const importing = ref(false);
 const importCancelled = ref(false);
 const uploadStatus = ref(null);
 const importStatus = ref(null);
+const downloadingErrors = ref(false);
 const showUploadDialog = ref(false);
 const showDeleteDialog = ref(false);
 const syncFieldsAfterImport = ref(true);
@@ -212,6 +232,11 @@ const previewLimit = 50;
 const previewPage = ref(1);
 const previewTotal = ref(0);
 
+const selectedUploadFile = computed(() => {
+  const f = uploadFile.value;
+  if (!f) return null;
+  return Array.isArray(f) ? f[0] ?? null : f;
+});
 const uploadAlertType = computed(() => {
   if (!uploadStatus.value) return 'info';
   return uploadStatus.value.status === 'success' ? 'success' : uploadStatus.value.status === 'error' ? 'error' : 'info';
@@ -224,6 +249,51 @@ const importAlertType = computed(() => {
   if (s === 'warning') return 'warning';
   return 'info';
 });
+
+function formatImportCounts(progress) {
+  const inserted = progress.rows_inserted ?? progress.total_rows_processed ?? 0;
+  const read = progress.csv_records_read ?? 0;
+  const blank = progress.rows_blank ?? 0;
+  const failed = progress.rows_failed ?? 0;
+  const warned = progress.rows_warned ?? 0;
+  const parts = [`${inserted.toLocaleString()} inserted`];
+  if (read) parts.unshift(`${read.toLocaleString()} CSV rows read`);
+  if (blank) parts.push(`${blank.toLocaleString()} blank`);
+  if (failed) parts.push(`${failed.toLocaleString()} failed`);
+  if (warned) parts.push(`${warned.toLocaleString()} extra-column warnings`);
+  return parts.join(' · ');
+}
+
+function importUiStatus(progress) {
+  const status = progress.import_status || 'in_progress';
+  if (status === 'completed') return 'success';
+  if (status === 'completed_with_errors') return 'warning';
+  if (status === 'failed') return 'error';
+  return 'in_progress';
+}
+
+function importHeadline(progress, fallbackMessage) {
+  const status = progress.import_status || 'in_progress';
+  if (status === 'completed') return fallbackMessage || 'Import completed';
+  if (status === 'completed_with_errors') return fallbackMessage || 'Import completed with skipped or failed rows';
+  if (status === 'failed') return fallbackMessage || 'Import finished with an accounting mismatch';
+  return `Importing… ${progress.progress_percent || 0}%`;
+}
+
+async function downloadErrors() {
+  downloadingErrors.value = true;
+  try {
+    await api.downloadImportErrors(props.dbId, props.tableId);
+  } catch (e) {
+    importStatus.value = {
+      ...importStatus.value,
+      status: 'error',
+      message: (importStatus.value?.message || 'Import finished') + ' (could not download error log: ' + (e.message || 'error') + ')',
+    };
+  } finally {
+    downloadingErrors.value = false;
+  }
+}
 
 const truncatedPreviewData = computed(() => {
   if (!previewData.value?.length) return [];
@@ -241,13 +311,19 @@ const truncatedPreviewData = computed(() => {
 watch(previewPage, () => loadPreviewData());
 watch(showUploadDialog, (open) => {
   if (open) {
-    uploadFile.value = [];
+    uploadFile.value = null;
+    resumeUploadId.value = null;
     uploadStatus.value = null;
     importStatus.value = null;
     uploading.value = false;
     importing.value = false;
     importCancelled.value = false;
     deleting.value = false;
+  }
+});
+watch(selectedUploadFile, (file, prev) => {
+  if (file !== prev && !uploading.value) {
+    resumeUploadId.value = null;
   }
 });
 
@@ -289,7 +365,7 @@ async function loadPreviewData() {
 }
 
 async function uploadData() {
-  const file = uploadFile.value?.[0];
+  const file = selectedUploadFile.value;
   if (!file) {
     alert('Please select a file to upload');
     return;
@@ -298,20 +374,37 @@ async function uploadData() {
   uploadStatus.value = { status: 'in_progress', message: 'Uploading file…', progress_percent: 0 };
   importStatus.value = null;
   try {
-    const uploadResult = await api.uploadTableFile(props.dbId, props.tableId, file, ({ loaded, total }) => {
-      uploadStatus.value = {
-        status: 'in_progress',
-        message: `Uploading file… ${Math.round((loaded / total) * 100)}%`,
-        progress_percent: Math.round((loaded / total) * 100),
-      };
-    });
+    const uploadResult = await api.uploadTableFile(
+      props.dbId,
+      props.tableId,
+      file,
+      ({ loaded, total, chunkIndex, totalChunks, attempt, maxAttempts }) => {
+        const pct = total ? Math.round((loaded / total) * 100) : 0;
+        let message = `Uploading file… ${pct}%`;
+        if (Number.isInteger(chunkIndex) && totalChunks) {
+          message += ` (chunk ${chunkIndex + 1} of ${totalChunks}`;
+          if (attempt > 1) {
+            message += `, retry ${attempt} of ${maxAttempts}`;
+          }
+          message += ')';
+        }
+        uploadStatus.value = { status: 'in_progress', message, progress_percent: pct };
+      },
+      {
+        uploadId: resumeUploadId.value,
+        onSession: ({ upload_id }) => {
+          resumeUploadId.value = upload_id;
+        },
+      }
+    );
     if (uploadResult.status === 'success') {
       uploadStatus.value = {
         status: 'success',
         message: uploadResult.message,
         file_path: uploadResult.file_path,
       };
-      uploadFile.value = [];
+      uploadFile.value = null;
+      resumeUploadId.value = null;
       deleting.value = true;
       try {
         const deleteResponse = await fetch(`${base()}/delete/${props.dbId}/${props.tableId}`, {
@@ -343,7 +436,13 @@ async function uploadData() {
       await loadPreviewData();
     }
   } catch (e) {
-    uploadStatus.value = { status: 'error', message: 'Upload failed: ' + e.message };
+    if (e.uploadId) {
+      resumeUploadId.value = e.uploadId;
+    }
+    uploadStatus.value = {
+      status: 'error',
+      message: 'Upload failed: ' + (e.response?.data?.message || e.message),
+    };
     await loadTableStats();
     await loadPreviewData();
   } finally {
@@ -367,16 +466,18 @@ async function importData() {
       importResult = await response.json();
       if (importResult.status === 'success') {
         const progress = importResult.progress || {};
+        const terminal = ['completed', 'completed_with_errors', 'failed'].includes(progress.import_status);
         importStatus.value = {
-          status: progress.import_status === 'completed' ? 'success' : 'in_progress',
-          message:
-            progress.import_status === 'completed'
-              ? 'Import completed successfully'
-              : `Importing… ${progress.progress_percent || 0}%`,
+          status: importUiStatus(progress),
+          message: terminal
+            ? importResult.message || importHeadline(progress)
+            : importHeadline(progress),
+          summary: formatImportCounts(progress),
           progress_percent: progress.progress_percent || 0,
           import_status: progress.import_status || 'in_progress',
+          errors_count: progress.errors_count || 0,
         };
-        hasMore = progress.has_more === true && progress.import_status !== 'completed';
+        hasMore = progress.has_more === true && !terminal;
         if (hasMore && !importCancelled.value) {
           await new Promise((r) => setTimeout(r, 500));
         }
@@ -404,7 +505,12 @@ async function importData() {
           console.error('Error syncing fields:', e);
         }
       }
-      showUploadDialog.value = false;
+      const hadRowIssues = (importStatus.value?.errors_count || 0) > 0
+        || importStatus.value?.import_status === 'completed_with_errors'
+        || importStatus.value?.import_status === 'failed';
+      if (!hadRowIssues) {
+        showUploadDialog.value = false;
+      }
       await loadTableStats();
       await loadPreviewData();
       emit('fields-changed');

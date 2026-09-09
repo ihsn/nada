@@ -21,31 +21,46 @@ class MY_Migration extends CI_Migration {
      */
     protected function prevent_timeouts()
     {
-        // Remove PHP execution time limit for CLI migrations
-        if (php_sapi_name() === 'cli') {
-            set_time_limit(0);
-            ini_set('max_execution_time', '0');
-            
-            echo "⚙ Timeout prevention configured:\n";
-            echo "  • PHP execution time: unlimited\n";
-        } else {
-            // For web context, still set timeout but don't echo (already in <pre> from controller)
-            set_time_limit(0);
-            ini_set('max_execution_time', '0');
-            
-            // Increase memory limit if needed
-            $current_memory = ini_get('memory_limit');
-            $current_bytes = $this->parse_memory_limit($current_memory);
-            $recommended_bytes = 512 * 1024 * 1024; // 512MB
-            
+        set_time_limit(0);
+        ini_set('max_execution_time', '0');
+
+        $current_memory = ini_get('memory_limit');
+        $current_bytes = $this->parse_memory_limit($current_memory);
+        $recommended_bytes = 512 * 1024 * 1024;
+
+        if ($current_bytes < $recommended_bytes) {
+            ini_set('memory_limit', '512M');
+        }
+
+        if ($this->is_cli_migration()) {
+            $this->emit("⚙ Timeout prevention configured:\n");
+            $this->emit("  • PHP execution time: unlimited\n");
             if ($current_bytes < $recommended_bytes) {
-                ini_set('memory_limit', '512M');
-                echo "  • Memory limit: increased to 512M (was {$current_memory})\n";
+                $this->emit("  • Memory limit: increased to 512M (was {$current_memory})\n");
             } else {
-                echo "  • Memory limit: {$current_memory} (sufficient)\n";
+                $this->emit("  • Memory limit: {$current_memory} (sufficient)\n");
             }
-            
-            echo "\n";
+        }
+    }
+
+    protected function is_cli_migration()
+    {
+        return php_sapi_name() === 'cli';
+    }
+
+    /**
+     * Write progress for CLI or for the admin UI output buffer.
+     * Do not flush on web — that sends the body and then admin_vue cannot set headers.
+     */
+    protected function emit($text)
+    {
+        echo $text;
+    }
+
+    protected function emit_flush()
+    {
+        if ($this->is_cli_migration()) {
+            flush();
         }
     }
     
@@ -87,7 +102,7 @@ class MY_Migration extends CI_Migration {
         echo "\n" . str_repeat('=', 80) . "\n";
         echo "Migration Report: " . basename($filename) . "\n";
         echo str_repeat('=', 80) . "\n\n";
-        flush();
+        $this->emit_flush();
         
         foreach ($lines as $line_num => $line) {
             if (substr(trim($line), 0, 2) == '--' || substr(trim($line), 0, 1) == '#' || trim($line) == '') {
@@ -107,7 +122,7 @@ class MY_Migration extends CI_Migration {
                     // Show statement being executed
                     echo "Statement #{$statement_num} (line {$line_num}):\n";
                     echo $this->format_sql_for_display($templine) . "\n";
-                    flush();
+                    $this->emit_flush();
                     
                     // Execute with error suppression
                     $start_time = microtime(true);
@@ -123,7 +138,7 @@ class MY_Migration extends CI_Migration {
                             $skipped++;
                             echo "✓ SKIPPED (already applied) - Error {$error_code}: {$error['message']}\n";
                             echo "  Time: {$execution_time}ms\n\n";
-                            flush();
+                            $this->emit_flush();
                             
                             log_message('info', "Skipped (error {$error_code}): " . substr($templine, 0, 100) . '...');
                             
@@ -140,7 +155,7 @@ class MY_Migration extends CI_Migration {
                             $failed++;
                             echo "✗ FAILED - Error {$error_code}: {$error['message']}\n";
                             echo "  Time: {$execution_time}ms\n\n";
-                            flush();
+                            $this->emit_flush();
                             
                             $error_msg = "Migration failed at line {$line_num}\n";
                             $error_msg .= "Error {$error_code}: {$error['message']}\n";
@@ -168,7 +183,7 @@ class MY_Migration extends CI_Migration {
                             echo " - {$affected_rows} row(s) affected";
                         }
                         echo "\n  Time: {$execution_time}ms\n\n";
-                        flush();
+                        $this->emit_flush();
                         
                         log_message('info', 'Migration statement succeeded: ' . substr($templine, 0, 100) . '...');
                         
@@ -210,7 +225,7 @@ class MY_Migration extends CI_Migration {
         echo "⊘ SKIPPED: {$skipped} statement(s) (already applied)\n";
         echo "✗ FAILED:  {$failed} statement(s)\n";
         echo str_repeat('=', 80) . "\n\n";
-        flush();
+        $this->emit_flush();
     }
     
     public function get_migration_report()
@@ -373,7 +388,7 @@ class MY_Migration extends CI_Migration {
             echo "\n" . str_repeat('=', 72) . "\n";
             echo "Bundled step {$index}/{$total}: {$filename}\n";
             echo str_repeat('=', 72) . "\n\n";
-            flush();
+            $this->emit_flush();
 
             $this->run_archived_step($filename);
         }

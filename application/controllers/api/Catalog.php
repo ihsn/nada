@@ -307,13 +307,19 @@ class Catalog extends MY_REST_Controller
 			$params['collections'] = explode(',', xss_clean($col));
 		}		
 
-		//custom facet filters by data type	
+		//custom facet filters by data type
 		$custom_filters_by_data_type=(array)json_decode($this->config->item('facets_'.'all'),true);
 
 		//list of user defined enabled filters
 		$custom_filters_list_active=array_keys($this->Facet_model->select_all($facet_type='user', $is_enabled=1));
 
-		foreach($custom_filters_by_data_type as $custom_filter){			
+		//Only user-defined facets are passed through raw. The facets_all list also contains core
+		//filters (dtype, type, country, region, collection, ...) which are parsed and validated
+		//above — passing those through here would overwrite the parsed values with raw input.
+		foreach($custom_filters_by_data_type as $custom_filter){
+			if (!in_array($custom_filter, $custom_filters_list_active, true)){
+				continue;
+			}
 			if ($this->input->get($custom_filter)){
 				$params[$custom_filter]=xss_clean($this->input->get($custom_filter));
 			}
@@ -450,68 +456,7 @@ class Catalog extends MY_REST_Controller
 
 		try {
 			$data = $this->catalog_browse_service->run_search($load_facets);
-
-			if ($data['search_type'] === 'variable') {
-				$result = isset($data['variables']) ? $data['variables'] : array('found' => 0, 'rows' => array());
-			} else {
-				$result = isset($data['surveys']) ? $data['surveys'] : array('found' => 0, 'rows' => array());
-			}
-
-			if (isset($result['rows'])) {
-				$result['page'] = $data['current_page'];
-				array_walk($result['rows'], 'unix_date_to_gmt', array('created', 'changed'));
-				foreach ($result['rows'] as $idx => $row) {
-					$result['rows'][$idx]['url'] = site_url('catalog/' . $row['id']);
-				}
-			}
-
-			if (isset($result['semantic_facets'])) {
-				unset($result['semantic_facets']);
-			}
-			if (isset($result['facet_mode'])) {
-				unset($result['facet_mode']);
-			}
-
-			$this->load->helper('catalog');
-			$result = catalog_browse_sanitize_search_result($result);
-
-			$response = array(
-				'status' => 'success',
-				'result' => $result,
-				'search_type' => $data['search_type'],
-				'tab_type' => $this->catalog_browse_service->active_tab,
-				'tabs' => $this->catalog_browse_service->build_tabs($data),
-				'site' => $this->catalog_browse_service->site_config_for_client(),
-				'enabled_filters' => $this->catalog_browse_service->enabled_filters,
-			);
-
-			if ($load_facets) {
-				$response['facets'] = $this->catalog_browse_service->facets;
-			}
-
-			if (isset($data['featured_studies'])) {
-				$featured = $data['featured_studies'];
-				if (is_array($featured)) {
-					foreach ($featured as $idx => $study) {
-						$featured[$idx]['url'] = site_url('catalog/' . $study['id']);
-						if (!isset($featured[$idx]['form_model']) && isset($study['model'])) {
-							$featured[$idx]['form_model'] = $study['model'];
-						}
-						array_walk($featured[$idx], 'unix_date_to_gmt_row', array('created', 'changed'));
-					}
-				}
-				$response['featured_studies'] = $featured;
-			}
-			if (isset($data['related_collections'])) {
-				$response['related_collections'] = $data['related_collections'];
-			}
-			if (!empty($result['semantic_note'])) {
-				$response['semantic_note'] = $result['semantic_note'];
-			}
-			if (!empty($result['semantic_fallback'])) {
-				$response['semantic_fallback'] = $result['semantic_fallback'];
-			}
-
+			$response = $this->catalog_browse_service->build_browse_client_response($data, $load_facets);
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		} catch (RuntimeException $e) {
 			$response = array('status' => 'failed', 'message' => $e->getMessage());
@@ -760,12 +705,15 @@ class Catalog extends MY_REST_Controller
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * find country id for country names and iso codes
-	 * 
+	 *
+	 * Accepts country IDs, names, ISO2/ISO3 codes and aliases, case-insensitively.
+	 * When values are supplied but none resolve, returns the resolver's no-match sentinel
+	 * so the filter yields no results instead of being silently dropped.
+	 *
 	 * @countries - string - pipe separated
-	 * @todo - move to model
 	 */
 	private function get_countries_id($countries,$delimited='|')
 	{
@@ -777,26 +725,12 @@ class Catalog extends MY_REST_Controller
 			$countries=explode($delimited,$countries);
 		}
 
-		//map iso2 to iso3
-		$countries=$this->map_iso2_to_iso3($countries);
+		require_once APPPATH.'libraries/Catalog_country_resolver.php';
 
-		$this->db->select("countries.countryid");
-		$this->db->join('country_aliases','country_aliases.countryid=countries.countryid','left');
-		$this->db->where_in('name',$countries);
-		$this->db->or_where_in('alias',$countries);
-		$this->db->or_where_in('iso',$countries);
-		$result=$this->db->get("countries")->result_array();
-		$output=array();
+		$output=Catalog_country_resolver::resolve($countries);
 
-		foreach($result as $row){
-			$output[]=$row['countryid'];
-		}
-
-		//if no matches found, return -1
-		//this is needed to return no results when no matching countries 
-		//are found otherwise filter is ignored
-		if(count($output)<1){
-			return array(-1);
+		if(empty($output)){
+			return false;
 		}
 
 		return $output;
@@ -1237,276 +1171,6 @@ class Catalog extends MY_REST_Controller
 
 
 
-	/**
-	 * 
-	 * Map iso2 country codes to iso3
-	 * 
-	 */
-	private function map_iso2_to_iso3($countries = array() )
-	{
-		$iso2_codes=array(
-			'af'=>'afg',
-			'al'=>'alb',
-			'dz'=>'dza',
-			'as'=>'asm',
-			'ad'=>'and',
-			'ao'=>'ago',
-			'ai'=>'aia',
-			'aq'=>'ata',
-			'ag'=>'atg',
-			'ar'=>'arg',
-			'am'=>'arm',
-			'aw'=>'abw',
-			'au'=>'aus',
-			'at'=>'aut',
-			'az'=>'aze',
-			'bs'=>'bhs',
-			'bh'=>'bhr',
-			'bd'=>'bgd',
-			'bb'=>'brb',
-			'by'=>'blr',
-			'be'=>'bel',
-			'bz'=>'blz',
-			'bj'=>'ben',
-			'bm'=>'bmu',
-			'bt'=>'btn',
-			'bo'=>'bol',
-			'bq'=>'bes',
-			'ba'=>'bih',
-			'bw'=>'bwa',
-			'bv'=>'bvt',
-			'br'=>'bra',
-			'io'=>'iot',
-			'bn'=>'brn',
-			'bg'=>'bgr',
-			'bf'=>'bfa',
-			'bi'=>'bdi',
-			'cv'=>'cpv',
-			'kh'=>'khm',
-			'cm'=>'cmr',
-			'ca'=>'can',
-			'ky'=>'cym',
-			'cf'=>'caf',
-			'td'=>'tcd',
-			'cl'=>'chl',
-			'cn'=>'chn',
-			'cx'=>'cxr',
-			'cc'=>'cck',
-			'co'=>'col',
-			'km'=>'com',
-			'cd'=>'cod',
-			'cg'=>'cog',
-			'ck'=>'cok',
-			'cr'=>'cri',
-			'hr'=>'hrv',
-			'cu'=>'cub',
-			'cw'=>'cuw',
-			'cy'=>'cyp',
-			'cz'=>'cze',
-			'ci'=>'civ',
-			'dk'=>'dnk',
-			'dj'=>'dji',
-			'dm'=>'dma',
-			'do'=>'dom',
-			'ec'=>'ecu',
-			'eg'=>'egy',
-			'sv'=>'slv',
-			'gq'=>'gnq',
-			'er'=>'eri',
-			'ee'=>'est',
-			'sz'=>'swz',
-			'et'=>'eth',
-			'fk'=>'flk',
-			'fo'=>'fro',
-			'fj'=>'fji',
-			'fi'=>'fin',
-			'fr'=>'fra',
-			'gf'=>'guf',
-			'pf'=>'pyf',
-			'tf'=>'atf',
-			'ga'=>'gab',
-			'gm'=>'gmb',
-			'ge'=>'geo',
-			'de'=>'deu',
-			'gh'=>'gha',
-			'gi'=>'gib',
-			'gr'=>'grc',
-			'gl'=>'grl',
-			'gd'=>'grd',
-			'gp'=>'glp',
-			'gu'=>'gum',
-			'gt'=>'gtm',
-			'gg'=>'ggy',
-			'gn'=>'gin',
-			'gw'=>'gnb',
-			'gy'=>'guy',
-			'ht'=>'hti',
-			'hm'=>'hmd',
-			'va'=>'vat',
-			'hn'=>'hnd',
-			'hk'=>'hkg',
-			'hu'=>'hun',
-			'is'=>'isl',
-			'in'=>'ind',
-			'id'=>'idn',
-			'ir'=>'irn',
-			'iq'=>'irq',
-			'ie'=>'irl',
-			'im'=>'imn',
-			'il'=>'isr',
-			'it'=>'ita',
-			'jm'=>'jam',
-			'jp'=>'jpn',
-			'je'=>'jey',
-			'jo'=>'jor',
-			'kz'=>'kaz',
-			'ke'=>'ken',
-			'ki'=>'kir',
-			'kp'=>'prk',
-			'kr'=>'kor',
-			'kw'=>'kwt',
-			'kg'=>'kgz',
-			'la'=>'lao',
-			'lv'=>'lva',
-			'lb'=>'lbn',
-			'ls'=>'lso',
-			'lr'=>'lbr',
-			'ly'=>'lby',
-			'li'=>'lie',
-			'lt'=>'ltu',
-			'lu'=>'lux',
-			'mo'=>'mac',
-			'mg'=>'mdg',
-			'mw'=>'mwi',
-			'my'=>'mys',
-			'mv'=>'mdv',
-			'ml'=>'mli',
-			'mt'=>'mlt',
-			'mh'=>'mhl',
-			'mq'=>'mtq',
-			'mr'=>'mrt',
-			'mu'=>'mus',
-			'yt'=>'myt',
-			'mx'=>'mex',
-			'fm'=>'fsm',
-			'md'=>'mda',
-			'mc'=>'mco',
-			'mn'=>'mng',
-			'me'=>'mne',
-			'ms'=>'msr',
-			'ma'=>'mar',
-			'mz'=>'moz',
-			'mm'=>'mmr',
-			'na'=>'nam',
-			'nr'=>'nru',
-			'np'=>'npl',
-			'nl'=>'nld',
-			'nc'=>'ncl',
-			'nz'=>'nzl',
-			'ni'=>'nic',
-			'ne'=>'ner',
-			'ng'=>'nga',
-			'nu'=>'niu',
-			'nf'=>'nfk',
-			'mp'=>'mnp',
-			'no'=>'nor',
-			'om'=>'omn',
-			'pk'=>'pak',
-			'pw'=>'plw',
-			'ps'=>'pse',
-			'pa'=>'pan',
-			'pg'=>'png',
-			'py'=>'pry',
-			'pe'=>'per',
-			'ph'=>'phl',
-			'pn'=>'pcn',
-			'pl'=>'pol',
-			'pt'=>'prt',
-			'pr'=>'pri',
-			'qa'=>'qat',
-			'mk'=>'mkd',
-			'ro'=>'rou',
-			'ru'=>'rus',
-			'rw'=>'rwa',
-			're'=>'reu',
-			'bl'=>'blm',
-			'sh'=>'shn',
-			'kn'=>'kna',
-			'lc'=>'lca',
-			'mf'=>'maf',
-			'pm'=>'spm',
-			'vc'=>'vct',
-			'ws'=>'wsm',
-			'sm'=>'smr',
-			'st'=>'stp',
-			'sa'=>'sau',
-			'sn'=>'sen',
-			'rs'=>'srb',
-			'sc'=>'syc',
-			'sl'=>'sle',
-			'sg'=>'sgp',
-			'sx'=>'sxm',
-			'sk'=>'svk',
-			'si'=>'svn',
-			'sb'=>'slb',
-			'so'=>'som',
-			'za'=>'zaf',
-			'gs'=>'sgs',
-			'ss'=>'ssd',
-			'es'=>'esp',
-			'lk'=>'lka',
-			'sd'=>'sdn',
-			'sr'=>'sur',
-			'sj'=>'sjm',
-			'se'=>'swe',
-			'ch'=>'che',
-			'sy'=>'syr',
-			'tw'=>'twn',
-			'tj'=>'tjk',
-			'tz'=>'tza',
-			'th'=>'tha',
-			'tl'=>'tls',
-			'tg'=>'tgo',
-			'tk'=>'tkl',
-			'to'=>'ton',
-			'tt'=>'tto',
-			'tn'=>'tun',
-			'tr'=>'tur',
-			'tm'=>'tkm',
-			'tc'=>'tca',
-			'tv'=>'tuv',
-			'ug'=>'uga',
-			'ua'=>'ukr',
-			'ae'=>'are',
-			'gb'=>'gbr',
-			'um'=>'umi',
-			'us'=>'usa',
-			'uy'=>'ury',
-			'uz'=>'uzb',
-			'vu'=>'vut',
-			've'=>'ven',
-			'vn'=>'vnm',
-			'vg'=>'vgb',
-			'vi'=>'vir',
-			'wf'=>'wlf',
-			'eh'=>'esh',
-			'ye'=>'yem',
-			'zm'=>'zmb',
-			'zw'=>'zwe',
-			'ax'=>'ala'
-		);
-		
-		$output=array();
-		foreach($countries as $country){
-			if( strlen($country)==2 && array_key_exists($country, $iso2_codes)){
-				$output[]=$iso2_codes[$country];
-			}
-			else{
-				$output[]=$country;
-			}
-		}
-		return $output;
-	}
 
 
 

@@ -14,7 +14,6 @@ $type_icons = array(
 	'timeseries-db'=> '<i class="fas fa-database" aria-hidden="true"></i>',
 	'document'     => '<i class="fas fa-file-alt" aria-hidden="true"></i>',
 	'table'        => '<i class="fa fa-table" aria-hidden="true"></i>',
-	'visualization'=> '<i class="fas fa-chart-pie" aria-hidden="true"></i>',
 	'script'       => '<i class="fas fa-file-code" aria-hidden="true"></i>',
 	'image'        => '<i class="fas fa-image" aria-hidden="true"></i>',
 	'video'        => '<i class="fas fa-video" aria-hidden="true"></i>',

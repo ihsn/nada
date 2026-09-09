@@ -13,7 +13,7 @@
 ?>
 <div class="field field-<?php echo str_replace(".'","-",$template['key']);?>">
     <?php if($hide_column_headings!==true):?>
-        <div class="field-title"><?php echo t($template['title']);?></div>
+        <div class="field-title"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></div>
     <?php endif;?>
     <div class="field-value">                        
         <ul>

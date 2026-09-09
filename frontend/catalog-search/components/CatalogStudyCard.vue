@@ -11,7 +11,7 @@
         color="amber-darken-2"
         variant="flat"
         class="mb-2 font-weight-medium"
-        prepend-icon="mdi-star"
+        prepend-icon="$mdi-star"
       >
         {{ t('featured_study') }}
       </v-chip>
@@ -57,7 +57,7 @@
             <a :href="row.url" class="study-title text-body-1 font-weight-semibold">
               {{ row.title }}
             </a>
-            <div v-if="row.subtitle" class="study-subtitle text-caption text-medium-emphasis">
+            <div v-if="row.subtitle" class="study-subtitle">
               {{ row.subtitle }}
             </div>
           </div>
@@ -67,7 +67,7 @@
             class="study-card-meta"
           >
             <div v-if="row.nation || yearRange" class="study-meta-line">
-              <v-icon size="14" class="study-meta-line__icon">mdi-map-marker-outline</v-icon>
+              <v-icon size="14" class="study-meta-line__icon">$mdi-map-marker-outline</v-icon>
               <span v-if="row.nation">{{ row.nation }}</span>
               <span v-if="row.nation && yearRange" class="study-meta-line__sep">&middot;</span>
               <span v-if="yearRange">{{ yearRange }}</span>
@@ -102,7 +102,7 @@
             <span v-else>{{ timeseriesDatabase.title }}</span>
           </div>
 
-          <div v-if="showAbstract && row.abstract" class="study-abstract text-body-2 text-medium-emphasis">
+          <div v-if="showAbstract && row.abstract" class="study-abstract">
             <template v-if="abstractExpanded || !abstractNeedsTruncation">
               {{ row.abstract }}
               <a
@@ -191,7 +191,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { formatCatalogDate, formatStudyYearRange } from '../catalogDate';
@@ -199,9 +199,14 @@ import { parseTimeseriesDimensions, parseTimeseriesFrequency } from '../catalogT
 import { resolveStudyThumbnailUrl } from '../catalogThumbnail';
 import { datasetTypeIcon } from '../catalogDatasetTypeIcons';
 import { joinSiteUrl, catalogSearchUrl } from '../catalogUrls';
-import CatalogStudySemanticPages from './CatalogStudySemanticPages.vue';
 import { catalogDatasetTypeLabel } from '../catalogDatasetTypeLabel';
-import CatalogStudyVariableMatches from './CatalogStudyVariableMatches.vue';
+
+const CatalogStudySemanticPages = defineAsyncComponent(
+  () => import('./CatalogStudySemanticPages.vue')
+);
+const CatalogStudyVariableMatches = defineAsyncComponent(
+  () => import('./CatalogStudyVariableMatches.vue')
+);
 
 defineOptions({ name: 'CatalogStudyCard' });
 
@@ -227,21 +232,21 @@ watch(
 
 /** Solid backgrounds — nada52 corporate palette; white text for readability. */
 const ACCESS_MAP = {
-  open:                { icon: 'mdi-lock-open-variant',    bg: '#814C89' }, // accent-01
-  cc40:                { icon: 'mdi-creative-commons',     bg: '#814C89' },
-  public:              { icon: 'mdi-account-check',        bg: '#529600' }, // accent-03
-  direct:              { icon: 'mdi-database-arrow-down',  bg: '#7FB142' }, // accent-04
-  licensed:            { icon: 'mdi-lock',                 bg: '#0079BD' }, // action-color
-  enclave:             { icon: 'mdi-shield-lock',          bg: '#283593' },
-  remote:              { icon: 'mdi-link-variant',         bg: '#0079BD' },
-  data_na:             { icon: 'mdi-minus-circle-outline', bg: '#546E7A' }, // secondary
-  research:            { icon: 'mdi-flask-outline',        bg: '#0079BD' },
-  research_public:     { icon: 'mdi-flask-outline',        bg: '#529600' },
-  research_license:    { icon: 'mdi-flask-outline',        bg: '#0079BD' },
-  research_public_lic: { icon: 'mdi-flask-outline',        bg: '#0079BD' },
+  open:                { icon: '$mdi-lock-open-variant',    bg: '#814C89' }, // accent-01
+  cc40:                { icon: '$mdi-creative-commons',     bg: '#814C89' },
+  public:              { icon: '$mdi-account-check',        bg: '#529600' }, // accent-03
+  direct:              { icon: '$mdi-database-arrow-down',  bg: '#7FB142' }, // accent-04
+  licensed:            { icon: '$mdi-lock',                 bg: '#0079BD' }, // action-color
+  enclave:             { icon: '$mdi-shield-lock',          bg: '#283593' },
+  remote:              { icon: '$mdi-link-variant',         bg: '#0079BD' },
+  data_na:             { icon: '$mdi-minus-circle-outline', bg: '#546E7A' }, // secondary
+  research:            { icon: '$mdi-flask-outline',        bg: '#0079BD' },
+  research_public:     { icon: '$mdi-flask-outline',        bg: '#529600' },
+  research_license:    { icon: '$mdi-flask-outline',        bg: '#0079BD' },
+  research_public_lic: { icon: '$mdi-flask-outline',        bg: '#0079BD' },
 };
 
-const DEFAULT_ACCESS = { icon: 'mdi-file-document-outline', bg: '#546E7A' };
+const DEFAULT_ACCESS = { icon: '$mdi-file-document-outline', bg: '#546E7A' };
 
 const accessInfo = computed(() => ACCESS_MAP[props.row.form_model] ?? DEFAULT_ACCESS);
 
@@ -385,8 +390,8 @@ function goToCollection(repositoryid) {
 }
 
 .abstract-toggle {
-  font-size: 0.875rem;
-  color: #1976d2;
+  font-size: var(--catalog-font-ui, 0.875rem);
+  color: var(--catalog-link, #1565c0);
   text-decoration: none;
   margin-left: 0.25rem;
   white-space: nowrap;
@@ -462,8 +467,8 @@ function goToCollection(repositoryid) {
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
-  font-size: 0.9375rem;
-  line-height: 1.45;
+  font-size: var(--catalog-font-body, 1rem);
+  line-height: 1.5;
   color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
 }
 
@@ -477,15 +482,16 @@ function goToCollection(repositoryid) {
 }
 
 .study-meta-line--author {
-  font-size: 0.875rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-style: italic;
   color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 
 .study-abstract {
-  font-size: 0.9375rem;
+  font-size: var(--catalog-font-body, 1rem);
   line-height: 1.5;
   margin-top: 2px;
+  color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
 }
 
 .study-dimensions {
@@ -497,7 +503,7 @@ function goToCollection(repositoryid) {
 }
 
 .study-dimensions__label {
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-ui, 0.875rem);
   font-weight: 600;
   color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
@@ -553,9 +559,10 @@ function goToCollection(repositoryid) {
 
 .study-title {
   margin: 0;
-  font-size: 1.0625rem;
-  line-height: 1.4;
-  color: #1565c0;
+  font-size: var(--catalog-font-title, 1.25rem);
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--catalog-link, #1565c0);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -568,8 +575,9 @@ function goToCollection(repositoryid) {
 
 .study-subtitle {
   margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.35;
+  font-size: var(--catalog-font-ui, 0.875rem);
+  line-height: 1.4;
+  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 
 .study-card-footer {
@@ -580,9 +588,9 @@ function goToCollection(repositoryid) {
   margin-top: 4px;
   padding-top: 6px;
   border-top: 1px solid var(--catalog-border-subtle, rgba(15, 23, 42, 0.11));
-  font-size: 0.8125rem;
+  font-size: var(--catalog-font-small, 0.75rem);
   line-height: 1.5;
-  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.56));
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
 }
 
 .collection-chip :deep(.v-chip__content) {
@@ -598,7 +606,7 @@ function goToCollection(repositoryid) {
 }
 
 .study-card-footer__label {
-  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.56));
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
   font-weight: 400;
 }
 
@@ -608,7 +616,7 @@ function goToCollection(repositoryid) {
 }
 
 .study-card-footer__link {
-  color: #1565c0;
+  color: var(--catalog-link, #1565c0);
   font-weight: 500;
   text-decoration: none;
 }

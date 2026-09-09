@@ -192,6 +192,20 @@ $menu[]=array(
 		'type'	=>'divider'
 	),
 	array(
+		'title'	=>'Data tables',
+		'url'	=>'admin/tables'
+	),
+	array(
+		'type'	=>'divider'
+	),
+	array(
+		'title'	=>'Display manager',
+		'url'	=>'admin/display_templates'
+	),
+	array(
+		'type'	=>'divider'
+	),
+	array(
 		'title'	=>'Database migration',
 		'url'	=>'admin/database_migration'
 	),

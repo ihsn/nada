@@ -389,43 +389,42 @@ class Install extends CI_Controller {
 			$db_driver='mysql';
 		}
 
-		//sql file to restore database
-		$filename=APPPATH.'../install/schema.'.$db_driver.'.sql';
-		
+		$this->_run_install_sql_file(APPPATH.'../install/schema.'.$db_driver.'.sql');
+		$this->_run_install_sql_file(APPPATH.'../install/schema.dd.'.$db_driver.'.sql');
+	}
+
+	/**
+	 * Execute a semicolon-delimited install SQL file.
+	 */
+	function _run_install_sql_file($filename)
+	{
 		if (!file_exists($filename))
 		{
-			show_error(t('file_not_found'). ' - schema.sql');
+			show_error(t('file_not_found'). ' - '.basename($filename));
 		}
-		
-		// Temporary variable, used to store current query
+
 		$templine = '';
-		
-		// Read in entire file
 		$lines = file($filename);
-		
-		// Loop through each line
+
 		foreach ($lines as $line)
 		{
-			// Skip it if it's a comment
-			if (substr($line, 0, 1) == '#' || $line == '')
+			$trim = ltrim($line);
+			if ($trim === '' || substr($trim, 0, 1) == '#' || substr($trim, 0, 2) == '--')
+			{
 				continue;
-		 
-			// Add this line to the current segment
+			}
+
 			$templine .= $line;
-			
-			// If it has a semicolon at the end, it's the end of the query
+
 			if (substr(trim($line), -1, 1) == ';')
 			{
-				//log_message('info', $templine);
 				$result=$this->db->query($templine);
-				
+
 				if(!$result)
 				{
 					log_message('error', $templine);
-					//echo $this->db->last_query();
 				}
 
-				// Reset temp variable to empty
 				$templine = '';
 			}
 		}

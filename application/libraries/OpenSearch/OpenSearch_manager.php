@@ -279,7 +279,7 @@ class OpenSearch_manager
             return;
         }
 
-        log_message('warning', "OpenSearch_manager: unhandled survey operation '{$operation}' for ID {$survey_id}");
+        log_message('error', "OpenSearch_manager: unhandled survey operation '{$operation}' for ID {$survey_id}");
     }
 
     /**

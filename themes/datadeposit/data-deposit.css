@@ -300,6 +300,15 @@ a:hover {
     text-decoration:underline;
 }
 
+/* v-btn with href renders as <a>; theme link color would sit on the filled background. */
+#datadeposit-app a.v-btn.bg-primary,
+#datadeposit-app a.v-btn.bg-primary:hover,
+#datadeposit-app a.v-btn.bg-primary:focus,
+#datadeposit-app a.v-btn.bg-primary:visited {
+    color: #fff;
+    text-decoration: none;
+}
+
 ol {
     display: block;
     margin-bottom:20px;

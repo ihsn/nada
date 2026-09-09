@@ -25,7 +25,7 @@ System requirements and steps for installation - [NADA installation guide](https
 
 ### Upgrading from older versions of NADA
 
-Documentation for upgrading from various versions - [NADA upgrade guide](install/NADA56_UPGRADE_README.md).
+Documentation for upgrading from various versions - [NADA upgrade guide](install/NADA56_UPGRADE_README.md). Data deposit tables are installed with NADA (or via `migrate latest`); enable the feature in `application/config/datadeposit.php`. Existing v1 projects: [legacy project migration](install/DATADEPOSIT_MIGRATION.md).
 
 ### Schema guide
 

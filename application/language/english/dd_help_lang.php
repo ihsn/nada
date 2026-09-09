@@ -144,6 +144,7 @@ $lang['resInstru']="<p>This element is provided to describe the questionnaire(s)
 <p>The English and Mumbo-jumbo questionnaires were both piloted as part of the survey pretest.</p>
 <p>All questionnaires and modules are provided as external resources.</p>";
 $lang['dataCollector']="<p>This element is provided in order to record information regarding the persons and/or agencies that took charge of the data collection. This element includes 3 fields: Name, Abbreviation and the Affiliation. In most cases, we will record here the name of the agency, not the name of interviewers. Only in the case of very small-scale surveys, with a very limited number of interviewers, the name of person will be included as well. The field Affiliation is optional and not relevant in all cases.</p>";
+$lang['actMin']="<p>A summary of actions taken to minimize data loss. This includes information on actions such as follow-up visits, supervisory checks, historical matching, estimation, etc. Note that this element does not have to include detailed information on response rates, as a specific metadata element is provided for that purpose.</p>";
 $lang['cleanOps']='<p>The data editing should contain information on how the data was treated or controlled for in terms of consistency and coherence. This item does not concern the data entry phase but only the editing of data whether manual or automatic. </p>
 <ul>
 <li>Was a hot deck or a cold deck technique used to edit the data?</li>
@@ -292,7 +293,7 @@ $lang['study_help'] = 'Please complete the fields in each of the sections below.
 
 $lang['create_title'] = 'Provide the full title of your project.';
 $lang['create_short'] = 'Provide a short acronym for your project. (e.g., UZB HBS 1998)';
-$lang['create_collab'] = 'Provide the email address of other Bank staff who may be authorized to edit this project.';
+$lang['create_collab'] = 'Add the email addresses of people who can edit this project.';
 $lang['create_desc'] = 'Provide a detailed description for your project.';
 $lang['help_subtitle']='Provide a short subtitle for your survey.';
 $lang['section_identification']='Identification';

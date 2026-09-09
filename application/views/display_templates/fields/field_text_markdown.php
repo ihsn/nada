@@ -6,7 +6,7 @@
 ?>
 <?php if ( (isset($data) && $data !='') || $show_empty==true ):?>
 <div class="mb-2 field field-<?php echo str_replace(".'","-",$template['key']);?>">
-    <div class="font-weight-bold field-title"><?php echo tt('metadata.'.$template['key'],$template['title']);?></div>
+    <div class="font-weight-bold field-title"><?php echo display_template_resolve_title($template['key'],$template['title']);?></div>
     <div class="field-value">
         <?php if (is_array($data)):?>
         <?php foreach($data as $value):?>

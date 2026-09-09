@@ -250,7 +250,7 @@ class Dataset_model extends CI_Model {
             return false;
         }
 
-		$this->db->select("surveys.id, surveys.doi, surveys.repositoryid,surveys.type,surveys.idno,surveys.title,surveys.year_start, 
+		$this->db->select("surveys.id, surveys.doi, surveys.repositoryid,surveys.type,surveys.idno,surveys.title,surveys.subtitle,surveys.year_start, 
 			year_end,nation,surveys.authoring_entity,published,created, changed, varcount, total_views, total_downloads, 
 			surveys.formid,forms.model as data_access_type,link_da as remote_data_url, 
 			surveys.data_class_id, data_classifications.code as data_class_code, data_classifications.title as data_class_title,
@@ -271,6 +271,10 @@ class Dataset_model extends CI_Model {
 	//return survey with metadata and other fields
 	function get_row_detailed($sid)
 	{
+		if (!is_numeric($sid) || is_float($sid)){
+			return false;
+		}
+
 		$this->db->select("surveys.*, 
 			forms.model as data_access_type, 
 			surveys.data_class_id, 
@@ -366,23 +370,39 @@ class Dataset_model extends CI_Model {
 			}
 
 			$doi_identifier=[
-				'type'=>'DOI',				
+				'type'=>'doi',
 				'identifier'=>$doi
 			];
 
 			if (!is_array($identifiers)){
-				set_array_nested_value($metadata,$mappings[$type],$doi_identifier,"/");
+				set_array_nested_value($metadata,$mappings[$type],array($doi_identifier),"/");
+				return;
 			}
 
-			//check if DOI already exists
+			// Keep a single DOI entry (case-insensitive type; schema uses lowercase `doi`).
+			// Also collapses doi/DOI duplicates already persisted in metadata.
+			$normalized=array();
+			$has_doi=false;
+
 			foreach($identifiers as $identifier){
-				if ($identifier['type']=='DOI' && $identifier['identifier']==$doi){
-					return;
+				if (isset($identifier['type'], $identifier['identifier'])
+					&& strtolower($identifier['type'])=='doi'
+					&& $identifier['identifier']==$doi){
+					if (!$has_doi){
+						$normalized[]=$doi_identifier;
+						$has_doi=true;
+					}
+					continue;
 				}
+
+				$normalized[]=$identifier;
 			}
 
-			$identifiers[]=$doi_identifier;
-			set_array_nested_value($metadata,$mappings[$type],$identifiers,"/");
+			if (!$has_doi){
+				$normalized[]=$doi_identifier;
+			}
+
+			set_array_nested_value($metadata,$mappings[$type],$normalized,"/");
 		}
 	}
 
@@ -903,10 +923,6 @@ class Dataset_model extends CI_Model {
 			'video'         => array(
 				'video_description/description',
 			),
-			'visualization' => array(
-				'visualization_description/description',
-				'visualization_description/narrative',
-			),
 			'image'         => array(
 				'image_description/dcmi/description',
 				'image_description/dcmi/caption',
@@ -1080,7 +1096,6 @@ class Dataset_model extends CI_Model {
 			'document',
 			'image',
 			'video',
-			'visualization',
 		);
 	}
 
@@ -1146,8 +1161,6 @@ class Dataset_model extends CI_Model {
 				return 'ImageObject';
 			case 'document':
 				return $this->get_schema_org_document_type($metadata);
-			case 'visualization':
-				return 'CreativeWork';
 			default:
 				return 'CreativeWork';
 		}
@@ -1329,9 +1342,6 @@ class Dataset_model extends CI_Model {
 			case 'document':
 				$this->apply_schema_org_document_fields($json_ld, $metadata);
 				break;
-			case 'visualization':
-				$this->apply_schema_org_visualization_fields($json_ld, $metadata);
-				break;
 		}
 	}
 
@@ -1455,36 +1465,6 @@ class Dataset_model extends CI_Model {
 
 
 	/**
-	 * @param array $json_ld
-	 * @param array $metadata
-	 * @return void
-	 */
-	private function apply_schema_org_visualization_fields(array &$json_ld, array $metadata)
-	{
-		$genres = array();
-		$types = $this->get_array_nested_value($metadata, 'visualization_description/visualization_types', '/');
-		if (is_array($types)) {
-			if ($this->is_assoc_array($types) && isset($types['type'])) {
-				$types = array($types);
-			}
-			foreach ($types as $entry) {
-				if (!is_array($entry) || empty($entry['type'])) {
-					continue;
-				}
-				$genre = trim((string) $entry['type']);
-				if ($genre !== '') {
-					$genres[] = $genre;
-				}
-			}
-		}
-
-		if (!empty($genres)) {
-			$json_ld['genre'] = count($genres) === 1 ? $genres[0] : $genres;
-		}
-	}
-
-
-	/**
 	 * @param array $survey
 	 * @return string|null
 	 */
@@ -1559,7 +1539,6 @@ class Dataset_model extends CI_Model {
 			'table'         => array('table_description/keywords', 'name'),
 			'video'         => array('video_description/keywords', 'name'),
 			'image'         => array('image_description/dcmi/keywords', 'name'),
-			'visualization' => array('visualization_description/keywords', 'name'),
 		);
 
 		if (!isset($paths[$type])) {
@@ -1613,7 +1592,6 @@ class Dataset_model extends CI_Model {
 			'timeseriesdb'  => 'database_description/authoring_entity',
 			'timeseries-db' => 'database_description/authoring_entity',
 			'table'         => 'table_description/authoring_entity',
-			'visualization' => 'visualization_description/authoring_entity',
 		);
 
 		if (!isset($paths[$type])) {
@@ -1645,7 +1623,6 @@ class Dataset_model extends CI_Model {
 			'geospatial'    => 'metadata_information/producers',
 			'video'         => 'metadata_information/producers',
 			'image'         => 'metadata_information/producers',
-			'visualization' => 'metadata_information/producers',
 		);
 
 		if (!isset($paths[$type])) {
@@ -2134,6 +2111,9 @@ class Dataset_model extends CI_Model {
 	*/
 	function delete($id)
 	{
+		$this->load->library('Search_index_manager');
+		$this->search_index_manager->handle_event('surveys', $id, 'delete', true);
+
 		try {
 			$this->load->model('Timeseries_mongo_model');
 			$this->Timeseries_mongo_model->delete_observations_for_sid_all_indicator_collections((int) $id);

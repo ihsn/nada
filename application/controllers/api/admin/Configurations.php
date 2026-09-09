@@ -24,7 +24,7 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
 class Configurations extends MY_REST_Controller
 {
 	/** Keys stored as JSON in DB (Site_configurations). */
-	protected $json_value_keys = array('admin_allowed_ip', 'admin_allowed_hosts', 'supported_languages');
+	protected $json_value_keys = array('admin_allowed_ip', 'admin_allowed_hosts', 'supported_languages', 'legacy_study_templates');
 
 	/** Never expose raw values for these keys on GET. */
 	protected $secret_keys = array(
@@ -129,6 +129,7 @@ class Configurations extends MY_REST_Controller
 			$this->require_configurations_edit();
 
 			$this->load->library('translator');
+			$this->lang->load('configurations');
 
 			$c               = $this->Configurations_model->get_config_array();
 			$catalog_root    = isset($c['catalog_root']) ? $c['catalog_root'] : '';
@@ -147,6 +148,15 @@ class Configurations extends MY_REST_Controller
 				$iso_languages = array();
 			}
 
+			$this->load->helper('display_template');
+			$catalog_study_types = array();
+			foreach (display_template_catalog_study_types() as $type) {
+				$catalog_study_types[] = array(
+					'value' => $type,
+					'title' => t('legacy_study_type_' . str_replace('-', '_', $type)),
+				);
+			}
+
 			$meta = array(
 				'available_folders'         => $this->translator->get_languages_array(),
 				'language_codes'            => $lang_codes,
@@ -156,6 +166,8 @@ class Configurations extends MY_REST_Controller
 					'catalog_root'       => ($catalog_root !== '' && is_dir($catalog_root)),
 					'ddi_import_folder'  => ($ddi_import !== '' && is_dir($ddi_import)),
 				),
+				'catalog_study_types'       => $catalog_study_types,
+				'datadeposit'               => $this->datadeposit_meta(),
 			);
 
 			$this->set_response(
@@ -472,6 +484,15 @@ class Configurations extends MY_REST_Controller
 				$value = $this->security->xss_clean($value);
 			}
 
+			if ($key === 'legacy_study_templates')
+			{
+				$this->load->helper('display_template');
+				$decoded = is_string($value) ? json_decode($value, true) : $value;
+				$clean = display_template_normalize_legacy_study_types($decoded);
+				$value = json_encode($clean);
+				continue;
+			}
+
 			if ($key === 'admin_header_background')
 			{
 				$value = strtoupper(trim((string) $value));
@@ -533,8 +554,28 @@ class Configurations extends MY_REST_Controller
 					throw new Exception('INVALID_VALUE:semantic_search_debug');
 				}
 			}
+
+			if ($key === 'deposit_max_upload_size')
+			{
+				$mb = (int) $value;
+				if ($mb < 1 || $mb > 16384)
+				{
+					throw new Exception('INVALID_VALUE:deposit_max_upload_size');
+				}
+				$value = (string) $mb;
+			}
 		}
 		unset($value);
+	}
+
+	protected function datadeposit_meta()
+	{
+		$this->load->helper('datadeposit');
+		return array(
+			'enabled' => datadeposit_is_enabled(),
+			'allowed_resource_types' => datadeposit_allowed_resource_types(),
+			'enable_config_file' => 'application/config/datadeposit.php',
+		);
 	}
 
 	protected function language_folder_exists($folder)

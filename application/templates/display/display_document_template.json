@@ -1,0 +1,506 @@
+{
+    "data_type": "document",
+    "lang": "en",
+    "name": "Document display template",
+    "version": "1.0",
+    "description": "Catalog study description layout matching the legacy document page. Editor-only fields (DataCite, provenance, additional) are appended after the legacy sections.",
+    "template": {
+        "type": "template",
+        "title": "Document",
+        "items": [
+            {
+                "type": "section_container",
+                "key": "document",
+                "title": "Document description",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "description",
+                        "title": "Description",
+                        "items": [
+                            { "key": "document_description.title_statement.title", "title": "Title", "type": "string" },
+                            { "key": "document_description.title_statement.sub_title", "title": "Subtitle", "type": "string" },
+                            { "key": "document_description.title_statement.alternate_title", "title": "Alternate title", "type": "string" },
+                            { "key": "document_description.title_statement.translated_title", "title": "Translated title", "type": "string" },
+                            { "key": "document_description.abstract", "title": "Abstract", "type": "string" },
+                            { "key": "document_description.description", "title": "Description", "type": "string" },
+                            { "key": "document_description.date_created", "title": "Date created", "type": "string" },
+                            { "key": "document_description.date_available", "title": "Date available", "type": "string" },
+                            { "key": "document_description.date_published", "title": "Date published", "type": "string" },
+                            { "key": "document_description.date_modified", "title": "Date last modified", "type": "string" },
+                            {
+                                "key": "document_description.authors",
+                                "title": "Authors",
+                                "type": "array",
+                                "display_options": { "renderer": "field_authors" },
+                                "props": [
+                                    { "key": "first_name", "title": "First name", "type": "string", "prop_key": "document_description.authors.first_name" },
+                                    { "key": "initial", "title": "Initial", "type": "string", "prop_key": "document_description.authors.initial" },
+                                    { "key": "last_name", "title": "Last name", "type": "string", "prop_key": "document_description.authors.last_name" },
+                                    { "key": "full_name", "title": "Full name", "type": "string", "prop_key": "document_description.authors.full_name" },
+                                    { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "document_description.authors.affiliation" },
+                                    {
+                                        "key": "author_id",
+                                        "title": "Author ID",
+                                        "type": "array",
+                                        "prop_key": "document_description.authors.author_id",
+                                        "props": [
+                                            { "key": "type", "title": "Type", "type": "string", "prop_key": "document_description.authors.author_id.type" },
+                                            { "key": "id", "title": "ID", "type": "string", "prop_key": "document_description.authors.author_id.id" }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "document_description.editors",
+                                "title": "Editors",
+                                "type": "array",
+                                "props": [
+                                    { "key": "first_name", "title": "First name", "type": "string", "prop_key": "document_description.editors.first_name" },
+                                    { "key": "initial", "title": "Initial", "type": "string", "prop_key": "document_description.editors.initial" },
+                                    { "key": "last_name", "title": "Last name", "type": "string", "prop_key": "document_description.editors.last_name" },
+                                    { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "document_description.editors.affiliation" }
+                                ]
+                            },
+                            { "key": "document_description.type", "title": "Document type", "type": "string" },
+                            { "key": "document_description.publication_frequency", "title": "Publication frequency", "type": "string" },
+                            { "key": "document_description.series", "title": "Series name", "type": "string" },
+                            { "key": "document_description.status", "title": "Status", "type": "string" },
+                            { "key": "document_description.audience", "title": "Audience", "type": "string" },
+                            { "key": "document_description.mandate", "title": "Mandate", "type": "string" },
+                            { "key": "document_description.title_statement.idno", "title": "Primary ID", "type": "string" },
+                            {
+                                "key": "document_description.identifiers",
+                                "title": "Other identifiers",
+                                "type": "array",
+                                "props": [
+                                    { "key": "type", "title": "Type", "type": "string", "prop_key": "document_description.identifiers.type" },
+                                    { "key": "identifier", "title": "Identifier", "type": "string", "prop_key": "document_description.identifiers.identifier" }
+                                ]
+                            },
+                            {
+                                "key": "document_description.languages",
+                                "title": "Language",
+                                "type": "array",
+                                "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "document_description.languages.name" },
+                                    { "key": "code", "title": "Code", "type": "string", "prop_key": "document_description.languages.code" }
+                                ]
+                            },
+                            {
+                                "key": "iframe_embeds",
+                                "title": "Embedded widgets",
+                                "type": "widget",
+                                "display_options": { "renderer": "field_iframe_embed" }
+                            },
+                            {
+                                "key": "widgets.doi.citations",
+                                "title": "Citation",
+                                "type": "widget",
+                                "display_options": { "renderer": "field_doi_citation", "data_key": "document_description.identifiers" }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "scope_and_coverage",
+                        "title": "Scope and coverage",
+                        "items": [
+                            { "key": "document_description.scope", "title": "Scope", "type": "string" },
+                            {
+                                "key": "document_description.ref_country",
+                                "title": "Countries",
+                                "type": "array",
+                                "display_options": { "scrollable": true },
+                                "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "document_description.ref_country.name" },
+                                    { "key": "code", "title": "Code", "type": "string", "prop_key": "document_description.ref_country.code" }
+                                ]
+                            },
+                            {
+                                "key": "document_description.geographic_units",
+                                "title": "Geographic areas",
+                                "type": "array",
+                                "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "document_description.geographic_units.name" },
+                                    { "key": "code", "title": "Code", "type": "string", "prop_key": "document_description.geographic_units.code" },
+                                    { "key": "type", "title": "Type", "type": "string", "prop_key": "document_description.geographic_units.type" }
+                                ]
+                            },
+                            {
+                                "key": "document_description.bbox",
+                                "title": "Bounding box",
+                                "type": "array",
+                                "display_options": { "renderer": "field_bounding_box" }
+                            },
+                            { "key": "document_description.spatial_coverage", "title": "Spatial coverage", "type": "string" },
+                            { "key": "document_description.temporal_coverage", "title": "Temporal coverage", "type": "string" },
+                            { "key": "document_description.toc", "title": "Table of contents", "type": "string" },
+                            {
+                                "key": "document_description.toc_structured",
+                                "title": "Structured table of contents",
+                                "type": "array",
+                                "props": [
+                                    { "key": "id", "title": "ID", "type": "string", "prop_key": "document_description.toc_structured.id" },
+                                    { "key": "parent_id", "title": "Parent ID", "type": "string", "prop_key": "document_description.toc_structured.parent_id" },
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "document_description.toc_structured.name" }
+                                ]
+                            },
+                            {
+                                "key": "document_description.keywords",
+                                "title": "Keywords",
+                                "type": "array",
+                                "display_options": { "renderer": "field_array_tags", "tag_column": "name" },
+                                "props": [
+                                    { "key": "name", "title": "Keyword", "type": "string", "prop_key": "document_description.keywords.name" },
+                                    { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "document_description.keywords.vocabulary" },
+                                    { "key": "uri", "title": "URL", "type": "string", "prop_key": "document_description.keywords.uri", "display_options": { "is_uri": true } }
+                                ]
+                            },
+                            {
+                                "key": "tags",
+                                "title": "Tags",
+                                "type": "array",
+                                "display_options": { "renderer": "field_array_tags", "tag_column": "tag" },
+                                "props": [
+                                    { "key": "tag", "title": "Tag", "type": "string", "prop_key": "tags.tag" },
+                                    { "key": "tag_group", "title": "Tag group", "type": "string", "prop_key": "tags.tag_group" }
+                                ]
+                            },
+                            {
+                                "key": "document_description.topics",
+                                "title": "Topics",
+                                "type": "array",
+                                "props": [
+                                    { "key": "id", "title": "ID", "type": "string", "prop_key": "document_description.topics.id" },
+                                    { "key": "name", "title": "Topic", "type": "string", "prop_key": "document_description.topics.name" },
+                                    { "key": "parent_id", "title": "Parent ID", "type": "string", "prop_key": "document_description.topics.parent_id" },
+                                    { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "document_description.topics.vocabulary" },
+                                    { "key": "uri", "title": "URL", "type": "string", "prop_key": "document_description.topics.uri", "display_options": { "is_uri": true } }
+                                ]
+                            },
+                            {
+                                "key": "document_description.themes",
+                                "title": "Themes",
+                                "type": "array",
+                                "props": [
+                                    { "key": "id", "title": "ID", "type": "string", "prop_key": "document_description.themes.id" },
+                                    { "key": "name", "title": "Theme", "type": "string", "prop_key": "document_description.themes.name" },
+                                    { "key": "parent_id", "title": "Parent ID", "type": "string", "prop_key": "document_description.themes.parent_id" },
+                                    { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "document_description.themes.vocabulary" },
+                                    { "key": "uri", "title": "URL", "type": "string", "prop_key": "document_description.themes.uri", "display_options": { "is_uri": true } }
+                                ]
+                            },
+                            {
+                                "key": "document_description.disciplines",
+                                "title": "Disciplines",
+                                "type": "array",
+                                "props": [
+                                    { "key": "id", "title": "ID", "type": "string", "prop_key": "document_description.disciplines.id" },
+                                    { "key": "name", "title": "Discipline", "type": "string", "prop_key": "document_description.disciplines.name" },
+                                    { "key": "parent_id", "title": "Parent ID", "type": "string", "prop_key": "document_description.disciplines.parent_id" },
+                                    { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "document_description.disciplines.vocabulary" },
+                                    { "key": "uri", "title": "URL", "type": "string", "prop_key": "document_description.disciplines.uri", "display_options": { "is_uri": true } }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "contributors",
+                        "title": "Contributors",
+                        "items": [
+                            {
+                                "key": "document_description.translators",
+                                "title": "Translators",
+                                "type": "array",
+                                "props": [
+                                    { "key": "first_name", "title": "First name", "type": "string", "prop_key": "document_description.translators.first_name" },
+                                    { "key": "initial", "title": "Initial", "type": "string", "prop_key": "document_description.translators.initial" },
+                                    { "key": "last_name", "title": "Last name", "type": "string", "prop_key": "document_description.translators.last_name" },
+                                    { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "document_description.translators.affiliation" }
+                                ]
+                            },
+                            {
+                                "key": "document_description.contributors",
+                                "title": "Other contributors",
+                                "type": "array",
+                                "props": [
+                                    { "key": "first_name", "title": "First name", "type": "string", "prop_key": "document_description.contributors.first_name" },
+                                    { "key": "initial", "title": "Initial", "type": "string", "prop_key": "document_description.contributors.initial" },
+                                    { "key": "last_name", "title": "Last name", "type": "string", "prop_key": "document_description.contributors.last_name" },
+                                    { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "document_description.contributors.affiliation" },
+                                    { "key": "contribution", "title": "Contribution", "type": "string", "prop_key": "document_description.contributors.contribution" }
+                                ]
+                            },
+                            {
+                                "key": "document_description.contacts",
+                                "title": "Contacts",
+                                "type": "array",
+                                "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "document_description.contacts.name" },
+                                    { "key": "role", "title": "Role", "type": "string", "prop_key": "document_description.contacts.role" },
+                                    { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "document_description.contacts.affiliation" },
+                                    { "key": "email", "title": "Email", "type": "string", "prop_key": "document_description.contacts.email" },
+                                    { "key": "telephone", "title": "Telephone", "type": "string", "prop_key": "document_description.contacts.telephone" },
+                                    { "key": "uri", "title": "URL", "type": "string", "prop_key": "document_description.contacts.uri", "display_options": { "is_uri": true } }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "bibliographic_information",
+                        "title": "Bibliographic information",
+                        "items": [
+                            {
+                                "key": "document_description.bibliographic_citation",
+                                "title": "Bibliographic citation",
+                                "type": "array",
+                                "props": [
+                                    { "key": "style", "title": "Style", "type": "string", "prop_key": "document_description.bibliographic_citation.style" },
+                                    { "key": "citation", "title": "Citation", "type": "string", "prop_key": "document_description.bibliographic_citation.citation" }
+                                ]
+                            },
+                            { "key": "document_description.chapter", "title": "Chapter", "type": "string" },
+                            { "key": "document_description.edition", "title": "Edition", "type": "string" },
+                            { "key": "document_description.institution", "title": "Institution name", "type": "string" },
+                            { "key": "document_description.journal", "title": "Journal name", "type": "string" },
+                            { "key": "document_description.volume", "title": "Volume", "type": "string" },
+                            { "key": "document_description.number", "title": "Number", "type": "string" },
+                            { "key": "document_description.pages", "title": "Pages", "type": "string" },
+                            { "key": "document_description.publisher", "title": "Publisher name", "type": "string" },
+                            { "key": "document_description.publisher_address", "title": "Publisher address", "type": "string" },
+                            { "key": "document_description.annote", "title": "Annotation", "type": "string" },
+                            { "key": "document_description.booktitle", "title": "Book title", "type": "string" },
+                            { "key": "document_description.crossref", "title": "Cross reference", "type": "string" },
+                            { "key": "document_description.howpublished", "title": "How published", "type": "string" },
+                            { "key": "document_description.key", "title": "Key", "type": "string" },
+                            { "key": "document_description.organization", "title": "Organization", "type": "string" },
+                            { "key": "document_description.url", "title": "URL", "type": "string", "display_options": { "is_uri": true } }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "reproducibility",
+                        "title": "Reproducibility",
+                        "items": [
+                            { "key": "document_description.reproducibility.statement", "title": "Reproducibility statement", "type": "string" },
+                            {
+                                "key": "document_description.sources",
+                                "title": "Sources",
+                                "type": "array",
+                                "props": [
+                                    { "key": "source_origin", "title": "Origin", "type": "string", "prop_key": "document_description.sources.source_origin" },
+                                    { "key": "source_char", "title": "Characteristics", "type": "string", "prop_key": "document_description.sources.source_char" },
+                                    { "key": "source_doc", "title": "Documentation", "type": "string", "prop_key": "document_description.sources.source_doc" }
+                                ]
+                            },
+                            {
+                                "key": "document_description.data_sources",
+                                "title": "Data sources",
+                                "type": "array",
+                                "props": [
+                                    { "key": "name", "title": "Dataset", "type": "string", "prop_key": "document_description.data_sources.name" },
+                                    { "key": "uri", "title": "URL", "type": "string", "prop_key": "document_description.data_sources.uri", "display_options": { "is_uri": true } },
+                                    { "key": "note", "title": "Note", "type": "string", "prop_key": "document_description.data_sources.note" }
+                                ]
+                            },
+                            {
+                                "key": "document_description.relations",
+                                "title": "Related resources",
+                                "type": "array",
+                                "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "document_description.relations.name" },
+                                    { "key": "type", "title": "Type", "type": "string", "prop_key": "document_description.relations.type" }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "copyrights",
+                        "title": "Copyrights",
+                        "items": [
+                            {
+                                "key": "document_description.license",
+                                "title": "License",
+                                "type": "array",
+                                "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "document_description.license.name" },
+                                    { "key": "uri", "title": "URL", "type": "string", "prop_key": "document_description.license.uri", "display_options": { "is_uri": true } }
+                                ]
+                            },
+                            { "key": "document_description.disclaimer", "title": "Disclaimer", "type": "string" },
+                            { "key": "document_description.rights", "title": "Rights", "type": "string" },
+                            { "key": "document_description.copyright", "title": "Copyright", "type": "string" },
+                            { "key": "document_description.usage_terms", "title": "Usage terms", "type": "string" },
+                            { "key": "document_description.security_classification", "title": "Security classification", "type": "string" },
+                            { "key": "document_description.access_restrictions", "title": "Access restrictions", "type": "string" },
+                            { "key": "document_description.pricing", "title": "Pricing", "type": "string" },
+                            {
+                                "key": "document_description.reproducibility.links",
+                                "title": "Reproducibility links",
+                                "type": "array",
+                                "props": [
+                                    { "key": "uri", "title": "URL", "type": "string", "prop_key": "document_description.reproducibility.links.uri", "display_options": { "is_uri": true } },
+                                    { "key": "description", "title": "Description", "type": "string", "prop_key": "document_description.reproducibility.links.description" }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "notes",
+                        "title": "Notes",
+                        "items": [
+                            {
+                                "key": "document_description.notes",
+                                "title": "Notes",
+                                "type": "array",
+                                "props": [
+                                    { "key": "note", "title": "Note", "type": "string", "prop_key": "document_description.notes.note" }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "metadata_production",
+                        "title": "Metadata production",
+                        "items": [
+                            { "key": "metadata_information.title", "title": "Document title", "type": "string" },
+                            { "key": "metadata_information.idno", "title": "Document ID", "type": "string" },
+                            {
+                                "key": "metadata_information.producers",
+                                "title": "Metadata producers",
+                                "type": "array",
+                                "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "metadata_information.producers.name" },
+                                    { "key": "abbr", "title": "Abbreviation", "type": "string", "prop_key": "metadata_information.producers.abbr" },
+                                    { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "metadata_information.producers.affiliation" },
+                                    { "key": "role", "title": "Role", "type": "string", "prop_key": "metadata_information.producers.role" }
+                                ]
+                            },
+                            { "key": "metadata_information.production_date", "title": "Production date", "type": "string" },
+                            { "key": "metadata_information.version", "title": "Version", "type": "string" }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "key": "datacite_container",
+                "title": "DataCite",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "datacite_section",
+                        "title": "DataCite",
+                        "items": [
+                            { "key": "datacite.doi", "title": "DOI", "type": "string" },
+                            { "key": "datacite.prefix", "title": "Prefix", "type": "string" },
+                            { "key": "datacite.suffix", "title": "Suffix", "type": "string" },
+                            {
+                                "key": "datacite.creators",
+                                "title": "Creators",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_array_stacked", "header_fields": ["name"] },
+                                "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "datacite.creators.name" },
+                                    { "key": "nameType", "title": "Name type", "type": "string", "prop_key": "datacite.creators.nameType" },
+                                    { "key": "givenName", "title": "Given name", "type": "string", "prop_key": "datacite.creators.givenName" },
+                                    { "key": "familyName", "title": "Family name", "type": "string", "prop_key": "datacite.creators.familyName" },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "array",
+                                        "prop_key": "datacite.creators.affiliation",
+                                        "props": [
+                                            { "key": "name", "title": "Name", "type": "string", "prop_key": "datacite.creators.affiliation.name" },
+                                            { "key": "affiliationIdentifier", "title": "Affiliation identifier", "type": "string", "prop_key": "datacite.creators.affiliation.affiliationIdentifier" },
+                                            { "key": "affiliationIdentifierScheme", "title": "Affiliation identifier scheme", "type": "string", "prop_key": "datacite.creators.affiliation.affiliationIdentifierScheme" },
+                                            { "key": "schemeUri", "title": "Schema URI", "type": "string", "prop_key": "datacite.creators.affiliation.schemeUri" }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "datacite.titles",
+                                "title": "Titles",
+                                "type": "array",
+                                "props": [
+                                    { "key": "title", "title": "Title", "type": "string", "prop_key": "datacite.titles.title" },
+                                    { "key": "titleType", "title": "Title type", "type": "string", "prop_key": "datacite.titles.titleType" },
+                                    { "key": "lang", "title": "Language", "type": "string", "prop_key": "datacite.titles.lang" }
+                                ]
+                            },
+                            { "key": "datacite.publisher", "title": "Publisher", "type": "string" },
+                            { "key": "datacite.publicationYear", "title": "Publication year", "type": "string" },
+                            { "key": "datacite.types.resourceType", "title": "Resource type", "type": "string" },
+                            { "key": "datacite.types.resourceTypeGeneral", "title": "Resource type general", "type": "string" },
+                            { "key": "datacite.url", "title": "URL", "type": "string", "display_options": { "is_uri": true } },
+                            { "key": "datacite.language", "title": "Language", "type": "string" }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "key": "provenance_container",
+                "title": "Provenance",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "provenance",
+                        "title": "Provenance",
+                        "items": [
+                            { "key": "provenance.original_repository.repository_name", "title": "Original repository name", "type": "string" },
+                            { "key": "provenance.original_repository.url", "title": "Original repository URL", "type": "string", "display_options": { "is_uri": true } },
+                            { "key": "provenance.original_repository.dataset_identifier", "title": "Original dataset identifier", "type": "string" },
+                            { "key": "provenance.original_repository.doi", "title": "Original repository DOI", "type": "string" },
+                            { "key": "provenance.original_repository.dataset_title", "title": "Original dataset title", "type": "string" },
+                            { "key": "provenance.original_repository.date_published", "title": "Original dataset published date", "type": "string" },
+                            { "key": "provenance.original_repository.notes", "title": "Original repository notes", "type": "string" },
+                            {
+                                "key": "provenance.source_repository",
+                                "title": "Source repositories",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_array_stacked", "header_fields": ["repository_name"] },
+                                "props": [
+                                    { "key": "repository_name", "title": "Repository name", "type": "string", "prop_key": "provenance.source_repository.repository_name" },
+                                    { "key": "url", "title": "URL", "type": "string", "prop_key": "provenance.source_repository.url", "display_options": { "is_uri": true } },
+                                    { "key": "dataset_identifier", "title": "Dataset identifier", "type": "string", "prop_key": "provenance.source_repository.dataset_identifier" },
+                                    { "key": "dataset_title", "title": "Dataset title", "type": "string", "prop_key": "provenance.source_repository.dataset_title" },
+                                    { "key": "date_acquired", "title": "Date acquired", "type": "string", "prop_key": "provenance.source_repository.date_acquired" },
+                                    { "key": "acquisition_mode", "title": "Acquisition mode", "type": "string", "prop_key": "provenance.source_repository.acquisition_mode" },
+                                    { "key": "notes", "title": "Notes", "type": "string", "prop_key": "provenance.source_repository.notes" }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "section_container",
+                "key": "additional_container",
+                "title": "Additional Fields",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "additional_section",
+                        "title": "Additional metadata",
+                        "items": [
+                            {
+                                "key": "additional",
+                                "title": "Additional metadata",
+                                "type": "object",
+                                "display_options": { "renderer": "field_object_additional" }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

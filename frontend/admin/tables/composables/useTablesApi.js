@@ -31,9 +31,10 @@ export function useTablesApi() {
    * @param {string} dbId
    * @param {string} tableId
    * @param {File} file
-   * @param {(ev: { loaded: number, total: number }) => void} [onProgress]
+   * @param {(ev: { loaded: number, total: number, chunkIndex?: number, totalChunks?: number, attempt?: number, maxAttempts?: number }) => void} [onProgress]
+   * @param {{ uploadId?: string, onSession?: (ev: { upload_id: string }) => void }} [options]
    */
-  async function uploadTableFile(dbId, tableId, file, onProgress) {
+  async function uploadTableFile(dbId, tableId, file, onProgress, options = {}) {
     const completed = await resumable.uploadFile(file, {
       metadata: {
         source: 'tables',
@@ -42,6 +43,8 @@ export function useTablesApi() {
         table_id: tableId,
       },
       onProgress,
+      uploadId: options.uploadId,
+      onSession: options.onSession,
     });
 
     const { data } = await axios.post(
@@ -273,6 +276,44 @@ export function useTablesApi() {
     return `${base()}/export_definition/${dbId}/${tableId}`;
   }
 
+  function importErrorsUrl(dbId, tableId) {
+    return `${base()}/import_errors/${dbId}/${tableId}`;
+  }
+
+  async function downloadImportErrors(dbId, tableId) {
+    try {
+      const response = await axios.get(importErrorsUrl(dbId, tableId), {
+        responseType: 'blob',
+        withCredentials: true,
+        headers: csrfHeaders(),
+      });
+      const blob = new Blob([response.data], { type: 'application/x-ndjson' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${dbId}_${tableId}_import_errors.ndjson`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      const data = e.response?.data;
+      if (data instanceof Blob) {
+        const text = await data.text();
+        try {
+          const json = JSON.parse(text);
+          throw new Error(json.message || 'Failed to download import errors');
+        } catch (inner) {
+          if (inner instanceof SyntaxError) {
+            throw new Error('Failed to download import errors');
+          }
+          throw inner;
+        }
+      }
+      throw e;
+    }
+  }
+
   return {
     loading,
     error,
@@ -300,6 +341,8 @@ export function useTablesApi() {
     detachStudy,
     apiUrl,
     exportDefinitionUrl,
+    importErrorsUrl,
+    downloadImportErrors,
     uploadTableFile,
     csrfHeaders,
   };

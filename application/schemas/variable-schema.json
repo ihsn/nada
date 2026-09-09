@@ -32,30 +32,39 @@
 			]
 		},
 		"var_dcml": {
-			"type": "string",
+			"type": [
+				"string",
+				"number"
+			],
 			"title": "Variable decimal points",
 			"description": "Number of decimal points in the variable"
 		},
 		"var_wgt": {
-			"type": "integer",
+			"type": "number",
 			"title": "Weight",
 			"description": "indicates whether the variable is a weight",
 			"default": 0
 		},
-		"loc_start_pos": {
+		"is_key": {
 			"type": "integer",
+			"title": "Is key variable",
+			"description": "Indicates whether the variable is a key variable (1) or not (0). Key variables are used to identify records in a data file.",
+			"default": 0
+		},
+		"loc_start_pos": {
+			"type": "number",
 			"title": "Variable start position"
 		},
 		"loc_end_pos": {
-			"type": "integer",
+			"type": "number",
 			"title": "Variable end position"
 		},
 		"loc_width": {
-			"type": "integer",
+			"type": "number",
 			"title": "Variable width"
 		},
 		"loc_rec_seg_no": {
-			"type": "integer",
+			"type": "number",
 			"title": "Record segment number, deck or card number the variable is located on"
 		},
 		"var_imputation": {
@@ -99,7 +108,7 @@
 			"title": "Backward skip",
 			"description": "Contains a reference to IDs of possible preceding questions. This can be used to document backward skip instructions."
 		},
-		"var_qstn_ivuinstr": {
+		"var_qstn_ivulnstr": {
 			"type": "string",
 			"title": "Interviewer instructions"
 		},
@@ -143,7 +152,10 @@
 				"type": "object",
 				"properties": {
 					"value": {
-						"type": "string",
+						"type": [
+							"string",
+							"number"
+						],
 						"title": "Value"
 					},
 					"label": {

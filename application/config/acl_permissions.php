@@ -297,6 +297,28 @@ $config['acl_permissions'] = [
             ]
         ]
     ],
+    "display_template"=>[
+        "title" => "Display manager",
+        "description" => "Manage catalog study-description display templates (layout, defaults, translations)",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Open the display template manager"
+            ],
+            [
+                "permission" => "create",
+                "description" => "Create and duplicate display templates"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Update templates, translations, defaults, import, and export"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Delete display templates"
+            ]
+        ]
+    ],
     "table"=>[
         "title" => "Tables API",
         "description" => "Administer data tables via the Tables API (schema, indexes, uploads)",

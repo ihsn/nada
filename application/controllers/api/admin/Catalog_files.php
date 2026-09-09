@@ -308,9 +308,7 @@ class Catalog_files extends MY_REST_Controller
 				}
 			}
 
-			if (! @copy($src, $dest)) {
-				throw new Exception('COPY_TO_SURVEY_FOLDER_FAILED');
-			}
+			$this->uploader->relocate_file($src, $dest);
 
 			$this->db_logger->write_log('resource-upload', $dest, 'external-resource', $sid);
 

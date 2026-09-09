@@ -8,7 +8,11 @@
  *  - hide_column_headings - hide column headings 
  */
 
- $columns=$template['props'];
+ $this->load->helper('display_template');
+ $columns=display_template_filter_props($template['props']);
+ if (count($columns) < 1) {
+     return false;
+ }
  $name=$template['title'];
  $hide_field_title=false;
  $hide_column_headings=false;
@@ -19,11 +23,13 @@
     <?php
         $column_type=$column['type'];
 
-        if (in_array($column_type,array("text","string","boolean","integer"))){
+        if (in_array($column_type,array("text","string","boolean","integer","number"))){
             $column_type='text';
         }
 
-        if ($column_type=='section'){
+        if ($column_type=='date'){
+            // use field_date.php
+        } elseif ($column_type=='section'){
             $column_type='nested_section';
         }        
 
@@ -48,7 +54,7 @@
 <?php if ( ($html_output!='') || $show_empty==true ):?>
     <div class="mb-2 field field-<?php echo str_replace(".'","-",$template['key']);?>">
         <?php if ($hide_field_title!=true):?>
-            <h5 class="field-title"><?php echo t($template['title']);?></h5>
+            <h5 class="field-title"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></h5>
         <?php endif;?>
         <div><?php echo $html_output;?></div>
     </div>
