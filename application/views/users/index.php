@@ -399,6 +399,7 @@ function performBulkAction(action, userIds) {
   var formData = new FormData();
   formData.append('action', action);
   formData.append('user_ids', JSON.stringify(userIds));
+  formData.append(<?php echo json_encode($this->security->get_csrf_token_name()); ?>, <?php echo json_encode($this->security->get_csrf_hash()); ?>);
   fetch(<?php echo json_encode(site_url('admin/users/bulk_action')); ?>, {
     method: 'POST',
     body: formData
