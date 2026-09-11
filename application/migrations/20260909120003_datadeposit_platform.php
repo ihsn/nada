@@ -2,15 +2,22 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 require_once(APPPATH . 'core/MY_Migration.php');
+require_once(APPPATH . 'migrations/traits/Catalog_schema_gaps_trait.php');
 
 /**
  * Install dd_* tables when missing, then add v2 columns on existing catalogs.
+ * Also creates filestore if missing and repairs codelists SDMX/PID columns.
  * Each step is idempotent.
  */
 class Migration_Datadeposit_platform extends MY_Migration {
 
+	use Catalog_schema_gaps_trait;
+
 	public function up()
 	{
+		$this->ensure_filestore_table();
+		$this->ensure_codelists_sdmx_identity();
+		$this->ensure_codelists_pid_versioning();
 		$this->install_tables_if_missing();
 		$this->add_schema_version_and_submission();
 		$this->add_data_type();
@@ -42,6 +49,7 @@ class Migration_Datadeposit_platform extends MY_Migration {
 		}
 
 		$this->execute_sql_file($path);
+		$this->forget_table_cache();
 	}
 
 	private function add_schema_version_and_submission()
@@ -72,12 +80,20 @@ class Migration_Datadeposit_platform extends MY_Migration {
 			return;
 		}
 
-		if (!$this->db->field_exists('schema_version', 'dd_projects')) {
-			$this->db->query("ALTER TABLE dd_projects ADD schema_version TINYINT NOT NULL CONSTRAINT df_dd_projects_schema_version DEFAULT 1");
-		}
-		if (!$this->db->field_exists('submission', 'dd_projects')) {
-			$this->db->query("ALTER TABLE dd_projects ADD submission NVARCHAR(MAX) NULL");
-		}
+		$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.dd_projects', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.dd_projects', N'schema_version') IS NULL
+BEGIN
+	ALTER TABLE dbo.dd_projects ADD schema_version TINYINT NOT NULL CONSTRAINT df_dd_projects_schema_version DEFAULT 1
+END
+		"), 'add dd_projects.schema_version');
+		$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.dd_projects', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.dd_projects', N'submission') IS NULL
+BEGIN
+	ALTER TABLE dbo.dd_projects ADD submission NVARCHAR(MAX) NULL
+END
+		"), 'add dd_projects.submission');
 	}
 
 	private function add_data_type()
@@ -93,14 +109,18 @@ class Migration_Datadeposit_platform extends MY_Migration {
 					ADD COLUMN `data_type` VARCHAR(20) DEFAULT NULL AFTER `created_on`");
 			}
 		} elseif ($driver === 'sqlsrv') {
-			if (!$this->db->field_exists('data_type', 'dd_projects')) {
-				$this->db->query("ALTER TABLE dd_projects ADD data_type varchar(20) NULL");
-			}
+			$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.dd_projects', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.dd_projects', N'data_type') IS NULL
+BEGIN
+	ALTER TABLE dbo.dd_projects ADD data_type varchar(20) NULL
+END
+			"), 'add dd_projects.data_type');
 		} else {
 			return;
 		}
 
-		if (!$this->db->field_exists('data_type', 'dd_projects')) {
+		if ($driver !== 'sqlsrv' && !$this->db->field_exists('data_type', 'dd_projects')) {
 			return;
 		}
 
@@ -116,14 +136,13 @@ class Migration_Datadeposit_platform extends MY_Migration {
 
 	private function add_metadata()
 	{
-		if (!$this->db->table_exists('dd_projects')
-			|| $this->db->field_exists('metadata', 'dd_projects')
-		) {
-			return;
-		}
-
 		$driver = $this->db->dbdriver;
 		if (in_array($driver, array('mysql', 'mysqli'))) {
+			if (!$this->db->table_exists('dd_projects')
+				|| $this->db->field_exists('metadata', 'dd_projects')
+			) {
+				return;
+			}
 			if ($this->db->field_exists('requested_when', 'dd_projects')) {
 				$this->db->query("ALTER TABLE `dd_projects`
 					ADD COLUMN `metadata` MEDIUMTEXT NULL AFTER `requested_when`");
@@ -134,17 +153,22 @@ class Migration_Datadeposit_platform extends MY_Migration {
 		}
 
 		if ($driver === 'sqlsrv') {
-			$this->db->query("ALTER TABLE dd_projects ADD metadata varchar(max) NULL");
+			$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.dd_projects', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.dd_projects', N'metadata') IS NULL
+BEGIN
+	ALTER TABLE dbo.dd_projects ADD metadata varchar(max) NULL
+END
+			"), 'add dd_projects.metadata');
 		}
 	}
 
 	private function add_resource_columns()
 	{
-		if (!$this->db->table_exists('dd_project_resources')) {
+		$driver = $this->db->dbdriver;
+		if (in_array($driver, array('mysql', 'mysqli')) && !$this->db->table_exists('dd_project_resources')) {
 			return;
 		}
-
-		$driver = $this->db->dbdriver;
 		if (in_array($driver, array('mysql', 'mysqli'))) {
 			if (!$this->db->field_exists('dctype', 'dd_project_resources')) {
 				$this->db->query("ALTER TABLE `dd_project_resources`
@@ -167,15 +191,27 @@ class Migration_Datadeposit_platform extends MY_Migration {
 			return;
 		}
 
-		if (!$this->db->field_exists('dctype', 'dd_project_resources')) {
-			$this->db->query("ALTER TABLE dd_project_resources ADD dctype varchar(100) NULL");
-		}
-		if (!$this->db->field_exists('dcformat', 'dd_project_resources')) {
-			$this->db->query("ALTER TABLE dd_project_resources ADD dcformat varchar(100) NULL");
-		}
-		if (!$this->db->field_exists('filesize', 'dd_project_resources')) {
-			$this->db->query("ALTER TABLE dd_project_resources ADD filesize float NULL");
-		}
+		$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.dd_project_resources', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.dd_project_resources', N'dctype') IS NULL
+BEGIN
+	ALTER TABLE dbo.dd_project_resources ADD dctype varchar(100) NULL
+END
+		"), 'add dd_project_resources.dctype');
+		$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.dd_project_resources', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.dd_project_resources', N'dcformat') IS NULL
+BEGIN
+	ALTER TABLE dbo.dd_project_resources ADD dcformat varchar(100) NULL
+END
+		"), 'add dd_project_resources.dcformat');
+		$this->assert_db_query($this->db->query("
+IF OBJECT_ID(N'dbo.dd_project_resources', N'U') IS NOT NULL
+AND COL_LENGTH(N'dbo.dd_project_resources', N'filesize') IS NULL
+BEGIN
+	ALTER TABLE dbo.dd_project_resources ADD filesize float NULL
+END
+		"), 'add dd_project_resources.filesize');
 	}
 
 	private function deposit_max_upload_size_configuration()
