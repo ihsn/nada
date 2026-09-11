@@ -50,6 +50,7 @@ class Data_access_whitelist_model extends CI_Model {
 	function get_data_files($sid)
 	{
 		$this->load->model('Survey_resource_model');
+		$this->load->helper('resource_helper');
 		$result['resources_microdata']=$this->Survey_resource_model->get_microdata_resources($sid);
 		$result['sid']=$sid;
 		$result['storage_path']=$this->Dataset_model->get_storage_fullpath($sid);

@@ -22,6 +22,11 @@ if ( ! function_exists('strip_brackets'))
   
 function strip_brackets($value)
 {
+	if ($value === null || $value === '')
+	{
+		return $value;
+	}
+
 	$pos=strpos($value,"[");
 	if ($pos > 0)
 	{

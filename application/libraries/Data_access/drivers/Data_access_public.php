@@ -169,6 +169,7 @@ class Data_access_public extends CI_Driver {
 	{
 		$this->CI->load->model('Survey_resource_model');
 		$this->CI->load->model('Dataset_model');
+		$this->CI->load->helper('resource_helper');
 		
 		$result['resources_microdata'] = $this->CI->Survey_resource_model->get_microdata_resources($sid);
 		$result['sid'] = $sid;
