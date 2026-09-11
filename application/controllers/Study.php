@@ -487,6 +487,7 @@ class Study extends MY_Controller {
 	public function get_microdata($sid)
 	{
 		$survey=$this->get_survey_info($sid);
+		$this->load->helper("resource_helper");
 		$this->load->model("Form_model");	
 		$this->load->model("Data_access_whitelist_model");
 

@@ -1,3 +1,4 @@
+<?php $this->load->helper('resource_helper'); ?>
 <style>
 td.caption{
 	text-align:left;width:200px;
@@ -18,8 +19,8 @@ td.caption{
 		$count++; 
 		
 		//clean up fields
-		$row['country']=strip_brackets($row['country']);
-		$row['language']=strip_brackets($row['language']);
+		$row['country']=strip_brackets($row['country'] ?? '');
+		$row['language']=strip_brackets($row['language'] ?? '');
 		
 		$url=NULL;
 		$file_size='';
