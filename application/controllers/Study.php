@@ -396,6 +396,9 @@ class Study extends MY_Controller {
         $options['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
 		$microdata_resources=$this->Survey_resource_model->get_microdata_resources($sid);
 		$microdata_resources= $this->Survey_resource_model->format_resources($microdata_resources);
+		if (!is_array($microdata_resources)){
+			$microdata_resources=array();
+		}
 		$options['microdata_resources']=NULL;
 		$options['lic_requests']=NULL;
 

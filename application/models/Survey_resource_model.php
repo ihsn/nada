@@ -2012,8 +2012,8 @@ class Survey_resource_model extends CI_Model {
 	 */
 	function format_resources($resources)
 	{
-		if (empty($resources)){
-			return false;
+		if (empty($resources) || !is_array($resources)){
+			return array();
 		}
 
 		$output = array();
