@@ -38,6 +38,20 @@ export function useSiteConfigurationsApi() {
     return data;
   }
 
+  /**
+   * Remove one stored setting (POST alias for DELETE), e.g. to clear a saved secret.
+   * @param {string} key
+   */
+  async function removeSetting(key) {
+    const { data } = await axios.post(
+      `${base()}remove/${encodeURIComponent(key)}`,
+      {},
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'REMOVE_FAILED');
+    return data;
+  }
+
   async function fetchTestEmailForm() {
     const { data } = await axios.get(`${base()}test_email`);
     if (data.status !== 'success') throw new Error(data.message || 'TEST_EMAIL_LOAD_FAILED');
@@ -53,5 +67,5 @@ export function useSiteConfigurationsApi() {
     return data;
   }
 
-  return { fetchSettings, fetchMeta, saveSettings, fetchTestEmailForm, sendTestEmail };
+  return { fetchSettings, fetchMeta, saveSettings, removeSetting, fetchTestEmailForm, sendTestEmail };
 }

@@ -226,6 +226,24 @@ $config['acl_permissions'] = [
             ]
         ]
     ],
+    "semantic_search"=>[
+        "title" => "Semantic search indexing",
+        "description" => "Manage the nada-ai semantic search index",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Browse semantic search status, jobs, and collection info"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Trigger catalog ingest, cancel jobs, and trigger sync reconciliation"
+            ],
+            [
+                "permission" => "delete",
+                "description" => "Recreate (drop and rebuild) the semantic search index"
+            ]
+        ]
+    ],
     "collection_type"=>[
         "title" => "Collection sections",
         "description" => "Manage collection type sections",

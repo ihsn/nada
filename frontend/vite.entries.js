@@ -71,6 +71,7 @@ export const adminEntries = {
   admin_ui_kit: path.resolve(__dirname, 'admin/ui_kit/main.js'),
   admin_tables: path.resolve(__dirname, 'admin/tables/main.js'),
   admin_facets: path.resolve(__dirname, 'admin/facets/main.js'),
+  admin_semantic: path.resolve(__dirname, 'admin/semantic/main.js'),
   admin_menu: path.resolve(__dirname, 'admin/menu/main.js'),
   admin_datadeposit: path.resolve(__dirname, 'admin/datadeposit/main.js'),
 };

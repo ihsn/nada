@@ -163,6 +163,11 @@ $route['api/admin/search-index/status']                         = 'api/admin/sea
 $route['api/admin/search-index/queue/(:num)/ack']               = 'api/admin/search_index/ack/$1';
 $route['api/admin/search-index/queue']                          = 'api/admin/search_index/queue';
 $route['api/admin/search-index/requeue']                        = 'api/admin/search_index/requeue';
+$route['api/admin/search-index/state/bulk']                     = 'api/admin/search_index/state_bulk';
+$route['api/admin/search-index/diff/missing']                   = 'api/admin/search_index/diff_missing';
+$route['api/admin/search-index/diff/stale']                     = 'api/admin/search_index/diff_stale';
+$route['api/admin/search-index/summary']                        = 'api/admin/search_index/summary';
+$route['api/admin/search-index/type-breakdown']                 = 'api/admin/search_index/type_breakdown';
 
 $route['api/admin/catalog/data-access-codelist']         = 'api/admin/catalog/data_access_codelist';
 $route['api/admin/catalog/data-access-options']          = 'api/admin/catalog/data_access_options';

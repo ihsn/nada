@@ -32,6 +32,7 @@ class Configurations extends MY_REST_Controller
 		'sendgrid_api_key',
 		'microsoft_graph_client_secret',
 		'semantic_search_api_key',
+		'semantic_search_admin_api_key',
 		'acs_access_key',
 		'acs_connection_string',
 	);
@@ -168,6 +169,7 @@ class Configurations extends MY_REST_Controller
 				),
 				'catalog_study_types'       => $catalog_study_types,
 				'datadeposit'               => $this->datadeposit_meta(),
+				'secrets_set'               => $this->secrets_set($c),
 			);
 
 			$this->set_response(
@@ -532,9 +534,13 @@ class Configurations extends MY_REST_Controller
 			if ($key === 'semantic_search_url')
 			{
 				$value = rtrim(trim((string) $value), '/');
-				if ($value !== '' && filter_var($value, FILTER_VALIDATE_URL) === FALSE)
+				if ($value !== '')
 				{
-					throw new Exception('INVALID_URL:semantic_search_url');
+					$scheme = strtolower((string) parse_url($value, PHP_URL_SCHEME));
+					if (filter_var($value, FILTER_VALIDATE_URL) === FALSE || !in_array($scheme, array('http', 'https'), TRUE))
+					{
+						throw new Exception('INVALID_URL:semantic_search_url');
+					}
 				}
 			}
 
@@ -566,6 +572,57 @@ class Configurations extends MY_REST_Controller
 			}
 		}
 		unset($value);
+
+		$this->validate_search_provider($options);
+	}
+
+	/**
+	 * search_provider must be a known engine, and semantic search needs an API URL.
+	 *
+	 * Section saves send only their own keys, so the URL is resolved from the payload
+	 * first and the stored value second.
+	 *
+	 * @param array $options key => value about to be stored (already normalised)
+	 */
+	protected function validate_search_provider(array &$options)
+	{
+		if (!array_key_exists('search_provider', $options) && !array_key_exists('semantic_search_url', $options))
+		{
+			return;
+		}
+
+		$stored = $this->Configurations_model->get_config_array();
+
+		if (array_key_exists('search_provider', $options))
+		{
+			$provider = strtolower(trim((string) $options['search_provider']));
+
+			// Legacy values that Search_index_manager already treats as the built-in DB search.
+			if (in_array($provider, array('mysql', 'mysqli', 'sqlsrv'), TRUE))
+			{
+				$provider = 'db';
+			}
+
+			if (!in_array($provider, array('db', 'opensearch', 'solr', 'semantic'), TRUE))
+			{
+				throw new Exception('INVALID_VALUE:search_provider');
+			}
+
+			$options['search_provider'] = $provider;
+		}
+		else
+		{
+			$provider = isset($stored['search_provider']) ? (string) $stored['search_provider'] : '';
+		}
+
+		$url = array_key_exists('semantic_search_url', $options)
+			? (string) $options['semantic_search_url']
+			: (isset($stored['semantic_search_url']) ? (string) $stored['semantic_search_url'] : '');
+
+		if ($provider === 'semantic' && trim($url) === '')
+		{
+			throw new Exception('SEMANTIC_SEARCH_URL_REQUIRED');
+		}
 	}
 
 	protected function datadeposit_meta()
@@ -610,6 +667,24 @@ class Configurations extends MY_REST_Controller
 		}
 
 		return $config;
+	}
+
+	/**
+	 * Which secret keys currently hold a value. GET masks the values themselves, so the
+	 * UI uses this to show that one is saved.
+	 *
+	 * @param array $config raw key => value rows from the configurations table
+	 * @return array<string, bool>
+	 */
+	protected function secrets_set(array $config)
+	{
+		$set = array();
+		foreach ($this->secret_keys as $sk)
+		{
+			$set[$sk] = isset($config[$sk]) && (string) $config[$sk] !== '';
+		}
+
+		return $set;
 	}
 
 	protected function decode_json_values_for_output(array $config)

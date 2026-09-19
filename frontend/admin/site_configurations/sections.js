@@ -44,8 +44,14 @@ export const SECTION_DEFS = [
   },
   {
     id: 'search',
-    titleKey: 'fulltext_search',
-    keys: ['search_provider', 'semantic_search_url', 'semantic_search_api_key', 'semantic_search_debug'],
+    titleKey: 'search_settings',
+    keys: [
+      'search_provider',
+      'semantic_search_url',
+      'semantic_search_api_key',
+      'semantic_search_admin_api_key',
+      'semantic_search_debug',
+    ],
   },
   {
     id: 'login',

@@ -178,6 +178,13 @@ $menu[]=array(
 		'type'	=>'divider'
 	),
 	array(
+		'title'	=>'Semantic Search',
+		'url'	=>'admin/semantic'
+	),
+	array(
+		'type'	=>'divider'
+	),
+	array(
 		'title'	=>'Codelists',
 		'url'	=>'admin/codelists'
 	),

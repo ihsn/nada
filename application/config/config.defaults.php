@@ -27,6 +27,7 @@ $config['admin_header_background']='#212121';
 $config['search_provider']='db';
 $config['semantic_search_url']='';
 $config['semantic_search_api_key']='';
+$config['semantic_search_admin_api_key']='';
 $config['semantic_search_debug']='false';
 
 //default cache expiration in seconds

@@ -9,9 +9,11 @@
  * Docker Compose, ingest from catalog, health checks). The FastAPI app exposes
  * POST /search; local dev default is http://localhost:8020 (no trailing slash).
  *
- * Enable semantic search in NADA via Site configurations → search_provider = semantic.
- * Set semantic_search_url, semantic_search_api_key, and semantic_search_debug
- * in Site configurations → Fulltext search.
+ * Set semantic_search_url, semantic_search_api_key, semantic_search_admin_api_key and
+ * semantic_search_debug in Site configurations → Search → Semantic search settings. These
+ * can be saved without making semantic search the active provider.
+ * Enable it by selecting Semantic Search (AI) as the search provider on the same page
+ * (search_provider = semantic).
  */
 
 // Search mode sent to nada-ai POST /search: hybrid | vector | keyword

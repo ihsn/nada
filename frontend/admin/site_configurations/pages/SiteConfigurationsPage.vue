@@ -10,7 +10,7 @@ defineOptions({ name: 'SiteConfigurationsPage' });
 
 const route = useRoute();
 const { config, siteUrl } = useAppConfig();
-const { fetchSettings, fetchMeta, saveSettings, fetchTestEmailForm, sendTestEmail } =
+const { fetchSettings, fetchMeta, saveSettings, removeSetting, fetchTestEmailForm, sendTestEmail } =
   useSiteConfigurationsApi();
 
 /** Matches legacy dropdown in application/views/site_configurations/test_email.php */
@@ -52,7 +52,14 @@ const displayManagerUrl = computed(() => {
   return `${base}/admin/display_templates`;
 });
 const settings = ref({});
+/** Live field value: lets a URL be entered and semantic search activated in one save. */
+const semanticUrlEntered = computed(() => String(settings.value.semantic_search_url || '').trim() !== '');
 const meta = ref({});
+/** Secret settings are never returned by the API; meta says which ones hold a value. */
+const secretsSet = computed(() => meta.value?.secrets_set || {});
+const clearSecretDialog = ref(false);
+const clearSecretKey = ref('');
+const clearingSecret = ref(false);
 const langRows = ref([]);
 const useDisplayByType = ref({});
 
@@ -280,6 +287,43 @@ async function submitTestEmail() {
   }
 }
 
+const SAVE_ERROR_KEYS = {
+  SEMANTIC_SEARCH_URL_REQUIRED: 'error_semantic_search_url_required',
+  'INVALID_VALUE:search_provider': 'error_invalid_search_provider',
+  'INVALID_URL:semantic_search_url': 'error_invalid_semantic_search_url',
+};
+
+function errorText(e) {
+  const raw = e?.response?.data?.message || e?.message || String(e);
+  const key = SAVE_ERROR_KEYS[raw];
+  return key ? tr(key) : raw;
+}
+
+function askClearSecret(key) {
+  clearSecretKey.value = key;
+  clearSecretDialog.value = true;
+}
+
+async function confirmClearSecret() {
+  const key = clearSecretKey.value;
+  clearingSecret.value = true;
+  try {
+    await removeSetting(key);
+    // Refresh only meta so unsaved edits elsewhere on the page are kept.
+    meta.value = { ...(await fetchMeta()) };
+    settings.value = { ...settings.value, [key]: '' };
+    snackbarIsError.value = false;
+    snackbarText.value = tr('secret_cleared');
+  } catch (e) {
+    snackbarIsError.value = true;
+    snackbarText.value = errorText(e);
+  } finally {
+    snackbar.value = true;
+    clearingSecret.value = false;
+    clearSecretDialog.value = false;
+  }
+}
+
 async function saveCurrentSection() {
   if (activeSection.value === 'mail' && emailConfigFileExists.value) {
     return;
@@ -294,7 +338,7 @@ async function saveCurrentSection() {
     await reloadAll();
   } catch (e) {
     snackbarIsError.value = true;
-    snackbarText.value = e?.response?.data?.message || e?.message || String(e);
+    snackbarText.value = errorText(e);
     snackbar.value = true;
   } finally {
     saving.value = false;
@@ -949,53 +993,121 @@ onMounted(async () => {
                   {{ tr('update') }}
                 </v-btn>
               </div>
-            <label class="site-config-field__label">{{ tr('search_provider') }}</label>
-            <v-radio-group v-model="settings.search_provider" class="mt-1">
-              <v-radio value="db" :label="tr('search_provider_db')" />
-              <v-radio value="opensearch" :label="tr('search_provider_opensearch')" />
-              <v-radio value="solr" :label="tr('search_provider_solr')" />
-              <v-radio value="semantic" :label="tr('search_provider_semantic')" />
-            </v-radio-group>
-            <div class="site-config-field__hint mt-2">{{ tr('search_provider_note') }}</div>
 
-            <div v-show="settings.search_provider === 'semantic'" class="mt-6">
-              <v-row dense>
-                <v-col cols="12">
-                  <label class="site-config-field__label">{{ tr('semantic_search_url') }}</label>
-                  <v-text-field
-                    v-model="settings.semantic_search_url"
-                    variant="outlined"
-                    density="comfortable"
-                    placeholder="https://ai.example.org"
-                    hide-details
-                  />
-                  <div class="site-config-field__hint mt-2">{{ tr('semantic_search_url_note') }}</div>
-                </v-col>
-                <v-col cols="12">
-                  <label class="site-config-field__label">{{ tr('semantic_search_api_key') }}</label>
-                  <v-text-field
-                    v-model="settings.semantic_search_api_key"
-                    variant="outlined"
-                    density="comfortable"
-                    type="password"
-                    autocomplete="new-password"
-                    hide-details
-                  />
-                  <div class="site-config-field__hint mt-2">{{ tr('semantic_search_api_key_note') }}</div>
-                </v-col>
-                <v-col cols="12">
-                  <label class="site-config-field__label">{{ tr('semantic_search_debug') }}</label>
-                  <v-switch
-                    v-model="settings.semantic_search_debug"
-                    true-value="true"
-                    false-value="false"
-                    color="primary"
-                    hide-details
-                  />
-                  <div class="site-config-field__hint mt-2">{{ tr('semantic_search_debug_note') }}</div>
-                </v-col>
-              </v-row>
-            </div>
+              <label class="site-config-field__label">{{ tr('search_provider') }}</label>
+              <v-radio-group v-model="settings.search_provider" class="mt-1">
+                <v-radio value="db" :label="tr('search_provider_db')" />
+                <v-radio value="opensearch" :label="tr('search_provider_opensearch')" />
+                <v-radio value="solr" :label="tr('search_provider_solr')" />
+                <v-radio
+                  value="semantic"
+                  :label="tr('search_provider_semantic')"
+                  :disabled="!semanticUrlEntered"
+                />
+              </v-radio-group>
+              <div v-if="!semanticUrlEntered" class="site-config-field__hint mt-2">
+                {{ tr('semantic_search_needs_setup') }}
+              </div>
+
+              <v-expansion-panels variant="accordion" class="mt-6">
+                <v-expansion-panel>
+                  <v-expansion-panel-title>
+                    <span class="text-subtitle-1 font-weight-medium">{{ tr('semantic_search_section') }}</span>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <v-row dense>
+                      <v-col cols="12">
+                        <label class="site-config-field__label">{{ tr('semantic_search_url') }}</label>
+                        <v-text-field
+                          v-model="settings.semantic_search_url"
+                          variant="outlined"
+                          density="comfortable"
+                          placeholder="https://ai.example.org"
+                          hide-details
+                        />
+                        <div class="site-config-field__hint mt-2">{{ tr('semantic_search_url_note') }}</div>
+                      </v-col>
+                      <v-col cols="12">
+                        <label class="site-config-field__label">{{ tr('semantic_search_api_key') }}</label>
+                        <v-text-field
+                          v-model="settings.semantic_search_api_key"
+                          variant="outlined"
+                          density="comfortable"
+                          type="password"
+                          autocomplete="new-password"
+                          :placeholder="secretsSet.semantic_search_api_key ? tr('secret_saved_placeholder') : ''"
+                          hide-details
+                        />
+                        <div class="site-config-field__hint mt-2">{{ tr('semantic_search_api_key_note') }}</div>
+                        <div v-if="secretsSet.semantic_search_api_key" class="d-flex align-center flex-wrap ga-2 mt-1">
+                          <v-icon icon="mdi-check-circle" size="small" color="success" />
+                          <span class="site-config-field__hint">{{ tr('secret_saved_hint') }}</span>
+                          <v-btn
+                            size="small"
+                            variant="text"
+                            color="error"
+                            @click="askClearSecret('semantic_search_api_key')"
+                          >
+                            {{ tr('secret_clear') }}
+                          </v-btn>
+                        </div>
+                      </v-col>
+                      <v-col cols="12">
+                        <label class="site-config-field__label">{{ tr('semantic_search_admin_api_key') }}</label>
+                        <v-text-field
+                          v-model="settings.semantic_search_admin_api_key"
+                          variant="outlined"
+                          density="comfortable"
+                          type="password"
+                          autocomplete="new-password"
+                          :placeholder="secretsSet.semantic_search_admin_api_key ? tr('secret_saved_placeholder') : ''"
+                          hide-details
+                        />
+                        <div class="site-config-field__hint mt-2">{{ tr('semantic_search_admin_api_key_note') }}</div>
+                        <div v-if="secretsSet.semantic_search_admin_api_key" class="d-flex align-center flex-wrap ga-2 mt-1">
+                          <v-icon icon="mdi-check-circle" size="small" color="success" />
+                          <span class="site-config-field__hint">{{ tr('secret_saved_hint') }}</span>
+                          <v-btn
+                            size="small"
+                            variant="text"
+                            color="error"
+                            @click="askClearSecret('semantic_search_admin_api_key')"
+                          >
+                            {{ tr('secret_clear') }}
+                          </v-btn>
+                        </div>
+                      </v-col>
+                      <v-col cols="12">
+                        <label class="site-config-field__label">{{ tr('semantic_search_debug') }}</label>
+                        <v-switch
+                          v-model="settings.semantic_search_debug"
+                          true-value="true"
+                          false-value="false"
+                          color="primary"
+                          hide-details
+                        />
+                        <div class="site-config-field__hint mt-2">{{ tr('semantic_search_debug_note') }}</div>
+                      </v-col>
+                    </v-row>
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+              </v-expansion-panels>
+
+              <v-dialog v-model="clearSecretDialog" max-width="440">
+                <v-card>
+                  <v-card-title class="text-h6">{{ tr('secret_clear_title') }}</v-card-title>
+                  <v-card-text>
+                    <strong>{{ tr(clearSecretKey) }}</strong>
+                    <div class="mt-2">{{ tr('secret_clear_text') }}</div>
+                  </v-card-text>
+                  <v-card-actions class="justify-end px-6 pb-4">
+                    <v-btn variant="text" @click="clearSecretDialog = false">{{ tr('cancel') }}</v-btn>
+                    <v-btn color="error" variant="flat" :loading="clearingSecret" @click="confirmClearSecret">
+                      {{ tr('secret_clear') }}
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
             </div>
           </v-card>
 
