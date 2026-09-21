@@ -26,7 +26,7 @@
  *
  * Classic catalog filters (country, region, tag, dtype, years, repo/collection) are
  * mapped to the semantic API filters object. All filter values are encoded as strings.
- * dtype uses forms.model codes (e.g. ["public", "direct"]).
+ * dtype is sent as the indexed `formid` key (form ids as strings).
  * Sidebar facets are loaded from the DB (same as Solr/MySQL); API facet buckets are
  * not used for the catalog UI.
  *
@@ -39,6 +39,9 @@
 
 if (! class_exists('Catalog_country_resolver', false)) {
     require_once dirname(__FILE__) . '/Catalog_country_resolver.php';
+}
+if (! class_exists('Catalog_filter_guard', false)) {
+    require_once dirname(__FILE__) . '/Catalog_filter_guard.php';
 }
 
 class catalog_search_semantic
@@ -303,9 +306,9 @@ class catalog_search_semantic
             $filters['tags'] = $this->stringify_filter_values($tags);
         }
 
-        $dtypes = $this->resolve_dtype_filter_values();
-        if (!empty($dtypes)) {
-            $filters['dtype'] = $dtypes;
+        $form_ids = $this->resolve_dtype_form_ids();
+        if (!empty($form_ids)) {
+            $filters['formid'] = $form_ids;
         }
 
         $years = $this->build_years_filter_values();
@@ -357,20 +360,26 @@ class catalog_search_semantic
     }
 
     /**
-     * Data-access type filter — semantic API expects forms.model codes, e.g. ["public", "direct"].
-     * Numeric URL values (legacy formid) are mapped to model codes; codes pass through unchanged.
+     * Data-access type filter — the index stores the form as `formid`
+     * (see Catalog_search_metadata_extract), so resolve the values to form ids.
+     * Numeric values (what the sidebar emits) are used as-is; legacy forms.model
+     * codes (e.g. "public") are looked up.
+     *
+     * Fails closed: when values were supplied but none resolve, returns the
+     * Catalog_filter_guard::NO_MATCH_ID sentinel (never a real formid) so the
+     * search matches nothing instead of dropping the filter.
      *
      * @return string[]
      */
-    private function resolve_dtype_filter_values(): array
+    private function resolve_dtype_form_ids(): array
     {
         $values = $this->normalise_array($this->dtype);
         if (empty($values)) {
             return [];
         }
 
-        $models = [];
         $form_ids = [];
+        $models   = [];
 
         foreach ($values as $value) {
             if (is_numeric($value)) {
@@ -380,25 +389,27 @@ class catalog_search_semantic
                 }
                 continue;
             }
-            $models[] = trim((string) $value);
+            $models[] = $value;
         }
 
-        if (!empty($form_ids)) {
+        if (!empty($models)) {
             $rows = $this->ci->db
-                ->select('formid, model')
-                ->where_in('formid', array_values(array_unique($form_ids)))
+                ->select('formid')
+                ->where_in('model', array_values(array_unique($models)))
                 ->get('forms')
                 ->result_array();
 
             foreach ($rows as $row) {
-                $model = trim((string) ($row['model'] ?? ''));
-                if ($model !== '') {
-                    $models[] = $model;
-                }
+                $form_ids[] = (int) $row['formid'];
             }
         }
 
-        return $this->stringify_filter_values($models);
+        $form_ids = array_values(array_unique($form_ids));
+        if (empty($form_ids)) {
+            return [Catalog_filter_guard::NO_MATCH_ID];
+        }
+
+        return $this->stringify_filter_values($form_ids);
     }
 
     /**
