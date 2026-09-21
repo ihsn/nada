@@ -416,6 +416,95 @@ class Catalog_search_sqlsrv{
 	}
 
 
+	/**
+	 * Total published surveys in the active repository (or the entire catalog when central).
+	 * Same contract as Catalog_search_mysql::count_total_published().
+	 */
+	public function count_total_published()
+	{
+		return (int) $this->get_total_surveys_count($this->_build_repository_query());
+	}
+
+	/**
+	 * Ids of the published studies matching the keyword and the sidebar filters, best keyword match first
+	 * (ties by id). Lean: ids only, no counts or page rows. Same contract as
+	 * Catalog_search_mysql::ranked_study_ids().
+	 *
+	 * @param int  $limit        Most ids returned
+	 * @param bool $include_type Apply the active dataset-type tab filter
+	 * @return int[]
+	 */
+	public function ranked_study_ids($limit, $include_type = false)
+	{
+		if (trim((string) $this->study_keywords) === '') {
+			return array();
+		}
+
+		$this->ci->db->flush_cache();
+
+		$where = $this->_build_search_where_sql($include_type, false);
+
+		$this->ci->db->select('surveys.id, k.rank as rank_', FALSE);
+		$this->ci->db->from('surveys');
+		$this->_build_study_query();//adds the freetexttable join (k)
+		$this->ci->db->join('forms f', 'surveys.formid=f.formid', 'left');
+		if ($this->_build_repository_query() != '') {
+			$this->ci->db->join('survey_repos', 'surveys.id=survey_repos.sid', 'left');
+		}
+		$this->ci->db->where('surveys.published', 1);
+		if ($where !== '') {
+			$this->ci->db->where($where, NULL, FALSE);
+		}
+		$this->ci->db->order_by('k.rank', 'DESC');
+		$this->ci->db->order_by('surveys.id', 'ASC');
+		$this->ci->db->limit((int) $limit);
+
+		$ids = array();
+		foreach ($this->ci->db->get()->result_array() as $row) {
+			$ids[(int) $row['id']] = true;//a study can repeat when it belongs to several repositories
+		}
+
+		return array_keys($ids);
+	}
+
+	/**
+	 * Which of the given studies pass the sidebar filters (everything except the keyword and the dataset-type
+	 * tab), and their types. Same contract as Catalog_search_mysql::filtered_study_types().
+	 *
+	 * @param int[] $ids
+	 * @return array<int, string> study id => surveys.type
+	 */
+	public function filtered_study_types(array $ids)
+	{
+		$ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+		if (empty($ids)) {
+			return array();
+		}
+
+		$this->ci->db->flush_cache();
+
+		$where = $this->_build_search_where_sql(false, false);
+
+		$this->ci->db->select('surveys.id, surveys.type', FALSE);
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms f', 'surveys.formid=f.formid', 'left');
+		if ($this->_build_repository_query() != '') {
+			$this->ci->db->join('survey_repos', 'surveys.id=survey_repos.sid', 'left');
+		}
+		$this->ci->db->where('surveys.published', 1);
+		$this->ci->db->where_in('surveys.id', $ids);
+		if ($where !== '') {
+			$this->ci->db->where($where, NULL, FALSE);
+		}
+
+		$types = array();
+		foreach ($this->ci->db->get()->result_array() as $row) {
+			$types[(int) $row['id']] = (string) $row['type'];
+		}
+
+		return $types;
+	}
+
     //get total published surveys in the catalog or repository
     function get_total_surveys_count($repository=NULL)
     {

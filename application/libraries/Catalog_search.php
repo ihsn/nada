@@ -68,17 +68,20 @@ class Catalog_search{
                 break;
             case 'semantic';
                 //the engine behind nada-ai decides the driver: qdrant keeps the original semantic driver,
-                //opensearch uses nada-ai's standard study search
+                //qdrant_db fuses Qdrant with the database search, opensearch uses nada-ai's standard study search
                 $ci->config->load('semantic_search');
                 $engine = strtolower(trim((string) $ci->config->item('semantic_search_engine')));
                 if ($engine === 'opensearch') {
                     require_once dirname(__FILE__) . '/Catalog_search_semantic_studies.php';
                     $this->search_obj= new catalog_search_semantic_studies($params);
+                } elseif ($engine === 'qdrant_db') {
+                    require_once dirname(__FILE__) . '/Catalog_search_semantic_fused.php';
+                    $this->search_obj= new catalog_search_semantic_fused($params);
                 } elseif ($engine === 'qdrant') {
                     require_once dirname(__FILE__) . '/Catalog_search_semantic.php';
                     $this->search_obj= new catalog_search_semantic($params);
                 } else {
-                    throw new exception(sprintf("SEMANTIC SEARCH ENGINE [%s] NOT SUPPORTED (use qdrant or opensearch)",$engine));
+                    throw new exception(sprintf("SEMANTIC SEARCH ENGINE [%s] NOT SUPPORTED (use qdrant, qdrant_db or opensearch)",$engine));
                 }
                 break;
             default:

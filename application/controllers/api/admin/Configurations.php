@@ -547,7 +547,7 @@ class Configurations extends MY_REST_Controller
 			if ($key === 'semantic_search_engine')
 			{
 				$v = strtolower(trim((string) $value));
-				if (! in_array($v, array('qdrant', 'opensearch'), true))
+				if (! in_array($v, array('qdrant', 'qdrant_db', 'opensearch'), true))
 				{
 					throw new Exception('INVALID_VALUE:semantic_search_engine');
 				}

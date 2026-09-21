@@ -295,6 +295,93 @@ class Catalog_search_mysql{
 	}
 
 	/**
+	 * Ids of the published studies matching the keyword and the sidebar filters, best keyword match first
+	 * (ties by id). Lean: ids only, no counts, joins or page rows. Used by drivers that fuse the keyword
+	 * ranking with another ranking (see Catalog_search_semantic_fused).
+	 *
+	 * Empty when there is no usable keyword (too short, too long, or only noise words): without it the
+	 * keyword clause would be dropped and every study would match.
+	 *
+	 * @param int  $limit        Most ids returned
+	 * @param bool $include_type Apply the active dataset-type tab filter
+	 * @return int[]
+	 */
+	public function ranked_study_ids($limit, $include_type = false)
+	{
+		$rank = $this->_study_rank_expression();
+		if ($rank === false) {
+			return array();
+		}
+
+		$where = $this->_build_search_where_sql($include_type, true);
+
+		$this->ci->db->select('surveys.id, ' . $rank . ' as rank_', FALSE);
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms', 'surveys.formid=forms.formid', 'left');
+		$this->ci->db->where('surveys.published', 1);
+		if ($where !== '') {
+			$this->ci->db->where($where, NULL, FALSE);
+		}
+		$this->ci->db->order_by('rank_ DESC, surveys.id ASC', '', FALSE);
+		$this->ci->db->limit((int) $limit);
+
+		return array_map('intval', array_column($this->ci->db->get()->result_array(), 'id'));
+	}
+
+	/**
+	 * Which of the given studies pass the sidebar filters (everything except the keyword and the dataset-type
+	 * tab), and their types.
+	 *
+	 * @param int[] $ids
+	 * @return array<int, string> study id => surveys.type
+	 */
+	public function filtered_study_types(array $ids)
+	{
+		$ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+		if (empty($ids)) {
+			return array();
+		}
+
+		$where = $this->_build_search_where_sql(false, false);
+
+		$this->ci->db->select('surveys.id, surveys.type', FALSE);
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms', 'surveys.formid=forms.formid', 'left');
+		$this->ci->db->where('surveys.published', 1);
+		$this->ci->db->where_in('surveys.id', $ids);
+		if ($where !== '') {
+			$this->ci->db->where($where, NULL, FALSE);
+		}
+
+		$types = array();
+		foreach ($this->ci->db->get()->result_array() as $row) {
+			$types[(int) $row['id']] = (string) $row['type'];
+		}
+
+		return $types;
+	}
+
+	/**
+	 * The relevance of a study to the keyword: the fulltext score of the same query the keyword filter uses.
+	 *
+	 * @return string|false SQL expression, or false when the keyword is unusable (see _build_study_query)
+	 */
+	protected function _study_rank_expression()
+	{
+		$keywords = str_replace(array('"', "'"), '', (string) $this->study_keywords);
+		if (strlen($keywords) < 3 || strlen($keywords) > 100) {
+			return false;
+		}
+
+		$parsed = $this->parse_fulltext_keywords($keywords);
+		if ($parsed === '') {
+			return false;
+		}
+
+		return sprintf('MATCH(surveys.keywords, surveys.var_keywords) AGAINST(%s IN BOOLEAN MODE)', $this->ci->db->escape($parsed));
+	}
+
+	/**
 	 * @param bool $include_type Apply active dataset-type tab filter
 	 * @param bool $include_study Apply keyword/fulltext filter
 	 */
