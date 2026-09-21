@@ -15,7 +15,9 @@
  *   3. NADA loads the rows of that page from its own database by id, in the order the API returned them, so the
  *      cards look the same whatever the engine.
  *
- * The API result is the source of truth for found, tab counts and order; the database only supplies row data.
+ * The API result is the source of truth for found, tab counts and order; the database only supplies row data. Every
+ * keyword match is counted and paged (only the semantic side is bounded, by the API), so found can be large; when it
+ * exceeds the depth the engine can page to, semantic_note says so.
  * A hit whose row is missing or whose idno differs from the API's (the index is out of sync with this catalog)
  * is left out of the page and reported in semantic_note.
  *
@@ -93,6 +95,10 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
                 $dropped
             );
         }
+        if (!empty($response['truncated'])) {
+            // every match is counted, but the search engine cannot page beyond a fixed depth
+            $notes[] = 'More studies match than can be paged through; refine your search to narrow the results.';
+        }
 
         $result = $this->result(
             $rows,
@@ -109,7 +115,6 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
                 'engine'          => $response['engine'] ?? null,
                 'applied'         => $response['applied'] ?? null,
                 'truncated'       => $response['truncated'] ?? null,
-                'result_cap'      => $response['result_cap'] ?? null,
                 'timing_ms'       => $response['timing_ms'] ?? null,
                 'api_debug'       => $response['debug'] ?? null,
                 'hits'            => count($hits),
