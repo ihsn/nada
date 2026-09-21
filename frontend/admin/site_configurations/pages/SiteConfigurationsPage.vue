@@ -1035,6 +1035,7 @@ onMounted(async () => {
                         <label class="site-config-field__label">{{ tr('semantic_search_engine') }}</label>
                         <v-radio-group v-model="settings.semantic_search_engine" class="mt-1" hide-details>
                           <v-radio value="qdrant" :label="tr('semantic_search_engine_qdrant')" />
+                          <v-radio value="qdrant_db" :label="tr('semantic_search_engine_qdrant_db')" />
                           <v-radio value="opensearch" :label="tr('semantic_search_engine_opensearch')" />
                         </v-radio-group>
                         <div class="site-config-field__hint mt-2">{{ tr('semantic_search_engine_note') }}</div>

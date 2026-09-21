@@ -146,11 +146,14 @@ const visibleTypeCount = ref(Infinity);
 const typeList = computed(() => {
   if (!props.tabs?.types) return [];
   const counts = props.tabs?.search_counts_by_type ?? null;
+  // Drivers list only the types that have matches, so once a search returned counts a missing type means 0.
+  // Only when there are no search counts at all (variable view) is the catalog-wide total shown instead.
+  const hasSearchCounts = counts !== null && Object.keys(counts).length > 0;
   return Object.entries(props.tabs.types).map(([code, item]) => {
     const catalogTotal = typeof item === 'object' ? item.found : null;
     const searchCount = counts && Object.prototype.hasOwnProperty.call(counts, code)
       ? counts[code]
-      : null;
+      : (hasSearchCounts ? 0 : null);
     return {
       code,
       label: catalogDatasetTypeLabel(
