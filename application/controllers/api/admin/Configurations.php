@@ -544,6 +544,16 @@ class Configurations extends MY_REST_Controller
 				}
 			}
 
+			if ($key === 'semantic_search_engine')
+			{
+				$v = strtolower(trim((string) $value));
+				if (! in_array($v, array('qdrant', 'opensearch'), true))
+				{
+					throw new Exception('INVALID_VALUE:semantic_search_engine');
+				}
+				$value = $v;
+			}
+
 			if ($key === 'semantic_search_debug')
 			{
 				$v = strtolower(trim((string) $value));

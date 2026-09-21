@@ -16,6 +16,12 @@
  * (search_provider = semantic).
  */
 
+// Which engine nada-ai runs is the site setting semantic_search_engine (qdrant | opensearch, default qdrant;
+// Site configurations > Search). With qdrant, NADA calls POST /search and the settings below apply (the query
+// prompt, knn_k, collapse size and mode). With opensearch, NADA calls POST /studies/search, which needs none of
+// them: only semantic_search_url, semantic_search_api_key, semantic_search_timeout and semantic_search_debug.
+// Do not set semantic_search_engine in this file: it would override the site setting.
+
 // Search mode sent to nada-ai POST /search: hybrid | vector | keyword
 $config['semantic_search_mode']    = 'vector';
 

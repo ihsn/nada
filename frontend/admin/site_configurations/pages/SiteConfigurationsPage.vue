@@ -217,6 +217,9 @@ async function reloadAll() {
   if (s.semantic_search_debug === undefined || s.semantic_search_debug === '') {
     s.semantic_search_debug = 'false';
   }
+  if (s.semantic_search_engine === undefined || s.semantic_search_engine === '') {
+    s.semantic_search_engine = 'qdrant';
+  }
   if (s.deposit_max_upload_size === undefined || s.deposit_max_upload_size === '') {
     s.deposit_max_upload_size = '2048';
   }
@@ -290,6 +293,7 @@ async function submitTestEmail() {
 const SAVE_ERROR_KEYS = {
   SEMANTIC_SEARCH_URL_REQUIRED: 'error_semantic_search_url_required',
   'INVALID_VALUE:search_provider': 'error_invalid_search_provider',
+  'INVALID_VALUE:semantic_search_engine': 'error_invalid_semantic_search_engine',
   'INVALID_URL:semantic_search_url': 'error_invalid_semantic_search_url',
 };
 
@@ -1026,6 +1030,14 @@ onMounted(async () => {
                           hide-details
                         />
                         <div class="site-config-field__hint mt-2">{{ tr('semantic_search_url_note') }}</div>
+                      </v-col>
+                      <v-col cols="12">
+                        <label class="site-config-field__label">{{ tr('semantic_search_engine') }}</label>
+                        <v-radio-group v-model="settings.semantic_search_engine" class="mt-1" hide-details>
+                          <v-radio value="qdrant" :label="tr('semantic_search_engine_qdrant')" />
+                          <v-radio value="opensearch" :label="tr('semantic_search_engine_opensearch')" />
+                        </v-radio-group>
+                        <div class="site-config-field__hint mt-2">{{ tr('semantic_search_engine_note') }}</div>
                       </v-col>
                       <v-col cols="12">
                         <label class="site-config-field__label">{{ tr('semantic_search_api_key') }}</label>

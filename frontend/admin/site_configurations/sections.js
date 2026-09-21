@@ -48,6 +48,7 @@ export const SECTION_DEFS = [
     keys: [
       'search_provider',
       'semantic_search_url',
+      'semantic_search_engine',
       'semantic_search_api_key',
       'semantic_search_admin_api_key',
       'semantic_search_debug',
