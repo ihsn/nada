@@ -22,16 +22,14 @@
 // them: only semantic_search_url, semantic_search_api_key, semantic_search_timeout and semantic_search_debug.
 // Do not set semantic_search_engine in this file: it would override the site setting.
 //
-// qdrant_db (Qdrant + catalog database): the database keyword search and Qdrant each rank the catalog and the two
-// rankings are fused; the query prompt, knn_k and collapse size below apply too. The values below were chosen on
-// 67 golden queries over a development catalog (nada-ai: docs/qdrant-db-search-evaluation.md); re-check them on
-// your own catalog with nada-ai's eval/run_nada_api.py before relying on them.
+// qdrant_db (Qdrant + catalog database): the best semantic matches from Qdrant are pinned to the top of a relevance
+// search, followed by the catalog database's own keyword result; the query prompt, knn_k and collapse size below
+// apply too. The values below were chosen on 67 golden queries over a development catalog (nada-ai:
+// docs/qdrant-db-search-evaluation.md); re-check them on your own catalog with nada-ai's eval/run_nada_api.py
+// before relying on them.
 
-// Studies asked of Qdrant per query (at most 100, the limit of nada-ai's POST /search)
+// Studies asked of Qdrant per query: the size of the pinned block (at most 100, the limit of nada-ai's POST /search)
 $config['semantic_search_window'] = 50;
-
-// Best keyword matches taken from the database per query
-$config['semantic_search_keyword_window'] = 100;
 
 // Score floor on a Qdrant hit ('' = none) and the fraction of the best Qdrant score a hit must reach (0 = none).
 // Qdrant scores are raw cosine similarities: on the golden queries the best hit of a real query scored 0.46-0.83
@@ -39,11 +37,7 @@ $config['semantic_search_keyword_window'] = 100;
 $config['semantic_search_min_score'] = 0.45;
 $config['semantic_search_relative_cutoff'] = 0.85;
 
-// Weight of each ranking in the fusion (the database's fulltext ranking is coarser than the vector ranking)
-$config['semantic_search_keyword_weight'] = 0.5;
-$config['semantic_search_vector_weight'] = 1.0;
-
-// Seconds a query's fused list is kept, so paging and re-sorting do not run the semantic search again (0 = off)
+// Seconds a query's semantic block is kept, so paging and re-sorting do not run the semantic search again (0 = off)
 $config['semantic_search_cache_ttl'] = 60;
 
 // Search mode sent to nada-ai POST /search: hybrid | vector | keyword

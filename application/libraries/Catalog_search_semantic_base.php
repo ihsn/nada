@@ -531,6 +531,19 @@ abstract class catalog_search_semantic_base
     }
 
     /**
+     * A database search driver with the current search parameters and the given overrides (for example
+     * ['exclude_sid' => [...]]), separate from the shared one returned by database_search().
+     *
+     * @param array<string, mixed> $overrides
+     */
+    protected function database_search_with(array $overrides)
+    {
+        require_once dirname(__FILE__) . '/Catalog_study_idno_lookup.php';
+
+        return Catalog_study_idno_lookup::create_driver(array_merge($this->database_params(), $overrides));
+    }
+
+    /**
      * The search parameters in the form the database search drivers take.
      *
      * @return array<string, mixed>

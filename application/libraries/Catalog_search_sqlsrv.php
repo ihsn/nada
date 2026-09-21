@@ -34,6 +34,7 @@ class Catalog_search_sqlsrv{
 	var $dtype=array();//data access type
 	var $database=array();//timeseries database filter (db_idno values)
 	var $sid=''; //comma separated list of survey IDs
+	var $exclude_sid=array();//survey IDs left out of the rows and of found (not of the counts by type)
 	var $collections=array();
 	var $created='';
 	var $tags=array();
@@ -144,9 +145,10 @@ class Catalog_search_sqlsrv{
 		$sort_options[0]=$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
 						
 		$regions=$this->_build_regions_query();
+		$excluded=$this->_build_exclude_sid_query();
 
 		//array of all options
-		$where_list=array($sid,$type,$study,$variable,$topics,$countries,$years,$dtype,$collections,$created,$tags,$countries_iso3,$data_class,$regions);
+		$where_list=array($sid,$type,$study,$variable,$topics,$countries,$years,$dtype,$collections,$created,$tags,$countries_iso3,$data_class,$regions,$excluded);
 		
 		if ($repository!=''){
 			$where_list[]=$repository;
@@ -269,6 +271,7 @@ class Catalog_search_sqlsrv{
 		$created=$this->_build_created_query();
 		$regions=$this->_build_regions_query();
 		$database=$this->_build_database_query();
+		$excluded=$this->_build_exclude_sid_query();
 
         // RANK / relevance sort only when study keywords
         if (! trim($this->study_keywords)) {
@@ -280,6 +283,11 @@ class Catalog_search_sqlsrv{
 
         //set sort
         $sort_options[0] = $sort_options[0] = array('sort_by' => $sort_by, 'sort_order' => $sort_order);
+
+        //equal relevance scores are common; break the tie so that every page of a result is stable
+        if ($sort_by == 'k.rank') {
+            $sort_options[1] = array('sort_by' => 'surveys.id', 'sort_order' => 'asc');
+        }
 
         //multi-column sort
         if ($sort_by == 'surveys.nation') {
@@ -295,7 +303,7 @@ class Catalog_search_sqlsrv{
         }
 
 		//array of all options
-		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$repository,$dtype,$collections,$created,$tags,$data_class,$countries_iso3,$regions,$type,$database);
+		$where_list=array($sid,$study,$variable,$topics,$countries,$years,$repository,$dtype,$collections,$created,$tags,$data_class,$countries_iso3,$regions,$type,$database,$excluded);
 
 		foreach($this->user_facets as $fc){
 			if (array_key_exists($fc['name'],$this->params)){
@@ -426,25 +434,32 @@ class Catalog_search_sqlsrv{
 	}
 
 	/**
-	 * Ids of the published studies matching the keyword and the sidebar filters, best keyword match first
-	 * (ties by id). Lean: ids only, no counts or page rows. Same contract as
-	 * Catalog_search_mysql::ranked_study_ids().
+	 * Whether there is a keyword to search for. Same contract as Catalog_search_mysql::has_usable_keyword().
+	 */
+	public function has_usable_keyword()
+	{
+		return trim((string) $this->study_keywords) !== '';
+	}
+
+	/**
+	 * Which of the given studies match the keyword and pass the sidebar filters (everything except the dataset-type
+	 * tab), whatever their relevance. Same contract as Catalog_search_mysql::keyword_matching_ids().
 	 *
-	 * @param int  $limit        Most ids returned
-	 * @param bool $include_type Apply the active dataset-type tab filter
+	 * @param int[] $ids
 	 * @return int[]
 	 */
-	public function ranked_study_ids($limit, $include_type = false)
+	public function keyword_matching_ids(array $ids)
 	{
-		if (trim((string) $this->study_keywords) === '') {
+		$ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+		if (empty($ids) || !$this->has_usable_keyword()) {
 			return array();
 		}
 
 		$this->ci->db->flush_cache();
 
-		$where = $this->_build_search_where_sql($include_type, false);
+		$where = $this->_build_search_where_sql(false, false, false);
 
-		$this->ci->db->select('surveys.id, k.rank as rank_', FALSE);
+		$this->ci->db->select('surveys.id', FALSE);
 		$this->ci->db->from('surveys');
 		$this->_build_study_query();//adds the freetexttable join (k)
 		$this->ci->db->join('forms f', 'surveys.formid=f.formid', 'left');
@@ -452,19 +467,17 @@ class Catalog_search_sqlsrv{
 			$this->ci->db->join('survey_repos', 'surveys.id=survey_repos.sid', 'left');
 		}
 		$this->ci->db->where('surveys.published', 1);
+		$this->ci->db->where_in('surveys.id', $ids);
 		if ($where !== '') {
 			$this->ci->db->where($where, NULL, FALSE);
 		}
-		$this->ci->db->order_by('k.rank', 'DESC');
-		$this->ci->db->order_by('surveys.id', 'ASC');
-		$this->ci->db->limit((int) $limit);
 
-		$ids = array();
+		$found = array();
 		foreach ($this->ci->db->get()->result_array() as $row) {
-			$ids[(int) $row['id']] = true;//a study can repeat when it belongs to several repositories
+			$found[(int) $row['id']] = true;//a study can repeat when it belongs to several repositories
 		}
 
-		return array_keys($ids);
+		return array_keys($found);
 	}
 
 	/**
@@ -483,7 +496,7 @@ class Catalog_search_sqlsrv{
 
 		$this->ci->db->flush_cache();
 
-		$where = $this->_build_search_where_sql(false, false);
+		$where = $this->_build_search_where_sql(false, false, false);
 
 		$this->ci->db->select('surveys.id, surveys.type', FALSE);
 		$this->ci->db->from('surveys');
@@ -541,6 +554,20 @@ class Catalog_search_sqlsrv{
 	}
 	
 
+	/**
+	 * Studies to leave out of the rows and of found (exclude_sid), as an SQL condition. The caller has
+	 * already shown them elsewhere, e.g. as a block pinned above the search result.
+	 */
+	protected function _build_exclude_sid_query()
+	{
+		$ids = array_values(array_unique(array_filter(array_map('intval', (array) $this->exclude_sid))));
+		if (empty($ids)) {
+			return FALSE;
+		}
+
+		return sprintf('surveys.id NOT IN (%s)', implode(',', $ids));
+	}
+
 	protected function _build_sid_query()
 	{
 		$raw=trim((string)$this->sid);
@@ -571,7 +598,7 @@ class Catalog_search_sqlsrv{
 		return Catalog_filter_guard::NO_MATCH;
 	}
 
-	protected function _build_search_where_sql($include_type = true, $include_study = true)
+	protected function _build_search_where_sql($include_type = true, $include_study = true, $include_excluded = true)
 	{
 		$type = $include_type ? $this->_build_dataset_type_query() : false;
 		$study = $include_study ? $this->_build_study_query() : false;
@@ -587,10 +614,11 @@ class Catalog_search_sqlsrv{
 		$sid = $this->_build_sid_query();
 		$created = $this->_build_created_query();
 		$countries_iso3 = $this->_build_countries_iso3_query();
+		$excluded = $include_excluded ? $this->_build_exclude_sid_query() : false;
 
 		$where_list = array(
 			$study, $topics, $countries, $years, $repository, $collections, $dtype,
-			$sid, $countries_iso3, $created, $data_class, $tags, $type, $regions,
+			$sid, $countries_iso3, $created, $data_class, $tags, $type, $regions, $excluded,
 		);
 
 		foreach ($this->user_facets as $fc) {

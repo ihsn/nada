@@ -3,30 +3,32 @@
 /**
  * Catalog Search — Semantic (AI), Qdrant + database driver
  *
- * Used when semantic_search_engine = qdrant_db. The database keyword search and Qdrant's vector search each
- * rank the catalog; the two rankings are fused, and the database stays the gate for every filter, the source of
- * the counts, and the source of the rows.
+ * Used when semantic_search_engine = qdrant_db. The result is the semantic matches from Qdrant pinned to the
+ * top, followed by the catalog database's own keyword search result without those studies:
  *
- *   No keywords         -> the plain database search (browsing needs no semantic search).
- *   Keywords            -> 1. cut set: the best keyword matches from the database (semantic_search_keyword_window)
- *                             and a small window of the nearest studies from Qdrant (semantic_search_window,
- *                             at most 100), fused by rank (reciprocal rank fusion) into one list of study ids.
- *                             The cut set does not depend on the dataset-type tab, the sort or the page, so
- *                             pages are stable; it is cached briefly so paging does not embed the query again.
- *                          2. the database keeps the studies that pass the sidebar filters and reports their
- *                             types: found is their count (narrowed by the tab), the tab counts are their
- *                             counts by type.
- *                          3. relevance order comes from the fusion; any other sort is done by the database
- *                             over the same set. The rows of the page are loaded from the database.
+ *   No keywords     -> the plain database search (browsing needs no semantic search).
+ *   Keywords        -> 1. the semantic block: the nearest studies from Qdrant (semantic_search_window, at most
+ *                         100), kept when they clear the score floor and are close enough to the best one. The
+ *                         database keeps those that pass the sidebar filters, and the ones that also match the
+ *                         keyword come first. The block is cached briefly so paging and re-sorting do not query
+ *                         Qdrant again.
+ *                      2. the database keyword search, with the block's studies excluded, supplies everything
+ *                         after it: its own relevance order, its own paging (so every page of a large result
+ *                         exists) and its own counts.
+ *                      found is the block plus that result; the tab counts are the database's counts plus the
+ *                      block's studies that are not keyword matches. The rows of the page are loaded from the
+ *                      database, so the cards are the same whatever the engine.
  *
- * Qdrant is asked for the studies (one hit per study id, the passages that matched a document included) and is
- * pre-filtered by the filters it can express; filters it cannot (data classification, creation date, study id
- * lists, topics, timeseries databases) are applied by the database in step 2, so they can only make the
- * semantic window smaller. Studies are identified by surveys.id, which needs the Qdrant collection to have been
- * indexed with the study id (metadata.sid); hits without one are reported in semantic_note.
+ * Only a relevance sort merges the two. Any other sort lists the database's keyword matches only (the semantic
+ * block has no place in a title or year order) and says so in semantic_note.
  *
- * If Qdrant is unreachable or fails on its side (timeout, 5xx, 429) the cut set is the keyword matches alone and
- * result.semantic_fallback says so. A request Qdrant's API rejects (4xx) is raised.
+ * Qdrant is pre-filtered by the filters it can express; filters it cannot (data classification, creation date,
+ * study id lists, topics, timeseries databases) are applied by the database, so they can only make the semantic
+ * block smaller. Studies are identified by surveys.id, which needs the Qdrant collection to have been indexed
+ * with the study id (metadata.sid); hits without one are reported in semantic_note.
+ *
+ * If Qdrant is unreachable or fails on its side (timeout, 5xx, 429) the block is empty, so the result is the
+ * plain database search, and result.semantic_fallback says so. A request Qdrant's API rejects (4xx) is raised.
  */
 
 require_once dirname(__FILE__) . '/Catalog_search_semantic_base.php';
@@ -38,21 +40,13 @@ class catalog_search_semantic_fused extends catalog_search_semantic_base
     /** nada-ai's POST /search serves at most this many hits. */
     private const API_MAX_WINDOW = 100;
 
-    /** Reciprocal rank fusion rank constant. */
-    private const RRF_K = 60;
-
     /** Studies asked of Qdrant. */
     private $window;
-
-    /** Keyword matches considered from the database. */
-    private $keyword_window;
 
     /** Qdrant score floor (null = none) and the fraction of the best Qdrant score to keep (0 = all). */
     private $min_score;
     private $relative_cutoff;
 
-    private $keyword_weight;
-    private $vector_weight;
     private $cache_ttl;
     private $knn_k;
     private $query_prompt;
@@ -65,12 +59,9 @@ class catalog_search_semantic_fused extends catalog_search_semantic_base
         $cfg = $this->ci->config;
 
         $this->window          = min(self::API_MAX_WINDOW, max(1, (int) $cfg->item('semantic_search_window') ?: 50));
-        $this->keyword_window  = max(1, (int) $cfg->item('semantic_search_keyword_window') ?: 500);
         $min                   = $cfg->item('semantic_search_min_score');
         $this->min_score       = ($min === null || $min === '' || $min === false) ? null : (float) $min;
         $this->relative_cutoff = min(1.0, max(0.0, (float) $cfg->item('semantic_search_relative_cutoff')));
-        $this->keyword_weight  = (float) ($cfg->item('semantic_search_keyword_weight') ?: 1.0);
-        $this->vector_weight   = (float) ($cfg->item('semantic_search_vector_weight') ?: 1.0);
         $this->cache_ttl       = max(0, (int) $cfg->item('semantic_search_cache_ttl'));
         $this->knn_k           = (int) $cfg->item('semantic_search_knn_k') ?: 50;
         $this->query_prompt    = (string) $cfg->item('semantic_search_query_prompt');
@@ -102,67 +93,103 @@ class catalog_search_semantic_fused extends catalog_search_semantic_base
             return $this->result([], [], 0, [], $limit, $offset);
         }
 
-        $cut = $this->cut_set($filters);
+        if (!$this->is_relevance_sort()) {
+            $result = $this->database_search()->search($limit, $offset);
+            $result['semantic_note'] = 'Results sorted by something other than relevance list keyword matches only; sort by relevance to include related results.';
 
-        // the studies that pass every sidebar filter (the dataset-type tab is applied below)
-        $order = array_keys($cut['studies']);
-        $types = $this->database_search()->filtered_study_types($order);
-        $kept  = array_values(array_filter($order, static fn($sid) => isset($types[$sid])));
+            return $result;
+        }
 
-        $counts = array_count_values(array_map(static fn($sid) => $types[$sid], $kept));
-        $tab    = $this->tab_types();
-        $shown  = empty($tab) ? $kept : array_values(array_filter($kept, static fn($sid) => in_array($types[$sid], $tab, true)));
+        $semantic = $this->semantic_block($filters);
+        $db       = $this->database_search();
 
-        if ($this->is_relevance_sort()) {
-            if (strtolower(trim((string) $this->sort_order)) === 'asc') {
-                $shown = array_reverse($shown);
-            }
-            $found = count($shown);
-            $by_id = $this->fetch_rows(array_slice($shown, $offset, $limit));
-            $rows  = [];
-            foreach (array_slice($shown, $offset, $limit) as $sid) {
-                if (isset($by_id[$sid])) {
-                    $rows[] = $by_id[$sid];
-                }
-            }
+        // the semantic studies that pass the sidebar filters, and which of them also match the keyword
+        $types   = $db->filtered_study_types(array_keys($semantic['studies']));
+        $passing = array_values(array_filter(array_keys($semantic['studies']), static fn($sid) => isset($types[$sid])));
+        $usable  = $db->has_usable_keyword();
+        $agree   = array_flip($usable ? $db->keyword_matching_ids($passing) : []);
+
+        // the block: what also matches the keyword first, each group in Qdrant's order; narrowed by the tab
+        $ordered = array_merge(
+            array_values(array_filter($passing, static fn($sid) => isset($agree[$sid]))),
+            array_values(array_filter($passing, static fn($sid) => !isset($agree[$sid])))
+        );
+        $tab   = $this->tab_types();
+        $block = empty($tab) ? $ordered : array_values(array_filter($ordered, static fn($sid) => in_array($types[$sid], $tab, true)));
+        $size  = count($block);
+
+        // the studies in the block that the keyword search would not list are added to its counts
+        $extra_counts = array_count_values(array_map(
+            static fn($sid) => $types[$sid],
+            array_values(array_filter($passing, static fn($sid) => !isset($agree[$sid])))
+        ));
+
+        // the rest of the page, and found and the tab counts, come from the keyword search without the block
+        $from_block = max(0, min($limit, $size - $offset));
+        $tail       = ['found' => 0, 'rows' => [], 'search_counts_by_type' => []];
+        if ($usable) {
+            $tail_search = $this->database_search_with(['exclude_sid' => $block]);
+            // a search that shows no rows is still asked for one, because it also supplies found and the counts
+            $tail_rows   = $limit - $from_block;
+            $tail        = $tail_search->search(max(1, $tail_rows), max(0, $offset - $size)) ?: $tail;
         } else {
-            // the database sorts and pages the same set of studies
-            $scoped = $this->database_search()->search_for_survey_ids($kept, $limit, $offset);
-            $found  = (int) ($scoped['found'] ?? 0);
-            $counts = $scoped['search_counts_by_type'] ?? $counts;
-            $rows   = $scoped['rows'] ?? [];
+            $tail_rows = 0;
         }
 
-        $position = array_flip($order);
-        foreach ($rows as $i => $row) {
-            $sid   = (int) $row['id'];
-            $info  = $cut['studies'][$sid] ?? [];
-            $rows[$i]['semantic_document_pages'] = $row['type'] === 'document' ? ($info['pages'] ?? []) : [];
-            if ($this->debug) {
-                $rows[$i]['semantic_hit'] = [
-                    '_score'      => $info['score'] ?? null,
-                    'matched_by'  => $info['matched_by'] ?? [],
-                    'fused_rank'  => isset($position[$sid]) ? $position[$sid] + 1 : null,
-                ];
+        $rows = [];
+        if ($from_block > 0) {
+            $slice = array_slice($block, $offset, $from_block);
+            $by_id = $this->fetch_rows($slice);
+            foreach ($slice as $sid) {
+                if (!isset($by_id[$sid])) {
+                    continue;
+                }
+                $info = $semantic['studies'][$sid];
+                $row  = $by_id[$sid];
+                $row['semantic_document_pages'] = $row['type'] === 'document' ? $info['pages'] : [];
+                if ($this->debug) {
+                    $row['semantic_hit'] = [
+                        '_score'     => $info['score'],
+                        'matched_by' => isset($agree[$sid]) ? ['semantic', 'keyword'] : ['semantic'],
+                        'pinned_at'  => array_search($sid, $block, true) + 1,
+                    ];
+                }
+                $rows[] = $row;
+            }
+        }
+        if ($tail_rows > 0) {
+            foreach ($tail['rows'] as $row) {
+                $row['semantic_document_pages'] = [];
+                if ($this->debug) {
+                    $row['semantic_hit'] = ['_score' => null, 'matched_by' => ['keyword']];
+                }
+                $rows[] = $row;
             }
         }
 
-        $result = $this->result($rows, $counts, $found, $cut['notes'], $limit, $offset);
+        $counts = [];
+        foreach (array_keys($tail['search_counts_by_type'] + $extra_counts) as $type) {
+            $counts[$type] = (int) ($tail['search_counts_by_type'][$type] ?? 0) + (int) ($extra_counts[$type] ?? 0);
+        }
 
-        if ($cut['fallback'] !== null) {
-            $result['semantic_fallback'] = $cut['fallback'];
+        $result = $this->result($rows, $counts, $size + (int) $tail['found'], $semantic['notes'], $limit, $offset);
+
+        if ($semantic['fallback'] !== null) {
+            $result['semantic_fallback'] = $semantic['fallback'];
         }
 
         if ($this->debug) {
             $result['debug'] = [
-                'cut_set'          => count($order),
-                'keyword_matches'  => $cut['keyword_count'],
-                'semantic_matches' => $cut['semantic_count'],
-                'passed_filters'   => count($kept),
-                'counts_source'    => 'fused_cut_set',
-                'cached'           => $cut['cached'],
-                'window'           => $this->window,
-                'elapsed'          => round(microtime(true) - $t0, 4),
+                'semantic_hits'     => count($semantic['studies']),
+                'passed_filters'    => count($passing),
+                'also_keyword'      => count($agree),
+                'pinned_block'      => $size,
+                'keyword_found'     => (int) $tail['found'],
+                'keyword_usable'    => $usable,
+                'counts_source'     => 'database_counts_plus_semantic_extras',
+                'cached'            => $semantic['cached'],
+                'window'            => $this->window,
+                'elapsed'           => round(microtime(true) - $t0, 4),
             ];
         }
 
@@ -174,22 +201,23 @@ class catalog_search_semantic_fused extends catalog_search_semantic_base
         return $this->api_key !== '' ? ['Authorization: Bearer ' . $this->api_key] : [];
     }
 
+    /** The relevance order, best first: the only order in which the semantic block has a place. */
     private function is_relevance_sort(): bool
     {
-        return in_array(strtolower(trim((string) $this->sort_by)), ['rank', 'relevance'], true);
+        return in_array(strtolower(trim((string) $this->sort_by)), ['rank', 'relevance'], true)
+            && strtolower(trim((string) $this->sort_order)) !== 'asc';
     }
 
     // =========================================================================
-    // The cut set
+    // The semantic block
     // =========================================================================
 
     /**
-     * The fused list of studies for the keyword and the filters, best first.
+     * The nearest studies from Qdrant for the keyword and the filters, best first (before the database's gate).
      *
-     * @return array{studies: array<int, array>, notes: string[], fallback: ?string,
-     *               keyword_count: int, semantic_count: int, cached: bool}
+     * @return array{studies: array<int, array>, notes: string[], fallback: ?string, cached: bool}
      */
-    private function cut_set(array $qdrant_filters): array
+    private function semantic_block(array $qdrant_filters): array
     {
         $cache = $this->cache();
         $key   = $cache !== null ? $this->cache_key($qdrant_filters) : null;
@@ -202,13 +230,11 @@ class catalog_search_semantic_fused extends catalog_search_semantic_base
             }
         }
 
-        $keyword_ids = $this->database_search()->ranked_study_ids($this->keyword_window, false);
-
         $notes    = [];
         $fallback = null;
-        $semantic = [];
+        $studies  = [];
         try {
-            list($semantic, $missing, $unindexed) = $this->semantic_hits($qdrant_filters);
+            list($studies, $missing, $unindexed) = $this->semantic_hits($qdrant_filters);
             if ($missing > 0) {
                 $notes[] = sprintf(
                     '%d semantic result(s) have no study id: the semantic index was built before study ids were stored. Re-index it.',
@@ -226,61 +252,14 @@ class catalog_search_semantic_fused extends catalog_search_semantic_base
             $fallback = 'Semantic search is unavailable, so these results are keyword matches only.';
         }
 
-        $cut = [
-            'studies'        => $this->fuse($keyword_ids, $semantic),
-            'notes'          => $notes,
-            'fallback'       => $fallback,
-            'keyword_count'  => count($keyword_ids),
-            'semantic_count' => count($semantic),
-            'cached'         => false,
-        ];
+        $block = ['studies' => $studies, 'notes' => $notes, 'fallback' => $fallback, 'cached' => false];
 
-        // a degraded cut set must not outlive the outage
+        // a degraded block must not outlive the outage
         if ($cache !== null && $fallback === null) {
-            $cache->save($key, $cut, $this->cache_ttl);
+            $cache->save($key, $block, $this->cache_ttl);
         }
 
-        return $cut;
-    }
-
-    /**
-     * Reciprocal rank fusion of the two rankings: a study's score is the sum, over the rankings it is in, of
-     * weight / (RRF_K + rank). Ties break by study id.
-     *
-     * @param int[]                $keyword_ids best keyword match first
-     * @param array<int, array>    $semantic    study id => hit info, best first
-     * @return array<int, array>   study id => {score, matched_by, pages}, best first
-     */
-    private function fuse(array $keyword_ids, array $semantic): array
-    {
-        $scores     = [];
-        $matched_by = [];
-
-        foreach ($keyword_ids as $i => $sid) {
-            $scores[$sid]      = ($scores[$sid] ?? 0.0) + $this->keyword_weight / (self::RRF_K + $i + 1);
-            $matched_by[$sid][] = 'keyword';
-        }
-
-        $rank = 0;
-        foreach ($semantic as $sid => $info) {
-            $rank++;
-            $scores[$sid]      = ($scores[$sid] ?? 0.0) + $this->vector_weight / (self::RRF_K + $rank);
-            $matched_by[$sid][] = 'semantic';
-        }
-
-        $sids = array_keys($scores);
-        usort($sids, static fn($a, $b) => ($scores[$b] <=> $scores[$a]) ?: ($a <=> $b));
-
-        $studies = [];
-        foreach ($sids as $sid) {
-            $studies[$sid] = [
-                'score'      => $semantic[$sid]['score'] ?? null,
-                'matched_by' => $matched_by[$sid],
-                'pages'      => $semantic[$sid]['pages'] ?? [],
-            ];
-        }
-
-        return $studies;
+        return $block;
     }
 
     // =========================================================================
@@ -456,7 +435,7 @@ class catalog_search_semantic_fused extends catalog_search_semantic_base
     // Cache
     // =========================================================================
 
-    /** The file cache, or null when caching is off or not writable here. The cut set is only an optimisation. */
+    /** The file cache, or null when caching is off or not writable here. The cached block is only an optimisation. */
     private function cache()
     {
         if ($this->cache_ttl <= 0) {
@@ -469,7 +448,7 @@ class catalog_search_semantic_fused extends catalog_search_semantic_base
     }
 
     /**
-     * Everything that decides the cut set: the keyword, the filters, the windows and the ranking settings. Not the
+     * Everything that decides the semantic block: the keyword, the filters and the Qdrant settings. Not the
      * dataset-type tab, the sort or the page.
      */
     private function cache_key(array $qdrant_filters): string
@@ -477,10 +456,10 @@ class catalog_search_semantic_fused extends catalog_search_semantic_base
         $params = $this->database_params();
         unset($params['type'], $params['sort_by'], $params['sort_order']);
 
-        return 'semantic_fused_' . md5(json_encode([
+        return 'semantic_block_' . md5(json_encode([
             $params,
             $qdrant_filters,
-            [$this->window, $this->keyword_window, $this->min_score, $this->relative_cutoff, $this->keyword_weight, $this->vector_weight],
+            [$this->window, $this->min_score, $this->relative_cutoff],
         ]));
     }
 }

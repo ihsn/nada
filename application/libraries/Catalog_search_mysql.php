@@ -38,6 +38,7 @@ class Catalog_search_mysql{
 	var $dtype=array();//data access type
 	var $database=array();//timeseries database filter (db_idno values)
     var $sid=''; //comma separated list of survey IDs
+	var $exclude_sid=array();//survey IDs left out of the rows and of found (not of the counts by type); see _build_exclude_sid_query()
 	var $country_iso3=''; //comma seperated list country iso3 codes	
 	var $created='';
 
@@ -155,6 +156,12 @@ class Catalog_search_mysql{
 		}
 
 		$sort_options[0]=array('sort_by'=>$sort_by, 'sort_order'=>$sort_order);
+
+		//equal relevance scores are common; break the tie so that every page of a result is stable
+		if ($sort_by=='rank_')
+		{
+			$sort_options[1]=array('sort_by'=>'surveys.id', 'sort_order'=>'asc');
+		}
 		
 		//multi-column sort
 		if ($sort_by=='surveys.nation')
@@ -295,35 +302,44 @@ class Catalog_search_mysql{
 	}
 
 	/**
-	 * Ids of the published studies matching the keyword and the sidebar filters, best keyword match first
-	 * (ties by id). Lean: ids only, no counts, joins or page rows. Used by drivers that fuse the keyword
-	 * ranking with another ranking (see Catalog_search_semantic_fused).
+	 * Whether the keyword restricts the search at all. A keyword that is too short, too long or only noise words
+	 * is dropped by _build_study_query(), which then matches every study; drivers that combine the keyword search
+	 * with another ranking must not treat that as "everything matches the keyword".
+	 */
+	public function has_usable_keyword()
+	{
+		$keywords = str_replace(array('"',"'"), '', (string) $this->study_keywords);
+		if (strlen($keywords) < 3 || strlen($keywords) > 100) {
+			return false;
+		}
+
+		return $this->parse_fulltext_keywords($keywords) !== '';
+	}
+
+	/**
+	 * Which of the given studies match the keyword and pass the sidebar filters (everything except the dataset-type
+	 * tab), whatever their relevance.
 	 *
-	 * Empty when there is no usable keyword (too short, too long, or only noise words): without it the
-	 * keyword clause would be dropped and every study would match.
-	 *
-	 * @param int  $limit        Most ids returned
-	 * @param bool $include_type Apply the active dataset-type tab filter
+	 * @param int[] $ids
 	 * @return int[]
 	 */
-	public function ranked_study_ids($limit, $include_type = false)
+	public function keyword_matching_ids(array $ids)
 	{
-		$rank = $this->_study_rank_expression();
-		if ($rank === false) {
+		$ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+		if (empty($ids) || !$this->has_usable_keyword()) {
 			return array();
 		}
 
-		$where = $this->_build_search_where_sql($include_type, true);
+		$where = $this->_build_search_where_sql(false, true, false);
 
-		$this->ci->db->select('surveys.id, ' . $rank . ' as rank_', FALSE);
+		$this->ci->db->select('surveys.id', FALSE);
 		$this->ci->db->from('surveys');
 		$this->ci->db->join('forms', 'surveys.formid=forms.formid', 'left');
 		$this->ci->db->where('surveys.published', 1);
+		$this->ci->db->where_in('surveys.id', $ids);
 		if ($where !== '') {
 			$this->ci->db->where($where, NULL, FALSE);
 		}
-		$this->ci->db->order_by('rank_ DESC, surveys.id ASC', '', FALSE);
-		$this->ci->db->limit((int) $limit);
 
 		return array_map('intval', array_column($this->ci->db->get()->result_array(), 'id'));
 	}
@@ -342,7 +358,7 @@ class Catalog_search_mysql{
 			return array();
 		}
 
-		$where = $this->_build_search_where_sql(false, false);
+		$where = $this->_build_search_where_sql(false, false, false);
 
 		$this->ci->db->select('surveys.id, surveys.type', FALSE);
 		$this->ci->db->from('surveys');
@@ -359,26 +375,6 @@ class Catalog_search_mysql{
 		}
 
 		return $types;
-	}
-
-	/**
-	 * The relevance of a study to the keyword: the fulltext score of the same query the keyword filter uses.
-	 *
-	 * @return string|false SQL expression, or false when the keyword is unusable (see _build_study_query)
-	 */
-	protected function _study_rank_expression()
-	{
-		$keywords = str_replace(array('"', "'"), '', (string) $this->study_keywords);
-		if (strlen($keywords) < 3 || strlen($keywords) > 100) {
-			return false;
-		}
-
-		$parsed = $this->parse_fulltext_keywords($keywords);
-		if ($parsed === '') {
-			return false;
-		}
-
-		return sprintf('MATCH(surveys.keywords, surveys.var_keywords) AGAINST(%s IN BOOLEAN MODE)', $this->ci->db->escape($parsed));
 	}
 
 	/**
@@ -420,7 +416,7 @@ class Catalog_search_mysql{
 	 * @param bool $include_study
 	 * @return string Combined SQL WHERE fragment (without leading WHERE)
 	 */
-	protected function _build_search_where_sql($include_type = true, $include_study = true)
+	protected function _build_search_where_sql($include_type = true, $include_study = true, $include_excluded = true)
 	{
 		$type = $include_type ? $this->_build_dataset_type_query() : false;
 		$study = $include_study ? $this->_build_study_query() : false;
@@ -437,10 +433,11 @@ class Catalog_search_mysql{
 		$sid = $this->_build_sid_query();
 		$created = $this->_build_created_query();
 		$countries_iso3 = $this->_build_countries_iso3_query();
+		$excluded = $include_excluded ? $this->_build_exclude_sid_query() : false;
 
 		$where_list = array(
 			$study, $topics, $countries, $years, $repository, $collections, $dtype, $database,
-			$sid, $countries_iso3, $created, $data_classification, $tags, $type, $regions,
+			$sid, $countries_iso3, $created, $data_classification, $tags, $type, $regions, $excluded,
 		);
 
 		foreach ($this->user_facets as $fc) {
@@ -472,7 +469,8 @@ class Catalog_search_mysql{
 	 */
 	public function search_counts_by_type()
 	{		
-		$where = $this->_build_search_where_sql(false, true);
+		//the tab counts describe the whole result, so the excluded studies are still counted
+		$where = $this->_build_search_where_sql(false, true, false);
 			
 		//study search
 		$this->ci->db->select("surveys.type, count(surveys.type) as total",FALSE);
@@ -1031,6 +1029,20 @@ class Catalog_search_mysql{
 
 		//ids were supplied but none were numeric — fail closed
 		return Catalog_filter_guard::NO_MATCH;
+	}
+
+	/**
+	 * Studies to leave out of the rows and of found (exclude_sid), as an SQL condition. The caller has
+	 * already shown them elsewhere, e.g. as a block pinned above the search result.
+	 */
+	protected function _build_exclude_sid_query()
+	{
+		$ids = array_values(array_unique(array_filter(array_map('intval', (array) $this->exclude_sid))));
+		if (empty($ids)) {
+			return FALSE;
+		}
+
+		return sprintf('surveys.id NOT IN (%s)', implode(',', $ids));
 	}
 
 	protected function _build_created_query()
