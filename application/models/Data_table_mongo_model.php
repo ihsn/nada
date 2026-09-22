@@ -218,8 +218,28 @@ class Data_table_mongo_model extends CI_Model {
                '_id'=>$this->get_table_name($db_id,$table_id)
            ]
        );
-       
-       return $result;
+
+       if ($result === null) {
+           return null;
+       }
+
+       return $this->mongo_document_to_array($result);
+   }
+
+   /**
+    * MongoDB find/findOne return BSONDocument for nested objects.
+    * Convert to a plain array so typed helpers and array access stay consistent.
+    */
+   private function mongo_document_to_array($document)
+   {
+       if (is_array($document)) {
+           return $document;
+       }
+       if ($document === null) {
+           return array();
+       }
+       $decoded = json_decode(json_encode($document), true);
+       return is_array($decoded) ? $decoded : array();
    }
 
 
@@ -1900,8 +1920,9 @@ function format_execution_time($seconds)
 		return site_url('api/tables/import_errors/' . $db_id . '/' . $table_id);
 	}
 
-	private function import_progress_payload(array $import_progress, $table_definition, $has_more_override = null)
+	private function import_progress_payload($import_progress, $table_definition, $has_more_override = null)
 	{
+		$import_progress = $this->mongo_document_to_array($import_progress);
 		$status = isset($import_progress['import_status']) ? $import_progress['import_status'] : 'ready';
 		$has_more = ($has_more_override !== null) ? (bool) $has_more_override : !$this->is_import_terminal($status);
 		$inserted = isset($import_progress['total_rows_processed']) ? (int) $import_progress['total_rows_processed'] : 0;
