@@ -76,8 +76,9 @@ export function useStudyCitationsApi() {
   }
 
   async function detachCitation(citationId) {
-    const { data } = await axios.delete(
-      `${catalogBase()}${studyRef()}/citations/${encodeURIComponent(String(citationId))}`,
+    const { data } = await axios.post(
+      `${catalogBase()}${studyRef()}/citations/${encodeURIComponent(String(citationId))}/delete`,
+      {},
       {
         params: studyParams(),
         withCredentials: true,

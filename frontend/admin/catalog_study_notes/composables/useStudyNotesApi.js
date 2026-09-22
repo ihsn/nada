@@ -55,7 +55,7 @@ export function useStudyNotesApi() {
   }
 
   async function deleteNote(noteId) {
-    const { data } = await axios.delete(`${catalogBase()}${studyRef()}/notes/${encodeURIComponent(String(noteId))}`, {
+    const { data } = await axios.post(`${catalogBase()}${studyRef()}/notes/${encodeURIComponent(String(noteId))}/delete`, {}, {
       params: studyParams(),
       withCredentials: true,
       headers: csrfHeaders(),

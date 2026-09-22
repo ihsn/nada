@@ -186,10 +186,19 @@ class Licensed_requests extends MY_REST_Controller
 
 	/**
 	 * PATCH /api/admin/licensed_requests/item/{id}
+	 * Prod blocks PATCH. Clients should POST the same path.
+	 */
+	public function item_patch($id = null)
+	{
+		return $this->item_post($id);
+	}
+
+	/**
+	 * POST /api/admin/licensed_requests/item/{id}
 	 *
 	 * JSON: status, comments, ip_limit, notify (bool), files: [{ resource_id, selected, download_limit, expiry (YYYY-MM-DD) }]
 	 */
-	public function item_patch($id = null)
+	public function item_post($id = null)
 	{
 		try {
 			$user = $this->api_user();

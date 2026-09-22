@@ -57,7 +57,7 @@ export function useLicensedRequestsApi() {
    */
   async function patchDetail(id, payload) {
     const base = apiBaseUrl.value || '';
-    const { data } = await axios.patch(`${base}item/${encodeURIComponent(String(id))}`, payload, {
+    const { data } = await axios.post(`${base}item/${encodeURIComponent(String(id))}`, payload, {
       headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
     });
     if (data.status !== 'success') throw new Error(data.message || 'Update failed');
@@ -85,24 +85,13 @@ export function useLicensedRequestsApi() {
   async function deleteRequest(id) {
     const base = apiBaseUrl.value || '';
     const rid = encodeURIComponent(String(id));
-    try {
-      const { data } = await axios.delete(`${base}item/${rid}`, {
-        headers: csrfHeaders(),
-      });
-      if (data.status !== 'success') throw new Error(data.message || 'Delete failed');
-      return data.result;
-    } catch (e) {
-      if (e?.response?.status === 405 || e?.response?.status === 404) {
-        const { data } = await axios.post(
-          `${base}item_delete/${rid}`,
-          {},
-          { headers: { 'Content-Type': 'application/json', ...csrfHeaders() } }
-        );
-        if (data.status !== 'success') throw new Error(data.message || 'Delete failed');
-        return data.result;
-      }
-      throw e;
-    }
+    const { data } = await axios.post(
+      `${base}item_delete/${rid}`,
+      {},
+      { headers: { 'Content-Type': 'application/json', ...csrfHeaders() } }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Delete failed');
+    return data.result;
   }
 
   /**

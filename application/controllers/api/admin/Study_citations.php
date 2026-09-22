@@ -11,6 +11,7 @@ require APPPATH . '/libraries/MY_REST_Controller.php';
  *   GET    /api/admin/catalog/{idno}/citations
  *   GET    /api/admin/catalog/{idno}/citations/search
  *   POST   /api/admin/catalog/{idno}/citations/{citation_id}
+ *   POST   /api/admin/catalog/{idno}/citations/{citation_id}/delete
  *   DELETE /api/admin/catalog/{idno}/citations/{citation_id}
  */
 class Study_citations extends MY_REST_Controller
@@ -184,6 +185,15 @@ class Study_citations extends MY_REST_Controller
 		catch (Exception $e) {
 			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * POST /api/admin/catalog/{idno}/citations/{citation_id}/delete
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	public function delete_post($idno = null, $citation_id = null)
+	{
+		return $this->index_delete($idno, $citation_id);
 	}
 
 	/**

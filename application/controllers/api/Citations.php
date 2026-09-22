@@ -354,6 +354,15 @@ class Citations extends MY_REST_Controller
 		return $this->delete_delete($uuid);
 	}
 
+	/**
+	 * POST /api/citations/delete/{uuid}
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	public function delete_post($uuid=null)
+	{
+		return $this->delete_delete($uuid);
+	}
+
 
 	//override authentication to support both session authentication + api keys
 	function _auth_override_check()

@@ -116,12 +116,15 @@ $route['api/datadeposits/(:num)/submit'] = "api/datadeposits/submit/$1";
 $route['api/datadeposits/(:num)/access_policy'] = "api/datadeposits/access_policy/$1";
 
 //dataset datafiles
+$route['api/datasets/(:any)/datafiles/(:any)/delete'] = "api/datasets/datafiles_delete/$1/$2";
 $route['api/datasets/(:any)/datafiles'] = "api/datasets/datafiles/$1";
 
 //timeseries series [variable]
 $route['api/datasets/(:any)/series/(:any)'] = "api/datasets/series/$1/$2";
 
 //variables
+$route['api/datasets/(:any)/variable/(:any)/(:any)/delete'] = "api/datasets/variable_delete/$1/$2/$3";
+$route['api/datasets/(:any)/variables/(:any)/delete'] = "api/datasets/variables_delete/$1/$2";
 $route['api/datasets/(:any)/variables/(:any)'] = "api/datasets/variables/$1/$2";
 
 
@@ -148,6 +151,7 @@ $route['api/admin/resources/(:any)/resources/fix_links'] = 'api/admin/resources/
 $route['api/admin/resources/download_links'] = 'api/admin/resources/download_links';
 
 //dataset files
+$route['api/datasets/(:any)/files/(.*)/delete'] = "api/files/delete/$1/$2";
 $route['api/datasets/(:any)/files'] = "api/files/$1";
 $route['api/datasets/(:any)/files/(.*)'] = "api/files/$1/$2";
 $route['api/datasets/(:any)/download/(.*)'] = "api/files/download/$1/$2";
@@ -216,14 +220,18 @@ $route['api/admin/catalog/(:any)/files/(.*)/delete']  = 'api/admin/catalog_files
 $route['api/admin/catalog/(:any)/files/(.*)']        = 'api/admin/catalog_files/$1/$2';
 $route['api/admin/catalog/(:any)/files']              = 'api/admin/catalog_files/$1';
 $route['api/admin/catalog/(:any)/citations/search']   = 'api/admin/study_citations/search/$1';
+$route['api/admin/catalog/(:any)/citations/(:num)/delete'] = 'api/admin/study_citations/delete/$1/$2';
 $route['api/admin/catalog/(:any)/citations/(:num)']   = 'api/admin/study_citations/$1/$2';
 $route['api/admin/catalog/(:any)/citations']          = 'api/admin/study_citations/$1';
 $route['api/admin/catalog/(:any)/admin-metadata/delete']  = 'api/admin/study_admin_metadata/delete_post/$1';
 $route['api/admin/catalog/(:any)/admin-metadata/update']  = 'api/admin/study_admin_metadata/update_post/$1';
 $route['api/admin/catalog/(:any)/admin-metadata']         = 'api/admin/study_admin_metadata/$1';
+$route['api/admin/catalog/(:any)/notes/(.*)/delete']  = 'api/admin/study_notes/delete/$1/$2';
 $route['api/admin/catalog/(:any)/notes/(.*)']         = 'api/admin/study_notes/$1/$2';
 $route['api/admin/catalog/(:any)/notes']              = 'api/admin/study_notes/$1';
 $route['api/admin/catalog/(:any)/related-studies/search']   = 'api/admin/study_related_studies/search/$1';
+$route['api/admin/catalog/(:any)/related-studies/(:num)/update'] = 'api/admin/study_related_studies/update/$1/$2';
+$route['api/admin/catalog/(:any)/related-studies/(:num)/delete'] = 'api/admin/study_related_studies/delete/$1/$2';
 $route['api/admin/catalog/(:any)/related-studies/(:num)']   = 'api/admin/study_related_studies/$1/$2';
 $route['api/admin/catalog/(:any)/related-studies']          = 'api/admin/study_related_studies/$1';
 $route['api/admin/data-classifications']              = 'api/admin/data_classifications';
@@ -275,6 +283,7 @@ $route['api/tables/fields/(:any)/(:any)'] = "api/tables/fields/$1/$2";
 $route['api/tables/export_definition/(:any)/(:any)'] = "api/tables/export_definition/$1/$2";
 
 //Tables API - indexes endpoints
+$route['api/tables/indexes/(:any)/(:any)/(:any)/delete'] = "api/tables/indexes_delete/$1/$2/$3";
 $route['api/tables/indexes/(:any)/(:any)/all'] = "api/tables/indexes_delete_all/$1/$2";
 
 //Tables API - studies endpoints
