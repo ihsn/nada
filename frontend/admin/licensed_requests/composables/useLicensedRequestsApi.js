@@ -81,6 +81,46 @@ export function useLicensedRequestsApi() {
 
   /**
    * @param {number|string} id
+   */
+  async function deleteRequest(id) {
+    const base = apiBaseUrl.value || '';
+    const rid = encodeURIComponent(String(id));
+    try {
+      const { data } = await axios.delete(`${base}item/${rid}`, {
+        headers: csrfHeaders(),
+      });
+      if (data.status !== 'success') throw new Error(data.message || 'Delete failed');
+      return data.result;
+    } catch (e) {
+      if (e?.response?.status === 405 || e?.response?.status === 404) {
+        const { data } = await axios.post(
+          `${base}item_delete/${rid}`,
+          {},
+          { headers: { 'Content-Type': 'application/json', ...csrfHeaders() } }
+        );
+        if (data.status !== 'success') throw new Error(data.message || 'Delete failed');
+        return data.result;
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * @param {Array<number|string>} ids
+   */
+  async function deleteRequests(ids) {
+    const base = apiBaseUrl.value || '';
+    const { data } = await axios.post(
+      `${base}batch_delete`,
+      { ids },
+      { headers: { 'Content-Type': 'application/json', ...csrfHeaders() } }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Delete failed');
+    return data.result;
+  }
+
+  /**
+   * @param {number|string} id
    * @param {{ to: string, cc?: string, subject: string, body: string }} payload
    */
   async function forwardMail(id, payload) {
@@ -101,6 +141,8 @@ export function useLicensedRequestsApi() {
     search,
     fetchDetail,
     patchDetail,
+    deleteRequest,
+    deleteRequests,
     sendMail,
     forwardMail,
   };

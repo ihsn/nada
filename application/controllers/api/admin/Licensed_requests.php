@@ -80,6 +80,12 @@ class Licensed_requests extends MY_REST_Controller
 				$rows = array();
 			}
 
+			foreach ($rows as &$row) {
+				$rid = isset($row['id']) ? (int) $row['id'] : 0;
+				$row['can_delete'] = $rid > 0 && $this->_licensed_request_privilege_on_request($user, $rid, 'delete');
+			}
+			unset($row);
+
 			$this->set_response(
 				array(
 					'status' => 'success',
@@ -127,6 +133,7 @@ class Licensed_requests extends MY_REST_Controller
 					'collections'          => $collections,
 					'scope_unrestricted'   => $scope === null,
 					'scope_repository_ids' => $scope === null ? null : $scope,
+					'can_delete'           => $this->_user_has_licensed_request_privilege($user, 'delete'),
 				),
 				REST_Controller::HTTP_OK
 			);
@@ -275,6 +282,47 @@ class Licensed_requests extends MY_REST_Controller
 			);
 		}
 		catch (AclAccessDeniedException $e) {
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * DELETE /api/admin/licensed_requests/item/{id}
+	 */
+	public function item_delete($id = null)
+	{
+		$this->_respond_delete_ids(array($id));
+	}
+
+	/**
+	 * POST /api/admin/licensed_requests/item_delete/{id} — DELETE alias
+	 */
+	public function item_delete_post($id = null)
+	{
+		$this->_respond_delete_ids(array($id));
+	}
+
+	/**
+	 * POST /api/admin/licensed_requests/batch_delete
+	 *
+	 * JSON: { "ids": [1, 2, 3] }
+	 */
+	public function batch_delete_post()
+	{
+		try {
+			$input = $this->raw_json_input();
+			if (! is_array($input) || ! isset($input['ids']) || ! is_array($input['ids'])) {
+				$this->set_response(array('status' => 'error', 'message' => 'INVALID_IDS'), REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
+
+			$this->_respond_delete_ids($input['ids']);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
 			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
 		}
 		catch (Exception $e) {
@@ -458,11 +506,82 @@ class Licensed_requests extends MY_REST_Controller
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Delete one or more licensed requests. Fails the whole batch on first ACL denial.
+	 *
+	 * @param array $raw_ids
+	 */
+	private function _respond_delete_ids($raw_ids)
+	{
+		try {
+			$user = $this->api_user();
+			if (!$user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			$ids = array();
+			foreach ((array) $raw_ids as $raw) {
+				if (! is_numeric($raw)) {
+					continue;
+				}
+				$rid = (int) $raw;
+				if ($rid > 0) {
+					$ids[$rid] = $rid;
+				}
+			}
+			$ids = array_values($ids);
+
+			if (count($ids) === 0) {
+				$this->set_response(array('status' => 'error', 'message' => 'INVALID_ID'), REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
+
+			foreach ($ids as $rid) {
+				$this->_ensure_request_privilege($user, $rid, 'delete');
+			}
+
+			$deleted = array();
+			foreach ($ids as $rid) {
+				if (! $this->Licensed_model->select_single($rid)) {
+					continue;
+				}
+				$this->Licensed_model->delete($rid);
+				$deleted[] = $rid;
+			}
+
+			$this->set_response(
+				array(
+					'status'  => 'success',
+					'message' => 'OK',
+					'result'  => array('deleted_ids' => $deleted),
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
 	 * @param object $user
 	 * @param int    $request_id
 	 * @param bool   $need_edit  true = licensed_request edit
 	 */
 	private function _ensure_request_access($user, $request_id, $need_edit)
+	{
+		$this->_ensure_request_privilege($user, $request_id, $need_edit ? 'edit' : 'view');
+	}
+
+	/**
+	 * @param object $user
+	 * @param int    $request_id
+	 * @param string $privilege  view|edit|delete
+	 */
+	private function _ensure_request_privilege($user, $request_id, $privilege)
 	{
 		$scope = $this->acl_manager->get_licensed_request_repository_scope($user);
 		if ($scope === false) {
@@ -473,10 +592,44 @@ class Licensed_requests extends MY_REST_Controller
 			throw new AclAccessDeniedException('ACCESS-DENIED');
 		}
 
-		$priv = $need_edit ? 'edit' : 'view';
-		if (! $this->_licensed_request_privilege_on_request($user, $request_id, $priv)) {
+		if (! $this->_licensed_request_privilege_on_request($user, $request_id, $privilege)) {
 			throw new AclAccessDeniedException('ACCESS-DENIED');
 		}
+	}
+
+	/**
+	 * Whether the user has licensed_request $privilege globally or on any scoped collection.
+	 *
+	 * @param object $user
+	 * @param string $privilege view|edit|delete
+	 * @return bool
+	 */
+	private function _user_has_licensed_request_privilege($user, $privilege)
+	{
+		if ($this->acl_manager->user_is_admin($user)) {
+			return true;
+		}
+
+		try {
+			$this->acl_manager->has_access('licensed_request', $privilege, $user);
+
+			return true;
+		}
+		catch (Exception $e) {
+			unset($e);
+		}
+
+		$scope = $this->acl_manager->get_licensed_request_repository_scope($user);
+		if ($scope === false || $scope === null) {
+			return false;
+		}
+
+		return $this->acl_manager->has_access_on_any_repository(
+			'licensed_request',
+			$privilege,
+			$user,
+			$scope
+		);
 	}
 
 	/**
@@ -593,6 +746,7 @@ class Licensed_requests extends MY_REST_Controller
 			'download_summary'    => is_array($summary_rows) ? $summary_rows : array(),
 			'download_log'        => is_array($log_rows) ? $log_rows : array(),
 			'can_edit'            => $can_edit,
+			'can_delete'          => $this->_licensed_request_privilege_on_request($user, $id, 'delete'),
 			'list_url'            => site_url('admin/licensed_requests'),
 			'default_email_to'    => isset($row['user']['email']) ? $row['user']['email'] : '',
 		);

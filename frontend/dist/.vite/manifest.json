@@ -1295,7 +1295,7 @@
     ]
   },
   "admin/licensed_requests/main.js": {
-    "file": "assets/admin/admin_licensed_requests-Dlf5Z2G2.js",
+    "file": "assets/admin/admin_licensed_requests-BTwBKdaZ.js",
     "name": "admin_licensed_requests",
     "src": "admin/licensed_requests/main.js",
     "isEntry": true,
@@ -1318,6 +1318,9 @@
       "_VChip-BicrLq3W.js",
       "_VList-B71h4JOa.js",
       "_VPagination-CYVNeZtS.js",
+      "_VSpacer-C8CAZSpg.js",
+      "_VDialog-BBe6F_nn.js",
+      "_VSnackbar-CGep1sBy.js",
       "_VTable-5rJfELm-.js",
       "_VCheckbox-BcyHiI9N.js",
       "_VTextarea-DozBXxtd.js",
@@ -1330,7 +1333,7 @@
       "_VSheet-DnryHTQQ.js"
     ],
     "css": [
-      "assets/admin/admin_licensed_requests-QkrjMoIg.css"
+      "assets/admin/admin_licensed_requests-AvUMfvFK.css"
     ]
   },
   "admin/menu/main.js": {

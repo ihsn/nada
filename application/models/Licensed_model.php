@@ -1008,12 +1008,26 @@ class Licensed_model extends CI_Model {
 	
 	/**
 	*
-	* Delete licensed request
+	* Delete licensed request and related rows
 	*/
 	function delete($requestid)
-	{		
-		$this->db->where('id',$requestid);	
-		return $this->db->delete('lic_requests'); 
+	{
+		$requestid = (int) $requestid;
+		if ($requestid < 1) {
+			return false;
+		}
+
+		$this->delete_request_files($requestid);
+		$this->remove_request_history($requestid);
+
+		$this->db->where('requestid', $requestid);
+		$this->db->delete('lic_files_log');
+
+		$this->db->where('request_id', $requestid);
+		$this->db->delete('survey_lic_requests');
+
+		$this->db->where('id', $requestid);
+		return $this->db->delete('lic_requests');
 	}
 
 	/**
