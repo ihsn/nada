@@ -974,6 +974,202 @@ class Ion_auth_model extends CI_Model
 		return $this->get_users();
 	}
 
+	/**
+	 * Case-insensitive active user lookup by email.
+	 *
+	 * @param string $email
+	 * @return object|null
+	 */
+	public function get_user_by_email_normalized($email)
+	{
+		$email = strtolower(trim((string) $email));
+		if ($email === '') {
+			return null;
+		}
+		$this->db->where('LOWER(email) = ' . $this->db->escape($email), null, false);
+		$this->db->where('active', 1);
+		if (isset($this->ion_auth->_extra_where)) {
+			$this->db->where($this->ion_auth->_extra_where);
+		}
+		$this->db->limit(1);
+		return $this->db->get($this->tables['users'])->row();
+	}
+
+	/**
+	 * @param string $local_part normalized lowercase
+	 * @param array $domains lowercase domain names
+	 * @return array of user rows
+	 */
+	public function find_users_by_local_part_in_domains($local_part, $domains)
+	{
+		$local_part = strtolower(trim((string) $local_part));
+		if ($local_part === '' || empty($domains)) {
+			return array();
+		}
+		$domain_esc = array();
+		foreach ($domains as $d) {
+			$domain_esc[] = $this->db->escape(strtolower(trim((string) $d)));
+		}
+		$this->db->where(
+			'LOWER(SUBSTRING_INDEX(email, "@", 1)) = ' . $this->db->escape($local_part),
+			null,
+			false
+		);
+		$this->db->where(
+			'LOWER(SUBSTRING_INDEX(email, "@", -1)) IN (' . implode(',', $domain_esc) . ')',
+			null,
+			false
+		);
+		$this->db->where('active', 1);
+		if (isset($this->ion_auth->_extra_where)) {
+			$this->db->where($this->ion_auth->_extra_where);
+		}
+		return $this->db->get($this->tables['users'])->result();
+	}
+
+	/**
+	 * Link external auth identity and optionally refresh canonical email.
+	 *
+	 * @param int $user_id
+	 * @param string $auth_type
+	 * @param string $auth_type_id
+	 * @param string|null $email
+	 * @return bool
+	 */
+	public function link_auth_identity($user_id, $auth_type, $auth_type_id, $email = null)
+	{
+		$data = array(
+			'authtype' => (string) $auth_type,
+			'authtype_id' => (string) $auth_type_id,
+		);
+		if ($email !== null && $email !== '') {
+			$data['email'] = strtolower(trim($email));
+		}
+		if (isset($this->ion_auth->_extra_where)) {
+			$this->db->where($this->ion_auth->_extra_where);
+		}
+		$this->db->where('id', (int) $user_id);
+		return $this->db->update($this->tables['users'], $data);
+	}
+
+	/**
+	 * Find local-parts that map to more than one user within the given email domains.
+	 *
+	 * @param array $domains lowercase domain names
+	 * @param bool $active_only
+	 * @return array list of rows: local_part, account_count
+	 */
+	public function find_duplicate_local_parts_in_domains($domains, $active_only = true)
+	{
+		$domains = $this->normalize_email_domains_list($domains);
+		if (empty($domains)) {
+			return array();
+		}
+
+		$domain_esc = array();
+		foreach ($domains as $d) {
+			$domain_esc[] = $this->db->escape($d);
+		}
+
+		$this->db->select(
+			'LOWER(SUBSTRING_INDEX(email, "@", 1)) AS local_part, COUNT(*) AS account_count',
+			false
+		);
+		$this->db->where(
+			'LOWER(SUBSTRING_INDEX(email, "@", -1)) IN (' . implode(',', $domain_esc) . ')',
+			null,
+			false
+		);
+		if ($active_only) {
+			$this->db->where('active', 1);
+		}
+		if (isset($this->ion_auth->_extra_where)) {
+			$this->db->where($this->ion_auth->_extra_where);
+		}
+		$this->db->group_by('local_part', false);
+		$this->db->having('account_count >', 1);
+		$this->db->order_by('local_part', 'ASC');
+
+		return $this->db->get($this->tables['users'])->result_array();
+	}
+
+	/**
+	 * Users in the given domains whose email local-part matches one of the values.
+	 *
+	 * @param array $local_parts
+	 * @param array $domains
+	 * @param bool $active_only
+	 * @return array
+	 */
+	public function get_users_by_local_parts_in_domains($local_parts, $domains, $active_only = true)
+	{
+		$local_parts = $this->normalize_email_local_parts_list($local_parts);
+		$domains = $this->normalize_email_domains_list($domains);
+		if (empty($local_parts) || empty($domains)) {
+			return array();
+		}
+
+		$local_esc = array();
+		foreach ($local_parts as $lp) {
+			$local_esc[] = $this->db->escape($lp);
+		}
+		$domain_esc = array();
+		foreach ($domains as $d) {
+			$domain_esc[] = $this->db->escape($d);
+		}
+
+		$this->db->select('id, email, username, authtype, authtype_id, active, created_on, last_login');
+		$this->db->where(
+			'LOWER(SUBSTRING_INDEX(email, "@", 1)) IN (' . implode(',', $local_esc) . ')',
+			null,
+			false
+		);
+		$this->db->where(
+			'LOWER(SUBSTRING_INDEX(email, "@", -1)) IN (' . implode(',', $domain_esc) . ')',
+			null,
+			false
+		);
+		if ($active_only) {
+			$this->db->where('active', 1);
+		}
+		if (isset($this->ion_auth->_extra_where)) {
+			$this->db->where($this->ion_auth->_extra_where);
+		}
+		$this->db->order_by('email', 'ASC');
+
+		return $this->db->get($this->tables['users'])->result_array();
+	}
+
+	protected function normalize_email_domains_list($domains)
+	{
+		if (!is_array($domains)) {
+			return array();
+		}
+		$out = array();
+		foreach ($domains as $d) {
+			$d = strtolower(trim((string) $d));
+			if ($d !== '') {
+				$out[] = $d;
+			}
+		}
+		return array_values(array_unique($out));
+	}
+
+	protected function normalize_email_local_parts_list($local_parts)
+	{
+		if (!is_array($local_parts)) {
+			return array();
+		}
+		$out = array();
+		foreach ($local_parts as $lp) {
+			$lp = strtolower(trim((string) $lp));
+			if ($lp !== '') {
+				$out[] = $lp;
+			}
+		}
+		return array_values(array_unique($out));
+	}
+
 	
 	/**
 	 * get_newest_users

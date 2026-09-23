@@ -114,6 +114,37 @@ $config['azure_auth']['authorize_endpoint'] = 'https://login.microsoftonline.com
 $config['azure_auth']['token_endpoint'] = 'https://login.microsoftonline.com/'.$config['azure_auth']['tenant_id'].'/oauth2/token';
 $config['azure_auth']['logout_endpoint'] = 'https://login.microsoftonline.com/'.$config['azure_auth']['tenant_id'].'/oauth2/logout';
 
+// Azure AD identity claim stored in users.authtype_id (default: oid)
+$config['azure_auth']['identity_claim'] = 'oid';
+
+// Ordered list of ID token claims used as login email (first non-empty wins)
+$config['azure_auth']['email_claims'] = array(
+    'email',
+    'preferred_username',
+    'upn',
+    'unique_name',
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Email domain equivalence (AzureAuth)
+|--------------------------------------------------------------------------
+|
+| Override defaults from auth.php when the same org uses multiple email
+| domains during a migration (e.g. ihsn.org and surveynetwork.org).
+|
+*/
+$config['email_domain_equivalence'] = array(
+    'enabled' => false,
+    'domains' => array(
+        // 'ihsn.org',
+        // 'surveynetwork.org',
+    ),
+    'local_part_cross_domain' => true,
+    'require_unique_local_part' => true,
+);
+
 
 /*
 |--------------------------------------------------------------------------

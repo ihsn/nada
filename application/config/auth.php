@@ -24,6 +24,23 @@ $config['authentication_drivers'] = array(
     'ZeroAuth'      => 'application/libraries/Auth/ZeroAuth.php',
 );
 
+/*
+|--------------------------------------------------------------------------
+| Email domain equivalence (AzureAuth SSO + alternate password login)
+|--------------------------------------------------------------------------
+|
+| When enabled, the same mailbox local-part across listed org domains is
+| treated as one account (e.g. user@ihsn.org and user@surveynetwork.org).
+| Override in auth.local.php for your deployment.
+|
+*/
+$config['email_domain_equivalence'] = array(
+    'enabled' => false,
+    'domains' => array(),
+    'local_part_cross_domain' => true,
+    'require_unique_local_part' => true,
+);
+
 $local_config = APPPATH . 'config/auth.local.php';
 if (file_exists($local_config)) {
     include $local_config;

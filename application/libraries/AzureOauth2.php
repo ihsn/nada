@@ -45,14 +45,14 @@ class AzureOauth2
 		$this->ci->load->model("Ion_auth_model");
 	}
 
-	private function login_user($email)
+	private function login_user_by_id($user_id)
 	{
-	    if (empty($email) ){
+	    if (empty($user_id)) {
 	        return FALSE;
 	    }
 
 	    $query = $this->ci->db->select('username,email, id, password')
-            ->where("email", $email)
+            ->where('id', (int) $user_id)
             ->where($this->ci->ion_auth->_extra_where)
             ->where('active', 1)
             ->get($this->tables['users']);
@@ -107,44 +107,74 @@ class AzureOauth2
         catch(Exception $e){
           die($e->getMessage());
         }
-      
-        $user= new stdclass();
-        $user->email=$decoded['unique_name'];
-        $user->fname=$decoded['family_name'];
-        $user->lname=$decoded['given_name'];
-        
-        $additional_data = array(
-            'first_name' => $user->fname,
-            'last_name'  => $user->lname,
-            //'company'    => '',
-            'email'		=>$user->email,
-            'identity'	=>$user->email
-        );	
-						
-        if (!$user->email){
+
+        $this->ci->load->library('Azure_user_resolver');
+        $profile = $this->ci->azure_user_resolver->extract_profile_from_claims($decoded);
+
+        if (empty($profile['email'])) {
             show_error('USER_NOT_FOUND');
         }
-			
-        //check user is already registered
-        $user_info=$this->ci->ion_auth_model->get_user_by_email($user->email)->row_array(); 
-        //$user_info=$user_info->result_array();
-			
-        if (is_array($user_info) && count($user_info)>0){
-            //login to site			
-            $this->login_user($user->email);
-        }
-        else
-        {				
-            //register user if not already registered
-            $this->ci->ion_auth_model->register($user->fname, md5(date("U")), $user->email, $additional_data, $group_name='user', $auth_type="AAD");
 
-            //login to site			
-            $this->login_user($user->email);            
-            $user_info=$this->ci->ion_auth_model->get_user_by_email($user->email)->row_array(); 
+        if (empty($profile['oid'])) {
+            show_error('Azure token missing identity claim (oid). Check azure_auth.identity_claim or token version.');
         }
-			
-        //log
-        $this->ci->db_logger->write_log('login',$user->email);
+
+        $resolved = $this->ci->azure_user_resolver->resolve_for_azure($decoded, $profile['email']);
+
+        if ($resolved['status'] === 'error') {
+            show_error($this->ci->azure_user_resolver->error_message_for_code($resolved['error']));
+        }
+
+        if ($resolved['status'] === 'found') {
+            try {
+                $this->ci->azure_user_resolver->link_azure_user(
+                    $resolved['user']->id,
+                    $profile['oid'],
+                    $profile['email']
+                );
+            } catch (Exception $e) {
+                show_error($e->getMessage());
+            }
+
+            if (!$this->login_user_by_id($resolved['user']->id)) {
+                show_error('Login failed');
+            }
+
+            $this->ci->db_logger->write_log('login', $profile['email']);
+            return true;
+        }
+
+        $username = trim($profile['first_name'] . ' ' . $profile['last_name']);
+        if ($username === '') {
+            $username = $profile['email'];
+        }
+
+        $additional_data = array(
+            'first_name' => $profile['first_name'],
+            'last_name'  => $profile['last_name'],
+            'email'      => $profile['email'],
+            'identity'   => $profile['email'],
+        );
+
+        $user_id = $this->ci->ion_auth_model->register(
+            $username,
+            md5((string) date('U')),
+            $profile['email'],
+            $additional_data,
+            'user',
+            Azure_user_resolver::AUTH_TYPE,
+            $profile['oid']
+        );
+
+        if (!$user_id) {
+            show_error('Registration failed');
+        }
+
+        if (!$this->login_user_by_id($user_id)) {
+            show_error('Login failed after registration');
+        }
+
+        $this->ci->db_logger->write_log('login', $profile['email']);
         return true;
     }
 

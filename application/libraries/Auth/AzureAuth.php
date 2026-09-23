@@ -59,7 +59,7 @@ class AzureAuth extends DefaultAuth implements AuthInterface {
 
 
 			//track login attempts?
-			if ($this->ci->config->item("track_login_attempts")===TRUE)
+        	if ($this->ci->config->item("track_login_attempts")===TRUE)
 			{
 				//check if max login attempts limit reached
 				$max_login_limit=$this->ci->ion_auth->is_max_login_attempts_exceeded($this->ci->input->post('email'));
@@ -72,8 +72,13 @@ class AzureAuth extends DefaultAuth implements AuthInterface {
 				}
 			}
 
+			$this->ci->load->library('Azure_user_resolver');
 
-        	if ($this->ci->ion_auth->login($this->ci->input->post('email'), $this->ci->input->post('password'), $remember)) //if the login is successful
+        	if ($this->ci->azure_user_resolver->attempt_password_login(
+        		$this->ci->input->post('email'),
+        		$this->ci->input->post('password'),
+        		$remember
+        	)) //if the login is successful
 			{
 				//log
 				$this->ci->db_logger->write_log('login',$this->ci->input->post('email'));
