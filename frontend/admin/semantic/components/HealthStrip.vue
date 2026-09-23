@@ -94,6 +94,9 @@
                 Full collection info →
               </router-link>
             </template>
+            <div v-else-if="engine && engine !== 'qdrant'" class="text-body-2 text-medium-emphasis">
+              Not available for the {{ engine }} engine.
+            </div>
             <v-alert v-else-if="overview?.collection" type="error" variant="tonal" density="compact">
               {{ overview.collection.error }}
             </v-alert>
@@ -151,6 +154,12 @@ const props = defineProps({
 defineEmits(['refresh', 'warmup']);
 
 const detailsOpen = ref(false);
+
+/** From the already-fixed GET /health (backend/collection/collection_exists are the same field names for every
+ * engine now) — used to tell the Collection card/pill "not applicable" apart from "actually erroring", since the
+ * separate GET /admin/qdrant/collection probe below is genuinely Qdrant-only and always errors for any other
+ * engine. */
+const engine = computed(() => props.overview?.health?.data?.backend || null);
 
 const collectionInfo = computed(() => {
   const info = props.overview?.collection?.data?.info || {};
@@ -215,13 +224,16 @@ const pills = computed(() => {
           ? 'Embeddings ready'
           : `Embeddings ${embStatus || 'ok'}`;
 
+  const colNotApplicable = engine.value && engine.value !== 'qdrant';
   const colOk = ov?.collection?.ok === true;
   const points = collectionInfo.value.points_count;
-  const colText = !ov?.collection
-    ? 'Collection…'
-    : !colOk
-      ? 'Collection error'
-      : `${formatCount(points)} points`;
+  const colText = colNotApplicable
+    ? 'Collection n/a'
+    : !ov?.collection
+      ? 'Collection…'
+      : !colOk
+        ? 'Collection error'
+        : `${formatCount(points)} points`;
 
   const drift = ov?.drift?.data;
   const driftOk = ov?.drift?.ok === true;
@@ -252,7 +264,7 @@ const pills = computed(() => {
     {
       key: 'col',
       text: colText,
-      color: pillColor(ov?.collection ? colOk : null),
+      color: colNotApplicable ? 'grey' : pillColor(ov?.collection ? colOk : null),
       icon: 'mdi-database-outline',
     },
     {

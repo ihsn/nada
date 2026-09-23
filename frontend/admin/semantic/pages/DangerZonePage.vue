@@ -12,8 +12,8 @@
       <v-divider />
       <v-card-text class="pt-4">
         <p class="text-body-2 mb-3">
-          Drops the entire <code>nada-metadata</code> Qdrant collection and immediately re-ingests
-          every catalog type (document, timeseries, survey, geospatial) from scratch.
+          Drops the entire search index or collection and immediately re-ingests every catalog type
+          (document, timeseries, survey, geospatial) from scratch.
         </p>
         <p class="text-body-2 text-medium-emphasis mb-4">
           Search will return incomplete or no results until re-ingest finishes — from minutes to hours
@@ -58,7 +58,7 @@
       <v-divider />
       <v-card-text class="pt-4">
         <p class="text-body-2 mb-3">
-          Drops the <code>nada-metadata</code> Qdrant collection only — nothing is re-ingested afterward.
+          Drops the search index or collection only — nothing is re-ingested afterward.
         </p>
         <p class="text-body-2 text-medium-emphasis mb-4">
           Search returns no results until you run a Full reindex from Index. There is no undo.

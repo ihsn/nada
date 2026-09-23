@@ -137,6 +137,116 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
     }
 
     // =========================================================================
+    // Variable search — POST /variables/search (lexical only; see nada-ai's
+    // docs/variables-search-contract.md). Falls back to the database search when there is no keyword to match:
+    // the API always requires a query, but a keyword-less variable browse is a real, supported database case.
+    // =========================================================================
+
+    public function vsearch(int $limit = 15, int $offset = 0): array
+    {
+        $keywords = trim((string) $this->variable_keywords);
+        if ($keywords === '') {
+            return $this->database_search()->vsearch($limit, $offset);
+        }
+
+        $body = [
+            'query'  => $keywords,
+            'limit'  => $limit,
+            'offset' => $offset,
+        ];
+        $types = $this->tab_types();
+        if (!empty($types)) {
+            $body['filters'] = ['types' => $types];
+        }
+        $sort = $this->variable_sort_field();
+        if ($sort !== null) {
+            $body['sort'] = $sort;
+        }
+
+        try {
+            $response = $this->post_json('/variables/search', $body, ['found', 'hits']);
+        } catch (Semantic_search_api_exception $e) {
+            if (!$this->is_outage($e)) {
+                throw $e;
+            }
+            return $this->database_search()->vsearch($limit, $offset);
+        }
+
+        return $this->variable_result($response, $limit, $offset, $this->database_search()->get_total_variable_count());
+    }
+
+    public function v_quick_search(?int $sid = null, int $limit = 50, int $offset = 0): array
+    {
+        $keywords = trim((string) $this->variable_keywords);
+        if ($sid === null || $keywords === '') {
+            return $this->database_search()->v_quick_search($sid, $limit, $offset);
+        }
+
+        $body = [
+            'query'   => $keywords,
+            'limit'   => $limit,
+            'offset'  => $offset,
+            'filters' => ['sids' => [$sid]],
+        ];
+
+        try {
+            $response = $this->post_json('/variables/search', $body, ['found', 'hits']);
+        } catch (Semantic_search_api_exception $e) {
+            if (!$this->is_outage($e)) {
+                throw $e;
+            }
+            return $this->database_search()->v_quick_search($sid, $limit, $offset);
+        }
+
+        // total is this one study's own variable count, not the catalog's — same denominator the database
+        // driver's v_quick_search() uses.
+        $total = (int) $this->ci->db->where('sid', $sid)->count_all_results('variables');
+
+        return $this->variable_result($response, $limit, $offset, $total);
+    }
+
+    /** @return array{by: string, order: string}|null null = the API default (relevance) */
+    private function variable_sort_field(): ?array
+    {
+        $key = strtolower(trim((string) $this->sort_by));
+        $sort = $key === 'name' ? 'name' : ($key === 'title' ? 'title' : null);
+        if ($sort === null) {
+            return null;
+        }
+
+        return ['by' => $sort, 'order' => strtolower((string) $this->sort_order) === 'desc' ? 'desc' : 'asc'];
+    }
+
+    /** API variable-search response -> the {found, total, limit, offset, rows} shape both database drivers return. */
+    private function variable_result(array $response, int $limit, int $offset, int $total): array
+    {
+        $rows = array_map(static function (array $hit): array {
+            return [
+                'uid'  => $hit['uid'],
+                'sid'  => $hit['sid'],
+                'fid'  => $hit['fid'] ?? null,
+                'vid'  => $hit['vid'] ?? null,
+                'name' => $hit['name'] ?? null,
+                'labl' => $hit['label'] ?? null,
+                'qstn' => $hit['question'] ?? null,
+                'title'      => $hit['title'] ?? null,
+                'idno'       => $hit['idno'] ?? null,
+                'nation'     => $hit['nation'] ?? null,
+                'year_start' => $hit['year_start'] ?? null,
+                'year_end'   => $hit['year_end'] ?? null,
+            ];
+        }, $response['hits']);
+
+        return [
+            'found'  => (int) $response['found'],
+            'total'  => $total,
+            'limit'  => $limit,
+            'offset' => $offset,
+            'rows'   => $rows,
+        ];
+    }
+
+    // =========================================================================
     // Request building
     // =========================================================================
 

@@ -9,6 +9,7 @@
 class Catalog_search_metadata_extract
 {
     const STUDY_DOCTYPE    = 1;
+    const VARIABLE_DOCTYPE = 2;
     const CITATION_DOCTYPE = 3;
 
     /** @var CI_Controller */
@@ -101,6 +102,82 @@ class Catalog_search_metadata_extract
             'limit'    => $limit,
             'total'    => $total,
             'has_more' => ($offset + count($studies)) < $total,
+        );
+    }
+
+    /**
+     * Build one variable export document.
+     *
+     * @param int $uid variables.uid
+     * @return array|null
+     */
+    public function build_variable_document(int $uid)
+    {
+        $rows = $this->load_variable_rows(null, null, $uid);
+        if (empty($rows)) {
+            return null;
+        }
+
+        $country_map = $this->load_variable_country_ids(array((int) $rows[0]['sid']));
+        return $this->assemble_variable_document($rows[0], $country_map);
+    }
+
+    /**
+     * All variables belonging to one study, for reindexing a study's variables
+     * whenever the study itself is (re)indexed.
+     *
+     * @param int $survey_id surveys.id
+     * @return array
+     */
+    public function build_variables_by_survey(int $survey_id)
+    {
+        $rows = $this->load_variable_rows(null, null, null, $survey_id);
+        if (empty($rows)) {
+            return array();
+        }
+
+        $country_map = $this->load_variable_country_ids(array($survey_id));
+
+        $variables = array();
+        foreach ($rows as $row) {
+            $variables[] = $this->assemble_variable_document($row, $country_map);
+        }
+        return $variables;
+    }
+
+    /**
+     * @param int   $offset
+     * @param int   $limit
+     * @param array $options  types (array of survey type strings)
+     * @return array{variables: array, offset: int, limit: int, total: int, has_more: bool}
+     */
+    public function build_variable_batch(int $offset, int $limit, array $options = array())
+    {
+        $types = !empty($options['types']) ? (array) $options['types'] : array();
+
+        $this->ci->db->from('variables');
+        $this->ci->db->join('surveys', 'surveys.id = variables.sid', 'inner');
+        if (!empty($types)) {
+            $this->ci->db->where_in('surveys.type', $types);
+        }
+        $total = (int) $this->ci->db->count_all_results();
+
+        $rows = $this->load_variable_rows($limit, $offset, null, null, $types);
+
+        $survey_ids  = array_values(array_unique(array_map('intval', array_column($rows, 'sid'))));
+        $country_map = $this->load_variable_country_ids($survey_ids);
+
+        $variables = array();
+        foreach ($rows as $row) {
+            $variables[] = $this->assemble_variable_document($row, $country_map);
+        }
+
+        return array(
+            'variables' => $variables,
+            'offset'    => $offset,
+            'limit'     => $limit,
+            'total'     => $total,
+            'has_more'  => ($offset + count($variables)) < $total,
         );
     }
 
@@ -463,6 +540,115 @@ class Catalog_search_metadata_extract
 
         $this->ci->load->model('Study_admin_metadata_model');
         return $this->ci->Study_admin_metadata_model->get_metadata($survey_id);
+    }
+
+    /**
+     * Load variable rows joined with the owning survey's fields.
+     *
+     * Pass $uid to load a single variable, $survey_id to load all variables of
+     * one study, or $limit/$offset (with optional $types) to page over every
+     * variable in the catalog.
+     *
+     * @param int|null $limit
+     * @param int|null $offset
+     * @param int|null $uid
+     * @param int|null $survey_id
+     * @param string[] $types
+     * @return array
+     */
+    private function load_variable_rows(
+        $limit = null,
+        $offset = null,
+        $uid = null,
+        $survey_id = null,
+        array $types = array()
+    ) {
+        $this->ci->db->select(
+            'variables.uid, variables.sid, variables.fid, variables.vid,
+             variables.name, variables.labl, variables.qstn, variables.catgry,
+             surveys.idno, surveys.title, surveys.nation, surveys.type as dataset_type,
+             surveys.year_start, surveys.year_end, surveys.published'
+        );
+        $this->ci->db->from('variables');
+        $this->ci->db->join('surveys', 'surveys.id = variables.sid', 'inner');
+
+        if ($uid !== null) {
+            $this->ci->db->where('variables.uid', $uid);
+        } elseif ($survey_id !== null) {
+            $this->ci->db->where('variables.sid', $survey_id);
+            $this->ci->db->order_by('variables.uid', 'asc');
+        } else {
+            if (!empty($types)) {
+                $this->ci->db->where_in('surveys.type', $types);
+            }
+            $this->ci->db->order_by('variables.uid', 'asc');
+            $this->ci->db->limit($limit, $offset);
+        }
+
+        return $this->ci->db->get()->result_array();
+    }
+
+    /**
+     * @param int[] $survey_ids
+     * @return array survey id => country ids
+     */
+    private function load_variable_country_ids(array $survey_ids)
+    {
+        if (empty($survey_ids)) {
+            return array();
+        }
+
+        $this->ci->db->select('sid, cid');
+        $this->ci->db->where_in('sid', $survey_ids);
+        $this->ci->db->where('cid >', 0);
+        $rows = $this->ci->db->get('survey_countries')->result_array();
+
+        $map = array();
+        foreach ($rows as $r) {
+            $sid = (int) $r['sid'];
+            if (!isset($map[$sid])) {
+                $map[$sid] = array();
+            }
+            $map[$sid][] = (int) $r['cid'];
+        }
+        return $map;
+    }
+
+    /**
+     * @param array $row         one row from load_variable_rows()
+     * @param array $country_map survey id => country ids, from load_variable_country_ids()
+     * @return array
+     */
+    private function assemble_variable_document(array $row, array $country_map)
+    {
+        $sid = (int) $row['sid'];
+
+        return array(
+            'core_fields' => array(
+                'uid'          => (int) $row['uid'],
+                'sid'          => $sid,
+                'fid'          => $row['fid'] ?? null,
+                'vid'          => $row['vid'] ?? null,
+                'name'         => $row['name'] ?? null,
+                'label'        => $row['labl'] ?? null,
+                'question'     => $row['qstn'] ?? null,
+                'categories'   => $row['catgry'] ?? null,
+                'idno'         => $row['idno'] ?? null,
+                'title'        => $row['title'] ?? null,
+                'nation'       => $row['nation'] ?? null,
+                'dataset_type' => $row['dataset_type'] ?? null,
+            ),
+            'filters' => array(
+                'doctype'      => self::VARIABLE_DOCTYPE,
+                'published'    => isset($row['published']) ? (int) $row['published'] : 0,
+                'sid'          => $sid,
+                'idno'         => $row['idno'] ?? null,
+                'dataset_type' => $row['dataset_type'] ?? null,
+                'year_start'   => isset($row['year_start']) ? (int) $row['year_start'] : null,
+                'year_end'     => isset($row['year_end']) ? (int) $row['year_end'] : null,
+                'countries'    => array_values($country_map[$sid] ?? array()),
+            ),
+        );
     }
 
     /**

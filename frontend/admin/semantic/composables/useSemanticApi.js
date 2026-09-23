@@ -41,6 +41,11 @@ export function useSemanticApi() {
     return _run(async () => (await axios.get(`${base()}overview`)).data);
   }
 
+  /** Bare nada-ai health: {status, backend, ...} — cheaper than getOverview() when only the engine is needed. */
+  function getHealth() {
+    return _run(async () => (await axios.get(`${base()}health`)).data);
+  }
+
   /** @param {{query:string, mode?:string, filters?:object, size?:number, include_facets?:boolean, facet_fields?:string[]}} body */
   function search(body) {
     return _run(async () => (await axios.post(`${base()}search`, body)).data);
@@ -162,6 +167,7 @@ export function useSemanticApi() {
     error,
     errorMessage,
     getOverview,
+    getHealth,
     search,
     getCollection,
     getTypeCounts,

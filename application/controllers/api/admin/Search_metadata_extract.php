@@ -12,7 +12,8 @@ require APPPATH . '/libraries/MY_REST_Controller.php';
  *   GET /api/admin/search-metadata-extract/studies/{idno}?include_metadata=1&include_admin_metadata=1
  *   GET /api/admin/search-metadata-extract/studies?offset=0&limit=15&type=timeseries,survey
  *   GET /api/admin/search-metadata-extract/citations/{id}
- *   GET /api/admin/search-metadata-extract/variables/{idno} — not implemented
+ *   GET /api/admin/search-metadata-extract/variables/{idno} — every variable of one study
+ *   GET /api/admin/search-metadata-extract/variables?offset=0&limit=200&type=survey,timeseries
  */
 class Search_metadata_extract extends MY_REST_Controller
 {
@@ -42,6 +43,7 @@ class Search_metadata_extract extends MY_REST_Controller
 						'studies'           => $total,
 						'studies_published' => $published,
 						'citations'         => (int) $this->db->count_all('citations'),
+						'variables'         => (int) $this->db->count_all('variables'),
 					),
 				),
 				REST_Controller::HTTP_OK
@@ -135,16 +137,74 @@ class Search_metadata_extract extends MY_REST_Controller
 	}
 
 	/**
-	 * GET /api/admin/search-metadata-extract/variables/{idno}
+	 * GET /api/admin/search-metadata-extract/variables/{idno} — every variable of one study
+	 * GET /api/admin/search-metadata-extract/variables?offset=0&limit=200&type=survey — page over the whole catalog
 	 */
 	public function variables_get($idno = null)
 	{
+		try {
+			if ($idno === null || $idno === '') {
+				$this->_variables_batch_get();
+				return;
+			}
+
+			$sid = $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view', $sid);
+
+			$variables = $this->catalog_search_metadata_extract->build_variables_by_survey((int) $sid);
+
+			$this->set_response(
+				array(
+					'status'    => 'success',
+					'found'     => count($variables),
+					'variables' => $variables,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * @return void
+	 */
+	private function _variables_batch_get()
+	{
+		$this->_require_admin_catalog_access();
+
+		$this->config->load('search_metadata_extract');
+		$default_limit = (int) $this->config->item('search_metadata_extract_default_limit') ?: 50;
+		$max_limit     = (int) $this->config->item('search_metadata_extract_max_limit') ?: 100;
+
+		$offset = max(0, (int) $this->input->get('offset'));
+		$limit  = (int) $this->input->get('limit');
+		if ($limit <= 0) {
+			$limit = $default_limit;
+		}
+		$limit = min($limit, $max_limit);
+
+		$batch = $this->catalog_search_metadata_extract->build_variable_batch(
+			$offset,
+			$limit,
+			$this->_study_batch_filters()
+		);
+
 		$this->set_response(
 			array(
-				'status'  => 'failed',
-				'message' => 'NOT_IMPLEMENTED',
+				'status'    => 'success',
+				'offset'    => $batch['offset'],
+				'limit'     => $batch['limit'],
+				'total'     => $batch['total'],
+				'has_more'  => $batch['has_more'],
+				'variables' => $batch['variables'],
 			),
-			REST_Controller::HTTP_NOT_IMPLEMENTED
+			REST_Controller::HTTP_OK
 		);
 	}
 

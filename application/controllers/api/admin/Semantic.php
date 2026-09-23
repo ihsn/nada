@@ -126,6 +126,48 @@ class Semantic extends MY_REST_Controller
 		$this->has_access('semantic_search', $privilege);
 	}
 
+	/**
+	 * nada-ai's active engine ('opensearch' | 'qdrant'), or null if it could not be determined (nada-ai
+	 * unreachable, or an old nada-ai build whose /health has no backend field). Used only to pick which
+	 * of two engine-specific nada-ai routes to forward a call to (see collection_delete()) — a caller that
+	 * only wants to *display* the engine should call GET /api/admin/semantic/health itself instead of adding
+	 * another use of this.
+	 */
+	private function _engine()
+	{
+		try
+		{
+			$response = $this->_client()->request('GET', 'health');
+			$body = json_decode((string) $response->getBody(), true);
+			return is_array($body) ? ($body['backend'] ?? null) : null;
+		}
+		catch (Exception $e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * GET /api/admin/semantic/health
+	 *
+	 * A bare forward of nada-ai's own GET /health — just {status, backend, ...},
+	 * no collection/embeddings/drift probes attached. Exists so a page can learn
+	 * which engine is running (backend: 'opensearch' | 'qdrant') with one cheap
+	 * call, instead of the four-probe overview aggregate below, when all it
+	 * needs is the engine — e.g. to decide whether a Qdrant-only action
+	 * (Collection tab, Danger Zone's drop collection) even applies.
+	 */
+	public function health_get()
+	{
+		try { $this->_require('view'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+		$this->_forward('GET', 'health');
+	}
+
 	// =====================================================================
 	// Overview
 	// =====================================================================
@@ -277,10 +319,16 @@ class Semantic extends MY_REST_Controller
 	/**
 	 * DELETE /api/admin/semantic/collection?confirm=true
 	 *
-	 * Drops the Qdrant collection with no reindex attached — distinct from
+	 * Drops the search store with no reindex attached — distinct from
 	 * index_all_post's recreate_index=true, which always drops-then-reingests
 	 * every catalog type in one call. Requires the same 'delete' privilege as
 	 * recreate.
+	 *
+	 * Picks the matching nada-ai route for whichever engine is actually running (Qdrant's collection and
+	 * OpenSearch's index are two different routes there — see docs on GET/DELETE /admin/qdrant/collection
+	 * vs. DELETE /admin/index) so this one dashboard action works under either, rather than the dashboard
+	 * needing to know or ask. Falls back to the Qdrant route when the engine can't be determined, matching
+	 * this action's behavior before OpenSearch was ever an option here.
 	 */
 	public function collection_delete()
 	{
@@ -291,8 +339,14 @@ class Semantic extends MY_REST_Controller
 			return;
 		}
 		$confirm = $this->input->get('confirm');
+		$confirmed = ($confirm === 'true' || $confirm === '1') ? 'true' : 'false';
+		if ($this->_engine() === 'opensearch')
+		{
+			$this->_forward('DELETE', 'admin/index', array('query' => array('confirm' => $confirmed)));
+			return;
+		}
 		$this->_forward('DELETE', 'admin/qdrant/collection', array(
-			'query' => array('confirm' => ($confirm === 'true' || $confirm === '1') ? 'true' : 'false'),
+			'query' => array('confirm' => $confirmed),
 		));
 	}
 
