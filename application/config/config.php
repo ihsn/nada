@@ -186,6 +186,10 @@ $config['composer_autoload'] = 'vendor/autoload.php';
 |
 */
 $config['permitted_uri_chars'] = ',a-z 0-9~%.:_\-=';
+if (php_sapi_name() === 'cli') {
+	// Allow @ in CLI arguments (e.g. user_info user@example.com)
+	$config['permitted_uri_chars'] .= '@';
+}
 
 
 /*

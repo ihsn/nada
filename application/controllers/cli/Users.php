@@ -11,6 +11,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *   php index.php cli/users email_domain_duplicates --json
  *   php index.php cli/users user_info 123
  *   php index.php cli/users user_info user@example.com
+ *   php index.php cli/users user_info --email user@example.com
  *   php index.php cli/users user_info 5aa83c17-cf94-4114-8bb2-d5a462cffa70
  *   php index.php cli/users user_info user@example.com --json
  */
@@ -44,7 +45,8 @@ class Users extends CI_Controller {
 		echo "==============\n\n";
 		echo "Commands:\n";
 		echo "  email_domain_duplicates [domain ...] [--all] [--json]\n";
-		echo "  user_info <id|email|oid> [--json]\n\n";
+		echo "  user_info <id|email|oid> [--json]\n";
+		echo "               [--email addr] [--id n] [--oid uuid]\n\n";
 		echo "Finds accounts that share the same mailbox local-part across configured org\n";
 		echo "domains (e.g. john@ihsn.org and john@surveynetwork.org).\n\n";
 		echo "Domains default to email_domain_equivalence.domains from auth config\n";
@@ -56,6 +58,7 @@ class Users extends CI_Controller {
 		echo "  php index.php cli/users email_domain_duplicates --all\n";
 		echo "  php index.php cli/users user_info 42\n";
 		echo "  php index.php cli/users user_info user@example.com\n";
+		echo "  php index.php cli/users user_info --email user@example.com\n";
 		echo "  php index.php cli/users user_info 5aa83c17-cf94-4114-8bb2-d5a462cffa70 --json\n";
 	}
 
@@ -64,11 +67,12 @@ class Users extends CI_Controller {
 	 */
 	public function user_info()
 	{
-		$args = array_slice($this->uri->segment_array(), 3);
+		$args = $this->get_cli_command_args('user_info');
 		$options = $this->parse_user_info_options($args);
 
 		if ($options['identifier'] === '') {
 			$this->stderr("Usage: php index.php cli/users user_info <id|email|oid> [--json]\n");
+			$this->stderr("       php index.php cli/users user_info --email user@example.com [--json]\n");
 			exit(2);
 		}
 
@@ -274,14 +278,45 @@ class Users extends CI_Controller {
 			'json' => false,
 		);
 
-		foreach ($args as $arg) {
+		for ($i = 0, $n = count($args); $i < $n; $i++) {
+			$arg = $args[$i];
+
 			if ($arg === '--json') {
 				$options['json'] = true;
-			} elseif (strpos($arg, '--') === 0) {
+				continue;
+			}
+
+			if ($arg === '--email' || $arg === '--id' || $arg === '--oid') {
+				$value = ($i + 1 < $n) ? $args[$i + 1] : '';
+				if ($value === '' || strpos($value, '--') === 0) {
+					$this->stderr("Missing value for {$arg}\n");
+					exit(2);
+				}
+				$options['identifier'] = $this->normalize_cli_identifier($value);
+				$i++;
+				continue;
+			}
+
+			if (strpos($arg, '--email=') === 0) {
+				$options['identifier'] = $this->normalize_cli_identifier(substr($arg, 8));
+				continue;
+			}
+			if (strpos($arg, '--id=') === 0) {
+				$options['identifier'] = $this->normalize_cli_identifier(substr($arg, 5));
+				continue;
+			}
+			if (strpos($arg, '--oid=') === 0) {
+				$options['identifier'] = $this->normalize_cli_identifier(substr($arg, 6));
+				continue;
+			}
+
+			if (strpos($arg, '--') === 0) {
 				$this->stderr("Unknown option: {$arg}\n");
 				exit(2);
-			} elseif ($options['identifier'] === '') {
-				$options['identifier'] = trim($arg);
+			}
+
+			if ($options['identifier'] === '') {
+				$options['identifier'] = $this->normalize_cli_identifier($arg);
 			} else {
 				$this->stderr("Unexpected argument: {$arg}\n");
 				exit(2);
@@ -289,6 +324,28 @@ class Users extends CI_Controller {
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Read CLI args after a subcommand from argv (avoids URI segment quirks).
+	 *
+	 * @param string $command
+	 * @return array
+	 */
+	protected function get_cli_command_args($command)
+	{
+		$argv = isset($_SERVER['argv']) ? $_SERVER['argv'] : array();
+		$index = array_search($command, $argv, true);
+		if ($index !== false) {
+			return array_slice($argv, $index + 1);
+		}
+
+		return array_slice($this->uri->segment_array(), 3);
+	}
+
+	protected function normalize_cli_identifier($value)
+	{
+		return rawurldecode(trim((string) $value));
 	}
 
 	/**
