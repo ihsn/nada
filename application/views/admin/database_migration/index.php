@@ -66,8 +66,18 @@ $db['default']['db_debug'] = FALSE;</pre>
             <?php if (empty($available_migrations)): ?>
                 <p>No migration files found in <code>application/migrations/</code></p>
             <?php else: ?>
+                <?php
+                    $next_pending = null;
+                    foreach ($available_migrations as $pending_migration) {
+                        if ((int)$pending_migration['version'] > (int)$current_version) {
+                            $next_pending = $pending_migration['version'];
+                            break;
+                        }
+                    }
+                ?>
                 <div class="alert alert-warning">
                     <strong>Warning:</strong> Migrations are one-way only. Make sure you have a database backup before proceeding!
+                    <p class="mb-0">Run the first pending version, then come back for the next. A later <strong>Run</strong> is rejected because it would execute every earlier pending migration in the same request. If a run times out, run that same version again; finished steps are skipped. <strong>Migrate to Latest</strong> runs every pending migration in one request.</p>
                 </div>
                 
                 <table class="table table-bordered">
@@ -102,12 +112,14 @@ $db['default']['db_debug'] = FALSE;</pre>
                                 </td>
                                 <td>
                                     <?php if ($is_pending): ?>
-                                        <?php if ($migration_enabled): ?>
+                                        <?php if ($migration_enabled && $migration['version'] === $next_pending): ?>
                                             <a href="<?php echo site_url('admin/database_migration/run/' . $migration['version']); ?>"
                                                class="btn btn-sm btn-primary"
                                                onclick="return confirm('Run migration <?php echo $migration['version']; ?>?\n\nThis will execute SQL/PHP and cannot be undone.\n\nMake sure you have a database backup.');">
                                                 Run
                                             </a>
+                                        <?php elseif ($migration_enabled): ?>
+                                            <button class="btn btn-sm btn-secondary" disabled title="Run <?php echo $next_pending; ?> first">Run</button>
                                         <?php else: ?>
                                             <button class="btn btn-sm btn-secondary" disabled>Run (disabled)</button>
                                         <?php endif; ?>
@@ -133,7 +145,7 @@ $db['default']['db_debug'] = FALSE;</pre>
                     <?php if ($migration_enabled): ?>
                         <a href="<?php echo site_url('admin/database_migration/run/latest'); ?>" 
                            class="btn btn-success"
-                           onclick="return confirm('Migrate to the latest version?\n\nThis will run all pending migrations and cannot be undone.\n\nMake sure you have a database backup.');">
+                           onclick="return confirm('Migrate to the latest version?\n\nThis runs every pending migration in one request and can time out on SQL Server.\n\nPrefer Run on the first pending version. This cannot be undone.\n\nMake sure you have a database backup.');">
                             Migrate to Latest
                         </a>
                     <?php else: ?>

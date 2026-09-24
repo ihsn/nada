@@ -42,6 +42,11 @@ class Migration_Restore_var_keywords_to_surveys extends MY_Migration {
             log_message('info', 'surveys.var_keywords already exists (MySQL), skipping ADD COLUMN');
         }
 
+        if ($this->mysql_fulltext_covers('surveys', 'ft_keywords', array('keywords', 'var_keywords'))) {
+            log_message('info', 'ft_keywords already covers keywords and var_keywords (MySQL), skipping rebuild');
+            return;
+        }
+
         // 2. Drop the narrow index created by 20260320000001 (keywords only)
         $_r     = $this->db->query("SHOW INDEX FROM `surveys` WHERE Key_name = 'ft_keywords'");
         $indexes = $_r ? $_r->result_array() : [];
@@ -79,6 +84,11 @@ class Migration_Restore_var_keywords_to_surveys extends MY_Migration {
             log_message('info', 'Added surveys.var_keywords (SQLSRV)');
         } else {
             log_message('info', 'surveys.var_keywords already exists (SQLSRV), skipping ADD COLUMN');
+        }
+
+        if ($this->sqlsrv_fulltext_covers('surveys', array('keywords', 'var_keywords'))) {
+            log_message('info', 'Fulltext index on surveys already includes keywords and var_keywords, skipping rebuild');
+            return;
         }
 
         // 2. Drop the narrowed fulltext index
@@ -120,6 +130,64 @@ class Migration_Restore_var_keywords_to_surveys extends MY_Migration {
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * @param string $table
+     * @param string $index_name
+     * @param array<int,string> $columns
+     * @return bool
+     */
+    private function mysql_fulltext_covers($table, $index_name, array $columns)
+    {
+        $_r = $this->db->query(
+            'SHOW INDEX FROM `' . str_replace('`', '', $table) . '` WHERE Key_name = ' . $this->db->escape($index_name)
+        );
+        $rows = $_r ? $_r->result_array() : array();
+        $present = array();
+        foreach ($rows as $row) {
+            $row = array_change_key_case($row, CASE_LOWER);
+            if (!empty($row['column_name'])) {
+                $present[strtolower($row['column_name'])] = TRUE;
+            }
+        }
+        foreach ($columns as $column) {
+            if (empty($present[strtolower($column)])) {
+                return FALSE;
+            }
+        }
+        return !empty($columns);
+    }
+
+    /**
+     * @param string $table
+     * @param array<int,string> $columns
+     * @return bool
+     */
+    private function sqlsrv_fulltext_covers($table, array $columns)
+    {
+        $_r = $this->db->query("
+            SELECT LOWER(c.name) AS column_name
+            FROM sys.fulltext_index_columns fic
+            INNER JOIN sys.columns c
+                ON fic.object_id = c.object_id AND fic.column_id = c.column_id
+            INNER JOIN sys.tables t ON fic.object_id = t.object_id
+            WHERE t.name = " . $this->db->escape($table) . "
+        ");
+        $rows = $_r ? $_r->result_array() : array();
+        $present = array();
+        foreach ($rows as $row) {
+            $row = array_change_key_case($row, CASE_LOWER);
+            if (!empty($row['column_name'])) {
+                $present[strtolower($row['column_name'])] = TRUE;
+            }
+        }
+        foreach ($columns as $column) {
+            if (empty($present[strtolower($column)])) {
+                return FALSE;
+            }
+        }
+        return !empty($columns);
+    }
 
     public function down()
     {

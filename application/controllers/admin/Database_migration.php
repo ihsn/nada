@@ -79,6 +79,19 @@ class Database_migration extends MY_Controller {
             
             $before_version = $this->get_current_version();
             
+            $next_version = $this->get_next_pending_version();
+            if ($version !== 'latest' && $next_version !== null && (string)$version !== (string)$next_version) {
+                if (ob_get_level() > 0) {
+                    ob_end_clean();
+                }
+                $this->session->set_flashdata(
+                    'error',
+                    'Run ' . $next_version . ' first. Running ' . $version
+                    . ' would also execute every earlier pending migration in this same request.'
+                );
+                redirect('admin/database_migration');
+            }
+
             if ($version === 'latest') {
                 $result = $this->migration->latest();
             } else {
@@ -339,6 +352,25 @@ class Database_migration extends MY_Controller {
         $row = $query->row();
         
         return $row ? (string)$row->version : '0';
+    }
+
+    /**
+     * First migration file newer than the stored watermark.
+     * Running any later version would also execute this one in the same request.
+     *
+     * @return string|null
+     */
+    private function get_next_pending_version()
+    {
+        $current_version = $this->get_current_version();
+
+        foreach ($this->get_available_migrations() as $migration) {
+            if ((int)$migration['version'] > (int)$current_version) {
+                return $migration['version'];
+            }
+        }
+
+        return null;
     }
     
     private function get_available_migrations()
