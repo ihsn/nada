@@ -9,6 +9,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *   php index.php cli/users email_domain_duplicates ihsn.org surveynetwork.org
  *   php index.php cli/users email_domain_duplicates --all
  *   php index.php cli/users email_domain_duplicates --json
+ *   php index.php cli/users user_info 123
+ *   php index.php cli/users user_info user@example.com
+ *   php index.php cli/users user_info 5aa83c17-cf94-4114-8bb2-d5a462cffa70
+ *   php index.php cli/users user_info user@example.com --json
  */
 class Users extends CI_Controller {
 
@@ -39,7 +43,8 @@ class Users extends CI_Controller {
 		echo "NADA Users CLI\n";
 		echo "==============\n\n";
 		echo "Commands:\n";
-		echo "  email_domain_duplicates [domain ...] [--all] [--json]\n\n";
+		echo "  email_domain_duplicates [domain ...] [--all] [--json]\n";
+		echo "  user_info <id|email|oid> [--json]\n\n";
 		echo "Finds accounts that share the same mailbox local-part across configured org\n";
 		echo "domains (e.g. john@ihsn.org and john@surveynetwork.org).\n\n";
 		echo "Domains default to email_domain_equivalence.domains from auth config\n";
@@ -49,6 +54,54 @@ class Users extends CI_Controller {
 		echo "  php index.php cli/users email_domain_duplicates ihsn.org surveynetwork.org\n";
 		echo "  php index.php cli/users email_domain_duplicates --json\n";
 		echo "  php index.php cli/users email_domain_duplicates --all\n";
+		echo "  php index.php cli/users user_info 42\n";
+		echo "  php index.php cli/users user_info user@example.com\n";
+		echo "  php index.php cli/users user_info 5aa83c17-cf94-4114-8bb2-d5a462cffa70 --json\n";
+	}
+
+	/**
+	 * Show basic account info for one user (includes Azure oid when linked).
+	 */
+	public function user_info()
+	{
+		$args = array_slice($this->uri->segment_array(), 3);
+		$options = $this->parse_user_info_options($args);
+
+		if ($options['identifier'] === '') {
+			$this->stderr("Usage: php index.php cli/users user_info <id|email|oid> [--json]\n");
+			exit(2);
+		}
+
+		$user = $this->resolve_user_for_cli($options['identifier']);
+		if (!$user) {
+			$this->stderr("User not found: " . $options['identifier'] . "\n");
+			exit(1);
+		}
+
+		$summary = $this->build_user_summary($user);
+
+		if ($options['json']) {
+			echo json_encode($summary, JSON_PRETTY_PRINT) . "\n";
+			exit(0);
+		}
+
+		echo str_repeat('=', 72) . "\n";
+		echo "User info\n";
+		echo str_repeat('=', 72) . "\n";
+		echo "ID:           " . $summary['id'] . "\n";
+		echo "Email:        " . $summary['email'] . "\n";
+		echo "Username:     " . $summary['username'] . "\n";
+		echo "Name:         " . trim($summary['first_name'] . ' ' . $summary['last_name']) . "\n";
+		echo "Active:       " . ($summary['active'] ? 'yes' : 'no') . "\n";
+		echo "Auth type:    " . ($summary['authtype'] !== '' ? $summary['authtype'] : '-') . "\n";
+		echo "Auth id:      " . ($summary['authtype_id'] !== '' ? $summary['authtype_id'] : '-') . "\n";
+		echo "OID (Azure):  " . ($summary['oid'] !== '' ? $summary['oid'] : '-') . "\n";
+		echo "Created:      " . $summary['created_on'] . "\n";
+		echo "Last login:   " . $summary['last_login'] . "\n";
+		echo "Groups:       " . (empty($summary['groups']) ? '-' : implode(', ', $summary['groups'])) . "\n";
+		echo str_repeat('=', 72) . "\n";
+
+		exit(0);
 	}
 
 	/**
@@ -208,6 +261,117 @@ class Users extends CI_Controller {
 		$domains = array_values(array_unique($normalized));
 
 		return $options;
+	}
+
+	/**
+	 * @param array $args
+	 * @return array identifier, json
+	 */
+	protected function parse_user_info_options($args)
+	{
+		$options = array(
+			'identifier' => '',
+			'json' => false,
+		);
+
+		foreach ($args as $arg) {
+			if ($arg === '--json') {
+				$options['json'] = true;
+			} elseif (strpos($arg, '--') === 0) {
+				$this->stderr("Unknown option: {$arg}\n");
+				exit(2);
+			} elseif ($options['identifier'] === '') {
+				$options['identifier'] = trim($arg);
+			} else {
+				$this->stderr("Unexpected argument: {$arg}\n");
+				exit(2);
+			}
+		}
+
+		return $options;
+	}
+
+	/**
+	 * @param string $identifier numeric id, email, or Azure oid (UUID)
+	 * @return object|false
+	 */
+	protected function resolve_user_for_cli($identifier)
+	{
+		$identifier = trim((string) $identifier);
+		if ($identifier === '') {
+			return false;
+		}
+
+		if (ctype_digit($identifier)) {
+			return $this->Ion_auth_model->get_user((int) $identifier);
+		}
+
+		if ($this->looks_like_uuid($identifier)) {
+			$row = $this->Ion_auth_model->get_user_by_authtype_id($identifier);
+			if ($row) {
+				return $this->Ion_auth_model->get_user($row->id);
+			}
+		}
+
+		$row = $this->Ion_auth_model->get_user_by_email_normalized($identifier);
+		if ($row) {
+			return $this->Ion_auth_model->get_user($row->id);
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param object $user from Ion_auth_model::get_user()
+	 * @return array
+	 */
+	protected function build_user_summary($user)
+	{
+		$groups = array();
+		if (!empty($user->groups) && is_array($user->groups)) {
+			foreach ($user->groups as $group) {
+				if (is_object($group) && isset($group->name)) {
+					$groups[] = $group->name;
+				} elseif (is_array($group) && isset($group['name'])) {
+					$groups[] = $group['name'];
+				}
+			}
+		}
+
+		$authtype = isset($user->authtype) ? (string) $user->authtype : '';
+		$authtype_id = isset($user->authtype_id) ? (string) $user->authtype_id : '';
+		$oid = (strtoupper($authtype) === 'AAD' && $authtype_id !== '') ? $authtype_id : '';
+
+		return array(
+			'id' => (int) $user->id,
+			'email' => isset($user->email) ? (string) $user->email : '',
+			'username' => isset($user->username) ? (string) $user->username : '',
+			'first_name' => isset($user->first_name) ? (string) $user->first_name : '',
+			'last_name' => isset($user->last_name) ? (string) $user->last_name : '',
+			'active' => isset($user->active) ? (int) $user->active : 0,
+			'authtype' => $authtype,
+			'authtype_id' => $authtype_id,
+			'oid' => $oid,
+			'created_on' => $this->format_cli_timestamp(isset($user->created_on) ? $user->created_on : null),
+			'last_login' => $this->format_cli_timestamp(isset($user->last_login) ? $user->last_login : null),
+			'groups' => $groups,
+		);
+	}
+
+	protected function looks_like_uuid($value)
+	{
+		return (bool) preg_match(
+			'/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+			(string) $value
+		);
+	}
+
+	protected function format_cli_timestamp($value)
+	{
+		if ($value === null || $value === '' || (int) $value <= 0) {
+			return '-';
+		}
+		return date('Y-m-d H:i:s', (int) $value);
 	}
 
 	protected function stderr($message)

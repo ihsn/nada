@@ -1010,13 +1010,17 @@ class Ion_auth_model extends CI_Model
 		foreach ($domains as $d) {
 			$domain_esc[] = $this->db->escape(strtolower(trim((string) $d)));
 		}
+		$local_part_sql = $this->email_local_part_sql('email');
+		$domain_sql = $this->email_domain_sql('email');
+
+		$this->db->where($this->email_has_at_sign_sql('email'), null, false);
 		$this->db->where(
-			'LOWER(SUBSTRING_INDEX(email, "@", 1)) = ' . $this->db->escape($local_part),
+			$local_part_sql . ' = ' . $this->db->escape($local_part),
 			null,
 			false
 		);
 		$this->db->where(
-			'LOWER(SUBSTRING_INDEX(email, "@", -1)) IN (' . implode(',', $domain_esc) . ')',
+			$domain_sql . ' IN (' . implode(',', $domain_esc) . ')',
 			null,
 			false
 		);
@@ -1053,6 +1057,26 @@ class Ion_auth_model extends CI_Model
 	}
 
 	/**
+	 * Find a user by external auth id (any authtype).
+	 *
+	 * @param string $auth_type_id
+	 * @return object|null
+	 */
+	public function get_user_by_authtype_id($auth_type_id)
+	{
+		$auth_type_id = trim((string) $auth_type_id);
+		if ($auth_type_id === '') {
+			return null;
+		}
+		$this->db->where('authtype_id', $auth_type_id);
+		if (isset($this->ion_auth->_extra_where)) {
+			$this->db->where($this->ion_auth->_extra_where);
+		}
+		$this->db->limit(1);
+		return $this->db->get($this->tables['users'])->row();
+	}
+
+	/**
 	 * Find local-parts that map to more than one user within the given email domains.
 	 *
 	 * @param array $domains lowercase domain names
@@ -1071,12 +1095,16 @@ class Ion_auth_model extends CI_Model
 			$domain_esc[] = $this->db->escape($d);
 		}
 
+		$local_part_sql = $this->email_local_part_sql('email');
+		$domain_sql = $this->email_domain_sql('email');
+
 		$this->db->select(
-			'LOWER(SUBSTRING_INDEX(email, "@", 1)) AS local_part, COUNT(*) AS account_count',
+			$local_part_sql . ' AS local_part, COUNT(*) AS account_count',
 			false
 		);
+		$this->db->where($this->email_has_at_sign_sql('email'), null, false);
 		$this->db->where(
-			'LOWER(SUBSTRING_INDEX(email, "@", -1)) IN (' . implode(',', $domain_esc) . ')',
+			$domain_sql . ' IN (' . implode(',', $domain_esc) . ')',
 			null,
 			false
 		);
@@ -1086,9 +1114,9 @@ class Ion_auth_model extends CI_Model
 		if (isset($this->ion_auth->_extra_where)) {
 			$this->db->where($this->ion_auth->_extra_where);
 		}
-		$this->db->group_by('local_part', false);
-		$this->db->having('account_count >', 1);
-		$this->db->order_by('local_part', 'ASC');
+		$this->db->group_by($local_part_sql, false);
+		$this->db->having('COUNT(*) > 1', null, false);
+		$this->db->order_by($local_part_sql, 'ASC', false);
 
 		return $this->db->get($this->tables['users'])->result_array();
 	}
@@ -1118,14 +1146,18 @@ class Ion_auth_model extends CI_Model
 			$domain_esc[] = $this->db->escape($d);
 		}
 
+		$local_part_sql = $this->email_local_part_sql('email');
+		$domain_sql = $this->email_domain_sql('email');
+
 		$this->db->select('id, email, username, authtype, authtype_id, active, created_on, last_login');
+		$this->db->where($this->email_has_at_sign_sql('email'), null, false);
 		$this->db->where(
-			'LOWER(SUBSTRING_INDEX(email, "@", 1)) IN (' . implode(',', $local_esc) . ')',
+			$local_part_sql . ' IN (' . implode(',', $local_esc) . ')',
 			null,
 			false
 		);
 		$this->db->where(
-			'LOWER(SUBSTRING_INDEX(email, "@", -1)) IN (' . implode(',', $domain_esc) . ')',
+			$domain_sql . ' IN (' . implode(',', $domain_esc) . ')',
 			null,
 			false
 		);
@@ -1168,6 +1200,54 @@ class Ion_auth_model extends CI_Model
 			}
 		}
 		return array_values(array_unique($out));
+	}
+
+	/**
+	 * SQL expression: email local-part (lowercase), portable across MySQL and SQL Server.
+	 *
+	 * @param string $column
+	 * @return string
+	 */
+	protected function email_local_part_sql($column = 'email')
+	{
+		if ($this->is_sqlsrv_driver()) {
+			return 'LOWER(LEFT(' . $column . ', CHARINDEX(\'@\', ' . $column . ') - 1))';
+		}
+		return 'LOWER(SUBSTRING_INDEX(' . $column . ', \'@\', 1))';
+	}
+
+	/**
+	 * SQL expression: email domain (lowercase), portable across MySQL and SQL Server.
+	 *
+	 * @param string $column
+	 * @return string
+	 */
+	protected function email_domain_sql($column = 'email')
+	{
+		if ($this->is_sqlsrv_driver()) {
+			return 'LOWER(SUBSTRING(' . $column . ', CHARINDEX(\'@\', ' . $column . ') + 1, LEN(' . $column . ')))';
+		}
+		return 'LOWER(SUBSTRING_INDEX(' . $column . ', \'@\', -1))';
+	}
+
+	/**
+	 * SQL predicate: column contains an @ sign.
+	 *
+	 * @param string $column
+	 * @return string
+	 */
+	protected function email_has_at_sign_sql($column = 'email')
+	{
+		if ($this->is_sqlsrv_driver()) {
+			return 'CHARINDEX(\'@\', ' . $column . ') > 0';
+		}
+		return 'LOCATE(\'@\', ' . $column . ') > 0';
+	}
+
+	protected function is_sqlsrv_driver()
+	{
+		$driver = $this->db->dbdriver;
+		return ($driver === 'sqlsrv' || $driver === 'mssql');
 	}
 
 	
