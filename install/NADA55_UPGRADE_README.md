@@ -53,7 +53,7 @@ This upgrade enhances the `resources` table with new fields for better resource 
 
 ## Running the Migration
 
-See **[NADA56_UPGRADE_README.md](NADA56_UPGRADE_README.md)** for the current upgrade process (8 consolidated migrations, CLI-first).
+See **[NADA56_UPGRADE_README.md](NADA56_UPGRADE_README.md)** for the current upgrade process (10 consolidated migrations, CLI-first).
 
 ### Legacy: Web Interface
 

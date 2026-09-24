@@ -16,49 +16,82 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
             return;
         }
 
-        if ($this->variables_labl_is_nvarchar()) {
-            log_message('info', 'Migration_Variables_unicode_nvarchar_sqlsrv: variables text columns already NVARCHAR, skipping');
-            return;
+        if (!$this->db->table_exists('variables')) {
+            throw new Exception('variables table is missing; cannot convert text columns to NVARCHAR');
         }
 
-        // Full-text index must be dropped before ALTER on indexed columns
-        if ($this->variables_fulltext_index_exists()) {
-            $this->db->query('DROP FULLTEXT INDEX ON variables');
+        $targets = array(
+            'fid' => 'nvarchar(45) NULL',
+            'vid' => 'nvarchar(45) NULL',
+            'name' => 'nvarchar(100) NULL',
+            'labl' => 'nvarchar(255) NULL',
+            'qstn' => 'nvarchar(max) NULL',
+            'catgry' => 'nvarchar(max) NULL',
+            'metadata' => 'nvarchar(max) NULL',
+            'keywords' => 'nvarchar(max) NULL',
+        );
+        $optional = array('keywords');
+        $fulltext_columns = array('catgry', 'labl', 'name', 'qstn');
+
+        $pending = array();
+        foreach ($targets as $column => $definition) {
+            if (!$this->sqlsrv_column_exists('variables', $column)) {
+                if (in_array($column, $optional, TRUE)) {
+                    log_message('info', 'variables.' . $column . ' missing, skipping');
+                    continue;
+                }
+                throw new Exception('variables.' . $column . ' is missing; cannot convert text columns to NVARCHAR');
+            }
+            if ($this->sqlsrv_column_is_nvarchar('variables', $column)) {
+                log_message('info', 'variables.' . $column . ' already nvarchar, skipping');
+                continue;
+            }
+            $pending[$column] = $definition;
+        }
+
+        $drop_fulltext = FALSE;
+        foreach ($fulltext_columns as $column) {
+            if (isset($pending[$column])) {
+                $drop_fulltext = TRUE;
+                break;
+            }
+        }
+
+        // Full-text index must be dropped before ALTER on indexed columns.
+        // Leave it in place when only non-indexed columns (metadata, keywords) remain.
+        if ($drop_fulltext && $this->variables_fulltext_index_exists()) {
+            $this->sqlsrv_query(
+                'DROP FULLTEXT INDEX ON variables',
+                'DROP FULLTEXT INDEX ON variables failed'
+            );
             log_message('info', 'Dropped fulltext index on variables (SQLSRV)');
         }
 
-        // DEFAULT constraints block ALTER COLUMN — drop before changing types
-        $this->drop_sqlsrv_default_constraints_for_columns(
-            'variables',
-            ['fid', 'vid', 'name', 'labl', 'qstn', 'catgry', 'metadata', 'keywords']
-        );
-
-        $alters = array(
-            'ALTER TABLE variables ALTER COLUMN fid nvarchar(45) NULL',
-            'ALTER TABLE variables ALTER COLUMN vid nvarchar(45) NULL',
-            'ALTER TABLE variables ALTER COLUMN name nvarchar(100) NULL',
-            'ALTER TABLE variables ALTER COLUMN labl nvarchar(255) NULL',
-            'ALTER TABLE variables ALTER COLUMN qstn nvarchar(max) NULL',
-            'ALTER TABLE variables ALTER COLUMN catgry nvarchar(max) NULL',
-            'ALTER TABLE variables ALTER COLUMN metadata nvarchar(max) NULL',
-        );
-
-        foreach ($alters as $sql) {
-            $this->db->query($sql);
-        }
-
-        if ($this->sqlsrv_column_exists('variables', 'keywords')) {
-            $this->db->query('ALTER TABLE variables ALTER COLUMN keywords nvarchar(max) NULL');
+        if (!empty($pending)) {
+            $this->drop_sqlsrv_default_constraints_for_columns('variables', array_keys($pending));
+            foreach ($pending as $column => $definition) {
+                $this->sqlsrv_query(
+                    'ALTER TABLE variables ALTER COLUMN ' . $this->sqlsrv_bracket_quote($column) . ' ' . $definition,
+                    'ALTER variables.' . $column . ' failed'
+                );
+                log_message('info', 'Altered variables.' . $column . ' to ' . $definition);
+            }
+        } else {
+            log_message('info', 'variables text columns already NVARCHAR; no ALTER COLUMN needed');
         }
 
         // Restore empty-string defaults from install/schema (optional for inserts that omit columns)
         $this->restore_sqlsrv_empty_string_defaults();
 
-        log_message('info', 'Altered variables string columns to NVARCHAR (SQLSRV)');
+        foreach ($fulltext_columns as $column) {
+            if (!$this->sqlsrv_column_is_nvarchar('variables', $column)) {
+                throw new Exception('variables.' . $column . ' is not nvarchar; refusing to recreate the full-text index');
+            }
+        }
 
         // Recreate full-text index (same columns as install/schema.sqlsrv.sql)
         if (!$this->variables_fulltext_index_exists()) {
-            $this->db->query("
+            $this->sqlsrv_query("
                 CREATE FULLTEXT INDEX ON variables
                 (
                     catgry Language 1033,
@@ -67,25 +100,51 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
                     qstn   Language 1033
                 )
                 KEY INDEX pk_idx_variables
-            ");
+            ", 'CREATE FULLTEXT INDEX ON variables failed');
             log_message('info', 'Recreated fulltext index on variables (SQLSRV)');
+        } else {
+            log_message('info', 'Fulltext index already exists on variables (SQLSRV), skipping CREATE');
         }
 
         log_message('info', 'Migration_Variables_unicode_nvarchar_sqlsrv completed');
     }
 
-    private function variables_labl_is_nvarchar()
+    private function sqlsrv_column_is_nvarchar($table, $column)
     {
         $_r = $this->db->query("
             SELECT LOWER(ty.name) AS type_name
             FROM sys.columns c
             INNER JOIN sys.tables t ON c.object_id = t.object_id
             INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
-            WHERE t.name = 'variables' AND c.name = 'labl'
+            WHERE t.name = " . $this->db->escape($table) . "
+            AND c.name = " . $this->db->escape($column) . "
         ");
         $row = $_r ? $_r->row_array() : null;
+        if (!$row) {
+            return FALSE;
+        }
+        $row = array_change_key_case($row, CASE_LOWER);
 
-        return $row && ($row['type_name'] === 'nvarchar');
+        return isset($row['type_name']) && $row['type_name'] === 'nvarchar';
+    }
+
+    /**
+     * Run DDL and abort the migration when SQL Server rejects it.
+     * A FALSE result must not be treated as success, or the version watermark
+     * would advance and a re-run would skip the failed statement.
+     *
+     * @param string $sql
+     * @param string $context
+     * @return void
+     */
+    private function sqlsrv_query($sql, $context)
+    {
+        $result = $this->db->query($sql);
+        if ($result === FALSE) {
+            $error = $this->db->error();
+            $message = (is_array($error) && !empty($error['message'])) ? $error['message'] : 'unknown database error';
+            throw new Exception($context . ': ' . $message);
+        }
     }
 
     private function variables_fulltext_index_exists()
@@ -132,11 +191,17 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
                 AND c.name = " . $this->db->escape($column) . "
             ");
             $row = $_r ? $_r->row_array() : null;
+            if ($row) {
+                $row = array_change_key_case($row, CASE_LOWER);
+            }
             if (!$row || empty($row['constraint_name'])) {
                 continue;
             }
             $quoted = $this->sqlsrv_bracket_quote($row['constraint_name']);
-            $this->db->query('ALTER TABLE ' . $this->sqlsrv_bracket_quote($table) . ' DROP CONSTRAINT ' . $quoted);
+            $this->sqlsrv_query(
+                'ALTER TABLE ' . $this->sqlsrv_bracket_quote($table) . ' DROP CONSTRAINT ' . $quoted,
+                'DROP CONSTRAINT ' . $row['constraint_name'] . ' failed'
+            );
             log_message('info', 'Dropped default constraint ' . $row['constraint_name'] . ' on ' . $table . '.' . $column);
         }
     }
@@ -167,8 +232,9 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
             }
             $qcol = $this->sqlsrv_bracket_quote($column);
             $qcname = $this->sqlsrv_bracket_quote($cname);
-            $this->db->query(
-                'ALTER TABLE variables ADD CONSTRAINT ' . $qcname . " DEFAULT ('') FOR " . $qcol
+            $this->sqlsrv_query(
+                'ALTER TABLE variables ADD CONSTRAINT ' . $qcname . " DEFAULT ('') FOR " . $qcol,
+                'ADD CONSTRAINT ' . $cname . ' failed'
             );
         }
     }
