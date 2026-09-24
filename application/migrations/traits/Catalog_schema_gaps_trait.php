@@ -8,8 +8,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 trait Catalog_schema_gaps_trait {
 
-	const CATALOG_DEFAULT_AGENCY = 'NADA';
-	const CATALOG_DEFAULT_VERSION = '1.0';
+	// Static properties: trait constants require PHP 8.2.
+	private static $catalog_default_agency = 'NADA';
+	private static $catalog_default_version = '1.0';
 
 	protected function ensure_filestore_table()
 	{
@@ -100,8 +101,8 @@ END
 			return;
 		}
 
-		$agency = self::CATALOG_DEFAULT_AGENCY;
-		$version = self::CATALOG_DEFAULT_VERSION;
+		$agency = self::$catalog_default_agency;
+		$version = self::$catalog_default_version;
 
 		if (!$this->db->field_exists('agency', 'codelists')) {
 			$this->assert_db_query($this->db->query("
