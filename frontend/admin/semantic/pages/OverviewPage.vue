@@ -15,6 +15,9 @@
     </v-alert>
     <KpiStrip v-else :tiles="kpiTiles" :loading="loadingSummary" />
 
+    <VariablesCoverageCard ref="variablesCard" />
+    <CitationsCoverageCard ref="citationsCard" />
+
     <div class="semantic-overview-body">
       <v-card elevation="1" rounded="lg" class="semantic-overview-main">
         <v-card-title class="semantic-card-title d-flex align-center flex-wrap ga-2">
@@ -113,6 +116,8 @@ import { formatCount, humanizeKey } from '../typeLabels.js';
 import HealthStrip from '../components/HealthStrip.vue';
 import KpiStrip from '../components/KpiStrip.vue';
 import CoverageTable from '../components/CoverageTable.vue';
+import VariablesCoverageCard from '../components/VariablesCoverageCard.vue';
+import CitationsCoverageCard from '../components/CitationsCoverageCard.vue';
 
 defineOptions({ name: 'SemanticOverviewPage' });
 
@@ -137,6 +142,8 @@ const {
 } = useCoverageBreakdown();
 
 const overview = ref(null);
+const variablesCard = ref(null);
+const citationsCard = ref(null);
 const warmingUp = ref(false);
 const recentJobs = ref([]);
 const syncStatus = ref(null);
@@ -184,7 +191,7 @@ async function loadOverview() {
 }
 
 async function loadAll() {
-  await Promise.all([loadOverview(), loadCoverage(), loadRecentJobs(), loadSyncStatus()]);
+  await Promise.all([loadOverview(), loadCoverage(), loadRecentJobs(), loadSyncStatus(), variablesCard.value?.load(), citationsCard.value?.load()]);
 }
 
 async function warmup() {

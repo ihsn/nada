@@ -23,6 +23,12 @@
       </v-btn>
     </div>
 
+    <v-alert type="info" variant="tonal" density="compact">
+      <strong>Reconcile now</strong> compares the catalog with the index and indexes what is missing or stale. It does
+      not process the change queue: edits waiting there (a status change, a re-import) are applied from
+      <router-link to="/sync" class="text-decoration-none">Change queue → Process pending</router-link>.
+    </v-alert>
+
     <v-card elevation="1" rounded="lg">
       <v-card-title class="semantic-card-title d-flex align-center flex-wrap ga-2">
         By type
@@ -50,6 +56,9 @@
         />
       </v-card-text>
     </v-card>
+
+    <VariablesCoverageCard ref="variablesCard" />
+    <CitationsCoverageCard ref="citationsCard" />
 
     <v-card ref="missingCard" elevation="1" rounded="lg">
       <v-card-title class="semantic-card-title d-flex align-center flex-wrap ga-2">
@@ -192,12 +201,16 @@ import { useCoverageBreakdown } from '../composables/useCoverageBreakdown.js';
 import { typeLabel, metadataTypeFromDataType } from '../typeLabels.js';
 import FullReindexDialog from '../components/FullReindexDialog.vue';
 import CoverageTable from '../components/CoverageTable.vue';
+import VariablesCoverageCard from '../components/VariablesCoverageCard.vue';
+import CitationsCoverageCard from '../components/CitationsCoverageCard.vue';
 
 defineOptions({ name: 'SemanticDiffPage' });
 
 const route = useRoute();
 const router = useRouter();
 const { canEdit } = useAppConfig();
+const variablesCard = ref(null);
+const citationsCard = ref(null);
 const {
   loadingTypeBreakdown,
   typeBreakdownError,
@@ -340,6 +353,8 @@ function filterStaleByType(dataType) {
 }
 
 function reloadAll() {
+  variablesCard.value?.load();
+  citationsCard.value?.load();
   loadTypeBreakdown();
   loadMissing({ page: missingPage.value, itemsPerPage: missingItemsPerPage.value });
   loadStale({ page: stalePage.value, itemsPerPage: staleItemsPerPage.value });

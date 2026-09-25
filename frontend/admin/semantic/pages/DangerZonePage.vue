@@ -19,6 +19,10 @@
           Search will return incomplete or no results until re-ingest finishes — from minutes to hours
           depending on catalog size. There is no undo.
         </p>
+        <p class="text-body-2 text-medium-emphasis mb-4">
+          With OpenSearch this also empties the variable index. It is refilled as microdata studies are
+          re-ingested; if that is interrupted, use <strong>Index variables</strong> on the Overview page.
+        </p>
 
         <div class="semantic-danger-option mb-4">
           <v-checkbox

@@ -157,6 +157,7 @@ $route['api/admin/search-metadata-extract/status']              = 'api/admin/sea
 $route['api/admin/search-metadata-extract/studies/(:any)']      = 'api/admin/search_metadata_extract/studies/$1';
 $route['api/admin/search-metadata-extract/studies']             = 'api/admin/search_metadata_extract/studies';
 $route['api/admin/search-metadata-extract/citations/(:num)']    = 'api/admin/search_metadata_extract/citations/$1';
+$route['api/admin/search-metadata-extract/citations']            = 'api/admin/search_metadata_extract/citations';
 $route['api/admin/search-metadata-extract/variables/(:any)']     = 'api/admin/search_metadata_extract/variables/$1';
 $route['api/admin/search-metadata-extract/variables']            = 'api/admin/search_metadata_extract/variables';
 

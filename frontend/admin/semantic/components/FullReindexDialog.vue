@@ -9,6 +9,8 @@
       <v-card-subtitle class="text-wrap pb-2">
         Pulls ids straight from the catalog API — independent of the diff on this page. Use this after a
         parser/content fix, or to rebuild a type from scratch; for routine drift, use Reconcile now instead.
+        With OpenSearch, indexing microdata studies also syncs their variables; a variable-only refresh is on the
+        Variables card at the top of this page.
       </v-card-subtitle>
 
       <v-card-text>

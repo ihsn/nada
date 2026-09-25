@@ -554,6 +554,16 @@ class Configurations extends MY_REST_Controller
 				$value = $v;
 			}
 
+			if ($key === 'citation_search_provider')
+			{
+				$v = strtolower(trim((string) $value));
+				if (! in_array($v, array('default', 'db', 'nada_ai'), true))
+				{
+					throw new Exception('INVALID_VALUE:citation_search_provider');
+				}
+				$value = $v;
+			}
+
 			if ($key === 'semantic_search_debug')
 			{
 				$v = strtolower(trim((string) $value));
@@ -587,7 +597,7 @@ class Configurations extends MY_REST_Controller
 	}
 
 	/**
-	 * search_provider must be a known engine, and semantic search needs an API URL.
+	 * search_provider must be a known engine, and semantic search (also as the citation search provider) needs an API URL.
 	 *
 	 * Section saves send only their own keys, so the URL is resolved from the payload
 	 * first and the stored value second.
@@ -596,7 +606,8 @@ class Configurations extends MY_REST_Controller
 	 */
 	protected function validate_search_provider(array &$options)
 	{
-		if (!array_key_exists('search_provider', $options) && !array_key_exists('semantic_search_url', $options))
+		if (!array_key_exists('search_provider', $options) && !array_key_exists('semantic_search_url', $options)
+			&& !array_key_exists('citation_search_provider', $options))
 		{
 			return;
 		}
@@ -629,7 +640,11 @@ class Configurations extends MY_REST_Controller
 			? (string) $options['semantic_search_url']
 			: (isset($stored['semantic_search_url']) ? (string) $stored['semantic_search_url'] : '');
 
-		if ($provider === 'semantic' && trim($url) === '')
+		$citation_provider = array_key_exists('citation_search_provider', $options)
+			? (string) $options['citation_search_provider']
+			: (isset($stored['citation_search_provider']) ? (string) $stored['citation_search_provider'] : '');
+
+		if (($provider === 'semantic' || $citation_provider === 'nada_ai') && trim($url) === '')
 		{
 			throw new Exception('SEMANTIC_SEARCH_URL_REQUIRED');
 		}

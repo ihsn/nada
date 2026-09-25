@@ -220,6 +220,9 @@ async function reloadAll() {
   if (s.semantic_search_engine === undefined || s.semantic_search_engine === '') {
     s.semantic_search_engine = 'qdrant';
   }
+  if (s.citation_search_provider === undefined || s.citation_search_provider === '') {
+    s.citation_search_provider = 'default';
+  }
   if (s.deposit_max_upload_size === undefined || s.deposit_max_upload_size === '') {
     s.deposit_max_upload_size = '2048';
   }
@@ -294,6 +297,7 @@ const SAVE_ERROR_KEYS = {
   SEMANTIC_SEARCH_URL_REQUIRED: 'error_semantic_search_url_required',
   'INVALID_VALUE:search_provider': 'error_invalid_search_provider',
   'INVALID_VALUE:semantic_search_engine': 'error_invalid_semantic_search_engine',
+  'INVALID_VALUE:citation_search_provider': 'error_invalid_citation_search_provider',
   'INVALID_URL:semantic_search_url': 'error_invalid_semantic_search_url',
 };
 
@@ -1012,6 +1016,18 @@ onMounted(async () => {
               <div v-if="!semanticUrlEntered" class="site-config-field__hint mt-2">
                 {{ tr('semantic_search_needs_setup') }}
               </div>
+
+              <label class="site-config-field__label mt-4">{{ tr('citation_search_provider') }}</label>
+              <v-radio-group v-model="settings.citation_search_provider" class="mt-1" hide-details>
+                <v-radio value="default" :label="tr('citation_search_provider_default')" />
+                <v-radio value="db" :label="tr('citation_search_provider_db')" />
+                <v-radio
+                  value="nada_ai"
+                  :label="tr('citation_search_provider_nada_ai')"
+                  :disabled="!semanticUrlEntered"
+                />
+              </v-radio-group>
+              <div class="site-config-field__hint mt-2">{{ tr('citation_search_provider_note') }}</div>
 
               <v-expansion-panels variant="accordion" class="mt-6">
                 <v-expansion-panel>

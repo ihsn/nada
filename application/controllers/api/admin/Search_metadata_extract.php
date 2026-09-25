@@ -12,6 +12,7 @@ require APPPATH . '/libraries/MY_REST_Controller.php';
  *   GET /api/admin/search-metadata-extract/studies/{idno}?include_metadata=1&include_admin_metadata=1
  *   GET /api/admin/search-metadata-extract/studies?offset=0&limit=15&type=timeseries,survey
  *   GET /api/admin/search-metadata-extract/citations/{id}
+ *   GET /api/admin/search-metadata-extract/citations?limit=500&after_id= — the whole catalog of citations, paged
  *   GET /api/admin/search-metadata-extract/variables/{idno} — every variable of one study
  *   GET /api/admin/search-metadata-extract/variables?offset=0&limit=200&type=survey,timeseries
  */
@@ -103,6 +104,10 @@ class Search_metadata_extract extends MY_REST_Controller
 	 */
 	public function citations_get($id = null)
 	{
+		if ($id === null || $id === '') {
+			return $this->_citations_batch_get();
+		}
+
 		try {
 			$this->_require_admin_catalog_access();
 
@@ -137,8 +142,13 @@ class Search_metadata_extract extends MY_REST_Controller
 	}
 
 	/**
-	 * GET /api/admin/search-metadata-extract/variables/{idno} — every variable of one study
-	 * GET /api/admin/search-metadata-extract/variables?offset=0&limit=200&type=survey — page over the whole catalog
+	 * GET /api/admin/search-metadata-extract/variables/{idno}?limit=1000&after_uid=  — one study's variables, paged
+	 * GET /api/admin/search-metadata-extract/variables?limit=1000&after_uid=&type=survey — the whole catalog, paged
+	 *
+	 * Both are paged the same way: `limit` (capped by search_metadata_extract_variables_max_limit, which is also the
+	 * default), and either `after_uid` (keyset cursor: pass the previous page's `next_after_uid`) or `offset`. A page
+	 * says whether another follows (`has_more`) and where it starts (`next_after_uid`). `total` is only computed on the
+	 * first page of a walk (no cursor, offset 0) and is null after that.
 	 */
 	public function variables_get($idno = null)
 	{
@@ -151,13 +161,19 @@ class Search_metadata_extract extends MY_REST_Controller
 			$sid = $this->get_sid_from_idno($idno);
 			$this->has_dataset_access('view', $sid);
 
-			$variables = $this->catalog_search_metadata_extract->build_variables_by_survey((int) $sid);
+			list($limit, $offset, $after_uid) = $this->_variables_page_params();
+			$page = $this->catalog_search_metadata_extract->build_variables_by_survey((int) $sid, $limit, $offset, $after_uid);
 
 			$this->set_response(
 				array(
-					'status'    => 'success',
-					'found'     => count($variables),
-					'variables' => $variables,
+					'status'         => 'success',
+					'found'          => count($page['variables']),
+					'total'          => $page['total'],
+					'limit'          => $page['limit'],
+					'offset'         => $page['offset'],
+					'has_more'       => $page['has_more'],
+					'next_after_uid' => $page['next_after_uid'],
+					'variables'      => $page['variables'],
 				),
 				REST_Controller::HTTP_OK
 			);
@@ -172,37 +188,94 @@ class Search_metadata_extract extends MY_REST_Controller
 	}
 
 	/**
+	 * GET /api/admin/search-metadata-extract/citations?limit=500&after_id=
+	 *
+	 * Every citation, a page at a time: `limit` (capped by search_metadata_extract_citations_max_limit, also the
+	 * default), and either `after_id` (keyset cursor: the previous page's `next_after_id`) or `offset`. `total` is only
+	 * counted on the first page.
+	 */
+	private function _citations_batch_get()
+	{
+		try {
+			$this->_require_admin_catalog_access();
+
+			$this->config->load('search_metadata_extract');
+			$max_limit = (int) $this->config->item('search_metadata_extract_citations_max_limit') ?: 500;
+			$limit = (int) $this->input->get('limit');
+			$limit = ($limit <= 0) ? $max_limit : min($limit, $max_limit);
+			$offset = max(0, (int) $this->input->get('offset'));
+			$after_raw = $this->input->get('after_id');
+			$after_id = ($after_raw !== false && $after_raw !== null && $after_raw !== '') ? max(0, (int) $after_raw) : null;
+
+			$batch = $this->catalog_search_metadata_extract->build_citation_batch($limit, $offset, $after_id);
+
+			$this->set_response(
+				array(
+					'status'        => 'success',
+					'offset'        => $batch['offset'],
+					'limit'         => $batch['limit'],
+					'total'         => $batch['total'],
+					'has_more'      => $batch['has_more'],
+					'next_after_id' => $batch['next_after_id'],
+					'citations'     => $batch['citations'],
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * limit / offset / after_uid of a variables page. Variables are small flat rows, so they have their own, larger
+	 * page-size cap than the study documents (see config/search_metadata_extract.php).
+	 *
+	 * @return array{0: int, 1: int, 2: int|null}
+	 */
+	private function _variables_page_params()
+	{
+		$this->config->load('search_metadata_extract');
+		$max_limit = (int) $this->config->item('search_metadata_extract_variables_max_limit') ?: 1000;
+
+		$limit = (int) $this->input->get('limit');
+		$limit = ($limit <= 0) ? $max_limit : min($limit, $max_limit);
+
+		$offset    = max(0, (int) $this->input->get('offset'));
+		$after_raw = $this->input->get('after_uid');
+		$after_uid = ($after_raw !== false && $after_raw !== null && $after_raw !== '') ? max(0, (int) $after_raw) : null;
+
+		return array($limit, $offset, $after_uid);
+	}
+
+	/**
 	 * @return void
 	 */
 	private function _variables_batch_get()
 	{
 		$this->_require_admin_catalog_access();
 
-		$this->config->load('search_metadata_extract');
-		$default_limit = (int) $this->config->item('search_metadata_extract_default_limit') ?: 50;
-		$max_limit     = (int) $this->config->item('search_metadata_extract_max_limit') ?: 100;
+		list($limit, $offset, $after_uid) = $this->_variables_page_params();
 
-		$offset = max(0, (int) $this->input->get('offset'));
-		$limit  = (int) $this->input->get('limit');
-		if ($limit <= 0) {
-			$limit = $default_limit;
+		$options = $this->_study_batch_filters();
+		if ($after_uid !== null) {
+			$options['after_uid'] = $after_uid;
 		}
-		$limit = min($limit, $max_limit);
-
-		$batch = $this->catalog_search_metadata_extract->build_variable_batch(
-			$offset,
-			$limit,
-			$this->_study_batch_filters()
-		);
+		$batch = $this->catalog_search_metadata_extract->build_variable_batch($offset, $limit, $options);
 
 		$this->set_response(
 			array(
-				'status'    => 'success',
-				'offset'    => $batch['offset'],
-				'limit'     => $batch['limit'],
-				'total'     => $batch['total'],
-				'has_more'  => $batch['has_more'],
-				'variables' => $batch['variables'],
+				'status'         => 'success',
+				'offset'         => $batch['offset'],
+				'limit'          => $batch['limit'],
+				'total'          => $batch['total'],
+				'has_more'       => $batch['has_more'],
+				'next_after_uid' => $batch['next_after_uid'],
+				'variables'      => $batch['variables'],
 			),
 			REST_Controller::HTTP_OK
 		);

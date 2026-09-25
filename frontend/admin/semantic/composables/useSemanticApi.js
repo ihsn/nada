@@ -46,6 +46,36 @@ export function useSemanticApi() {
     return _run(async () => (await axios.get(`${base()}health`)).data);
   }
 
+  /**
+   * Published variables in the database vs. what the variable search index holds — totals only.
+   * @returns {Promise<{database:{variables:number,studies:number}, index:{ok:boolean, data?:{exists:boolean,variables:number,studies:number}, error?:string, status?:number|null}}>}
+   */
+  function getVariablesStats() {
+    return _run(async () => (await axios.get(`${base()}variables_stats`)).data);
+  }
+
+  /**
+   * Citations in the database vs. what the citation search index holds (all and published).
+   * @returns {Promise<{database:{citations:number,published:number}, index:{ok:boolean, data?:{exists:boolean,citations:number,published:number}, error?:string, status?:number|null}}>}
+   */
+  function getCitationsStats() {
+    return _run(async () => (await axios.get(`${base()}citations_stats`)).data);
+  }
+
+  /** Sync only the citation index, as a background job. Omit `ids` for every citation in the catalog. */
+  function syncCitations(ids) {
+    const body = Array.isArray(ids) ? { ids } : {};
+    return _run(async () => (await axios.post(`${base()}citations_sync`, body)).data);
+  }
+
+  /**
+   * Which studies' variables the index is missing or holds a different number of (per study, never per variable).
+   * `gaps` is capped at 200, worst first; `gap_total` counts them all.
+   */
+  function getVariablesCoverage() {
+    return _run(async () => (await axios.get(`${base()}variables_coverage`)).data);
+  }
+
   /** @param {{query:string, mode?:string, filters?:object, size?:number, include_facets?:boolean, facet_fields?:string[]}} body */
   function search(body) {
     return _run(async () => (await axios.post(`${base()}search`, body)).data);
@@ -78,6 +108,12 @@ export function useSemanticApi() {
   /** Index one catalog idno. `type` is NADA's surveys.type; `force` re-fetches a failed/cached load. */
   function indexByIdno({ idno, type, force = false } = {}) {
     return _run(async () => (await axios.post(`${base()}index_idno`, { idno, type, force })).data);
+  }
+
+  /** Sync only the variable index, as a background job. Omit `idnos` for every variable in the catalog. */
+  function syncVariables(idnos) {
+    const body = Array.isArray(idnos) ? { idnos } : {};
+    return _run(async () => (await axios.post(`${base()}variables_sync`, body)).data);
   }
 
   /** @param {{ps?:number, limit?:number, force?:boolean, recreate_index?:boolean}} body */
@@ -168,6 +204,10 @@ export function useSemanticApi() {
     errorMessage,
     getOverview,
     getHealth,
+    getVariablesStats,
+    getVariablesCoverage,
+    getCitationsStats,
+    syncCitations,
     search,
     getCollection,
     getTypeCounts,
@@ -176,6 +216,7 @@ export function useSemanticApi() {
     indexOne,
     indexByIdno,
     indexAll,
+    syncVariables,
     listJobs,
     getJob,
     cancelJob,

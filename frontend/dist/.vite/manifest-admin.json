@@ -1366,7 +1366,7 @@
     ]
   },
   "admin/semantic/main.js": {
-    "file": "assets/admin/admin_semantic-CIooPtk9.js",
+    "file": "assets/admin/admin_semantic-BUqq9Pkl.js",
     "name": "admin_semantic",
     "src": "admin/semantic/main.js",
     "isEntry": true,
@@ -1384,29 +1384,29 @@
       "__plugin-vue_export-helper-DlAUqK2U.js",
       "_VSkeletonLoader-ChHcUe9q.js",
       "_VTable-UNCvVvTk.js",
+      "_VDataTable-Dj-qTDlR.js",
       "_VSelect-leLnk2Ni.js",
       "_VExpansionPanels-D0KBfP4k.js",
       "_VSwitch-DoWBNGct.js",
-      "_VDataTable-Dj-qTDlR.js",
       "_VDialog-BVuG894w.js",
       "_VCheckbox-BRQ1PqDY.js",
       "_VDataTableServer-C3GzGQLX.js",
       "_VSnackbar-BW0bShCH.js",
       "_VMain-MN13IJgs.js",
       "_VContainer-DqzkZey4.js",
+      "_VPagination-Lp1-pysC.js",
       "_VInput-ZXWjcv1e.js",
       "_forwardRefs-Cu8vQc-J.js",
       "_dialog-transition-CPXmT8EC.js",
       "_VMenu-DSDylU7Q.js",
-      "_VSheet-Cn8Jl5u9.js",
-      "_VPagination-Lp1-pysC.js"
+      "_VSheet-Cn8Jl5u9.js"
     ],
     "css": [
-      "assets/admin/admin_semantic-cRqHwbBn.css"
+      "assets/admin/admin_semantic-D-i18x07.css"
     ]
   },
   "admin/site_configurations/main.js": {
-    "file": "assets/admin/admin_site_configurations-Rnm5_5IZ.js",
+    "file": "assets/admin/admin_site_configurations-CJfgUieK.js",
     "name": "admin_site_configurations",
     "src": "admin/site_configurations/main.js",
     "isEntry": true,

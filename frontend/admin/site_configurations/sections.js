@@ -47,6 +47,7 @@ export const SECTION_DEFS = [
     titleKey: 'search_settings',
     keys: [
       'search_provider',
+      'citation_search_provider',
       'semantic_search_url',
       'semantic_search_engine',
       'semantic_search_api_key',

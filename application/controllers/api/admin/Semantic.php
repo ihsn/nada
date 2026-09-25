@@ -168,6 +168,198 @@ class Semantic extends MY_REST_Controller
 		$this->_forward('GET', 'health');
 	}
 
+	/**
+	 * GET /api/admin/semantic/variables_stats
+	 *
+	 * Published variables in this catalog's database against what nada-ai's variable index holds — totals only
+	 * (a per-study breakdown is a different, paged question). Both sides count published variables of published
+	 * studies, the same population search can return, so the two numbers are comparable.
+	 *
+	 * The database side is computed here; the index side is nada-ai's GET /admin/variables/stats, best-effort like
+	 * the overview probes: when nada-ai is unreachable, or its engine has no variable index (501 under Qdrant), the
+	 * database numbers still come back and `index` says why it is missing, so the page can show that instead of
+	 * failing.
+	 */
+	public function variables_stats_get()
+	{
+		try { $this->_require('view'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+
+		// INNER JOIN + published = 1: the same population NADA's extract endpoint hands to the indexer.
+		$row = $this->db->query(
+			'SELECT COUNT(*) AS variables, COUNT(DISTINCT v.sid) AS studies
+			 FROM variables v INNER JOIN surveys s ON s.id = v.sid
+			 WHERE s.published = 1'
+		)->row_array();
+
+		try
+		{
+			$index = $this->_probe($this->_client(), 'GET', 'admin/variables/stats');
+		}
+		catch (Exception $e)
+		{
+			$index = array('ok' => false, 'error' => $e->getMessage(), 'status' => null);
+		}
+
+		$this->set_response(array(
+			'status'   => 'success',
+			'database' => array(
+				'variables' => (int) ($row['variables'] ?? 0),
+				'studies'   => (int) ($row['studies'] ?? 0),
+			),
+			'index'    => $index,
+		), REST_Controller::HTTP_OK);
+	}
+
+	/**
+	 * GET /api/admin/semantic/variables_coverage
+	 *
+	 * Which studies' variables the index is missing or holds a different number of: the per-study counterpart of
+	 * variables_stats (published variables of published studies on both sides). One row per study on each side, never
+	 * per variable, so it stays small at any catalog size; the listed gaps are capped at 200 (`gap_total` says how
+	 * many there are), worst first. Best-effort on the index side, as in variables_stats.
+	 */
+	public function variables_coverage_get()
+	{
+		try { $this->_require('view'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+
+		$rows = $this->db->query(
+			'SELECT v.sid, s.idno, s.title, COUNT(*) AS variables
+			 FROM variables v INNER JOIN surveys s ON s.id = v.sid
+			 WHERE s.published = 1
+			 GROUP BY v.sid, s.idno, s.title'
+		)->result_array();
+
+		try
+		{
+			$index = $this->_probe($this->_client(), 'GET', 'admin/variables/by-study');
+		}
+		catch (Exception $e)
+		{
+			$index = array('ok' => false, 'error' => $e->getMessage(), 'status' => null);
+		}
+
+		$result = array(
+			'status'   => 'success',
+			'database' => array('studies' => count($rows)),
+			'index'    => array(
+				'ok'     => $index['ok'],
+				'error'  => $index['error'] ?? null,
+				'status' => $index['status'] ?? null,
+				'exists' => !empty($index['data']['exists']),
+			),
+			'gap_total'     => 0,
+			'gaps'          => array(),
+			'extra_studies' => 0,
+		);
+
+		if (!$index['ok'] || empty($index['data']['exists']))
+		{
+			$this->set_response($result, REST_Controller::HTTP_OK);
+			return;
+		}
+
+		$indexed = (array) ($index['data']['studies'] ?? array());
+		$result['index']['studies'] = count($indexed);
+		$seen = array();
+		$gaps = array();
+		foreach ($rows as $row)
+		{
+			$sid = (string) $row['sid'];
+			$seen[$sid] = true;
+			$in_index = (int) ($indexed[$sid] ?? 0);
+			$in_db = (int) $row['variables'];
+			if ($in_index !== $in_db)
+			{
+				$gaps[] = array(
+					'sid'      => (int) $row['sid'],
+					'idno'     => $row['idno'],
+					'title'    => $row['title'],
+					'database' => $in_db,
+					'indexed'  => $in_index,
+				);
+			}
+		}
+		usort($gaps, function ($a, $b) {
+			return abs($b['database'] - $b['indexed']) <=> abs($a['database'] - $a['indexed']);
+		});
+
+		$result['gap_total'] = count($gaps);
+		$result['gaps'] = array_slice($gaps, 0, 200);
+		$result['extra_studies'] = count(array_diff_key($indexed, $seen));
+		$this->set_response($result, REST_Controller::HTTP_OK);
+	}
+
+	/**
+	 * GET /api/admin/semantic/citations_stats
+	 *
+	 * Citations in this catalog's database against what nada-ai's citation index holds. Both sides count all citations
+	 * and the published ones, since only published citations are searchable. Best-effort on the index side, like
+	 * variables_stats: when nada-ai is unreachable, or its engine has no citation index (501 under Qdrant), the database
+	 * numbers still come back and `index` says why it is missing.
+	 */
+	public function citations_stats_get()
+	{
+		try { $this->_require('view'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+
+		$row = $this->db->query(
+			'SELECT COUNT(*) AS citations, COALESCE(SUM(CASE WHEN published = 1 THEN 1 ELSE 0 END), 0) AS published FROM citations'
+		)->row_array();
+
+		try
+		{
+			$index = $this->_probe($this->_client(), 'GET', 'admin/citations/stats');
+		}
+		catch (Exception $e)
+		{
+			$index = array('ok' => false, 'error' => $e->getMessage(), 'status' => null);
+		}
+
+		$this->set_response(array(
+			'status'   => 'success',
+			'database' => array(
+				'citations' => (int) ($row['citations'] ?? 0),
+				'published' => (int) ($row['published'] ?? 0),
+			),
+			'index'    => $index,
+		), REST_Controller::HTTP_OK);
+	}
+
+	/**
+	 * POST /api/admin/semantic/citations_sync
+	 * body: {ids?: int[]} — omit ids to sync every citation in the catalog. Runs as a background job in nada-ai; only
+	 * the citation index is touched (lexical: nothing is embedded).
+	 */
+	public function citations_sync_post()
+	{
+		try { $this->_require('edit'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+
+		$body = json_decode($this->input->raw_input_stream ?: '{}', true) ?: array();
+		$payload = array();
+		if (isset($body['ids'])) { $payload['ids'] = $body['ids']; }
+
+		$this->_forward('POST', 'admin/citations/sync', array('json' => (object) $payload));
+	}
+
 	// =====================================================================
 	// Overview
 	// =====================================================================
@@ -229,6 +421,7 @@ class Semantic extends MY_REST_Controller
 			return array(
 				'ok'    => false,
 				'error' => ($detail['detail'] ?? null) ?: $e->getMessage(),
+				'status' => $e->hasResponse() ? $e->getResponse()->getStatusCode() : null,
 			);
 		}
 		catch (Exception $e)
@@ -390,6 +583,27 @@ class Semantic extends MY_REST_Controller
 		}
 
 		$this->_forward('POST', 'admin/ingest/from-catalog/all', array('json' => $body));
+	}
+
+	/**
+	 * POST /api/admin/semantic/variables_sync
+	 * body: {idnos?: string[]} — omit idnos to sync every variable in the catalog. Runs as a background job in
+	 * nada-ai; only the variable index is touched (no study document, no chunks, no embeddings).
+	 */
+	public function variables_sync_post()
+	{
+		try { $this->_require('edit'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+
+		$body = json_decode($this->input->raw_input_stream ?: '{}', true) ?: array();
+		$payload = array();
+		if (isset($body['idnos'])) { $payload['idnos'] = $body['idnos']; }
+
+		$this->_forward('POST', 'admin/variables/sync', array('json' => (object) $payload));
 	}
 
 	/**

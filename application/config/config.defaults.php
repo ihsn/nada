@@ -27,6 +27,8 @@ $config['admin_header_background']='#212121';
 $config['search_provider']='db';
 $config['semantic_search_url']='';
 $config['semantic_search_engine']='qdrant';
+// Which engine serves citation keyword search: default (follow search_provider) | db | nada_ai
+$config['citation_search_provider']='default';
 $config['semantic_search_api_key']='';
 $config['semantic_search_admin_api_key']='';
 $config['semantic_search_debug']='false';

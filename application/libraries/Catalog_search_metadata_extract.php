@@ -123,46 +123,74 @@ class Catalog_search_metadata_extract
     }
 
     /**
-     * All variables belonging to one study, for reindexing a study's variables
-     * whenever the study itself is (re)indexed.
+     * One page of the variables belonging to one study, for syncing a study's variables whenever the study itself is
+     * (re)indexed. Paged so a study with a very large number of variables never has to fit in one response: see
+     * build_variable_page() for the paging rules.
      *
-     * @param int $survey_id surveys.id
-     * @return array
+     * @param int      $survey_id surveys.id
+     * @param int      $limit     page size
+     * @param int      $offset    rows to skip; ignored when $after_uid is given
+     * @param int|null $after_uid keyset cursor: only variables with a larger uid (use the previous next_after_uid)
+     * @return array{variables: array, limit: int, offset: int, has_more: bool, next_after_uid: int|null, total: int|null}
      */
-    public function build_variables_by_survey(int $survey_id)
+    public function build_variables_by_survey(int $survey_id, int $limit, int $offset = 0, $after_uid = null)
     {
-        $rows = $this->load_variable_rows(null, null, null, $survey_id);
-        if (empty($rows)) {
-            return array();
-        }
+        $page = $this->build_variable_page($limit, $offset, $after_uid, $survey_id);
 
-        $country_map = $this->load_variable_country_ids(array($survey_id));
-
-        $variables = array();
-        foreach ($rows as $row) {
-            $variables[] = $this->assemble_variable_document($row, $country_map);
+        // The count is only worth its query once per walk: on the first page.
+        $page['total'] = null;
+        if ($offset === 0 && $after_uid === null) {
+            $this->ci->db->where('sid', $survey_id);
+            $page['total'] = (int) $this->ci->db->count_all_results('variables');
         }
-        return $variables;
+        return $page;
     }
 
     /**
+     * One page of every variable in the catalog, for the initial backfill.
+     *
      * @param int   $offset
      * @param int   $limit
-     * @param array $options  types (array of survey type strings)
-     * @return array{variables: array, offset: int, limit: int, total: int, has_more: bool}
+     * @param array $options  types (array of survey type strings), after_uid (keyset cursor)
+     * @return array{variables: array, limit: int, offset: int, has_more: bool, next_after_uid: int|null, total: int|null}
      */
     public function build_variable_batch(int $offset, int $limit, array $options = array())
     {
-        $types = !empty($options['types']) ? (array) $options['types'] : array();
+        $types     = !empty($options['types']) ? (array) $options['types'] : array();
+        $after_uid = isset($options['after_uid']) ? (int) $options['after_uid'] : null;
 
-        $this->ci->db->from('variables');
-        $this->ci->db->join('surveys', 'surveys.id = variables.sid', 'inner');
-        if (!empty($types)) {
-            $this->ci->db->where_in('surveys.type', $types);
+        $page = $this->build_variable_page($limit, $offset, $after_uid, null, $types);
+
+        // COUNT(*) over the whole join is the expensive part of a page at millions of rows, and the total does not
+        // change between pages of one walk, so it is computed on the first page only.
+        $page['total'] = null;
+        if ($offset === 0 && $after_uid === null) {
+            $this->ci->db->from('variables');
+            $this->ci->db->join('surveys', 'surveys.id = variables.sid', 'inner');
+            if (!empty($types)) {
+                $this->ci->db->where_in('surveys.type', $types);
+            }
+            $page['total'] = (int) $this->ci->db->count_all_results();
         }
-        $total = (int) $this->ci->db->count_all_results();
+        return $page;
+    }
 
-        $rows = $this->load_variable_rows($limit, $offset, null, null, $types);
+    /**
+     * A page of variable documents, ordered by uid.
+     *
+     * Two ways to page: keyset ($after_uid = the previous page's next_after_uid; every page costs the same however
+     * deep) or plain $offset (the database walks past every skipped row, so deep pages get slower). One row more than
+     * $limit is read to know whether another page exists, instead of counting the whole table on every request.
+     *
+     * @return array{variables: array, limit: int, offset: int, has_more: bool, next_after_uid: int|null}
+     */
+    private function build_variable_page(int $limit, int $offset, $after_uid, $survey_id = null, array $types = array())
+    {
+        $rows     = $this->load_variable_rows($limit + 1, $offset, null, $survey_id, $types, $after_uid);
+        $has_more = count($rows) > $limit;
+        if ($has_more) {
+            array_pop($rows);
+        }
 
         $survey_ids  = array_values(array_unique(array_map('intval', array_column($rows, 'sid'))));
         $country_map = $this->load_variable_country_ids($survey_ids);
@@ -173,21 +201,16 @@ class Catalog_search_metadata_extract
         }
 
         return array(
-            'variables' => $variables,
-            'offset'    => $offset,
-            'limit'     => $limit,
-            'total'     => $total,
-            'has_more'  => ($offset + count($variables)) < $total,
+            'variables'      => $variables,
+            'limit'          => $limit,
+            'offset'         => $offset,
+            'has_more'       => $has_more,
+            'next_after_uid' => ($has_more && !empty($rows)) ? (int) end($rows)['uid'] : null,
         );
     }
 
-    /**
-     * @param int $citation_id citations.id
-     * @return array|null
-     */
-    public function build_citation_document(int $citation_id)
-    {
-        $this->ci->db->select('
+    /** Columns of a citation export document (see citation_document_from_row). */
+    const CITATION_EXPORT_FIELDS = '
             id,
             uuid,
             title,
@@ -205,14 +228,64 @@ class Catalog_search_metadata_extract
             doi,
             published,
             pub_year
-        ', false);
+        ';
+
+    /**
+     * @param int $citation_id citations.id
+     * @return array|null
+     */
+    public function build_citation_document(int $citation_id)
+    {
+        $this->ci->db->select(self::CITATION_EXPORT_FIELDS, false);
         $this->ci->db->where('id', $citation_id);
         $row = $this->ci->db->get('citations')->row_array();
 
-        if (empty($row)) {
-            return null;
+        return empty($row) ? null : $this->citation_document_from_row($row);
+    }
+
+    /**
+     * One page of citation documents, keyset-paged on citations.id like the variables export: `after_id` is the
+     * previous page's `next_after_id` (or `offset` for a plain offset), and `total` is only counted on the first page.
+     *
+     * @return array{citations: array, limit: int, offset: int, total: int|null, has_more: bool, next_after_id: int|null}
+     */
+    public function build_citation_batch(int $limit, int $offset = 0, $after_id = null)
+    {
+        $this->ci->db->select(self::CITATION_EXPORT_FIELDS, false);
+        $this->ci->db->from('citations');
+        if ($after_id !== null) {
+            $this->ci->db->where('id >', (int) $after_id);
+        }
+        $this->ci->db->order_by('id', 'ASC');
+        $this->ci->db->limit($limit + 1, $after_id !== null ? 0 : $offset);
+        $rows = $this->ci->db->get()->result_array();
+
+        $has_more = count($rows) > $limit;
+        if ($has_more) {
+            array_pop($rows);
         }
 
+        $total = null;
+        if ($offset === 0 && $after_id === null) {
+            $total = (int) $this->ci->db->count_all('citations');
+        }
+
+        return array(
+            'citations'     => array_map(array($this, 'citation_document_from_row'), $rows),
+            'limit'         => $limit,
+            'offset'        => $offset,
+            'total'         => $total,
+            'has_more'      => $has_more,
+            'next_after_id' => ($has_more && !empty($rows)) ? (int) end($rows)['id'] : null,
+        );
+    }
+
+    /**
+     * @param array $row a citations row selected with CITATION_EXPORT_FIELDS
+     * @return array
+     */
+    private function citation_document_from_row(array $row)
+    {
         $pub_date = isset($row['pub_year']) ? (int) $row['pub_year'] : null;
         unset($row['pub_year']);
 
@@ -545,15 +618,16 @@ class Catalog_search_metadata_extract
     /**
      * Load variable rows joined with the owning survey's fields.
      *
-     * Pass $uid to load a single variable, $survey_id to load all variables of
-     * one study, or $limit/$offset (with optional $types) to page over every
-     * variable in the catalog.
+     * Pass $uid to load a single variable. Otherwise rows come ordered by uid, narrowed to one study ($survey_id) or
+     * to survey types ($types), and cut to a page with $limit plus either $after_uid (keyset: uid greater than it) or
+     * $offset. No $limit returns every matching row.
      *
      * @param int|null $limit
      * @param int|null $offset
      * @param int|null $uid
      * @param int|null $survey_id
      * @param string[] $types
+     * @param int|null $after_uid
      * @return array
      */
     private function load_variable_rows(
@@ -561,7 +635,8 @@ class Catalog_search_metadata_extract
         $offset = null,
         $uid = null,
         $survey_id = null,
-        array $types = array()
+        array $types = array(),
+        $after_uid = null
     ) {
         $this->ci->db->select(
             'variables.uid, variables.sid, variables.fid, variables.vid,
@@ -574,15 +649,20 @@ class Catalog_search_metadata_extract
 
         if ($uid !== null) {
             $this->ci->db->where('variables.uid', $uid);
-        } elseif ($survey_id !== null) {
-            $this->ci->db->where('variables.sid', $survey_id);
-            $this->ci->db->order_by('variables.uid', 'asc');
         } else {
-            if (!empty($types)) {
+            if ($survey_id !== null) {
+                $this->ci->db->where('variables.sid', $survey_id);
+            } elseif (!empty($types)) {
                 $this->ci->db->where_in('surveys.type', $types);
             }
+            if ($after_uid !== null) {
+                $this->ci->db->where('variables.uid >', (int) $after_uid);
+            }
             $this->ci->db->order_by('variables.uid', 'asc');
-            $this->ci->db->limit($limit, $offset);
+            if ($limit !== null) {
+                // with a keyset cursor the offset is always 0: the cursor already skipped the earlier rows
+                $this->ci->db->limit($limit, $after_uid !== null ? 0 : (int) $offset);
+            }
         }
 
         return $this->ci->db->get()->result_array();

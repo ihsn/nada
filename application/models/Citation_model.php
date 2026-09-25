@@ -10,9 +10,34 @@ class Citation_model extends CI_Model {
 		//$this->output->enable_profiler(TRUE);
     }
 	
+	/**
+	 * Which engine serves citation keyword search: the site setting citation_search_provider.
+	 *   default - follow search_provider (opensearch / solr, else the database), as before the setting existed
+	 *   db      - the database, whatever search_provider is
+	 *   nada_ai - nada-ai's citation search (OpenSearch); see Citation_search_nada_ai for what it does not serve
+	 */
+	function citation_search_provider()
+	{
+		$provider = strtolower(trim((string) $this->config->item('citation_search_provider')));
+		return in_array($provider, array('db', 'nada_ai'), TRUE) ? $provider : 'default';
+	}
+
 	//search
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
     {
+        $provider = $this->citation_search_provider();
+
+        if ($provider === 'nada_ai') {
+            $this->load->library('citation_search_nada_ai');
+            $result = $this->citation_search_nada_ai->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
+            $this->search_found_rows = $this->citation_search_nada_ai->search_found_rows;
+            return $result;
+        }
+
+        if ($provider === 'db') {
+            return $this->search_database($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
+        }
+
         $search_provider = $this->config->item('search_provider');
 
         if ($search_provider === 'opensearch') {
@@ -30,6 +55,15 @@ class Citation_model extends CI_Model {
             return $result;
         }
 
+        return $this->search_database($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
+    }
+
+	/**
+	 * Search with the database driver of this installation (mysql, sqlsrv or the generic sql one).
+	 * Also the fallback of Citation_search_nada_ai for what nada-ai does not serve.
+	 */
+    function search_database($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
+    {
 		$driver=$this->db->dbdriver;
 
 		switch($driver)
