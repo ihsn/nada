@@ -36,14 +36,28 @@ class Search_index_manager
 		$this->ci->config->load('search_index');
 	}
 
+	/** Whether any object type is tracked: the queue is readable when either studies or citations are. */
 	public function tracking_enabled()
 	{
-		$provider = $this->current_provider();
-		$allowed  = $this->ci->config->item('search_index_tracking_providers');
+		return $this->tracking_enabled_for(self::OBJECT_SURVEY) || $this->tracking_enabled_for(self::OBJECT_CITATION);
+	}
+
+	/**
+	 * Whether changes to one object type are queued. Studies follow search_provider. Citations do too, and are also
+	 * tracked when citation_search_provider = nada_ai, whatever search_provider is: nada-ai's citation index is
+	 * kept up to date from this queue, so without it a citation edit would never reach the index.
+	 */
+	public function tracking_enabled_for($object_type)
+	{
+		$allowed = $this->ci->config->item('search_index_tracking_providers');
 		if (!is_array($allowed)) {
 			$allowed = array('solr', 'opensearch', 'semantic');
 		}
-		return in_array($provider, $allowed, true);
+		if (in_array($this->current_provider(), $allowed, true)) {
+			return true;
+		}
+		return $object_type === self::OBJECT_CITATION
+			&& strtolower(trim((string) $this->ci->config->item('citation_search_provider'))) === 'nada_ai';
 	}
 
 	public function current_provider()
@@ -63,12 +77,12 @@ class Search_index_manager
 	 */
 	public function handle_event($table, $object_id, $action = 'atomic', $is_delete = false)
 	{
-		if (!$this->tracking_enabled() || !$this->tables_ready()) {
+		$object_type = $this->normalize_object_type($table);
+		if ($object_type === null) {
 			return;
 		}
 
-		$object_type = $this->normalize_object_type($table);
-		if ($object_type === null) {
+		if (!$this->tracking_enabled_for($object_type) || !$this->tables_ready()) {
 			return;
 		}
 

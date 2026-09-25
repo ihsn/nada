@@ -402,10 +402,15 @@ abstract class catalog_search_semantic_base
         return "Semantic search API returned HTTP {$status}";
     }
 
-    /** nada-ai unreachable, timed out, or failed on its side (5xx, rate limited). */
+    /**
+     * nada-ai unreachable, timed out, or failed on its side (5xx, rate limited). HTTP 501 is not an outage: nada-ai
+     * answers it when its engine lacks the capability asked for (unsupported_capability), which means this site is
+     * configured for something that engine cannot do. That is raised as a configuration error, not hidden by a
+     * fallback.
+     */
     protected function is_outage(Semantic_search_api_exception $e): bool
     {
-        return $e->http_status === 0 || $e->http_status === 429 || $e->http_status >= 500;
+        return $e->http_status === 0 || $e->http_status === 429 || ($e->http_status >= 500 && $e->http_status !== 501);
     }
 
     // =========================================================================

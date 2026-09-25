@@ -269,9 +269,10 @@ class Citation_search_nada_ai
         return $decoded;
     }
 
-    /** nada-ai unreachable, timed out, or failed on its side (5xx, rate limited). */
+    /** nada-ai unreachable, timed out, or failed on its side (5xx, rate limited). HTTP 501 (the engine lacks the citation
+     *  search) is a configuration error and is raised, not hidden. */
     private function is_outage(Semantic_search_api_exception $e)
     {
-        return $e->http_status === 0 || $e->http_status === 429 || $e->http_status >= 500;
+        return $e->http_status === 0 || $e->http_status === 429 || ($e->http_status >= 500 && $e->http_status !== 501);
     }
 }
