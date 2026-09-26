@@ -31,8 +31,8 @@ class Configurations extends MY_REST_Controller
 		'smtp_pass',
 		'sendgrid_api_key',
 		'microsoft_graph_client_secret',
-		'semantic_search_api_key',
-		'semantic_search_admin_api_key',
+		'nada_ai_api_key',
+		'nada_ai_admin_api_key',
 		'acs_access_key',
 		'acs_connection_string',
 	);
@@ -170,6 +170,7 @@ class Configurations extends MY_REST_Controller
 				'catalog_study_types'       => $catalog_study_types,
 				'datadeposit'               => $this->datadeposit_meta(),
 				'secrets_set'               => $this->secrets_set($c),
+				'search_engine'             => $this->search_engine_meta(),
 			);
 
 			$this->set_response(
@@ -531,7 +532,7 @@ class Configurations extends MY_REST_Controller
 				$value = $v;
 			}
 
-			if ($key === 'semantic_search_url')
+			if ($key === 'nada_ai_url')
 			{
 				$value = rtrim(trim((string) $value), '/');
 				if ($value !== '')
@@ -539,32 +540,22 @@ class Configurations extends MY_REST_Controller
 					$scheme = strtolower((string) parse_url($value, PHP_URL_SCHEME));
 					if (filter_var($value, FILTER_VALIDATE_URL) === FALSE || !in_array($scheme, array('http', 'https'), TRUE))
 					{
-						throw new Exception('INVALID_URL:semantic_search_url');
+						throw new Exception('INVALID_URL:nada_ai_url');
 					}
 				}
 			}
 
-			if ($key === 'semantic_search_engine')
+			if ($key === 'nada_ai_on_outage')
 			{
 				$v = strtolower(trim((string) $value));
-				if (! in_array($v, array('qdrant', 'qdrant_db', 'opensearch'), true))
+				if (! in_array($v, array('database', 'error'), true))
 				{
-					throw new Exception('INVALID_VALUE:semantic_search_engine');
+					throw new Exception('INVALID_VALUE:nada_ai_on_outage');
 				}
 				$value = $v;
 			}
 
-			if ($key === 'citation_search_provider')
-			{
-				$v = strtolower(trim((string) $value));
-				if (! in_array($v, array('default', 'db', 'nada_ai'), true))
-				{
-					throw new Exception('INVALID_VALUE:citation_search_provider');
-				}
-				$value = $v;
-			}
-
-			if ($key === 'semantic_search_debug')
+			if ($key === 'nada_ai_debug' || $key === 'nada_ai_combine_with_database')
 			{
 				$v = strtolower(trim((string) $value));
 				if (in_array($v, array('1', 'true', 'yes', 'on'), true))
@@ -577,7 +568,7 @@ class Configurations extends MY_REST_Controller
 				}
 				else
 				{
-					throw new Exception('INVALID_VALUE:semantic_search_debug');
+					throw new Exception('INVALID_VALUE:' . $key);
 				}
 			}
 
@@ -593,61 +584,67 @@ class Configurations extends MY_REST_Controller
 		}
 		unset($value);
 
-		$this->validate_search_provider($options);
+		$this->validate_search_engine($options);
 	}
 
 	/**
-	 * search_provider must be a known engine, and semantic search (also as the citation search provider) needs an API URL.
+	 * search_engine must be a known engine, and nada-ai needs an API URL.
 	 *
-	 * Section saves send only their own keys, so the URL is resolved from the payload
-	 * first and the stored value second.
+	 * Section saves send only their own keys, so the URL is resolved from the payload first and the stored value
+	 * second.
 	 *
 	 * @param array $options key => value about to be stored (already normalised)
 	 */
-	protected function validate_search_provider(array &$options)
+	protected function validate_search_engine(array &$options)
 	{
-		if (!array_key_exists('search_provider', $options) && !array_key_exists('semantic_search_url', $options)
-			&& !array_key_exists('citation_search_provider', $options))
+		if (!array_key_exists('search_engine', $options) && !array_key_exists('nada_ai_url', $options))
 		{
 			return;
 		}
 
 		$stored = $this->Configurations_model->get_config_array();
 
-		if (array_key_exists('search_provider', $options))
+		if (array_key_exists('search_engine', $options))
 		{
-			$provider = strtolower(trim((string) $options['search_provider']));
+			$engine = strtolower(trim((string) $options['search_engine']));
 
-			// Legacy values that Search_index_manager already treats as the built-in DB search.
-			if (in_array($provider, array('mysql', 'mysqli', 'sqlsrv'), TRUE))
+			if (!in_array($engine, array('database', 'solr', 'opensearch_native', 'nada_ai'), TRUE))
 			{
-				$provider = 'db';
+				throw new Exception('INVALID_VALUE:search_engine');
 			}
 
-			if (!in_array($provider, array('db', 'opensearch', 'solr', 'semantic'), TRUE))
-			{
-				throw new Exception('INVALID_VALUE:search_provider');
-			}
-
-			$options['search_provider'] = $provider;
+			$options['search_engine'] = $engine;
 		}
 		else
 		{
-			$provider = isset($stored['search_provider']) ? (string) $stored['search_provider'] : '';
+			$engine = isset($stored['search_engine']) ? (string) $stored['search_engine'] : '';
 		}
 
-		$url = array_key_exists('semantic_search_url', $options)
-			? (string) $options['semantic_search_url']
-			: (isset($stored['semantic_search_url']) ? (string) $stored['semantic_search_url'] : '');
+		$url = array_key_exists('nada_ai_url', $options)
+			? (string) $options['nada_ai_url']
+			: (isset($stored['nada_ai_url']) ? (string) $stored['nada_ai_url'] : '');
 
-		$citation_provider = array_key_exists('citation_search_provider', $options)
-			? (string) $options['citation_search_provider']
-			: (isset($stored['citation_search_provider']) ? (string) $stored['citation_search_provider'] : '');
-
-		if (($provider === 'semantic' || $citation_provider === 'nada_ai') && trim($url) === '')
+		if ($engine === 'nada_ai' && trim($url) === '')
 		{
-			throw new Exception('SEMANTIC_SEARCH_URL_REQUIRED');
+			throw new Exception('NADA_AI_URL_REQUIRED');
 		}
+	}
+
+	/**
+	 * What the search engine setting means right now, for the Search section: which engine serves studies, variables
+	 * and citations, and what nada-ai runs. Only worked out when nada-ai is the engine or has an URL, so an install
+	 * that does not use nada-ai never calls it.
+	 */
+	protected function search_engine_meta()
+	{
+		$this->load->library('search_engine_resolver');
+		$summary = $this->search_engine_resolver->summary();
+
+		return array(
+			'engine'  => $summary['engine'],
+			'serves'  => $summary['serves'],
+			'nada_ai' => $summary['nada_ai'],
+		);
 	}
 
 	protected function datadeposit_meta()

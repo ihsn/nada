@@ -11,8 +11,7 @@ window.APP_CONFIG = {
     assetsBase: "<?php echo addslashes(isset($assets_base) ? $assets_base : base_url('frontend/dist/')); ?>",
     csrfToken:  "<?php echo addslashes($csrf_token); ?>",
     canEdit:    <?php echo $can_edit ? 'true' : 'false'; ?>,
-    canDelete:  <?php echo $can_delete ? 'true' : 'false'; ?>,
-    searchEngine: "<?php echo addslashes($search_engine); ?>"
+    canDelete:  <?php echo $can_delete ? 'true' : 'false'; ?>
 };
 </script>
 <?php if ($use_vite_dev): ?>

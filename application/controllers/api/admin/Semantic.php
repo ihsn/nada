@@ -14,9 +14,9 @@ use GuzzleHttp\Exception\RequestException;
  * Thin server-side proxy in front of the nada-ai FastAPI admin routes
  * (POST /admin/ingest/from-catalog(/all), GET /jobs, GET /admin/qdrant/collection,
  * GET /admin/search-index/status, POST /admin/ingest/reconcile, ...). Holds the
- * nada-ai admin credential (`semantic_search_admin_api_key`, sent as
+ * nada-ai admin credential (`nada_ai_admin_api_key`, sent as
  * X-NADA-Admin-Key) server-side so the browser never sees it — same pattern as
- * `semantic_search_api_key` for /search, kept as a *separate* secret since it
+ * `nada_ai_api_key` for /search, kept as a *separate* secret since it
  * authenticates a different, more privileged surface (see the note on that
  * setting in Site configurations > Search > Semantic search settings).
  */
@@ -41,13 +41,13 @@ class Semantic extends MY_REST_Controller
 	{
 		if ($this->client === null)
 		{
-			$base_url = rtrim((string) $this->config->item('semantic_search_url'), '/');
+			$base_url = rtrim((string) $this->config->item('nada_ai_url'), '/');
 			if ($base_url === '')
 			{
-				throw new Exception('Semantic search is not configured: set semantic_search_url in Site configurations > Search > Semantic search settings.');
+				throw new Exception('Semantic search is not configured: set nada_ai_url in Site configurations > Search > Semantic search settings.');
 			}
 
-			$admin_key = (string) $this->config->item('semantic_search_admin_api_key');
+			$admin_key = (string) $this->config->item('nada_ai_admin_api_key');
 
 			$headers = array('Accept' => 'application/json');
 			if ($admin_key !== '')
@@ -106,7 +106,7 @@ class Semantic extends MY_REST_Controller
 		catch (ConnectException $e)
 		{
 			$this->set_response(
-				array('status' => 'error', 'message' => 'Could not reach nada-ai at the configured semantic_search_url.'),
+				array('status' => 'error', 'message' => 'Could not reach nada-ai at the configured nada_ai_url.'),
 				REST_Controller::HTTP_SERVICE_UNAVAILABLE
 			);
 		}
@@ -479,10 +479,11 @@ class Semantic extends MY_REST_Controller
 	 * POST /api/admin/semantic/search
 	 * body: {query, type?, from?, to?, limit?, offset?}
 	 *
-	 * Runs this site's catalog search through the semantic provider, with the driver the semantic_search_engine
-	 * setting selects (qdrant, qdrant_db or opensearch), in relevance order as the catalog lists a keyword search.
-	 * So an admin sees what the catalog would show, including the database's part of it (pinned blocks, fallbacks,
-	 * dropped hits), with the driver's debug output on — also before semantic search is the site's search provider.
+	 * Runs this site's catalog search through nada-ai, with the driver its engine needs (OpenSearch, Qdrant, or Qdrant
+	 * combined with the database when nada_ai_combine_with_database is on), in relevance order as the catalog lists a
+	 * keyword search. So an admin sees what the catalog would show, including the database's part of it (pinned
+	 * blocks, fallbacks, dropped hits), with the driver's debug output on — also before nada-ai is the site's search
+	 * engine.
 	 */
 	public function search_post()
 	{
@@ -493,6 +494,7 @@ class Semantic extends MY_REST_Controller
 			return;
 		}
 
+		$this->load->library('search_engine_resolver');
 		$body  = json_decode($this->input->raw_input_stream ?: '{}', true) ?: array();
 		$query = isset($body['query']) ? trim((string) $body['query']) : '';
 		if ($query === '')
@@ -504,7 +506,7 @@ class Semantic extends MY_REST_Controller
 		$limit  = min(100, max(1, (int) ($body['limit'] ?? 15)));
 		$offset = max(0, (int) ($body['offset'] ?? 0));
 		$params = array(
-			'search_provider' => 'semantic',
+			'search_engine'   => 'nada_ai',
 			'semantic_debug'  => true,
 			'study_keywords'  => $query,
 			'type'            => !empty($body['type']) ? array((string) $body['type']) : array(),
@@ -543,7 +545,7 @@ class Semantic extends MY_REST_Controller
 
 		$this->set_response(array(
 			'status'                => 'success',
-			'engine'                => strtolower(trim((string) $this->config->item('semantic_search_engine'))),
+			'engine'                => $this->search_engine_resolver->nada_ai_study_driver(),
 			'found'                 => (int) ($result['found'] ?? 0),
 			'limit'                 => $limit,
 			'offset'                => $offset,

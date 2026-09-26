@@ -13,8 +13,8 @@
  * Outage policy. nada_ai_on_outage says what a search does while nada-ai is down: database (serve it from the
  * catalog database) or error (fail with the reason).
  *
- * Capabilities. Which searches nada-ai can serve comes from its GET /info, cached for a minute (and kept for a day for
- * when nada-ai is down). When /info has never been read, they are derived from the semantic_search_engine setting.
+ * Capabilities. Which engine nada-ai runs and which searches it can serve come from its GET /info, cached for a minute
+ * (and kept for a day for when nada-ai is down). When /info has never been read, only the study search is assumed.
  */
 
 require_once dirname(__FILE__) . '/Semantic_search_api_exception.php';
@@ -54,7 +54,7 @@ class Nada_ai_link
 
     public function url()
     {
-        return rtrim((string) $this->ci->config->item('semantic_search_url'), '/');
+        return rtrim((string) $this->ci->config->item('nada_ai_url'), '/');
     }
 
     public function configured()
@@ -212,11 +212,11 @@ class Nada_ai_link
     // =========================================================================
 
     /**
-     * What nada-ai can serve.
+     * What nada-ai runs and can serve.
      *
      * @return array{engine: string|null, studies_search: bool, variables_search: bool, citations_search: bool, source: string}
      *         source: info (read just now or a minute ago) | stale (nada-ai could not be asked; the last answer) |
-     *         configured (never asked; derived from semantic_search_engine)
+     *         unknown (never asked and not reachable: only the study search is assumed, and the engine is not known)
      */
     public function capabilities()
     {
@@ -243,7 +243,26 @@ class Nada_ai_link
             return $stale + array('source' => 'stale');
         }
 
-        return $this->capabilities_from_setting() + array('source' => 'configured');
+        return array(
+            'engine'            => null,
+            self::CAP_STUDIES   => true,
+            self::CAP_VARIABLES => false,
+            self::CAP_CITATIONS => false,
+            'source'            => 'unknown',
+        );
+    }
+
+    /** The engine nada-ai runs (opensearch | qdrant), or null when it has never been asked. */
+    public function backend()
+    {
+        $caps = $this->capabilities();
+        return $caps['engine'] !== null ? strtolower($caps['engine']) : null;
+    }
+
+    /** nada_ai_combine_with_database: with a Qdrant nada-ai, also run the catalog database's keyword search. */
+    public function combine_with_database()
+    {
+        return filter_var($this->ci->config->item('nada_ai_combine_with_database'), FILTER_VALIDATE_BOOLEAN);
     }
 
     public function supports($capability)
@@ -260,19 +279,6 @@ class Nada_ai_link
             self::CAP_STUDIES   => !empty($caps['studies_search']),
             self::CAP_VARIABLES => !empty($caps['variables_search']),
             self::CAP_CITATIONS => !empty($caps['citations_search']),
-        );
-    }
-
-    /** What the semantic_search_engine setting implies, for when nada-ai has never been asked. */
-    private function capabilities_from_setting()
-    {
-        $engine = strtolower(trim((string) $this->ci->config->item('semantic_search_engine')));
-        $all    = $engine === 'opensearch';
-        return array(
-            'engine'             => $engine !== '' ? $engine : null,
-            self::CAP_STUDIES   => true,
-            self::CAP_VARIABLES => $all,
-            self::CAP_CITATIONS => $all,
         );
     }
 
@@ -391,7 +397,7 @@ class Nada_ai_link
     /** The key sent to nada-ai's public routes (the admin key is used by the admin dashboard, not here). */
     private function auth_headers()
     {
-        $key = (string) $this->ci->config->item('semantic_search_api_key');
+        $key = (string) $this->ci->config->item('nada_ai_api_key');
         return $key !== '' ? array('X-NADA-Admin-Key: ' . $key) : array();
     }
 

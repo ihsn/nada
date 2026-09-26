@@ -54,7 +54,7 @@
         <v-spacer />
         <span v-if="status" class="text-caption text-medium-emphasis font-weight-regular">
           {{ trackingOn ? 'Change tracking on' : 'Change tracking off' }}
-          <template v-if="status.search_provider"> · {{ status.search_provider }}</template>
+          <template v-if="status.search_engine"> · {{ status.search_engine }}</template>
         </span>
       </v-card-title>
       <v-divider />

@@ -7,7 +7,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  * Citation Search — Solr Backend
  *
  * Drop-in replacement for Citation_search_mysql / Citation_search_sqlsrv
- * when search_provider = 'solr'.
+ * when search_engine = 'solr'.
  *
  * Same public interface:
  *   search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid)

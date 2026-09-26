@@ -31,7 +31,7 @@
           <CatalogSearchBar
             v-model="query.sk"
             :loading="loading"
-            :search-provider="searchProvider"
+            :search-engine="searchEngine"
             class="catalog-search-bar-block"
             @search="resetPage"
             @reset="onResetAll"
@@ -63,7 +63,7 @@
               <CatalogSearchBar
                 v-model="query.sk"
                 :loading="loading"
-                :search-provider="searchProvider"
+                :search-engine="searchEngine"
                 class="mb-4"
                 @search="resetPage"
                 @reset="onResetAll"
@@ -252,8 +252,8 @@ const debugModeAvailable = computed(() =>
   || isTruthyConfigFlag(siteConfig.value?.catalog_search_debug)
 );
 
-const searchProvider = computed(
-  () => site.value?.search_provider ?? siteConfig.value?.search_provider ?? 'db'
+const searchEngine = computed(
+  () => site.value?.search_engine ?? siteConfig.value?.search_engine ?? 'database'
 );
 
 const showResultsOptionsBar = computed(() =>

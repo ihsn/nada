@@ -434,7 +434,7 @@ class Catalog extends MY_REST_Controller
 				'status'=>'failed',
 				'errors'=>$e->getMessage()
 			);
-			$error_output = array_merge($error_output, $this->semantic_search_debug_for_exception($e));
+			$error_output = array_merge($error_output, $this->nada_ai_debug_for_exception($e));
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
 	}
@@ -460,11 +460,11 @@ class Catalog extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		} catch (RuntimeException $e) {
 			$response = array('status' => 'failed', 'message' => $e->getMessage());
-			$response = array_merge($response, $this->semantic_search_debug_for_exception($e));
+			$response = array_merge($response, $this->nada_ai_debug_for_exception($e));
 			$this->set_response($response, REST_Controller::HTTP_BAD_REQUEST);
 		} catch (Exception $e) {
 			$response = array('status' => 'failed', 'message' => $e->getMessage());
-			$response = array_merge($response, $this->semantic_search_debug_for_exception($e));
+			$response = array_merge($response, $this->nada_ai_debug_for_exception($e));
 			$this->set_response($response, REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -475,9 +475,9 @@ class Catalog extends MY_REST_Controller
 	 * @param Exception $e
 	 * @return array<string, mixed>
 	 */
-	private function semantic_search_debug_for_exception($e)
+	private function nada_ai_debug_for_exception($e)
 	{
-		if (!semantic_search_debug_enabled()) {
+		if (!nada_ai_debug_enabled()) {
 			return array();
 		}
 

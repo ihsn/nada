@@ -3,7 +3,7 @@
 /**
  * Catalog Search — Semantic (AI), study search API driver
  *
- * Used when semantic_search_engine = opensearch. (qdrant keeps the original driver, catalog_search_semantic;
+ * Used when nada-ai runs OpenSearch. (Qdrant keeps the original driver, catalog_search_semantic;
  * qdrant_db uses catalog_search_semantic_fused.)
  *
  * The search is done by nada-ai's engine-agnostic study search, POST /studies/search:

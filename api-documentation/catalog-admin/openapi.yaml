@@ -57,7 +57,7 @@ tags:
   - name: Search index
     description: |
       Change queue for keeping an external search index in sync with the catalog.
-      One configured `search_provider` at a time. Database search does not write queue rows.
+      One configured `search_engine` at a time. Database search does not write queue rows.
       Documents stay on Search metadata extract. Deletes are tombstones on the queue (`fetch_document` is false).
       Ack must send the `changed` value from the poll (409 if the row was coalesced).
       All endpoints require an admin API key (`X-API-KEY`).
@@ -6267,9 +6267,9 @@ components:
         status:
           type: string
           example: success
-        search_provider:
+        search_engine:
           type: string
-          example: semantic
+          example: nada_ai
         tracking_enabled:
           type: boolean
         queue:

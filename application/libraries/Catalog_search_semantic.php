@@ -110,10 +110,10 @@ class catalog_search_semantic
         $this->ci = & get_instance();
         $this->ci->config->load('semantic_search');
 
-        $this->api_url = rtrim((string)$this->ci->config->item('semantic_search_url'),     '/');
-        $this->api_key = (string)$this->ci->config->item('semantic_search_api_key');
+        $this->api_url = rtrim((string)$this->ci->config->item('nada_ai_url'),     '/');
+        $this->api_key = (string)$this->ci->config->item('nada_ai_api_key');
         $this->mode    = (string)$this->ci->config->item('semantic_search_mode')    ?: 'hybrid';
-        $timeout = (int) $this->ci->config->item('semantic_search_timeout');
+        $timeout = (int) $this->ci->config->item('nada_ai_timeout');
         $this->timeout = min(
             max(1, $timeout > 0 ? $timeout : self::API_MAX_TIMEOUT_SEC),
             self::API_MAX_TIMEOUT_SEC
@@ -121,7 +121,7 @@ class catalog_search_semantic
         $this->knn_k   = (int)   $this->ci->config->item('semantic_search_knn_k')   ?: 50;
         // semantic_debug is set by the admin dashboard's search test (api/admin/Semantic::search_post) only
         $this->ci->load->helper('catalog');
-        $this->debug   = !empty($params['semantic_debug']) || semantic_search_debug_enabled();
+        $this->debug   = !empty($params['semantic_debug']) || nada_ai_debug_enabled();
         $this->query_prompt = (string) $this->ci->config->item('semantic_search_query_prompt');
         $collapse_size = (int) $this->ci->config->item('semantic_search_collapse_inner_hits_size');
         $this->collapse_inner_hits_size = $collapse_size > 0 ? $collapse_size : 15;

@@ -1,5 +1,4 @@
-import { computed, ref } from 'vue';
-import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { ref } from 'vue';
 import { useSemanticApi } from './useSemanticApi.js';
 
 /**
@@ -17,24 +16,8 @@ const engineLoading = ref(false);
 const engineError = ref(null);
 let inFlight = null;
 
-/** The nada-ai engine each semantic_search_engine setting needs (qdrant_db searches the Qdrant collection). */
-const BACKEND_FOR_SETTING = { qdrant: 'qdrant', qdrant_db: 'qdrant', opensearch: 'opensearch' };
-
 export function useEngine() {
   const { getHealth } = useSemanticApi();
-  const { config } = useAppConfig();
-
-  /** This site's semantic_search_engine setting: what the catalog search will ask nada-ai for. */
-  const configuredEngine = computed(() => config.value?.searchEngine || null);
-
-  /**
-   * True when nada-ai runs a different engine than the site setting needs: catalog search then fails with the
-   * API's error until one of them is changed.
-   */
-  const engineMismatch = computed(() => {
-    const expected = BACKEND_FOR_SETTING[configuredEngine.value];
-    return !!(engine.value && expected && engine.value !== expected);
-  });
 
   async function ensureEngine() {
     if (engine.value !== null || inFlight) return inFlight;
@@ -54,5 +37,5 @@ export function useEngine() {
     return inFlight;
   }
 
-  return { engine, engineLoading, engineError, ensureEngine, configuredEngine, engineMismatch };
+  return { engine, engineLoading, engineError, ensureEngine };
 }

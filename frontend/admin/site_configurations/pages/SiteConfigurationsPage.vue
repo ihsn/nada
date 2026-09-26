@@ -52,8 +52,8 @@ const displayManagerUrl = computed(() => {
   return `${base}/admin/display_templates`;
 });
 const settings = ref({});
-/** Live field value: lets a URL be entered and semantic search activated in one save. */
-const semanticUrlEntered = computed(() => String(settings.value.semantic_search_url || '').trim() !== '');
+/** Live field value: lets a URL be entered and nada-ai selected in one save. */
+const nadaAiUrlEntered = computed(() => String(settings.value.nada_ai_url || '').trim() !== '');
 const meta = ref({});
 /** Secret settings are never returned by the API; meta says which ones hold a value. */
 const secretsSet = computed(() => meta.value?.secrets_set || {});
@@ -214,14 +214,17 @@ async function reloadAll() {
   if (s.data_classifications_enabled === undefined || s.data_classifications_enabled === '') {
     s.data_classifications_enabled = 'yes';
   }
-  if (s.semantic_search_debug === undefined || s.semantic_search_debug === '') {
-    s.semantic_search_debug = 'false';
+  if (s.search_engine === undefined || s.search_engine === '') {
+    s.search_engine = 'database';
   }
-  if (s.semantic_search_engine === undefined || s.semantic_search_engine === '') {
-    s.semantic_search_engine = 'qdrant';
+  if (s.nada_ai_debug === undefined || s.nada_ai_debug === '') {
+    s.nada_ai_debug = 'false';
   }
-  if (s.citation_search_provider === undefined || s.citation_search_provider === '') {
-    s.citation_search_provider = 'default';
+  if (s.nada_ai_combine_with_database === undefined || s.nada_ai_combine_with_database === '') {
+    s.nada_ai_combine_with_database = 'false';
+  }
+  if (s.nada_ai_on_outage === undefined || s.nada_ai_on_outage === '') {
+    s.nada_ai_on_outage = 'database';
   }
   if (s.deposit_max_upload_size === undefined || s.deposit_max_upload_size === '') {
     s.deposit_max_upload_size = '2048';
@@ -294,11 +297,10 @@ async function submitTestEmail() {
 }
 
 const SAVE_ERROR_KEYS = {
-  SEMANTIC_SEARCH_URL_REQUIRED: 'error_semantic_search_url_required',
-  'INVALID_VALUE:search_provider': 'error_invalid_search_provider',
-  'INVALID_VALUE:semantic_search_engine': 'error_invalid_semantic_search_engine',
-  'INVALID_VALUE:citation_search_provider': 'error_invalid_citation_search_provider',
-  'INVALID_URL:semantic_search_url': 'error_invalid_semantic_search_url',
+  NADA_AI_URL_REQUIRED: 'error_nada_ai_url_required',
+  'INVALID_VALUE:search_engine': 'error_invalid_search_engine',
+  'INVALID_VALUE:nada_ai_on_outage': 'error_invalid_nada_ai_on_outage',
+  'INVALID_URL:nada_ai_url': 'error_invalid_nada_ai_url',
 };
 
 function errorText(e) {
@@ -365,6 +367,26 @@ const saveVisible = computed(() => {
 });
 
 const pathsOk = computed(() => meta.value?.paths_ok || {});
+
+/** What the search engine setting means now: which engine serves each search, and what nada-ai runs. */
+const searchEngineMeta = computed(() => meta.value?.search_engine || null);
+const SERVES = [
+  { key: 'studies', labelKey: 'search_engine_serves_studies' },
+  { key: 'variables', labelKey: 'search_engine_serves_variables' },
+  { key: 'citations', labelKey: 'search_engine_serves_citations' },
+];
+const servesNow = computed(() => {
+  const serves = searchEngineMeta.value?.serves;
+  if (!serves) return [];
+  return SERVES.map(({ key, labelKey }) => ({
+    key,
+    label: tr(labelKey),
+    engine: tr(`search_engine_${serves[key]}`),
+    color: serves[key] === 'database' ? undefined : 'primary',
+  }));
+});
+/** The engine nada-ai reports it runs (opensearch | qdrant), or null when it has not answered. */
+const nadaAiBackend = computed(() => searchEngineMeta.value?.nada_ai?.engine || null);
 
 const depositMeta = computed(() => meta.value?.datadeposit || {});
 const depositEnabled = computed(() => depositMeta.value?.enabled === true);
@@ -1002,120 +1024,129 @@ onMounted(async () => {
                 </v-btn>
               </div>
 
-              <label class="site-config-field__label">{{ tr('search_provider') }}</label>
-              <v-radio-group v-model="settings.search_provider" class="mt-1">
-                <v-radio value="db" :label="tr('search_provider_db')" />
-                <v-radio value="opensearch" :label="tr('search_provider_opensearch')" />
-                <v-radio value="solr" :label="tr('search_provider_solr')" />
-                <v-radio
-                  value="semantic"
-                  :label="tr('search_provider_semantic')"
-                  :disabled="!semanticUrlEntered"
-                />
+              <label class="site-config-field__label">{{ tr('search_engine') }}</label>
+              <v-radio-group v-model="settings.search_engine" class="mt-1" hide-details>
+                <v-radio value="database" :label="tr('search_engine_database')" />
+                <v-radio value="solr" :label="tr('search_engine_solr')" />
+                <v-radio value="opensearch_native" :label="tr('search_engine_opensearch_native')" />
+                <v-radio value="nada_ai" :label="tr('search_engine_nada_ai')" :disabled="!nadaAiUrlEntered" />
               </v-radio-group>
-              <div v-if="!semanticUrlEntered" class="site-config-field__hint mt-2">
-                {{ tr('semantic_search_needs_setup') }}
+              <div class="site-config-field__hint mt-2">{{ tr('search_engine_note') }}</div>
+              <div v-if="!nadaAiUrlEntered" class="site-config-field__hint mt-2">
+                {{ tr('nada_ai_needs_setup') }}
               </div>
 
-              <label class="site-config-field__label mt-4">{{ tr('citation_search_provider') }}</label>
-              <v-radio-group v-model="settings.citation_search_provider" class="mt-1" hide-details>
-                <v-radio value="default" :label="tr('citation_search_provider_default')" />
-                <v-radio value="db" :label="tr('citation_search_provider_db')" />
-                <v-radio
-                  value="nada_ai"
-                  :label="tr('citation_search_provider_nada_ai')"
-                  :disabled="!semanticUrlEntered"
-                />
-              </v-radio-group>
-              <div class="site-config-field__hint mt-2">{{ tr('citation_search_provider_note') }}</div>
+              <div v-if="servesNow.length" class="mt-4">
+                <label class="site-config-field__label">{{ tr('search_engine_serves') }}</label>
+                <div class="d-flex flex-wrap ga-2 mt-1">
+                  <v-chip v-for="row in servesNow" :key="row.key" size="small" variant="tonal" :color="row.color">
+                    {{ row.label }}: {{ row.engine }}
+                  </v-chip>
+                </div>
+                <div class="site-config-field__hint mt-2">{{ tr('search_engine_serves_note') }}</div>
+              </div>
 
               <v-expansion-panels variant="accordion" class="mt-6">
                 <v-expansion-panel>
                   <v-expansion-panel-title>
-                    <span class="text-subtitle-1 font-weight-medium">{{ tr('semantic_search_section') }}</span>
+                    <span class="text-subtitle-1 font-weight-medium">{{ tr('nada_ai_section') }}</span>
                   </v-expansion-panel-title>
                   <v-expansion-panel-text>
                     <v-row dense>
                       <v-col cols="12">
-                        <label class="site-config-field__label">{{ tr('semantic_search_url') }}</label>
+                        <label class="site-config-field__label">{{ tr('nada_ai_url') }}</label>
                         <v-text-field
-                          v-model="settings.semantic_search_url"
+                          v-model="settings.nada_ai_url"
                           variant="outlined"
                           density="comfortable"
                           placeholder="https://ai.example.org"
                           hide-details
                         />
-                        <div class="site-config-field__hint mt-2">{{ tr('semantic_search_url_note') }}</div>
-                      </v-col>
-                      <v-col cols="12">
-                        <label class="site-config-field__label">{{ tr('semantic_search_engine') }}</label>
-                        <v-radio-group v-model="settings.semantic_search_engine" class="mt-1" hide-details>
-                          <v-radio value="qdrant" :label="tr('semantic_search_engine_qdrant')" />
-                          <v-radio value="qdrant_db" :label="tr('semantic_search_engine_qdrant_db')" />
-                          <v-radio value="opensearch" :label="tr('semantic_search_engine_opensearch')" />
-                        </v-radio-group>
-                        <div class="site-config-field__hint mt-2">{{ tr('semantic_search_engine_note') }}</div>
-                      </v-col>
-                      <v-col cols="12">
-                        <label class="site-config-field__label">{{ tr('semantic_search_api_key') }}</label>
-                        <v-text-field
-                          v-model="settings.semantic_search_api_key"
-                          variant="outlined"
-                          density="comfortable"
-                          type="password"
-                          autocomplete="new-password"
-                          :placeholder="secretsSet.semantic_search_api_key ? tr('secret_saved_placeholder') : ''"
-                          hide-details
-                        />
-                        <div class="site-config-field__hint mt-2">{{ tr('semantic_search_api_key_note') }}</div>
-                        <div v-if="secretsSet.semantic_search_api_key" class="d-flex align-center flex-wrap ga-2 mt-1">
-                          <v-icon icon="mdi-check-circle" size="small" color="success" />
-                          <span class="site-config-field__hint">{{ tr('secret_saved_hint') }}</span>
-                          <v-btn
-                            size="small"
-                            variant="text"
-                            color="error"
-                            @click="askClearSecret('semantic_search_api_key')"
-                          >
-                            {{ tr('secret_clear') }}
-                          </v-btn>
+                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_url_note') }}</div>
+                        <div v-if="nadaAiUrlEntered" class="site-config-field__hint mt-2">
+                          <template v-if="nadaAiBackend">{{ tr('nada_ai_running') }}: <strong>{{ nadaAiBackend }}</strong></template>
+                          <template v-else>{{ tr('nada_ai_running_unknown') }}</template>
                         </div>
                       </v-col>
-                      <v-col cols="12">
-                        <label class="site-config-field__label">{{ tr('semantic_search_admin_api_key') }}</label>
-                        <v-text-field
-                          v-model="settings.semantic_search_admin_api_key"
-                          variant="outlined"
-                          density="comfortable"
-                          type="password"
-                          autocomplete="new-password"
-                          :placeholder="secretsSet.semantic_search_admin_api_key ? tr('secret_saved_placeholder') : ''"
-                          hide-details
-                        />
-                        <div class="site-config-field__hint mt-2">{{ tr('semantic_search_admin_api_key_note') }}</div>
-                        <div v-if="secretsSet.semantic_search_admin_api_key" class="d-flex align-center flex-wrap ga-2 mt-1">
-                          <v-icon icon="mdi-check-circle" size="small" color="success" />
-                          <span class="site-config-field__hint">{{ tr('secret_saved_hint') }}</span>
-                          <v-btn
-                            size="small"
-                            variant="text"
-                            color="error"
-                            @click="askClearSecret('semantic_search_admin_api_key')"
-                          >
-                            {{ tr('secret_clear') }}
-                          </v-btn>
-                        </div>
-                      </v-col>
-                      <v-col cols="12">
-                        <label class="site-config-field__label">{{ tr('semantic_search_debug') }}</label>
+                      <v-col v-if="nadaAiBackend === 'qdrant'" cols="12">
+                        <label class="site-config-field__label">{{ tr('nada_ai_combine_with_database') }}</label>
                         <v-switch
-                          v-model="settings.semantic_search_debug"
+                          v-model="settings.nada_ai_combine_with_database"
                           true-value="true"
                           false-value="false"
                           color="primary"
                           hide-details
                         />
-                        <div class="site-config-field__hint mt-2">{{ tr('semantic_search_debug_note') }}</div>
+                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_combine_with_database_note') }}</div>
+                      </v-col>
+                      <v-col cols="12">
+                        <label class="site-config-field__label">{{ tr('nada_ai_on_outage') }}</label>
+                        <v-radio-group v-model="settings.nada_ai_on_outage" class="mt-1" hide-details>
+                          <v-radio value="database" :label="tr('nada_ai_on_outage_database')" />
+                          <v-radio value="error" :label="tr('nada_ai_on_outage_error')" />
+                        </v-radio-group>
+                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_on_outage_note') }}</div>
+                      </v-col>
+                      <v-col cols="12">
+                        <label class="site-config-field__label">{{ tr('nada_ai_api_key') }}</label>
+                        <v-text-field
+                          v-model="settings.nada_ai_api_key"
+                          variant="outlined"
+                          density="comfortable"
+                          type="password"
+                          autocomplete="new-password"
+                          :placeholder="secretsSet.nada_ai_api_key ? tr('secret_saved_placeholder') : ''"
+                          hide-details
+                        />
+                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_api_key_note') }}</div>
+                        <div v-if="secretsSet.nada_ai_api_key" class="d-flex align-center flex-wrap ga-2 mt-1">
+                          <v-icon icon="mdi-check-circle" size="small" color="success" />
+                          <span class="site-config-field__hint">{{ tr('secret_saved_hint') }}</span>
+                          <v-btn
+                            size="small"
+                            variant="text"
+                            color="error"
+                            @click="askClearSecret('nada_ai_api_key')"
+                          >
+                            {{ tr('secret_clear') }}
+                          </v-btn>
+                        </div>
+                      </v-col>
+                      <v-col cols="12">
+                        <label class="site-config-field__label">{{ tr('nada_ai_admin_api_key') }}</label>
+                        <v-text-field
+                          v-model="settings.nada_ai_admin_api_key"
+                          variant="outlined"
+                          density="comfortable"
+                          type="password"
+                          autocomplete="new-password"
+                          :placeholder="secretsSet.nada_ai_admin_api_key ? tr('secret_saved_placeholder') : ''"
+                          hide-details
+                        />
+                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_admin_api_key_note') }}</div>
+                        <div v-if="secretsSet.nada_ai_admin_api_key" class="d-flex align-center flex-wrap ga-2 mt-1">
+                          <v-icon icon="mdi-check-circle" size="small" color="success" />
+                          <span class="site-config-field__hint">{{ tr('secret_saved_hint') }}</span>
+                          <v-btn
+                            size="small"
+                            variant="text"
+                            color="error"
+                            @click="askClearSecret('nada_ai_admin_api_key')"
+                          >
+                            {{ tr('secret_clear') }}
+                          </v-btn>
+                        </div>
+                      </v-col>
+                      <v-col cols="12">
+                        <label class="site-config-field__label">{{ tr('nada_ai_debug') }}</label>
+                        <v-switch
+                          v-model="settings.nada_ai_debug"
+                          true-value="true"
+                          false-value="false"
+                          color="primary"
+                          hide-details
+                        />
+                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_debug_note') }}</div>
                       </v-col>
                     </v-row>
                   </v-expansion-panel-text>

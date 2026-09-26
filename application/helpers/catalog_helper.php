@@ -42,22 +42,22 @@ function catalog_search_debug_enabled()
 {
 	$CI =& get_instance();
 	$CI->config->load('semantic_search');
-	$enabled = filter_var($CI->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN)
+	$enabled = filter_var($CI->config->item('nada_ai_debug'), FILTER_VALIDATE_BOOLEAN)
 		|| filter_var($CI->config->item('opensearch_debug'), FILTER_VALIDATE_BOOLEAN);
 
 	return $enabled && catalog_search_debug_viewer();
 }
 
 /**
- * Whether semantic search debugging is on for this request: the semantic_search_debug setting, for a user allowed to
+ * Whether semantic search debugging is on for this request: the nada_ai_debug setting, for a user allowed to
  * see the debug payloads (see catalog_search_debug_enabled()).
  */
-function semantic_search_debug_enabled()
+function nada_ai_debug_enabled()
 {
 	$CI =& get_instance();
 	$CI->config->load('semantic_search');
 
-	return filter_var($CI->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN) && catalog_search_debug_viewer();
+	return filter_var($CI->config->item('nada_ai_debug'), FILTER_VALIDATE_BOOLEAN) && catalog_search_debug_viewer();
 }
 
 /**

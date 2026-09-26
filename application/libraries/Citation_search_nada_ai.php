@@ -3,7 +3,7 @@
 /**
  * Citation Search — nada-ai driver
  *
- * Used when the site setting citation_search_provider = nada_ai. Same public interface as the other citation search
+ * Used when the search engine is nada_ai and nada-ai has a citation search. Same public interface as the other citation search
  * drivers: search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid), and it sets
  * $search_found_rows.
  *
@@ -44,8 +44,8 @@ class Citation_search_nada_ai
         $this->ci =& get_instance();
         $this->ci->config->load('semantic_search');
 
-        $this->api_key = (string) $this->ci->config->item('semantic_search_api_key');
-        $timeout       = (int) $this->ci->config->item('semantic_search_timeout');
+        $this->api_key = (string) $this->ci->config->item('nada_ai_api_key');
+        $timeout       = (int) $this->ci->config->item('nada_ai_timeout');
         $this->timeout = min(max(1, $timeout > 0 ? $timeout : self::API_MAX_TIMEOUT_SEC), self::API_MAX_TIMEOUT_SEC);
 
         $this->ci->load->model('Citation_model');

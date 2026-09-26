@@ -18,32 +18,21 @@ class Catalog_search{
     function __construct($params=array()){
 
         $ci =& get_instance();
-        $valid_search_providers=array('solr','db','opensearch','semantic');
+        $ci->load->library('search_engine_resolver');
+        $valid_engines = array('database', 'solr', 'opensearch_native', 'nada_ai');
 
-        $search_provider = null;
-        
-        // Check if search provider is explicitly specified in params
-        if (isset($params['search_provider'])) {
-            if (in_array($params['search_provider'], $valid_search_providers)){
-                $search_provider = $params['search_provider'];
-            }
-        } else {
-            // Use configuration-based search provider
-            $search_provider = $ci->config->item('search_provider');
-        }
+        // an explicit engine in $params (the admin search test, the variable view) wins over the site setting
+        $search_engine = (isset($params['search_engine']) && in_array($params['search_engine'], $valid_engines, true))
+            ? $params['search_engine']
+            : $ci->search_engine_resolver->engine();
 
-        $driver = null;
-        
-        if ($search_provider === 'db') {
-            $driver = $ci->db->dbdriver;
-        } elseif ($search_provider === 'solr') {
+        $driver = $ci->db->dbdriver;
+        if ($search_engine === 'solr') {
             $driver = 'solr';
-        } elseif ($search_provider === 'opensearch') {
+        } elseif ($search_engine === 'opensearch_native') {
             $driver = 'opensearch';
-        } elseif ($search_provider === 'semantic') {
+        } elseif ($search_engine === 'nada_ai') {
             $driver = 'semantic';
-        } else {
-            $driver = $ci->db->dbdriver;
         }
 
         require_once dirname(__FILE__) . '/Catalog_search_mysql.php';
@@ -67,10 +56,11 @@ class Catalog_search{
                 $this->search_obj= new catalog_search_opensearch($params);
                 break;
             case 'semantic';
-                //the engine behind nada-ai decides the driver: qdrant keeps the original semantic driver,
-                //qdrant_db fuses Qdrant with the database search, opensearch uses nada-ai's standard study search
-                $ci->config->load('semantic_search');
-                $engine = strtolower(trim((string) $ci->config->item('semantic_search_engine')));
+                // the engine behind nada-ai decides the driver, and nada-ai says which it runs: OpenSearch uses nada-ai's
+                // standard study search, Qdrant keeps the original semantic driver, or the one that fuses it with the
+                // database search when nada_ai_combine_with_database is on. When nada-ai has never been reachable the
+                // engine is not known, and the database search serves the request.
+                $engine = $ci->search_engine_resolver->nada_ai_study_driver();
                 if ($engine === 'opensearch') {
                     require_once dirname(__FILE__) . '/Catalog_search_semantic_studies.php';
                     $this->search_obj= new catalog_search_semantic_studies($params);
@@ -80,8 +70,11 @@ class Catalog_search{
                 } elseif ($engine === 'qdrant') {
                     require_once dirname(__FILE__) . '/Catalog_search_semantic.php';
                     $this->search_obj= new catalog_search_semantic($params);
+                } elseif ($ci->db->dbdriver === 'sqlsrv') {
+                    require_once dirname(__FILE__) . '/Catalog_search_sqlsrv.php';
+                    $this->search_obj= new catalog_search_sqlsrv($params);
                 } else {
-                    throw new exception(sprintf("SEMANTIC SEARCH ENGINE [%s] NOT SUPPORTED (use qdrant, qdrant_db or opensearch)",$engine));
+                    $this->search_obj= new catalog_search_mysql($params);
                 }
                 break;
             default:

@@ -757,7 +757,7 @@ $config['catalog_default_sort_order']='';
 | Managed via Site Administration > Settings. 
 */
 
-$config['search_provider']='db';
+$config['search_engine']='database';
 
 
 /**

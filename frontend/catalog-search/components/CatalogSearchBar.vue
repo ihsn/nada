@@ -63,7 +63,7 @@ const DEBOUNCE_MS = 400;
 const props = defineProps({
   modelValue:     { type: String, default: '' },
   loading:        { type: Boolean, default: false },
-  searchProvider: { type: String, default: 'db' },
+  searchEngine: { type: String, default: 'database' },
 });
 const emit = defineEmits(['update:modelValue', 'search', 'reset']);
 
@@ -78,7 +78,7 @@ const localValue = computed({
 
 const placeholder = computed(() => `${t('keywords')}...`);
 
-const driverGroup = computed(() => searchDriverGroup(props.searchProvider));
+const driverGroup = computed(() => searchDriverGroup(props.searchEngine));
 
 const submitDriverClass = computed(() =>
   driverGroup.value === 'db' ? null : `search-shell__submit--${driverGroup.value}`

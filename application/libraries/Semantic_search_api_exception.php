@@ -2,7 +2,7 @@
 
 /**
  * Raised when the external semantic search API returns an error.
- * Carries request/response bodies for debug output when semantic_search_debug is enabled.
+ * Carries request/response bodies for debug output when nada_ai_debug is enabled.
  */
 class Semantic_search_api_exception extends RuntimeException
 {

@@ -22,7 +22,7 @@
         </v-row>
         <p class="text-caption text-medium-emphasis mt-2 mb-0">
           Runs the catalog search exactly as the public catalog would with semantic search on (the
-          <strong>{{ configuredEngine || '—' }}</strong> engine, relevance order), with the search driver's debug output.
+          <strong>{{ engine || '—' }}</strong> engine of nada-ai, relevance order), with the search driver's debug output.
         </p>
 
         <v-expansion-panels variant="accordion" class="mt-3">
@@ -157,7 +157,8 @@ import { typeLabel, formatCount } from '../typeLabels.js';
 defineOptions({ name: 'SemanticSearchTestPage' });
 
 const { loading, error, errorMessage, search } = useSemanticApi();
-const { configuredEngine } = useEngine();
+const { engine, ensureEngine } = useEngine();
+ensureEngine();
 
 const query = ref('');
 const type = ref(null);

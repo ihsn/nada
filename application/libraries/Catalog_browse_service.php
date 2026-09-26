@@ -406,7 +406,7 @@ class Catalog_browse_service {
 		$this->CI->load->library('search_engine_resolver');
 		if ($search_options->view === 'v'
 			&& $this->CI->search_engine_resolver->provider_for(Search_engine_resolver::VARIABLES) !== Search_engine_resolver::NADA_AI) {
-			$params['search_provider'] = 'db';
+			$params['search_engine'] = 'database';
 		}
 
 		$this->CI->load->library('catalog_search', $params);
@@ -482,7 +482,7 @@ class Catalog_browse_service {
 	public function site_config_for_client()
 	{
 		$show_abstract = $this->CI->config->item('catalog_show_abstract');
-		$search_provider = $this->CI->config->item('search_provider');
+		$this->CI->load->library('search_engine_resolver');
 		$this->CI->load->helper('catalog');
 		return array(
 			'data_types_nav_bar' => $this->data_types_nav_bar,
@@ -492,7 +492,7 @@ class Catalog_browse_service {
 			'da_search' => $this->da_search,
 			'catalog_variable_view' => $this->CI->config->item('catalog_variable_view'),
 			'catalog_show_abstract' => ($show_abstract === false) ? 'yes' : $show_abstract,
-			'search_provider' => ($search_provider === false || $search_provider === null) ? 'db' : $search_provider,
+			'search_engine' => $this->CI->search_engine_resolver->engine(),
 			'catalog_public_search_ui' => catalog_public_search_ui(),
 			'catalog_search_debug' => catalog_search_debug_enabled(),
 		);

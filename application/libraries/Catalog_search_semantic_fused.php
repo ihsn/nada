@@ -3,7 +3,7 @@
 /**
  * Catalog Search — Semantic (AI), Qdrant + database driver
  *
- * Used when semantic_search_engine = qdrant_db. The result is the semantic matches from Qdrant pinned to the
+ * Used when nada-ai runs Qdrant and nada_ai_combine_with_database is on. The result is the semantic matches from Qdrant pinned to the
  * top, followed by the catalog database's own keyword search result without those studies:
  *
  *   No keywords     -> the plain database search (browsing needs no semantic search).

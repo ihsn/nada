@@ -40,11 +40,6 @@
               </div>
               <div id="semantic-page-actions" class="admin-semantic-content-actions" />
             </header>
-            <v-alert v-if="engineMismatch" type="warning" variant="tonal" density="compact" class="mb-4">
-              This site's semantic search engine is set to <strong>{{ configuredEngine }}</strong>, but nada-ai is running
-              <strong>{{ engine }}</strong>. Catalog search will fail until they match: change the engine in
-              Site configurations &gt; Search, or restart nada-ai with the matching backend.
-            </v-alert>
             <router-view />
           </div>
         </div>
@@ -64,7 +59,7 @@ defineOptions({ name: 'AdminSemanticApp' });
 
 const route = useRoute();
 const { getTypeBreakdown, listJobs, getSyncStatus } = useSemanticApi();
-const { engine, configuredEngine, engineMismatch, ensureEngine } = useEngine();
+const { ensureEngine } = useEngine();
 
 const errorCount = ref(0);
 const runningJobs = ref(0);

@@ -12,7 +12,7 @@ class Citation_model extends CI_Model {
 	
 	/**
 	 * Search citations with the engine that serves them (Search_engine_resolver): nada-ai, Solr, NADA's OpenSearch or
-	 * the database. The site setting citation_search_provider overrides the choice (db | nada_ai).
+	 * the database. That is the site's search engine, or the database when the engine has no citation search.
 	 */
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
     {

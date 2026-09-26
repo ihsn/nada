@@ -80,15 +80,15 @@ abstract class catalog_search_semantic_base
         $this->ci = & get_instance();
         $this->ci->config->load('semantic_search');
 
-        $this->api_url       = rtrim((string) $this->ci->config->item('semantic_search_url'), '/');
-        $this->api_key       = (string) $this->ci->config->item('semantic_search_api_key');
-        $this->admin_api_key = (string) $this->ci->config->item('semantic_search_admin_api_key');
-        $timeout             = (int) $this->ci->config->item('semantic_search_timeout');
+        $this->api_url       = rtrim((string) $this->ci->config->item('nada_ai_url'), '/');
+        $this->api_key       = (string) $this->ci->config->item('nada_ai_api_key');
+        $this->admin_api_key = (string) $this->ci->config->item('nada_ai_admin_api_key');
+        $timeout             = (int) $this->ci->config->item('nada_ai_timeout');
         $this->timeout       = min(max(1, $timeout > 0 ? $timeout : self::API_MAX_TIMEOUT_SEC), self::API_MAX_TIMEOUT_SEC);
         // only for a user allowed to see the debug payloads: they reach the browser, and debugging sends the admin key.
         // semantic_debug is set by the admin dashboard's search test (api/admin/Semantic::search_post) only.
         $this->ci->load->helper('catalog');
-        $this->debug         = !empty($params['semantic_debug']) || semantic_search_debug_enabled();
+        $this->debug         = !empty($params['semantic_debug']) || nada_ai_debug_enabled();
 
         // same default sort as the database search
         if ($this->ci->config->item('regional_search') == 'yes') {
