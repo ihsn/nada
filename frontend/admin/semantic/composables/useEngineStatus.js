@@ -18,7 +18,7 @@ const THROTTLE_MS = 10000;
 export const ENGINE_LABELS = {
   database: 'Database',
   solr: 'Solr',
-  opensearch: "OpenSearch (NADA's built-in)",
+  opensearch: 'OpenSearch',
   nada_ai_opensearch: 'NADA-AI with OpenSearch',
   nada_ai_qdrant: 'NADA-AI with Qdrant',
 };
