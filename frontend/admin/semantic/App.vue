@@ -40,6 +40,7 @@
               </div>
               <div id="semantic-page-actions" class="admin-semantic-content-actions" />
             </header>
+            <EngineStatusBanner />
             <router-view />
           </div>
         </div>
@@ -53,6 +54,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useSemanticApi } from './composables/useSemanticApi.js';
 import { useEngine } from './composables/useEngine.js';
+import EngineStatusBanner from './components/EngineStatusBanner.vue';
 import './semantic-layout.css';
 
 defineOptions({ name: 'AdminSemanticApp' });

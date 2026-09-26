@@ -185,7 +185,7 @@ class Semantic extends MY_REST_Controller
 
 		$this->load->library('search_engine_resolver');
 		$this->set_response(
-			array_merge(array('status' => 'success'), $this->search_engine_resolver->summary()),
+			array_merge(array('status' => 'success', 'now' => time()), $this->search_engine_resolver->summary()),
 			REST_Controller::HTTP_OK
 		);
 	}

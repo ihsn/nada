@@ -55,6 +55,14 @@ export function useSemanticApi() {
   }
 
   /**
+   * Which engine serves studies, variables and citations, what nada-ai runs and can serve, and whether nada-ai is
+   * being called (the outage breaker and the fallbacks counted this hour).
+   */
+  function getEngineStatus() {
+    return _run(async () => (await axios.get(`${base()}engine_status`)).data);
+  }
+
+  /**
    * Citations in the database vs. what the citation search index holds (all and published).
    * @returns {Promise<{database:{citations:number,published:number}, index:{ok:boolean, data?:{exists:boolean,citations:number,published:number}, error?:string, status?:number|null}}>}
    */
@@ -208,6 +216,7 @@ export function useSemanticApi() {
     getOverview,
     getHealth,
     getVariablesStats,
+    getEngineStatus,
     getVariablesCoverage,
     getCitationsStats,
     syncCitations,

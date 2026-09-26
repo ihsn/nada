@@ -10,6 +10,8 @@
       @warmup="warmup"
     />
 
+    <EngineStatusCard ref="engineCard" />
+
     <v-alert v-if="summaryError" type="error" variant="tonal" density="compact">
       {{ summaryErrorMessage(summaryError) }}
     </v-alert>
@@ -118,6 +120,7 @@ import KpiStrip from '../components/KpiStrip.vue';
 import CoverageTable from '../components/CoverageTable.vue';
 import VariablesCoverageCard from '../components/VariablesCoverageCard.vue';
 import CitationsCoverageCard from '../components/CitationsCoverageCard.vue';
+import EngineStatusCard from '../components/EngineStatusCard.vue';
 
 defineOptions({ name: 'SemanticOverviewPage' });
 
@@ -144,6 +147,7 @@ const {
 const overview = ref(null);
 const variablesCard = ref(null);
 const citationsCard = ref(null);
+const engineCard = ref(null);
 const warmingUp = ref(false);
 const recentJobs = ref([]);
 const syncStatus = ref(null);
@@ -191,7 +195,7 @@ async function loadOverview() {
 }
 
 async function loadAll() {
-  await Promise.all([loadOverview(), loadCoverage(), loadRecentJobs(), loadSyncStatus(), variablesCard.value?.load(), citationsCard.value?.load()]);
+  await Promise.all([loadOverview(), loadCoverage(), loadRecentJobs(), loadSyncStatus(), variablesCard.value?.load(), citationsCard.value?.load(), engineCard.value?.load()]);
 }
 
 async function warmup() {
