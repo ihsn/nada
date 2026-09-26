@@ -228,6 +228,7 @@ async function reloadAll() {
   }
   settings.value = { ...s };
   meta.value = { ...m };
+  initEngineSections();
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
   hydrateDisplaySwitches(settings.value.legacy_study_templates);
 }
@@ -384,13 +385,52 @@ const servesNow = computed(() => {
 });
 /** The engine nada-ai reports it runs (opensearch | qdrant), or null when it has not answered. */
 const nadaAiBackend = computed(() => searchEngineMeta.value?.nada_ai?.engine || null);
-const ENGINE_OPTIONS = [
-  { value: 'database' },
-  { value: 'solr' },
-  { value: 'opensearch' },
-  { value: 'nada_ai_opensearch', needsNadaAi: true },
-  { value: 'nada_ai_qdrant', needsNadaAi: true },
-];
+/** The engine sections of the page; the two nada-ai engines are one section with a choice inside. */
+const ENGINE_GROUPS = ['database', 'solr', 'opensearch', 'nada_ai'];
+const engineGroup = (engine) => (String(engine || '').startsWith('nada_ai_') ? 'nada_ai' : engine || 'database');
+const savedEngine = computed(() => searchEngineMeta.value?.engine || 'database');
+const draftEngine = computed(() => settings.value.search_engine || 'database');
+/** The section open in the accordion; opening one does not change the setting. */
+const openEnginePanel = ref(null);
+/** Which engine nada-ai runs, as chosen in the nada-ai section (part of search_engine when nada-ai is selected). */
+const nadaAiFlavor = ref('opensearch');
+
+const isSelected = (group) => engineGroup(draftEngine.value) === group;
+const isActive = (group) => engineGroup(savedEngine.value) === group;
+const engineUnsaved = computed(() => draftEngine.value !== savedEngine.value);
+const groupTitle = (group) => (group === 'nada_ai' ? tr('nada_ai_title') : tr(`search_engine_${group}`));
+const groupNote = (group) => (group === 'nada_ai' ? tr('search_engine_nada_ai_note') : tr(`search_engine_${group}_note`));
+
+function selectEngineGroup(group) {
+  settings.value.search_engine = group === 'nada_ai' ? `nada_ai_${nadaAiFlavor.value}` : group;
+  openEnginePanel.value = group;
+}
+/** Keep the nada-ai choice in step with the setting, and the setting with the choice while nada-ai is selected. */
+watch(
+  () => settings.value.search_engine,
+  (engine) => {
+    if (String(engine || '').startsWith('nada_ai_')) nadaAiFlavor.value = engine.slice('nada_ai_'.length);
+  },
+);
+watch(nadaAiFlavor, (flavor) => {
+  if (isSelected('nada_ai')) settings.value.search_engine = `nada_ai_${flavor}`;
+});
+function initEngineSections() {
+  const engine = settings.value.search_engine;
+  if (String(engine || '').startsWith('nada_ai_')) nadaAiFlavor.value = engine.slice('nada_ai_'.length);
+  else if (nadaAiBackend.value) nadaAiFlavor.value = nadaAiBackend.value;
+  if (openEnginePanel.value === null) openEnginePanel.value = engineGroup(engine);
+}
+/** nada-ai reports another engine than the one chosen in the section. */
+const flavorMismatch = computed(() => !!nadaAiBackend.value && nadaAiBackend.value !== nadaAiFlavor.value);
+const nadaAiStatus = computed(() => {
+  if (!nadaAiUrlEntered.value) return { text: tr('nada_ai_status_not_configured'), color: 'warning' };
+  if (!nadaAiBackend.value) return { text: tr('nada_ai_status_unknown'), color: undefined };
+  return { text: tr('nada_ai_status_runs').replace('%s', nadaAiBackend.value), color: flavorMismatch.value ? 'warning' : 'success' };
+});
+const flavorMismatchText = computed(() =>
+  tr('nada_ai_flavor_mismatch').replace('%s', nadaAiBackend.value || '').replace('%s', nadaAiFlavor.value),
+);
 /** {expected, actual} when nada-ai runs another engine than the saved search engine names. */
 const backendMismatch = computed(() => searchEngineMeta.value?.backend_mismatch || null);
 const mismatchText = computed(() => {
@@ -1035,128 +1075,150 @@ onMounted(async () => {
                 </v-btn>
               </div>
 
-              <label class="site-config-field__label">{{ tr('search_engine') }}</label>
-              <v-radio-group v-model="settings.search_engine" class="mt-1" hide-details>
-                <v-radio v-for="opt in ENGINE_OPTIONS" :key="opt.value" :value="opt.value" :disabled="opt.needsNadaAi && !nadaAiUrlEntered">
-                  <template #label>
-                    <div>
-                      <div>{{ tr(`search_engine_${opt.value}`) }}</div>
-                      <div class="site-config-field__hint">{{ tr(`search_engine_${opt.value}_note`) }}</div>
-                    </div>
-                  </template>
-                </v-radio>
-              </v-radio-group>
-              <div class="site-config-field__hint mt-2">{{ tr('search_engine_note') }}</div>
-              <div v-if="!nadaAiUrlEntered" class="site-config-field__hint mt-2">
-                {{ tr('nada_ai_needs_setup') }}
+              <div class="d-flex align-center flex-wrap ga-2">
+                <label class="site-config-field__label mb-0">{{ tr('search_engine_active_now') }}</label>
+                <v-chip color="primary" size="small">{{ tr(`search_engine_${savedEngine}`) }}</v-chip>
+                <v-chip v-if="engineUnsaved" color="warning" size="small" variant="tonal" prepend-icon="mdi-circle-edit-outline">
+                  {{ tr('search_engine_unsaved') }}: {{ tr(`search_engine_${draftEngine}`) }}
+                </v-chip>
               </div>
+              <div v-if="servesNow.length" class="d-flex flex-wrap ga-2 mt-2">
+                <v-chip v-for="row in servesNow" :key="row.key" size="small" variant="tonal" :color="row.color">
+                  {{ row.label }}: {{ row.engine }}
+                </v-chip>
+              </div>
+              <div class="site-config-field__hint mt-2">{{ tr('search_engine_note') }}</div>
 
               <v-alert v-if="backendMismatch" type="warning" variant="tonal" density="compact" class="mt-4">
                 {{ mismatchText }}
               </v-alert>
 
-              <div v-if="servesNow.length" class="mt-4">
-                <label class="site-config-field__label">{{ tr('search_engine_serves') }}</label>
-                <div class="d-flex flex-wrap ga-2 mt-1">
-                  <v-chip v-for="row in servesNow" :key="row.key" size="small" variant="tonal" :color="row.color">
-                    {{ row.label }}: {{ row.engine }}
-                  </v-chip>
-                </div>
-                <div class="site-config-field__hint mt-2">{{ tr('search_engine_serves_note') }}</div>
-              </div>
-
-              <v-expansion-panels variant="accordion" class="mt-6">
-                <v-expansion-panel>
+              <v-expansion-panels v-model="openEnginePanel" variant="accordion" class="mt-4">
+                <v-expansion-panel v-for="group in ENGINE_GROUPS" :key="group" :value="group">
                   <v-expansion-panel-title>
-                    <span class="text-subtitle-1 font-weight-medium">{{ tr('nada_ai_section') }}</span>
+                    <div class="d-flex align-center flex-wrap ga-2 w-100 pr-2">
+                      <span class="text-subtitle-1 font-weight-medium">{{ groupTitle(group) }}</span>
+                      <v-chip v-if="isActive(group)" size="x-small" color="success" variant="tonal">
+                        {{ tr('search_engine_active') }}
+                      </v-chip>
+                      <v-chip v-if="isSelected(group) && !isActive(group)" size="x-small" color="warning" variant="tonal">
+                        {{ tr('search_engine_selected_unsaved') }}
+                      </v-chip>
+                      <v-chip v-if="group === 'nada_ai'" size="x-small" variant="tonal" :color="nadaAiStatus.color">
+                        {{ nadaAiStatus.text }}
+                      </v-chip>
+                      <v-spacer />
+                      <v-btn v-if="!isSelected(group)" size="small" variant="tonal" @click.stop="selectEngineGroup(group)">
+                        {{ tr('search_engine_use') }}
+                      </v-btn>
+                    </div>
                   </v-expansion-panel-title>
                   <v-expansion-panel-text>
-                    <v-row dense>
-                      <v-col cols="12">
-                        <label class="site-config-field__label">{{ tr('nada_ai_url') }}</label>
-                        <v-text-field
-                          v-model="settings.nada_ai_url"
-                          variant="outlined"
-                          density="comfortable"
-                          placeholder="https://ai.example.org"
-                          hide-details
-                        />
-                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_url_note') }}</div>
-                        <div v-if="nadaAiUrlEntered" class="site-config-field__hint mt-2">
-                          <template v-if="nadaAiBackend">{{ tr('nada_ai_running') }}: <strong>{{ nadaAiBackend }}</strong></template>
-                          <template v-else>{{ tr('nada_ai_running_unknown') }}</template>
-                        </div>
-                      </v-col>
-                      <v-col cols="12">
+                    <div class="site-config-field__hint">{{ groupNote(group) }}</div>
+
+                    <template v-if="group === 'nada_ai'">
+                      <div class="mt-4">
+                        <label class="site-config-field__label">{{ tr('nada_ai_runs') }}</label>
+                        <v-radio-group v-model="nadaAiFlavor" inline class="mt-1" hide-details>
+                          <v-radio value="opensearch" :label="tr('nada_ai_flavor_opensearch')" />
+                          <v-radio value="qdrant" :label="tr('nada_ai_flavor_qdrant')" />
+                        </v-radio-group>
+                        <div class="site-config-field__hint mt-2">{{ tr(`search_engine_nada_ai_${nadaAiFlavor}_note`) }}</div>
+                        <v-alert v-if="flavorMismatch" type="warning" variant="tonal" density="compact" class="mt-2">
+                          {{ flavorMismatchText }}
+                        </v-alert>
+                      </div>
+
+                      <div class="mt-6">
+                        <div class="text-subtitle-2 mb-2">{{ tr('nada_ai_connection') }}</div>
+                        <v-row dense>
+                          <v-col cols="12">
+                            <label class="site-config-field__label">{{ tr('nada_ai_url') }}</label>
+                            <v-text-field
+                              v-model="settings.nada_ai_url"
+                              variant="outlined"
+                              density="comfortable"
+                              placeholder="https://ai.example.org"
+                              :error-messages="isSelected('nada_ai') && !nadaAiUrlEntered ? [tr('nada_ai_url_required')] : []"
+                              :hide-details="!(isSelected('nada_ai') && !nadaAiUrlEntered)"
+                            />
+                            <div class="site-config-field__hint mt-2">{{ tr('nada_ai_url_note') }}</div>
+                          </v-col>
+                          <v-col cols="12">
+                            <label class="site-config-field__label">{{ tr('nada_ai_api_key') }}</label>
+                            <v-text-field
+                              v-model="settings.nada_ai_api_key"
+                              variant="outlined"
+                              density="comfortable"
+                              type="password"
+                              autocomplete="new-password"
+                              :placeholder="secretsSet.nada_ai_api_key ? tr('secret_saved_placeholder') : ''"
+                              hide-details
+                            />
+                            <div class="site-config-field__hint mt-2">{{ tr('nada_ai_api_key_note') }}</div>
+                            <div v-if="secretsSet.nada_ai_api_key" class="d-flex align-center flex-wrap ga-2 mt-1">
+                              <v-icon icon="mdi-check-circle" size="small" color="success" />
+                              <span class="site-config-field__hint">{{ tr('secret_saved_hint') }}</span>
+                              <v-btn size="small" variant="text" color="error" @click="askClearSecret('nada_ai_api_key')">
+                                {{ tr('secret_clear') }}
+                              </v-btn>
+                            </div>
+                          </v-col>
+                        </v-row>
+                      </div>
+
+                      <div class="mt-6">
                         <label class="site-config-field__label">{{ tr('nada_ai_on_outage') }}</label>
                         <v-radio-group v-model="settings.nada_ai_on_outage" class="mt-1" hide-details>
                           <v-radio value="database" :label="tr('nada_ai_on_outage_database')" />
                           <v-radio value="error" :label="tr('nada_ai_on_outage_error')" />
                         </v-radio-group>
                         <div class="site-config-field__hint mt-2">{{ tr('nada_ai_on_outage_note') }}</div>
-                      </v-col>
-                      <v-col cols="12">
-                        <label class="site-config-field__label">{{ tr('nada_ai_api_key') }}</label>
-                        <v-text-field
-                          v-model="settings.nada_ai_api_key"
-                          variant="outlined"
-                          density="comfortable"
-                          type="password"
-                          autocomplete="new-password"
-                          :placeholder="secretsSet.nada_ai_api_key ? tr('secret_saved_placeholder') : ''"
-                          hide-details
-                        />
-                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_api_key_note') }}</div>
-                        <div v-if="secretsSet.nada_ai_api_key" class="d-flex align-center flex-wrap ga-2 mt-1">
-                          <v-icon icon="mdi-check-circle" size="small" color="success" />
-                          <span class="site-config-field__hint">{{ tr('secret_saved_hint') }}</span>
-                          <v-btn
-                            size="small"
-                            variant="text"
-                            color="error"
-                            @click="askClearSecret('nada_ai_api_key')"
-                          >
-                            {{ tr('secret_clear') }}
-                          </v-btn>
-                        </div>
-                      </v-col>
-                      <v-col cols="12">
-                        <label class="site-config-field__label">{{ tr('nada_ai_admin_api_key') }}</label>
-                        <v-text-field
-                          v-model="settings.nada_ai_admin_api_key"
-                          variant="outlined"
-                          density="comfortable"
-                          type="password"
-                          autocomplete="new-password"
-                          :placeholder="secretsSet.nada_ai_admin_api_key ? tr('secret_saved_placeholder') : ''"
-                          hide-details
-                        />
-                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_admin_api_key_note') }}</div>
-                        <div v-if="secretsSet.nada_ai_admin_api_key" class="d-flex align-center flex-wrap ga-2 mt-1">
-                          <v-icon icon="mdi-check-circle" size="small" color="success" />
-                          <span class="site-config-field__hint">{{ tr('secret_saved_hint') }}</span>
-                          <v-btn
-                            size="small"
-                            variant="text"
-                            color="error"
-                            @click="askClearSecret('nada_ai_admin_api_key')"
-                          >
-                            {{ tr('secret_clear') }}
-                          </v-btn>
-                        </div>
-                      </v-col>
-                      <v-col cols="12">
-                        <label class="site-config-field__label">{{ tr('nada_ai_debug') }}</label>
-                        <v-switch
-                          v-model="settings.nada_ai_debug"
-                          true-value="true"
-                          false-value="false"
-                          color="primary"
-                          hide-details
-                        />
-                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_debug_note') }}</div>
-                      </v-col>
-                    </v-row>
+                      </div>
+
+                      <v-expansion-panels variant="accordion" class="mt-6">
+                        <v-expansion-panel>
+                          <v-expansion-panel-title>
+                            <span class="text-subtitle-2">{{ tr('nada_ai_advanced') }}</span>
+                          </v-expansion-panel-title>
+                          <v-expansion-panel-text>
+                            <v-row dense>
+                              <v-col cols="12">
+                                <label class="site-config-field__label">{{ tr('nada_ai_admin_api_key') }}</label>
+                                <v-text-field
+                                  v-model="settings.nada_ai_admin_api_key"
+                                  variant="outlined"
+                                  density="comfortable"
+                                  type="password"
+                                  autocomplete="new-password"
+                                  :placeholder="secretsSet.nada_ai_admin_api_key ? tr('secret_saved_placeholder') : ''"
+                                  hide-details
+                                />
+                                <div class="site-config-field__hint mt-2">{{ tr('nada_ai_admin_api_key_note') }}</div>
+                                <div v-if="secretsSet.nada_ai_admin_api_key" class="d-flex align-center flex-wrap ga-2 mt-1">
+                                  <v-icon icon="mdi-check-circle" size="small" color="success" />
+                                  <span class="site-config-field__hint">{{ tr('secret_saved_hint') }}</span>
+                                  <v-btn size="small" variant="text" color="error" @click="askClearSecret('nada_ai_admin_api_key')">
+                                    {{ tr('secret_clear') }}
+                                  </v-btn>
+                                </div>
+                              </v-col>
+                              <v-col cols="12">
+                                <label class="site-config-field__label">{{ tr('nada_ai_debug') }}</label>
+                                <v-switch
+                                  v-model="settings.nada_ai_debug"
+                                  true-value="true"
+                                  false-value="false"
+                                  color="primary"
+                                  hide-details
+                                />
+                                <div class="site-config-field__hint mt-2">{{ tr('nada_ai_debug_note') }}</div>
+                              </v-col>
+                            </v-row>
+                          </v-expansion-panel-text>
+                        </v-expansion-panel>
+                      </v-expansion-panels>
+                    </template>
                   </v-expansion-panel-text>
                 </v-expansion-panel>
               </v-expansion-panels>
