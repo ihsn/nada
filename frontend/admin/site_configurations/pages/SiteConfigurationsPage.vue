@@ -209,6 +209,13 @@ function pickSectionPayload(sectionId) {
   return out;
 }
 
+/** Each section's payload as loaded, to tell whether the Save button has anything to save. */
+const baselinePayloads = ref({});
+const sectionDirty = computed(() => {
+  const baseline = baselinePayloads.value[activeSection.value];
+  return baseline !== undefined && JSON.stringify(pickSectionPayload(activeSection.value)) !== baseline;
+});
+
 async function reloadAll() {
   const [s, m] = await Promise.all([fetchSettings(), fetchMeta()]);
   if (s.data_classifications_enabled === undefined || s.data_classifications_enabled === '') {
@@ -231,6 +238,9 @@ async function reloadAll() {
   initEngineSections();
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
   hydrateDisplaySwitches(settings.value.legacy_study_templates);
+  baselinePayloads.value = Object.fromEntries(
+    SECTION_DEFS.map((def) => [def.id, JSON.stringify(pickSectionPayload(def.id))]),
+  );
 }
 
 async function loadTestEmailSection() {
@@ -368,21 +378,6 @@ const pathsOk = computed(() => meta.value?.paths_ok || {});
 
 /** What the search engine setting means now: which engine serves each search, and what nada-ai runs. */
 const searchEngineMeta = computed(() => meta.value?.search_engine || null);
-const SERVES = [
-  { key: 'studies', labelKey: 'search_engine_serves_studies' },
-  { key: 'variables', labelKey: 'search_engine_serves_variables' },
-  { key: 'citations', labelKey: 'search_engine_serves_citations' },
-];
-const servesNow = computed(() => {
-  const serves = searchEngineMeta.value?.serves;
-  if (!serves) return [];
-  return SERVES.map(({ key, labelKey }) => ({
-    key,
-    label: tr(labelKey),
-    engine: tr(`search_engine_${serves[key]}`),
-    color: serves[key] === 'database' ? undefined : 'primary',
-  }));
-});
 /** The engine nada-ai reports it runs (opensearch | qdrant), or null when it has not answered. */
 const nadaAiBackend = computed(() => searchEngineMeta.value?.nada_ai?.engine || null);
 /** The engine sections of the page; the two nada-ai engines are one section with a choice inside. */
@@ -396,8 +391,11 @@ const openEnginePanel = ref(null);
 const nadaAiFlavor = ref('opensearch');
 
 const isSelected = (group) => engineGroup(draftEngine.value) === group;
-const isActive = (group) => engineGroup(savedEngine.value) === group;
-const engineUnsaved = computed(() => draftEngine.value !== savedEngine.value);
+/** The radio of the section headers: the selected engine section (picking one also opens it). */
+const engineChoice = computed({
+  get: () => engineGroup(draftEngine.value),
+  set: (group) => selectEngineGroup(group),
+});
 const groupTitle = (group) => (group === 'nada_ai' ? tr('nada_ai_title') : tr(`search_engine_${group}`));
 const groupNote = (group) => (group === 'nada_ai' ? tr('search_engine_nada_ai_note') : tr(`search_engine_${group}_note`));
 
@@ -544,7 +542,7 @@ onMounted(async () => {
                   prepend-icon="mdi-content-save"
                   @click="saveCurrentSection"
                 >
-                  {{ tr('update') }}
+                  {{ tr('update') }}<span v-if="sectionDirty" class="ml-1" :title="tr('unsaved_changes')">*</span>
                 </v-btn>
               </div>
               <v-row dense>
@@ -667,7 +665,7 @@ onMounted(async () => {
                   prepend-icon="mdi-content-save"
                   @click="saveCurrentSection"
                 >
-                  {{ tr('update') }}
+                  {{ tr('update') }}<span v-if="sectionDirty" class="ml-1" :title="tr('unsaved_changes')">*</span>
                 </v-btn>
               </div>
               <div class="site-config-languages-fields">
@@ -746,7 +744,7 @@ onMounted(async () => {
                   prepend-icon="mdi-content-save"
                   @click="saveCurrentSection"
                 >
-                  {{ tr('update') }}
+                  {{ tr('update') }}<span v-if="sectionDirty" class="ml-1" :title="tr('unsaved_changes')">*</span>
                 </v-btn>
               </div>
             <label class="site-config-field__label">{{ tr('use_html_editor') }}</label>
@@ -779,7 +777,7 @@ onMounted(async () => {
                   prepend-icon="mdi-content-save"
                   @click="saveCurrentSection"
                 >
-                  {{ tr('update') }}
+                  {{ tr('update') }}<span v-if="sectionDirty" class="ml-1" :title="tr('unsaved_changes')">*</span>
                 </v-btn>
               </div>
               <v-row dense>
@@ -970,7 +968,7 @@ onMounted(async () => {
                     prepend-icon="mdi-content-save"
                     @click="saveCurrentSection"
                   >
-                    {{ tr('update') }}
+                    {{ tr('update') }}<span v-if="sectionDirty" class="ml-1" :title="tr('unsaved_changes')">*</span>
                   </v-btn>
                 </div>
               </div>
@@ -1014,7 +1012,7 @@ onMounted(async () => {
                   prepend-icon="mdi-content-save"
                   @click="saveCurrentSection"
                 >
-                  {{ tr('update') }}
+                  {{ tr('update') }}<span v-if="sectionDirty" class="ml-1" :title="tr('unsaved_changes')">*</span>
                 </v-btn>
               </div>
               <v-row dense>
@@ -1071,65 +1069,36 @@ onMounted(async () => {
                   prepend-icon="mdi-content-save"
                   @click="saveCurrentSection"
                 >
-                  {{ tr('update') }}
+                  {{ tr('update') }}<span v-if="sectionDirty" class="ml-1" :title="tr('unsaved_changes')">*</span>
                 </v-btn>
               </div>
 
               <div class="d-flex align-center flex-wrap ga-2">
                 <label class="site-config-field__label mb-0">{{ tr('search_engine_active_now') }}</label>
                 <v-chip color="primary" size="small">{{ tr(`search_engine_${savedEngine}`) }}</v-chip>
-                <v-chip v-if="engineUnsaved" color="warning" size="small" variant="tonal" prepend-icon="mdi-circle-edit-outline">
-                  {{ tr('search_engine_unsaved') }}: {{ tr(`search_engine_${draftEngine}`) }}
-                </v-chip>
               </div>
-              <div v-if="servesNow.length" class="d-flex flex-wrap ga-2 mt-2">
-                <v-chip v-for="row in servesNow" :key="row.key" size="small" variant="tonal" :color="row.color">
-                  {{ row.label }}: {{ row.engine }}
-                </v-chip>
-              </div>
-              <div class="site-config-field__hint mt-2">{{ tr('search_engine_note') }}</div>
 
               <v-alert v-if="backendMismatch" type="warning" variant="tonal" density="compact" class="mt-4">
                 {{ mismatchText }}
               </v-alert>
 
-              <v-expansion-panels v-model="openEnginePanel" variant="accordion" class="mt-4">
+              <v-radio-group v-model="engineChoice" hide-details class="mt-4">
+              <v-expansion-panels v-model="openEnginePanel" variant="accordion">
                 <v-expansion-panel v-for="group in ENGINE_GROUPS" :key="group" :value="group">
                   <v-expansion-panel-title>
                     <div class="d-flex align-center flex-wrap ga-2 w-100 pr-2">
-                      <v-icon
-                        v-if="isActive(group)"
-                        icon="mdi-check-circle"
-                        color="success"
-                        size="small"
-                        :title="tr('search_engine_active')"
-                      />
-                      <v-icon
-                        v-else-if="isSelected(group)"
-                        icon="mdi-circle-edit-outline"
-                        color="warning"
-                        size="small"
-                        :title="tr('search_engine_selected_unsaved')"
-                      />
-                      <span class="text-subtitle-1 font-weight-medium">{{ groupTitle(group) }}</span>
+                      <v-radio :value="group" density="compact" hide-details @click.stop>
+                        <template #label>
+                          <span class="text-subtitle-1 font-weight-medium">{{ groupTitle(group) }}</span>
+                        </template>
+                      </v-radio>
                       <v-chip v-if="group === 'nada_ai'" size="x-small" variant="tonal" :color="nadaAiStatus.color">
                         {{ nadaAiStatus.text }}
                       </v-chip>
                     </div>
                   </v-expansion-panel-title>
                   <v-expansion-panel-text>
-                    <div class="d-flex align-center flex-wrap ga-3">
-                      <v-btn v-if="!isSelected(group)" color="primary" variant="tonal" size="small" prepend-icon="mdi-power" @click="selectEngineGroup(group)">
-                        {{ tr('search_engine_use') }}
-                      </v-btn>
-                      <span v-else-if="isActive(group)" class="text-body-2">
-                        <v-icon icon="mdi-check-circle" color="success" size="small" class="mr-1" />{{ tr('search_engine_is_active') }}
-                      </span>
-                      <span v-else class="text-body-2">
-                        <v-icon icon="mdi-circle-edit-outline" color="warning" size="small" class="mr-1" />{{ tr('search_engine_will_be_used') }}
-                      </span>
-                    </div>
-                    <div class="site-config-field__hint mt-2">{{ groupNote(group) }}</div>
+                    <div class="site-config-field__hint">{{ groupNote(group) }}</div>
 
                     <template v-if="group === 'nada_ai'">
                       <div class="mt-4">
@@ -1237,6 +1206,7 @@ onMounted(async () => {
                   </v-expansion-panel-text>
                 </v-expansion-panel>
               </v-expansion-panels>
+              </v-radio-group>
 
               <v-dialog v-model="clearSecretDialog" max-width="440">
                 <v-card>
@@ -1270,7 +1240,7 @@ onMounted(async () => {
                   prepend-icon="mdi-content-save"
                   @click="saveCurrentSection"
                 >
-                  {{ tr('update') }}
+                  {{ tr('update') }}<span v-if="sectionDirty" class="ml-1" :title="tr('unsaved_changes')">*</span>
                 </v-btn>
               </div>
             <label class="site-config-field__label">{{ tr('password_protect_website') }}</label>
@@ -1309,7 +1279,7 @@ onMounted(async () => {
                   prepend-icon="mdi-content-save"
                   @click="saveCurrentSection"
                 >
-                  {{ tr('update') }}
+                  {{ tr('update') }}<span v-if="sectionDirty" class="ml-1" :title="tr('unsaved_changes')">*</span>
                 </v-btn>
               </div>
             <label class="site-config-field__label">Google Analytics UA code</label>
