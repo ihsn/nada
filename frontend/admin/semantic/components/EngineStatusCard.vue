@@ -18,7 +18,7 @@
           color="warning"
           prepend-icon="mdi-pause-circle-outline"
         >
-          nada-ai paused
+          NADA-AI paused
         </v-chip>
         <v-chip
           v-else-if="usesNadaAi && nadaAi"
@@ -27,7 +27,7 @@
           :color="mismatch ? 'warning' : 'success'"
           :prepend-icon="mismatch ? 'mdi-alert-outline' : 'mdi-check-circle-outline'"
         >
-          {{ nadaAi.engine ? `nada-ai runs ${nadaAi.engine}` : 'nada-ai has not answered' }}
+          {{ nadaAi.engine ? `NADA-AI runs ${nadaAi.engine}` : 'NADA-AI has not answered' }}
         </v-chip>
         <v-spacer />
         <v-btn size="small" variant="text" prepend-icon="mdi-refresh" :loading="loading" @click="refresh({ force: true })">
@@ -39,11 +39,11 @@
 
     <div v-if="status && usesNadaAi" class="px-4 pb-3 text-caption text-medium-emphasis">
       <div v-if="nadaAi && nadaAi.source !== 'info'">
-        <template v-if="nadaAi.source === 'stale'">nada-ai did not answer just now; what it can serve is from its last answer.</template>
-        <template v-else>nada-ai has not answered yet, so what it runs and can serve is not known.</template>
+        <template v-if="nadaAi.source === 'stale'">NADA-AI did not answer just now; what it can serve is from its last answer.</template>
+        <template v-else>NADA-AI has not answered yet, so what it runs and can serve is not known.</template>
       </div>
       <div>
-        When nada-ai is unavailable a search is
+        When NADA-AI is unavailable a search is
         <strong>{{ status.policy === 'error' ? 'answered with an error' : 'served from the catalog database' }}</strong>
         (Site configurations &gt; Search).
       </div>

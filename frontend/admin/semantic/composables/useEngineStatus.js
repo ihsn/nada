@@ -19,8 +19,8 @@ export const ENGINE_LABELS = {
   database: 'Database',
   solr: 'Solr',
   opensearch: "OpenSearch (NADA's built-in)",
-  nada_ai_opensearch: 'nada-ai with OpenSearch',
-  nada_ai_qdrant: 'nada-ai with Qdrant',
+  nada_ai_opensearch: 'NADA-AI with OpenSearch',
+  nada_ai_qdrant: 'NADA-AI with Qdrant',
 };
 
 /** What a serving engine is called in the "serving now" line (provider_for() answers database | solr | opensearch | nada_ai). */
@@ -28,10 +28,10 @@ export const SERVING_LABELS = {
   database: 'database',
   solr: 'Solr',
   opensearch: 'OpenSearch',
-  nada_ai: 'nada-ai',
+  nada_ai: 'NADA-AI',
 };
 
-const FALLBACK_KIND_LABELS = { outage: 'nada-ai failed', breaker_open: 'nada-ai paused after a failure' };
+const FALLBACK_KIND_LABELS = { outage: 'NADA-AI failed', breaker_open: 'NADA-AI paused after a failure' };
 
 function clock(unixSeconds) {
   return unixSeconds ? new Date(unixSeconds * 1000).toLocaleTimeString() : '';
@@ -82,7 +82,7 @@ export function useEngineStatus() {
       out.push({
         key: 'mismatch',
         type: 'warning',
-        text: `The search engine is set to ${engineLabel.value}, but nada-ai is running ${mismatch.value.actual}. Catalog searches fail until they match: change the search engine in Site configurations > Search, or restart nada-ai with the matching backend.`,
+        text: `The search engine is set to ${engineLabel.value}, but NADA-AI is running ${mismatch.value.actual}. Catalog searches fail until they match: change the search engine in Site configurations > Search, or restart NADA-AI with the matching backend.`,
       });
     }
     if (breakerOpen.value) {
@@ -94,13 +94,13 @@ export function useEngineStatus() {
       out.push({
         key: 'breaker',
         type: status.value.policy === 'error' ? 'error' : 'warning',
-        text: `nada-ai is not answering${b.reason ? ` (${b.reason})` : ''}${b.since ? ` since ${clock(b.since)}` : ''}. ${serves} until ${clock(b.until)}, when nada-ai is tried again.`,
+        text: `NADA-AI is not answering${b.reason ? ` (${b.reason})` : ''}${b.since ? ` since ${clock(b.since)}` : ''}. ${serves} until ${clock(b.until)}, when NADA-AI is tried again.`,
       });
     } else if (fallbackTotal.value > 0) {
       out.push({
         key: 'fallbacks',
         type: 'info',
-        text: `${fallbackTotal.value} search${fallbackTotal.value === 1 ? ' was' : 'es were'} served by the database this hour because nada-ai did not answer.`,
+        text: `${fallbackTotal.value} search${fallbackTotal.value === 1 ? ' was' : 'es were'} served by the database this hour because NADA-AI did not answer.`,
       });
     }
     return out;

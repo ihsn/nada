@@ -128,7 +128,7 @@ class Nada_ai_link
         if ($this->is_open()) {
             $state = $this->status();
             throw new Nada_ai_unavailable_exception(
-                'nada-ai is unavailable' . (!empty($state['reason']) ? ' (' . $state['reason'] . ')' : '')
+                'NADA-AI is unavailable' . (!empty($state['reason']) ? ' (' . $state['reason'] . ')' : '')
                     . ' and is not being called until ' . date('H:i:s', (int) $state['until']),
                 $url, 0, $request, ''
             );
@@ -298,11 +298,11 @@ class Nada_ai_link
         curl_close($ch);
 
         if ($err) {
-            $this->note_failure(new Semantic_search_api_exception("nada-ai /info failed: {$err}", $this->url() . '/info', 0, array()));
+            $this->note_failure(new Semantic_search_api_exception("NADA-AI /info failed: {$err}", $this->url() . '/info', 0, array()));
             return null;
         }
         if ($status < 200 || $status >= 300) {
-            $this->note_failure(new Semantic_search_api_exception("nada-ai /info returned HTTP {$status}", $this->url() . '/info', $status, array(), (string) $raw));
+            $this->note_failure(new Semantic_search_api_exception("NADA-AI /info returned HTTP {$status}", $this->url() . '/info', $status, array(), (string) $raw));
             return null;
         }
         $decoded = json_decode((string) $raw, true);

@@ -9,8 +9,8 @@ export function searchDriverGroup(engine) {
 /** Human-readable engine name for tooltips (includes Solr vs OpenSearch). */
 export function searchDriverLabel(engine) {
   const e = String(engine || 'database').toLowerCase();
-  if (e === 'nada_ai_opensearch') return 'nada-ai (OpenSearch)';
-  if (e === 'nada_ai_qdrant') return 'nada-ai (Qdrant)';
+  if (e === 'nada_ai_opensearch') return 'NADA-AI (OpenSearch)';
+  if (e === 'nada_ai_qdrant') return 'NADA-AI (Qdrant)';
   if (e === 'opensearch') return 'OpenSearch';
   if (e === 'solr') return 'Solr';
   return 'Database';

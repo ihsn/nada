@@ -131,7 +131,7 @@ class Search_engine_resolver
         $mismatch = $this->backend_mismatch($engine);
         if ($mismatch !== null) {
             throw new Exception(sprintf(
-                'The search engine is set to %s, but nada-ai is running %s. Change the search engine in Site configurations > Search, or restart nada-ai with the matching backend.',
+                'The search engine is set to %s, but NADA-AI is running %s. Change the search engine in Site configurations > Search, or restart NADA-AI with the matching backend.',
                 $engine !== null ? $engine : $this->engine(), $mismatch['actual']
             ));
         }

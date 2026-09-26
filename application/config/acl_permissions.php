@@ -228,7 +228,7 @@ $config['acl_permissions'] = [
     ],
     "semantic_search"=>[
         "title" => "Semantic search indexing",
-        "description" => "Manage the nada-ai semantic search index",
+        "description" => "Manage the NADA-AI semantic search index",
         "permissions"=>[
             [
                 "permission" => "view",

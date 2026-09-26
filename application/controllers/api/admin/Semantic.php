@@ -99,14 +99,14 @@ class Semantic extends MY_REST_Controller
 				return;
 			}
 			$this->set_response(
-				array('status' => 'error', 'message' => 'nada-ai request failed: ' . $e->getMessage()),
+				array('status' => 'error', 'message' => 'NADA-AI request failed: ' . $e->getMessage()),
 				REST_Controller::HTTP_BAD_GATEWAY
 			);
 		}
 		catch (ConnectException $e)
 		{
 			$this->set_response(
-				array('status' => 'error', 'message' => 'Could not reach nada-ai at the configured nada_ai_url.'),
+				array('status' => 'error', 'message' => 'Could not reach NADA-AI at the configured nada_ai_url.'),
 				REST_Controller::HTTP_SERVICE_UNAVAILABLE
 			);
 		}
@@ -498,7 +498,7 @@ class Semantic extends MY_REST_Controller
 		$nada_ai_engine = $this->search_engine_resolver->nada_ai_engine_for($this->nada_ai_link->backend());
 		if ($nada_ai_engine === NULL)
 		{
-			$this->set_response(array('status' => 'error', 'message' => 'nada-ai has not said which engine it runs (is it reachable at nada_ai_url?)'), REST_Controller::HTTP_BAD_GATEWAY);
+			$this->set_response(array('status' => 'error', 'message' => 'NADA-AI has not said which engine it runs (is it reachable at nada_ai_url?)'), REST_Controller::HTTP_BAD_GATEWAY);
 			return;
 		}
 		$body  = json_decode($this->input->raw_input_stream ?: '{}', true) ?: array();
@@ -630,7 +630,7 @@ class Semantic extends MY_REST_Controller
 		if ($engine !== 'qdrant')
 		{
 			$this->set_response(
-				array('status' => 'error', 'message' => 'Could not tell which engine nada-ai runs (its /health did not say), so nothing was dropped.'),
+				array('status' => 'error', 'message' => 'Could not tell which engine NADA-AI runs (its /health did not say), so nothing was dropped.'),
 				REST_Controller::HTTP_SERVICE_UNAVAILABLE
 			);
 			return;
