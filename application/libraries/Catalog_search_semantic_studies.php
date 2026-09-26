@@ -184,7 +184,8 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         }
         $sort = $this->variable_sort_field();
         if ($sort !== null) {
-            $body['sort'] = $sort;
+            $body['sort']  = $sort['by'];
+            $body['order'] = $sort['order'];
         }
 
         try {
@@ -246,7 +247,11 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
             || !empty($this->normalise_array($this->dtype));
     }
 
-    /** @return array{by: string, order: string}|null null = the API default (relevance) */
+    /**
+     * The API's `sort` (`name` or `title`) and `order` (`asc`/`desc`), sent as two top-level fields.
+     *
+     * @return array{by: string, order: string}|null null = the API default (relevance)
+     */
     private function variable_sort_field(): ?array
     {
         $key = strtolower(trim((string) $this->sort_by));
