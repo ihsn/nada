@@ -1087,7 +1087,7 @@ onMounted(async () => {
                 <v-expansion-panel v-for="group in ENGINE_GROUPS" :key="group" :value="group">
                   <v-expansion-panel-title>
                     <div class="d-flex align-center flex-wrap ga-2 w-100 pr-2">
-                      <v-radio :value="group" density="compact" hide-details @click.stop>
+                      <v-radio :value="group" density="compact" hide-details @click.stop="openEnginePanel = group">
                         <template #label>
                           <span class="text-subtitle-1 font-weight-medium">{{ groupTitle(group) }}</span>
                         </template>
