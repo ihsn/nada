@@ -235,6 +235,7 @@ async function reloadAll() {
   }
   settings.value = { ...s };
   meta.value = { ...m };
+  savedEngine.value = s.search_engine;
   initEngineSections();
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
   hydrateDisplaySwitches(settings.value.legacy_study_templates);
@@ -376,14 +377,11 @@ const saveVisible = computed(() => {
 
 const pathsOk = computed(() => meta.value?.paths_ok || {});
 
-/** What the search engine setting means now: which engine serves each search, and what nada-ai runs. */
-const searchEngineMeta = computed(() => meta.value?.search_engine || null);
-/** The engine nada-ai reports it runs (opensearch | qdrant), or null when it has not answered. */
-const nadaAiBackend = computed(() => searchEngineMeta.value?.nada_ai?.engine || null);
 /** The engine sections of the page; the two nada-ai engines are one section with a choice inside. */
 const ENGINE_GROUPS = ['database', 'solr', 'opensearch', 'nada_ai'];
 const engineGroup = (engine) => (String(engine || '').startsWith('nada_ai_') ? 'nada_ai' : engine || 'database');
-const savedEngine = computed(() => searchEngineMeta.value?.engine || 'database');
+/** The engine as saved (loaded with the settings), for the line at the top of the section. */
+const savedEngine = ref('database');
 const draftEngine = computed(() => settings.value.search_engine || 'database');
 /** The section open in the accordion; opening one does not change the setting. */
 const openEnginePanel = ref(null);
@@ -416,26 +414,8 @@ watch(nadaAiFlavor, (flavor) => {
 function initEngineSections() {
   const engine = settings.value.search_engine;
   if (String(engine || '').startsWith('nada_ai_')) nadaAiFlavor.value = engine.slice('nada_ai_'.length);
-  else if (nadaAiBackend.value) nadaAiFlavor.value = nadaAiBackend.value;
   if (openEnginePanel.value === null) openEnginePanel.value = engineGroup(engine);
 }
-/** nada-ai reports another engine than the one chosen in the section. */
-const flavorMismatch = computed(() => !!nadaAiBackend.value && nadaAiBackend.value !== nadaAiFlavor.value);
-const nadaAiStatus = computed(() => {
-  if (!nadaAiUrlEntered.value) return { text: tr('nada_ai_status_not_configured'), color: 'warning' };
-  if (!nadaAiBackend.value) return { text: tr('nada_ai_status_unknown'), color: undefined };
-  return { text: tr('nada_ai_status_runs').replace('%s', nadaAiBackend.value), color: flavorMismatch.value ? 'warning' : 'success' };
-});
-const flavorMismatchText = computed(() =>
-  tr('nada_ai_flavor_mismatch').replace('%s', nadaAiBackend.value || '').replace('%s', nadaAiFlavor.value),
-);
-/** {expected, actual} when nada-ai runs another engine than the saved search engine names. */
-const backendMismatch = computed(() => searchEngineMeta.value?.backend_mismatch || null);
-const mismatchText = computed(() => {
-  const m = backendMismatch.value;
-  if (!m) return '';
-  return tr('search_engine_mismatch').replace('%s', tr(`search_engine_${searchEngineMeta.value.engine}`)).replace('%s', m.actual);
-});
 
 const depositMeta = computed(() => meta.value?.datadeposit || {});
 const depositEnabled = computed(() => depositMeta.value?.enabled === true);
@@ -1078,10 +1058,6 @@ onMounted(async () => {
                 <v-chip color="primary" size="small">{{ tr(`search_engine_${savedEngine}`) }}</v-chip>
               </div>
 
-              <v-alert v-if="backendMismatch" type="warning" variant="tonal" density="compact" class="mt-4">
-                {{ mismatchText }}
-              </v-alert>
-
               <v-radio-group v-model="engineChoice" hide-details class="mt-4">
               <v-expansion-panels v-model="openEnginePanel" variant="accordion">
                 <v-expansion-panel v-for="group in ENGINE_GROUPS" :key="group" :value="group">
@@ -1092,8 +1068,8 @@ onMounted(async () => {
                           <span class="text-subtitle-1 font-weight-medium">{{ groupTitle(group) }}</span>
                         </template>
                       </v-radio>
-                      <v-chip v-if="group === 'nada_ai'" size="x-small" variant="tonal" :color="nadaAiStatus.color">
-                        {{ nadaAiStatus.text }}
+                      <v-chip v-if="group === 'nada_ai' && !nadaAiUrlEntered" size="x-small" variant="tonal" color="warning">
+                        {{ tr('nada_ai_status_not_configured') }}
                       </v-chip>
                     </div>
                   </v-expansion-panel-title>
@@ -1107,10 +1083,6 @@ onMounted(async () => {
                           <v-radio value="opensearch" :label="tr('nada_ai_flavor_opensearch')" />
                           <v-radio value="qdrant" :label="tr('nada_ai_flavor_qdrant')" />
                         </v-radio-group>
-                        <div class="site-config-field__hint mt-2">{{ tr(`search_engine_nada_ai_${nadaAiFlavor}_note`) }}</div>
-                        <v-alert v-if="flavorMismatch" type="warning" variant="tonal" density="compact" class="mt-2">
-                          {{ flavorMismatchText }}
-                        </v-alert>
                       </div>
 
                       <div class="mt-6">

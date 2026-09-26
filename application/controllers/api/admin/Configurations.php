@@ -170,7 +170,6 @@ class Configurations extends MY_REST_Controller
 				'catalog_study_types'       => $catalog_study_types,
 				'datadeposit'               => $this->datadeposit_meta(),
 				'secrets_set'               => $this->secrets_set($c),
-				'search_engine'             => $this->search_engine_meta(),
 			);
 
 			$this->set_response(
@@ -628,24 +627,6 @@ class Configurations extends MY_REST_Controller
 		{
 			throw new Exception('NADA_AI_URL_REQUIRED');
 		}
-	}
-
-	/**
-	 * What the search engine setting means right now, for the Search section: which engine serves studies, variables
-	 * and citations, and what nada-ai runs. Only worked out when nada-ai is the engine or has an URL, so an install
-	 * that does not use nada-ai never calls it.
-	 */
-	protected function search_engine_meta()
-	{
-		$this->load->library('search_engine_resolver');
-		$summary = $this->search_engine_resolver->summary();
-
-		return array(
-			'engine'  => $summary['engine'],
-			'serves'  => $summary['serves'],
-			'nada_ai' => $summary['nada_ai'],
-			'backend_mismatch' => $summary['backend_mismatch'],
-		);
 	}
 
 	protected function datadeposit_meta()
