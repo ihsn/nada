@@ -54,3 +54,11 @@ $config['semantic_search_query_prompt'] = "Instruct: Retrieve texts that help an
 
 // collapse_inner_hits.size in the search request body
 $config['semantic_search_collapse_inner_hits_size'] = 15;
+
+// Seconds nada-ai is not called after a failure that means it is down (no connection, timeout, HTTP 5xx except 501,
+// HTTP 429), so requests do not each wait for their own timeout. After this, one request tries it again.
+$config['nada_ai_breaker_cooldown'] = 30;
+
+// What a search does while nada-ai is down: database (serve it from the catalog database) | error (fail with the
+// reason). A request nada-ai rejects (HTTP 4xx, or 501 for a capability its engine lacks) is always an error.
+$config['nada_ai_on_outage'] = 'database';

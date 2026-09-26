@@ -18,6 +18,7 @@ if (! class_exists('Catalog_filter_guard', false)) {
     require_once dirname(__FILE__) . '/Catalog_filter_guard.php';
 }
 require_once dirname(__FILE__) . '/Semantic_search_api_exception.php';
+require_once dirname(__FILE__) . '/Nada_ai_link.php';
 
 abstract class catalog_search_semantic_base
 {
@@ -344,7 +345,8 @@ abstract class catalog_search_semantic_base
     // =========================================================================
 
     /**
-     * POST a JSON body to nada-ai.
+     * POST JSON to nada-ai and decode the answer. The call, the outage breaker and the error mapping live in
+     * Nada_ai_link.
      *
      * @param string[] $required_keys keys the response must have (anything else is an unexpected response)
      * @return array the decoded response
@@ -352,68 +354,26 @@ abstract class catalog_search_semantic_base
      */
     protected function post_json(string $path, array $body, array $required_keys): array
     {
-        $url     = $this->api_url . $path;
-        $payload = json_encode($body);
-        $class   = get_class($this);
-
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => $this->timeout,
-            CURLOPT_HTTPHEADER     => array_merge(['Content-Type: application/json', 'Accept: application/json'], $this->auth_headers()),
-        ]);
-
-        $raw    = curl_exec($ch);
-        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $err    = curl_error($ch);
-        curl_close($ch);
-
-        if ($err) {
-            log_message('error', "{$class}::post_json curl error: {$err}");
-            throw new Semantic_search_api_exception("Semantic search API request failed: {$err}", $url, 0, $body, '');
-        }
-
-        if ($status < 200 || $status >= 300) {
-            log_message('error', "{$class}::post_json HTTP {$status} request: {$payload} response: {$raw}");
-            throw new Semantic_search_api_exception($this->error_message($status, (string) $raw), $url, $status, $body, (string) $raw);
-        }
-
-        $decoded = json_decode((string) $raw, true);
-        if (!is_array($decoded) || count(array_diff($required_keys, array_keys($decoded))) > 0) {
-            log_message('error', "{$class}::post_json unexpected response: {$raw}");
-            throw new Semantic_search_api_exception('Semantic search API returned an unexpected response', $url, $status, $body, (string) $raw);
-        }
-
-        if ($this->debug) {
-            log_message('debug', "{$class} request: {$payload}");
-            log_message('debug', "{$class} response: {$raw}");
-        }
-
-        return $decoded;
+        return $this->link()->post_json($path, $body, $required_keys, $this->auth_headers(), $this->timeout, get_class($this), $this->debug);
     }
 
-    /** "Semantic search API returned HTTP 422 (invalid_filter_value): ..." from the API's error envelope. */
-    private function error_message(int $status, string $raw): string
+    protected function link(): Nada_ai_link
     {
-        $error = json_decode($raw, true)['error'] ?? null;
-        if (is_array($error) && isset($error['code'], $error['message'])) {
-            return sprintf('Semantic search API returned HTTP %d (%s): %s', $status, $error['code'], $error['message']);
-        }
+        $this->ci->load->library('nada_ai_link');
 
-        return "Semantic search API returned HTTP {$status}";
+        return $this->ci->nada_ai_link;
     }
 
-    /**
-     * nada-ai unreachable, timed out, or failed on its side (5xx, rate limited). HTTP 501 is not an outage: nada-ai
-     * answers it when its engine lacks the capability asked for (unsupported_capability), which means this site is
-     * configured for something that engine cannot do. That is raised as a configuration error, not hidden by a
-     * fallback.
-     */
+    /** nada-ai is down (or was skipped because it is): see Nada_ai_link::is_outage(). */
     protected function is_outage(Semantic_search_api_exception $e): bool
     {
-        return $e->http_status === 0 || $e->http_status === 429 || ($e->http_status >= 500 && $e->http_status !== 501);
+        return $this->link()->is_outage($e);
+    }
+
+    /** Whether this failure is answered by the database search: an outage, and nada_ai_on_outage = database. */
+    protected function falls_back(Semantic_search_api_exception $e): bool
+    {
+        return $this->link()->falls_back($e);
     }
 
     // =========================================================================

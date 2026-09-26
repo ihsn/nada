@@ -100,7 +100,7 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         try {
             $response = $this->post_json('/studies/search', $body, ['found', 'hits', 'search_counts_by_type']);
         } catch (Semantic_search_api_exception $e) {
-            if (!$this->is_outage($e)) {
+            if (!$this->falls_back($e)) {
                 throw $e;
             }
             return $this->search_in_database_after($e, $limit, $offset);
@@ -191,7 +191,7 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         try {
             $response = $this->post_json('/variables/search', $body, ['found', 'hits']);
         } catch (Semantic_search_api_exception $e) {
-            if (!$this->is_outage($e)) {
+            if (!$this->falls_back($e)) {
                 throw $e;
             }
             return $this->database_search()->vsearch($limit, $offset);
@@ -217,7 +217,7 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         try {
             $response = $this->post_json('/variables/search', $body, ['found', 'hits']);
         } catch (Semantic_search_api_exception $e) {
-            if (!$this->is_outage($e)) {
+            if (!$this->falls_back($e)) {
                 throw $e;
             }
             return $this->database_search()->v_quick_search($sid, $limit, $offset);

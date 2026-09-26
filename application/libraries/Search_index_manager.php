@@ -43,21 +43,14 @@ class Search_index_manager
 	}
 
 	/**
-	 * Whether changes to one object type are queued. Studies follow search_provider. Citations do too, and are also
-	 * tracked when citation_search_provider = nada_ai, whatever search_provider is: nada-ai's citation index is
-	 * kept up to date from this queue, so without it a citation edit would never reach the index.
+	 * Whether changes to one object type are queued: when the engine that serves it is not the database
+	 * (Search_engine_resolver::tracked()). Citations follow the engine that serves citations, so nada-ai's citation
+	 * index is kept up to date from this queue whatever search_provider is.
 	 */
 	public function tracking_enabled_for($object_type)
 	{
-		$allowed = $this->ci->config->item('search_index_tracking_providers');
-		if (!is_array($allowed)) {
-			$allowed = array('solr', 'opensearch', 'semantic');
-		}
-		if (in_array($this->current_provider(), $allowed, true)) {
-			return true;
-		}
-		return $object_type === self::OBJECT_CITATION
-			&& strtolower(trim((string) $this->ci->config->item('citation_search_provider'))) === 'nada_ai';
+		$this->ci->load->library('search_engine_resolver');
+		return $this->ci->search_engine_resolver->tracked($object_type === self::OBJECT_CITATION ? 'citation' : 'survey');
 	}
 
 	public function current_provider()

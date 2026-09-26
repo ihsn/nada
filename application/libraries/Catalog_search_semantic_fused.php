@@ -245,7 +245,7 @@ class catalog_search_semantic_fused extends catalog_search_semantic_base
                 $notes[] = 'The semantic index has no study ids (it was built before study ids were stored), so only keyword matches are shown. Re-index it.';
             }
         } catch (Semantic_search_api_exception $e) {
-            if (!$this->is_outage($e)) {
+            if (!$this->falls_back($e)) {
                 throw $e;
             }
             log_message('error', 'catalog_search_semantic_fused: semantic search unavailable: ' . $e->getMessage());

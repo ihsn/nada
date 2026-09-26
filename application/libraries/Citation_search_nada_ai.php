@@ -36,7 +36,6 @@ class Citation_search_nada_ai
     /** Filters only the database search has; a request that uses one is served by the database. */
     private static $database_only_filters = array('flag', 'user', 'has_notes', 'no_survey_attached', 'url_status');
 
-    private $api_url;
     private $api_key;
     private $timeout;
 
@@ -45,7 +44,6 @@ class Citation_search_nada_ai
         $this->ci =& get_instance();
         $this->ci->config->load('semantic_search');
 
-        $this->api_url = rtrim((string) $this->ci->config->item('semantic_search_url'), '/');
         $this->api_key = (string) $this->ci->config->item('semantic_search_api_key');
         $timeout       = (int) $this->ci->config->item('semantic_search_timeout');
         $this->timeout = min(max(1, $timeout > 0 ? $timeout : self::API_MAX_TIMEOUT_SEC), self::API_MAX_TIMEOUT_SEC);
@@ -63,7 +61,7 @@ class Citation_search_nada_ai
         try {
             $response = $this->post_json('/citations/search', $request, array('found', 'hits'));
         } catch (Semantic_search_api_exception $e) {
-            if (!$this->is_outage($e)) {
+            if (!$this->link()->falls_back($e)) {
                 throw $e;
             }
             return $this->database_search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
@@ -225,54 +223,15 @@ class Citation_search_nada_ai
      */
     private function post_json($path, array $body, array $required_keys)
     {
-        $url     = $this->api_url . $path;
-        $payload = json_encode($body);
-        $headers = array('Content-Type: application/json', 'Accept: application/json');
-        if ($this->api_key !== '') {
-            $headers[] = 'X-NADA-Admin-Key: ' . $this->api_key;
-        }
+        $headers = $this->api_key !== '' ? array('X-NADA-Admin-Key: ' . $this->api_key) : array();
 
-        $ch = curl_init($url);
-        curl_setopt_array($ch, array(
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => $this->timeout,
-            CURLOPT_HTTPHEADER     => $headers,
-        ));
-
-        $raw    = curl_exec($ch);
-        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $err    = curl_error($ch);
-        curl_close($ch);
-
-        if ($err) {
-            log_message('error', "Citation_search_nada_ai::post_json curl error: {$err}");
-            throw new Semantic_search_api_exception("Semantic search API request failed: {$err}", $url, 0, $body, '');
-        }
-
-        if ($status < 200 || $status >= 300) {
-            log_message('error', "Citation_search_nada_ai::post_json HTTP {$status} request: {$payload} response: {$raw}");
-            $error   = json_decode((string) $raw, true)['error'] ?? null;
-            $message = (is_array($error) && isset($error['code'], $error['message']))
-                ? sprintf('Semantic search API returned HTTP %d (%s): %s', $status, $error['code'], $error['message'])
-                : "Semantic search API returned HTTP {$status}";
-            throw new Semantic_search_api_exception($message, $url, $status, $body, (string) $raw);
-        }
-
-        $decoded = json_decode((string) $raw, true);
-        if (!is_array($decoded) || count(array_diff($required_keys, array_keys($decoded))) > 0) {
-            log_message('error', "Citation_search_nada_ai::post_json unexpected response: {$raw}");
-            throw new Semantic_search_api_exception('Semantic search API returned an unexpected response', $url, $status, $body, (string) $raw);
-        }
-
-        return $decoded;
+        return $this->link()->post_json($path, $body, $required_keys, $headers, $this->timeout, 'Citation_search_nada_ai');
     }
 
-    /** nada-ai unreachable, timed out, or failed on its side (5xx, rate limited). HTTP 501 (the engine lacks the citation
-     *  search) is a configuration error and is raised, not hidden. */
-    private function is_outage(Semantic_search_api_exception $e)
+    private function link()
     {
-        return $e->http_status === 0 || $e->http_status === 429 || ($e->http_status >= 500 && $e->http_status !== 501);
+        $this->ci->load->library('nada_ai_link');
+
+        return $this->ci->nada_ai_link;
     }
 }

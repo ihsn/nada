@@ -401,10 +401,11 @@ class Catalog_browse_service {
 			}
 		}
 
-		// Variable view uses the DB search, except with the semantic provider: its drivers implement vsearch()
-		// themselves (nada-ai's variable search with OpenSearch, the database search for the other engines).
-		// Solr and NADA's own OpenSearch driver do not support vsearch.
-		if ($search_options->view === 'v' && $this->CI->config->item('search_provider') !== 'semantic') {
+		// The variable view is served by the engine the resolver names for variables: nada-ai (its drivers implement
+		// vsearch(): nada-ai's variable search, or the database search when its engine has none) or the database.
+		$this->CI->load->library('search_engine_resolver');
+		if ($search_options->view === 'v'
+			&& $this->CI->search_engine_resolver->provider_for(Search_engine_resolver::VARIABLES) !== Search_engine_resolver::NADA_AI) {
 			$params['search_provider'] = 'db';
 		}
 

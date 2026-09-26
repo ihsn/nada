@@ -52,3 +52,11 @@ class Semantic_search_api_exception extends RuntimeException
         );
     }
 }
+
+/**
+ * nada-ai was not called because an earlier request found it down (see Nada_ai_link): the request is treated as an
+ * outage without waiting for another timeout.
+ */
+class Nada_ai_unavailable_exception extends Semantic_search_api_exception
+{
+}

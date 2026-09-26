@@ -11,51 +11,36 @@ class Citation_model extends CI_Model {
     }
 	
 	/**
-	 * Which engine serves citation keyword search: the site setting citation_search_provider.
-	 *   default - follow search_provider (opensearch / solr, else the database), as before the setting existed
-	 *   db      - the database, whatever search_provider is
-	 *   nada_ai - nada-ai's citation search (OpenSearch); see Citation_search_nada_ai for what it does not serve
+	 * Search citations with the engine that serves them (Search_engine_resolver): nada-ai, Solr, NADA's OpenSearch or
+	 * the database. The site setting citation_search_provider overrides the choice (db | nada_ai).
 	 */
-	function citation_search_provider()
-	{
-		$provider = strtolower(trim((string) $this->config->item('citation_search_provider')));
-		return in_array($provider, array('db', 'nada_ai'), TRUE) ? $provider : 'default';
-	}
-
-	//search
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
     {
-        $provider = $this->citation_search_provider();
+        $this->load->library('search_engine_resolver');
 
-        if ($provider === 'nada_ai') {
-            $this->load->library('citation_search_nada_ai');
-            $result = $this->citation_search_nada_ai->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
-            $this->search_found_rows = $this->citation_search_nada_ai->search_found_rows;
-            return $result;
+        switch ($this->search_engine_resolver->provider_for(Search_engine_resolver::CITATIONS)) {
+            case Search_engine_resolver::NADA_AI:
+                $this->load->library('citation_search_nada_ai');
+                $result = $this->citation_search_nada_ai->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
+                $this->search_found_rows = $this->citation_search_nada_ai->search_found_rows;
+                return $result;
+
+            case Search_engine_resolver::OPENSEARCH_NATIVE:
+                require_once APPPATH . 'libraries/OpenSearch/Citation_search_opensearch.php';
+                $searcher = new Citation_search_opensearch();
+                $result   = $searcher->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
+                $this->search_found_rows = $searcher->search_found_rows;
+                return $result;
+
+            case Search_engine_resolver::SOLR:
+                $this->load->library('citation_search_solr');
+                $result = $this->citation_search_solr->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
+                $this->search_found_rows = $this->citation_search_solr->search_found_rows;
+                return $result;
+
+            default:
+                return $this->search_database($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
         }
-
-        if ($provider === 'db') {
-            return $this->search_database($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
-        }
-
-        $search_provider = $this->config->item('search_provider');
-
-        if ($search_provider === 'opensearch') {
-            require_once APPPATH . 'libraries/OpenSearch/Citation_search_opensearch.php';
-            $searcher = new Citation_search_opensearch();
-            $result   = $searcher->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
-            $this->search_found_rows = $searcher->search_found_rows;
-            return $result;
-        }
-
-        if ($search_provider === 'solr') {
-            $this->load->library('citation_search_solr');
-            $result = $this->citation_search_solr->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
-            $this->search_found_rows = $this->citation_search_solr->search_found_rows;
-            return $result;
-        }
-
-        return $this->search_database($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
     }
 
 	/**

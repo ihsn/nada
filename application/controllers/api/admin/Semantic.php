@@ -169,6 +169,28 @@ class Semantic extends MY_REST_Controller
 	}
 
 	/**
+	 * GET /api/admin/semantic/engine_status
+	 *
+	 * Which engine serves studies, variables and citations on this site, what nada-ai reports it can serve, and whether
+	 * nada-ai is being called (the outage breaker and the fallbacks counted this hour). See Search_engine_resolver.
+	 */
+	public function engine_status_get()
+	{
+		try { $this->_require('view'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+
+		$this->load->library('search_engine_resolver');
+		$this->set_response(
+			array_merge(array('status' => 'success'), $this->search_engine_resolver->summary()),
+			REST_Controller::HTTP_OK
+		);
+	}
+
+	/**
 	 * GET /api/admin/semantic/variables_stats
 	 *
 	 * Published variables in this catalog's database against what nada-ai's variable index holds — totals only
