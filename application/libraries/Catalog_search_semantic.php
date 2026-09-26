@@ -8,13 +8,13 @@
  *   2. Re-fetch full survey rows from the NADA DB using those idnos
  *      and apply any NADA-specific filters not handled by the API
  *
- * Public interface matches catalog_search_mysql so Catalog_search.php
+ * Public interface matches the database search drivers so Catalog_search.php
  * can swap backends transparently.
  *
  * @see Catalog_country_resolver for country filter value resolution.
  *
  * Variable search (vsearch / v_quick_search) and per-study var_found badges
- * delegate to MySQL via db_fallback() — same as classic catalog cards.
+ * delegate to the database search (MySQL or SQL Server) via db_fallback() — same as classic catalog cards.
  *
  * Dataset type / tab alignment
  * ----------------------------
@@ -119,7 +119,9 @@ class catalog_search_semantic
             self::API_MAX_TIMEOUT_SEC
         );
         $this->knn_k   = (int)   $this->ci->config->item('semantic_search_knn_k')   ?: 50;
-        $this->debug   = filter_var($this->ci->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN);
+        // semantic_debug is set by the admin dashboard's search test (api/admin/Semantic::search_post) only
+        $this->ci->load->helper('catalog');
+        $this->debug   = !empty($params['semantic_debug']) || semantic_search_debug_enabled();
         $this->query_prompt = (string) $this->ci->config->item('semantic_search_query_prompt');
         $collapse_size = (int) $this->ci->config->item('semantic_search_collapse_inner_hits_size');
         $this->collapse_inner_hits_size = $collapse_size > 0 ? $collapse_size : 15;
@@ -824,10 +826,11 @@ class catalog_search_semantic
         return $params;
     }
 
-    private function db_fallback(): catalog_search_mysql
+    /** The database search driver of this installation (MySQL or SQL Server) with the current search parameters. */
+    private function db_fallback()
     {
-        require_once dirname(__FILE__) . '/Catalog_search_mysql.php';
-        return new catalog_search_mysql($this->search_params_for_db_lookup());
+        require_once dirname(__FILE__) . '/Catalog_study_idno_lookup.php';
+        return Catalog_study_idno_lookup::create_driver($this->search_params_for_db_lookup());
     }
 
     private function normalise_array($value): array

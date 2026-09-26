@@ -34,18 +34,44 @@ function catalog_search_url($repositoryid = null)
 
 /**
  * Whether catalog search debug payloads may be exposed to clients or verbose logs.
+ *
+ * The debug settings are site-wide, so the payloads (request bodies, engine internals) are only shown to a signed-in
+ * user who may view the semantic search dashboard; every other visitor gets the plain result.
  */
 function catalog_search_debug_enabled()
 {
 	$CI =& get_instance();
 	$CI->config->load('semantic_search');
-	if (filter_var($CI->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN)) {
-		return true;
+	$enabled = filter_var($CI->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN)
+		|| filter_var($CI->config->item('opensearch_debug'), FILTER_VALIDATE_BOOLEAN);
+
+	return $enabled && catalog_search_debug_viewer();
+}
+
+/**
+ * Whether semantic search debugging is on for this request: the semantic_search_debug setting, for a user allowed to
+ * see the debug payloads (see catalog_search_debug_enabled()).
+ */
+function semantic_search_debug_enabled()
+{
+	$CI =& get_instance();
+	$CI->config->load('semantic_search');
+
+	return filter_var($CI->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN) && catalog_search_debug_viewer();
+}
+
+/**
+ * Whether the current user may see search debug payloads: signed in with the semantic search 'view' permission
+ * (admins have it).
+ */
+function catalog_search_debug_viewer()
+{
+	$CI =& get_instance();
+	if (!$CI->session->userdata('user_id')) {
+		return false;
 	}
-	if (filter_var($CI->config->item('opensearch_debug'), FILTER_VALIDATE_BOOLEAN)) {
-		return true;
-	}
-	return false;
+
+	return $CI->acl_manager->user_has_access('semantic_search', 'view');
 }
 
 /**

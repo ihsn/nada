@@ -40,6 +40,11 @@
               </div>
               <div id="semantic-page-actions" class="admin-semantic-content-actions" />
             </header>
+            <v-alert v-if="engineMismatch" type="warning" variant="tonal" density="compact" class="mb-4">
+              This site's semantic search engine is set to <strong>{{ configuredEngine }}</strong>, but nada-ai is running
+              <strong>{{ engine }}</strong>. Catalog search will fail until they match: change the engine in
+              Site configurations &gt; Search, or restart nada-ai with the matching backend.
+            </v-alert>
             <router-view />
           </div>
         </div>
@@ -52,12 +57,14 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useSemanticApi } from './composables/useSemanticApi.js';
+import { useEngine } from './composables/useEngine.js';
 import './semantic-layout.css';
 
 defineOptions({ name: 'AdminSemanticApp' });
 
 const route = useRoute();
 const { getTypeBreakdown, listJobs, getSyncStatus } = useSemanticApi();
+const { engine, configuredEngine, engineMismatch, ensureEngine } = useEngine();
 
 const errorCount = ref(0);
 const runningJobs = ref(0);
@@ -121,6 +128,9 @@ async function loadNavBadges() {
   }
 }
 
-onMounted(loadNavBadges);
+onMounted(() => {
+  loadNavBadges();
+  ensureEngine();
+});
 watch(() => route.name, loadNavBadges);
 </script>

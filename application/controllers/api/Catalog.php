@@ -340,7 +340,7 @@ class Catalog extends MY_REST_Controller
 
 		try{
 
-			$result=$this->catalog_search->search($limit,$offset);			
+			$result=catalog_browse_sanitize_search_result($this->catalog_search->search($limit,$offset));
 
 			if(isset($result['rows'])){
 				
@@ -470,14 +470,14 @@ class Catalog extends MY_REST_Controller
 	}
 
 	/**
-	 * When semantic_search_debug is enabled, attach API request/response to error payloads.
+	 * When semantic search debugging is on for this user, attach API request/response to error payloads.
 	 *
 	 * @param Exception $e
 	 * @return array<string, mixed>
 	 */
 	private function semantic_search_debug_for_exception($e)
 	{
-		if (!filter_var($this->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN)) {
+		if (!semantic_search_debug_enabled()) {
 			return array();
 		}
 

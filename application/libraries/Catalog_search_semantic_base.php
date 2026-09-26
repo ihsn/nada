@@ -84,7 +84,10 @@ abstract class catalog_search_semantic_base
         $this->admin_api_key = (string) $this->ci->config->item('semantic_search_admin_api_key');
         $timeout             = (int) $this->ci->config->item('semantic_search_timeout');
         $this->timeout       = min(max(1, $timeout > 0 ? $timeout : self::API_MAX_TIMEOUT_SEC), self::API_MAX_TIMEOUT_SEC);
-        $this->debug         = filter_var($this->ci->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN);
+        // only for a user allowed to see the debug payloads: they reach the browser, and debugging sends the admin key.
+        // semantic_debug is set by the admin dashboard's search test (api/admin/Semantic::search_post) only.
+        $this->ci->load->helper('catalog');
+        $this->debug         = !empty($params['semantic_debug']) || semantic_search_debug_enabled();
 
         // same default sort as the database search
         if ($this->ci->config->item('regional_search') == 'yes') {

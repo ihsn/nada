@@ -455,13 +455,12 @@ class Semantic extends MY_REST_Controller
 
 	/**
 	 * POST /api/admin/semantic/search
-	 * body: {query, mode?, filters?, size?, include_facets?, facet_fields?}
+	 * body: {query, type?, from?, to?, limit?, offset?}
 	 *
-	 * Forwards to nada-ai's own public POST /search — same endpoint the live
-	 * catalog search uses — so an admin can try a query/filters combination
-	 * and see real results without leaving the dashboard. Gated on 'view'
-	 * like the rest of the read-only dashboard, not on nada-ai's own (open)
-	 * auth for that route.
+	 * Runs this site's catalog search through the semantic provider, with the driver the semantic_search_engine
+	 * setting selects (qdrant, qdrant_db or opensearch), in relevance order as the catalog lists a keyword search.
+	 * So an admin sees what the catalog would show, including the database's part of it (pinned blocks, fallbacks,
+	 * dropped hits), with the driver's debug output on — also before semantic search is the site's search provider.
 	 */
 	public function search_post()
 	{
@@ -471,8 +470,67 @@ class Semantic extends MY_REST_Controller
 			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
 			return;
 		}
-		$body = json_decode($this->input->raw_input_stream ?: '{}', true) ?: array();
-		$this->_forward('POST', 'search', array('json' => $body));
+
+		$body  = json_decode($this->input->raw_input_stream ?: '{}', true) ?: array();
+		$query = isset($body['query']) ? trim((string) $body['query']) : '';
+		if ($query === '')
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'query required'), REST_Controller::HTTP_BAD_REQUEST);
+			return;
+		}
+
+		$limit  = min(100, max(1, (int) ($body['limit'] ?? 15)));
+		$offset = max(0, (int) ($body['offset'] ?? 0));
+		$params = array(
+			'search_provider' => 'semantic',
+			'semantic_debug'  => true,
+			'study_keywords'  => $query,
+			'type'            => !empty($body['type']) ? array((string) $body['type']) : array(),
+			'from'            => (int) ($body['from'] ?? 0),
+			'to'              => (int) ($body['to'] ?? 0),
+			'sort_by'         => 'rank',
+			'sort_order'      => 'desc',
+		);
+
+		require_once APPPATH . 'libraries/Semantic_search_api_exception.php';
+		try
+		{
+			$this->load->library('catalog_search', $params);
+			$result = $this->catalog_search->search($limit, $offset);
+		}
+		catch (Semantic_search_api_exception $e)
+		{
+			$this->set_response(
+				array('status' => 'error', 'message' => $e->getMessage(), 'semantic_debug' => $e->debug_payload()),
+				REST_Controller::HTTP_BAD_GATEWAY
+			);
+			return;
+		}
+		catch (Exception $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+			return;
+		}
+
+		$fields = array('id', 'idno', 'title', 'type', 'nation', 'year_start', 'year_end', 'var_found', 'semantic_hit', 'semantic_document_pages');
+		$rows = array();
+		foreach ((array) ($result['rows'] ?? array()) as $row)
+		{
+			$rows[] = array_intersect_key($row, array_flip($fields));
+		}
+
+		$this->set_response(array(
+			'status'                => 'success',
+			'engine'                => strtolower(trim((string) $this->config->item('semantic_search_engine'))),
+			'found'                 => (int) ($result['found'] ?? 0),
+			'limit'                 => $limit,
+			'offset'                => $offset,
+			'search_counts_by_type' => $result['search_counts_by_type'] ?? array(),
+			'semantic_note'         => $result['semantic_note'] ?? null,
+			'semantic_fallback'     => $result['semantic_fallback'] ?? null,
+			'rows'                  => $rows,
+			'debug'                 => $result['debug'] ?? null,
+		), REST_Controller::HTTP_OK);
 	}
 
 	// =====================================================================
@@ -520,8 +578,8 @@ class Semantic extends MY_REST_Controller
 	 * Picks the matching nada-ai route for whichever engine is actually running (Qdrant's collection and
 	 * OpenSearch's index are two different routes there — see docs on GET/DELETE /admin/qdrant/collection
 	 * vs. DELETE /admin/index) so this one dashboard action works under either, rather than the dashboard
-	 * needing to know or ask. Falls back to the Qdrant route when the engine can't be determined, matching
-	 * this action's behavior before OpenSearch was ever an option here.
+	 * needing to know or ask. When the engine can't be determined nothing is dropped: guessing could send
+	 * the drop to the wrong store.
 	 */
 	public function collection_delete()
 	{
@@ -533,9 +591,18 @@ class Semantic extends MY_REST_Controller
 		}
 		$confirm = $this->input->get('confirm');
 		$confirmed = ($confirm === 'true' || $confirm === '1') ? 'true' : 'false';
-		if ($this->_engine() === 'opensearch')
+		$engine = $this->_engine();
+		if ($engine === 'opensearch')
 		{
 			$this->_forward('DELETE', 'admin/index', array('query' => array('confirm' => $confirmed)));
+			return;
+		}
+		if ($engine !== 'qdrant')
+		{
+			$this->set_response(
+				array('status' => 'error', 'message' => 'Could not tell which engine nada-ai runs (its /health did not say), so nothing was dropped.'),
+				REST_Controller::HTTP_SERVICE_UNAVAILABLE
+			);
 			return;
 		}
 		$this->_forward('DELETE', 'admin/qdrant/collection', array(

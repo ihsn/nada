@@ -21,12 +21,17 @@
  * A hit whose row is missing or whose idno differs from the API's (the index is out of sync with this catalog)
  * is left out of the page and reported in semantic_note.
  *
+ * An exact idno or alias is answered by the database, as in every other driver. A request the API cannot take (a page
+ * of more than API_MAX_PAGE_SIZE studies, or topic/database/sid filters selecting more than API_MAX_SIDS studies) is
+ * served by the database search, and semantic_note says why.
+ *
  * When nada-ai cannot be reached or fails on its side (timeout, HTTP 5xx or 429), the page is served by the
  * database search and result.semantic_fallback says so. A request the API rejects (HTTP 4xx: bad key, invalid
  * filters, an engine without the study search) is a configuration or contract error and is raised, not hidden.
  */
 
 require_once dirname(__FILE__) . '/Catalog_search_semantic_base.php';
+require_once dirname(__FILE__) . '/Catalog_study_idno_lookup.php';
 
 class catalog_search_semantic_studies extends catalog_search_semantic_base
 {
@@ -57,9 +62,17 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
 
     public function search(int $limit = 15, int $offset = 0): array
     {
+        // an exact idno or alias is answered by the database, as in every other driver
+        $exact = Catalog_study_idno_lookup::try_search_from_params($this->database_params(), $limit, $offset);
+        if ($exact !== null) {
+            return $exact;
+        }
+
         if ($limit > self::API_MAX_PAGE_SIZE) {
-            throw new RuntimeException(
-                sprintf('Semantic search serves at most %d studies per page (requested %d).', self::API_MAX_PAGE_SIZE, $limit)
+            return $this->search_in_database(
+                $limit,
+                $offset,
+                sprintf('Pages of more than %d studies are served by the catalog database search.', self::API_MAX_PAGE_SIZE)
             );
         }
 
@@ -69,6 +82,17 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         if ($filters === null) {
             // a filter was given whose values match nothing: no study can match, nothing to ask the API
             return $this->result([], [], 0, [], $limit, $offset);
+        }
+
+        if (count($filters['sids'] ?? []) > self::API_MAX_SIDS) {
+            return $this->search_in_database(
+                $limit,
+                $offset,
+                sprintf(
+                    'The topic, database or study filters select more than %d studies, so these results come from the catalog database search.',
+                    self::API_MAX_SIDS
+                )
+            );
         }
 
         $body = $this->build_request($filters, $limit, $offset);
@@ -138,14 +162,15 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
 
     // =========================================================================
     // Variable search — POST /variables/search (lexical only; see nada-ai's
-    // docs/variables-search-contract.md). Falls back to the database search when there is no keyword to match:
-    // the API always requires a query, but a keyword-less variable browse is a real, supported database case.
+    // docs/variables-search-contract.md). Served by the database search when the API cannot answer the request:
+    // there is no keyword to match (the API always requires a query, but a keyword-less variable browse is a real,
+    // supported database case), or a sidebar filter the API does not have is set (see variable_filters_in_database()).
     // =========================================================================
 
     public function vsearch(int $limit = 15, int $offset = 0): array
     {
         $keywords = trim((string) $this->variable_keywords);
-        if ($keywords === '') {
+        if ($keywords === '' || $this->variable_filters_in_database()) {
             return $this->database_search()->vsearch($limit, $offset);
         }
 
@@ -203,6 +228,23 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         $total = (int) $this->ci->db->where('sid', $sid)->count_all_results('variables');
 
         return $this->variable_result($response, $limit, $offset, $total);
+    }
+
+    /**
+     * Whether a sidebar filter of the database vsearch() is set that the variable search API does not have (it only
+     * filters by dataset type): countries, years, collections, repository or data access type. Such a search is
+     * served by the database, so the filter is applied instead of dropped.
+     */
+    private function variable_filters_in_database(): bool
+    {
+        list($year_from, $year_to) = $this->year_bounds();
+        $repo = trim((string) $this->repo);
+
+        return !empty($this->normalise_array($this->countries))
+            || $year_from > 0 || $year_to > 0
+            || !empty($this->normalise_array($this->collections))
+            || ($repo !== '' && $repo !== 'central')
+            || !empty($this->normalise_array($this->dtype));
     }
 
     /** @return array{by: string, order: string}|null null = the API default (relevance) */
@@ -333,11 +375,7 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
             return null;
         }
         if (!empty($sids)) {
-            if (count($sids) > self::API_MAX_SIDS) {
-                throw new RuntimeException(
-                    sprintf('The topic/database/sid filters select %d studies; semantic search accepts at most %d.', count($sids), self::API_MAX_SIDS)
-                );
-            }
+            // more than API_MAX_SIDS is routed to the database by search()
             $filters['sids'] = $sids;
         }
 
@@ -460,6 +498,15 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
     // =========================================================================
     // Database fallback
     // =========================================================================
+
+    /** A search the API cannot take, served by the database search; $reason goes to semantic_note. */
+    private function search_in_database(int $limit, int $offset, string $reason): array
+    {
+        $result = $this->database_search()->search($limit, $offset);
+        $result['semantic_note'] = $reason;
+
+        return $result;
+    }
 
     private function search_in_database_after(Semantic_search_api_exception $e, int $limit, int $offset): array
     {

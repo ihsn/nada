@@ -21,6 +21,8 @@ class Semantic extends MY_Controller
 			'csrf_token'   => $this->security->get_csrf_hash(),
 			'can_edit'     => $this->acl_manager->user_has_access('semantic_search', 'edit'),
 			'can_delete'   => $this->acl_manager->user_has_access('semantic_search', 'delete'),
+			// the engine this site's catalog search is set to use; the dashboard compares it with what nada-ai runs
+			'search_engine' => $this->configured_search_engine(),
 		);
 
 		$page = array(
@@ -30,5 +32,12 @@ class Semantic extends MY_Controller
 			'theme_folder'    => 'adminvue',
 		);
 		$this->load->view('layouts/admin_vue', $page);
+	}
+
+	/** The semantic_search_engine site setting (qdrant | qdrant_db | opensearch), as Catalog_search reads it. */
+	private function configured_search_engine()
+	{
+		$this->config->load('semantic_search');
+		return strtolower(trim((string) $this->config->item('semantic_search_engine')));
 	}
 }

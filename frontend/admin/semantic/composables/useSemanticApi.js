@@ -76,7 +76,10 @@ export function useSemanticApi() {
     return _run(async () => (await axios.get(`${base()}variables_coverage`)).data);
   }
 
-  /** @param {{query:string, mode?:string, filters?:object, size?:number, include_facets?:boolean, facet_fields?:string[]}} body */
+  /**
+   * The site's catalog search through the semantic provider and the configured engine, with debug output.
+   * @param {{query:string, type?:string, from?:number, to?:number, limit?:number, offset?:number}} body
+   */
   function search(body) {
     return _run(async () => (await axios.post(`${base()}search`, body)).data);
   }

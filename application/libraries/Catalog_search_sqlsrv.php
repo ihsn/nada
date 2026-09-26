@@ -434,6 +434,32 @@ class Catalog_search_sqlsrv{
 	}
 
 	/**
+	 * Published studies that pass the sidebar filters and the dataset-type tab, ignoring the keyword. Same contract as
+	 * Catalog_search_mysql::count_filter_universe().
+	 */
+	public function count_filter_universe()
+	{
+		$this->ci->db->flush_cache();
+
+		$where = $this->_build_search_where_sql(true, false);
+
+		$this->ci->db->select('COUNT(DISTINCT surveys.id) AS total', FALSE);//a study can repeat when it belongs to several repositories
+		$this->ci->db->from('surveys');
+		$this->ci->db->join('forms f', 'surveys.formid=f.formid', 'left');
+		if ($this->_build_repository_query() != '') {
+			$this->ci->db->join('survey_repos', 'surveys.id=survey_repos.sid', 'left');
+		}
+		$this->ci->db->where('surveys.published', 1);
+		if ($where !== '') {
+			$this->ci->db->where($where, NULL, FALSE);
+		}
+
+		$row = $this->ci->db->get()->row_array();
+
+		return (int) ($row['total'] ?? 0);
+	}
+
+	/**
 	 * Whether there is a keyword to search for. Same contract as Catalog_search_mysql::has_usable_keyword().
 	 */
 	public function has_usable_keyword()

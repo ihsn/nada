@@ -396,8 +396,7 @@ class Search_index_manager
 		$stale_sql = "
 			SELECT COALESCE(st.data_type, 'unknown') AS data_type, COUNT(*) AS stale_total
 			FROM search_index_state st
-			LEFT JOIN surveys live ON live.id = st.object_id
-			WHERE st.object_type = 'survey' AND st.status = 'indexed' AND live.id IS NULL
+			WHERE st.object_type = 'survey' AND st.status = 'indexed' AND " . $this->stale_condition(self::OBJECT_SURVEY) . "
 			GROUP BY COALESCE(st.data_type, 'unknown')
 		";
 		foreach ($this->ci->db->query($stale_sql)->result_array() as $r) {
@@ -426,7 +425,8 @@ class Search_index_manager
 	 * there is no pre-existing search_index_queue row to ack against — this is
 	 * the write path for that case: given just (object_type, object_key,
 	 * status), resolve the internal id and upsert state directly ('deleted'
-	 * removes the state row instead — see STATUS_DELETED). Never
+	 * removes every state row with that key instead, matched by key since the
+	 * catalog row may be gone — see STATUS_DELETED). Never
 	 * touches search_index_queue; a genuine queue-driven change for the same
 	 * object is unaffected and still processed normally later.
 	 *
@@ -461,15 +461,17 @@ class Search_index_manager
 				continue;
 			}
 
-			$object_id = $this->resolve_object_id($object_type, $object_key);
-			if ($object_id === null) {
-				$results[] = array('object_key' => $object_key, 'applied' => false, 'error' => 'OBJECT_KEY_NOT_FOUND');
+			// the index no longer holds this key: forget every state row that has it. Matched by key, not through the
+			// catalog, because a study deleted from the catalog (the stale case) has no row to resolve an id from.
+			if ($status === self::STATUS_DELETED) {
+				$this->delete_state_by_key($object_type, $object_key);
+				$results[] = array('object_key' => $object_key, 'applied' => true, 'status' => $status);
 				continue;
 			}
 
-			if ($status === self::STATUS_DELETED) {
-				$this->delete_state($object_type, $object_id);
-				$results[] = array('object_key' => $object_key, 'applied' => true, 'status' => $status);
+			$object_id = $this->resolve_object_id($object_type, $object_key);
+			if ($object_id === null) {
+				$results[] = array('object_key' => $object_key, 'applied' => false, 'error' => 'OBJECT_KEY_NOT_FOUND');
 				continue;
 			}
 
@@ -570,7 +572,8 @@ class Search_index_manager
 
 	/**
 	 * search_index_state rows of $object_type marked 'indexed' whose catalog
-	 * row is gone entirely — these should be removed from the index.
+	 * row is gone entirely, and whose key no live catalog row has either
+	 * (see stale_condition()) — these should be removed from the index.
 	 *
 	 * Published status is not considered — see diff_missing()'s docblock for
 	 * why. An unpublished row is not "stale"; only a genuinely deleted one is.
@@ -590,26 +593,25 @@ class Search_index_manager
 		$offset = max(0, (int) $offset);
 		$data_type = ($data_type !== null && $data_type !== '' && $object_type === self::OBJECT_SURVEY) ? (string) $data_type : null;
 
-		$table = ($object_type === self::OBJECT_SURVEY) ? 'surveys' : 'citations';
 		$type_filter = ($data_type !== null) ? ' AND st.data_type = ?' : '';
 		$params = ($data_type !== null) ? array($object_type, $data_type) : array($object_type);
+
+		$stale = $this->stale_condition($object_type);
 
 		$sql = "
 			SELECT st.object_key AS object_key
 			FROM search_index_state st
-			LEFT JOIN {$table} live ON live.id = st.object_id
 			WHERE st.object_type = ?
 				AND st.status = 'indexed'
-				AND live.id IS NULL{$type_filter}
+				AND {$stale}{$type_filter}
 			ORDER BY st.object_id ASC
 		";
 		$count_sql = "
 			SELECT COUNT(*) AS n
 			FROM search_index_state st
-			LEFT JOIN {$table} live ON live.id = st.object_id
 			WHERE st.object_type = ?
 				AND st.status = 'indexed'
-				AND live.id IS NULL{$type_filter}
+				AND {$stale}{$type_filter}
 		";
 
 		$total = (int) $this->ci->db->query($count_sql, $params)->row_array()['n'];
@@ -624,6 +626,23 @@ class Search_index_manager
 			}, $rows),
 			'total' => $total,
 		);
+	}
+
+	/**
+	 * SQL condition on search_index_state `st`: the row is stale — its catalog row is gone, and no live catalog row
+	 * has its key either. The index is keyed by idno/uuid, so a key that now belongs to another catalog row (a study
+	 * deleted and re-created with the same idno) is not stale: deleting it from the index would remove the live one.
+	 * That leftover state row is dropped when the live row is indexed (see upsert_state()).
+	 */
+	private function stale_condition($object_type)
+	{
+		if ($object_type === self::OBJECT_SURVEY) {
+			return "NOT EXISTS (SELECT 1 FROM surveys live WHERE live.id = st.object_id)
+				AND NOT EXISTS (SELECT 1 FROM surveys same_key WHERE same_key.idno = st.object_key)";
+		}
+
+		return "NOT EXISTS (SELECT 1 FROM citations live WHERE live.id = st.object_id)
+				AND NOT EXISTS (SELECT 1 FROM citations same_key WHERE same_key.uuid = st.object_key)";
 	}
 
 	/** MySQL/SQL Server both back this app (see migrations) — LIMIT/OFFSET syntax differs between them. */
@@ -889,6 +908,10 @@ class Search_index_manager
 			'last_error' => $this->truncate_error($last_error),
 			'data_type'  => $data_type,
 		);
+		if ($status === self::STATUS_INDEXED) {
+			// the index (keyed by object_key) now describes this object
+			$this->delete_other_states_with_key($object_type, $object_id, $object_key);
+		}
 		if ($existing) {
 			$this->ci->db->where('object_type', $object_type);
 			$this->ci->db->where('object_id', $object_id);
@@ -898,6 +921,25 @@ class Search_index_manager
 		$data['object_type'] = $object_type;
 		$data['object_id']   = $object_id;
 		$this->ci->db->insert('search_index_state', $data);
+	}
+
+	/**
+	 * Drop the state rows of other objects that carry this key: a study deleted and re-created with the same idno
+	 * leaves the old id's row behind, and the index (keyed by idno) now describes the live one.
+	 */
+	private function delete_other_states_with_key($object_type, $object_id, $object_key)
+	{
+		$this->ci->db->where('object_type', $object_type);
+		$this->ci->db->where('object_key', $object_key);
+		$this->ci->db->where('object_id !=', (int) $object_id);
+		$this->ci->db->delete('search_index_state');
+	}
+
+	private function delete_state_by_key($object_type, $object_key)
+	{
+		$this->ci->db->where('object_type', $object_type);
+		$this->ci->db->where('object_key', $object_key);
+		$this->ci->db->delete('search_index_state');
 	}
 
 	private function delete_state($object_type, $object_id)
