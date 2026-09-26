@@ -6269,7 +6269,7 @@ components:
           example: success
         search_engine:
           type: string
-          example: nada_ai
+          example: nada_ai_opensearch
         tracking_enabled:
           type: boolean
         queue:

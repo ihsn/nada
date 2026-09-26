@@ -10,20 +10,20 @@
  * trailing slash).
  *
  * Set nada_ai_url, nada_ai_api_key, nada_ai_admin_api_key and nada_ai_debug in Site configurations > Search. They can
- * be saved without making nada-ai the search engine; enable it by choosing nada-ai as the search engine on the same
- * page (search_engine = nada_ai).
+ * be saved without making nada-ai the search engine; enable it by choosing a nada-ai engine as the search engine on the
+ * same page (search_engine = nada_ai_opensearch or nada_ai_qdrant).
  */
 
-// Which engine nada-ai runs (OpenSearch or Qdrant), and which searches it can serve (studies, variables,
-// citations), is read from nada-ai itself (GET /info); nothing here or in the site settings says so.
-// With OpenSearch, NADA calls POST /studies/search, which needs none of the settings below except nada_ai_url,
-// nada_ai_api_key, nada_ai_timeout and nada_ai_debug. With Qdrant, NADA calls POST /search and the settings below
-// apply (the query prompt, knn_k, collapse size and mode). The site setting nada_ai_combine_with_database (Qdrant
-// only) also runs the catalog database's keyword search and pins the best semantic matches to the top of a
-// relevance search, followed by the database's own keyword result; the query prompt, knn_k and collapse size below
-// apply too. The values below were chosen on 67 golden queries over a development catalog (nada-ai:
-// docs/qdrant-db-search-evaluation.md); re-check them on your own catalog with nada-ai's eval/run_nada_api.py
-// before relying on them.
+// Which engine nada-ai runs (OpenSearch or Qdrant) and which searches it can serve (studies, variables, citations)
+// is read from nada-ai itself (GET /info); the site setting search_engine says which one this site expects, and a
+// difference is an error.
+// nada_ai_opensearch: NADA calls POST /studies/search, which needs none of the settings below except nada_ai_url,
+// nada_ai_api_key, nada_ai_timeout and nada_ai_debug.
+// nada_ai_qdrant: NADA calls POST /search and the settings below apply. The best semantic matches from Qdrant are
+// pinned to the top of a relevance search, followed by the catalog database's own keyword result; the query prompt,
+// knn_k and collapse size apply too. The values below were chosen on 67 golden queries over a development catalog
+// (nada-ai: docs/qdrant-db-search-evaluation.md); re-check them on your own catalog with nada-ai's
+// eval/run_nada_api.py before relying on them.
 
 // Studies asked of Qdrant per query: the size of the pinned block (at most 100, the limit of nada-ai's POST /search)
 $config['semantic_search_window'] = 50;
@@ -36,9 +36,6 @@ $config['semantic_search_relative_cutoff'] = 0.85;
 
 // Seconds a query's semantic block is kept, so paging and re-sorting do not run the semantic search again (0 = off)
 $config['semantic_search_cache_ttl'] = 60;
-
-// Search mode sent to nada-ai POST /search: hybrid | vector | keyword
-$config['semantic_search_mode']    = 'vector';
 
 // HTTP timeout for nada-ai search requests, in seconds (max 15)
 $config['nada_ai_timeout'] = 15;

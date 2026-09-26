@@ -220,9 +220,6 @@ async function reloadAll() {
   if (s.nada_ai_debug === undefined || s.nada_ai_debug === '') {
     s.nada_ai_debug = 'false';
   }
-  if (s.nada_ai_combine_with_database === undefined || s.nada_ai_combine_with_database === '') {
-    s.nada_ai_combine_with_database = 'false';
-  }
   if (s.nada_ai_on_outage === undefined || s.nada_ai_on_outage === '') {
     s.nada_ai_on_outage = 'database';
   }
@@ -387,6 +384,20 @@ const servesNow = computed(() => {
 });
 /** The engine nada-ai reports it runs (opensearch | qdrant), or null when it has not answered. */
 const nadaAiBackend = computed(() => searchEngineMeta.value?.nada_ai?.engine || null);
+const ENGINE_OPTIONS = [
+  { value: 'database' },
+  { value: 'solr' },
+  { value: 'opensearch' },
+  { value: 'nada_ai_opensearch', needsNadaAi: true },
+  { value: 'nada_ai_qdrant', needsNadaAi: true },
+];
+/** {expected, actual} when nada-ai runs another engine than the saved search engine names. */
+const backendMismatch = computed(() => searchEngineMeta.value?.backend_mismatch || null);
+const mismatchText = computed(() => {
+  const m = backendMismatch.value;
+  if (!m) return '';
+  return tr('search_engine_mismatch').replace('%s', tr(`search_engine_${searchEngineMeta.value.engine}`)).replace('%s', m.actual);
+});
 
 const depositMeta = computed(() => meta.value?.datadeposit || {});
 const depositEnabled = computed(() => depositMeta.value?.enabled === true);
@@ -1026,15 +1037,23 @@ onMounted(async () => {
 
               <label class="site-config-field__label">{{ tr('search_engine') }}</label>
               <v-radio-group v-model="settings.search_engine" class="mt-1" hide-details>
-                <v-radio value="database" :label="tr('search_engine_database')" />
-                <v-radio value="solr" :label="tr('search_engine_solr')" />
-                <v-radio value="opensearch_native" :label="tr('search_engine_opensearch_native')" />
-                <v-radio value="nada_ai" :label="tr('search_engine_nada_ai')" :disabled="!nadaAiUrlEntered" />
+                <v-radio v-for="opt in ENGINE_OPTIONS" :key="opt.value" :value="opt.value" :disabled="opt.needsNadaAi && !nadaAiUrlEntered">
+                  <template #label>
+                    <div>
+                      <div>{{ tr(`search_engine_${opt.value}`) }}</div>
+                      <div class="site-config-field__hint">{{ tr(`search_engine_${opt.value}_note`) }}</div>
+                    </div>
+                  </template>
+                </v-radio>
               </v-radio-group>
               <div class="site-config-field__hint mt-2">{{ tr('search_engine_note') }}</div>
               <div v-if="!nadaAiUrlEntered" class="site-config-field__hint mt-2">
                 {{ tr('nada_ai_needs_setup') }}
               </div>
+
+              <v-alert v-if="backendMismatch" type="warning" variant="tonal" density="compact" class="mt-4">
+                {{ mismatchText }}
+              </v-alert>
 
               <div v-if="servesNow.length" class="mt-4">
                 <label class="site-config-field__label">{{ tr('search_engine_serves') }}</label>
@@ -1067,17 +1086,6 @@ onMounted(async () => {
                           <template v-if="nadaAiBackend">{{ tr('nada_ai_running') }}: <strong>{{ nadaAiBackend }}</strong></template>
                           <template v-else>{{ tr('nada_ai_running_unknown') }}</template>
                         </div>
-                      </v-col>
-                      <v-col v-if="nadaAiBackend === 'qdrant'" cols="12">
-                        <label class="site-config-field__label">{{ tr('nada_ai_combine_with_database') }}</label>
-                        <v-switch
-                          v-model="settings.nada_ai_combine_with_database"
-                          true-value="true"
-                          false-value="false"
-                          color="primary"
-                          hide-details
-                        />
-                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_combine_with_database_note') }}</div>
                       </v-col>
                       <v-col cols="12">
                         <label class="site-config-field__label">{{ tr('nada_ai_on_outage') }}</label>

@@ -24,7 +24,7 @@ $config['data_types_nav_bar']='no';
 $config['max_resource_upload_size']='3000';
 $config['deposit_max_upload_size']='2048';
 $config['admin_header_background']='#212121';
-// Which engine serves catalog search: database | solr | opensearch_native | nada_ai
+// Which engine serves catalog search: database | solr | opensearch | nada_ai_opensearch | nada_ai_qdrant
 $config['search_engine']='database';
 $config['nada_ai_url']='';
 $config['nada_ai_api_key']='';
@@ -32,8 +32,6 @@ $config['nada_ai_admin_api_key']='';
 $config['nada_ai_debug']='false';
 // What a search does while nada-ai is down: database (serve it from the catalog database) | error (fail with the reason)
 $config['nada_ai_on_outage']='database';
-// With a nada-ai that runs Qdrant: also run the catalog database's keyword search and combine the two
-$config['nada_ai_combine_with_database']='false';
 
 //default cache expiration in seconds
 $config['cache_default_expires'] = 60*60*2;//2 hours

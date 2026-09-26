@@ -20,12 +20,13 @@ class Citation_model extends CI_Model {
 
         switch ($this->search_engine_resolver->provider_for(Search_engine_resolver::CITATIONS)) {
             case Search_engine_resolver::NADA_AI:
+                $this->search_engine_resolver->assert_backend();
                 $this->load->library('citation_search_nada_ai');
                 $result = $this->citation_search_nada_ai->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
                 $this->search_found_rows = $this->citation_search_nada_ai->search_found_rows;
                 return $result;
 
-            case Search_engine_resolver::OPENSEARCH_NATIVE:
+            case Search_engine_resolver::OPENSEARCH:
                 require_once APPPATH . 'libraries/OpenSearch/Citation_search_opensearch.php';
                 $searcher = new Citation_search_opensearch();
                 $result   = $searcher->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);

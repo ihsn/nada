@@ -19,7 +19,7 @@ class Catalog_search{
 
         $ci =& get_instance();
         $ci->load->library('search_engine_resolver');
-        $valid_engines = array('database', 'solr', 'opensearch_native', 'nada_ai');
+        $valid_engines = array('database', 'solr', 'opensearch', 'nada_ai_opensearch', 'nada_ai_qdrant');
 
         // an explicit engine in $params (the admin search test, the variable view) wins over the site setting
         $search_engine = (isset($params['search_engine']) && in_array($params['search_engine'], $valid_engines, true))
@@ -29,9 +29,9 @@ class Catalog_search{
         $driver = $ci->db->dbdriver;
         if ($search_engine === 'solr') {
             $driver = 'solr';
-        } elseif ($search_engine === 'opensearch_native') {
+        } elseif ($search_engine === 'opensearch') {
             $driver = 'opensearch';
-        } elseif ($search_engine === 'nada_ai') {
+        } elseif ($search_engine === 'nada_ai_opensearch' || $search_engine === 'nada_ai_qdrant') {
             $driver = 'semantic';
         }
 
@@ -56,25 +56,16 @@ class Catalog_search{
                 $this->search_obj= new catalog_search_opensearch($params);
                 break;
             case 'semantic';
-                // the engine behind nada-ai decides the driver, and nada-ai says which it runs: OpenSearch uses nada-ai's
-                // standard study search, Qdrant keeps the original semantic driver, or the one that fuses it with the
-                // database search when nada_ai_combine_with_database is on. When nada-ai has never been reachable the
-                // engine is not known, and the database search serves the request.
-                $engine = $ci->search_engine_resolver->nada_ai_study_driver();
-                if ($engine === 'opensearch') {
+                // nada-ai runs the engine the setting names, and says which it runs: a difference is an error, because the
+                // driver and its index belong to one engine. OpenSearch uses nada-ai's standard study search; Qdrant uses
+                // the driver that combines it with the database keyword search.
+                $ci->search_engine_resolver->assert_backend($search_engine);
+                if ($search_engine === 'nada_ai_opensearch') {
                     require_once dirname(__FILE__) . '/Catalog_search_semantic_studies.php';
                     $this->search_obj= new catalog_search_semantic_studies($params);
-                } elseif ($engine === 'qdrant_db') {
+                } else {
                     require_once dirname(__FILE__) . '/Catalog_search_semantic_fused.php';
                     $this->search_obj= new catalog_search_semantic_fused($params);
-                } elseif ($engine === 'qdrant') {
-                    require_once dirname(__FILE__) . '/Catalog_search_semantic.php';
-                    $this->search_obj= new catalog_search_semantic($params);
-                } elseif ($ci->db->dbdriver === 'sqlsrv') {
-                    require_once dirname(__FILE__) . '/Catalog_search_sqlsrv.php';
-                    $this->search_obj= new catalog_search_sqlsrv($params);
-                } else {
-                    $this->search_obj= new catalog_search_mysql($params);
                 }
                 break;
             default:

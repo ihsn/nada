@@ -53,7 +53,7 @@ class Search_index_manager
 		return $this->ci->search_engine_resolver->tracked($object_type === self::OBJECT_CITATION ? 'citation' : 'survey');
 	}
 
-	/** The engine the site is set to: database | solr | opensearch_native | nada_ai (see Search_engine_resolver). */
+	/** The engine the site is set to: database | solr | opensearch | nada_ai_opensearch | nada_ai_qdrant (see Search_engine_resolver). */
 	public function current_engine()
 	{
 		$this->ci->load->library('search_engine_resolver');
@@ -742,7 +742,7 @@ class Search_index_manager
 		$engine = $this->current_engine();
 		$inline = $this->ci->config->item('search_index_inline_engines');
 		if (!is_array($inline)) {
-			$inline = array('solr', 'opensearch_native');
+			$inline = array('solr', 'opensearch');
 		}
 		if (!in_array($engine, $inline, true)) {
 			return;
@@ -783,7 +783,7 @@ class Search_index_manager
 			return;
 		}
 
-		if ($engine === 'opensearch_native') {
+		if ($engine === 'opensearch') {
 			$this->ci->load->library('OpenSearch/OpenSearch_manager');
 			if ($row['object_type'] === self::OBJECT_SURVEY && $row['change_class'] === self::CLASS_VARIABLES) {
 				$this->ci->opensearch_manager->index_survey_variables($id);

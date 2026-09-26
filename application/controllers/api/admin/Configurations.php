@@ -555,7 +555,7 @@ class Configurations extends MY_REST_Controller
 				$value = $v;
 			}
 
-			if ($key === 'nada_ai_debug' || $key === 'nada_ai_combine_with_database')
+			if ($key === 'nada_ai_debug')
 			{
 				$v = strtolower(trim((string) $value));
 				if (in_array($v, array('1', 'true', 'yes', 'on'), true))
@@ -568,7 +568,7 @@ class Configurations extends MY_REST_Controller
 				}
 				else
 				{
-					throw new Exception('INVALID_VALUE:' . $key);
+					throw new Exception('INVALID_VALUE:nada_ai_debug');
 				}
 			}
 
@@ -608,7 +608,7 @@ class Configurations extends MY_REST_Controller
 		{
 			$engine = strtolower(trim((string) $options['search_engine']));
 
-			if (!in_array($engine, array('database', 'solr', 'opensearch_native', 'nada_ai'), TRUE))
+			if (!in_array($engine, array('database', 'solr', 'opensearch', 'nada_ai_opensearch', 'nada_ai_qdrant'), TRUE))
 			{
 				throw new Exception('INVALID_VALUE:search_engine');
 			}
@@ -624,7 +624,7 @@ class Configurations extends MY_REST_Controller
 			? (string) $options['nada_ai_url']
 			: (isset($stored['nada_ai_url']) ? (string) $stored['nada_ai_url'] : '');
 
-		if ($engine === 'nada_ai' && trim($url) === '')
+		if (strpos($engine, 'nada_ai_') === 0 && trim($url) === '')
 		{
 			throw new Exception('NADA_AI_URL_REQUIRED');
 		}
@@ -644,6 +644,7 @@ class Configurations extends MY_REST_Controller
 			'engine'  => $summary['engine'],
 			'serves'  => $summary['serves'],
 			'nada_ai' => $summary['nada_ai'],
+			'backend_mismatch' => $summary['backend_mismatch'],
 		);
 	}
 

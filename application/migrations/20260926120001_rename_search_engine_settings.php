@@ -8,14 +8,17 @@ require_once(APPPATH . 'core/MY_Migration.php');
  *
  *   search_provider                db | mysql | mysqli | sqlsrv -> search_engine = database
  *                                  solr                          -> search_engine = solr
- *                                  opensearch                    -> search_engine = opensearch_native
- *                                  semantic                      -> search_engine = nada_ai
+ *                                  opensearch                    -> search_engine = opensearch
+ *                                  semantic                      -> search_engine = nada_ai_opensearch when
+ *                                                                   semantic_search_engine was opensearch,
+ *                                                                   nada_ai_qdrant when it was qdrant or qdrant_db
  *   semantic_search_url            -> nada_ai_url
  *   semantic_search_api_key        -> nada_ai_api_key
  *   semantic_search_admin_api_key  -> nada_ai_admin_api_key
  *   semantic_search_debug          -> nada_ai_debug
- *   semantic_search_engine         removed: which engine nada-ai runs is read from nada-ai itself. The
- *                                  "qdrant_db" choice becomes nada_ai_combine_with_database = true.
+ *   semantic_search_engine         removed: it is part of search_engine now. "qdrant" used the plain Qdrant driver,
+ *                                  which is gone: nada_ai_qdrant is the driver that combines Qdrant with the
+ *                                  database keyword search (what "qdrant_db" was).
  *   citation_search_provider       removed: citations follow the search engine.
  *
  * A value already stored under a new name is kept (the old row is dropped). Every step is idempotent, so running
@@ -29,8 +32,7 @@ class Migration_Rename_search_engine_settings extends MY_Migration {
         'mysqli'     => 'database',
         'sqlsrv'     => 'database',
         'solr'       => 'solr',
-        'opensearch' => 'opensearch_native',
-        'semantic'   => 'nada_ai',
+        'opensearch' => 'opensearch',
     );
 
     private static $renames = array(
@@ -52,11 +54,16 @@ class Migration_Rename_search_engine_settings extends MY_Migration {
             $stored[$row['name']] = $row['value'];
         }
 
-        // search_provider -> search_engine (the value is translated)
+        // search_provider -> search_engine (the value is translated; nada-ai's depends on the engine it runs)
         if (array_key_exists('search_provider', $stored)) {
             if (!array_key_exists('search_engine', $stored)) {
-                $old    = strtolower(trim((string) $stored['search_provider']));
-                $engine = isset(self::$engines[$old]) ? self::$engines[$old] : 'database';
+                $old = strtolower(trim((string) $stored['search_provider']));
+                if ($old === 'semantic') {
+                    $behind = strtolower(trim((string) ($stored['semantic_search_engine'] ?? 'qdrant')));
+                    $engine = ($behind === 'opensearch') ? 'nada_ai_opensearch' : 'nada_ai_qdrant';
+                } else {
+                    $engine = isset(self::$engines[$old]) ? self::$engines[$old] : 'database';
+                }
                 $this->set('search_engine', $engine);
                 $this->emit("  search_provider '{$old}' -> search_engine '{$engine}'\n");
             }
@@ -76,14 +83,19 @@ class Migration_Rename_search_engine_settings extends MY_Migration {
             }
         }
 
-        // semantic_search_engine: qdrant_db becomes a switch, the rest is no longer a setting
+        // semantic_search_engine is part of search_engine now
         if (array_key_exists('semantic_search_engine', $stored)) {
-            if (!array_key_exists('nada_ai_combine_with_database', $stored)) {
-                $combine = strtolower(trim((string) $stored['semantic_search_engine'])) === 'qdrant_db' ? 'true' : 'false';
-                $this->set('nada_ai_combine_with_database', $combine);
-                $this->emit("  semantic_search_engine '{$stored['semantic_search_engine']}' -> nada_ai_combine_with_database '{$combine}'\n");
-            }
             $this->remove('semantic_search_engine');
+            $this->emit("  semantic_search_engine removed (part of search_engine)\n");
+        }
+
+        // values of an earlier draft of these settings
+        if (isset($stored['search_engine']) && $stored['search_engine'] === 'opensearch_native') {
+            $this->set('search_engine', 'opensearch');
+            $this->emit("  search_engine 'opensearch_native' -> 'opensearch'\n");
+        }
+        if (array_key_exists('nada_ai_combine_with_database', $stored)) {
+            $this->remove('nada_ai_combine_with_database');
         }
 
         if (array_key_exists('citation_search_provider', $stored)) {

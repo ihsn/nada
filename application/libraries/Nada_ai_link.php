@@ -259,12 +259,6 @@ class Nada_ai_link
         return $caps['engine'] !== null ? strtolower($caps['engine']) : null;
     }
 
-    /** nada_ai_combine_with_database: with a Qdrant nada-ai, also run the catalog database's keyword search. */
-    public function combine_with_database()
-    {
-        return filter_var($this->ci->config->item('nada_ai_combine_with_database'), FILTER_VALIDATE_BOOLEAN);
-    }
-
     public function supports($capability)
     {
         $caps = $this->capabilities();
@@ -275,7 +269,7 @@ class Nada_ai_link
     {
         $caps = isset($info['capabilities']) && is_array($info['capabilities']) ? $info['capabilities'] : array();
         return array(
-            'engine'             => isset($info['engine']) ? (string) $info['engine'] : null,
+            'engine'            => isset($info['engine']) ? (string) $info['engine'] : null,
             self::CAP_STUDIES   => !empty($caps['studies_search']),
             self::CAP_VARIABLES => !empty($caps['variables_search']),
             self::CAP_CITATIONS => !empty($caps['citations_search']),

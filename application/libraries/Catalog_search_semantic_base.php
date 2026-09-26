@@ -8,7 +8,6 @@
  * loading the rows of a page from this database, the result envelope, and access to the database search driver
  * of this installation (MySQL or SQL Server).
  *
- * The original Qdrant driver (catalog_search_semantic) is separate and unchanged.
  */
 
 if (! class_exists('Catalog_country_resolver', false)) {

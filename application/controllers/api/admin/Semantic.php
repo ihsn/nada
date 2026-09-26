@@ -479,11 +479,10 @@ class Semantic extends MY_REST_Controller
 	 * POST /api/admin/semantic/search
 	 * body: {query, type?, from?, to?, limit?, offset?}
 	 *
-	 * Runs this site's catalog search through nada-ai, with the driver its engine needs (OpenSearch, Qdrant, or Qdrant
-	 * combined with the database when nada_ai_combine_with_database is on), in relevance order as the catalog lists a
-	 * keyword search. So an admin sees what the catalog would show, including the database's part of it (pinned
-	 * blocks, fallbacks, dropped hits), with the driver's debug output on — also before nada-ai is the site's search
-	 * engine.
+	 * Runs this site's catalog search through nada-ai, with the driver the engine nada-ai runs needs (OpenSearch, or
+	 * Qdrant combined with the database), in relevance order as the catalog lists a keyword search. So an admin sees
+	 * what the catalog would show, including the database's part of it (pinned blocks, fallbacks, dropped hits), with
+	 * the driver's debug output on — also before nada-ai is the site's search engine.
 	 */
 	public function search_post()
 	{
@@ -495,6 +494,13 @@ class Semantic extends MY_REST_Controller
 		}
 
 		$this->load->library('search_engine_resolver');
+		$this->load->library('nada_ai_link');
+		$nada_ai_engine = $this->search_engine_resolver->nada_ai_engine_for($this->nada_ai_link->backend());
+		if ($nada_ai_engine === NULL)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'nada-ai has not said which engine it runs (is it reachable at nada_ai_url?)'), REST_Controller::HTTP_BAD_GATEWAY);
+			return;
+		}
 		$body  = json_decode($this->input->raw_input_stream ?: '{}', true) ?: array();
 		$query = isset($body['query']) ? trim((string) $body['query']) : '';
 		if ($query === '')
@@ -506,7 +512,7 @@ class Semantic extends MY_REST_Controller
 		$limit  = min(100, max(1, (int) ($body['limit'] ?? 15)));
 		$offset = max(0, (int) ($body['offset'] ?? 0));
 		$params = array(
-			'search_engine'   => 'nada_ai',
+			'search_engine'   => $nada_ai_engine,
 			'semantic_debug'  => true,
 			'study_keywords'  => $query,
 			'type'            => !empty($body['type']) ? array((string) $body['type']) : array(),
@@ -545,7 +551,7 @@ class Semantic extends MY_REST_Controller
 
 		$this->set_response(array(
 			'status'                => 'success',
-			'engine'                => $this->search_engine_resolver->nada_ai_study_driver(),
+			'engine'                => $this->search_engine_resolver->expected_backend($nada_ai_engine),
 			'found'                 => (int) ($result['found'] ?? 0),
 			'limit'                 => $limit,
 			'offset'                => $offset,
