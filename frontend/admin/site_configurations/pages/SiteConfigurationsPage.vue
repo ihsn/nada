@@ -1097,24 +1097,39 @@ onMounted(async () => {
                 <v-expansion-panel v-for="group in ENGINE_GROUPS" :key="group" :value="group">
                   <v-expansion-panel-title>
                     <div class="d-flex align-center flex-wrap ga-2 w-100 pr-2">
+                      <v-icon
+                        v-if="isActive(group)"
+                        icon="mdi-check-circle"
+                        color="success"
+                        size="small"
+                        :title="tr('search_engine_active')"
+                      />
+                      <v-icon
+                        v-else-if="isSelected(group)"
+                        icon="mdi-circle-edit-outline"
+                        color="warning"
+                        size="small"
+                        :title="tr('search_engine_selected_unsaved')"
+                      />
                       <span class="text-subtitle-1 font-weight-medium">{{ groupTitle(group) }}</span>
-                      <v-chip v-if="isActive(group)" size="x-small" color="success" variant="tonal">
-                        {{ tr('search_engine_active') }}
-                      </v-chip>
-                      <v-chip v-if="isSelected(group) && !isActive(group)" size="x-small" color="warning" variant="tonal">
-                        {{ tr('search_engine_selected_unsaved') }}
-                      </v-chip>
                       <v-chip v-if="group === 'nada_ai'" size="x-small" variant="tonal" :color="nadaAiStatus.color">
                         {{ nadaAiStatus.text }}
                       </v-chip>
-                      <v-spacer />
-                      <v-btn v-if="!isSelected(group)" size="small" variant="tonal" @click.stop="selectEngineGroup(group)">
-                        {{ tr('search_engine_use') }}
-                      </v-btn>
                     </div>
                   </v-expansion-panel-title>
                   <v-expansion-panel-text>
-                    <div class="site-config-field__hint">{{ groupNote(group) }}</div>
+                    <div class="d-flex align-center flex-wrap ga-3">
+                      <v-btn v-if="!isSelected(group)" color="primary" variant="tonal" size="small" prepend-icon="mdi-power" @click="selectEngineGroup(group)">
+                        {{ tr('search_engine_use') }}
+                      </v-btn>
+                      <span v-else-if="isActive(group)" class="text-body-2">
+                        <v-icon icon="mdi-check-circle" color="success" size="small" class="mr-1" />{{ tr('search_engine_is_active') }}
+                      </span>
+                      <span v-else class="text-body-2">
+                        <v-icon icon="mdi-circle-edit-outline" color="warning" size="small" class="mr-1" />{{ tr('search_engine_will_be_used') }}
+                      </span>
+                    </div>
+                    <div class="site-config-field__hint mt-2">{{ groupNote(group) }}</div>
 
                     <template v-if="group === 'nada_ai'">
                       <div class="mt-4">

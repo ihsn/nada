@@ -1406,7 +1406,7 @@
     ]
   },
   "admin/site_configurations/main.js": {
-    "file": "assets/admin/admin_site_configurations-BxCGecBx.js",
+    "file": "assets/admin/admin_site_configurations-4edXMrhY.js",
     "name": "admin_site_configurations",
     "src": "admin/site_configurations/main.js",
     "isEntry": true,
@@ -1433,7 +1433,6 @@
       "_VRadioGroup-Cvqu1s82.js",
       "_VChip-BMu4qapB.js",
       "_VExpansionPanels-D0KBfP4k.js",
-      "_VSpacer-B2bZIZ3j.js",
       "_dialog-transition-CPXmT8EC.js",
       "_VMenu-DSDylU7Q.js"
     ],
