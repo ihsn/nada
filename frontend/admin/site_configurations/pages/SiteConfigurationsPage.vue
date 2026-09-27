@@ -1062,16 +1062,19 @@ onMounted(async () => {
                 <v-chip color="primary" size="small">{{ tr(`search_engine_${savedEngine}`) }}</v-chip>
               </div>
 
-              <v-radio-group v-model="engineChoice" hide-details class="mt-4">
-              <v-expansion-panels v-model="openEnginePanel" variant="accordion">
+              <!-- Each header radio has its own group on the shared engineChoice: one group around every panel would also
+                   capture the switches inside the panels (a v-switch joins the nearest selection group). -->
+              <v-expansion-panels v-model="openEnginePanel" variant="accordion" class="mt-4">
                 <v-expansion-panel v-for="group in ENGINE_GROUPS" :key="group" :value="group">
                   <v-expansion-panel-title>
                     <div class="d-flex align-center flex-wrap ga-2 w-100 pr-2">
-                      <v-radio :value="group" density="compact" hide-details @click.stop="openEnginePanel = group">
-                        <template #label>
-                          <span class="text-subtitle-1 font-weight-medium">{{ groupTitle(group) }}</span>
-                        </template>
-                      </v-radio>
+                      <v-radio-group v-model="engineChoice" hide-details density="compact" class="flex-grow-0">
+                        <v-radio :value="group" density="compact" hide-details @click.stop="openEnginePanel = group">
+                          <template #label>
+                            <span class="text-subtitle-1 font-weight-medium">{{ groupTitle(group) }}</span>
+                          </template>
+                        </v-radio>
+                      </v-radio-group>
                       <v-chip v-if="group === 'nada_ai' && !nadaAiUrlEntered" size="x-small" variant="tonal" color="warning">
                         {{ tr('nada_ai_status_not_configured') }}
                       </v-chip>
@@ -1138,18 +1141,13 @@ onMounted(async () => {
 
                       <div class="mt-6">
                         <label class="site-config-field__label">{{ tr('nada_ai_multilingual') }}</label>
-                        <div class="d-flex align-center ga-3 mt-1 flex-wrap">
-                          <v-switch
-                            v-model="settings.nada_ai_multilingual"
-                            true-value="yes"
-                            false-value="no"
-                            color="primary"
-                            density="comfortable"
-                            hide-details
-                            inset
-                          />
-                          <span class="text-body-2 text-medium-emphasis">{{ settings.nada_ai_multilingual === 'yes' ? tr('yes') : tr('no') }}</span>
-                        </div>
+                        <v-switch
+                          v-model="settings.nada_ai_multilingual"
+                          true-value="yes"
+                          false-value="no"
+                          color="primary"
+                          hide-details
+                        />
                         <div class="site-config-field__hint mt-2">{{ tr('nada_ai_multilingual_note') }}</div>
                       </div>
 
@@ -1199,7 +1197,6 @@ onMounted(async () => {
                   </v-expansion-panel-text>
                 </v-expansion-panel>
               </v-expansion-panels>
-              </v-radio-group>
 
               <v-dialog v-model="clearSecretDialog" max-width="440">
                 <v-card>
