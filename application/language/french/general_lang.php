@@ -125,6 +125,34 @@ $lang['export_to_csv']="Exporter au format CSV";
 $lang['export_to_json']="Exporter au format JSON";
 $lang['translate']="Traduire";
 
+//home page
+$lang['home_search_intro']="Recherchez et explorez %s jeux de données";
+$lang['home_search_placeholder']="Rechercher par thème, pays ou nom d'enquête";
+$lang['home_try']="Essayez :";
+$lang['home_browse_catalog']="Parcourir tout le catalogue";
+$lang['home_most_popular']="Les plus consultés";
+$lang['home_view_all']="Tout voir";
+$lang['home_view_all_collections']="Voir les %s collections";
+$lang['home_featured']="À la une";
+$lang['home_featured_badge']="À la une";
+$lang['home_catalog_at_a_glance']="Le catalogue en bref";
+$lang['home_glance_summary']="%s jeux de données et %s variables";
+$lang['home_explore_catalog']="Explorer le catalogue";
+$lang['home_resources']="Ressources";
+$lang['home_resource_catalog']="Parcourir le catalogue";
+$lang['home_resource_catalog_text']="Rechercher et filtrer tous les jeux de données et documents publiés.";
+$lang['home_resource_citations']="Citations";
+$lang['home_resource_citations_text']="Publications qui utilisent les données de ce catalogue.";
+$lang['home_resource_api']="API";
+$lang['home_resource_api_text']="Accès programmatique aux métadonnées et à la recherche du catalogue.";
+$lang['home_resource_terms']="Conditions d'utilisation";
+$lang['home_resource_terms_text']="Conditions d'utilisation et de citation des données.";
+$lang['home_resource_about']="À propos";
+$lang['home_resource_about_text']="Qui gère ce catalogue et ce qu'il contient.";
+$lang['home_semantic_placeholder']="Décrivez les données que vous recherchez";
+$lang['home_ai_assisted']="Assistée par IA";
+$lang['home_semantic_hint']="Recherchez avec vos propres mots, sans avoir besoin de mots-clés exacts.";
+$lang['home_semantic_hint_multilingual']="Recherchez avec vos propres mots, dans la plupart des grandes langues.";
 
 /* End of file general */
 /* Location: ./application/language/french/general */

@@ -49,6 +49,7 @@ export const SECTION_DEFS = [
       'search_engine',
       'nada_ai_url',
       'nada_ai_on_outage',
+      'nada_ai_multilingual',
       'nada_ai_api_key',
       'nada_ai_admin_api_key',
       'nada_ai_debug',

@@ -15,9 +15,9 @@
 <?php endif;?>    
 
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/fonts.css?v20260721">
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v20260721">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v20260927-3">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/custom.css?v20260625">
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/home.css?v03212019">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/home.css?v20260927-1">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/variables.css?v07042021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/facets.css?v062021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-tab.css?v07052021">

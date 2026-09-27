@@ -230,6 +230,9 @@ async function reloadAll() {
   if (s.nada_ai_on_outage === undefined || s.nada_ai_on_outage === '') {
     s.nada_ai_on_outage = 'database';
   }
+  if (s.nada_ai_multilingual === undefined || s.nada_ai_multilingual === '') {
+    s.nada_ai_multilingual = 'no';
+  }
   if (s.deposit_max_upload_size === undefined || s.deposit_max_upload_size === '') {
     s.deposit_max_upload_size = '2048';
   }
@@ -309,6 +312,7 @@ const SAVE_ERROR_KEYS = {
   NADA_AI_URL_REQUIRED: 'error_nada_ai_url_required',
   'INVALID_VALUE:search_engine': 'error_invalid_search_engine',
   'INVALID_VALUE:nada_ai_on_outage': 'error_invalid_nada_ai_on_outage',
+  'INVALID_VALUE:nada_ai_multilingual': 'error_invalid_nada_ai_multilingual',
   'INVALID_URL:nada_ai_url': 'error_invalid_nada_ai_url',
 };
 
@@ -1130,6 +1134,23 @@ onMounted(async () => {
                           <v-radio value="error" :label="tr('nada_ai_on_outage_error')" />
                         </v-radio-group>
                         <div class="site-config-field__hint mt-2">{{ tr('nada_ai_on_outage_note') }}</div>
+                      </div>
+
+                      <div class="mt-6">
+                        <label class="site-config-field__label">{{ tr('nada_ai_multilingual') }}</label>
+                        <div class="d-flex align-center ga-3 mt-1 flex-wrap">
+                          <v-switch
+                            v-model="settings.nada_ai_multilingual"
+                            true-value="yes"
+                            false-value="no"
+                            color="primary"
+                            density="comfortable"
+                            hide-details
+                            inset
+                          />
+                          <span class="text-body-2 text-medium-emphasis">{{ settings.nada_ai_multilingual === 'yes' ? tr('yes') : tr('no') }}</span>
+                        </div>
+                        <div class="site-config-field__hint mt-2">{{ tr('nada_ai_multilingual_note') }}</div>
                       </div>
 
                       <v-expansion-panels variant="accordion" class="mt-6">

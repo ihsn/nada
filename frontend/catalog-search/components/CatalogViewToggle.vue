@@ -11,10 +11,10 @@
       @update:model-value="emit('update:modelValue', $event)"
     >
       <v-btn value="study" size="small" class="text-none">
-        {{ t('switch_to_study_view') }}
+        {{ t('Study view') }}
       </v-btn>
       <v-btn value="variable" size="small" class="text-none">
-        {{ t('switch_to_variable_view') }}
+        {{ t('Variable view') }}
       </v-btn>
     </v-btn-toggle>
   </div>
@@ -34,9 +34,27 @@ const { t } = useI18n();
 </script>
 
 <style scoped>
+.view-toggle {
+  border: 1px solid var(--color-button-primary, #0071bc);
+  border-radius: 6px;
+  height: 30px !important;
+}
+
 .view-toggle :deep(.v-btn) {
-  font-size: var(--catalog-font-ui, 0.875rem);
+  font-size: 0.8rem;
   letter-spacing: 0;
   text-transform: none;
+  padding: 0 12px;
+  border: 0 !important;
+  color: var(--color-button-primary, #0071bc) !important;
+}
+
+.view-toggle :deep(.v-btn.v-btn--active) {
+  background: var(--color-button-primary, #0071bc) !important;
+  color: #fff !important;
+}
+
+.view-toggle :deep(.v-btn.v-btn--active .v-btn__overlay) {
+  opacity: 0;
 }
 </style>

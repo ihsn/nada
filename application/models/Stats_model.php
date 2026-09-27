@@ -28,7 +28,8 @@ class Stats_model extends CI_Model {
 								
 		$this->db->select($fields);
 		$this->db->limit($limit);
-		$this->db->where('s.published',1);		
+		$this->db->where('s.published',1);
+		$this->db->order_by('s.total_views','desc');
 		$query=$this->db->get('surveys s');
 				
 		if ($query){
@@ -42,7 +43,7 @@ class Stats_model extends CI_Model {
 	
 	function get_latest_surveys($limit=10,$repositoryid=null)
 	{
-		$this->db->select("surveys.id,surveys.type,surveys.title,surveys.subtitle,surveys.year_start, surveys.year_end, surveys.nation,surveys.authoring_entity,forms.model as form_model,surveys.created, surveys.changed");
+		$this->db->select("surveys.id,surveys.type,surveys.title,surveys.subtitle,surveys.year_start, surveys.year_end, surveys.nation,surveys.authoring_entity,forms.model as form_model,surveys.created, surveys.changed, surveys.thumbnail");
 		$this->db->join("forms", "surveys.formid=forms.formid","left");
 		$this->db->where("surveys.published", 1); 
 		$this->db->order_by("surveys.created", "desc"); 

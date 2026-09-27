@@ -32,6 +32,9 @@ $config['nada_ai_admin_api_key']='';
 $config['nada_ai_debug']='false';
 // What a search does while nada-ai is down: database (serve it from the catalog database) | error (fail with the reason)
 $config['nada_ai_on_outage']='database';
+// Whether NADA-AI's embedding model matches queries across languages: yes | no. The home page only invites
+// searches in other languages when it does.
+$config['nada_ai_multilingual']='no';
 
 //default cache expiration in seconds
 $config['cache_default_expires'] = 60*60*2;//2 hours

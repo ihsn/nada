@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme; ?>/css/bootstrap.min.css">
 <?php endif; ?>
 
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v20260721">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v20260927-3">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/custom.css?v20260625">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/variables.css?v07042021">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-vue-chrome.css?v20260823">

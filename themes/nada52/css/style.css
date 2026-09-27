@@ -366,46 +366,28 @@ button,
     font-size: 0.85rem;
     margin-left: 1rem;
     font-weight: 700;
-    transition: all 0.25s;
-    border-top: solid 2px transparent;
+    transition: color 0.2s;
     position: relative;
     padding-top: 20px;
     padding-bottom: 20px;
 }
 
-.navbar-light .navbar-nav .nav-link::after {
-    content: "";
-    display: block;
-    width: 8px;
-    height: 8px;
-    border: 1px solid var(--color-link);
-    background-color: var(--color-link);
-    transform: rotate(45deg);
-    position: absolute;
-    top: -5px;
-    left: calc(50% - 4px);
-    transition: all 0.25s;
-    opacity: 0;
-}
-
-.navbar-light .navbar-nav .nav-link.active::after,
-.navbar-light .navbar-nav .nav-link:hover::after {
-    opacity: 1;
-}
-
-.navbar-light .navbar-nav .nav-link:hover::after {
-    border: 1px solid var(--color-link-hover);
-    background-color: var(--color-link-hover);
+/* Active and hover: an underline under the label (the text's own, so it always lines up with it) */
+.navbar-light .navbar-nav .nav-link.active,
+.navbar-light .navbar-nav .nav-link:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 8px;
 }
 
 .navbar-light .navbar-nav .nav-link.active {
     color: #003456;
-    border-top: solid 2px var(--color-link);
+    text-decoration-color: var(--color-link);
 }
 
-.navbar-light .navbar-nav .nav-link:hover {
+.navbar-light .navbar-nav .nav-link:not(.active):hover {
     color: var(--color-link-hover);
-    border-top: solid 2px var(--color-link-hover);
+    text-decoration-color: rgba(0, 113, 188, 0.35);
 }
 
 .navbar-light .navbar-nav a.dropdown-item {

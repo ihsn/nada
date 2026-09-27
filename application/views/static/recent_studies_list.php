@@ -1,99 +1,48 @@
-<style>
-    .recent-studies-list-home h5 {
-        margin-bottom:0px;
-    }
-    .survey-row{padding-bottom:0px;}
-    .study-subtitle{
-        font-size:smaller;
-    }
-    .study-type-icon,
-    .study-type-icon .fa-nada-icon
-    {
-        width:36px;
-    }
-    .survey-row{
-        padding:10px 5px;
-    }
-</style>
-<?php
+<section class="home-latest">
+    <div class="home-section-header">
+        <h2 class="home-section-title"><?php echo t('latest_additions');?></h2>
+        <a class="home-section-link" href="<?php echo site_url('catalog/history');?>"><?php echo t('home_view_all');?> <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
 
-$type_icons=array(
-    'survey'=>'fa-database',
-    'microdata'=>'fa-database',
-    'geospatial'=>'fa-globe-americas',
-    'timeseries'=>'fa-chart-line',
-    'document'=>'fa-file-alt',
-    'table'=>'fa-table',
-    'script'=>'fa-file-code',
-    'image'=>'fa-image',
-    'video'=>'fa-video',
-);
-?>
-
-<h3><?php echo t('latest_additions');?></h3>
-<?php
-    $regional_search=($this->config->item("regional_search")===FALSE) ? 'no' : $this->config->item("regional_search");
-?>
 <?php if (isset($rows) && count($rows)>0): ?>
-
-    <?php
-    $total_rows=count($rows);
-    $counter=0;
-    foreach($rows as $row):
-    $counter++; ?>
-
-        <div class="survey-row recent-studies-list-home border-bottom">
-            <div class="row">
-                <div class="col-12 col-lg-12">
-                                
-                    <div class="d-flex flex-row ">
-
-                        <div class="study-type-icon">
-                            <?php if(isset($row['type'])):?>
-                                <i title="<?php echo $row['type'];?>" class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>    
-                            <?php endif;?>                    
-                        </div>
-                        <div>                        
-                            <h5><a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >
-                                <span class="study-title"><?php echo $row['title'];?>
-                                    <?php if(isset($row['subtitle'])):?>
-                                        <div class="study-subtitle"><?php echo $row['subtitle'];?></div>
-                                    <?php endif;?>
-                                </span>
-                                </a>
-                            </h5>
-                            
-                            <div>
-                                
-                                <?php 
-                                    $dates=array_unique(array($row['year_start'],$row['year_end']));
-                                    $dates=implode(" - ", $dates);
-                                ?>
-
-                                <?php if(!empty($dates)):?>
-                                    <span class="dataset-nation-year text-secondary text-small"><?php echo $row['nation'] ? $row['nation'].", ".$dates : $dates;?></span>
-                                <?php endif; ?>
-
-
-                                <?php if (isset($row['authoring_entity']) && $row['authoring_entity']!=''):?>
-                                    <div class="sub-title"><?php echo $row['authoring_entity'];?></div>
-                                <?php endif;?>
-
-                                <div class="survey-stats">                        
-                                    <span><?php echo date("M d, Y",$row['changed']);?></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>                        
+    <ul class="home-latest-list">
+    <?php foreach($rows as $row): ?>
+        <?php
+            $dates=implode(" - ", array_unique(array_filter(array($row['year_start'],$row['year_end']))));
+            $coverage=implode(", ", array_filter(array($row['nation'],$dates)));
+            $thumbnail=study_thumbnail_url($row);
+        ?>
+        <li class="home-latest-item">
+            <span class="home-latest-media">
+                <?php if($thumbnail):?>
+                    <img src="<?php echo $thumbnail;?>" alt="" loading="lazy">
+                <?php else:?>
+                    <i class="fas <?php echo isset($type_icons[$row['type']]) ? $type_icons[$row['type']] : 'fa-folder';?>" aria-hidden="true"></i>
+                <?php endif;?>
+            </span>
+            <div class="home-latest-body">
+                <a class="home-latest-title" href="<?php echo site_url('catalog/'.$row['id']); ?>"><?php echo html_escape($row['title']);?></a>
+                <?php if(!empty($row['subtitle'])):?>
+                    <div class="home-latest-subtitle"><?php echo html_escape($row['subtitle']);?></div>
+                <?php endif;?>
+                <div class="home-latest-meta">
+                    <span class="home-latest-type">
+                        <i class="fas <?php echo isset($type_icons[$row['type']]) ? $type_icons[$row['type']] : 'fa-folder';?>" aria-hidden="true"></i>
+                        <?php echo t('tab_'.$row['type']);?>
+                    </span>
+                    <?php if($coverage!==''):?>
+                        <span><?php echo html_escape($coverage);?></span>
+                    <?php endif;?>
+                    <?php if(!empty($row['authoring_entity'])):?>
+                        <span class="home-latest-authors"><?php echo html_escape($row['authoring_entity']);?></span>
+                    <?php endif;?>
+                    <span class="home-latest-date"><?php echo date("M d, Y",$row['created']);?></span>
                 </div>
             </div>
-        </div>
+        </li>
     <?php endforeach;?>
-    <p>
-        <a href="<?php echo site_url();?>/catalog/history" class="btn btn-link btn-sm float-left" >View more »</a>
-    </p>
+    </ul>
 <?php else: ?>
-    <div>
-        <?php echo t('no_records_found');?>
-    </div>
+    <p><?php echo t('no_records_found');?></p>
 <?php endif; ?>
+</section>

@@ -45,7 +45,7 @@
           width="2"
           class="search-shell__icon-glyph"
         />
-        <v-icon v-else size="22" class="search-shell__icon-glyph">$mdi-magnify</v-icon>
+        <v-icon v-else size="24" class="search-shell__icon-glyph">$mdi-magnify</v-icon>
       </button>
     </form>
   </div>
@@ -118,24 +118,28 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   width: 100%;
-  min-height: 52px;
-  padding: 6px 14px;
+  min-height: 58px;
+  padding: 6px 8px 6px 18px;
   background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.1);
+  border: 1.5px solid rgba(15, 23, 42, 0.28);
   border-radius: 14px;
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 6px 20px rgba(15, 23, 42, 0.06);
+    0 2px 4px rgba(15, 23, 42, 0.06),
+    0 8px 24px rgba(15, 23, 42, 0.1);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
 
+.search-shell:hover {
+  border-color: rgba(15, 23, 42, 0.42);
+}
+
 .search-shell:focus-within {
-  border-color: rgba(15, 23, 42, 0.22);
+  border-color: var(--color-button-primary, #0071bc);
   box-shadow:
-    0 0 0 3px rgba(15, 23, 42, 0.06),
-    0 6px 20px rgba(15, 23, 42, 0.08);
+    0 0 0 3px rgba(0, 113, 188, 0.15),
+    0 8px 24px rgba(15, 23, 42, 0.1);
 }
 
 .search-shell__icon-glyph {
@@ -148,14 +152,14 @@ onUnmounted(() => {
   border: none;
   outline: none;
   background: transparent;
-  font-size: 1rem;
+  font-size: 1.1rem;
   line-height: 1.4;
   color: rgba(15, 23, 42, 0.92);
   padding: 8px 4px;
 }
 
 .search-shell__input::placeholder {
-  color: rgba(15, 23, 42, 0.42);
+  color: rgba(15, 23, 42, 0.55);
 }
 
 .search-shell__input::-webkit-search-cancel-button {
@@ -184,13 +188,28 @@ onUnmounted(() => {
   opacity: 0.7;
 }
 
+/* Database search */
+.search-shell__submit {
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(0, 113, 188, 0.14);
+}
+
+.search-shell__submit:hover:not(:disabled) {
+  background: rgba(0, 113, 188, 0.24);
+}
+
+.search-shell__submit .search-shell__icon-glyph {
+  color: var(--color-button-primary, #0071bc) !important;
+}
+
 /* Full-text index (Solr / OpenSearch) */
 .search-shell__submit--fulltext {
-  background: rgba(0, 137, 123, 0.1);
+  background: rgba(0, 137, 123, 0.14);
 }
 
 .search-shell__submit--fulltext:hover:not(:disabled) {
-  background: rgba(0, 137, 123, 0.18);
+  background: rgba(0, 137, 123, 0.24);
 }
 
 .search-shell__submit--fulltext .search-shell__icon-glyph {
@@ -199,11 +218,11 @@ onUnmounted(() => {
 
 /* Semantic search */
 .search-shell__submit--semantic {
-  background: rgba(126, 87, 194, 0.1);
+  background: rgba(126, 87, 194, 0.14);
 }
 
 .search-shell__submit--semantic:hover:not(:disabled) {
-  background: rgba(126, 87, 194, 0.18);
+  background: rgba(126, 87, 194, 0.24);
 }
 
 .search-shell__submit--semantic .search-shell__icon-glyph {

@@ -554,6 +554,16 @@ class Configurations extends MY_REST_Controller
 				$value = $v;
 			}
 
+			if ($key === 'nada_ai_multilingual')
+			{
+				$v = strtolower(trim((string) $value));
+				if (! in_array($v, array('yes', 'no'), true))
+				{
+					throw new Exception('INVALID_VALUE:nada_ai_multilingual');
+				}
+				$value = $v;
+			}
+
 			if ($key === 'nada_ai_debug')
 			{
 				$v = strtolower(trim((string) $value));

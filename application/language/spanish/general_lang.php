@@ -142,6 +142,34 @@ $lang['export_to_csv']="Exportar a CSV
 $lang['translate']="Traducir
 ";
 
+//home page
+$lang['home_search_intro']="Busque y explore %s conjuntos de datos";
+$lang['home_search_placeholder']="Buscar por tema, país o nombre de encuesta";
+$lang['home_try']="Pruebe:";
+$lang['home_browse_catalog']="Explorar todo el catálogo";
+$lang['home_most_popular']="Más consultados";
+$lang['home_view_all']="Ver todo";
+$lang['home_view_all_collections']="Ver las %s colecciones";
+$lang['home_featured']="Destacados";
+$lang['home_featured_badge']="Destacado";
+$lang['home_catalog_at_a_glance']="El catálogo de un vistazo";
+$lang['home_glance_summary']="%s conjuntos de datos y %s variables";
+$lang['home_explore_catalog']="Explorar el catálogo";
+$lang['home_resources']="Recursos";
+$lang['home_resource_catalog']="Explorar el catálogo";
+$lang['home_resource_catalog_text']="Busque y filtre todos los conjuntos de datos y documentos publicados.";
+$lang['home_resource_citations']="Citas";
+$lang['home_resource_citations_text']="Publicaciones que utilizan los datos de este catálogo.";
+$lang['home_resource_api']="API";
+$lang['home_resource_api_text']="Acceso programático a los metadatos y la búsqueda del catálogo.";
+$lang['home_resource_terms']="Términos de uso";
+$lang['home_resource_terms_text']="Condiciones para usar y citar los datos.";
+$lang['home_resource_about']="Acerca de";
+$lang['home_resource_about_text']="Quién administra este catálogo y qué contiene.";
+$lang['home_semantic_placeholder']="Describa los datos que busca";
+$lang['home_ai_assisted']="Asistida por IA";
+$lang['home_semantic_hint']="Busque con sus propias palabras, sin necesidad de palabras clave exactas.";
+$lang['home_semantic_hint_multilingual']="Busque con sus propias palabras, en la mayoría de los idiomas principales.";
 
 /* End of file general */
 /* Location: ./application/language/spanish/general */

@@ -148,5 +148,34 @@ $lang['file_manager']="File manager";
 $lang['access_denied_title']="Access denied";
 $lang['access_denied_message']="You do not have permission to access this page or resource. If you believe you should have access, please contact your system administrator.";
 
+//home page
+$lang['home_search_intro']="Search and explore %s datasets";
+$lang['home_search_placeholder']="Search by topic, country, or survey name";
+$lang['home_try']="Try:";
+$lang['home_browse_catalog']="Browse the full catalog";
+$lang['home_most_popular']="Most popular";
+$lang['home_view_all']="View all";
+$lang['home_view_all_collections']="View all %s collections";
+$lang['home_featured']="Featured";
+$lang['home_featured_badge']="Featured";
+$lang['home_catalog_at_a_glance']="Catalog at a glance";
+$lang['home_glance_summary']="%s datasets and %s variables";
+$lang['home_explore_catalog']="Explore the catalog";
+$lang['home_resources']="Resources";
+$lang['home_resource_catalog']="Browse the catalog";
+$lang['home_resource_catalog_text']="Search and filter all published datasets and documents.";
+$lang['home_resource_citations']="Citations";
+$lang['home_resource_citations_text']="Publications that use the data in this catalog.";
+$lang['home_resource_api']="API";
+$lang['home_resource_api_text']="Programmatic access to catalog metadata and search.";
+$lang['home_resource_terms']="Terms of use";
+$lang['home_resource_terms_text']="Conditions for using and citing the data.";
+$lang['home_resource_about']="About";
+$lang['home_resource_about_text']="Who runs this catalog and what it contains.";
+$lang['home_semantic_placeholder']="Describe the data you are looking for";
+$lang['home_ai_assisted']="AI-assisted";
+$lang['home_semantic_hint']="Search in your own words. No exact keywords needed.";
+$lang['home_semantic_hint_multilingual']="Search in your own words, in most major languages.";
+
 /* End of file general_lang.php */
 /* Location: ./application/language/english/general_lang.php */

@@ -61,6 +61,82 @@ function nada_ai_debug_enabled()
 }
 
 /**
+ * Whether catalog search is served by NADA-AI (search_engine is one of the nada_ai_* engines).
+ */
+function nada_ai_search_enabled()
+{
+	$CI =& get_instance();
+	$CI->load->library('search_engine_resolver');
+
+	return $CI->search_engine_resolver->uses_nada_ai();
+}
+
+/**
+ * Whether NADA-AI serves catalog search and the site says its embedding model matches queries across languages
+ * (the nada_ai_multilingual setting).
+ */
+function nada_ai_multilingual_search()
+{
+	$CI =& get_instance();
+
+	return nada_ai_search_enabled() && $CI->config->item('nada_ai_multilingual') === 'yes';
+}
+
+/**
+ * The home page's example searches (config/home_search.php), only when NADA-AI serves search.
+ *
+ * ``examples``: up to 5 phrases for "Try:" -- in the visitor's language when the model is multilingual (the site's
+ * example language when there are none in it), else in home_search_language only. ``typed``: when multilingual, the
+ * first phrase of each language, the visitor's first, for the search box to type out. Each phrase is
+ * ``{text, lang, dir}``, its direction from iso_languages.php.
+ *
+ * @return array{examples: array<int, array<string, string>>, typed: array<int, array<string, string>>}
+ */
+function home_search_phrases()
+{
+	$result = array('examples' => array(), 'typed' => array());
+	if (!nada_ai_search_enabled()) {
+		return $result;
+	}
+
+	$CI =& get_instance();
+	$CI->config->load('home_search', true);
+	$CI->load->helper('display_template');
+	$iso = display_template_iso_languages();
+
+	$by_lang = array();
+	foreach ((array) $CI->config->item('home_search_phrases', 'home_search') as $phrase) {
+		$lang = strtolower(trim((string) (isset($phrase['lang']) ? $phrase['lang'] : '')));
+		$text = trim((string) (isset($phrase['text']) ? $phrase['text'] : ''));
+		if ($lang === '' || $text === '') {
+			continue;
+		}
+		$dir = isset($iso[$lang]['direction']) && $iso[$lang]['direction'] === 'rtl' ? 'rtl' : 'ltr';
+		$by_lang[$lang][] = array('text' => $text, 'lang' => $lang, 'dir' => $dir);
+	}
+
+	$site_lang = strtolower((string) $CI->config->item('home_search_language', 'home_search'));
+	$visitor_lang = display_template_normalize_lang((string) $CI->config->item('language'), false);
+
+	if (!nada_ai_multilingual_search()) {
+		$result['examples'] = array_slice(isset($by_lang[$site_lang]) ? $by_lang[$site_lang] : array(), 0, 5);
+		return $result;
+	}
+
+	$shown = isset($by_lang[$visitor_lang]) ? $visitor_lang : $site_lang;
+	$result['examples'] = array_slice(isset($by_lang[$shown]) ? $by_lang[$shown] : array(), 0, 5);
+	if (isset($by_lang[$visitor_lang])) {
+		$result['typed'][] = $by_lang[$visitor_lang][0];
+	}
+	foreach ($by_lang as $lang => $phrases) {
+		if ($lang !== $visitor_lang) {
+			$result['typed'][] = $phrases[0];
+		}
+	}
+	return $result;
+}
+
+/**
  * Whether the current user may see search debug payloads: signed in with the semantic search 'view' permission
  * (admins have it).
  */
@@ -365,10 +441,28 @@ function catalog_browse_ssr_variable_study_meta(array $row)
  */
 function collection_card_thumbnail_url($repo)
 {
-	if (!empty($repo['thumbnail'])) {
+	if (!empty($repo['thumbnail']) && is_file(FCPATH . $repo['thumbnail'])) {
 		return base_url() . $repo['thumbnail'];
 	}
 	return base_url() . 'files/icon-blank.png';
+}
+
+/**
+ * Thumbnail URL for a study, or null when it has none or the file is missing.
+ *
+ * @param array<string, mixed> $study
+ * @return string|null
+ */
+function study_thumbnail_url($study)
+{
+	if (empty($study['thumbnail'])) {
+		return null;
+	}
+	$file = 'files/thumbnails/' . basename($study['thumbnail']);
+	if (!is_file(FCPATH . $file)) {
+		return null;
+	}
+	return base_url() . $file . (isset($study['changed']) ? '?v=' . $study['changed'] : '');
 }
 
 /**
