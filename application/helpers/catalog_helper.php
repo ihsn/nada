@@ -85,10 +85,11 @@ function nada_ai_multilingual_search()
 /**
  * The home page's example searches (config/home_search.php), only when NADA-AI serves search.
  *
- * ``examples``: up to 5 phrases for "Try:" -- in the visitor's language when the model is multilingual (the site's
- * example language when there are none in it), else in home_search_language only. ``typed``: when multilingual, the
- * first phrase of each language, the visitor's first, for the search box to type out. Each phrase is
- * ``{text, lang, dir}``, its direction from iso_languages.php.
+ * ``examples``: up to 5 phrases for "Try:". When the model is multilingual they show that other languages work: two
+ * in the visitor's language (home_search_language when there are none in it), then the first phrase of each other
+ * language. Otherwise all of them are in home_search_language. ``typed``: when multilingual, the first phrase of each
+ * language, the visitor's first, for the search box to type out. Each phrase is ``{text, lang, dir}``, its direction
+ * from iso_languages.php.
  *
  * @return array{examples: array<int, array<string, string>>, typed: array<int, array<string, string>>}
  */
@@ -124,7 +125,12 @@ function home_search_phrases()
 	}
 
 	$shown = isset($by_lang[$visitor_lang]) ? $visitor_lang : $site_lang;
-	$result['examples'] = array_slice(isset($by_lang[$shown]) ? $by_lang[$shown] : array(), 0, 5);
+	$result['examples'] = array_slice(isset($by_lang[$shown]) ? $by_lang[$shown] : array(), 0, 2);
+	foreach ($by_lang as $lang => $phrases) {
+		if ($lang !== $shown && count($result['examples']) < 5) {
+			$result['examples'][] = $phrases[0];
+		}
+	}
 	if (isset($by_lang[$visitor_lang])) {
 		$result['typed'][] = $by_lang[$visitor_lang][0];
 	}
