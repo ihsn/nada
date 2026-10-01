@@ -59,6 +59,10 @@ class MY_Migration extends CI_Migration {
 
     protected function emit_flush()
     {
+        if (!$this->is_cli_migration()) {
+            return;
+        }
+
         if (ob_get_level() > 0) {
             @ob_flush();
         }
