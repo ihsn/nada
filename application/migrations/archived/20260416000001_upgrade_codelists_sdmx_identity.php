@@ -2,18 +2,15 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 require_once(APPPATH . 'core/MY_Migration.php');
-require_once(APPPATH . 'migrations/traits/Catalog_schema_gaps_trait.php');
 
 /**
- * Upgrade codelists with SDMX-style identity (agency, version, idno).
+ * @deprecated Applied by install/nada56-codelists-dsd-*.sql via migration 20260701000004.
  */
 class Migration_Upgrade_codelists_sdmx_identity extends MY_Migration {
 
-	use Catalog_schema_gaps_trait;
-
 	public function up()
 	{
-		$this->ensure_codelists_sdmx_identity();
+		log_message('info', 'Migration_Upgrade_codelists_sdmx_identity: superseded by nada56-codelists-dsd SQL');
 	}
 
 	public function down()

@@ -52,6 +52,7 @@ class Database_migration extends MY_Controller {
         $error_message = '';
         $before_version = '';
         $after_version = '';
+        $version_to_run = $version;
         
         try {
             // Start output buffering to capture migration output
@@ -92,11 +93,20 @@ class Database_migration extends MY_Controller {
                 redirect('admin/database_migration');
             }
 
+            // Web UI: one migration per request (IIS/FastCGI timeouts). CLI uses migrate latest for all.
+            $version_to_run = $version;
             if ($version === 'latest') {
-                $result = $this->migration->latest();
-            } else {
-                $result = $this->migration->version($version);
+                if ($next_version === null) {
+                    if (ob_get_level() > 0) {
+                        ob_end_clean();
+                    }
+                    $this->session->set_flashdata('message', 'Database is already at the latest migration version.');
+                    redirect('admin/database_migration');
+                }
+                $version_to_run = $next_version;
             }
+
+            $result = $this->migration->version($version_to_run);
             
             $after_version = $this->get_current_version();
             
@@ -124,11 +134,13 @@ class Database_migration extends MY_Controller {
         $data = array();
         $data['page_title'] = 'Migration Output';
         $data['version'] = $version;
+        $data['version_run'] = isset($version_to_run) ? $version_to_run : $version;
         $data['migration_output'] = $migration_output;
         $data['migration_success'] = $migration_success;
         $data['error_message'] = $error_message;
         $data['before_version'] = $before_version;
         $data['after_version'] = $after_version;
+        $data['next_pending_version'] = $migration_success ? $this->get_next_pending_version() : null;
         $data['db_debug_was_enabled'] = $db_debug_was_enabled;
         
         $this->render_admin_page(

@@ -7,7 +7,7 @@ require_once(APPPATH . 'core/MY_Migration.php');
  * Search index queue/state plus catalog sidebar filter indexes.
  * Each step is idempotent.
  */
-class Migration_Catalog_search_indexes extends MY_Migration {
+class Migration_Catalog_search_queue_filters extends MY_Migration {
 
 	/**
 	 * @var array<int, array{table: string, name: string, cols: string[]}>
@@ -78,7 +78,7 @@ class Migration_Catalog_search_indexes extends MY_Migration {
 		}
 
 		if (!$this->db->table_exists('search_index_queue')) {
-			$this->db->query("
+			$this->assert_db_query($this->db->query("
 				CREATE TABLE search_index_queue (
 					id INT NOT NULL IDENTITY(1,1),
 					object_type VARCHAR(32) NOT NULL,
@@ -92,12 +92,16 @@ class Migration_Catalog_search_indexes extends MY_Migration {
 					PRIMARY KEY (id),
 					CONSTRAINT uk_search_index_queue_object UNIQUE (object_type, object_id)
 				)
-			");
-			$this->db->query("CREATE NONCLUSTERED INDEX idx_search_index_queue_status_changed ON search_index_queue (status, changed)");
+			"), 'create search_index_queue');
+			$this->forget_table_cache();
+			$this->assert_db_query(
+				$this->db->query('CREATE NONCLUSTERED INDEX idx_search_index_queue_status_changed ON search_index_queue (status, changed)'),
+				'idx_search_index_queue_status_changed'
+			);
 		}
 
 		if (!$this->db->table_exists('search_index_state')) {
-			$this->db->query("
+			$this->assert_db_query($this->db->query("
 				CREATE TABLE search_index_state (
 					object_type VARCHAR(32) NOT NULL,
 					object_id INT NOT NULL,
@@ -106,8 +110,12 @@ class Migration_Catalog_search_indexes extends MY_Migration {
 					changed INT NOT NULL,
 					PRIMARY KEY (object_type, object_id)
 				)
-			");
-			$this->db->query("CREATE NONCLUSTERED INDEX idx_search_index_state_status ON search_index_state (status)");
+			"), 'create search_index_state');
+			$this->forget_table_cache();
+			$this->assert_db_query(
+				$this->db->query('CREATE NONCLUSTERED INDEX idx_search_index_state_status ON search_index_state (status)'),
+				'idx_search_index_state_status'
+			);
 		}
 	}
 
@@ -148,24 +156,24 @@ class Migration_Catalog_search_indexes extends MY_Migration {
 
 	private function create_index_sqlsrv(array $index)
 	{
-		if ($this->sqlsrv_index_exists($index['table'], $index['name'])) {
+		if ($this->index_exists($index['table'], $index['name'])) {
 			return;
 		}
 
 		foreach ($index['cols'] as $col) {
-			if (!$this->db->field_exists($col, $index['table'])) {
+			if (!$this->sqlsrv_has_column($index['table'], $col)) {
 				return;
 			}
 		}
 
-		$lead = array_shift($index['cols']);
-		$included = $index['cols'];
+		$cols = $index['cols'];
+		$lead = array_shift($cols);
 		$sql = 'CREATE NONCLUSTERED INDEX ' . $index['name']
 			. ' ON ' . $index['table'] . ' (' . $lead . ' ASC)';
-		if (!empty($included)) {
-			$sql .= ' INCLUDE (' . implode(',', $included) . ')';
+		if (!empty($cols)) {
+			$sql .= ' INCLUDE (' . implode(',', $cols) . ')';
 		}
-		$this->db->query($sql);
+		$this->assert_db_query($this->db->query($sql), $index['name']);
 	}
 
 	private function mysql_index_exists($table, $index_name)
@@ -176,11 +184,4 @@ class Migration_Catalog_search_indexes extends MY_Migration {
 		return !empty($row['n']);
 	}
 
-	private function sqlsrv_index_exists($table, $index_name)
-	{
-		$sql = 'SELECT COUNT(*) AS n FROM sys.indexes
-			WHERE name = ? AND object_id = OBJECT_ID(?)';
-		$row = $this->db->query($sql, array($index_name, $table))->row_array();
-		return !empty($row['n']);
-	}
 }

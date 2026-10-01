@@ -1725,9 +1725,8 @@ CREATE TABLE api_keys (
   PRIMARY KEY (id),
 );
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys on [dbo].[api_keys](
-	[api_key] ASC
-);
+CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys_legacy ON api_keys(api_key)
+WHERE api_key IS NOT NULL;
 
 CREATE NONCLUSTERED INDEX idx_key_prefix ON api_keys(key_prefix);
 CREATE NONCLUSTERED INDEX idx_key_hash ON api_keys(key_hash);

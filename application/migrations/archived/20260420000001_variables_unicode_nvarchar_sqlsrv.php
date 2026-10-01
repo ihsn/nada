@@ -12,6 +12,7 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
     public function up()
     {
         if ($this->db->dbdriver !== 'sqlsrv') {
+            $this->emit("SKIP: not sqlsrv\n");
             log_message('info', 'Migration_Variables_unicode_nvarchar_sqlsrv: not sqlsrv, skipping');
             return;
         }
@@ -19,6 +20,9 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
         if (!$this->db->table_exists('variables')) {
             throw new Exception('variables table is missing; cannot convert text columns to NVARCHAR');
         }
+
+        $this->emit("Checking variables columns for NVARCHAR conversion...\n");
+        $this->emit_flush();
 
         $targets = array(
             'fid' => 'nvarchar(45) NULL',
@@ -60,6 +64,8 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
         // Full-text index must be dropped before ALTER on indexed columns.
         // Leave it in place when only non-indexed columns (metadata, keywords) remain.
         if ($drop_fulltext && $this->variables_fulltext_index_exists()) {
+            $this->emit("Dropping fulltext index on variables (required before column ALTER)...\n");
+            $this->emit_flush();
             $this->sqlsrv_query(
                 'DROP FULLTEXT INDEX ON variables',
                 'DROP FULLTEXT INDEX ON variables failed'
@@ -68,8 +74,12 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
         }
 
         if (!empty($pending)) {
+            $this->emit('Converting ' . count($pending) . " column(s) to NVARCHAR (can take several minutes on large catalogs)...\n");
+            $this->emit_flush();
             $this->drop_sqlsrv_default_constraints_for_columns('variables', array_keys($pending));
             foreach ($pending as $column => $definition) {
+                $this->emit("  ALTER variables.{$column} -> {$definition}\n");
+                $this->emit_flush();
                 $this->sqlsrv_query(
                     'ALTER TABLE variables ALTER COLUMN ' . $this->sqlsrv_bracket_quote($column) . ' ' . $definition,
                     'ALTER variables.' . $column . ' failed'
@@ -77,6 +87,7 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
                 log_message('info', 'Altered variables.' . $column . ' to ' . $definition);
             }
         } else {
+            $this->emit("SKIP: variables text columns already NVARCHAR\n");
             log_message('info', 'variables text columns already NVARCHAR; no ALTER COLUMN needed');
         }
 
@@ -91,6 +102,8 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
 
         // Recreate full-text index (same columns as install/schema.sqlsrv.sql)
         if (!$this->variables_fulltext_index_exists()) {
+            $this->emit("Recreating fulltext index on variables...\n");
+            $this->emit_flush();
             $this->sqlsrv_query("
                 CREATE FULLTEXT INDEX ON variables
                 (
@@ -103,9 +116,11 @@ class Migration_Variables_unicode_nvarchar_sqlsrv extends MY_Migration {
             ", 'CREATE FULLTEXT INDEX ON variables failed');
             log_message('info', 'Recreated fulltext index on variables (SQLSRV)');
         } else {
+            $this->emit("SKIP: fulltext index already exists on variables\n");
             log_message('info', 'Fulltext index already exists on variables (SQLSRV), skipping CREATE');
         }
 
+        $this->emit("Done: variables NVARCHAR migration completed.\n");
         log_message('info', 'Migration_Variables_unicode_nvarchar_sqlsrv completed');
     }
 

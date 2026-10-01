@@ -77,7 +77,7 @@ $db['default']['db_debug'] = FALSE;</pre>
                 ?>
                 <div class="alert alert-warning">
                     <strong>Warning:</strong> Migrations are one-way only. Make sure you have a database backup before proceeding!
-                    <p class="mb-0">Run the first pending version, then come back for the next. A later <strong>Run</strong> is rejected because it would execute every earlier pending migration in the same request. If a run times out, run that same version again; finished steps are skipped. <strong>Migrate to Latest</strong> runs every pending migration in one request.</p>
+                    <p class="mb-0">Run the first pending version, then come back for the next. A later <strong>Run</strong> is rejected because it would execute every earlier pending migration in the same request. If a run times out, run that same version again; finished steps are skipped. <strong>Run Next Migration</strong> advances one version per click (safe for the web UI). Use <code>php index.php cli/migrate latest</code> to run all pending migrations in one CLI session.</p>
                 </div>
                 
                 <table class="table table-bordered">
@@ -145,8 +145,8 @@ $db['default']['db_debug'] = FALSE;</pre>
                     <?php if ($migration_enabled): ?>
                         <a href="<?php echo site_url('admin/database_migration/run/latest'); ?>" 
                            class="btn btn-success"
-                           onclick="return confirm('Migrate to the latest version?\n\nThis runs every pending migration in one request and can time out on SQL Server.\n\nPrefer Run on the first pending version. This cannot be undone.\n\nMake sure you have a database backup.');">
-                            Migrate to Latest
+                           onclick="return confirm('Run the next pending migration?\n\nOnly one migration runs per request. Repeat until all are applied, or use CLI migrate latest.\n\nMake sure you have a database backup.');">
+                            Run Next Migration
                         </a>
                     <?php else: ?>
                         <button class="btn btn-secondary" disabled>
