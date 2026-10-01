@@ -10,7 +10,15 @@ header('Cache-Control: post-check=0, pre-check=0', false);
 header('Pragma: no-cache');
 
 $menu_horizontal = TRUE;
-$bootstrap_theme = 'themes/' . $this->template->theme();
+$active_theme = $this->template->theme();
+$bootstrap_theme = 'themes/' . $active_theme;
+$theme_dir = rtrim(FCPATH, '/\\') . '/themes/' . $active_theme . '/';
+$fallback_theme_dir = rtrim(FCPATH, '/\\') . '/themes/nada52/';
+$head_vue_file = is_file($theme_dir . 'head_vue.php')
+    ? $theme_dir . 'head_vue.php'
+    : $fallback_theme_dir . 'head_vue.php';
+$header_file = $theme_dir . 'header.php';
+$footer_file = $theme_dir . 'footer.php';
 
 $data = array();
 $this->load->helper('menu');
@@ -36,12 +44,12 @@ $use_cdn = true;
 <html>
 
 <head>
-    <?php require_once 'head_vue.php'; ?>
+    <?php require_once $head_vue_file; ?>
 </head>
 
 <body class="catalog-vue-body">
 
-    <?php include_once 'header.php'; ?>
+    <?php include_once $header_file; ?>
 
     <div class="wp-page-body <?php echo $content_wrap_class; ?>">
         <div class="body-content-wrap theme-nada-2">
@@ -59,7 +67,7 @@ $use_cdn = true;
         </div>
     </div>
 
-    <?php include_once 'footer.php'; ?>
+    <?php include_once $footer_file; ?>
 </body>
 
 </html>
