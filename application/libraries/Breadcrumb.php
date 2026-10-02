@@ -39,11 +39,16 @@ class Breadcrumb
 		$breadcrumbs=array();
 		$breadcrumbs['']=t('Home');
 		
-		$segments=$this->ci->uri->segment_array();
-
-		if (!is_array($segments) || !isset($segments[1]) || $segments[1]==='')
+		$segment1 = $this->ci->uri->segment(1, '');
+		if ($segment1 === '' || $segment1 === null)
 		{
 			return $breadcrumbs;
+		}
+
+		$segments = $this->ci->uri->segment_array();
+		if (!is_array($segments))
+		{
+			$segments = array();
 		}
 		
 		//set active repository
@@ -64,7 +69,7 @@ class Breadcrumb
 		$repository_title=t('central_data_catalog');
 		
 		
-		if ($segments[1]=='catalog' && isset($segments[2]))
+		if ($segment1 === 'catalog' && isset($segments[2]))
 		{
 		
 			if(!is_numeric($segments[2]) )
@@ -80,7 +85,7 @@ class Breadcrumb
 			}
 		}
 		
-		switch($segments[1])
+		switch ($segment1)
 		{
 				case 'about':
 				case 'resources':
@@ -89,7 +94,7 @@ class Breadcrumb
 				case 'deposit':
 				case 'help':
 				case 'faqs':
-					$breadcrumbs[$segments[1]]=t($segments[1]);
+					$breadcrumbs[$segment1]=t($segment1);
 				break;
 				
 				case 'collections':
