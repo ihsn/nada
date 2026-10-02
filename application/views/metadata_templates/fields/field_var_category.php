@@ -26,7 +26,11 @@
                     continue;
                 }
 
-                foreach($item['stats'] as $stat_row){                          
+                foreach($item['stats'] as $stat_row){
+                    if (!array_key_exists('value', $stat_row) || $stat_row['value'] === '' || $stat_row['value'] === null) {
+                        continue;
+                    }
+
                     // Consider missing only when explicitly set to something truthy (e.g. "1", "Y", "true"); "0" and empty mean not missing
                     $ismissing_ = isset($item['is_missing']) ? $item['is_missing'] : '';
                     $is_missing_val = ($ismissing_ !== '' && $ismissing_ !== '0' && $ismissing_ !== 0);
