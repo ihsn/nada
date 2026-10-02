@@ -95,7 +95,9 @@
                                 "key": "widgets.default",
                                 "title": "Embedded widgets",
                                 "type": "widget",
-                                "display_options": { "renderer": "field_iframe_embed" }
+                                "display_options": {
+                                    "renderer": "field_iframe_embed"
+                                }
                             },
                             {
                                 "key": "study_desc.title_statement.identifiers",
@@ -1311,135 +1313,7 @@
                                 "help_text": "Additional information on the dataset availability, not included in one of the elements above.",
                                 "_ddi_xpath": "stdyDscr.dataAccs.setAvail.notes",
                                 "display_type": "textarea"
-                            }
-                        ],
-                        "help_text": ""
-                    },
-                    {
-                        "key": "study_desc1684334943415",
-                        "title": "Depositor information",
-                        "type": "section",
-                        "items": [
-                            {
-                                "key": "study_desc.distribution_statement.depositor",
-                                "title": "Depositor",
-                                "type": "array",
-                                "props": [
-                                    {
-                                        "key": "name",
-                                        "title": "Name",
-                                        "type": "string",
-                                        "prop_key": "study_desc.distribution_statement.depositor.name",
-                                        "help_text": "The name of the depositor. It can be an individual or an organization.",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "abbr",
-                                        "title": "Abbreviation",
-                                        "type": "string",
-                                        "prop_key": "study_desc.distribution_statement.depositor.abbr",
-                                        "help_text": "The official abbreviation of the organization mentioned in \"Name\".",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "affiliation",
-                                        "title": "Affiliation",
-                                        "type": "string",
-                                        "prop_key": "study_desc.distribution_statement.depositor.affiliation",
-                                        "help_text": "The affiliation of the person or organization mentioned in \"Name\".",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "uri",
-                                        "title": "URL",
-                                        "type": "string",
-                                        "prop_key": "study_desc.distribution_statement.depositor.uri",
-                                        "help_text": "A link (URL) to the depositor website.",
-                                        "display_type": "text",
-                                        "display_options": {
-                                            "is_uri": true,
-                                            "uri_as_icon": true
-                                        }
-                                    }
-                                ],
-                                "help_text": "The name of the person or institution who provided this study to the archive storing it."
                             },
-                            {
-                                "key": "study_desc.distribution_statement.deposit_date",
-                                "title": "Date of deposit",
-                                "type": "string",
-                                "help_text": "The date that the study was deposited with the archive that originally received it. The date should be entered in the ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). The exact date should be provided when possible. A regular expression can be entered in customized user templates to validate the content of this element. ",
-                                "display_type": "date"
-                            }
-                        ],
-                        "help_text": ""
-                    },
-                    {
-                        "key": "study_desc1684336915542",
-                        "title": "Distributor information",
-                        "type": "section",
-                        "items": [
-                            {
-                                "key": "study_desc.distribution_statement.distributors",
-                                "title": "Distributors",
-                                "type": "array",
-                                "required": false,
-                                "help_text": "The organization(s) designated by the author or producer to generate copies of the study output including any necessary editions or revisions.",
-                                "props": [
-                                    {
-                                        "key": "name",
-                                        "title": "Name",
-                                        "description": "Organization name",
-                                        "type": "string",
-                                        "prop_key": "study_desc.distribution_statement.distributors.name",
-                                        "help_text": "The name of the distributor. It can be an individual or an organization.",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "abbr",
-                                        "title": "Abbreviation",
-                                        "type": "string",
-                                        "prop_key": "study_desc.distribution_statement.distributors.abbr",
-                                        "help_text": "The official abbreviation of the organization mentioned in \"Name\".",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "affiliation",
-                                        "type": "string",
-                                        "title": "Affiliation",
-                                        "prop_key": "study_desc.distribution_statement.distributors.affiliation",
-                                        "help_text": "The affiliation of the person or organization mentioned in \"Name\".",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "uri",
-                                        "title": "URL",
-                                        "type": "string",
-                                        "prop_key": "study_desc.distribution_statement.distributors.uri",
-                                        "help_text": "A link (URL) to the ordering service or download facility website.",
-                                        "display_type": "text",
-                                        "display_options": {
-                                            "is_uri": true,
-                                            "uri_as_icon": true
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "key": "study_desc.distribution_statement.distribution_date",
-                                "title": "Date of distribution",
-                                "type": "string",
-                                "help_text": "Date that the study was made available for distribution. The date should be entered in the ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). The exact date should be provided when possible. A regular expression can be entered in customized user templates to validate the content of this element. ",
-                                "display_type": "date"
-                            }
-                        ],
-                        "help_text": ""
-                    },
-                    {
-                        "key": "study_desc1684335103457",
-                        "title": "access_policy",
-                        "type": "section",
-                        "items": [
                             {
                                 "key": "study_desc.data_access.dataset_use.contact",
                                 "title": "Access authority",
@@ -1623,6 +1497,126 @@
                                 "help_text": "Any additional information related to data access that is not contained in the specific metadata elements provided in the section \"Data access and use\".",
                                 "_ddi_xpath": "stdyDscr.dataAccs.setAvail.notes",
                                 "display_type": "textarea"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684334943415",
+                        "title": "Depositor information",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.distribution_statement.depositor",
+                                "title": "Depositor",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.depositor.name",
+                                        "help_text": "The name of the depositor. It can be an individual or an organization.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.depositor.abbr",
+                                        "help_text": "The official abbreviation of the organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.depositor.affiliation",
+                                        "help_text": "The affiliation of the person or organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.depositor.uri",
+                                        "help_text": "A link (URL) to the depositor website.",
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
+                                    }
+                                ],
+                                "help_text": "The name of the person or institution who provided this study to the archive storing it."
+                            },
+                            {
+                                "key": "study_desc.distribution_statement.deposit_date",
+                                "title": "Date of deposit",
+                                "type": "string",
+                                "help_text": "The date that the study was deposited with the archive that originally received it. The date should be entered in the ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). The exact date should be provided when possible. A regular expression can be entered in customized user templates to validate the content of this element. ",
+                                "display_type": "date"
+                            }
+                        ],
+                        "help_text": ""
+                    },
+                    {
+                        "key": "study_desc1684336915542",
+                        "title": "Distributor information",
+                        "type": "section",
+                        "items": [
+                            {
+                                "key": "study_desc.distribution_statement.distributors",
+                                "title": "Distributors",
+                                "type": "array",
+                                "required": false,
+                                "help_text": "The organization(s) designated by the author or producer to generate copies of the study output including any necessary editions or revisions.",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "description": "Organization name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.distributors.name",
+                                        "help_text": "The name of the distributor. It can be an individual or an organization.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.distributors.abbr",
+                                        "help_text": "The official abbreviation of the organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "type": "string",
+                                        "title": "Affiliation",
+                                        "prop_key": "study_desc.distribution_statement.distributors.affiliation",
+                                        "help_text": "The affiliation of the person or organization mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "study_desc.distribution_statement.distributors.uri",
+                                        "help_text": "A link (URL) to the ordering service or download facility website.",
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.distribution_statement.distribution_date",
+                                "title": "Date of distribution",
+                                "type": "string",
+                                "help_text": "Date that the study was made available for distribution. The date should be entered in the ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). The exact date should be provided when possible. A regular expression can be entered in customized user templates to validate the content of this element. ",
+                                "display_type": "date"
                             }
                         ],
                         "help_text": ""
@@ -1850,7 +1844,9 @@
                                 "key": "additional",
                                 "title": "Additional metadata",
                                 "type": "object",
-                                "display_options": { "renderer": "field_object_additional" }
+                                "display_options": {
+                                    "renderer": "field_object_additional"
+                                }
                             }
                         ]
                     }
@@ -1865,7 +1861,9 @@
                         "key": "widgets.doi.citations",
                         "title": "citation",
                         "type": "widget",
-                        "display_options": { "renderer": "field_doi_citation" }
+                        "display_options": {
+                            "renderer": "field_doi_citation"
+                        }
                     }
                 ]
             }
