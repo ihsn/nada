@@ -41,18 +41,11 @@ class MY_Exceptions extends CI_Exceptions {
 
     if ($log_error)
     {
-      $log = $heading . ': ';
-      $parts = array();
-      if ($page !== '')
+      if ( ! function_exists('log_404_not_found'))
       {
-        $parts[] = $page;
+        require_once APPPATH.'helpers/debug_helper.php';
       }
-      if ( ! is_cli() && ! empty($_SERVER['REQUEST_URI']))
-      {
-        $parts[] = 'uri=' . $_SERVER['REQUEST_URI'];
-      }
-      $log .= count($parts) ? implode(' | ', $parts) : '(no route or uri)';
-      log_message('error', $log);
+      log_404_not_found($page !== '' ? 'route='.$page : '');
     }
 
     echo $this->show_error($heading, $message, 'error_404', 404);
