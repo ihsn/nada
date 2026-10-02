@@ -10,6 +10,7 @@ $lang['sampling']="Sampling";
 $lang['metadata_production']="Metadata production";
 $lang['citation']="Citation";
 $lang['data_access']="Access policy";
+$lang['access_policy']="Access policy";
 $lang['quality_standards']="Quality standards";
 $lang['disclaimer_copyright']="Disclaimer and copyrights";
 $lang['Study authorization']="Study authorization";

@@ -10,6 +10,7 @@ $lang['sampling']="أخذ العينات";
 $lang['metadata_production']="إنتاج البيانات الوصفية";
 $lang['citation']="الاقتباس";
 $lang['data_access']="سياسة الوصول";
+$lang['access_policy']="سياسة الوصول";
 $lang['quality_standards']="معايير الجودة";
 $lang['disclaimer_copyright']="إخلاء المسؤولية وحقوق التأليف والنشر";
 $lang['Study authorization']="إذن الدراسة";
