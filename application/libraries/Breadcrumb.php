@@ -40,10 +40,10 @@ class Breadcrumb
 		$breadcrumbs['']=t('Home');
 		
 		$segments=$this->ci->uri->segment_array();
-	
-		if (!is_array($segments) && count($segments)===0)
+
+		if (!is_array($segments) || !isset($segments[1]) || $segments[1]==='')
 		{
-			return FALSE;
+			return $breadcrumbs;
 		}
 		
 		//set active repository
@@ -64,7 +64,7 @@ class Breadcrumb
 		$repository_title=t('central_data_catalog');
 		
 		
-		if($segments[1]=='catalog' && isset($segments[2]))
+		if ($segments[1]=='catalog' && isset($segments[2]))
 		{
 		
 			if(!is_numeric($segments[2]) )
