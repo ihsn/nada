@@ -1097,13 +1097,14 @@ class Catalog_search_sqlsrv{
 		$query  = $this->ci->db->get("variables as v");
 		$result = $query ? $query->result_array() : [];
 
-		// Count matching rows (SQL Server has no FOUND_ROWS)
-		$this->ci->db->select("count(*) as rowcount", FALSE);
+		// Count matching rows (SQL Server has no FOUND_ROWS).
+		// Use rowsfound, not rowcount — ROWCOUNT is a reserved keyword on SQL Server.
+		$this->ci->db->select("count(*) as rowsfound", FALSE);
 		$this->ci->db->where($where, NULL, FALSE);
 		$this->ci->db->where('v.sid', $surveyid);
 		$count_query = $this->ci->db->get("variables as v");
 		$count_row   = $count_query ? $count_query->row_array() : [];
-		$found       = (int)($count_row['rowcount'] ?? 0);
+		$found       = (int)($count_row['rowsfound'] ?? 0);
 
 		$this->ci->db->where('sid', $surveyid);
 		$total = $this->ci->db->count_all_results('variables');
