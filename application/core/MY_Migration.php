@@ -402,6 +402,32 @@ class MY_Migration extends CI_Migration {
     }
 
     /**
+     * Rename a SQL Server table. ODBC may return FALSE for sp_rename warning 15477
+     * even when the rename succeeded — verify the new table exists before failing.
+     *
+     * @param string $old_name
+     * @param string $new_name
+     * @return void
+     */
+    protected function sqlsrv_rename_table($old_name, $new_name)
+    {
+        if ($this->db->dbdriver !== 'sqlsrv') {
+            throw new Exception('sqlsrv_rename_table requires sqlsrv driver');
+        }
+
+        $sql = 'EXEC sp_rename ' . $this->db->escape($old_name) . ', ' . $this->db->escape($new_name);
+        $result = $this->db->query($sql);
+
+        unset($this->db->data_cache['table_names']);
+
+        if ($this->db->table_exists($new_name)) {
+            return;
+        }
+
+        $this->assert_db_query($result, $sql);
+    }
+
+    /**
      * Drop CI3's cached table list after raw CREATE/DROP TABLE.
      * dbforge updates this cache; $this->db->query() does not.
      *

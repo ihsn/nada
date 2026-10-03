@@ -2,11 +2,12 @@
 
 Use this checklist when upgrading an existing NADA 5.5 or 5.6 catalog on **Microsoft SQL Server** to 5.7.
 
-Schema changes are applied by PHP migrations. Do **not** run the old `install/*-sqlsrv.sql` upgrade scripts by hand.
+Schema changes are applied by PHP migrations. When the web UI times out or ODBC reports false failures, use the **[SQL Server manual runbook](NADA57_SQLSRV_MANUAL_RUNBOOK.md)** for SSMS steps, then re-run the same migration version.
 
 Related guides:
 
 - Platform migrations (all databases): [NADA56_UPGRADE_README.md](NADA56_UPGRADE_README.md)
+- Manual SQL (SQL Server, web-only): [NADA57_SQLSRV_MANUAL_RUNBOOK.md](NADA57_SQLSRV_MANUAL_RUNBOOK.md)
 - Legacy data deposit projects: [DATADEPOSIT_MIGRATION.md](DATADEPOSIT_MIGRATION.md)
 
 ---
@@ -67,18 +68,19 @@ Re-run `migrate latest` if a step fails. Bundled steps are idempotent. A re-run 
 
 ### Web UI (when CLI is not available)
 
-`set_time_limit(0)` does not raise the IIS / FastCGI request limit. Use **Site administration → Database migrations** and click **Run** on the first pending version only. Repeat until the watermark is `20260701000010`.
+`set_time_limit(0)` does not raise the IIS / FastCGI request limit. Use **Site administration → Database migrations** and click **Run** on the first pending version only. Repeat until the watermark is `20260909120004`.
 
 - Do not use **Migrate to Latest**. That runs every pending migration in one request.
 - `20260701000009` (indexes) and `20260701000010` (`variables` NVARCHAR) are separate because they are the long steps.
 - If a request times out, run that same version again. Finished statements are skipped. The version is recorded only after the whole step succeeds.
+- If ODBC reports errors on `sp_rename`, `idx_dedup`, or `IX_variables`, see [NADA57_SQLSRV_MANUAL_RUNBOOK.md](NADA57_SQLSRV_MANUAL_RUNBOOK.md).
 
-Do **not** run `install/nada5-upgrade-sqlsrv.sql`, `nada55-upgrade-sqlsrv.sql`, or the standalone `nada56-*-sqlsrv.sql` files yourself. Those are already applied by `migrate latest`.
+Prefer migrations over hand-running SQL. For SSMS, use **`install/nada56-upgrade-sqlsrv.sql`** (full bundle in migration order) or individual `install/nada56-*-sqlsrv.sql` topic files when a single version fails (see the manual runbook).
 
 ### After migrations
 
 - [ ] Log in as site administrator.
-- [ ] **Site administration → Database migrations** should show version `20260701000010`.
+- [ ] **Site administration → Database migrations** should show version `20260909120004`.
 - [ ] If catalog search looks empty or errors, confirm Full-Text Search is running and the `variables` / `surveys` full-text indexes exist.
 
 ---

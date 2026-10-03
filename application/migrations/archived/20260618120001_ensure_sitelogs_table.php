@@ -43,6 +43,7 @@ class Migration_Ensure_sitelogs_table extends MY_Migration {
             if ($legacy_count > 0 && $new_count === 0) {
                 echo "⚠ Historical rows ({$legacy_count}) remain in sitelogs_legacy.\n";
                 echo "  Copy manually or use install/nada56-fix-sitelogs-schema-table-rename-mysql.sql\n";
+                echo "  (SQL Server: install/nada56-fix-sitelogs-schema-sqlsrv.sql)\n";
                 echo "  (batch migrate) or utils/sitelogs_export to archive legacy data.\n";
             }
         }

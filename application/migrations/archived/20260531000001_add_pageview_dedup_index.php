@@ -29,18 +29,17 @@ class Migration_Add_pageview_dedup_index extends MY_Migration {
                 ");
             }
         } elseif ($db_driver === 'sqlsrv') {
-            $result = $this->db->query("
-                SELECT COUNT(*) as cnt
-                FROM sys.indexes
-                WHERE object_id = OBJECT_ID('analytics_pageview_events')
-                  AND name = 'idx_dedup'
-            ");
-            if ($result && $result->row()->cnt == 0) {
-                $this->db->query("
-                    CREATE NONCLUSTERED INDEX [idx_dedup]
-                    ON [analytics_pageview_events] ([study_id] ASC, [hashed_ip] ASC, [ts] ASC)
-                ");
+            if ($this->index_exists('analytics_pageview_events', 'idx_dedup')) {
+                return;
             }
+            $this->assert_db_query(
+                $this->db->query('
+                    CREATE NONCLUSTERED INDEX [idx_dedup]
+                    ON [analytics_pageview_events] ([study_id] ASC, [session_id] ASC, [section] ASC, [ts] ASC)
+                    INCLUDE ([page_url])
+                '),
+                'CREATE idx_dedup on analytics_pageview_events'
+            );
         }
     }
 
