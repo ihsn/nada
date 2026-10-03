@@ -848,6 +848,7 @@ class DD_project_model extends CI_Model {
 			'accepted' => 0,
 			'closed' => 0,
 			'requested' => 0,
+			'embargoed' => 0,
 		);
 
 		$rows = $this->db
@@ -870,17 +871,45 @@ class DD_project_model extends CI_Model {
 			->where('requested_reopen', 1)
 			->count_all_results('dd_projects');
 
+		$counts['embargoed'] = (int) $this->db
+			->where('is_embargoed', 1)
+			->count_all_results('dd_projects');
+
 		return $counts;
 	}
 
-	public function all_projects_by_filter($status=NULL, $order='created_on', $order_by='desc',$search_keywords=NULL, $requested_reopen=false)
+	/**
+	 * Admin project list with filters and pagination.
+	 *
+	 * @param array $params status, requested_reopen, keywords, embargo (all|yes|no),
+	 *                      created_by, order, order_by, limit, offset
+	 * @return array{items: array, total: int}
+	 */
+	public function search_admin_projects(array $params = array())
 	{
+		$status = isset($params['status']) ? $params['status'] : NULL;
+		$requested_reopen = !empty($params['requested_reopen']);
+		$search_keywords = isset($params['keywords']) ? $params['keywords'] : NULL;
+		$embargo = isset($params['embargo']) ? strtolower((string) $params['embargo']) : 'all';
+		$created_by = isset($params['created_by']) ? trim((string) $params['created_by']) : '';
+		$order = isset($params['order']) ? $params['order'] : 'created_on';
+		$order_by = isset($params['order_by']) ? $params['order_by'] : 'desc';
+		$limit = isset($params['limit']) ? (int) $params['limit'] : 25;
+		$offset = isset($params['offset']) ? max(0, (int) $params['offset']) : 0;
+
+		if (!in_array($embargo, array('all', 'yes', 'no'), true)) {
+			$embargo = 'all';
+		}
+
+		$total = $this->count_admin_projects($status, $requested_reopen, $search_keywords, $embargo, $created_by);
+
 		$sort_map = array(
 			'status' => 'dd_projects.status',
 			'title' => 'dd_projects.title',
 			'last_modified' => 'dd_projects.last_modified',
 			'created_on' => 'dd_projects.created_on',
 			'created_by' => 'dd_projects.created_by',
+			'is_embargoed' => 'dd_projects.is_embargoed',
 		);
 		$order_key = is_string($order) ? $order : 'created_on';
 		$order_col = isset($sort_map[$order_key])
@@ -888,16 +917,67 @@ class DD_project_model extends CI_Model {
 			: (in_array($order_key, $sort_map, true) ? $order_key : 'dd_projects.created_on');
 		$dir = (strtolower((string) $order_by) === 'asc') ? 'asc' : 'desc';
 
-		$q = $this->db->select('dd_projects.id,dd_projects.title,dd_projects.status,dd_projects.shortname, dd_projects.last_modified, dd_projects.created_on,dd_projects.created_by, dd_projects.requested_reopen, dd_tasks.id as task_id,dd_tasks.user_id as task_user_id, users.username as task_user, dd_tasks.status as task_status')
-			->from('dd_projects')
-			->join('dd_tasks','dd_tasks.project_id=dd_projects.id','left')
-			->join('users','dd_tasks.user_id=users.id','left')
-			->order_by($order_col, $dir);
+		$this->db->select(
+			'dd_projects.id,dd_projects.title,dd_projects.status,dd_projects.shortname,'
+			.' dd_projects.last_modified, dd_projects.created_on,dd_projects.created_by,'
+			.' dd_projects.is_embargoed, dd_projects.requested_reopen,'
+			.' dd_tasks.id as task_id,dd_tasks.user_id as task_user_id,'
+			.' users.username as task_user, dd_tasks.status as task_status'
+		);
+		$this->db->from('dd_projects');
+		$this->db->join('dd_tasks', 'dd_tasks.project_id=dd_projects.id', 'left');
+		$this->db->join('users', 'dd_tasks.user_id=users.id', 'left');
+		$this->apply_admin_projects_filters($status, $requested_reopen, $search_keywords, $embargo, $created_by);
+		$this->db->order_by($order_col, $dir);
 
+		if ($limit > 0) {
+			$this->db->limit($limit, $offset);
+		}
+
+		return array(
+			'items' => $this->db->get()->result(),
+			'total' => $total,
+		);
+	}
+
+	/**
+	 * @param string|null $status
+	 * @param bool $requested_reopen
+	 * @param string|null $search_keywords
+	 * @param string $embargo
+	 * @param string $created_by
+	 * @return int
+	 */
+	public function count_admin_projects($status = NULL, $requested_reopen = false, $search_keywords = NULL, $embargo = 'all', $created_by = '')
+	{
+		$this->db->from('dd_projects');
+		$this->apply_admin_projects_filters($status, $requested_reopen, $search_keywords, $embargo, $created_by);
+		return (int) $this->db->count_all_results();
+	}
+
+	/**
+	 * @param string|null $status
+	 * @param bool $requested_reopen
+	 * @param string|null $search_keywords
+	 * @param string $embargo
+	 * @param string $created_by
+	 */
+	private function apply_admin_projects_filters($status, $requested_reopen, $search_keywords, $embargo, $created_by)
+	{
 		if ($requested_reopen) {
 			$this->db->where('dd_projects.requested_reopen', 1);
 		} elseif ($status) {
 			$this->db->where('dd_projects.status', $status);
+		}
+
+		if ($embargo === 'yes') {
+			$this->db->where('dd_projects.is_embargoed', 1);
+		} elseif ($embargo === 'no') {
+			$this->db->where('(dd_projects.is_embargoed IS NULL OR dd_projects.is_embargoed = 0)', NULL, FALSE);
+		}
+
+		if ($created_by !== '') {
+			$this->db->like('dd_projects.created_by', $created_by, 'both');
 		}
 
 		if ($search_keywords) {
@@ -907,23 +987,62 @@ class DD_project_model extends CI_Model {
 				if ($keyword === '') {
 					continue;
 				}
-				$escaped_keywords = $this->db->escape('%'.$keyword.'%');
-				$where = sprintf(
-					'(dd_projects.title like %s OR dd_projects.description like %s OR dd_projects.created_by like %s OR dd_projects.shortname like %s)',
-					$escaped_keywords,
-					$escaped_keywords,
-					$escaped_keywords,
-					$escaped_keywords
-				);
-				$this->db->where($where, NULL, FALSE);
+				$this->db->where($this->_admin_projects_keyword_where($keyword), NULL, FALSE);
 			}
 		}
+	}
 
-		return $q->get()->result();
+	/**
+	 * Keyword match for admin project search: project fields, depositor email,
+	 * collaborator email, and registered user email / username / name (meta).
+	 *
+	 * @param string $keyword
+	 * @return string
+	 */
+	private function _admin_projects_keyword_where($keyword)
+	{
+		$like = $this->db->escape('%'.$keyword.'%');
+		return sprintf(
+			'(dd_projects.title like %1$s OR dd_projects.description like %1$s OR dd_projects.shortname like %1$s'
+			.' OR dd_projects.created_by like %1$s'
+			.' OR EXISTS (SELECT 1 FROM dd_collaborators dc WHERE dc.pid = dd_projects.id AND dc.email like %1$s)'
+			.' OR EXISTS (SELECT 1 FROM users u'
+			.' LEFT JOIN meta m ON m.user_id = u.id'
+			.' WHERE (u.email = dd_projects.created_by OR (dd_projects.uid IS NOT NULL AND dd_projects.uid > 0 AND u.id = dd_projects.uid))'
+			.' AND (u.email like %1$s OR u.username like %1$s OR m.first_name like %1$s OR m.last_name like %1$s))'
+			.' OR EXISTS (SELECT 1 FROM dd_collaborators dc'
+			.' INNER JOIN users u ON u.email = dc.email'
+			.' LEFT JOIN meta m ON m.user_id = u.id'
+			.' WHERE dc.pid = dd_projects.id'
+			.' AND (u.email like %1$s OR u.username like %1$s OR m.first_name like %1$s OR m.last_name like %1$s)))',
+			$like
+		);
+	}
+
+	public function all_projects_by_filter($status=NULL, $order='created_on', $order_by='desc',$search_keywords=NULL, $requested_reopen=false)
+	{
+		$result = $this->search_admin_projects(array(
+			'status' => $status,
+			'requested_reopen' => $requested_reopen,
+			'keywords' => $search_keywords,
+			'order' => $order,
+			'order_by' => $order_by,
+			'limit' => 0,
+			'offset' => 0,
+		));
+		return $result['items'];
 	}
 
 	public function all_projects_requested_reopen($order='created_on', $order_by='desc', $search_keywords=NULL) {
-		return $this->all_projects_by_filter(NULL, $order, $order_by, $search_keywords, true);
+		$result = $this->search_admin_projects(array(
+			'requested_reopen' => true,
+			'keywords' => $search_keywords,
+			'order' => $order,
+			'order_by' => $order_by,
+			'limit' => 0,
+			'offset' => 0,
+		));
+		return $result['items'];
 	}
 
 }
