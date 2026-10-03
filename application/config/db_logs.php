@@ -15,10 +15,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $config['db_logs_retention_days'] = 180;
 
 
-// Chunk size for processing logs
-// Number of rows to process per chunk (memory efficiency)
-// Recommended: 5000-20000 depending on server memory
-$config['db_logs_chunk_size'] = 10000;
+// Rows per select/delete batch during cleanup (max 500; larger values break CI query builder)
+$config['db_logs_chunk_size'] = 500;
 
 // CSV export directory
 // Path where exported CSV files will be stored.
