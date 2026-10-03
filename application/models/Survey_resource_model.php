@@ -1065,21 +1065,18 @@ class Survey_resource_model extends CI_Model {
 			return false;
 		}
 
-		if (! empty($resource['is_url']) && (int) $resource['is_url'] === 1) {
-			return false;
-		}
-
 		$filename = isset($resource['filename']) ? trim((string) $resource['filename']) : '';
 		if ($filename === '') {
 			return false;
 		}
 
-		if ($this->form_validation->valid_url($filename)) {
+		// External links are not streamable via pdf-stream; infer from filename only.
+		if (is_url($filename) || stripos($filename, 'www.') === 0) {
 			return false;
 		}
 
 		$dcformat = strtolower(trim((string) ($resource['dcformat'] ?? '')));
-		if ($dcformat === 'application/pdf') {
+		if (strpos($dcformat, 'application/pdf') !== false) {
 			return true;
 		}
 
