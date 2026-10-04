@@ -128,5 +128,14 @@ class Dataaccess_whitelist extends MY_REST_Controller
 		}
 	}
 
+	/**
+	 * POST /api/dataaccess_whitelist/delete
+	 * Alias for DELETE. JSON body: collection_name, email.
+	 */
+	function delete_post()
+	{
+		return $this->index_delete();
+	}
+
 	
 }

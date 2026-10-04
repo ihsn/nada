@@ -381,6 +381,15 @@ class Tables extends MY_REST_Controller
 	}
 
 	/**
+	 * POST /api/tables/indexes/{db_id}/{table_id}/{index_name}/delete
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	function indexes_delete_post($db_id=null,$table_id=null,$index_name=null)
+	{
+		return $this->indexes_delete($db_id, $table_id, $index_name);
+	}
+
+	/**
 	 * 
 	 * Delete all indexes in a collection (except _id_)
 	 * 

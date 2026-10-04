@@ -59,9 +59,14 @@ class MY_Migration extends CI_Migration {
 
     protected function emit_flush()
     {
-        if ($this->is_cli_migration()) {
-            flush();
+        if (!$this->is_cli_migration()) {
+            return;
         }
+
+        if (ob_get_level() > 0) {
+            @ob_flush();
+        }
+        flush();
     }
     
     /**
@@ -264,6 +269,7 @@ class MY_Migration extends CI_Migration {
                 1050,  // Table already exists
                 1068,  // Multiple primary keys
                 1146,  // Table doesn't exist
+                1826,  // Duplicate foreign key constraint name
             );
             
             // MySQL SQLSTATE codes (fallback)
@@ -342,12 +348,30 @@ class MY_Migration extends CI_Migration {
     protected function get_sql_file_path($filename)
     {
         $db_driver = $this->db->dbdriver;
-        
+
         if (in_array($db_driver, array('mysql', 'mysqli'))) {
             $db_driver = 'mysql';
         }
-        
+
         return APPPATH . '../install/' . $filename . '-' . $db_driver . '.sql';
+    }
+
+    /**
+     * Run an install/*.sql script (one statement per line; safe-skip on re-run).
+     *
+     * @param string $basename Filename without driver suffix, e.g. nada56-filestore
+     * @return void
+     */
+    protected function execute_install_sql($basename)
+    {
+        $path = $this->get_sql_file_path($basename);
+
+        if (!is_file($path)) {
+            throw new Exception('SQL file not found: ' . $path);
+        }
+
+        $this->execute_sql_file($path);
+        $this->forget_table_cache();
     }
 
     /**
@@ -366,9 +390,41 @@ class MY_Migration extends CI_Migration {
         $error = $this->db->error();
         $code = isset($error['code']) ? $error['code'] : '';
         $message = isset($error['message']) ? $error['message'] : 'unknown error';
+
+        if ($this->is_safe_to_skip_error($code, $this->db->dbdriver)) {
+            log_message('info', "Skipped (already applied) {$description}: {$message}");
+            return;
+        }
+
         $detail = $code !== '' && $code !== 0 ? "{$description} (error {$code}): {$message}" : "{$description}: {$message}";
 
         throw new Exception($detail);
+    }
+
+    /**
+     * Rename a SQL Server table. ODBC may return FALSE for sp_rename warning 15477
+     * even when the rename succeeded — verify the new table exists before failing.
+     *
+     * @param string $old_name
+     * @param string $new_name
+     * @return void
+     */
+    protected function sqlsrv_rename_table($old_name, $new_name)
+    {
+        if ($this->db->dbdriver !== 'sqlsrv') {
+            throw new Exception('sqlsrv_rename_table requires sqlsrv driver');
+        }
+
+        $sql = 'EXEC sp_rename ' . $this->db->escape($old_name) . ', ' . $this->db->escape($new_name);
+        $result = $this->db->query($sql);
+
+        unset($this->db->data_cache['table_names']);
+
+        if ($this->db->table_exists($new_name)) {
+            return;
+        }
+
+        $this->assert_db_query($result, $sql);
     }
 
     /**
@@ -464,6 +520,52 @@ class MY_Migration extends CI_Migration {
     protected function table_exists($table)
     {
         return $this->db->table_exists($table);
+    }
+
+    /**
+     * Reliable SQL Server column check (do not use OBJECT_ID(?) with bound params).
+     *
+     * @param string $table
+     * @param string $column
+     * @return bool
+     */
+    /**
+     * Named sqlsrv_has_column (not sqlsrv_column_exists) to avoid clashing with
+     * private sqlsrv_column_exists() helpers in archived migration classes.
+     */
+    protected function sqlsrv_has_column($table, $column)
+    {
+        if ($this->db->dbdriver !== 'sqlsrv') {
+            return $this->column_exists($table, $column);
+        }
+
+        $result = $this->db->query(
+            'SELECT 1 AS present FROM sys.columns c
+             INNER JOIN sys.tables t ON c.object_id = t.object_id
+             WHERE t.name = ' . $this->db->escape($table) . '
+             AND c.name = ' . $this->db->escape($column)
+        );
+
+        return $result && $result->num_rows() > 0;
+    }
+
+    /**
+     * @param string $constraint_name
+     * @return bool
+     */
+    protected function sqlsrv_constraint_exists($constraint_name)
+    {
+        if ($this->db->dbdriver !== 'sqlsrv') {
+            return FALSE;
+        }
+
+        $result = $this->db->query(
+            "SELECT 1 AS present FROM sys.objects
+             WHERE name = " . $this->db->escape($constraint_name) . "
+             AND type IN ('F','PK','UQ','C','D')"
+        );
+
+        return $result && $result->num_rows() > 0;
     }
 
     /**

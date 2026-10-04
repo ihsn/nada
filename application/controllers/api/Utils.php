@@ -128,6 +128,15 @@ class Utils extends MY_REST_Controller
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}	
 	}
+
+	/**
+	 * POST /api/utils/batch_delete_by_type/{type}
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	public function batch_delete_by_type_post($type=NULL)
+	{
+		return $this->batch_delete_by_type_delete($type);
+	}
 	
 	
 	/**

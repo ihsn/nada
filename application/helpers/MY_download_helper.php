@@ -86,7 +86,7 @@ function force_download2($filename = '', $data = false, $enable_partial = true, 
             $mime = (is_array($mimes[$extension])) ? $mimes[$extension][0] : $mimes[$extension];
         }
         
-        $size = $data === false ? filesize($filename) : strlen($data);
+        $size = (int) ($data === false ? filesize($filename) : strlen($data));
         
         if($data === false)
         {
@@ -102,23 +102,32 @@ function force_download2($filename = '', $data = false, $enable_partial = true, 
         //@ob_end_clean();
         
         // Check for partial download
+        $partial_download = false;
         if(isset($_SERVER['HTTP_RANGE']) && $enable_partial)
         {
-            list($a, $range) = explode("=", $_SERVER['HTTP_RANGE']);
-            list($fbyte, $lbyte) = explode("-", $range);
-            
-            if(!$lbyte)
-                $lbyte = $size - 1;
-            
-            $new_length = $lbyte - $fbyte;
-            
-            header("HTTP/1.1 206 Partial Content", true);
-            header("Content-Length: $new_length", true);
-            header("Content-Range: bytes $fbyte-$lbyte/$size", true);
+            $range_parts = explode('=', $_SERVER['HTTP_RANGE'], 2);
+            if (count($range_parts) === 2)
+            {
+                list($fbyte, $lbyte) = array_pad(explode('-', $range_parts[1], 2), 2, '');
+                $fbyte = (int) $fbyte;
+                $lbyte = ($lbyte === '' || $lbyte === false) ? ($size - 1) : (int) $lbyte;
+                $lbyte = min($lbyte, $size - 1);
+
+                if ($fbyte <= $lbyte && $fbyte < $size)
+                {
+                    $new_length = $lbyte - $fbyte + 1;
+                    $partial_download = true;
+
+                    header('HTTP/1.1 206 Partial Content', true);
+                    header("Content-Length: $new_length", true);
+                    header("Content-Range: bytes $fbyte-$lbyte/$size", true);
+                }
+            }
         }
-        else
+
+        if (!$partial_download)
         {
-            header("Content-Length: " . $size);
+            header('Content-Length: ' . $size);
         }
         
         // Common headers
@@ -138,11 +147,17 @@ function force_download2($filename = '', $data = false, $enable_partial = true, 
         }
         
         // Cut data for partial download
-        if(isset($_SERVER['HTTP_RANGE']) && $enable_partial)
-            if($data === false)
-                fseek($file, $range);
+        if ($partial_download)
+        {
+            if ($data === false)
+            {
+                fseek($file, $fbyte);
+            }
             else
-                $data = substr($data, $range);
+            {
+                $data = substr($data, $fbyte, $new_length);
+            }
+        }
         
         // Disable script time limit
         @set_time_limit(0);

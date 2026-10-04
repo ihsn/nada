@@ -36,7 +36,7 @@ if (!empty($display_template_info) && is_array($display_template_info)) {
             <div class="nav flex-column">
             <?php foreach($sidebar as $key=>$item):?>
                 <li class="nav-item">                    
-                    <a class="nav-link" href="#<?php echo str_replace(".",".",$key);?>"><?php echo tt(strtolower($item),$item);?></a>
+                    <a class="nav-link" href="#<?php echo str_replace(".",".",$key);?>"><?php echo display_template_resolve_section_title($key, $item);?></a>
                 </li>
             <?php endforeach;?>
             </div>

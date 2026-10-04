@@ -53,7 +53,7 @@ This upgrade enhances the `resources` table with new fields for better resource 
 
 ## Running the Migration
 
-See **[NADA56_UPGRADE_README.md](NADA56_UPGRADE_README.md)** for the current upgrade process (8 consolidated migrations, CLI-first).
+See **[NADA56_UPGRADE_README.md](NADA56_UPGRADE_README.md)** for the current upgrade process (15 consolidated migrations, CLI-first). SQL Server web-only upgrades: [NADA57_SQLSRV_MANUAL_RUNBOOK.md](NADA57_SQLSRV_MANUAL_RUNBOOK.md).
 
 ### Legacy: Web Interface
 

@@ -2,18 +2,25 @@
 
 ## Overview
 
-Database upgrades are delivered as **8 consolidated migrations** (down from 35 incremental steps). Each migration bundles related schema and data changes. Every step is **idempotent** — safe to re-run if a migration fails partway through or if you run `migrate latest` more than once.
+Database upgrades are delivered as **15 consolidated migrations** (down from 35 incremental steps). Each migration bundles related schema and data changes. Every step is **idempotent** — safe to re-run if a migration fails partway through or if you run `migrate latest` more than once.
 
 | Version | Migration | Contents |
 |---------|-----------|----------|
 | `20260701000001` | Platform baseline | Resources table, authtype columns, API key security |
 | `20260701000002` | Sitelogs cutover | Rename legacy sitelogs, create new table, repair if missing |
-| `20260701000003` | Catalog & codelists foundation | Dctypes, codelists schema, citation + search indexes, abstract/var_keywords |
+| `20260701000003` | Catalog & codelists foundation | Dctypes, codelists schema, abstract/var_keywords |
 | `20260701000004` | Codelists & DSD versioning | SDMX identity, data structures, PID/versioning |
 | `20260701000005` | Analytics | Analytics schema, legacy totals backfill, dedup index |
 | `20260701000006` | Timeseries platform | Survey TS columns, ts_databases cutover, db links |
 | `20260701000007` | Repositories ACL | ACL table, copy legacy permissions, remove old rows |
 | `20260701000008` | Site configuration | Default site settings, study admin metadata |
+| `20260701000009` | Catalog search indexes | Citation indexes and catalog search indexes |
+| `20260701000010` | Variables Unicode (SQL Server) | `variables` text columns to NVARCHAR, recreate full-text index. No-op on MySQL |
+| `20260707120001` | Analytics pageview tracking | `page_url` / `section` columns, session dedup index |
+| `20260909120001` | Display templates platform | Display template tables, shipped cores, menu URL cleanup |
+| `20260909120002` | Catalog search queue | Search index queue/state, sidebar filter indexes |
+| `20260909120003` | Data deposit platform | `dd_*` schema, v2 columns, configuration |
+| `20260909120004` | Site user register config | `site_user_register` in `configurations` |
 
 Historical step implementations live under `application/migrations/archived/` (not executed directly by CodeIgniter).
 
@@ -53,7 +60,7 @@ Migrations must be enabled in `application/config/migration.php` (`migration_ena
 ## Step 2: Verify
 
 1. Log in as site administrator
-2. Open **Site administration → Database migrations** — should show version `20260701000008`
+2. Open **Site administration → Database migrations** — should show version `20260909120004`
 3. Smoke-test:
    - Login (`/index.php/auth/password`)
    - Catalog (`/index.php/catalog`)
@@ -70,6 +77,8 @@ http://yoursite.com/index.php/admin/database_migration
 ```
 
 The web UI is **not** suitable for the initial upgrade from an older schema because login may fail before authtype and other columns exist.
+
+If CLI is unavailable, run versions one at a time from that page (the **Run** button is only active on the next pending version). `20260701000009` and `20260701000010` are split out so index builds and the SQL Server `variables` NVARCHAR conversion do not share one request. SQL Server admins can also run [nada56-upgrade-sqlsrv.sql](nada56-upgrade-sqlsrv.sql) in SSMS, then finish PHP-only steps via the web UI. See [NADA57_SQLSRV_UPGRADE.md](NADA57_SQLSRV_UPGRADE.md) and the [SQL Server manual runbook](NADA57_SQLSRV_MANUAL_RUNBOOK.md).
 
 ---
 
@@ -88,6 +97,7 @@ New installations run `install/schema.mysql.sql` (or `schema.sqlsrv.sql`) plus `
 | Migration fails mid-bundle | Partial apply | Fix error, re-run `latest` (steps are idempotent) |
 | `Both sitelogs and sitelogs_legacy exist` | Manual DB conflict | Resolve tables before continuing |
 | SQL file "Duplicate column" | Step already applied | Should auto-skip; if not, check `MY_Migration` logs |
+| `sp_rename` / `idx_dedup` / `IX_variables` errors (SQL Server) | ODBC warnings or index key limits | See [NADA57_SQLSRV_MANUAL_RUNBOOK.md](NADA57_SQLSRV_MANUAL_RUNBOOK.md) |
 
 ---
 

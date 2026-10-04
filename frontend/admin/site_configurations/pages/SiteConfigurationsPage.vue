@@ -213,6 +213,9 @@ async function reloadAll() {
   if (s.deposit_max_upload_size === undefined || s.deposit_max_upload_size === '') {
     s.deposit_max_upload_size = '2048';
   }
+  if (s.site_user_register === undefined || s.site_user_register === '') {
+    s.site_user_register = 'yes';
+  }
   settings.value = { ...s };
   meta.value = { ...m };
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
@@ -1020,6 +1023,11 @@ onMounted(async () => {
             <v-radio-group v-model="settings.site_password_protect" class="mt-1">
               <v-radio value="yes" :label="tr('require_all_users_to_login')" />
               <v-radio value="no" :label="tr('login_not_required')" />
+            </v-radio-group>
+            <label class="site-config-field__label mt-4">{{ tr('site_user_register') }}</label>
+            <v-radio-group v-model="settings.site_user_register" class="mt-1">
+              <v-radio value="yes" :label="tr('site_user_register_enable')" />
+              <v-radio value="no" :label="tr('site_user_register_disable')" />
             </v-radio-group>
             <v-row dense class="mt-4">
               <v-col cols="12">

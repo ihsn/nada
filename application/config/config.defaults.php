@@ -28,6 +28,7 @@ $config['search_provider']='db';
 $config['semantic_search_url']='';
 $config['semantic_search_api_key']='';
 $config['semantic_search_debug']='false';
+$config['site_user_register']='yes';
 
 //default cache expiration in seconds
 $config['cache_default_expires'] = 60*60*2;//2 hours

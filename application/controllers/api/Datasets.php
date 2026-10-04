@@ -1123,6 +1123,16 @@ class Datasets extends MY_REST_Controller
 	}
 
 	/**
+	 * POST /api/datasets/variable_delete/{idno}/{file_id}/{var_id}
+	 * POST /api/datasets/{idno}/variable/{file_id}/{var_id}/delete
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	function variable_delete_post($idno=null, $file_id=null, $var_id=null)
+	{
+		return $this->variable_delete($idno, $file_id, $var_id);
+	}
+
+	/**
 	 * 
 	 * Batch delete variables, does not delete datafile definition
 	 * 
@@ -1150,6 +1160,16 @@ class Datasets extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * POST /api/datasets/variables_delete/{idno}/{file_id}
+	 * POST /api/datasets/{idno}/variables/{file_id}/delete
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	function variables_delete_post($idno=null, $file_id=null)
+	{
+		return $this->variables_delete($idno, $file_id);
 	}
 
 
@@ -1192,6 +1212,16 @@ class Datasets extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * POST /api/datasets/datafiles_delete/{idno}/{file_id}
+	 * POST /api/datasets/{idno}/datafiles/{file_id}/delete
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	function datafiles_delete_post($idno=null, $file_id=null)
+	{
+		return $this->datafiles_delete($idno, $file_id);
 	}
 
 	
@@ -1574,7 +1604,16 @@ class Datasets extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}	
-	}	
+	}
+
+	/**
+	 * POST /api/datasets/delete/{idno}
+	 * Alias for DELETE /api/datasets/{idno} and DELETE /api/datasets/delete/{idno}.
+	 */
+	public function delete_post($idno=null)
+	{
+		return $this->delete_delete($idno);
+	}
 
 	public function delete_by_id_delete($sid=null)
 	{
@@ -1597,6 +1636,15 @@ class Datasets extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * POST /api/datasets/delete_by_id/{sid}
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	public function delete_by_id_post($sid=null)
+	{
+		return $this->delete_by_id_delete($sid);
 	}
 
 

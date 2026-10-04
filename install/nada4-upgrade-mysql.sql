@@ -673,6 +673,7 @@ INSERT INTO `configurations` VALUES ('regional_search','no','Enable regional sea
 INSERT INTO `configurations` VALUES ('regional_search_weight','3',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('repository_identifier','default','Repository Identifier',NULL,NULL);
 INSERT INTO `configurations` VALUES ('site_password_protect','no','Password protect website',NULL,NULL);
+INSERT INTO `configurations` VALUES ('site_user_register','yes','Allow user self-registration',NULL,NULL);
 INSERT INTO `configurations` VALUES ('smtp_host','','SMTP Host name',NULL,NULL);
 INSERT INTO `configurations` VALUES ('smtp_pass','','SMTP password',NULL,NULL);
 INSERT INTO `configurations` VALUES ('smtp_port','25','SMTP port',NULL,NULL);

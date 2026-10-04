@@ -24,7 +24,14 @@
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v20260721">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/custom.css?v20260625">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/variables.css?v07042021">
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/catalog-vue-chrome.css?v20260823">
+<?php
+$catalog_vue_chrome_theme = $bootstrap_theme;
+$catalog_vue_chrome_path = rtrim(FCPATH, '/\\') . '/' . $catalog_vue_chrome_theme . '/css/catalog-vue-chrome.css';
+if (!is_file($catalog_vue_chrome_path)) {
+    $catalog_vue_chrome_theme = 'themes/nada52';
+}
+?>
+<link rel="stylesheet" href="<?php echo base_url() . $catalog_vue_chrome_theme; ?>/css/catalog-vue-chrome.css?v20260823">
 
 <?php if ($use_cdn): ?>
     <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -59,5 +66,14 @@
 
 <?php $google_ua_code = $this->config->item("google_ua_code"); ?>
 <?php if (!empty($google_ua_code)): ?>
-    <?php require_once 'google_analytics.php'; ?>
+    <?php
+    $google_analytics_theme = isset($active_theme) ? $active_theme : $this->template->theme();
+    $google_analytics_file = rtrim(FCPATH, '/\\') . '/themes/' . $google_analytics_theme . '/google_analytics.php';
+    if (!is_file($google_analytics_file)) {
+        $google_analytics_file = rtrim(FCPATH, '/\\') . '/themes/nada52/google_analytics.php';
+    }
+    if (is_file($google_analytics_file)) {
+        require_once $google_analytics_file;
+    }
+    ?>
 <?php endif; ?>

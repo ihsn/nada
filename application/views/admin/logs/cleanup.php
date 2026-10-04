@@ -159,20 +159,7 @@
                         <div class="card-body">
                             <div class="row g-3 align-items-center mb-3">
                                 <div class="col-auto">
-                                    <label class="form-label fw-bold mb-0">Chunk Size:</label>
-                                </div>
-                                <div class="col-auto">
-                                    <input 
-                                        type="number" 
-                                        v-model.number="chunkSize" 
-                                        min="1" 
-                                        max="20000"
-                                        class="form-control"
-                                        style="width: 150px;"
-                                        :disabled="processing">
-                                </div>
-                                <div class="col-auto">
-                                    <small class="text-muted">(1 - 20000 rows per chunk)</small>
+                                    <small class="text-muted">Processes 500 rows per database batch; repeats batches until the time limit is reached.</small>
                                 </div>
                             </div>
                             <div class="row g-3 align-items-center">
@@ -370,13 +357,7 @@
                         <div class="card-body">
                             <div class="row g-3 align-items-center mb-3">
                                 <div class="col-auto">
-                                    <label class="form-label fw-bold mb-0">Chunk Size:</label>
-                                </div>
-                                <div class="col-auto">
-                                    <input type="number" v-model.number="chunkSize" min="1" max="20000" class="form-control" style="width: 150px;" :disabled="processing">
-                                </div>
-                                <div class="col-auto">
-                                    <small class="text-muted">(1 - 20000 rows per chunk)</small>
+                                    <small class="text-muted">Processes 500 rows per database batch; repeats batches until the time limit is reached.</small>
                                 </div>
                             </div>
                             <div class="row g-3 align-items-center">
@@ -495,7 +476,6 @@
                 statusMessage: '',
                 statusType: 'info',
                 showSettings: false,
-                chunkSize: 10000,
                 timeLimit: 20
             },
             mounted() {
@@ -536,7 +516,6 @@
                 async processChunk() {
                     try {
                         const response = await axios.post(apiBase + '/cleanup/chunk', {
-                            chunk_size: this.chunkSize,
                             time_limit: this.timeLimit
                         });
                         
@@ -624,7 +603,6 @@
                 statusMessage: '',
                 statusType: 'info',
                 showSettings: false,
-                chunkSize: 10000,
                 timeLimit: 20
             },
             mounted() {
@@ -665,7 +643,6 @@
                 async processChunk() {
                     try {
                         const response = await axios.post(apiLogsBase + '/cleanup/chunk', {
-                            chunk_size: this.chunkSize,
                             time_limit: this.timeLimit
                         });
 

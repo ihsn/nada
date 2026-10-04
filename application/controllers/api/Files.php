@@ -150,5 +150,15 @@ class Files extends MY_REST_Controller
 		}
 	}
 
+	/**
+	 * POST /api/files/delete/{dataset_idno}/{filename}
+	 * POST /api/datasets/{dataset_idno}/files/{filename}/delete
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	function delete_post($dataset_idno=null, $filename=null)
+	{
+		return $this->index_delete($dataset_idno, $filename);
+	}
+
 	
 }

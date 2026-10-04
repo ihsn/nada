@@ -6,18 +6,30 @@
       </template>
     </v-breadcrumbs>
 
-    <div class="lr-page-header mb-4">
-      <h1 class="text-h5 font-weight-semibold mb-0">{{ pageHeading }}</h1>
-      <div v-if="requestRow.status" class="mt-2">
-        <v-chip
-          size="small"
-          variant="flat"
-          :color="requestStatusChipColor"
-          class="lr-status-pill font-weight-semibold"
-        >
-          {{ requestRow.status }}
-        </v-chip>
+    <div class="lr-page-header mb-4 d-flex flex-wrap align-start justify-space-between gap-3">
+      <div>
+        <h1 class="text-h5 font-weight-semibold mb-0">{{ pageHeading }}</h1>
+        <div v-if="requestRow.status" class="mt-2">
+          <v-chip
+            size="small"
+            variant="flat"
+            :color="requestStatusChipColor"
+            class="lr-status-pill font-weight-semibold"
+          >
+            {{ requestRow.status }}
+          </v-chip>
+        </div>
       </div>
+      <v-btn
+        v-if="detail?.can_delete"
+        variant="tonal"
+        color="error"
+        prepend-icon="mdi-delete-outline"
+        :loading="deleteDialog.saving"
+        @click="openDelete"
+      >
+        {{ t('delete', 'Delete') }}
+      </v-btn>
     </div>
 
     <v-alert v-if="loadError" type="error" class="mb-4">{{ loadError }}</v-alert>
@@ -513,6 +525,26 @@
         </v-window-item>
       </v-window>
     </template>
+
+    <v-dialog v-model="deleteDialog.open" max-width="420">
+      <v-card>
+        <v-card-title class="text-h6">{{ t('confirm_delete', 'Confirm delete') }}</v-card-title>
+        <v-card-text>
+          {{ deleteDialog.message }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="deleteDialog.open = false">{{ t('cancel', 'Cancel') }}</v-btn>
+          <v-btn color="error" variant="flat" :loading="deleteDialog.saving" @click="confirmDelete">
+            {{ t('delete', 'Delete') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-snackbar v-model="toast.open" :color="toast.color" location="bottom right" :timeout="4000">
+      {{ toast.message }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -543,7 +575,7 @@ const { t } = useI18n();
 const { siteUrl } = useAppConfig();
 const route = useRoute();
 const router = useRouter();
-const { fetchDetail, patchDetail, sendMail, forwardMail } = useLicensedRequestsApi();
+const { fetchDetail, patchDetail, sendMail, forwardMail, deleteRequest } = useLicensedRequestsApi();
 
 function normalizeEditTab(v) {
   const s = String(v ?? '').toLowerCase();
@@ -591,6 +623,14 @@ const process = reactive({
   notify: true,
   filesBySurvey: [],
 });
+
+const deleteDialog = ref({
+  open: false,
+  message: '',
+  saving: false,
+});
+
+const toast = ref({ open: false, message: '', color: 'error' });
 
 function defaultExpiryDateDaysFromNow(days) {
   const d = new Date();
@@ -848,6 +888,35 @@ async function load() {
     detail.value = null;
   } finally {
     pageLoading.value = false;
+  }
+}
+
+function openDelete() {
+  const title = requestRow.value?.request_title
+    ? `“${requestRow.value.request_title}”`
+    : `#${props.id}`;
+  deleteDialog.value = {
+    open: true,
+    message: t('js_confirm_delete', 'Are you sure you want to delete the selected item(s)?') + ` ${title}`,
+    saving: false,
+  };
+}
+
+async function confirmDelete() {
+  deleteDialog.value.saving = true;
+  try {
+    const rid = props.id ?? route.params.id;
+    await deleteRequest(rid);
+    deleteDialog.value.open = false;
+    window.location.href = `${siteBaseUrl.value}/admin/licensed_requests`;
+  } catch (e) {
+    toast.value = {
+      open: true,
+      message: e?.response?.data?.message || e?.message || 'Error',
+      color: 'error',
+    };
+  } finally {
+    deleteDialog.value.saving = false;
   }
 }
 

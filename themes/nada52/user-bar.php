@@ -59,9 +59,6 @@ $user=$this->session->userdata('username');
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
                     <a class="dropdown-item small" href="<?php echo site_url('auth/login'); ?>"><?php echo t('login');?></a>
                 </div>
-                <?php if (!$this->config->item("site_user_register")=='no' || !$this->config->item("site_password_protect")=='yes'): ?>
-                    <a class="dropdown-toggle small" href="<?php echo site_url('auth/register'); ?>" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-user-circle fa-lg"></i><?php echo t('register');?></a>
-                <?php endif; ?>
 
                 <?php if($lang_ul!=''):?>
                 <span class="lang-container">

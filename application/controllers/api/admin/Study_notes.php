@@ -11,6 +11,7 @@ require APPPATH . '/libraries/MY_REST_Controller.php';
  *   GET    /api/admin/catalog/{idno}/notes
  *   POST   /api/admin/catalog/{idno}/notes
  *   PUT    /api/admin/catalog/{idno}/notes/{note_id}
+ *   POST   /api/admin/catalog/{idno}/notes/{note_id}/delete
  *   DELETE /api/admin/catalog/{idno}/notes/{note_id}
  */
 class Study_notes extends MY_REST_Controller
@@ -200,6 +201,15 @@ class Study_notes extends MY_REST_Controller
 	public function update_post($idno = null, $note_id = null)
 	{
 		return $this->index_put($idno, $note_id);
+	}
+
+	/**
+	 * POST /api/admin/catalog/{idno}/notes/{note_id}/delete
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	public function delete_post($idno = null, $note_id = null)
+	{
+		return $this->index_delete($idno, $note_id);
 	}
 
 	public function index_delete($idno = null, $note_id = null)

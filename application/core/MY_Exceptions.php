@@ -21,10 +21,10 @@ define('DEBUG_BACKTRACE', ENVIRONMENT == 'development');
 class MY_Exceptions extends CI_Exceptions {
 
   /**
-   * 404 handler — same as CI_Exceptions but log includes the requested URL when the route string is empty.
+   * 404 handler — renders error_404 without writing to the application log.
    *
-   * @param string $page      Controller/method segment CI passes when routing fails; often empty when app calls show_404().
-   * @param bool   $log_error Whether to write to the log
+   * @param string $page      Controller/method segment CI passes when routing fails.
+   * @param bool   $log_error Unused; kept for CI_Exceptions signature compatibility.
    */
   public function show_404($page = '', $log_error = TRUE)
   {
@@ -37,22 +37,6 @@ class MY_Exceptions extends CI_Exceptions {
     {
       $heading = '404 Page Not Found';
       $message = 'The page you requested was not found.';
-    }
-
-    if ($log_error)
-    {
-      $log = $heading . ': ';
-      $parts = array();
-      if ($page !== '')
-      {
-        $parts[] = $page;
-      }
-      if ( ! is_cli() && ! empty($_SERVER['REQUEST_URI']))
-      {
-        $parts[] = 'uri=' . $_SERVER['REQUEST_URI'];
-      }
-      $log .= count($parts) ? implode(' | ', $parts) : '(no route or uri)';
-      log_message('error', $log);
     }
 
     echo $this->show_error($heading, $message, 'error_404', 404);

@@ -1544,6 +1544,7 @@ INSERT INTO configurations VALUES ('regional_search','no','Enable regional searc
 INSERT INTO configurations VALUES ('regional_search_weight','3',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('repository_identifier','default','Repository Identifier',NULL,NULL);
 INSERT INTO configurations VALUES ('site_password_protect','no','Password protect website',NULL,NULL);
+INSERT INTO configurations VALUES ('site_user_register','yes','Allow user self-registration',NULL,NULL);
 INSERT INTO configurations VALUES ('smtp_host','','SMTP Host name',NULL,NULL);
 INSERT INTO configurations VALUES ('smtp_pass','','SMTP password',NULL,NULL);
 INSERT INTO configurations VALUES ('smtp_port','25','SMTP port',NULL,NULL);
@@ -1725,9 +1726,8 @@ CREATE TABLE api_keys (
   PRIMARY KEY (id),
 );
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys on [dbo].[api_keys](
-	[api_key] ASC
-);
+CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys_legacy ON api_keys(api_key)
+WHERE api_key IS NOT NULL;
 
 CREATE NONCLUSTERED INDEX idx_key_prefix ON api_keys(key_prefix);
 CREATE NONCLUSTERED INDEX idx_key_hash ON api_keys(key_hash);
@@ -2044,7 +2044,7 @@ CREATE NONCLUSTERED INDEX [idx_ts] ON [analytics_pageview_events] ([ts] ASC);
 CREATE NONCLUSTERED INDEX [idx_study] ON [analytics_pageview_events] ([study_id] ASC);
 CREATE NONCLUSTERED INDEX [idx_session] ON [analytics_pageview_events] ([session_id] ASC);
 CREATE NONCLUSTERED INDEX [idx_ts_study] ON [analytics_pageview_events] ([ts] ASC, [study_id] ASC);
-CREATE NONCLUSTERED INDEX [idx_dedup] ON [analytics_pageview_events] ([study_id] ASC, [session_id] ASC, [section] ASC, [page_url] ASC, [ts] ASC);
+CREATE NONCLUSTERED INDEX [idx_dedup] ON [analytics_pageview_events] ([study_id] ASC, [session_id] ASC, [section] ASC, [ts] ASC) INCLUDE ([page_url]);
 
 
 CREATE TABLE [analytics_download_events] (

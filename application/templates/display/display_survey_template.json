@@ -95,7 +95,9 @@
                                 "key": "widgets.default",
                                 "title": "Embedded widgets",
                                 "type": "widget",
-                                "display_options": { "renderer": "field_iframe_embed" }
+                                "display_options": {
+                                    "renderer": "field_iframe_embed"
+                                }
                             },
                             {
                                 "key": "study_desc.title_statement.identifiers",
@@ -1248,10 +1250,133 @@
                         "help_text": ""
                     },
                     {
-                        "key": "study_desc1684336809542",
+                        "key": "data_access",
                         "title": "data_access",
                         "type": "section",
                         "items": [
+                            {
+                                "key": "study_desc.data_access.dataset_use.conf_dec",
+                                "type": "array",
+                                "title": "Confidentiality declaration",
+                                "help_text": "This element is used to determine if signing of a confidentiality declaration is needed to access a resource. We may indicate here what Affidavit of Confidentiality must be signed before the data can be accessed. Another option is to include this information in the element \"Access conditions\". If there is no confidentiality issue, this field can be left blank.",
+                                "props": [
+                                    {
+                                        "key": "required",
+                                        "type": "boolean",
+                                        "title": "Required",
+                                        "help_text": "Indicate if a confidentiality declaration is required to access a resource. The \"Required\" element is used to aid machine processing of this element. ",
+                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec.@required",
+                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.required",
+                                        "display_type": "dropdown"
+                                    },
+                                    {
+                                        "key": "txt",
+                                        "type": "string",
+                                        "title": "Text",
+                                        "help_text": "A statement on confidentiality and limitations to data use. This statement does not replace a more comprehensive data agreement (see \"Access condition\"). ",
+                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec",
+                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.txt",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "form_id",
+                                        "type": "string",
+                                        "title": "Form ID",
+                                        "help_text": "Indicates the number or ID of the confidentiality declaration form that the user must fill out.",
+                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec.@formNo",
+                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.form_id",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "form_url",
+                                        "type": "string",
+                                        "title": "Form URL",
+                                        "help_text": "The \"Form URL\" element is used to provide a link to an online confidentiality declaration form.",
+                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec.@URI",
+                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.form_url",
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.conditions",
+                                "title": "Access conditions",
+                                "type": "string",
+                                "help_text": "Indicates any additional information that will assist the user in understanding the access and use conditions of the data collection. Note that if this information is subject to change, it should not be captured in the study metadata but provided in a data catalog page. ",
+                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.conditions",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.restrictions",
+                                "type": "string",
+                                "title": "Restrictions",
+                                "help_text": "Any restrictions on access to or use of the collection such as privacy certification or distribution restrictions should be indicated here. These can be restrictions applied by the author, producer, or distributor of the data. This element can for example contain a statement (extracted from the DDI documentation) like: “In preparing the data file(s) for this collection, the National Center for Health Statistics (NCHS) has removed direct identifiers and characteristics that might lead to identification of data subjects. As an additional precaution NCHS requires, under Section 308(d) of the Public Health Service Act (42 U.S.C. 242m), that data collected by NCHS not be used for any purpose other than statistical analysis and reporting. NCHS further requires that analysts not use the data to learn the identity of any persons or establishments and that the director of NCHS be notified if any identities are inadvertently discovered. Users ordering data are expected to adhere to these restrictions.”",
+                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.restrctn",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.cit_req",
+                                "title": "Citation requirement",
+                                "type": "string",
+                                "help_text": "A citation requirement that indicates the way that the dataset should be referenced when cited in any publication. Providing a citation requirement will guarantee that the data producer gets proper credit, and that results of analysis can be linked to the proper version of the dataset. The data access policy should explicitly mention the obligation to comply with the citation requirement. The citation should include at least the primary investigator, the name and abbreviation of the dataset, the reference year, and the version number. Include also a website where the data or information on the data is made available by the official data depositor. Ideally, the citation requirement will include a DOI (see the DataCite website for recommendations).",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.contact",
+                                "title": "Access authority",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.data_access.dataset_use.contact.name",
+                                        "help_text": "Name of the person. Note that in some cases, it might be better to provide a title/function than the actual name of the person. Keep in mind that people do not stay forever in their position.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "affiliation",
+                                        "title": "Affiliation",
+                                        "type": "string",
+                                        "prop_key": "study_desc.data_access.dataset_use.contact.affiliation",
+                                        "help_text": "Affiliation of the person mentioned in \"Name\".",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URL",
+                                        "type": "string",
+                                        "prop_key": "study_desc.data_access.dataset_use.contact.uri",
+                                        "help_text": "URL for the person; it can be the URL of the organization the person belongs to.",
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
+                                    },
+                                    {
+                                        "key": "email",
+                                        "title": "Email",
+                                        "type": "string",
+                                        "prop_key": "study_desc.data_access.dataset_use.contact.email",
+                                        "help_text": "The email element is used to indicate an email address for the contact individual mentioned in name. Ideally, a generic email address should be provided. It is easy to configure a mail server in such a way that all messages sent to the generic email address would be automatically forwarded to some staff members.",
+                                        "display_type": "text"
+                                    }
+                                ],
+                                "help_text": "Users of the data may need further clarification and information on the terms of use and conditions to access the data. This set of elements is used to identify the contact persons who can be used as resource persons regarding problems or questions raised by the user community."
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.deposit_req",
+                                "type": "string",
+                                "title": "Deposit requirement",
+                                "help_text": "Information regarding data users’ responsibility for informing archives of their use of data through providing citations to the published work or providing copies of the manuscripts.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.deposReq",
+                                "display_type": "textarea"
+                            },
                             {
                                 "key": "study_desc.data_access.dataset_availability.access_place",
                                 "type": "string",
@@ -1259,6 +1384,22 @@
                                 "help_text": "Name of the location where the data collection is currently stored.",
                                 "_ddi_xpath": "stdyDscr.dataAccs.setAvail.accsPlac",
                                 "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_availability.original_archive",
+                                "type": "string",
+                                "title": "Archive where study is originally stored",
+                                "help_text": "Archive from which the data collection was obtained, if any (the originating archive). Note that the schema we propose provides an element provenance, which is not part of the DDI, that can be used to document the origin of a dataset.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.origArch",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_availability.status",
+                                "type": "string",
+                                "title": "Availability status",
+                                "help_text": "A statement of the data availability. An archive may need to indicate that a collection is unavailable because it is embargoed for a period of time, because it has been superseded, because a new edition is imminent, etc. This element will rarely be used.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.avlStatus",
+                                "display_type": "textarea"
                             },
                             {
                                 "key": "study_desc.data_access.dataset_availability.access_place_url",
@@ -1271,14 +1412,6 @@
                                     "is_uri": true,
                                     "uri_as_icon": true
                                 }
-                            },
-                            {
-                                "key": "study_desc.data_access.dataset_availability.original_archive",
-                                "type": "string",
-                                "title": "Archive where study is originally stored",
-                                "help_text": "Archive from which the data collection was obtained, if any (the originating archive). Note that the schema we propose provides an element provenance, which is not part of the DDI, that can be used to document the origin of a dataset.",
-                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.origArch",
-                                "display_type": "text"
                             },
                             {
                                 "key": "study_desc.data_access.dataset_availability.coll_size",
@@ -1309,6 +1442,59 @@
                                 "type": "string",
                                 "title": "Notes on data availability",
                                 "help_text": "Additional information on the dataset availability, not included in one of the elements above.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.notes",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.data_access.dataset_use.spec_perm",
+                                "type": "array",
+                                "title": "Special permissions",
+                                "help_text": "This element is used to determine if any special permission is required to access a resource.",
+                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.specPerm",
+                                "props": [
+                                    {
+                                        "key": "required",
+                                        "type": "boolean",
+                                        "title": "Required",
+                                        "help_text": "Indicate if special permissions are required to access a resource. The \"Required\" element is used to aid machine processing of this element. ",
+                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.required",
+                                        "display_type": "dropdown"
+                                    },
+                                    {
+                                        "key": "txt",
+                                        "type": "string",
+                                        "title": "Text",
+                                        "help_text": "A statement on the special permissions required to access the dataset.",
+                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.txt",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "form_url",
+                                        "type": "string",
+                                        "title": "Form URL",
+                                        "help_text": "The \"Form URL\" is used to provide a link to a special on-line permission form.",
+                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.form_url",
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true,
+                                            "uri_as_icon": true
+                                        }
+                                    },
+                                    {
+                                        "key": "form_id",
+                                        "type": "string",
+                                        "title": "Form ID",
+                                        "help_text": "The “Form ID” indicates the number or ID of the special permissions form that the user must fill out.",
+                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.form_id",
+                                        "display_type": "text"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "study_desc.data_access.notes",
+                                "type": "string",
+                                "title": "Notes on access and use",
+                                "help_text": "Any additional information related to data access that is not contained in the specific metadata elements provided in the section \"Data access and use\".",
                                 "_ddi_xpath": "stdyDscr.dataAccs.setAvail.notes",
                                 "display_type": "textarea"
                             }
@@ -1431,198 +1617,6 @@
                                 "type": "string",
                                 "help_text": "Date that the study was made available for distribution. The date should be entered in the ISO 8601 format (YYYY-MM-DD or YYYY-MM or YYYY). The exact date should be provided when possible. A regular expression can be entered in customized user templates to validate the content of this element. ",
                                 "display_type": "date"
-                            }
-                        ],
-                        "help_text": ""
-                    },
-                    {
-                        "key": "study_desc1684335103457",
-                        "title": "access_policy",
-                        "type": "section",
-                        "items": [
-                            {
-                                "key": "study_desc.data_access.dataset_use.contact",
-                                "title": "Access authority",
-                                "type": "array",
-                                "props": [
-                                    {
-                                        "key": "name",
-                                        "title": "Name",
-                                        "type": "string",
-                                        "prop_key": "study_desc.data_access.dataset_use.contact.name",
-                                        "help_text": "Name of the person. Note that in some cases, it might be better to provide a title/function than the actual name of the person. Keep in mind that people do not stay forever in their position.",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "affiliation",
-                                        "title": "Affiliation",
-                                        "type": "string",
-                                        "prop_key": "study_desc.data_access.dataset_use.contact.affiliation",
-                                        "help_text": "Affiliation of the person mentioned in \"Name\".",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "uri",
-                                        "title": "URL",
-                                        "type": "string",
-                                        "prop_key": "study_desc.data_access.dataset_use.contact.uri",
-                                        "help_text": "URL for the person; it can be the URL of the organization the person belongs to.",
-                                        "display_type": "text",
-                                        "display_options": {
-                                            "is_uri": true,
-                                            "uri_as_icon": true
-                                        }
-                                    },
-                                    {
-                                        "key": "email",
-                                        "title": "Email",
-                                        "type": "string",
-                                        "prop_key": "study_desc.data_access.dataset_use.contact.email",
-                                        "help_text": "The email element is used to indicate an email address for the contact individual mentioned in name. Ideally, a generic email address should be provided. It is easy to configure a mail server in such a way that all messages sent to the generic email address would be automatically forwarded to some staff members.",
-                                        "display_type": "text"
-                                    }
-                                ],
-                                "help_text": "Users of the data may need further clarification and information on the terms of use and conditions to access the data. This set of elements is used to identify the contact persons who can be used as resource persons regarding problems or questions raised by the user community."
-                            },
-                            {
-                                "key": "study_desc.data_access.dataset_use.conf_dec",
-                                "type": "array",
-                                "title": "Confidentiality declaration",
-                                "help_text": "This element is used to determine if signing of a confidentiality declaration is needed to access a resource. We may indicate here what Affidavit of Confidentiality must be signed before the data can be accessed. Another option is to include this information in the element \"Access conditions\". If there is no confidentiality issue, this field can be left blank.",
-                                "props": [
-                                    {
-                                        "key": "required",
-                                        "type": "boolean",
-                                        "title": "Required",
-                                        "help_text": "Indicate if a confidentiality declaration is required to access a resource. The \"Required\" element is used to aid machine processing of this element. ",
-                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec.@required",
-                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.required",
-                                        "display_type": "dropdown"
-                                    },
-                                    {
-                                        "key": "txt",
-                                        "type": "string",
-                                        "title": "Text",
-                                        "help_text": "A statement on confidentiality and limitations to data use. This statement does not replace a more comprehensive data agreement (see \"Access condition\"). ",
-                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec",
-                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.txt",
-                                        "display_type": "textarea"
-                                    },
-                                    {
-                                        "key": "form_id",
-                                        "type": "string",
-                                        "title": "Form ID",
-                                        "help_text": "Indicates the number or ID of the confidentiality declaration form that the user must fill out.",
-                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec.@formNo",
-                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.form_id",
-                                        "display_type": "text"
-                                    },
-                                    {
-                                        "key": "form_url",
-                                        "type": "string",
-                                        "title": "Form URL",
-                                        "help_text": "The \"Form URL\" element is used to provide a link to an online confidentiality declaration form.",
-                                        "_ddi_xpath": "stdyDscr.dataAccs.useStmt.confDec.@URI",
-                                        "prop_key": "study_desc.data_access.dataset_use.conf_dec.form_url",
-                                        "display_type": "text",
-                                        "display_options": {
-                                            "is_uri": true,
-                                            "uri_as_icon": true
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "key": "study_desc.data_access.dataset_use.conditions",
-                                "title": "Access conditions",
-                                "type": "string",
-                                "help_text": "Indicates any additional information that will assist the user in understanding the access and use conditions of the data collection. Note that if this information is subject to change, it should not be captured in the study metadata but provided in a data catalog page. ",
-                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.conditions",
-                                "display_type": "textarea"
-                            },
-                            {
-                                "key": "study_desc.data_access.dataset_use.cit_req",
-                                "title": "Citation requirement",
-                                "type": "string",
-                                "help_text": "A citation requirement that indicates the way that the dataset should be referenced when cited in any publication. Providing a citation requirement will guarantee that the data producer gets proper credit, and that results of analysis can be linked to the proper version of the dataset. The data access policy should explicitly mention the obligation to comply with the citation requirement. The citation should include at least the primary investigator, the name and abbreviation of the dataset, the reference year, and the version number. Include also a website where the data or information on the data is made available by the official data depositor. Ideally, the citation requirement will include a DOI (see the DataCite website for recommendations).",
-                                "display_type": "textarea"
-                            },
-                            {
-                                "key": "study_desc.data_access.dataset_use.deposit_req",
-                                "type": "string",
-                                "title": "Deposit requirement",
-                                "help_text": "Information regarding data users’ responsibility for informing archives of their use of data through providing citations to the published work or providing copies of the manuscripts.",
-                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.deposReq",
-                                "display_type": "textarea"
-                            },
-                            {
-                                "key": "study_desc.data_access.dataset_availability.status",
-                                "type": "string",
-                                "title": "Availability status",
-                                "help_text": "A statement of the data availability. An archive may need to indicate that a collection is unavailable because it is embargoed for a period of time, because it has been superseded, because a new edition is imminent, etc. This element will rarely be used.",
-                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.avlStatus",
-                                "display_type": "textarea"
-                            },
-                            {
-                                "key": "study_desc.data_access.dataset_use.spec_perm",
-                                "type": "array",
-                                "title": "Special permissions",
-                                "help_text": "This element is used to determine if any special permission is required to access a resource.",
-                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.specPerm",
-                                "props": [
-                                    {
-                                        "key": "required",
-                                        "type": "boolean",
-                                        "title": "Required",
-                                        "help_text": "Indicate if special permissions are required to access a resource. The \"Required\" element is used to aid machine processing of this element. ",
-                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.required",
-                                        "display_type": "dropdown"
-                                    },
-                                    {
-                                        "key": "txt",
-                                        "type": "string",
-                                        "title": "Text",
-                                        "help_text": "A statement on the special permissions required to access the dataset.",
-                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.txt",
-                                        "display_type": "textarea"
-                                    },
-                                    {
-                                        "key": "form_url",
-                                        "type": "string",
-                                        "title": "Form URL",
-                                        "help_text": "The \"Form URL\" is used to provide a link to a special on-line permission form.",
-                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.form_url",
-                                        "display_type": "text",
-                                        "display_options": {
-                                            "is_uri": true,
-                                            "uri_as_icon": true
-                                        }
-                                    },
-                                    {
-                                        "key": "form_id",
-                                        "type": "string",
-                                        "title": "Form ID",
-                                        "help_text": "The “Form ID” indicates the number or ID of the special permissions form that the user must fill out.",
-                                        "prop_key": "study_desc.data_access.dataset_use.spec_perm.form_id",
-                                        "display_type": "text"
-                                    }
-                                ]
-                            },
-                            {
-                                "key": "study_desc.data_access.dataset_use.restrictions",
-                                "type": "string",
-                                "title": "Restrictions",
-                                "help_text": "Any restrictions on access to or use of the collection such as privacy certification or distribution restrictions should be indicated here. These can be restrictions applied by the author, producer, or distributor of the data. This element can for example contain a statement (extracted from the DDI documentation) like: “In preparing the data file(s) for this collection, the National Center for Health Statistics (NCHS) has removed direct identifiers and characteristics that might lead to identification of data subjects. As an additional precaution NCHS requires, under Section 308(d) of the Public Health Service Act (42 U.S.C. 242m), that data collected by NCHS not be used for any purpose other than statistical analysis and reporting. NCHS further requires that analysts not use the data to learn the identity of any persons or establishments and that the director of NCHS be notified if any identities are inadvertently discovered. Users ordering data are expected to adhere to these restrictions.”",
-                                "_ddi_xpath": "stdyDscr.dataAccs.useStmt.restrctn",
-                                "display_type": "textarea"
-                            },
-                            {
-                                "key": "study_desc.data_access.notes",
-                                "type": "string",
-                                "title": "Notes on access and use",
-                                "help_text": "Any additional information related to data access that is not contained in the specific metadata elements provided in the section \"Data access and use\".",
-                                "_ddi_xpath": "stdyDscr.dataAccs.setAvail.notes",
-                                "display_type": "textarea"
                             }
                         ],
                         "help_text": ""
@@ -1850,7 +1844,9 @@
                                 "key": "additional",
                                 "title": "Additional metadata",
                                 "type": "object",
-                                "display_options": { "renderer": "field_object_additional" }
+                                "display_options": {
+                                    "renderer": "field_object_additional"
+                                }
                             }
                         ]
                     }
@@ -1865,7 +1861,9 @@
                         "key": "widgets.doi.citations",
                         "title": "citation",
                         "type": "widget",
-                        "display_options": { "renderer": "field_doi_citation" }
+                        "display_options": {
+                            "renderer": "field_doi_citation"
+                        }
                     }
                 ]
             }

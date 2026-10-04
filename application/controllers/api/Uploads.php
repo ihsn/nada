@@ -350,6 +350,15 @@ class Uploads extends MY_REST_Controller
     }
 
 	/**
+	 * POST /api/uploads/delete/{upload_id}
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	function delete_post($upload_id = null)
+	{
+		return $this->index_delete($upload_id);
+	}
+
+	/**
 	 * Cleanup expired uploads
 	 * 
 	 * POST /api/uploads/cleanup

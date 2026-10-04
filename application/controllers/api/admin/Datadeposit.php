@@ -25,7 +25,8 @@ class Datadeposit extends MY_REST_Controller
 	 * GET /api/admin/datadeposit
 	 *
 	 * Query: filter (all|draft|submitted|processed|accepted|closed|requested),
-	 *        keywords, sort_by, sort_order
+	 *        keywords, sort_by, sort_order, page, ps,
+	 *        embargo (all|yes|no), created_by
 	 */
 	public function index_get()
 	{
@@ -57,23 +58,71 @@ class Datadeposit extends MY_REST_Controller
 				$sort_order = $this->input->get('sort_order', true);
 			}
 
-			if ($filter === 'requested') {
-				$projects = $this->DD_project_model->all_projects_requested_reopen($sort_by, $sort_order, $keywords);
-			} elseif ($filter === 'all') {
-				$projects = $this->DD_project_model->all_projects_by_filter(NULL, $sort_by, $sort_order, $keywords);
-			} else {
-				$projects = $this->DD_project_model->all_projects_by_filter($filter, $sort_by, $sort_order, $keywords);
+			$embargo = $this->get('embargo');
+			if ($embargo === null || $embargo === '') {
+				$embargo = $this->input->get('embargo', true);
+			}
+			$embargo = strtolower(trim((string) $embargo));
+			if (!in_array($embargo, array('all', 'yes', 'no'), true)) {
+				$embargo = 'all';
 			}
 
-			if (!is_array($projects)) {
-				$projects = array();
+			$created_by = $this->get('created_by');
+			if ($created_by === null || $created_by === '') {
+				$created_by = $this->input->get('created_by', true);
 			}
+			$created_by = trim((string) $created_by);
+
+			$page = $this->get('page');
+			if ($page === null || $page === '') {
+				$page = $this->input->get('page', true);
+			}
+			$page = max(1, (int) $page);
+
+			$ps = $this->get('ps');
+			if ($ps === null || $ps === '') {
+				$ps = $this->input->get('ps', true);
+			}
+			$ps = (int) $ps;
+			$allowed_ps = array(15, 25, 50, 100);
+			if (!in_array($ps, $allowed_ps, true)) {
+				$ps = 25;
+			}
+
+			$search = array(
+				'keywords' => $keywords !== '' ? $keywords : NULL,
+				'embargo' => $embargo,
+				'created_by' => $created_by,
+				'order' => $sort_by,
+				'order_by' => $sort_order,
+				'limit' => $ps,
+				'offset' => ($page - 1) * $ps,
+			);
+			if ($filter === 'requested') {
+				$search['requested_reopen'] = true;
+			} elseif ($filter !== 'all') {
+				$search['status'] = $filter;
+			}
+
+			$result = $this->DD_project_model->search_admin_projects($search);
+			$total = isset($result['total']) ? (int) $result['total'] : 0;
+			$pages = $total > 0 ? (int) ceil($total / $ps) : 1;
+			if ($page > $pages) {
+				$page = $pages;
+				$search['offset'] = ($page - 1) * $ps;
+				$result = $this->DD_project_model->search_admin_projects($search);
+				$total = isset($result['total']) ? (int) $result['total'] : 0;
+			}
+			$projects = isset($result['items']) && is_array($result['items']) ? $result['items'] : array();
 
 			$this->set_response(array(
 				'status' => 'success',
 				'result' => array(
 					'items' => $projects,
-					'total' => count($projects),
+					'total' => $total,
+					'page' => $page,
+					'page_size' => $ps,
+					'pages' => $pages,
 					'counts' => $this->DD_project_model->admin_project_counts(),
 				),
 			), REST_Controller::HTTP_OK);

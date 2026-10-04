@@ -204,7 +204,7 @@ export function useTablesApi() {
   }
 
   async function deleteIndex(dbId, tableId, indexName) {
-    const { data } = await axios.delete(`${base()}/indexes/${dbId}/${tableId}/${indexName}`);
+    const { data } = await axios.post(`${base()}/indexes/${dbId}/${tableId}/${indexName}/delete`);
     if (data.status !== 'success') {
       throw new Error(data.message || 'Failed to delete index');
     }

@@ -529,6 +529,16 @@ class Configurations extends MY_REST_Controller
 				$value = $v;
 			}
 
+			if (in_array($key, array('site_user_register', 'site_password_protect'), TRUE))
+			{
+				$v = strtolower(trim((string) $value));
+				if (! in_array($v, array('yes', 'no'), true))
+				{
+					throw new Exception('INVALID_VALUE:'.$key);
+				}
+				$value = $v;
+			}
+
 			if ($key === 'semantic_search_url')
 			{
 				$value = rtrim(trim((string) $value), '/');

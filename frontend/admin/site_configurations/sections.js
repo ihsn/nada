@@ -50,7 +50,7 @@ export const SECTION_DEFS = [
   {
     id: 'login',
     titleKey: 'site_login',
-    keys: ['site_password_protect', 'login_timeout', 'min_password_length'],
+    keys: ['site_password_protect', 'site_user_register', 'login_timeout', 'min_password_length'],
   },
   { id: 'analytics', titleKey: 'Google Analytics', keys: ['google_ua_code'] },
   {

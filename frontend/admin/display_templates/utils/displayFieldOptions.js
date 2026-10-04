@@ -1,5 +1,15 @@
 import { cloneJson, isPropNode } from './displayTemplateTree';
-import { stripEmptyFieldTemplate, stripEmptyRenderer, stripDefaultLayoutRenderer, migrateLegacyCompositeRenderer, migrateLegacyWidgetOptions } from './displayFieldRenderers';
+import {
+  resolvedRendererKey,
+  stripEmptyFieldTemplate,
+  stripEmptyRenderer,
+  stripDefaultLayoutRenderer,
+  migrateLegacyCompositeRenderer,
+  migrateLegacyWidgetOptions,
+} from './displayFieldRenderers';
+
+/** Catalog table renderer (`field_array.php`). */
+export const TABLE_RENDERER_KEY = 'field_array';
 
 /** @typedef {'plain'|'markdown'|'html'|'richtext'} DisplayFormat */
 
@@ -155,6 +165,19 @@ export function supportsLinkify(node) {
 }
 
 /**
+ * Scrollable applies to top-level array fields using the table renderer.
+ * @param {object|null|undefined} node
+ * @returns {boolean}
+ */
+export function supportsScrollable(node) {
+  if (!node || typeof node !== 'object') return false;
+  if (isPropNode(node)) return false;
+  const t = node.type;
+  if (t !== 'array' && t !== 'nested_array') return false;
+  return resolvedRendererKey(node.display_options, t) === TABLE_RENDERER_KEY;
+}
+
+/**
  * String scalars (and legacy layout type date) may use display_options.date_format.
  * @param {object|null|undefined} node
  * @returns {boolean}
@@ -269,6 +292,23 @@ export function normalizeDisplayHiddenOption(displayOptions) {
 
 /**
  * @param {object} displayOptions
+ * @param {string|undefined} layoutType
+ */
+export function normalizeDisplayScrollableOption(displayOptions, layoutType) {
+  if (!displayOptions || typeof displayOptions !== 'object') return;
+  if (!supportsScrollable({ type: layoutType, display_options: displayOptions })) {
+    delete displayOptions.scrollable;
+    return;
+  }
+  if (displayOptions.scrollable === true) {
+    displayOptions.scrollable = true;
+    return;
+  }
+  delete displayOptions.scrollable;
+}
+
+/**
+ * @param {object} displayOptions
  */
 export function normalizeFieldLayoutOption(displayOptions) {
   if (!displayOptions || typeof displayOptions !== 'object') return;
@@ -320,6 +360,7 @@ export function normalizeDisplayOptions(displayOptions, layoutType) {
     delete displayOptions.is_uri;
     delete displayOptions.uri_as_icon;
     normalizeDisplayHiddenOption(displayOptions);
+    normalizeDisplayScrollableOption(displayOptions, layoutType);
     return;
   }
 
@@ -330,6 +371,7 @@ export function normalizeDisplayOptions(displayOptions, layoutType) {
     delete displayOptions.is_uri;
     delete displayOptions.uri_as_icon;
     normalizeDisplayHiddenOption(displayOptions);
+    normalizeDisplayScrollableOption(displayOptions, layoutType);
     return;
   }
 
@@ -344,6 +386,7 @@ export function normalizeDisplayOptions(displayOptions, layoutType) {
     delete displayOptions.uri_as_icon;
     normalizeDateFormatOption(displayOptions);
     normalizeDisplayHiddenOption(displayOptions);
+    normalizeDisplayScrollableOption(displayOptions, layoutType);
     return;
   }
 
@@ -351,6 +394,7 @@ export function normalizeDisplayOptions(displayOptions, layoutType) {
     normalizeDisplayUriOptions(displayOptions);
     normalizeFieldLayoutOption(displayOptions);
     normalizeDisplayHiddenOption(displayOptions);
+    normalizeDisplayScrollableOption(displayOptions, layoutType);
     return;
   }
 
@@ -387,6 +431,7 @@ export function normalizeDisplayOptions(displayOptions, layoutType) {
       displayOptions.format = defaultFormatForType(layoutType);
     }
   }
+  normalizeDisplayScrollableOption(displayOptions, layoutType);
 }
 
 /**

@@ -78,21 +78,22 @@ class Migration_Analytics_pageview_tracking extends MY_Migration {
 			return;
 		}
 
-		$result = $this->db->query("
-			SELECT COUNT(*) as cnt
-			FROM sys.indexes
-			WHERE object_id = OBJECT_ID('analytics_pageview_events')
-			  AND name = 'idx_dedup'
-		");
-
-		if ($result && (int) $result->row()->cnt > 0) {
-			$this->db->query("DROP INDEX [idx_dedup] ON [analytics_pageview_events]");
+		if ($this->index_exists('analytics_pageview_events', 'idx_dedup')) {
+			$this->assert_db_query(
+				$this->db->query('DROP INDEX [idx_dedup] ON [analytics_pageview_events]'),
+				'DROP INDEX idx_dedup ON analytics_pageview_events'
+			);
 		}
 
-		$this->db->query("
-			CREATE NONCLUSTERED INDEX [idx_dedup]
-			ON [analytics_pageview_events] ([study_id] ASC, [session_id] ASC, [section] ASC, [page_url] ASC, [ts] ASC)
-		");
+		// SQL Server: page_url cannot be a key column (1700-byte index key limit).
+		$this->assert_db_query(
+			$this->db->query('
+				CREATE NONCLUSTERED INDEX [idx_dedup]
+				ON [analytics_pageview_events] ([study_id] ASC, [session_id] ASC, [section] ASC, [ts] ASC)
+				INCLUDE ([page_url])
+			'),
+			'CREATE idx_dedup on analytics_pageview_events'
+		);
 	}
 
 	private function column_exists_mysqli($table, $column)
