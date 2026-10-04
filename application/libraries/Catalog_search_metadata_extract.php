@@ -88,7 +88,7 @@ class Catalog_search_metadata_extract
         $this->ci->db->limit($limit, $offset);
         $rows = $this->ci->db->get()->result_array();
 
-        $survey_ids = array_map('intval', array_column($rows, 'survey_uid'));
+        $survey_ids = array_map('intval', array_column($rows, 'catalog_id'));
         $relations  = $this->load_study_relations($survey_ids);
 
         $studies = array();
@@ -346,7 +346,7 @@ class Catalog_search_metadata_extract
     {
         return "
             1 as doctype,
-            surveys.id as survey_uid,
+            surveys.id as catalog_id,
             surveys.idno as idno,
             surveys.doi,
             surveys.formid,
@@ -456,7 +456,7 @@ class Catalog_search_metadata_extract
      */
     private function assemble_study_document(array $row, array $relations, array $options = array())
     {
-        $sid = (int) $row['survey_uid'];
+        $sid = (int) $row['catalog_id'];
 
         $countries = $relations['countries'][$sid] ?? array();
         $secondary_repos = $relations['repositories'][$sid] ?? array();
@@ -493,7 +493,7 @@ class Catalog_search_metadata_extract
         }
 
         $core_fields = array(
-            'survey_uid'       => $sid,
+            'catalog_id'       => $sid,
             'idno'             => $row['idno'] ?? null,
             'doi'              => $row['doi'] ?? null,
             'title'            => $row['title'] ?? null,
@@ -706,7 +706,7 @@ class Catalog_search_metadata_extract
         return array(
             'core_fields' => array(
                 'uid'          => (int) $row['uid'],
-                'sid'          => $sid,
+                'catalog_id'   => $sid,
                 'fid'          => $row['fid'] ?? null,
                 'vid'          => $row['vid'] ?? null,
                 'name'         => $row['name'] ?? null,
@@ -721,7 +721,7 @@ class Catalog_search_metadata_extract
             'filters' => array(
                 'doctype'      => self::VARIABLE_DOCTYPE,
                 'published'    => isset($row['published']) ? (int) $row['published'] : 0,
-                'sid'          => $sid,
+                'catalog_id'   => $sid,
                 'idno'         => $row['idno'] ?? null,
                 'dataset_type' => $row['dataset_type'] ?? null,
                 'year_start'   => isset($row['year_start']) ? (int) $row['year_start'] : null,
