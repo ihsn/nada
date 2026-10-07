@@ -424,7 +424,7 @@ class Licensed_requests extends MY_REST_Controller
 	/**
 	 * POST /api/admin/licensed_requests/forward/{id}
 	 *
-	 * JSON: to, cc, subject, body (body may be replaced by formatted request email view)
+	 * JSON: to, cc, subject, body. The email is the typed body plus the formatted request.
 	 */
 	public function forward_post($id = null)
 	{
@@ -462,6 +462,7 @@ class Licensed_requests extends MY_REST_Controller
 				return;
 			}
 
+			$request_data['forward_message'] = $body;
 			$request_formatted = $this->load->view('access_licensed/forward_request_email', $request_data, true);
 
 			$this->load->library('email');
