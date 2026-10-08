@@ -253,7 +253,7 @@ class Variable_model extends CI_Model {
      * @metadata_detailed = true|false - include detailed metadata
      * 
      **/
-    function list_by_dataset($sid,$file_id=null,$metadata_detailed=false)
+    function list_by_dataset($sid,$file_id=null,$metadata_detailed=false,$limit=null,$offset=0)
     {
         if ($metadata_detailed==true){
             $fields="uid,sid,fid,vid,name,labl,metadata";
@@ -266,6 +266,12 @@ class Variable_model extends CI_Model {
 
         if($file_id){
             $this->db->where("fid",$file_id);
+        }
+
+        $this->db->order_by('uid', 'asc');
+
+        if ($limit !== null && is_numeric($limit) && (int) $limit > 0) {
+            $this->db->limit((int) $limit, (int) $offset);
         }
 
         $variables=$this->db->get("variables")->result_array();

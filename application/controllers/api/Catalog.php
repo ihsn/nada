@@ -39,6 +39,22 @@ class Catalog extends MY_REST_Controller
 	}
 
 	/**
+	 * Page size for per-study variable listing (no keyword).
+	 */
+	private function get_variables_list_page_size()
+	{
+		$page_size_min = 1;
+		$page_size_max = 1000;
+		$page_size = (int) $this->input->get('ps');
+
+		if ($page_size >= $page_size_min && $page_size <= $page_size_max) {
+			return $page_size;
+		}
+
+		return 100;
+	}
+
+	/**
 	 * Same rules as web Catalog: keyword listing → relevance desc; browse → site default / title.
 	 *
 	 * @return array{0:string,1:string}
@@ -870,7 +886,7 @@ class Catalog extends MY_REST_Controller
 	 * Behaviour:
 	 *   idno + var_id  → single variable
 	 *   idno + ?sk=    → per-study keyword search (v_quick_search)
-	 *   idno           → list all variables for study
+	 *   idno           → paginated variable list (?page=, ?ps= default 100, max 1000)
 	 *   (no idno)      → catalog-wide variable search (vsearch)
 	 *
 	 */
@@ -934,10 +950,18 @@ class Catalog extends MY_REST_Controller
 					'variables' => $variables['rows']   ?? array(),
 				);
 			} else {
-				$variables = $this->Variable_model->list_by_dataset($sid);
-				$response  = array(
-					'found'     => count($variables),
-					'total'     => count($variables),
+				$limit  = $this->get_variables_list_page_size();
+				$page   = max(1, (int) $this->input->get('page'));
+				$offset = ($page - 1) * $limit;
+				$total  = $this->Variable_model->get_variables_count($sid);
+				$variables = $this->Variable_model->list_by_dataset($sid, null, false, $limit, $offset);
+
+				$response = array(
+					'found'     => $total,
+					'total'     => $total,
+					'limit'     => $limit,
+					'offset'    => $offset,
+					'page'      => $page,
 					'variables' => $variables,
 				);
 			}
