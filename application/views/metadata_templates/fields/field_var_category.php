@@ -35,19 +35,26 @@
                     $ismissing_ = isset($item['is_missing']) ? $item['is_missing'] : '';
                     $is_missing_val = ($ismissing_ !== '' && $ismissing_ !== '0' && $ismissing_ !== 0);
 
+                    $stat_value = $stat_row['value'];
+                    $stat_is_numeric = is_numeric($stat_value);
+
                     //non-weighted stats
                     $wgtd_=isset($stat_row['wgtd']) ? $stat_row['wgtd'] : '';
                     if($wgtd_!=='wgtd'){
-                        $data[$data_idx]['stats_non_wgtd_value']=$stat_row['value'];
-                        if(!$is_missing_val){
-                            $stats_col[]=$stat_row['value'];
+                        if ($stat_is_numeric) {
+                            $data[$data_idx]['stats_non_wgtd_value'] = $stat_value + 0;
+                        }
+                        if(!$is_missing_val && $stat_is_numeric){
+                            $stats_col[] = $stat_value + 0;
                         }
                     }//weighted stats
                     else if ($stat_row['wgtd']==='wgtd'){
-                        $data[$data_idx]['stats_wgtd_value']=$stat_row['value'];
-                        if(!$is_missing_val){
-                            $stats_col_wgtd[]=$stat_row['value'];
-                        }    
+                        if ($stat_is_numeric) {
+                            $data[$data_idx]['stats_wgtd_value'] = $stat_value + 0;
+                        }
+                        if(!$is_missing_val && $stat_is_numeric){
+                            $stats_col_wgtd[] = $stat_value + 0;
+                        }
                     }
                 }
             }
