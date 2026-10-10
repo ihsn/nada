@@ -269,6 +269,8 @@ $route['api/collections/(:any)/datasets'] = "api/admin/collections/datasets/$1";
 $route['api/collections'] = 'api/admin/collections';
 $route['api/collections/(.*)'] = 'api/admin/collections/$1';
 
+$route['api/tables/import/reload/(:any)/(:any)'] = "api/tables/import_reload/$1/$2";
+$route['api/tables/validate/(:any)/(:any)'] = "api/tables/validate/$1/$2";
 $route['api/tables/import_errors/(:any)/(:any)'] = "api/tables/import_errors/$1/$2";
 
 //Tables API - fields endpoints (new format: /api/tables/fields/{db_id}/{table_id})
@@ -283,6 +285,8 @@ $route['api/tables/fields/(:any)/(:any)'] = "api/tables/fields/$1/$2";
 $route['api/tables/export_definition/(:any)/(:any)'] = "api/tables/export_definition/$1/$2";
 
 //Tables API - indexes endpoints
+$route['api/tables/indexes/(:any)/(:any)/apply'] = "api/tables/indexes_apply/$1/$2";
+$route['api/tables/indexes/(:any)/(:any)/sync_definition'] = "api/tables/indexes_sync_definition/$1/$2";
 $route['api/tables/indexes/(:any)/(:any)/(:any)/delete'] = "api/tables/indexes_delete/$1/$2/$3";
 $route['api/tables/indexes/(:any)/(:any)/all'] = "api/tables/indexes_delete_all/$1/$2";
 

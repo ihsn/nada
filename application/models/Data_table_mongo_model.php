@@ -74,6 +74,51 @@ class Data_table_mongo_model extends CI_Model {
     
 
 
+    /**
+     * Coerce API insert rows using the data dictionary (canonical field names).
+     *
+     * @param string $db_id
+     * @param string $table_id
+     * @param array $rows List of row objects
+     * @return array
+     * @throws Exception
+     */
+    public function coerce_insert_rows($db_id, $table_id, array $rows)
+    {
+        $metadata_map = $this->get_field_metadata_map($db_id, $table_id);
+        if (empty($metadata_map)) {
+            throw new Exception('Data dictionary is required before inserting rows');
+        }
+
+        $coerced_rows = array();
+        foreach ($rows as $row_index => $row) {
+            if (!is_array($row)) {
+                throw new Exception('Row ' . $row_index . ' must be an object');
+            }
+            $coerced = array();
+            foreach ($row as $column => $value) {
+                $field_info = $this->get_field_info_from_metadata($column, $metadata_map);
+                if ($field_info === null) {
+                    $coerced[$column] = $value;
+                    continue;
+                }
+                try {
+                    $coerced[$field_info['name']] = $this->coerce_import_value(
+                        $value,
+                        $field_info['data_type']
+                    );
+                } catch (Exception $e) {
+                    throw new Exception(
+                        'Row ' . $row_index . ', field "' . $column . '": ' . $e->getMessage()
+                    );
+                }
+            }
+            $coerced_rows[] = $coerced;
+        }
+
+        return $coerced_rows;
+    }
+
     public function table_batch_insert($db_id,$table_id,$rows)
     {
         $result = $this->table_batch_insert_with_errors($db_id, $table_id, $rows);
@@ -436,11 +481,11 @@ class Data_table_mongo_model extends CI_Model {
         // Trim whitespace from field names
         $index_options = array_map('trim', $index_options);
         
-        // Validate that all field names exist in the actual data (case-sensitive)
-        $actual_fields = $this->get_table_field_names($db_id,$table_id);
+        // Validate that all field names exist in the data or dictionary (case-sensitive)
+        $actual_fields = $this->get_indexable_field_names($db_id,$table_id);
         $invalid_fields = array();
         foreach($index_options as $field){
-            if(!isset($actual_fields[$field])){
+            if(!empty($actual_fields) && !isset($actual_fields[$field])){
                 $invalid_fields[] = $field;
             }
         }
@@ -478,6 +523,7 @@ class Data_table_mongo_model extends CI_Model {
         }
 
         $result= $collection->createIndex($indexes, array('name' => $index_name));
+        $this->upsert_table_index_definition_entry($db_id, $table_id, $index_name, $indexes);
         return $result;
    }
 
@@ -502,11 +548,11 @@ class Data_table_mongo_model extends CI_Model {
          // Trim whitespace from field names
          $index_options = array_map('trim', $index_options);
          
-         // Validate that all field names exist in the actual data (case-sensitive)
-         $actual_fields = $this->get_table_field_names($db_id,$table_id);
+         // Validate that all field names exist in the data or dictionary (case-sensitive)
+         $actual_fields = $this->get_indexable_field_names($db_id,$table_id);
          $invalid_fields = array();
          foreach($index_options as $field){
-             if(!isset($actual_fields[$field])){
+             if(!empty($actual_fields) && !isset($actual_fields[$field])){
                  $invalid_fields[] = $field;
              }
          }
@@ -544,6 +590,7 @@ class Data_table_mongo_model extends CI_Model {
          }
 
          $result= $collection->createIndex($indexes, array('name' => $index_name));
+         $this->upsert_table_index_definition_entry($db_id, $table_id, $index_name, $indexes);
          return $result;
     }
 
@@ -559,6 +606,7 @@ class Data_table_mongo_model extends CI_Model {
    {
         $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};          
         $result= $collection->dropIndex($index_name);
+        $this->remove_table_index_definition_entry($db_id, $table_id, $index_name);
         return $result;
    }
 
@@ -588,9 +636,491 @@ class Data_table_mongo_model extends CI_Model {
         $indexes_after = $this->get_collection_indexes($db_id, $table_id);
         $count_after = count($indexes_after);
         
+        $this->clear_table_index_definitions($db_id, $table_id);
+
         return array(
             'indexes_dropped' => $count_before,
             'indexes_remaining' => $count_after // Should be 1 (_id_)
+        );
+   }
+
+
+   /**
+    * Query parameters reserved for table data API (not field filters).
+    *
+    * @return array
+    */
+   function get_reserved_table_query_params()
+   {
+        return array(
+            'limit',
+            'offset',
+            'fields',
+            'ft_query',
+            'debug',
+            'format',
+            'disposition',
+            'indicator',
+            'c',
+        );
+   }
+
+   /**
+    * @return array Allowed dictionary data_type values (normalized lowercase).
+    */
+   function get_allowed_field_data_types()
+   {
+        return array(
+            'string',
+            'integer',
+            'int',
+            'float',
+            'decimal',
+            'boolean',
+            'bool',
+            'date',
+            'datetime',
+            'array',
+            'object',
+        );
+   }
+
+   /**
+    * Normalize dictionary data_type; empty/null becomes string.
+    *
+    * @param mixed $data_type
+    * @return string
+    */
+   function normalize_field_data_type($data_type)
+   {
+        if ($data_type === null || $data_type === '') {
+            return 'string';
+        }
+        if (!is_string($data_type)) {
+            return 'string';
+        }
+        $normalized = strtolower(trim($data_type));
+        if ($normalized === '' || $normalized === 'null') {
+            return 'string';
+        }
+        if ($normalized === 'int') {
+            return 'integer';
+        }
+        if ($normalized === 'bool') {
+            return 'boolean';
+        }
+        if ($normalized === 'decimal' || $normalized === 'double') {
+            return 'float';
+        }
+        if (in_array($normalized, $this->get_allowed_field_data_types(), true)) {
+            return $normalized;
+        }
+        return 'string';
+   }
+
+   /**
+    * Whether a name is a reserved table data query parameter.
+    *
+    * @param string $name
+    * @return bool
+    */
+   function is_reserved_table_query_param($name)
+   {
+        return in_array(strtolower((string) $name), $this->get_reserved_table_query_params(), true);
+   }
+
+   /**
+    * Validate a table column / dictionary field name.
+    *
+    * @param string $name
+    * @param bool $throw When false, returns false instead of throwing.
+    * @return bool
+    */
+	/**
+	 * Trim CSV header cells and strip UTF-8 BOM (common in Excel-exported files).
+	 *
+	 * @param mixed $name
+	 * @return string
+	 */
+	public function normalize_csv_column_name($name)
+	{
+		if (!is_string($name)) {
+			return trim((string) $name);
+		}
+		$name = trim($name);
+		if (strncmp($name, "\xEF\xBB\xBF", 3) === 0) {
+			$name = substr($name, 3);
+		}
+		$name = preg_replace('/^\x{FEFF}/u', '', $name);
+		return trim($name);
+	}
+
+   function validate_field_name($name, $throw = true)
+   {
+        if ($name === null || $name === '') {
+            if ($throw) {
+                throw new Exception('Field name is required');
+            }
+            return false;
+        }
+        if (!is_string($name)) {
+            if ($throw) {
+                throw new Exception('Field name must be a string');
+            }
+            return false;
+        }
+        $name = trim($name);
+        if ($name === '') {
+            if ($throw) {
+                throw new Exception('Field name is required');
+            }
+            return false;
+        }
+        if (strlen($name) > 100) {
+            if ($throw) {
+                throw new Exception('Field name must be at most 100 characters');
+            }
+            return false;
+        }
+        if (!preg_match('/^(?!_)[a-zA-Z0-9_]+$/', $name)) {
+            if ($throw) {
+                throw new Exception(
+                    'Invalid field name "' . $name . '": use only letters, numbers, and underscores; must not start with underscore'
+                );
+            }
+            return false;
+        }
+        return true;
+   }
+
+   /**
+    * Find case-insensitive duplicate names in a list (e.g. CSV headers).
+    *
+    * @param array $names
+    * @return array[] Groups of names that collide case-insensitively (each group has 2+ entries).
+    */
+   function find_duplicate_field_names_case_insensitive(array $names)
+   {
+        $groups = array();
+        $fold_map = array();
+        foreach ($names as $name) {
+            if ($name === null || $name === '') {
+                continue;
+            }
+            $name = trim((string) $name);
+            if ($name === '') {
+                continue;
+            }
+            $fold = strtolower($name);
+            if (!isset($fold_map[$fold])) {
+                $fold_map[$fold] = array();
+            }
+            if (!in_array($name, $fold_map[$fold], true)) {
+                $fold_map[$fold][] = $name;
+            }
+        }
+        foreach ($fold_map as $variants) {
+            if (count($variants) > 1) {
+                $groups[] = $variants;
+            }
+        }
+        return $groups;
+   }
+
+   /**
+    * @param array $names
+    * @throws Exception
+    */
+   function assert_unique_field_names(array $names)
+   {
+        $duplicates = $this->find_duplicate_field_names_case_insensitive($names);
+        if (empty($duplicates)) {
+            return;
+        }
+        $parts = array();
+        foreach ($duplicates as $group) {
+            $parts[] = implode(' / ', $group);
+        }
+        throw new Exception(
+            'Duplicate field names (case-insensitive): ' . implode('; ', $parts)
+        );
+   }
+
+   /**
+    * Find dictionary field whose name matches case-insensitively.
+    *
+    * @return array|null
+    */
+   function find_dictionary_field_by_case_insensitive_name($db_id, $table_id, $name)
+   {
+        $fields = $this->get_field_metadata($db_id, $table_id);
+        if (!is_array($fields)) {
+            return null;
+        }
+        foreach ($fields as $field) {
+            $field = (array) $field;
+            if (!isset($field['name'])) {
+                continue;
+            }
+            if (strcasecmp((string) $field['name'], (string) $name) === 0) {
+                return $field;
+            }
+        }
+        return null;
+   }
+
+   /**
+    * Ensure a new or renamed dictionary field does not collide case-insensitively or with reserved params.
+    *
+    * @throws Exception
+    */
+   function assert_dictionary_field_name_available($db_id, $table_id, $name)
+   {
+        $name = trim((string) $name);
+        $this->validate_field_name($name);
+
+        if ($this->field_name_conflicts_with_reserved_query_param($name)) {
+            throw new Exception(
+                'Field name "' . $name . '" is reserved and cannot be used as a column name'
+            );
+        }
+
+        $existing = $this->find_dictionary_field_by_case_insensitive_name($db_id, $table_id, $name);
+        if ($existing !== null && (string) $existing['name'] !== $name) {
+            throw new Exception(
+                'Duplicate field names (case-insensitive): ' . $existing['name'] . ' / ' . $name
+            );
+        }
+   }
+
+   /**
+    * Validate a list of field names (pattern + uniqueness).
+    *
+    * @param array $names
+    * @throws Exception
+    */
+   function validate_field_name_list(array $names)
+   {
+        foreach ($names as $name) {
+            $this->validate_field_name($name);
+        }
+        $this->assert_unique_field_names($names);
+   }
+
+   /**
+    * Dictionary field name matches a reserved query param (not filterable via ?name=).
+    *
+    * @param string $name
+    * @return bool
+    */
+   function field_name_conflicts_with_reserved_query_param($name)
+   {
+        return $this->is_reserved_table_query_param($name);
+   }
+
+   /**
+    * Field names for index validation (data columns, or dictionary when collection is empty).
+    */
+   function get_indexable_field_names($db_id, $table_id)
+   {
+        $from_data = $this->get_table_field_names($db_id, $table_id);
+        if (!empty($from_data)) {
+            return $from_data;
+        }
+
+        $fields = $this->get_table_fields($db_id, $table_id, true, array('name' => 1));
+        $output = array();
+        foreach ($fields as $field) {
+            if (!empty($field['name'])) {
+                $output[$field['name']] = $field['name'];
+            }
+        }
+        return $output;
+   }
+
+   /**
+    * Convert Mongo index key document to stored definition entry.
+    */
+   function mongo_index_key_to_definition_entry($name, $key)
+   {
+        $keys = array();
+        foreach ((array) $key as $field => $direction) {
+            if ($field === '_id') {
+                continue;
+            }
+            $keys[] = array(
+                'field' => $field,
+                'direction' => ($direction === 'text') ? 'text' : (int) $direction
+            );
+        }
+        return array(
+            'name' => $name,
+            'keys' => $keys
+        );
+   }
+
+   /**
+    * Build Mongo createIndex key array from a stored definition entry.
+    */
+   function definition_entry_to_mongo_index_keys($entry)
+   {
+        $indexes = array();
+        if (empty($entry['keys']) || !is_array($entry['keys'])) {
+            return $indexes;
+        }
+        foreach ($entry['keys'] as $key_part) {
+            if (empty($key_part['field'])) {
+                continue;
+            }
+            $field = $key_part['field'];
+            $direction = isset($key_part['direction']) ? $key_part['direction'] : 1;
+            if ($direction === 'text') {
+                $indexes[$field] = 'text';
+            } else {
+                $indexes[$field] = (int) $direction;
+            }
+        }
+        return $indexes;
+   }
+
+   function get_table_index_definitions($db_id, $table_id)
+   {
+        $table_type = $this->get_table_type($db_id, $table_id);
+        if (!$table_type || empty($table_type['indexes']) || !is_array($table_type['indexes'])) {
+            return array();
+        }
+        return $table_type['indexes'];
+   }
+
+   function set_table_index_definitions($db_id, $table_id, array $indexes)
+   {
+        return $this->update_table_type($db_id, $table_id, array(
+            'indexes' => array_values($indexes),
+            'indexes_updated_at' => date('Y-m-d H:i:s')
+        ));
+   }
+
+   /**
+    * Persist live collection indexes onto table_types (excludes _id_).
+    */
+   function sync_table_index_definitions_from_collection($db_id, $table_id)
+   {
+        $live = $this->get_collection_indexes($db_id, $table_id);
+        $definitions = array();
+        foreach ($live as $name => $key) {
+            if ($name === '_id_') {
+                continue;
+            }
+            $definitions[] = $this->mongo_index_key_to_definition_entry($name, $key);
+        }
+        $this->set_table_index_definitions($db_id, $table_id, $definitions);
+        return $definitions;
+   }
+
+   function upsert_table_index_definition_entry($db_id, $table_id, $name, $mongo_keys)
+   {
+        $definitions = $this->get_table_index_definitions($db_id, $table_id);
+        $entry = $this->mongo_index_key_to_definition_entry($name, $mongo_keys);
+        $found = false;
+        foreach ($definitions as $i => $def) {
+            if (isset($def['name']) && $def['name'] === $name) {
+                $definitions[$i] = $entry;
+                $found = true;
+                break;
+            }
+        }
+        if (!$found) {
+            $definitions[] = $entry;
+        }
+        $this->set_table_index_definitions($db_id, $table_id, $definitions);
+   }
+
+   function remove_table_index_definition_entry($db_id, $table_id, $name)
+   {
+        $definitions = $this->get_table_index_definitions($db_id, $table_id);
+        $filtered = array();
+        foreach ($definitions as $def) {
+            if (!isset($def['name']) || $def['name'] !== $name) {
+                $filtered[] = $def;
+            }
+        }
+        $this->set_table_index_definitions($db_id, $table_id, $filtered);
+   }
+
+   function clear_table_index_definitions($db_id, $table_id)
+   {
+        $this->set_table_index_definitions($db_id, $table_id, array());
+   }
+
+   /**
+    * Create indexes on the data collection from table_types.indexes.
+    *
+    * @param bool $missing_only Skip indexes that already exist by name
+    * @return array applied, skipped, errors
+    */
+   function apply_table_index_definitions($db_id, $table_id, $missing_only = true)
+   {
+        $db_id = strtolower($db_id);
+        $table_id = strtolower($table_id);
+        $definitions = $this->get_table_index_definitions($db_id, $table_id);
+        $live = array();
+        try {
+            $live = $this->get_collection_indexes($db_id, $table_id);
+        } catch (Exception $e) {
+            $live = array();
+        }
+
+        $collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
+        $field_names = $this->get_indexable_field_names($db_id, $table_id);
+
+        $applied = array();
+        $skipped = array();
+        $errors = array();
+
+        foreach ($definitions as $entry) {
+            if (empty($entry['name'])) {
+                continue;
+            }
+            $name = $entry['name'];
+            if ($missing_only && isset($live[$name])) {
+                $skipped[] = $name;
+                continue;
+            }
+
+            $mongo_keys = $this->definition_entry_to_mongo_index_keys($entry);
+            if (empty($mongo_keys)) {
+                $errors[] = array('name' => $name, 'message' => 'Empty index keys');
+                continue;
+            }
+
+            $invalid = array();
+            foreach (array_keys($mongo_keys) as $field) {
+                if (empty($field_names) || isset($field_names[$field])) {
+                    continue;
+                }
+                $invalid[] = $field;
+            }
+            if (!empty($invalid) && !empty($field_names)) {
+                $errors[] = array(
+                    'name' => $name,
+                    'message' => 'Field(s) not found: ' . implode(', ', $invalid)
+                );
+                continue;
+            }
+
+            try {
+                $collection->createIndex($mongo_keys, array('name' => $name));
+                $applied[] = $name;
+            } catch (Exception $e) {
+                $errors[] = array('name' => $name, 'message' => $e->getMessage());
+            }
+        }
+
+        return array(
+            'applied' => $applied,
+            'skipped' => $skipped,
+            'errors' => $errors,
+            'definition_count' => count($definitions)
         );
    }
 
@@ -633,48 +1163,15 @@ class Data_table_mongo_model extends CI_Model {
         $fields=$this->get_table_field_names($db_id,$table_id);
         $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
 
-        $features=$fields;
         $feature_filters=array();
-        $filter_options=array();
+        $filter_options = $this->build_filter_options_from_request($options, $field_metadata_map);
 
-        // Reserved parameters that should never be treated as field filters
-        $reserved_params = ['limit', 'offset', 'fields', 'ft_query', 'debug', 'format', 'disposition', 'indicator'];
-
-        // NEW FORMAT: Check for c['field'] format first
-        if (isset($options['c']) && is_array($options['c'])) {
-            foreach($options['c'] as $key => $value) {
-                $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
-                if($field_info !== null){
-                    $filter_options[$field_info['name']] = $value;
-                }
-            }
-        }
-
-        // LEGACY FORMAT: Check for direct field names (backward compatibility)
-        foreach($options as $key => $value) {
-            // Skip reserved parameters
-            if (in_array($key, $reserved_params)) {
-                continue;
-            }
-            // Skip if already processed from 'c' array
-            if (isset($options['c']) && is_array($options['c']) && isset($options['c'][$key])) {
-                continue;
-            }
-            // Check if key matches a field name (case-insensitive)
-            $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
-            if($field_info !== null){
-                $filter_options[$field_info['name']] = $value;
-            }
-        }
-        
         $tmp_feature_filters=array();
 
-        //filter by features
         foreach($filter_options as $feature_key=>$value){
             $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value,$field_metadata_map);
         }
 
-        //fulltext query
         if(isset($options['ft_query']) && !empty($options['ft_query'])){
             $tmp_feature_filters['ft_query'][]['$text']=$this->text_search($options['ft_query']);
         }
@@ -785,62 +1282,29 @@ class Data_table_mongo_model extends CI_Model {
         $fields = $this->get_table_field_names($db_id, $table_id);
         $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
     
-        $features = $fields;
         $feature_filters = array();
-        $filter_options = array();
-    
-        // Reserved parameters that should never be treated as field filters
-        $reserved_params = ['limit', 'offset', 'fields', 'ft_query', 'debug', 'format', 'disposition', 'indicator'];
+        $filter_options = $this->build_filter_options_from_request($options, $field_metadata_map);
 
-        // NEW FORMAT: Check for c['field'] format first
-        if (isset($options['c']) && is_array($options['c'])) {
-            foreach($options['c'] as $key => $value) {
-                $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
-                if($field_info !== null){
-                    $filter_options[$field_info['name']] = $value;
-                }
-            }
-        }
-
-        // LEGACY FORMAT: Check for direct field names (backward compatibility)
-        foreach($options as $key => $value) {
-            // Skip reserved parameters
-            if (in_array($key, $reserved_params)) {
-                continue;
-            }
-            // Skip if already processed from 'c' array
-            if (isset($options['c']) && is_array($options['c']) && isset($options['c'][$key])) {
-                continue;
-            }
-            // Check if key matches a field name (case-insensitive)
-            $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
-            if($field_info !== null){
-                $filter_options[$field_info['name']] = $value;
-            }
-        }
-    
         $tmp_feature_filters = array();
-    
-        // Filter by features
+
         foreach ($filter_options as $feature_key => $value) {
             $tmp_feature_filters[$feature_key] = $this->apply_feature_filter($feature_key, $value, $field_metadata_map);
         }
-    
-        // Full-text query
+
         if (isset($options['ft_query']) && !empty($options['ft_query'])) {
             $tmp_feature_filters['ft_query'][]['$text'] = $this->text_search($options['ft_query']);
         }
-    
+
         $feature_filters = array();
-    
+
         if (!empty($tmp_feature_filters)) {
             $feature_filters = array('$and' => array());
-    
+
             foreach ($tmp_feature_filters as $feature_key => $filter) {
                 $feature_filters['$and'][]['$or'] = $filter;
             }
         }
-    
+
         $collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
     
         if (!isset($options['fields'])) {
@@ -1094,7 +1558,7 @@ class Data_table_mongo_model extends CI_Model {
                 $field_type = 'string';
             } elseif (in_array($data_type_lower, array('integer', 'int'))) {
                 $field_type = 'int';
-            } elseif (in_array($data_type_lower, array('float', 'double', 'decimal'))) {
+            } elseif (in_array($data_type_lower, array('float', 'decimal', 'double'))) {
                 $field_type = 'float';
             }
         }
@@ -1461,7 +1925,9 @@ class Data_table_mongo_model extends CI_Model {
             if ($field_name) {
                 $metadata_map[$field_name] = array(
                     'name' => $field_name,
-                    'data_type' => isset($field['data_type']) ? $field['data_type'] : 'string'
+                    'data_type' => $this->normalize_field_data_type(
+                        array_key_exists('data_type', $field) ? $field['data_type'] : null
+                    )
                 );
             }
         }
@@ -1488,11 +1954,65 @@ class Data_table_mongo_model extends CI_Model {
         return null;
     }
 
+    /**
+     * Build filter query options from request params; unknown fields raise an exception.
+     *
+     * @param array $options Request options / query parameters
+     * @param array $field_metadata_map From get_field_metadata_map()
+     * @return array Canonical field name => filter value
+     * @throws Exception
+     */
+    function build_filter_options_from_request($options, $field_metadata_map)
+    {
+        $filter_options = array();
+        $unknown_fields = array();
+        $reserved_params = $this->get_reserved_table_query_params();
 
+        if (isset($options['c']) && is_array($options['c'])) {
+            foreach ($options['c'] as $key => $value) {
+                $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
+                if ($field_info !== null) {
+                    $filter_options[$field_info['name']] = $value;
+                } else {
+                    $unknown_fields[] = (string) $key;
+                }
+            }
+        }
 
+        foreach ($options as $key => $value) {
+            if ($this->is_reserved_table_query_param($key)) {
+                continue;
+            }
+            if (isset($options['c']) && is_array($options['c']) && isset($options['c'][$key])) {
+                continue;
+            }
+            $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
+            if ($field_info !== null) {
+                $filter_options[$field_info['name']] = $value;
+            } else {
+                $unknown_fields[] = (string) $key;
+            }
+        }
+
+        if (!empty($unknown_fields)) {
+            $unknown_fields = array_values(array_unique($unknown_fields));
+            sort($unknown_fields);
+            throw new Exception(
+                'UNKNOWN_FILTER_FIELD: ' . implode(', ', $unknown_fields)
+            );
+        }
+
+        return $filter_options;
+    }
 
     function delete_table_data($db_id,$table_id)
     {
+        try {
+            $this->sync_table_index_definitions_from_collection($db_id, $table_id);
+        } catch (Exception $e) {
+            log_message('error', 'delete_table_data: could not snapshot indexes before drop: ' . $e->getMessage());
+        }
+
         $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
         $result = $collection->drop();
         return $result;
@@ -1570,9 +2090,14 @@ class Data_table_mongo_model extends CI_Model {
            throw new Exception("Failed to read CSV header");
        }
 
-       $header = array_map('trim', $header);
+       $header = array_map(array($this, 'normalize_csv_column_name'), $header);
        $header_count = count($header);
        $header_byte_length = ftell($handle);
+
+       if ($byte_offset == 0) {
+           $this->prepare_import_dictionary_from_csv_header($db_id, $table_id, $header);
+       }
+       $import_type_map = $this->get_import_coercion_map_for_header($db_id, $table_id, $header);
 
        if ($byte_offset == 0) {
            $byte_offset = $header_byte_length;
@@ -1666,7 +2191,32 @@ class Data_table_mongo_model extends CI_Model {
                continue;
            }
 
-           $row = array_map(array($this, 'clean_csv_value'), $row);
+           try {
+               foreach ($row as $column => $cell) {
+                   $data_type = isset($import_type_map[$column])
+                       ? $import_type_map[$column]
+                       : 'string';
+                   $row[$column] = $this->coerce_import_value($cell, $data_type);
+               }
+           } catch (Exception $e) {
+               $rows_failed++;
+               $batch_failed++;
+               $this->append_import_error($db_id, $table_id, array(
+                   'csv_row' => $csv_row_num,
+                   'byte_offset' => $record_start,
+                   'reason' => 'invalid_coercion',
+                   'detail' => $e->getMessage(),
+                   'preview' => $this->csv_row_preview($row_data)
+               ));
+               log_message('error', sprintf(
+                   'CSV import coercion failed db=%s table=%s csv_row=%d: %s',
+                   $db_id,
+                   $table_id,
+                   $csv_row_num,
+                   $e->getMessage()
+               ));
+               continue;
+           }
            $chunked_rows[] = $row;
            $chunked_meta[] = array(
                'csv_row' => $csv_row_num,
@@ -2058,51 +2608,17 @@ function format_execution_time($seconds)
 
    function get_filters($db_id, $table_id,$options)
    {
-        $fields=$this->get_table_field_names($db_id,$table_id);
         $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
 
-        $features=$fields;
         $feature_filters=array();
-        $filter_options=array();
+        $filter_options = $this->build_filter_options_from_request($options, $field_metadata_map);
 
-        // Reserved parameters that should never be treated as field filters
-        $reserved_params = ['limit', 'offset', 'fields', 'ft_query', 'debug', 'format', 'disposition', 'indicator'];
-
-        // NEW FORMAT: Check for c['field'] format first
-        if (isset($options['c']) && is_array($options['c'])) {
-            foreach($options['c'] as $key => $value) {
-                $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
-                if($field_info !== null){
-                    $filter_options[$field_info['name']] = $value;
-                }
-            }
-        }
-
-        // LEGACY FORMAT: Check for direct field names (backward compatibility)
-        foreach($options as $key => $value) {
-            // Skip reserved parameters
-            if (in_array($key, $reserved_params)) {
-                continue;
-            }
-            // Skip if already processed from 'c' array
-            if (isset($options['c']) && is_array($options['c']) && isset($options['c'][$key])) {
-                continue;
-            }
-            // Check if key matches a field name (case-insensitive)
-            $field_info = $this->get_field_info_from_metadata($key, $field_metadata_map);
-            if($field_info !== null){
-                $filter_options[$field_info['name']] = $value;
-            }
-        }
-        
         $tmp_feature_filters=array();
 
-        //filter by features
         foreach($filter_options as $feature_key=>$value){
             $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value,$field_metadata_map);
         }
 
-        //fulltext query
         if(isset($options['ft_query']) && !empty($options['ft_query'])){
             $tmp_feature_filters['ft_query'][]['$text']=$this->text_search($options['ft_query']);
         }
@@ -2189,6 +2705,12 @@ function format_execution_time($seconds)
        if (!isset($field_metadata['name']) || empty($field_metadata['name'])) {
            throw new Exception("Field name is required");
        }
+
+       $field_metadata['name'] = trim((string) $field_metadata['name']);
+       $this->assert_dictionary_field_name_available($db_id, $table_id, $field_metadata['name']);
+       $field_metadata['data_type'] = $this->normalize_field_data_type(
+           array_key_exists('data_type', $field_metadata) ? $field_metadata['data_type'] : null
+       );
        
        $collection = $this->mongo_client->{$this->get_db_name()}->{'table_dictionary'};
        
@@ -2211,14 +2733,17 @@ function format_execution_time($seconds)
        // Set defaults for optional fields
        $field_metadata['time_period_format'] = $field_metadata['time_period_format'] ?? null;
        $field_metadata['unit_of_measurement'] = $field_metadata['unit_of_measurement'] ?? null;
-       $field_metadata['format'] = $field_metadata['format'] ?? null;
        $field_metadata['code_list'] = $field_metadata['code_list'] ?? [];
        $field_metadata['code_list_reference'] = $field_metadata['code_list_reference'] ?? null;
+       unset($field_metadata['format']);
        
        // Use updateOne with upsert to handle duplicates gracefully
        $result = $collection->updateOne(
            ['_id' => $field_metadata['_id']],
-           ['$set' => $field_metadata],
+           [
+               '$set' => $field_metadata,
+               '$unset' => array('format' => ''),
+           ],
            ['upsert' => true]
        );
        
@@ -2244,13 +2769,21 @@ function format_execution_time($seconds)
        if (isset($update_data['name'])) {
            unset($update_data['name']);
        }
+
+       if (array_key_exists('data_type', $update_data)) {
+           $update_data['data_type'] = $this->normalize_field_data_type($update_data['data_type']);
+       }
+       unset($update_data['format']);
        
        // Always update updated_at
        $update_data['updated_at'] = date('Y-m-d H:i:s');
        
        $result = $collection->updateOne(
            ['_id' => $field_id],
-           ['$set' => $update_data]
+           [
+               '$set' => $update_data,
+               '$unset' => array('format' => ''),
+           ]
        );
        
        return $result->getModifiedCount();
@@ -2534,53 +3067,705 @@ function format_execution_time($seconds)
 	}
 
 	/**
-	 * Clean CSV values. Integers without leading zeros are stored as int;
-	 * floats, scientific notation, codes, and IDs stay strings.
+	 * Ensure dictionary exists / matches CSV header before import (byte_offset 0).
 	 *
-	 * @param mixed $value The value to clean
-	 * @return mixed Cleaned value with proper data type
+	 * @param string $db_id
+	 * @param string $table_id
+	 * @param array $header
+	 * @throws Exception
 	 */
-	private function clean_csv_value($value)
+	public function prepare_import_dictionary_from_csv_header($db_id, $table_id, array $header)
 	{
-		if ($value === '' || $value === null) {
-			return $value;
+		$this->validate_field_name_list($header);
+
+		$existing_fields = $this->get_field_metadata($db_id, $table_id);
+		$metadata_map = $this->get_field_metadata_map($db_id, $table_id);
+
+		if (empty($existing_fields)) {
+			foreach ($header as $index => $column_name) {
+				$field_metadata = $this->get_default_field_metadata($column_name, $db_id, $table_id);
+				$field_metadata['field_order'] = $index + 1;
+				$this->create_field_metadata($db_id, $table_id, $field_metadata);
+			}
+			return;
 		}
 
-		if (!is_string($value)) {
-			return $value;
+		$max_order = $this->get_max_field_order($db_id, $table_id);
+		foreach ($header as $column_name) {
+			if ($this->get_field_info_from_metadata($column_name, $metadata_map) !== null) {
+				continue;
+			}
+			$max_order++;
+			$field_metadata = $this->get_default_field_metadata($column_name, $db_id, $table_id);
+			$field_metadata['field_order'] = $max_order;
+			$this->create_field_metadata($db_id, $table_id, $field_metadata);
+			$metadata_map[$column_name] = array(
+				'name' => $column_name,
+				'data_type' => 'string',
+			);
 		}
-
-		$encoded = mb_convert_encoding($value, 'UTF-8', 'auto');
-		if ($encoded === false) {
-			return $value;
-		}
-		$value = $encoded;
-
-		$trimmed = trim($value);
-		if ($trimmed === '') {
-			return $value;
-		}
-
-		// Preserve leading zeros (IDs, codes) and anything with a decimal or
-		// exponent as a string. Do not coerce via arithmetic — values like
-		// "01.1.1" are not numeric and previously triggered a PHP warning.
-		if (strlen($trimmed) > 1 && $trimmed[0] === '0') {
-			return $trimmed;
-		}
-
-		if (is_numeric($trimmed)
-			&& strpos($trimmed, '.') === false
-			&& stripos($trimmed, 'e') === false
-		) {
-			return (int) $trimmed;
-		}
-
-		return $trimmed;
 	}
 
 	/**
-	 * Process import request - main orchestrator method
+	 * Map CSV header columns to dictionary data types for coercion.
+	 *
+	 * @param string $db_id
+	 * @param string $table_id
+	 * @param array $header
+	 * @return array column name => normalized data_type
+	 * @throws Exception
 	 */
+	public function get_import_coercion_map_for_header($db_id, $table_id, array $header)
+	{
+		$metadata_map = $this->get_field_metadata_map($db_id, $table_id);
+		$map = array();
+		foreach ($header as $column_name) {
+			$field_info = $this->get_field_info_from_metadata($column_name, $metadata_map);
+			if ($field_info === null) {
+				throw new Exception(
+					'Dictionary missing field for CSV column "' . $column_name . '"'
+				);
+			}
+			$map[$column_name] = $field_info['data_type'];
+		}
+		return $map;
+	}
+
+	/**
+	 * Normalize a raw CSV cell to UTF-8 trimmed string (empty string if blank).
+	 *
+	 * @param mixed $value
+	 * @return string
+	 */
+	private function normalize_csv_cell_raw($value)
+	{
+		if ($value === '' || $value === null) {
+			return '';
+		}
+		if (!is_string($value)) {
+			return trim((string) $value);
+		}
+		$encoded = mb_convert_encoding($value, 'UTF-8', 'auto');
+		if ($encoded === false) {
+			return trim($value);
+		}
+		return trim($encoded);
+	}
+
+	/**
+	 * Coerce a CSV cell using dictionary data_type.
+	 *
+	 * @param mixed $value
+	 * @param string $data_type
+	 * @return mixed
+	 * @throws Exception
+	 */
+	public function coerce_import_value($value, $data_type)
+	{
+		$data_type = $this->normalize_field_data_type($data_type);
+		$raw = $this->normalize_csv_cell_raw($value);
+		if ($raw === '') {
+			return '';
+		}
+
+		switch ($data_type) {
+			case 'string':
+				return $raw;
+			case 'integer':
+				if (!preg_match('/^-?\d+$/', $raw)) {
+					throw new Exception(
+						'Value "' . $raw . '" is not a valid integer'
+					);
+				}
+				return (int) $raw;
+			case 'float':
+				if (!is_numeric($raw)) {
+					throw new Exception(
+						'Value "' . $raw . '" is not a valid number'
+					);
+				}
+				return (float) $raw;
+			case 'boolean':
+				$lower = strtolower($raw);
+				if (in_array($lower, array('1', 'true', 'yes', 'y'), true)) {
+					return true;
+				}
+				if (in_array($lower, array('0', 'false', 'no', 'n'), true)) {
+					return false;
+				}
+				throw new Exception(
+					'Value "' . $raw . '" is not a valid boolean'
+				);
+			case 'date':
+			case 'datetime':
+			case 'array':
+			case 'object':
+				return $raw;
+			default:
+				return $raw;
+		}
+	}
+
+	/**
+	 * Run validation checks for table definition, dictionary, stored CSV, data, and indexes.
+	 *
+	 * @param string $db_id
+	 * @param string $table_id
+	 * @return array
+	 */
+	public function validate_table($db_id, $table_id)
+	{
+		$db_id = strtolower($db_id);
+		$table_id = strtolower($table_id);
+
+		$issues = array();
+		$context = array(
+			'db_id' => $db_id,
+			'table_id' => $table_id,
+			'row_count' => 0,
+			'csv_file_path' => null,
+			'csv_file_exists' => false,
+			'dictionary_field_count' => 0,
+			'import_status' => null,
+		);
+
+		$table_type = $this->get_table_type($db_id, $table_id);
+		if (!$table_type) {
+			$this->append_table_validation_issue(
+				$issues,
+				'definition',
+				'error',
+				'table_not_found',
+				'Table definition was not found'
+			);
+			return $this->build_table_validation_report($issues, $context);
+		}
+
+		if (empty($table_type['table_id']) && empty($table_type['_id'])) {
+			$this->append_table_validation_issue(
+				$issues,
+				'definition',
+				'warning',
+				'table_id_missing',
+				'Table definition is missing a table identifier'
+			);
+		}
+
+		$import_progress = isset($table_type['import_progress']) && is_array($table_type['import_progress'])
+			? $table_type['import_progress']
+			: array();
+		$context['import_status'] = isset($import_progress['import_status']) ? $import_progress['import_status'] : null;
+
+		if ($context['import_status'] === 'in_progress') {
+			$this->append_table_validation_issue(
+				$issues,
+				'import',
+				'warning',
+				'import_in_progress',
+				'CSV import is still in progress'
+			);
+		} elseif ($context['import_status'] === 'failed') {
+			$this->append_table_validation_issue(
+				$issues,
+				'import',
+				'error',
+				'import_failed',
+				'Last import finished with an accounting mismatch (see import progress)'
+			);
+		} elseif ($context['import_status'] === 'completed_with_errors') {
+			$this->append_table_validation_issue(
+				$issues,
+				'import',
+				'warning',
+				'import_completed_with_errors',
+				'Last import completed with skipped or failed rows'
+			);
+		}
+
+		if (isset($import_progress['balanced']) && $import_progress['balanced'] === false) {
+			$this->append_table_validation_issue(
+				$issues,
+				'import',
+				'error',
+				'import_not_balanced',
+				'Import row counts do not balance with MongoDB document count'
+			);
+		}
+
+		$dict_fields = $this->get_field_metadata($db_id, $table_id);
+		$dict_fields = is_array($dict_fields) ? $dict_fields : array();
+		$context['dictionary_field_count'] = count($dict_fields);
+
+		if (empty($dict_fields)) {
+			$this->append_table_validation_issue(
+				$issues,
+				'dictionary',
+				'warning',
+				'dictionary_empty',
+				'Data dictionary has no fields (import will create fields from the CSV header as strings)'
+			);
+		} else {
+			$dict_names = array();
+			foreach ($dict_fields as $field) {
+				$field = (array) $field;
+				$name = isset($field['name']) ? trim((string) $field['name']) : '';
+				if ($name === '') {
+					$this->append_table_validation_issue(
+						$issues,
+						'dictionary',
+						'error',
+						'dictionary_name_missing',
+						'A dictionary entry is missing a field name'
+					);
+					continue;
+				}
+				$dict_names[] = $name;
+				try {
+					$this->validate_field_name($name);
+				} catch (Exception $e) {
+					$this->append_table_validation_issue(
+						$issues,
+						'dictionary',
+						'error',
+						'invalid_field_name',
+						$e->getMessage(),
+						array('field' => $name)
+					);
+				}
+				if ($this->field_name_conflicts_with_reserved_query_param($name)) {
+					$this->append_table_validation_issue(
+						$issues,
+						'dictionary',
+						'error',
+						'reserved_query_param_name',
+						'Field "' . $name . '" is reserved and cannot be used as a column name',
+						array('field' => $name)
+					);
+				}
+				if (array_key_exists('format', $field) && $field['format'] !== null && $field['format'] !== '') {
+					$this->append_table_validation_issue(
+						$issues,
+						'dictionary',
+						'warning',
+						'deprecated_format_field',
+						'Dictionary field "' . $name . '" still has deprecated "format" metadata; re-save the field to remove it',
+						array('field' => $name)
+					);
+				}
+			}
+
+			$duplicate_groups = $this->find_duplicate_field_names_case_insensitive($dict_names);
+			foreach ($duplicate_groups as $group) {
+				$this->append_table_validation_issue(
+					$issues,
+					'dictionary',
+					'error',
+					'duplicate_field_names',
+					'Duplicate dictionary field names (case-insensitive): ' . implode(' / ', $group),
+					array('fields' => $group)
+				);
+			}
+		}
+
+		$csv_header = array();
+		if (empty($table_type['csv_file_path'])) {
+			$this->append_table_validation_issue(
+				$issues,
+				'csv',
+				'error',
+				'csv_path_missing',
+				'No stored CSV path on the table definition; upload a file first'
+			);
+		} else {
+			$context['csv_file_path'] = $table_type['csv_file_path'];
+			try {
+				$validated_file_path = validate_file_path($table_type['csv_file_path'], $db_id, $table_id);
+				$full_file_path = 'datafiles/' . $validated_file_path;
+				$context['csv_file_path'] = $validated_file_path;
+				if (!file_exists($full_file_path)) {
+					$this->append_table_validation_issue(
+						$issues,
+						'csv',
+						'error',
+						'csv_file_missing',
+						'Stored CSV file was not found on disk: ' . $validated_file_path
+					);
+				} elseif (!is_readable($full_file_path)) {
+					$this->append_table_validation_issue(
+						$issues,
+						'csv',
+						'error',
+						'csv_file_not_readable',
+						'Stored CSV file is not readable: ' . $validated_file_path
+					);
+				} else {
+					$context['csv_file_exists'] = true;
+					try {
+						$csv_header = $this->read_csv_header_columns($full_file_path, 'comma');
+					} catch (Exception $e) {
+						$this->append_table_validation_issue(
+							$issues,
+							'csv',
+							'error',
+							'csv_header_invalid',
+							$e->getMessage()
+						);
+					}
+				}
+			} catch (Exception $e) {
+				$this->append_table_validation_issue(
+					$issues,
+					'csv',
+					'error',
+					'csv_path_invalid',
+					$e->getMessage()
+				);
+			}
+		}
+
+		if (!empty($csv_header)) {
+			try {
+				$this->validate_field_name_list($csv_header);
+			} catch (Exception $e) {
+				$this->append_table_validation_issue(
+					$issues,
+					'csv',
+					'error',
+					'csv_header_field_names',
+					$e->getMessage()
+				);
+			}
+
+			$dict_name_map = array();
+			foreach ($dict_fields as $field) {
+				$field = (array) $field;
+				if (!empty($field['name'])) {
+					$dict_name_map[strtolower($field['name'])] = $field['name'];
+				}
+			}
+			foreach ($csv_header as $column) {
+				$fold = strtolower($column);
+				if (!isset($dict_name_map[$fold])) {
+					$this->append_table_validation_issue(
+						$issues,
+						'csv',
+						'warning',
+						'csv_column_not_in_dictionary',
+						'CSV column "' . $column . '" is not in the dictionary (it will be added on import as type string)',
+						array('field' => $column)
+					);
+				}
+			}
+			$csv_fold_set = array();
+			foreach ($csv_header as $column) {
+				$csv_fold_set[strtolower($column)] = true;
+			}
+			foreach ($dict_fields as $field) {
+				$field = (array) $field;
+				$name = isset($field['name']) ? $field['name'] : '';
+				if ($name === '') {
+					continue;
+				}
+				if (!isset($csv_fold_set[strtolower($name)])) {
+					$this->append_table_validation_issue(
+						$issues,
+						'dictionary',
+						'warning',
+						'dictionary_field_not_in_csv',
+						'Dictionary field "' . $name . '" is not present in the stored CSV header',
+						array('field' => $name)
+					);
+				}
+			}
+		}
+
+		try {
+			$context['row_count'] = (int) $this->get_table_row_count_fast($db_id, $table_id);
+		} catch (Exception $e) {
+			$context['row_count'] = 0;
+		}
+
+		if ($context['row_count'] > 0) {
+			try {
+				$data_fields = $this->get_data_field_names($db_id, $table_id);
+			} catch (Exception $e) {
+				$data_fields = array();
+			}
+			$data_fold = array();
+			foreach ($data_fields as $name) {
+				$data_fold[strtolower($name)] = $name;
+			}
+			foreach ($dict_fields as $field) {
+				$field = (array) $field;
+				$name = isset($field['name']) ? $field['name'] : '';
+				if ($name === '') {
+					continue;
+				}
+				if (!isset($data_fold[strtolower($name)])) {
+					$this->append_table_validation_issue(
+						$issues,
+						'data',
+						'warning',
+						'dictionary_field_not_in_data',
+						'Dictionary field "' . $name . '" has no matching column in imported data',
+						array('field' => $name)
+					);
+				}
+			}
+			foreach ($data_fields as $name) {
+				$info = $this->get_field_info_from_metadata($name, $this->get_field_metadata_map($db_id, $table_id));
+				if ($info === null) {
+					$this->append_table_validation_issue(
+						$issues,
+						'data',
+						'warning',
+						'data_field_not_in_dictionary',
+						'Data column "' . $name . '" is not defined in the dictionary',
+						array('field' => $name)
+					);
+				}
+			}
+
+			$duplicate_data_groups = $this->find_duplicate_field_names_case_insensitive($data_fields);
+			foreach ($duplicate_data_groups as $group) {
+				$this->append_table_validation_issue(
+					$issues,
+					'data',
+					'error',
+					'data_duplicate_columns',
+					'Data contains multiple column names that differ only by case: ' . implode(' / ', $group),
+					array('fields' => $group)
+				);
+			}
+
+			$metadata_map = $this->get_field_metadata_map($db_id, $table_id);
+			$collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
+			$sample = $collection->findOne(array(), array('limit' => 1));
+			if ($sample) {
+				$sample = (array) $sample;
+				foreach ($dict_fields as $field) {
+					$field = (array) $field;
+					$name = isset($field['name']) ? $field['name'] : '';
+					if ($name === '') {
+						continue;
+					}
+					$fold = strtolower($name);
+					if (!isset($data_fold[$fold])) {
+						continue;
+					}
+					$actual_key = $data_fold[$fold];
+					if (!array_key_exists($actual_key, $sample)) {
+						continue;
+					}
+					$data_type = $this->normalize_field_data_type(
+						array_key_exists('data_type', $field) ? $field['data_type'] : null
+					);
+					if (!$this->sample_value_matches_data_type($sample[$actual_key], $data_type)) {
+						$this->append_table_validation_issue(
+							$issues,
+							'data',
+							'warning',
+							'data_type_mismatch',
+							'Sample value for "' . $name . '" does not match dictionary data_type "' . $data_type . '" (re-import or convert types)',
+							array('field' => $name, 'data_type' => $data_type)
+						);
+					}
+				}
+			}
+		}
+
+		$saved_indexes = $this->get_table_index_definitions($db_id, $table_id);
+		$live_indexes = array();
+		try {
+			$live_indexes = $this->get_collection_indexes($db_id, $table_id);
+		} catch (Exception $e) {
+			$live_indexes = array();
+		}
+
+		if (!empty($saved_indexes)) {
+			foreach ($saved_indexes as $entry) {
+				$entry = (array) $entry;
+				$index_name = isset($entry['name']) ? $entry['name'] : '';
+				if ($index_name === '') {
+					$this->append_table_validation_issue(
+						$issues,
+						'indexes',
+						'error',
+						'index_name_missing',
+						'A saved index definition is missing a name'
+					);
+					continue;
+				}
+				if (!isset($live_indexes[$index_name])) {
+					$this->append_table_validation_issue(
+						$issues,
+						'indexes',
+						'warning',
+						'index_not_applied',
+						'Saved index "' . $index_name . '" is not present on the data collection (use Apply saved indexes)',
+						array('index' => $index_name)
+					);
+				}
+				$keys = $this->definition_entry_to_mongo_index_keys($entry);
+				$indexable = $this->get_indexable_field_names($db_id, $table_id);
+				foreach (array_keys($keys) as $field_name) {
+					if ($field_name === '_fts' || $field_name === '$**') {
+						continue;
+					}
+					if (!empty($indexable) && !isset($indexable[$field_name])) {
+						$this->append_table_validation_issue(
+							$issues,
+							'indexes',
+							'error',
+							'index_unknown_field',
+							'Index "' . $index_name . '" references unknown field "' . $field_name . '"',
+							array('index' => $index_name, 'field' => $field_name)
+						);
+					}
+				}
+			}
+		}
+
+		return $this->build_table_validation_report($issues, $context);
+	}
+
+	/**
+	 * Whether a single BSON value is consistent with a dictionary data_type (sample check).
+	 *
+	 * @param mixed $value
+	 * @param string $data_type
+	 * @return bool
+	 */
+	private function sample_value_matches_data_type($value, $data_type)
+	{
+		$data_type = $this->normalize_field_data_type($data_type);
+		if ($value === null || $value === '') {
+			return true;
+		}
+
+		switch ($data_type) {
+			case 'string':
+				return is_string($value);
+			case 'integer':
+				if (is_int($value)) {
+					return true;
+				}
+				if (is_float($value)) {
+					return floor($value) == $value
+						&& $value <= PHP_INT_MAX
+						&& $value >= PHP_INT_MIN;
+				}
+				return false;
+			case 'float':
+				return is_int($value) || is_float($value);
+			case 'boolean':
+				return is_bool($value);
+			case 'date':
+			case 'datetime':
+				return is_string($value);
+			case 'array':
+				return is_array($value);
+			case 'object':
+				return is_array($value) || is_object($value);
+			default:
+				return true;
+		}
+	}
+
+	private function append_table_validation_issue(array &$issues, $section, $severity, $code, $message, array $context = array())
+	{
+		$issues[] = array(
+			'section' => $section,
+			'severity' => $severity,
+			'code' => $code,
+			'message' => $message,
+			'context' => $context,
+		);
+	}
+
+	private function build_table_validation_report(array $issues, array $context)
+	{
+		$errors = 0;
+		$warnings = 0;
+		foreach ($issues as $issue) {
+			if ($issue['severity'] === 'error') {
+				$errors++;
+			} elseif ($issue['severity'] === 'warning') {
+				$warnings++;
+			}
+		}
+
+		return array(
+			'valid' => ($errors === 0),
+			'summary' => array(
+				'errors' => $errors,
+				'warnings' => $warnings,
+				'issues' => count($issues),
+			),
+			'issues' => $issues,
+			'context' => $context,
+		);
+	}
+
+	/**
+	 * Read the first row of a CSV file as trimmed column names.
+	 *
+	 * @param string $full_file_path Path under datafiles/
+	 * @param string $delimiter Import delimiter keyword
+	 * @return array
+	 * @throws Exception
+	 */
+	public function read_csv_header_columns($full_file_path, $delimiter = 'comma')
+	{
+		if (!file_exists($full_file_path)) {
+			throw new Exception('CSV file not found');
+		}
+		$handle = fopen($full_file_path, 'r');
+		if (!$handle) {
+			throw new Exception('Failed to open CSV file');
+		}
+		$delimiters = array(
+			'comma' => ',',
+			'tab' => "\t",
+			'semicolon' => ';',
+			',' => ',',
+			';' => ';',
+		);
+		$delimiter_char = isset($delimiters[$delimiter]) ? $delimiters[$delimiter] : ',';
+		$header = fgetcsv($handle, 0, $delimiter_char);
+		fclose($handle);
+		if (!$header || !is_array($header)) {
+			throw new Exception('Failed to read CSV header row');
+		}
+		$header = array_map(array($this, 'normalize_csv_column_name'), $header);
+		if (empty($header) || (count($header) === 1 && $header[0] === '')) {
+			throw new Exception('CSV header row is empty');
+		}
+		return $header;
+	}
+
+	/**
+	 * Delete table data, reset import progress, and import from stored CSV.
+	 *
+	 * @param string $db_id
+	 * @param string $table_id
+	 * @param array $options Import options (delimiter, max_time, etc.)
+	 * @return array
+	 * @throws Exception
+	 */
+	public function process_import_reload_request($db_id, $table_id, $options)
+	{
+		$table_definition = $this->validate_table_and_file($db_id, $table_id);
+		if (empty($table_definition['csv_file_path'])) {
+			throw new Exception('No stored CSV file path on table; upload a CSV before reload');
+		}
+
+		$this->delete_table_data($db_id, $table_id);
+		$this->reset_import_progress($db_id, $table_id);
+
+		return $this->process_import_request($db_id, $table_id, $options);
+	}
+
 	public function process_import_request($db_id, $table_id, $options)
 	{
 		$validated_options = $this->validate_import_parameters($options);
@@ -2748,6 +3933,7 @@ function format_execution_time($seconds)
 		$this->validate_import_consistency($db_id, $table_id, $byte_offset, $existing_row_count, $table_definition);
 
 		if ($byte_offset == 0) {
+			$this->apply_table_index_definitions($db_id, $table_id, true);
 			$this->reset_import_errors_file($db_id, $table_id);
 			$this->update_import_progress($db_id, $table_id, $this->default_import_progress(array(
 				'import_status' => 'in_progress',
@@ -2972,11 +4158,10 @@ function format_execution_time($seconds)
 			'name' => $field_name,
 			'label' => $field_name,
 			'description' => '',
-			'data_type' => 'string',
+			'data_type' => $this->normalize_field_data_type(null),
 			'column_type' => null,
 			'time_period_format' => null,
 			'unit_of_measurement' => null,
-			'format' => null,
 			'field_order' => $max_order + 1,
 			'code_list' => [],
 			'code_list_reference' => null,
@@ -3115,12 +4300,10 @@ function format_execution_time($seconds)
 			'integer' => 'int',
 			'int' => 'int',
 			'float' => 'double',
-			'double' => 'double',
 			'boolean' => 'bool',
 			'bool' => 'bool',
 			'array' => 'array',
 			'object' => 'object',
-			'null' => 'null'
 		];
 		
 		$normalized_type = strtolower($data_type);

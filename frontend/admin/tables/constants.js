@@ -2,13 +2,11 @@ export const DATA_TYPES = [
   { title: 'String', value: 'string' },
   { title: 'Integer', value: 'integer' },
   { title: 'Float', value: 'float' },
-  { title: 'Double', value: 'double' },
   { title: 'Boolean', value: 'boolean' },
   { title: 'Date', value: 'date' },
   { title: 'DateTime', value: 'datetime' },
   { title: 'Array', value: 'array' },
   { title: 'Object', value: 'object' },
-  { title: 'Null', value: 'null' },
 ];
 
 export const COLUMN_TYPES = [

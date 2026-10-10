@@ -25,6 +25,21 @@ export function useTablesApi() {
     };
   }
 
+  /** Message from axios error body (e.g. HTTP 400 JSON `{ message }`). */
+  function apiErrorMessage(error, fallback = 'Request failed') {
+    const data = error?.response?.data;
+    if (data && typeof data === 'object' && data.message) {
+      return String(data.message);
+    }
+    if (typeof data === 'string' && data.trim()) {
+      return data.trim();
+    }
+    if (error?.message) {
+      return error.message;
+    }
+    return fallback;
+  }
+
   /**
    * Upload CSV/ZIP via resumable chunks, then register with tables upload endpoint.
    *
@@ -108,6 +123,64 @@ export function useTablesApi() {
       throw new Error(data.message || 'Failed to load table info');
     }
     return data.result;
+  }
+
+  function storedCsvDownloadUrl(dbId, tableId) {
+    return `${base()}/download/${dbId}/${tableId}`;
+  }
+
+  async function validateTable(dbId, tableId) {
+    const { data } = await axios.get(`${base()}/validate/${dbId}/${tableId}`, {
+      withCredentials: true,
+      headers: csrfHeaders(),
+    });
+    if (data.status !== 'success') {
+      throw new Error(data.message || 'Validation failed');
+    }
+    return data;
+  }
+
+  /**
+   * Run chunked import until complete. @param {string} importPath e.g. `/import/db/t` or `/import/reload/db/t`
+   */
+  async function runImportChunks(dbId, tableId, importPath = 'import', { onProgress, shouldCancel } = {}) {
+    const path = importPath.replace(/^\//, '');
+    const url = `${base()}/${path}/${dbId}/${tableId}`;
+    let hasMore = true;
+    let lastResult = null;
+    while (hasMore) {
+      if (shouldCancel && shouldCancel()) {
+        break;
+      }
+      let importResult;
+      try {
+        const { data } = await axios.post(
+          url,
+          { db_id: dbId, table_id: tableId },
+          {
+            withCredentials: true,
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
+          }
+        );
+        importResult = data;
+      } catch (e) {
+        throw new Error(apiErrorMessage(e, 'Import failed'));
+      }
+      lastResult = importResult;
+      if (importResult.status !== 'success') {
+        throw new Error(importResult.message || 'Import failed');
+      }
+      const progress = importResult.progress || {};
+      const terminal = ['completed', 'completed_with_errors', 'failed'].includes(progress.import_status);
+      if (onProgress) {
+        onProgress(importResult, progress);
+      }
+      hasMore = progress.has_more === true && !terminal;
+      if (hasMore) {
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    }
+    return lastResult;
   }
 
   async function updateTableInfo(dbId, tableId, payload) {
@@ -219,6 +292,24 @@ export function useTablesApi() {
     return data;
   }
 
+  async function applySavedIndexes(dbId, tableId, missingOnly = true) {
+    const { data } = await axios.post(`${base()}/indexes/${dbId}/${tableId}/apply`, {
+      missing_only: missingOnly,
+    });
+    if (data.status !== 'success') {
+      throw new Error(data.message || 'Failed to apply indexes');
+    }
+    return data;
+  }
+
+  async function syncIndexDefinitions(dbId, tableId) {
+    const { data } = await axios.post(`${base()}/indexes/${dbId}/${tableId}/sync_definition`);
+    if (data.status !== 'success') {
+      throw new Error(data.message || 'Failed to sync index definitions');
+    }
+    return data;
+  }
+
   async function fetchStudyLinks(dbId, tableId) {
     const { data } = await axios.get(`${base()}/${dbId}/${tableId}/studies`);
     if (data.status !== 'success') {
@@ -322,6 +413,9 @@ export function useTablesApi() {
     deleteTable,
     createTable,
     fetchTableInfo,
+    storedCsvDownloadUrl,
+    validateTable,
+    runImportChunks,
     updateTableInfo,
     fetchFields,
     fetchField,
@@ -335,6 +429,8 @@ export function useTablesApi() {
     createTextIndex,
     deleteIndex,
     deleteAllIndexes,
+    applySavedIndexes,
+    syncIndexDefinitions,
     fetchStudyLinks,
     searchCatalogStudies,
     attachStudy,

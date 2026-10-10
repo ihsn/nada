@@ -1,75 +1,73 @@
 <template>
-  <v-card flat rounded="0">
-    <v-card-title class="d-flex align-center">
-      <span>Study links</span>
+  <div class="tables-tab-panel pa-4">
+    <div class="tables-tab-toolbar">
+      <span class="text-subtitle-1 font-weight-medium">Study links</span>
       <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-link-plus" @click="showAttachDialog = true">Attach study</v-btn>
-    </v-card-title>
-    <v-card-text>
-      <v-alert v-if="errorMsg" type="error" closable class="mb-4" @click:close="errorMsg = ''">{{ errorMsg }}</v-alert>
-      <v-alert v-if="successMsg" type="success" closable class="mb-4" @click:close="successMsg = ''">
-        {{ successMsg }}
-      </v-alert>
-      <div v-if="loading" class="text-center py-8">
-        <v-progress-circular indeterminate color="primary" />
-        <div class="mt-2 text-medium-emphasis">Loading study links…</div>
-      </div>
-      <v-data-table
-        v-else
-        :headers="headers"
-        :items="studies"
-        :items-per-page="10"
-        item-value="sid"
-        density="comfortable"
-      >
-        <template #item.title="{ item }">
-          <div>
-            <div class="font-weight-medium">{{ item.title || 'N/A' }}</div>
-            <div class="text-caption text-medium-emphasis">
-              IDNO: {{ item.idno }} | {{ item.nation || 'N/A'
-              }}{{ item.year_start ? ', ' + item.year_start : '' }}
-            </div>
+      <v-btn color="primary" size="small" prepend-icon="mdi-link-plus" @click="showAttachDialog = true">
+        Attach study
+      </v-btn>
+    </div>
+
+    <div v-if="loading" class="text-center py-8">
+      <v-progress-circular indeterminate color="primary" />
+      <div class="mt-2 text-medium-emphasis">Loading study links…</div>
+    </div>
+    <v-data-table
+      v-else
+      :headers="headers"
+      :items="studies"
+      :items-per-page="10"
+      item-value="sid"
+      density="comfortable"
+    >
+      <template #item.title="{ item }">
+        <div>
+          <div class="font-weight-medium">{{ item.title || 'N/A' }}</div>
+          <div class="text-caption text-medium-emphasis">
+            IDNO: {{ item.idno }} | {{ item.nation || 'N/A'
+            }}{{ item.year_start ? ', ' + item.year_start : '' }}
           </div>
-        </template>
-        <template #item.actions="{ item }">
-          <v-btn
-            icon
-            size="small"
-            color="primary"
-            variant="text"
-            :href="studyDataUrl(item.sid)"
-            target="_blank"
-            title="View study"
-          >
-            <v-icon size="small">mdi-open-in-new</v-icon>
-          </v-btn>
-          <v-btn icon size="small" color="error" variant="text" title="Detach" @click="confirmDetach(item)">
-            <v-icon size="small">mdi-link-variant-off</v-icon>
-          </v-btn>
-        </template>
-        <template #no-data>
-          <div class="text-center py-8 text-medium-emphasis">
-            <v-icon size="48" color="grey" class="mb-2">mdi-link-off</v-icon>
-            <p>No studies attached to this table</p>
-          </div>
-        </template>
-      </v-data-table>
-    </v-card-text>
+        </div>
+      </template>
+      <template #item.actions="{ item }">
+        <v-btn
+          icon
+          size="small"
+          color="primary"
+          variant="text"
+          :href="studyDataUrl(item.sid)"
+          target="_blank"
+          title="View study"
+        >
+          <v-icon size="small">mdi-open-in-new</v-icon>
+        </v-btn>
+        <v-btn icon size="small" color="error" variant="text" title="Detach" @click="confirmDetach(item)">
+          <v-icon size="small">mdi-link-variant-off</v-icon>
+        </v-btn>
+      </template>
+      <template #no-data>
+        <div class="text-center py-8 text-medium-emphasis">
+          <v-icon size="48" color="grey" class="mb-2">mdi-link-off</v-icon>
+          <p>No studies attached to this table</p>
+        </div>
+      </template>
+    </v-data-table>
 
     <v-dialog v-model="showAttachDialog" max-width="640">
       <v-card>
         <v-card-title>Attach study</v-card-title>
         <v-card-text>
-          <v-text-field
-            v-model="searchQuery"
-            label="Search studies"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            density="compact"
-            clearable
-            hint="Enter at least 2 characters"
-            @update:model-value="onSearch"
-          />
+          <TablesFormField label="Search studies" hint="Enter at least 2 characters">
+            <v-text-field
+              v-model="searchQuery"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              clearable
+              hide-details
+              @update:model-value="onSearch"
+            />
+          </TablesFormField>
           <v-alert v-if="searchError" type="error" density="compact" class="mt-2">{{ searchError }}</v-alert>
           <v-list v-if="searchResults.length" density="compact" class="mt-2" max-height="320" style="overflow-y: auto">
             <v-list-item
@@ -111,26 +109,27 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-card>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useTablesApi } from '../../composables/useTablesApi';
+import TablesFormField from '../TablesFormField.vue';
 
 const props = defineProps({
   dbId: { type: String, required: true },
   tableId: { type: String, required: true },
 });
 
+const setMessage = inject('setMessage', () => {});
+
 const { studyEditBaseUrl } = useAppConfig();
 const api = useTablesApi();
 
 const studies = ref([]);
 const loading = ref(false);
-const errorMsg = ref('');
-const successMsg = ref('');
 const showAttachDialog = ref(false);
 const showDetachDialog = ref(false);
 const searchQuery = ref('');
@@ -158,11 +157,10 @@ function studyDataUrl(sid) {
 
 async function loadStudies() {
   loading.value = true;
-  errorMsg.value = '';
   try {
     studies.value = await api.fetchStudyLinks(props.dbId, props.tableId);
   } catch (e) {
-    errorMsg.value = e.message;
+    setMessage(e.message, 'error');
     studies.value = [];
   } finally {
     loading.value = false;
@@ -205,14 +203,13 @@ async function runSearch() {
 
 async function attach(study) {
   attaching.value = true;
-  errorMsg.value = '';
   try {
     await api.attachStudy(props.dbId, props.tableId, study.idno);
-    successMsg.value = `Study "${study.title}" attached successfully`;
+    setMessage(`Study "${study.title}" attached successfully`, 'success');
     closeAttach();
     await loadStudies();
   } catch (e) {
-    errorMsg.value = e.message;
+    setMessage(e.message, 'error');
   } finally {
     attaching.value = false;
   }
@@ -235,12 +232,12 @@ async function detach() {
   detaching.value = true;
   try {
     await api.detachStudy(props.dbId, props.tableId, studyToDetach.value.sid);
-    successMsg.value = `Study "${studyToDetach.value.title}" detached successfully`;
+    setMessage(`Study "${studyToDetach.value.title}" detached successfully`, 'success');
     showDetachDialog.value = false;
     studyToDetach.value = null;
     await loadStudies();
   } catch (e) {
-    errorMsg.value = e.message;
+    setMessage(e.message, 'error');
   } finally {
     detaching.value = false;
   }

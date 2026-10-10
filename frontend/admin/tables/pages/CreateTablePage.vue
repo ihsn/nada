@@ -1,61 +1,65 @@
 <template>
   <div>
-    <v-breadcrumbs :items="breadcrumbItems" class="tables-breadcrumbs px-0 pt-0">
-      <template #divider>
-        <v-icon icon="mdi-chevron-right" size="16" />
-      </template>
-    </v-breadcrumbs>
+    <TablesBreadcrumbs :items="breadcrumbItems" />
 
-    <v-row align="center" class="mb-4">
-      <v-col cols="12" md="8">
-        <h1 class="text-h5 font-weight-semibold text-high-emphasis mb-0">Create new table</h1>
-      </v-col>
-    </v-row>
+    <TablesPageHeader
+      title="Create new table"
+      subtitle="Define database and table IDs, then import data on the edit screen"
+      icon="mdi-table-plus"
+    />
 
-    <v-card elevation="1" max-width="800">
-      <v-card-title>Table information</v-card-title>
-      <v-card-text>
+    <v-card class="admin-tables-surface" rounded="lg" elevation="1" max-width="800">
+      <v-card-text class="pa-5">
+        <v-alert type="info" variant="tonal" density="compact" class="mb-4">
+          After creating the table, open the <strong>Data management</strong> tab to upload a CSV and import data. Field
+          definitions can be created from the CSV header or edited under <strong>Data dictionary</strong>.
+        </v-alert>
         <v-form ref="formRef" @submit.prevent="createTable">
           <v-row>
             <v-col cols="12" md="6">
-              <v-text-field
-                v-model="formData.db_id"
-                label="Database ID *"
-                variant="outlined"
-                density="compact"
-                :rules="idRules"
-                @update:model-value="sanitizeId('db_id')"
-              />
+              <TablesFormField label="Database ID" required>
+                <v-text-field
+                  v-model="formData.db_id"
+                  variant="outlined"
+                  density="compact"
+                  hide-details="auto"
+                  :rules="idRules"
+                  @update:model-value="sanitizeId('db_id')"
+                />
+              </TablesFormField>
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field
-                v-model="formData.table_id"
-                label="Table ID *"
-                variant="outlined"
-                density="compact"
-                :rules="idRules"
-                @update:model-value="sanitizeId('table_id')"
-              />
+              <TablesFormField label="Table ID" required>
+                <v-text-field
+                  v-model="formData.table_id"
+                  variant="outlined"
+                  density="compact"
+                  hide-details="auto"
+                  :rules="idRules"
+                  @update:model-value="sanitizeId('table_id')"
+                />
+              </TablesFormField>
             </v-col>
             <v-col cols="12">
-              <v-text-field v-model="formData.title" label="Title" variant="outlined" density="compact" />
+              <TablesFormField label="Title">
+                <v-text-field v-model="formData.title" variant="outlined" density="compact" hide-details />
+              </TablesFormField>
             </v-col>
             <v-col cols="12">
-              <v-textarea
-                v-model="formData.description"
-                label="Description"
-                variant="outlined"
-                rows="3"
-              />
+              <TablesFormField label="Description">
+                <v-textarea v-model="formData.description" variant="outlined" rows="3" hide-details />
+              </TablesFormField>
             </v-col>
           </v-row>
         </v-form>
       </v-card-text>
-      <v-card-actions>
+      <v-divider />
+      <v-card-actions class="pa-4">
         <v-spacer />
         <v-btn variant="text" :to="{ path: '/' }">Cancel</v-btn>
         <v-btn
           color="primary"
+          variant="flat"
           :loading="creating"
           :disabled="!formData.db_id || !formData.table_id"
           prepend-icon="mdi-content-save"
@@ -73,6 +77,9 @@ import { ref, reactive, computed, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useTablesApi } from '../composables/useTablesApi';
+import TablesBreadcrumbs from '../components/TablesBreadcrumbs.vue';
+import TablesPageHeader from '../components/TablesPageHeader.vue';
+import TablesFormField from '../components/TablesFormField.vue';
 
 defineOptions({ name: 'CreateTablePage' });
 
@@ -122,12 +129,10 @@ async function createTable() {
       data_dictionary: formData.data_dictionary || [],
     });
     setMessage('Table created successfully', 'success');
-    setTimeout(() => {
-      router.push({
-        name: 'edit',
-        params: { db_id: formData.db_id, table_id: formData.table_id },
-      });
-    }, 800);
+    router.push({
+      name: 'edit',
+      params: { db_id: formData.db_id, table_id: formData.table_id },
+    });
   } catch (e) {
     setMessage('Error creating table: ' + (e.response?.data?.message || e.message), 'error');
   } finally {
@@ -135,14 +140,3 @@ async function createTable() {
   }
 }
 </script>
-
-<style scoped>
-.tables-breadcrumbs {
-  font-size: 0.8125rem;
-  margin-bottom: 0.5rem;
-}
-.tables-breadcrumbs :deep(.v-breadcrumbs-item),
-.tables-breadcrumbs :deep(.v-breadcrumbs-divider) {
-  font-size: 0.8125rem;
-}
-</style>

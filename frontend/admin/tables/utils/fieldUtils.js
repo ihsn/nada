@@ -15,18 +15,53 @@ export function normalizeCodeListReference(ref) {
   };
 }
 
+const ALLOWED_DATA_TYPES = new Set([
+  'string',
+  'integer',
+  'float',
+  'boolean',
+  'date',
+  'datetime',
+  'array',
+  'object',
+]);
+
+/** @param {unknown} dataType */
+export function normalizeFieldDataType(dataType) {
+  if (dataType === null || dataType === undefined || dataType === '') {
+    return 'string';
+  }
+  const normalized = String(dataType).trim().toLowerCase();
+  if (normalized === 'null' || normalized === '') {
+    return 'string';
+  }
+  if (normalized === 'int') {
+    return 'integer';
+  }
+  if (normalized === 'bool') {
+    return 'boolean';
+  }
+  if (normalized === 'decimal' || normalized === 'double') {
+    return 'float';
+  }
+  if (ALLOWED_DATA_TYPES.has(normalized)) {
+    return normalized;
+  }
+  return 'string';
+}
+
 /** @param {object} field */
 export function normalizeFieldFromApi(field) {
   const codeListRef = normalizeCodeListReference(field.code_list_reference);
+  const rawType = field.data_type ?? field.dataType ?? null;
   return {
     name: field.name,
     label: field.label !== undefined && field.label !== null ? field.label : field.title || field.name,
-    data_type: field.data_type || field.dataType || 'string',
+    data_type: normalizeFieldDataType(rawType),
     column_type: field.column_type || '',
     description: field.description !== undefined && field.description !== null ? field.description : '',
     time_period_format: field.time_period_format || '',
     unit_of_measurement: field.unit_of_measurement || '',
-    format: field.format || '',
     field_order: field.field_order || 0,
     code_list: field.code_list || [],
     code_list_reference: codeListRef,
@@ -53,7 +88,7 @@ export function buildFieldUpsertPayload(selectedField, preserveFieldOrder = null
       selectedField.label !== undefined && selectedField.label !== null
         ? selectedField.label
         : selectedField.name,
-    data_type: selectedField.data_type || 'string',
+    data_type: normalizeFieldDataType(selectedField.data_type),
     column_type: selectedField.column_type || null,
     description:
       selectedField.description !== undefined && selectedField.description !== null
@@ -61,7 +96,6 @@ export function buildFieldUpsertPayload(selectedField, preserveFieldOrder = null
         : '',
     time_period_format: selectedField.time_period_format || null,
     unit_of_measurement: selectedField.unit_of_measurement || null,
-    format: selectedField.format || null,
     code_list: selectedField.code_list || [],
     code_list_reference:
       selectedField.code_list_reference &&

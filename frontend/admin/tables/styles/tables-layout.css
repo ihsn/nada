@@ -1,0 +1,111 @@
+/**
+ * Tables admin layout — aligned with admin catalog surfaces.
+ */
+
+.tables-page-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.tables-page-header__icon {
+  flex-shrink: 0;
+}
+
+.tables-page-header__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  row-gap: 0.25rem;
+}
+
+.tables-page-header__title {
+  min-width: 0;
+}
+
+.tables-page-header__subtitle {
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.tables-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@media (max-width: 959px) {
+  .tables-page-header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .tables-page-header__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    padding-left: calc(48px + 1rem);
+  }
+}
+
+.admin-tables-surface {
+  padding-block: 0.75rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.admin-tables-surface:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+.admin-tables-search-inner {
+  padding: 1rem 1.25rem;
+}
+
+.admin-tables-search-inner--bordered {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.admin-tables-results-card {
+  overflow: hidden;
+}
+
+.admin-tables-table table tbody td {
+  padding: 0.875rem 1rem !important;
+  vertical-align: middle;
+}
+
+.admin-tables-table table tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+.admin-tables-table table tbody tr:hover {
+  background-color: rgba(25, 118, 210, 0.06) !important;
+}
+
+.tables-row-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tables-row-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.tables-row-title__text {
+  min-width: 0;
+}
+
+.tables-edit-shell {
+  overflow: hidden;
+}
+
+.tables-edit-shell .v-tabs {
+  background: rgb(var(--v-theme-surface));
+}
