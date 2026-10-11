@@ -284,7 +284,7 @@ class Analytics_model extends CI_Model {
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 
 		$this->db->reset_query();
-		$this->db->select('surveys.title, surveys.nation, surveys.year_start as study_year, analytics_monthly_studies.study_id, analytics_monthly_studies.pageviews, analytics_monthly_studies.unique_visitors, analytics_monthly_studies.downloads');
+		$this->db->select('surveys.idno, surveys.title, surveys.nation, surveys.year_start as study_year, analytics_monthly_studies.study_id, analytics_monthly_studies.pageviews, analytics_monthly_studies.unique_visitors, analytics_monthly_studies.downloads');
 		$this->db->from('analytics_monthly_studies');
 		$this->db->join('surveys', 'analytics_monthly_studies.study_id = surveys.id', 'left');
 		$this->db->where('analytics_monthly_studies.year', 0);
@@ -308,7 +308,7 @@ class Analytics_model extends CI_Model {
 			'total'    => $total,
 			'limit'    => $limit,
 			'offset'   => $offset,
-			'has_more' => $limit > 0 && ($offset + $limit) < $total
+			'has_more' => $this->pagination_has_more($offset, $limit, $total)
 		);
 	}
 
@@ -337,7 +337,7 @@ class Analytics_model extends CI_Model {
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 
 		$this->db->reset_query();
-		$this->db->select('surveys.title, analytics_monthly_files.study_id, analytics_monthly_files.file_name, analytics_monthly_files.downloads');
+		$this->db->select('surveys.idno, surveys.title, analytics_monthly_files.study_id, analytics_monthly_files.file_name, analytics_monthly_files.downloads');
 		$this->db->from('analytics_monthly_files');
 		$this->db->join('surveys', 'analytics_monthly_files.study_id = surveys.id', 'left');
 		$this->db->where('analytics_monthly_files.year', 0);
@@ -362,7 +362,7 @@ class Analytics_model extends CI_Model {
 			'total'    => $total,
 			'limit'    => $limit,
 			'offset'   => $offset,
-			'has_more' => $limit > 0 && ($offset + $limit) < $total
+			'has_more' => $this->pagination_has_more($offset, $limit, $total)
 		);
 	}
 
@@ -1067,59 +1067,229 @@ class Analytics_model extends CI_Model {
 	}
 	
 	/**
+	 * Per-day site (or study) totals from daily study aggregates.
+	 *
+	 * @param array $filters date_from, date_to (Y-m-d), optional study_id (numeric sid)
+	 * @return array List of { date, pageviews, unique_visitors, downloads } in ascending date order
+	 */
+	public function get_daily_totals($filters = array())
+	{
+		$date_from = isset($filters['date_from']) ? $filters['date_from'] : null;
+		$date_to = isset($filters['date_to']) ? $filters['date_to'] : null;
+		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
+
+		if (!$date_from || !$date_to) {
+			throw new Exception('date_from and date_to are required (YYYY-MM-DD)');
+		}
+		$date_from = $this->validate_date_ymd($date_from);
+		$date_to = $this->validate_date_ymd($date_to);
+		if ($date_from > $date_to) {
+			throw new Exception('date_from must be on or before date_to');
+		}
+
+		$days = (int) floor((strtotime($date_to) - strtotime($date_from)) / 86400) + 1;
+		if ($days > 366) {
+			throw new Exception('Date range cannot exceed 366 days');
+		}
+
+		$sql = "SELECT date, SUM(pageviews) AS pageviews, SUM(unique_visitors) AS unique_visitors, SUM(downloads) AS downloads
+			FROM analytics_daily_studies WHERE date >= ? AND date <= ?";
+		$params = array($date_from, $date_to);
+		if ($study_id) {
+			$sql .= " AND study_id = ?";
+			$params[] = (int) $study_id;
+		}
+		$sql .= " GROUP BY date ORDER BY date ASC";
+		$query = $this->db->query($sql, $params);
+
+		$by_date = array();
+		if ($query) {
+			foreach ($query->result_array() as $row) {
+				$by_date[$row['date']] = array(
+					'date' => $row['date'],
+					'pageviews' => (int) $row['pageviews'],
+					'unique_visitors' => (int) $row['unique_visitors'],
+					'downloads' => (int) $row['downloads'],
+				);
+			}
+		}
+
+		return $this->fill_daily_date_range($date_from, $date_to, $by_date);
+	}
+
+	/**
+	 * Admin dashboard bundle (site-wide or single-study when study_id set).
+	 *
+	 * @param array $options study_id (numeric sid) optional
+	 * @return array
+	 */
+	public function get_admin_overview($options = array())
+	{
+		$study_id = isset($options['study_id']) ? $options['study_id'] : null;
+		$today = date('Y-m-d');
+		$week_start = date('Y-m-d', strtotime($today . ' -6 days'));
+
+		$pv = $this->get_raw_pageviews(array(
+			'date_from' => $today,
+			'date_to' => $today,
+			'study_id' => $study_id,
+		), 10, 0);
+		$dl = $this->get_raw_downloads(array(
+			'date_from' => $today,
+			'date_to' => $today,
+			'study_id' => $study_id,
+		), 10, 0);
+
+		$daily_last_7 = $this->get_daily_totals(array(
+			'date_from' => $week_start,
+			'date_to' => $today,
+			'study_id' => $study_id,
+		));
+
+		$monthly_last_3 = $this->get_monthly_totals(3, $study_id);
+		$kpi_month = $this->resolve_overview_kpi_month($monthly_last_3, $today);
+		$month_compare = $this->overview_month_compare($monthly_last_3, $kpi_month);
+
+		$top_study_filters = array(
+			'year' => $kpi_month['year'],
+			'month' => $kpi_month['month'],
+			'study_id' => $study_id,
+			'sort_by' => 'pageviews',
+			'sort_order' => 'desc',
+		);
+		$top_file_filters = array(
+			'year' => $kpi_month['year'],
+			'month' => $kpi_month['month'],
+			'study_id' => $study_id,
+			'sort_by' => 'downloads',
+			'sort_order' => 'desc',
+		);
+		$top_studies = $this->get_monthly_studies($top_study_filters, 10, 0);
+		$top_files = $this->get_monthly_files($top_file_filters, 10, 0);
+
+		$last_completed = $this->get_last_completed_aggregation();
+		$agg_status = $this->get_aggregation_status();
+
+		return array(
+			'server_date' => $today,
+			'timezone' => date_default_timezone_get(),
+			'study_id' => $study_id,
+			'today' => array(
+				'pageviews' => (int) $pv['total'],
+				'downloads' => (int) $dl['total'],
+			),
+			'recent_pageviews' => $pv['data'],
+			'recent_downloads' => $dl['data'],
+			'daily_last_7_days' => $daily_last_7,
+			'monthly_last_3' => $monthly_last_3,
+			'kpi_month' => $kpi_month,
+			'this_month' => $month_compare['this_month'],
+			'previous_month' => $month_compare['previous_month'],
+			'top_studies' => $top_studies['data'],
+			'top_files' => $top_files['data'],
+			'aggregation' => array(
+				'status' => isset($agg_status['status']) ? $agg_status['status'] : null,
+				'last_completed_at' => $last_completed ? $last_completed['completed_at'] : null,
+				'last_completed_started_at' => $last_completed ? $last_completed['started_at'] : null,
+				'progress_percent' => isset($agg_status['progress_percent']) ? $agg_status['progress_percent'] : null,
+				'message' => isset($agg_status['message']) ? $agg_status['message'] : null,
+			),
+		);
+	}
+
+	/**
+	 * Configuration and freshness metadata for admin analytics clients.
+	 *
+	 * @return array
+	 */
+	public function get_analytics_meta()
+	{
+		$this->load->config('analytics');
+		$last_completed = $this->get_last_completed_aggregation();
+		$retention = (int) $this->config->item('analytics_raw_retention_days');
+		if ($retention <= 0) {
+			$retention = 60;
+		}
+
+		return array(
+			'timezone' => date_default_timezone_get(),
+			'server_date' => date('Y-m-d'),
+			'server_datetime' => date('c'),
+			'analytics_enabled' => (bool) $this->config->item('analytics_enabled'),
+			'tracking_source' => $this->config->item('analytics_tracking_source'),
+			'export_max_rows' => $this->get_export_max_rows(),
+			'raw_retention_days' => $retention,
+			'pageview_dedupe_window_minutes' => (int) $this->config->item('analytics_pageview_dedupe_window_minutes'),
+			'download_dedupe_window_minutes' => (int) $this->config->item('analytics_download_dedupe_window_minutes'),
+			'last_completed_at' => $last_completed ? $last_completed['completed_at'] : null,
+			'last_completed_started_at' => $last_completed ? $last_completed['started_at'] : null,
+		);
+	}
+
+	/**
 	 * Get aggregated monthly totals for the last N months
 	 * 
 	 * Returns sum of pageviews, unique_visitors, and downloads across all studies
 	 * for each of the last N months, ordered chronologically.
 	 * 
 	 * @param int $months Number of months to retrieve (default: 12)
+	 * @param int|null $study_id Optional numeric sid (single-study series)
 	 * @return array Array of monthly totals with year, month, label, and metrics
 	 */
-	public function get_monthly_totals($months = 12)
+	public function get_monthly_totals($months = 12, $study_id = null)
 	{
-		$months = max(1, min(24, (int)$months)); // clamp 1-24
-		$result = array();
-		
-		// Build list of year-month pairs for last N months (use first day of month to avoid day overflow, e.g. Jan 31 - 2 months -> Dec 1)
-		$now = new DateTime();
-		$now->setDate((int)$now->format('Y'), (int)$now->format('n'), 1);
-		$now->setTime(0, 0, 0);
-		for ($i = $months - 1; $i >= 0; $i--) {
-			$d = clone $now;
-			$d->modify("-{$i} month");
-			$year = (int)$d->format('Y');
-			$month = (int)$d->format('n');
-			$label = $d->format('M Y'); // e.g., "Jan 2025"
-			
-			// Sum totals for this month across all studies
-			$this->db->select('SUM(pageviews) as pageviews, SUM(unique_visitors) as unique_visitors, SUM(downloads) as downloads');
-			$this->db->where('year', $year);
-			$this->db->where('month', $month);
-			$query = $this->db->get('analytics_monthly_studies');
-			
-			if ($query && $query->num_rows() > 0) {
-				$row = $query->row();
-				$result[] = array(
-					'year' => $year,
-					'month' => $month,
-					'label' => $label,
-					'pageviews' => (int)$row->pageviews,
-					'unique_visitors' => (int)$row->unique_visitors,
-					'downloads' => (int)$row->downloads
-				);
-			} else {
-				// No data for this month - return zeros
-				$result[] = array(
-					'year' => $year,
-					'month' => $month,
-					'label' => $label,
-					'pageviews' => 0,
-					'unique_visitors' => 0,
-					'downloads' => 0
+		$months = max(1, min(24, (int) $months));
+		$slots = $this->build_last_n_month_slots($months);
+		if (empty($slots)) {
+			return array();
+		}
+
+		$start_key = $slots[0]['year'] * 100 + $slots[0]['month'];
+		$end_slot = $slots[count($slots) - 1];
+		$end_key = $end_slot['year'] * 100 + $end_slot['month'];
+
+		$by_key = array();
+		if ($study_id) {
+			$sql = "SELECT year, month, pageviews, unique_visitors, downloads
+				FROM analytics_monthly_studies
+				WHERE study_id = ?
+				AND (year * 100 + month) BETWEEN ? AND ?
+				AND NOT (year = 0 AND month = 0)";
+			$query = $this->db->query($sql, array((int) $study_id, $start_key, $end_key));
+		} else {
+			$sql = "SELECT year, month,
+				SUM(pageviews) AS pageviews,
+				SUM(unique_visitors) AS unique_visitors,
+				SUM(downloads) AS downloads
+				FROM analytics_monthly_studies
+				WHERE (year * 100 + month) BETWEEN ? AND ?
+				AND NOT (year = 0 AND month = 0)
+				GROUP BY year, month";
+			$query = $this->db->query($sql, array($start_key, $end_key));
+		}
+
+		if ($query) {
+			foreach ($query->result_array() as $row) {
+				$key = (int) $row['year'] * 100 + (int) $row['month'];
+				$by_key[$key] = array(
+					'pageviews' => (int) $row['pageviews'],
+					'unique_visitors' => (int) $row['unique_visitors'],
+					'downloads' => (int) $row['downloads'],
 				);
 			}
 		}
-		
+
+		$result = array();
+		foreach ($slots as $slot) {
+			$key = $slot['year'] * 100 + $slot['month'];
+			$metrics = isset($by_key[$key]) ? $by_key[$key] : array(
+				'pageviews' => 0,
+				'unique_visitors' => 0,
+				'downloads' => 0,
+			);
+			$result[] = array_merge($slot, $metrics);
+		}
+
 		return $result;
 	}
 	
@@ -1170,7 +1340,7 @@ class Analytics_model extends CI_Model {
 		
 		// Now build the data query (reset query builder first)
 		$this->db->reset_query();
-		$this->db->select('surveys.title, surveys.nation, surveys.year_start as study_year, surveys.total_views, surveys.total_downloads, year, month, study_id, pageviews, unique_visitors, downloads, finalized, finalized_at');
+		$this->db->select('surveys.idno, surveys.title, surveys.nation, surveys.year_start as study_year, surveys.total_views, surveys.total_downloads, year, month, study_id, pageviews, unique_visitors, downloads, finalized, finalized_at');
 		$this->db->join('surveys', 'analytics_monthly_studies.study_id = surveys.id', 'left');
 		$this->db->from('analytics_monthly_studies');
 		
@@ -1188,10 +1358,7 @@ class Analytics_model extends CI_Model {
 			$this->db->where('study_id', $study_id);
 		}
 		
-		// Apply sorting
-		$this->db->order_by('year', 'DESC');
-		$this->db->order_by('month', 'DESC');
-		$this->db->order_by('study_id', 'ASC');
+		$this->apply_monthly_studies_order($filters);
 		
 		// Apply pagination
 		if ($limit > 0) { $this->db->limit($limit, $offset); }
@@ -1210,7 +1377,7 @@ class Analytics_model extends CI_Model {
 			'total' => $total,
 			'limit' => $limit,
 			'offset' => $offset,
-			'has_more' => ($offset + $limit) < $total
+			'has_more' => $this->pagination_has_more($offset, $limit, $total)
 		);
 	}
 	
@@ -1260,7 +1427,7 @@ class Analytics_model extends CI_Model {
 		
 		// Now build the data query (reset query builder first)
 		$this->db->reset_query();
-		$this->db->select('year, month, study_id, file_name, downloads, finalized, surveys.title, surveys.nation, surveys.year_start as study_year');
+		$this->db->select('year, month, study_id, file_name, downloads, finalized, surveys.idno, surveys.title, surveys.nation, surveys.year_start as study_year');
 		$this->db->join('surveys', 'analytics_monthly_files.study_id = surveys.id', 'left');
 		$this->db->from('analytics_monthly_files');
 		
@@ -1278,11 +1445,7 @@ class Analytics_model extends CI_Model {
 			$this->db->where('study_id', $study_id);
 		}
 		
-		// Apply sorting
-		$this->db->order_by('year', 'DESC');
-		$this->db->order_by('month', 'DESC');
-		$this->db->order_by('study_id', 'ASC');
-		$this->db->order_by('downloads', 'DESC');
+		$this->apply_monthly_files_order($filters);
 		
 		// Apply pagination
 		if ($limit > 0) { $this->db->limit($limit, $offset); }
@@ -1301,7 +1464,7 @@ class Analytics_model extends CI_Model {
 			'total' => $total,
 			'limit' => $limit,
 			'offset' => $offset,
-			'has_more' => ($offset + $limit) < $total
+			'has_more' => $this->pagination_has_more($offset, $limit, $total)
 		);
 	}
 	
@@ -1340,7 +1503,7 @@ class Analytics_model extends CI_Model {
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 		
 		$this->db->reset_query();
-		$this->db->select('analytics_daily_studies.date, analytics_daily_studies.study_id, analytics_daily_studies.pageviews, analytics_daily_studies.unique_visitors, analytics_daily_studies.downloads, surveys.title, surveys.nation, surveys.year_start as study_year');
+		$this->db->select('analytics_daily_studies.date, analytics_daily_studies.study_id, analytics_daily_studies.pageviews, analytics_daily_studies.unique_visitors, analytics_daily_studies.downloads, surveys.idno, surveys.title, surveys.nation, surveys.year_start as study_year');
 		$this->db->join('surveys', 'analytics_daily_studies.study_id = surveys.id', 'left');
 		$this->db->from('analytics_daily_studies');
 		if ($date_from) {
@@ -1369,7 +1532,7 @@ class Analytics_model extends CI_Model {
 			'total' => $total,
 			'limit' => $limit,
 			'offset' => $offset,
-			'has_more' => ($offset + $limit) < $total
+			'has_more' => $this->pagination_has_more($offset, $limit, $total)
 		);
 	}
 	
@@ -1408,7 +1571,7 @@ class Analytics_model extends CI_Model {
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 		
 		$this->db->reset_query();
-		$this->db->select('analytics_daily_files.date, analytics_daily_files.study_id, analytics_daily_files.file_name, analytics_daily_files.downloads, surveys.title, surveys.nation, surveys.year_start as study_year');
+		$this->db->select('analytics_daily_files.date, analytics_daily_files.study_id, analytics_daily_files.file_name, analytics_daily_files.downloads, surveys.idno, surveys.title, surveys.nation, surveys.year_start as study_year');
 		$this->db->join('surveys', 'analytics_daily_files.study_id = surveys.id', 'left');
 		$this->db->from('analytics_daily_files');
 		if ($date_from) {
@@ -1438,7 +1601,7 @@ class Analytics_model extends CI_Model {
 			'total' => $total,
 			'limit' => $limit,
 			'offset' => $offset,
-			'has_more' => ($offset + $limit) < $total
+			'has_more' => $this->pagination_has_more($offset, $limit, $total)
 		);
 	}
 	
@@ -1485,7 +1648,7 @@ class Analytics_model extends CI_Model {
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 
 		// Build data query
-		$this->db->select('analytics_pageview_events.id, analytics_pageview_events.ts, analytics_pageview_events.study_id, analytics_pageview_events.session_id, analytics_pageview_events.page_url, analytics_pageview_events.section, analytics_pageview_events.user_agent, analytics_pageview_events.referrer, surveys.title as study_title');
+		$this->db->select('analytics_pageview_events.id, analytics_pageview_events.ts, analytics_pageview_events.study_id, analytics_pageview_events.session_id, analytics_pageview_events.page_url, analytics_pageview_events.section, analytics_pageview_events.user_agent, analytics_pageview_events.referrer, surveys.idno, surveys.title as study_title');
 		$this->db->from('analytics_pageview_events');
 		$this->db->join('surveys', 'analytics_pageview_events.study_id = surveys.id', 'left');
 
@@ -1500,10 +1663,12 @@ class Analytics_model extends CI_Model {
 			$this->db->where('study_id', $study_id);
 		}
 
+		$sort_order = $this->normalize_sort_order($sort_order);
+
 		// Apply sorting
 		$valid_sort_fields = array('ts', 'study_id', 'session_id');
 		if (in_array($sort_by, $valid_sort_fields)) {
-			$this->db->order_by($sort_by, strtoupper($sort_order));
+			$this->db->order_by($sort_by, $sort_order);
 		} else {
 			$this->db->order_by('ts', 'DESC');
 		}
@@ -1525,7 +1690,7 @@ class Analytics_model extends CI_Model {
 			'total' => $total,
 			'limit' => $limit,
 			'offset' => $offset,
-			'has_more' => ($offset + $limit) < $total
+			'has_more' => $this->pagination_has_more($offset, $limit, $total)
 		);
 	}
 	
@@ -1577,7 +1742,7 @@ class Analytics_model extends CI_Model {
 		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 
 		// Build data query
-		$this->db->select('analytics_download_events.id, analytics_download_events.ts, analytics_download_events.study_id, analytics_download_events.file_name, analytics_download_events.file_type, analytics_download_events.user_agent, analytics_download_events.hashed_ip, surveys.title as study_title');
+		$this->db->select('analytics_download_events.id, analytics_download_events.ts, analytics_download_events.study_id, analytics_download_events.file_name, analytics_download_events.file_type, analytics_download_events.user_agent, analytics_download_events.hashed_ip, surveys.idno, surveys.title as study_title');
 		$this->db->from('analytics_download_events');
 		$this->db->join('surveys', 'analytics_download_events.study_id = surveys.id', 'left');
 
@@ -1595,10 +1760,12 @@ class Analytics_model extends CI_Model {
 			$this->db->where('file_type', $file_type);
 		}
 		
+		$sort_order = $this->normalize_sort_order($sort_order);
+
 		// Apply sorting
 		$valid_sort_fields = array('ts', 'study_id', 'file_name', 'file_type');
 		if (in_array($sort_by, $valid_sort_fields)) {
-			$this->db->order_by($sort_by, strtoupper($sort_order));
+			$this->db->order_by($sort_by, $sort_order);
 		} else {
 			$this->db->order_by('ts', 'DESC');
 		}
@@ -1620,7 +1787,7 @@ class Analytics_model extends CI_Model {
 			'total' => $total,
 			'limit' => $limit,
 			'offset' => $offset,
-			'has_more' => ($offset + $limit) < $total
+			'has_more' => $this->pagination_has_more($offset, $limit, $total)
 		);
 	}
 	
@@ -2175,6 +2342,218 @@ class Analytics_model extends CI_Model {
 				'error' => true
 			);
 		}
+	}
+
+	/**
+	 * Max rows for aggregate export endpoints (see analytics_export_max_rows config).
+	 *
+	 * @return int
+	 */
+	public function get_export_max_rows()
+	{
+		$this->load->config('analytics');
+		$max = (int) $this->config->item('analytics_export_max_rows');
+		if ($max <= 0) {
+			$max = 50000;
+		}
+		return $max;
+	}
+
+	/**
+	 * Whitelist sort direction for raw event queries.
+	 *
+	 * @param string $sort_order
+	 * @return string ASC or DESC
+	 */
+	public function normalize_sort_order($sort_order)
+	{
+		$sort_order = strtolower(trim((string) $sort_order));
+		return ($sort_order === 'asc') ? 'ASC' : 'DESC';
+	}
+
+	/**
+	 * @param int $offset
+	 * @param int $limit 0 means no page limit (e.g. export cap applied separately)
+	 * @param int $total
+	 * @return bool
+	 */
+	private function pagination_has_more($offset, $limit, $total)
+	{
+		if ($limit <= 0) {
+			return false;
+		}
+		return ($offset + $limit) < $total;
+	}
+
+	/**
+	 * @param string $date Y-m-d
+	 * @return string
+	 */
+	private function validate_date_ymd($date)
+	{
+		$date = trim((string) $date);
+		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+			throw new Exception('Invalid date format. Use YYYY-MM-DD');
+		}
+		return $date;
+	}
+
+	/**
+	 * @param int $months
+	 * @return array[] { year, month, label }
+	 */
+	private function build_last_n_month_slots($months)
+	{
+		$slots = array();
+		$now = new DateTime();
+		$now->setDate((int) $now->format('Y'), (int) $now->format('n'), 1);
+		$now->setTime(0, 0, 0);
+		for ($i = $months - 1; $i >= 0; $i--) {
+			$d = clone $now;
+			$d->modify("-{$i} month");
+			$slots[] = array(
+				'year' => (int) $d->format('Y'),
+				'month' => (int) $d->format('n'),
+				'label' => $d->format('M Y'),
+			);
+		}
+		return $slots;
+	}
+
+	/**
+	 * @param string $date_from
+	 * @param string $date_to
+	 * @param array $by_date keyed by Y-m-d
+	 * @return array
+	 */
+	private function fill_daily_date_range($date_from, $date_to, $by_date)
+	{
+		$result = array();
+		$cursor = strtotime($date_from);
+		$end = strtotime($date_to);
+		while ($cursor <= $end) {
+			$key = date('Y-m-d', $cursor);
+			if (isset($by_date[$key])) {
+				$result[] = $by_date[$key];
+			} else {
+				$result[] = array(
+					'date' => $key,
+					'pageviews' => 0,
+					'unique_visitors' => 0,
+					'downloads' => 0,
+				);
+			}
+			$cursor = strtotime('+1 day', $cursor);
+		}
+		return $result;
+	}
+
+	/**
+	 * @param array $monthly_series output of get_monthly_totals
+	 * @param string $today Y-m-d
+	 * @return array year, month, label
+	 */
+	private function resolve_overview_kpi_month($monthly_series, $today)
+	{
+		if (empty($monthly_series)) {
+			$parts = explode('-', $today);
+			return array(
+				'year' => (int) $parts[0],
+				'month' => (int) $parts[1],
+				'label' => date('M Y', strtotime($today)),
+			);
+		}
+		for ($i = count($monthly_series) - 1; $i >= 0; $i--) {
+			$row = $monthly_series[$i];
+			if ((int) $row['pageviews'] > 0 || (int) $row['downloads'] > 0) {
+				return array(
+					'year' => (int) $row['year'],
+					'month' => (int) $row['month'],
+					'label' => $row['label'],
+				);
+			}
+		}
+		$last = $monthly_series[count($monthly_series) - 1];
+		return array(
+			'year' => (int) $last['year'],
+			'month' => (int) $last['month'],
+			'label' => $last['label'],
+		);
+	}
+
+	/**
+	 * @param array $monthly_series
+	 * @param array $kpi_month
+	 * @return array
+	 */
+	private function overview_month_compare($monthly_series, $kpi_month)
+	{
+		$this_month = array('pageviews' => 0, 'downloads' => 0, 'label' => $kpi_month['label']);
+		$previous_month = array('pageviews' => 0, 'downloads' => 0, 'label' => null);
+		$kpi_key = $kpi_month['year'] * 100 + $kpi_month['month'];
+		foreach ($monthly_series as $i => $row) {
+			$key = (int) $row['year'] * 100 + (int) $row['month'];
+			if ($key === $kpi_key) {
+				$this_month['pageviews'] = (int) $row['pageviews'];
+				$this_month['downloads'] = (int) $row['downloads'];
+				if ($i > 0) {
+					$prev = $monthly_series[$i - 1];
+					$previous_month['pageviews'] = (int) $prev['pageviews'];
+					$previous_month['downloads'] = (int) $prev['downloads'];
+					$previous_month['label'] = $prev['label'];
+				}
+				break;
+			}
+		}
+		return array(
+			'this_month' => $this_month,
+			'previous_month' => $previous_month,
+		);
+	}
+
+	/**
+	 * @param array $filters may include sort_by, sort_order
+	 */
+	private function apply_monthly_studies_order($filters)
+	{
+		$sort_by = isset($filters['sort_by']) ? $filters['sort_by'] : '';
+		$sort_order = $this->normalize_sort_order(isset($filters['sort_order']) ? $filters['sort_order'] : 'desc');
+		$valid = array('pageviews', 'unique_visitors', 'downloads', 'year', 'month', 'study_id');
+
+		if ($sort_by && in_array($sort_by, $valid, true)) {
+			$this->db->order_by($sort_by, $sort_order);
+			if ($sort_by !== 'study_id') {
+				$this->db->order_by('study_id', 'ASC');
+			}
+			return;
+		}
+
+		$this->db->order_by('year', 'DESC');
+		$this->db->order_by('month', 'DESC');
+		$this->db->order_by('study_id', 'ASC');
+	}
+
+	/**
+	 * @param array $filters may include sort_by, sort_order
+	 */
+	private function apply_monthly_files_order($filters)
+	{
+		$sort_by = isset($filters['sort_by']) ? $filters['sort_by'] : '';
+		$sort_order = $this->normalize_sort_order(isset($filters['sort_order']) ? $filters['sort_order'] : 'desc');
+		$valid = array('downloads', 'year', 'month', 'study_id', 'file_name');
+
+		if ($sort_by && in_array($sort_by, $valid, true)) {
+			$this->db->order_by($sort_by, $sort_order);
+			if ($sort_by !== 'file_name') {
+				$this->db->order_by('file_name', 'ASC');
+			}
+			return;
+		}
+
+		$this->db->order_by('year', 'DESC');
+		$this->db->order_by('month', 'DESC');
+		$this->db->order_by('study_id', 'ASC');
+		$this->db->order_by('downloads', 'DESC');
 	}
 }
 

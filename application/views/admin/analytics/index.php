@@ -320,7 +320,7 @@
                                             </v-list-item-avatar>
                                             <v-list-item-content class="py-1">
                                                 <v-list-item-title style="font-size:0.82rem;">
-                                                    <a :href="site_url + '/catalog/' + item.study_id" target="_blank">{{ item.title || ('Study ' + item.study_id) }}</a>
+                                                    <a :href="site_url + '/catalog/' + (item.idno || item.study_id)" target="_blank">{{ item.title || ('Study ' + (item.idno || item.study_id)) }}</a>
                                                 </v-list-item-title>
                                                 <v-list-item-subtitle style="font-size:0.75rem;">
                                                     {{ item.pageviews }} views &nbsp;·&nbsp; {{ item.downloads }} downloads
@@ -351,7 +351,7 @@
                                                 <v-list-item-title style="font-size:0.82rem;" :title="item.file_name">{{ item.file_name }}</v-list-item-title>
                                                 <v-list-item-subtitle style="font-size:0.75rem;">
                                                     {{ item.downloads }} downloads &nbsp;·&nbsp;
-                                                    <a :href="site_url + '/catalog/' + item.study_id" target="_blank">{{ item.title || ('Study ' + item.study_id) }}</a>
+                                                    <a :href="site_url + '/catalog/' + (item.idno || item.study_id)" target="_blank">{{ item.title || ('Study ' + (item.idno || item.study_id)) }}</a>
                                                 </v-list-item-subtitle>
                                             </v-list-item-content>
                                         </v-list-item>
@@ -375,7 +375,7 @@
                                                     <tbody>
                                                         <tr v-for="item in recentPageviews.slice(0, 5)" :key="item.id">
                                                             <td style="width:85px;white-space:nowrap;" class="text-caption">{{ formatTimeOnly(item.ts) }}</td>
-                                                            <td><a target="_blank" :href="site_url + '/catalog/' + item.study_id" style="font-size:0.82rem;">{{ item.study_title }}</a></td>
+                                                            <td><a target="_blank" :href="site_url + '/catalog/' + (item.idno || item.study_id)" style="font-size:0.82rem;">{{ item.study_title }}</a></td>
                                                         </tr>
                                                     </tbody>
                                                 </template>
@@ -392,7 +392,7 @@
                                                             <td class="text-caption">
                                                                 {{ item.file_name }}
                                                                 <div class="text--secondary" style="font-size:0.72rem;">
-                                                                    <a target="_blank" :href="site_url + '/catalog/' + item.study_id">{{ item.study_title }}</a>
+                                                                    <a target="_blank" :href="site_url + '/catalog/' + (item.idno || item.study_id)">{{ item.study_title }}</a>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -1005,8 +1005,7 @@
                 ]
             },
             mounted() {
-                this.loadOverview();
-                this.loadOverviewExtended();
+                this.loadOverviewBundle();
                 this.loadAggregationStatus();
                 const updateClock = () => {
                     this.serverClock = new Date().toLocaleString('en-US', {
@@ -1057,32 +1056,60 @@
                 }
             },
             methods: {
-                async loadOverview() {
-                    const today = this.getTodayDateString();
-                    // Load today's pageviews (count + recent list)
+                async loadOverviewBundle() {
+                    this.overviewLoading = true;
+                    this.sevenDayChartLoading = true;
+                    this.topStudiesLoading = true;
+                    this.topFilesLoading = true;
                     try {
-                        const pvResponse = await axios.get(apiBase + '/raw/pageviews', {
-                            params: { limit: 10, offset: 0, date_from: today, date_to: today }
-                        });
-                        if (pvResponse.data.status === 'success') {
-                            this.recentPageviews = pvResponse.data.data || [];
-                            this.todayStats.pageviews = pvResponse.data.total || 0;
+                        const resp = await axios.get(apiBase + '/overview');
+                        if (resp.data.status !== 'success') {
+                            throw new Error(resp.data.message || 'Failed to load overview');
                         }
-                    } catch (error) {
-                        console.error('Error loading pageviews:', error);
-                    }
-                    
-                    // Load today's downloads (count + recent list)
-                    try {
-                        const dlResponse = await axios.get(apiBase + '/raw/downloads', {
-                            params: { limit: 10, offset: 0, date_from: today, date_to: today }
-                        });
-                        if (dlResponse.data.status === 'success') {
-                            this.recentDownloads = dlResponse.data.data || [];
-                            this.todayStats.downloads = dlResponse.data.total || 0;
+                        const d = resp.data.data || {};
+                        if (d.today) {
+                            this.todayStats = {
+                                pageviews: d.today.pageviews || 0,
+                                downloads: d.today.downloads || 0
+                            };
                         }
+                        this.recentPageviews = d.recent_pageviews || [];
+                        this.recentDownloads = d.recent_downloads || [];
+                        this.topStudiesMonth = d.top_studies || [];
+                        this.topFilesMonth = d.top_files || [];
+                        if (d.kpi_month) {
+                            this.thisMonthYear = d.kpi_month.year;
+                            this.thisMonthMonth = d.kpi_month.month;
+                            const todayParts = this.getTodayDateString().split('-');
+                            if (d.kpi_month.year === parseInt(todayParts[0], 10) && d.kpi_month.month === parseInt(todayParts[1], 10)) {
+                                this.thisMonthLabel = 'This month';
+                            } else {
+                                this.thisMonthLabel = d.kpi_month.label || 'This month';
+                            }
+                        }
+                        if (d.this_month) {
+                            this.thisMonthStats = {
+                                pageviews: d.this_month.pageviews || 0,
+                                downloads: d.this_month.downloads || 0
+                            };
+                        }
+                        if (d.previous_month) {
+                            this.lastMonthStats = {
+                                pageviews: d.previous_month.pageviews || 0,
+                                downloads: d.previous_month.downloads || 0
+                            };
+                        }
+                        if (d.aggregation && d.aggregation.last_completed_at) {
+                            this.lastCompletedAt = d.aggregation.last_completed_at;
+                        }
+                        this.renderSevenDayFromDailyTotals(d.daily_last_7_days || []);
                     } catch (error) {
-                        console.error('Error loading downloads:', error);
+                        console.error('Error loading overview:', error);
+                    } finally {
+                        this.overviewLoading = false;
+                        this.sevenDayChartLoading = false;
+                        this.topStudiesLoading = false;
+                        this.topFilesLoading = false;
                     }
                 },
                 getTodayDateString() {
@@ -1344,7 +1371,7 @@
                                     progress: 100
                                 };
                                 this.aggregationRunning = false;
-                                this.loadOverview();
+                                this.loadOverviewBundle();
                                 this.loadAggregationStatus(); // refresh last completed time
                                 return;
                             }
@@ -1425,141 +1452,17 @@
                     alert('Use "Run Aggregations" button for unified processing');
                 },
                 
-                async loadOverviewExtended() {
-                    this.overviewLoading = true;
-                    try {
-                        const resp = await axios.get(apiBase + '/monthly/totals', { params: { months: 3 } });
-                        if (resp.data.status === 'success') {
-                            const data = resp.data.data || [];
-                            // Find the latest month that has any data (pageviews or downloads > 0).
-                            // On day 1 of a new month the current calendar month has 0 rows,
-                            // so we fall back to the previous month to avoid showing all zeros.
-                            let cur = null, prev = null;
-                            for (let i = data.length - 1; i >= 0; i--) {
-                                if ((data[i].pageviews || 0) > 0 || (data[i].downloads || 0) > 0) {
-                                    cur = data[i];
-                                    prev = i > 0 ? data[i - 1] : null;
-                                    break;
-                                }
-                            }
-                            if (cur) {
-                                this.thisMonthStats = { pageviews: cur.pageviews || 0, downloads: cur.downloads || 0 };
-                                this.thisMonthYear  = cur.year;
-                                this.thisMonthMonth = cur.month;
-                                // Build a readable label (e.g. "Feb 2026" or "This month")
-                                const todayParts = this.getTodayDateString().split('-');
-                                if (cur.year === parseInt(todayParts[0]) && cur.month === parseInt(todayParts[1])) {
-                                    this.thisMonthLabel = 'This month';
-                                } else {
-                                    this.thisMonthLabel = cur.label || (cur.year + '-' + String(cur.month).padStart(2, '0'));
-                                }
-                            }
-                            if (prev) this.lastMonthStats = { pageviews: prev.pageviews || 0, downloads: prev.downloads || 0 };
-                        }
-                    } catch (e) {
-                        console.error('Error loading monthly totals for overview:', e);
-                    } finally {
-                        this.overviewLoading = false;
-                    }
-                    this.loadTopStudies();
-                    this.loadTopFiles();
-                    this.loadSevenDayChart();
-                },
-
-                async loadTopStudies() {
-                    this.topStudiesLoading = true;
-                    try {
-                        const year  = this.thisMonthYear  || parseInt(this.getTodayDateString().split('-')[0]);
-                        const month = this.thisMonthMonth || parseInt(this.getTodayDateString().split('-')[1]);
-                        const resp = await axios.get(apiBase + '/monthly/studies', {
-                            params: { year, month, limit: 500 }
-                        });
-                        if (resp.data.status === 'success') {
-                            this.topStudiesMonth = (resp.data.data || [])
-                                .sort((a, b) => b.pageviews - a.pageviews)
-                                .slice(0, 10);
-                        }
-                    } catch (e) {
-                        console.error('Error loading top studies:', e);
-                    } finally {
-                        this.topStudiesLoading = false;
-                    }
-                },
-
-                async loadTopFiles() {
-                    this.topFilesLoading = true;
-                    try {
-                        const year  = this.thisMonthYear  || parseInt(this.getTodayDateString().split('-')[0]);
-                        const month = this.thisMonthMonth || parseInt(this.getTodayDateString().split('-')[1]);
-                        const resp = await axios.get(apiBase + '/monthly/files', {
-                            params: { year, month, limit: 500 }
-                        });
-                        if (resp.data.status === 'success') {
-                            this.topFilesMonth = (resp.data.data || [])
-                                .sort((a, b) => b.downloads - a.downloads)
-                                .slice(0, 10);
-                        }
-                    } catch (e) {
-                        console.error('Error loading top files:', e);
-                    } finally {
-                        this.topFilesLoading = false;
-                    }
-                },
-
-                async loadSevenDayChart() {
-                    this.sevenDayChartLoading = true;
-                    try {
-                        const today = this.getTodayDateString();
-                        // Use server date as base (noon UTC to avoid DST edge cases)
-                        const todayBase = new Date(today + 'T12:00:00');
-                        const start = new Date(todayBase);
-                        start.setDate(start.getDate() - 6);
-                        const weekAgo = start.getFullYear() + '-'
-                            + String(start.getMonth() + 1).padStart(2, '0') + '-'
-                            + String(start.getDate()).padStart(2, '0');
-
-                        // Build ordered label/key arrays for the 7 days
-                        const dayKeys = [], labels = [], pvMap = {}, dlMap = {};
-                        for (let i = 6; i >= 0; i--) {
-                            const d = new Date(todayBase);
-                            d.setDate(d.getDate() - i);
-                            const key = d.getFullYear() + '-'
-                                + String(d.getMonth() + 1).padStart(2, '0') + '-'
-                                + String(d.getDate()).padStart(2, '0');
-                            dayKeys.push(key);
-                            labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                            pvMap[key] = 0;
-                            dlMap[key] = 0;
-                        }
-
-                        // Fetch all pages of daily data for the 7-day window
-                        let offset = 0, hasMore = true;
-                        while (hasMore) {
-                            const resp = await axios.get(apiBase + '/daily/studies', {
-                                params: { date_from: weekAgo, date_to: today, limit: 500, offset }
-                            });
-                            if (resp.data.status !== 'success') break;
-                            for (const row of (resp.data.data || [])) {
-                                if (pvMap[row.date] !== undefined) {
-                                    pvMap[row.date] += parseInt(row.pageviews) || 0;
-                                    dlMap[row.date] += parseInt(row.downloads) || 0;
-                                }
-                            }
-                            hasMore = resp.data.has_more || false;
-                            offset += 500;
-                            if (!hasMore) break;
-                        }
-
-                        this.renderSevenDayChart(
-                            labels,
-                            dayKeys.map(k => pvMap[k]),
-                            dayKeys.map(k => dlMap[k])
-                        );
-                    } catch (e) {
-                        console.error('Error loading 7-day chart:', e);
-                    } finally {
-                        this.sevenDayChartLoading = false;
-                    }
+                renderSevenDayFromDailyTotals(days) {
+                    const labels = [];
+                    const pageviews = [];
+                    const downloads = [];
+                    (days || []).forEach(function(row) {
+                        const d = new Date(row.date + 'T12:00:00');
+                        labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                        pageviews.push(row.pageviews || 0);
+                        downloads.push(row.downloads || 0);
+                    });
+                    this.renderSevenDayChart(labels, pageviews, downloads);
                 },
 
                 renderSevenDayChart(labels, pageviews, downloads) {

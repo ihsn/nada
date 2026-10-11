@@ -9,6 +9,9 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
  *
  * Base URL: /api/admin/analytics
  * Auth: session or API key; ACL via require_analytics_access() per endpoint.
+ *
+ * Query param study_id accepts surveys.id (numeric sid) or catalog IDNO unless
+ * id_format=id is set (see get_sid_from_idno).
  */
 class Analytics extends MY_REST_Controller
 {
@@ -18,6 +21,54 @@ class Analytics extends MY_REST_Controller
 		$this->load->helper("date");
 		$this->load->model('Analytics_model');
 		$this->is_authenticated_or_die();
+	}
+
+	/**
+	 * Resolve optional study_id to numeric surveys.id for filters.
+	 *
+	 * @param mixed $study_id_raw
+	 * @return int|null
+	 */
+	protected function resolve_optional_study_sid_value($study_id_raw)
+	{
+		if ($study_id_raw === null || $study_id_raw === '') {
+			return null;
+		}
+		if (is_numeric($study_id_raw)) {
+			return (int) $study_id_raw;
+		}
+		return $this->get_sid_from_idno($study_id_raw);
+	}
+
+	/**
+	 * ACL check for optional study_id query param; returns resolved sid.
+	 *
+	 * @param mixed $study_id_raw defaults to study_id query param
+	 * @return int|null
+	 */
+	protected function require_analytics_access_for_study_param($study_id_raw = null)
+	{
+		if ($study_id_raw === null) {
+			$study_id_raw = $this->input->get('study_id');
+		}
+		$sid = $this->resolve_optional_study_sid_value($study_id_raw);
+		$this->require_analytics_access($sid);
+		return $sid;
+	}
+
+	/**
+	 * @param int $total       matching row count before export cap
+	 * @param int $row_count   rows in export payload
+	 */
+	protected function send_export_truncation_headers($total, $row_count)
+	{
+		$max = $this->Analytics_model->get_export_max_rows();
+		if ((int) $total > (int) $row_count || (int) $total > $max) {
+			header('X-Analytics-Export-Truncated: 1');
+			header('X-Analytics-Export-Total: ' . (int) $total);
+			header('X-Analytics-Export-Row-Count: ' . (int) $row_count);
+			header('X-Analytics-Export-Max-Rows: ' . (int) $max);
+		}
 	}
 
 
@@ -31,18 +82,18 @@ class Analytics extends MY_REST_Controller
 	 *   - offset: pagination offset (default: 0)
 	 *   - date_from: filter from date (Y-m-d)
 	 *   - date_to: filter to date (Y-m-d)
-	 *   - study_id: filter by study ID
+	 *   - study_id: filter by study (numeric sid or IDNO)
 	 *   - sort_by: field to sort by (default: ts)
 	 *   - sort_order: asc or desc (default: desc)
 	 */
 	function raw_pageviews_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
 				'date_from' => $this->input->get('date_from'),
 				'date_to' => $this->input->get('date_to'),
-				'study_id' => $this->input->get('study_id')
+				'study_id' => $study_sid
 			);
 			
 			$limit = (int)$this->input->get('limit') ?: 50;
@@ -82,19 +133,19 @@ class Analytics extends MY_REST_Controller
 	 *   - offset: pagination offset (default: 0)
 	 *   - date_from: filter from date (Y-m-d)
 	 *   - date_to: filter to date (Y-m-d)
-	 *   - study_id: filter by study ID
+	 *   - study_id: filter by study (numeric sid or IDNO)
 	 *   - file_type: filter by file type
 	 *   - sort_by: field to sort by (default: ts)
 	 *   - sort_order: asc or desc (default: desc)
 	 */
 	function raw_downloads_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
 				'date_from' => $this->input->get('date_from'),
 				'date_to' => $this->input->get('date_to'),
-				'study_id' => $this->input->get('study_id'),
+				'study_id' => $study_sid,
 				'file_type' => $this->input->get('file_type')
 			);
 			
@@ -139,12 +190,12 @@ class Analytics extends MY_REST_Controller
 	 */
 	function daily_studies_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
 				'date_from' => $this->input->get('date_from'),
 				'date_to' => $this->input->get('date_to'),
-				'study_id' => $this->input->get('study_id')
+				'study_id' => $study_sid
 			);
 			
 			$limit = (int)$this->input->get('limit') ?: 50;
@@ -186,12 +237,12 @@ class Analytics extends MY_REST_Controller
 	 */
 	function daily_files_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
 				'date_from' => $this->input->get('date_from'),
 				'date_to' => $this->input->get('date_to'),
-				'study_id' => $this->input->get('study_id')
+				'study_id' => $study_sid
 			);
 			
 			$limit = (int)$this->input->get('limit') ?: 50;
@@ -227,18 +278,22 @@ class Analytics extends MY_REST_Controller
 	 * Query params:
 	 *   - year: filter by year
 	 *   - month: filter by month (1-12)
-	 *   - study_id: filter by study ID
+	 *   - study_id: filter by study (numeric sid or IDNO)
+	 *   - sort_by: pageviews|unique_visitors|downloads|year|month|study_id
+	 *   - sort_order: asc|desc (default: desc when sort_by set)
 	 *   - limit: number of records (default: 50)
 	 *   - offset: pagination offset (default: 0)
 	 */
 	function monthly_studies_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
 				'year' => $this->input->get('year'),
 				'month' => $this->input->get('month'),
-				'study_id' => $this->input->get('study_id')
+				'study_id' => $study_sid,
+				'sort_by' => $this->input->get('sort_by'),
+				'sort_order' => $this->input->get('sort_order'),
 			);
 			
 			$limit = (int)$this->input->get('limit') ?: 50;
@@ -273,17 +328,25 @@ class Analytics extends MY_REST_Controller
 	 * 
 	 * Query params:
 	 *   - months: number of months to retrieve (default: 12, max: 24)
+	 *   - study_id: optional (numeric sid or IDNO) for single-study series
 	 * 
 	 * Returns array of monthly totals (pageviews, unique_visitors, downloads)
 	 */
 	function monthly_totals_get()
 	{
-		$this->require_analytics_access(null, false);
 		try {
+			$study_raw = $this->input->get('study_id');
+			$study_sid = null;
+			if ($study_raw !== null && $study_raw !== '') {
+				$study_sid = $this->require_analytics_access_for_study_param($study_raw);
+			} else {
+				$this->require_analytics_access(null, false);
+			}
+
 			$months = (int)$this->input->get('months') ?: 12;
 			$months = max(1, min(24, $months)); // clamp 1-24
 			
-			$result = $this->Analytics_model->get_monthly_totals($months);
+			$result = $this->Analytics_model->get_monthly_totals($months, $study_sid);
 			
 			$response = array(
 				'status' => 'success',
@@ -300,6 +363,87 @@ class Analytics extends MY_REST_Controller
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+	/**
+	 * Per-day totals from daily study aggregates (for charts).
+	 *
+	 * GET /api/admin/analytics/daily/totals
+	 *
+	 * Query params:
+	 *   - date_from: required (Y-m-d)
+	 *   - date_to: required (Y-m-d)
+	 *   - study_id: optional (numeric sid or IDNO)
+	 */
+	function daily_totals_get()
+	{
+		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
+			$data = $this->Analytics_model->get_daily_totals(array(
+				'date_from' => $this->input->get('date_from'),
+				'date_to' => $this->input->get('date_to'),
+				'study_id' => $study_sid,
+			));
+
+			$this->set_response(array(
+				'status' => 'success',
+				'data' => $data,
+			), REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->set_response(array(
+				'status' => 'error',
+				'message' => $e->getMessage(),
+			), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Analytics configuration and freshness metadata.
+	 *
+	 * GET /api/admin/analytics/meta
+	 */
+	function meta_get()
+	{
+		$this->require_analytics_access(null, false);
+		try {
+			$this->set_response(array(
+				'status' => 'success',
+				'data' => $this->Analytics_model->get_analytics_meta(),
+			), REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->set_response(array(
+				'status' => 'error',
+				'message' => $e->getMessage(),
+			), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Dashboard overview bundle for admin analytics home.
+	 *
+	 * GET /api/admin/analytics/overview
+	 *
+	 * Query params:
+	 *   - study_id: optional (numeric sid or IDNO) — scopes all metrics to one study
+	 */
+	function overview_get()
+	{
+		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
+			$data = $this->Analytics_model->get_admin_overview(array(
+				'study_id' => $study_sid,
+			));
+
+			$this->set_response(array(
+				'status' => 'success',
+				'data' => $data,
+			), REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->set_response(array(
+				'status' => 'error',
+				'message' => $e->getMessage(),
+			), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
 	
 	/**
 	 * Get monthly file aggregates
@@ -309,18 +453,22 @@ class Analytics extends MY_REST_Controller
 	 * Query params:
 	 *   - year: filter by year
 	 *   - month: filter by month (1-12)
-	 *   - study_id: filter by study ID
+	 *   - study_id: filter by study (numeric sid or IDNO)
+	 *   - sort_by: downloads|year|month|study_id|file_name
+	 *   - sort_order: asc|desc
 	 *   - limit: number of records (default: 50)
 	 *   - offset: pagination offset (default: 0)
 	 */
 	function monthly_files_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
 				'year' => $this->input->get('year'),
 				'month' => $this->input->get('month'),
-				'study_id' => $this->input->get('study_id')
+				'study_id' => $study_sid,
+				'sort_by' => $this->input->get('sort_by'),
+				'sort_order' => $this->input->get('sort_order'),
 			);
 			
 			$limit = (int)$this->input->get('limit') ?: 50;
@@ -357,17 +505,19 @@ class Analytics extends MY_REST_Controller
 	 */
 	function daily_studies_export_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
 				'date_from' => $this->input->get('date_from'),
 				'date_to'   => $this->input->get('date_to'),
-				'study_id'  => $this->input->get('study_id')
+				'study_id'  => $study_sid
 			);
 
 			$format = strtolower($this->input->get('format') ?: 'csv');
-			$result = $this->Analytics_model->get_daily_studies($filters, 0, 0);
+			$export_max = $this->Analytics_model->get_export_max_rows();
+			$result = $this->Analytics_model->get_daily_studies($filters, $export_max, 0);
 			$rows   = $result['data'];
+			$this->send_export_truncation_headers($result['total'], count($rows));
 
 			if ($format === 'json') {
 				header('Content-Type: application/json');
@@ -377,11 +527,12 @@ class Analytics extends MY_REST_Controller
 				header('Content-Type: text/csv');
 				header('Content-Disposition: attachment; filename="daily_studies_export.csv"');
 				$out = fopen('php://output', 'w');
-				fputcsv($out, array('date', 'study_id', 'title', 'nation', 'study_year', 'pageviews', 'unique_visitors', 'downloads'));
+				fputcsv($out, array('date', 'study_id', 'idno', 'title', 'nation', 'study_year', 'pageviews', 'unique_visitors', 'downloads'));
 				foreach ($rows as $row) {
 					fputcsv($out, array(
 						isset($row['date'])            ? $row['date']            : '',
 						isset($row['study_id'])        ? $row['study_id']        : '',
+						isset($row['idno'])            ? $row['idno']            : '',
 						isset($row['title'])           ? $row['title']           : '',
 						isset($row['nation'])          ? $row['nation']          : '',
 						isset($row['study_year'])      ? $row['study_year']      : '',
@@ -408,17 +559,19 @@ class Analytics extends MY_REST_Controller
 	 */
 	function daily_files_export_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
 				'date_from' => $this->input->get('date_from'),
 				'date_to'   => $this->input->get('date_to'),
-				'study_id'  => $this->input->get('study_id')
+				'study_id'  => $study_sid
 			);
 
 			$format = strtolower($this->input->get('format') ?: 'csv');
-			$result = $this->Analytics_model->get_daily_files($filters, 0, 0);
+			$export_max = $this->Analytics_model->get_export_max_rows();
+			$result = $this->Analytics_model->get_daily_files($filters, $export_max, 0);
 			$rows   = $result['data'];
+			$this->send_export_truncation_headers($result['total'], count($rows));
 
 			if ($format === 'json') {
 				header('Content-Type: application/json');
@@ -428,11 +581,12 @@ class Analytics extends MY_REST_Controller
 				header('Content-Type: text/csv');
 				header('Content-Disposition: attachment; filename="daily_files_export.csv"');
 				$out = fopen('php://output', 'w');
-				fputcsv($out, array('date', 'study_id', 'title', 'file_name', 'downloads'));
+				fputcsv($out, array('date', 'study_id', 'idno', 'title', 'file_name', 'downloads'));
 				foreach ($rows as $row) {
 					fputcsv($out, array(
 						isset($row['date'])      ? $row['date']      : '',
 						isset($row['study_id'])  ? $row['study_id']  : '',
+						isset($row['idno'])      ? $row['idno']      : '',
 						isset($row['title'])     ? $row['title']     : '',
 						isset($row['file_name']) ? $row['file_name'] : '',
 						isset($row['downloads']) ? $row['downloads'] : 0
@@ -455,17 +609,19 @@ class Analytics extends MY_REST_Controller
 	 */
 	function monthly_studies_export_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
 				'year'     => $this->input->get('year'),
 				'month'    => $this->input->get('month'),
-				'study_id' => $this->input->get('study_id')
+				'study_id' => $study_sid
 			);
 
 			$format = strtolower($this->input->get('format') ?: 'csv');
-			$result = $this->Analytics_model->get_monthly_studies($filters, 0, 0);
+			$export_max = $this->Analytics_model->get_export_max_rows();
+			$result = $this->Analytics_model->get_monthly_studies($filters, $export_max, 0);
 			$rows   = $result['data'];
+			$this->send_export_truncation_headers($result['total'], count($rows));
 
 			if ($format === 'json') {
 				header('Content-Type: application/json');
@@ -475,12 +631,13 @@ class Analytics extends MY_REST_Controller
 				header('Content-Type: text/csv');
 				header('Content-Disposition: attachment; filename="monthly_studies_export.csv"');
 				$out = fopen('php://output', 'w');
-				fputcsv($out, array('year', 'month', 'study_id', 'title', 'nation', 'study_year', 'pageviews', 'unique_visitors', 'downloads', 'finalized'));
+				fputcsv($out, array('year', 'month', 'study_id', 'idno', 'title', 'nation', 'study_year', 'pageviews', 'unique_visitors', 'downloads', 'finalized'));
 				foreach ($rows as $row) {
 					fputcsv($out, array(
 						isset($row['year'])            ? $row['year']            : '',
 						isset($row['month'])           ? $row['month']           : '',
 						isset($row['study_id'])        ? $row['study_id']        : '',
+						isset($row['idno'])            ? $row['idno']            : '',
 						isset($row['title'])           ? $row['title']           : '',
 						isset($row['nation'])          ? $row['nation']          : '',
 						isset($row['study_year'])      ? $row['study_year']      : '',
@@ -508,17 +665,19 @@ class Analytics extends MY_REST_Controller
 	 */
 	function monthly_files_export_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
 				'year'     => $this->input->get('year'),
 				'month'    => $this->input->get('month'),
-				'study_id' => $this->input->get('study_id')
+				'study_id' => $study_sid
 			);
 
 			$format = strtolower($this->input->get('format') ?: 'csv');
-			$result = $this->Analytics_model->get_monthly_files($filters, 0, 0);
+			$export_max = $this->Analytics_model->get_export_max_rows();
+			$result = $this->Analytics_model->get_monthly_files($filters, $export_max, 0);
 			$rows   = $result['data'];
+			$this->send_export_truncation_headers($result['total'], count($rows));
 
 			if ($format === 'json') {
 				header('Content-Type: application/json');
@@ -528,12 +687,13 @@ class Analytics extends MY_REST_Controller
 				header('Content-Type: text/csv');
 				header('Content-Disposition: attachment; filename="monthly_files_export.csv"');
 				$out = fopen('php://output', 'w');
-				fputcsv($out, array('year', 'month', 'study_id', 'title', 'file_name', 'downloads', 'finalized'));
+				fputcsv($out, array('year', 'month', 'study_id', 'idno', 'title', 'file_name', 'downloads', 'finalized'));
 				foreach ($rows as $row) {
 					fputcsv($out, array(
 						isset($row['year'])      ? $row['year']      : '',
 						isset($row['month'])     ? $row['month']     : '',
 						isset($row['study_id'])  ? $row['study_id']  : '',
+						isset($row['idno'])      ? $row['idno']      : '',
 						isset($row['title'])     ? $row['title']     : '',
 						isset($row['file_name']) ? $row['file_name'] : '',
 						isset($row['downloads']) ? $row['downloads'] : 0,
@@ -696,11 +856,12 @@ $year = $this->input->post('year');
 	{
 		$this->require_analytics_access(null, false);
 		try {
-$study_id = $this->input->post('study_id');
+			$study_id_raw = $this->input->post('study_id');
+			$study_sid = $study_id_raw ? $this->resolve_optional_study_sid_value($study_id_raw) : null;
 			$offset = (int)$this->input->post('offset') ?: 0;
 			
-			if ($study_id) {
-				$result = $this->Analytics_model->update_legacy_totals($study_id);
+			if ($study_sid) {
+				$result = $this->Analytics_model->update_legacy_totals($study_sid);
 				$success = (bool)$result;
 			} else {
 				$result = $this->Analytics_model->update_legacy_totals_chunked($offset);
@@ -709,7 +870,7 @@ $study_id = $this->input->post('study_id');
 			
 			$response = array(
 				'status' => 'success',
-				'message' => $study_id ? "Totals updated for study {$study_id}" : 'All-time totals updated successfully',
+				'message' => $study_sid ? "Totals updated for study {$study_sid}" : 'All-time totals updated successfully',
 				'success' => $success,
 				'processed' => $result['processed'] ?? null,
 				'total_studies' => $result['total_studies'] ?? null,
@@ -873,10 +1034,10 @@ $result = $this->Analytics_model->stop_aggregation_status();
 	 */
 	function legacy_studies_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
-				'study_id' => $this->input->get('study_id')
+				'study_id' => $study_sid
 			);
 			$limit  = (int)$this->input->get('limit')  ?: 50;
 			$offset = (int)$this->input->get('offset') ?: 0;
@@ -911,10 +1072,10 @@ $result = $this->Analytics_model->stop_aggregation_status();
 	 */
 	function legacy_files_get()
 	{
-		$this->require_analytics_access($this->input->get('study_id'));
 		try {
+			$study_sid = $this->require_analytics_access_for_study_param();
 			$filters = array(
-				'study_id' => $this->input->get('study_id')
+				'study_id' => $study_sid
 			);
 			$limit  = (int)$this->input->get('limit')  ?: 50;
 			$offset = (int)$this->input->get('offset') ?: 0;
