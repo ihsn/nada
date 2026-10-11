@@ -31,9 +31,7 @@
         <template #item.study_title="{ item }">
           <a
             v-if="item.study_id"
-            :href="catalogStudyUrl(siteUrl, item)"
-            target="_blank"
-            rel="noopener"
+            :href="adminStudyEditUrl(siteUrl, item)"
             class="admin-analytics-cell-truncate admin-analytics-study-link"
             :title="item.study_title || `Study ${item.study_id}`"
           >
@@ -66,7 +64,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useAnalyticsApi } from '../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../composables/useAnalyticsMessages';
-import { catalogStudyUrl, formatDateTime } from '../utils/formatters';
+import { adminStudyEditUrl, formatDateTime } from '../utils/formatters';
 import { defaultRawDateRange } from '../utils/dateDefaults';
 import DateRangeFilter from '../components/shared/DateRangeFilter.vue';
 import PaginatedTableFooter from '../components/shared/PaginatedTableFooter.vue';

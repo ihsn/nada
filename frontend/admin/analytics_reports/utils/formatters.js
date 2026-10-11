@@ -4,11 +4,12 @@ export function fmtNum(value) {
   return n.toLocaleString();
 }
 
-export function catalogStudyUrl(siteUrl, row) {
-  const id = row?.idno || row?.study_id;
-  if (!id) return '#';
+/** Admin study editor (surveys.id / study_id), not public catalog. */
+export function adminStudyEditUrl(siteUrl, row) {
+  const sid = row?.study_id;
+  if (sid === null || sid === undefined || sid === '') return '#';
   const base = String(siteUrl || '').replace(/\/+$/, '');
-  return `${base}/catalog/${id}`;
+  return `${base}/admin/catalog/edit/${sid}`;
 }
 
 export function timeAgo(dateString) {

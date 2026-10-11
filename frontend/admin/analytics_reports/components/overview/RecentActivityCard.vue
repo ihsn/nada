@@ -11,9 +11,7 @@
                 <td class="admin-analytics-recent-time">{{ formatTimeOnly(item.ts, timezone) }}</td>
                 <td class="admin-analytics-recent-detail">
                   <a
-                    :href="catalogStudyUrl(siteUrl, item)"
-                    target="_blank"
-                    rel="noopener"
+                    :href="adminStudyEditUrl(siteUrl, item)"
                     class="admin-analytics-recent-detail-link"
                   >
                     {{ item.study_title }}
@@ -33,9 +31,7 @@
                 <td class="admin-analytics-recent-detail">
                   <div class="text-body-2">{{ item.file_name }}</div>
                   <a
-                    :href="catalogStudyUrl(siteUrl, item)"
-                    target="_blank"
-                    rel="noopener"
+                    :href="adminStudyEditUrl(siteUrl, item)"
                     class="text-caption text-medium-emphasis"
                   >
                     {{ item.study_title }}
@@ -53,7 +49,7 @@
 
 <script setup>
 import { useAppConfig } from '@/shared/composables/useAppConfig';
-import { catalogStudyUrl, formatTimeOnly } from '../../utils/formatters';
+import { adminStudyEditUrl, formatTimeOnly } from '../../utils/formatters';
 
 defineProps({
   pageviews: { type: Array, default: () => [] },

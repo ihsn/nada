@@ -18,9 +18,7 @@
           </template>
           <v-list-item-title>
             <a
-              :href="catalogStudyUrl(siteUrl, item)"
-              target="_blank"
-              rel="noopener"
+              :href="adminStudyEditUrl(siteUrl, item)"
               class="admin-analytics-overview-list-link"
             >
               {{ item.title || `Study ${item.study_id}` }}
@@ -37,7 +35,7 @@
 
 <script setup>
 import { useAppConfig } from '@/shared/composables/useAppConfig';
-import { catalogStudyUrl } from '../../utils/formatters';
+import { adminStudyEditUrl } from '../../utils/formatters';
 
 defineProps({
   items: { type: Array, default: () => [] },
