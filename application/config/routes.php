@@ -560,12 +560,6 @@ $route['api/analytics/pageview'] = "api/analytics/pageview";
 $route['api/analytics/download'] = "api/analytics/download";
 
 // Admin analytics API
-$route['api/admin/analytics/recent/pageviews'] = "api/admin/analytics/recent_pageviews";
-$route['api/admin/analytics/recent/downloads'] = "api/admin/analytics/recent_downloads";
-$route['api/admin/analytics/stats/study/(:any)'] = "api/admin/analytics/stats_study_get/$1";
-$route['api/admin/analytics/stats/file/(:any)'] = "api/admin/analytics/stats_file_get/$1";
-$route['api/admin/analytics/totals/study/(:any)'] = "api/admin/analytics/totals_study_get/$1";
-$route['api/admin/analytics/totals/file/(:any)'] = "api/admin/analytics/totals_file_get/$1";
 $route['api/admin/analytics/aggregate/daily'] = "api/admin/analytics/aggregate_daily";
 $route['api/admin/analytics/aggregate/monthly'] = "api/admin/analytics/aggregate_monthly";
 $route['api/admin/analytics/aggregate/totals'] = "api/admin/analytics/aggregate_totals";
@@ -586,7 +580,6 @@ $route['api/admin/analytics/daily/files'] = "api/admin/analytics/daily_files";
 $route['api/admin/analytics/monthly/studies'] = "api/admin/analytics/monthly_studies";
 $route['api/admin/analytics/monthly/files'] = "api/admin/analytics/monthly_files";
 $route['api/admin/analytics/monthly/totals'] = "api/admin/analytics/monthly_totals";
-$route['api/admin/analytics/studies'] = "api/admin/analytics/studies";
 $route['api/admin/analytics/aggregate/run_all'] = "api/admin/analytics/aggregate_run_all";
 $route['api/admin/analytics/legacy/studies'] = "api/admin/analytics/legacy_studies";
 $route['api/admin/analytics/legacy/files'] = "api/admin/analytics/legacy_files";

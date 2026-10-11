@@ -36,8 +36,9 @@ tags:
     description: "Widgets are embeddable content such as charts, visualizations or any other content. Widgets require Bootstrap 4 with JQuery to work properly, make sure the following lines are included in Widget's HTML and set the page height in pixels e.g. &lt;body style=&quot;`height:500px`&quot;&gt;. \n\n`https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css` \n `https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js` \n `https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js`"
   - name: Analytics
     description: |
-      Site analytics: raw pageview and download events, daily and monthly aggregates, CSV/JSON exports, and aggregation jobs.
-      Endpoints require an admin user and `X-API-KEY` (same as other catalog-admin APIs).
+      Site analytics under `/admin/analytics`: raw events, daily/monthly aggregates, overview/meta helpers, CSV/JSON exports (row cap with `X-Analytics-Export-*` headers when truncated), and aggregation jobs.
+      Requires `reports/view` or study-scoped access when filtering by `study_id` (numeric `surveys.id` or catalog IDNO).
+      List endpoints use `{ status, data, total, limit, offset, has_more }` with `limit` max 500. Errors use `{ status: error, message }` (HTTP 403 for access denied).
   - name: Data Structures
     description: Admin endpoints for global DSD catalogue management.
   - name: Codelists Admin
@@ -2237,6 +2238,73 @@ paths:
   # Analytics
   # ----------------------------------------------------------------
 
+  /analytics/overview:
+    get:
+      tags:
+        - Analytics
+      summary: Dashboard overview bundle
+      description: >-
+        Single payload for the admin analytics home: today's raw counts, recent events, last 7 daily totals,
+        monthly KPI month, top studies/files, and aggregation freshness. Optional `study_id` scopes all metrics.
+      operationId: analyticsOverview
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsOverviewResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/meta:
+    get:
+      tags:
+        - Analytics
+      summary: Analytics configuration and freshness
+      description: Timezone, export cap, raw retention, dedupe windows, and last successful aggregation timestamps.
+      operationId: analyticsMeta
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsMetaResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/daily/totals:
+    get:
+      tags:
+        - Analytics
+      summary: Daily totals (chart series)
+      description: >-
+        Per-day sums of pageviews, unique visitors, and downloads from `analytics_daily_studies`.
+        Date range required (max 366 days). Missing days in range are returned with zeros.
+      operationId: analyticsDailyTotals
+      parameters:
+        - $ref: '#/components/parameters/AnalyticsDateFrom'
+        - $ref: '#/components/parameters/AnalyticsDateTo'
+        - $ref: '#/components/parameters/AnalyticsStudyId'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsDailyTotalsResponse'
+        '400':
+          $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
   /analytics/raw/pageviews:
     get:
       tags:
@@ -2374,7 +2442,9 @@ paths:
         - Analytics
       summary: Export daily study aggregates
       description: >-
-        Download all matching daily study rows as CSV (default) or JSON. Same filters as daily studies list; not paginated. Admin only.
+        Download matching daily study rows as CSV (default) or JSON. Same filters as the list endpoint.
+        Rows are capped at `analytics_export_max_rows` (see `/analytics/meta`). When truncated, response headers include
+        `X-Analytics-Export-Truncated`, `X-Analytics-Export-Total`, `X-Analytics-Export-Row-Count`, `X-Analytics-Export-Max-Rows`.
       operationId: analyticsDailyStudiesExport
       parameters:
         - $ref: '#/components/parameters/AnalyticsExportFormat'
@@ -2405,7 +2475,7 @@ paths:
       tags:
         - Analytics
       summary: Export daily file aggregates
-      description: Download all matching daily file rows as CSV or JSON. Admin only.
+      description: CSV or JSON export with the same row cap and truncation headers as daily study export.
       operationId: analyticsDailyFilesExport
       parameters:
         - $ref: '#/components/parameters/AnalyticsExportFormat'
@@ -2442,6 +2512,18 @@ paths:
         - $ref: '#/components/parameters/AnalyticsYear'
         - $ref: '#/components/parameters/AnalyticsMonth'
         - $ref: '#/components/parameters/AnalyticsStudyId'
+        - name: sort_by
+          in: query
+          description: Sort field (default chronological by year/month/study_id)
+          schema:
+            type: string
+            enum: [pageviews, unique_visitors, downloads, year, month, study_id]
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
         - $ref: '#/components/parameters/AnalyticsLimit'
         - $ref: '#/components/parameters/AnalyticsOffset'
       responses:
@@ -2467,6 +2549,17 @@ paths:
         - $ref: '#/components/parameters/AnalyticsYear'
         - $ref: '#/components/parameters/AnalyticsMonth'
         - $ref: '#/components/parameters/AnalyticsStudyId'
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [downloads, year, month, study_id, file_name]
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
         - $ref: '#/components/parameters/AnalyticsLimit'
         - $ref: '#/components/parameters/AnalyticsOffset'
       responses:
@@ -2485,8 +2578,10 @@ paths:
     get:
       tags:
         - Analytics
-      summary: Monthly totals (all studies)
-      description: Recent months of aggregate totals (pageviews, unique visitors, downloads). Admin only.
+      summary: Monthly totals
+      description: >-
+        Recent months of pageviews, unique visitors, and downloads. Site-wide when `study_id` is omitted;
+        single-study series when `study_id` is set. Admin only.
       operationId: analyticsMonthlyTotals
       parameters:
         - name: months
@@ -2497,6 +2592,7 @@ paths:
             minimum: 1
             maximum: 24
             default: 12
+        - $ref: '#/components/parameters/AnalyticsStudyId'
       responses:
         '200':
           description: Successful operation
@@ -2514,7 +2610,7 @@ paths:
       tags:
         - Analytics
       summary: Export monthly study aggregates
-      description: Download all matching monthly study rows as CSV or JSON. Admin only.
+      description: CSV or JSON export with row cap and truncation headers (see daily study export).
       operationId: analyticsMonthlyStudiesExport
       parameters:
         - $ref: '#/components/parameters/AnalyticsExportFormat'
@@ -2545,7 +2641,7 @@ paths:
       tags:
         - Analytics
       summary: Export monthly file aggregates
-      description: Download all matching monthly file rows as CSV or JSON. Admin only.
+      description: CSV or JSON export with row cap and truncation headers (see daily study export).
       operationId: analyticsMonthlyFilesExport
       parameters:
         - $ref: '#/components/parameters/AnalyticsExportFormat'
@@ -2677,6 +2773,30 @@ paths:
                 $ref: '#/components/schemas/AnalyticsAggregateTotalsResponse'
         '400':
           $ref: '#/components/responses/AnalyticsBadRequest'
+        '403':
+          $ref: '#/components/responses/AnalyticsForbidden'
+
+  /analytics/aggregate/run_all:
+    post:
+      tags:
+        - Analytics
+      summary: Run one aggregation step (deprecated alias)
+      description: Alias for `POST /analytics/aggregate/run`. Prefer `/analytics/aggregate/run`.
+      operationId: analyticsAggregateRunAll
+      deprecated: true
+      responses:
+        '200':
+          description: Same as aggregate/run
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsAggregateRunResponse'
+        '400':
+          description: Error or failed step
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsAggregateRunResponse'
         '403':
           $ref: '#/components/responses/AnalyticsForbidden'
 
@@ -4770,16 +4890,19 @@ components:
     AnalyticsStudyId:
       name: study_id
       in: query
-      description: Filter by study ID
+      description: >-
+        Filter by study — numeric `surveys.id` (sid) or catalog IDNO. Use query `id_format=id` when passing sid
+        that must not be resolved as IDNO.
       schema:
         type: string
     AnalyticsLimit:
       name: limit
       in: query
-      description: Page size (default 50)
+      description: Page size (default 50, maximum 500 per request)
       schema:
         type: integer
         default: 50
+        maximum: 500
     AnalyticsOffset:
       name: offset
       in: query
@@ -4841,18 +4964,14 @@ components:
           schema:
             $ref: '#/components/schemas/AnalyticsErrorResponse'
     AnalyticsForbidden:
-      description: Admin access required (`ACCESS-DENIED`)
+      description: Access denied (`ACCESS-DENIED`)
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              status:
-                type: string
-                example: failed
-              message:
-                type: string
-                example: ACCESS-DENIED
+            $ref: '#/components/schemas/AnalyticsErrorResponse'
+          example:
+            status: error
+            message: ACCESS-DENIED
     CatalogImportForbidden:
       description: Admin catalog access denied or upload not owned by caller
       content:
@@ -5750,6 +5869,9 @@ components:
 
     AnalyticsPaginatedListResponse:
       type: object
+      description: >-
+        Standard list envelope. `has_more` is true when `offset + limit < total`. `limit` is clamped to 500.
+        Rows that join `surveys` include `idno` (catalog ID) and `study_id` (numeric sid).
       properties:
         status:
           type: string
@@ -5761,12 +5883,54 @@ components:
             additionalProperties: true
         total:
           type: integer
+          description: Total rows matching filters (not just current page)
         limit:
           type: integer
         offset:
           type: integer
         has_more:
           type: boolean
+
+    AnalyticsDailyTotalsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              pageviews:
+                type: integer
+              unique_visitors:
+                type: integer
+              downloads:
+                type: integer
+
+    AnalyticsMetaResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          additionalProperties: true
+
+    AnalyticsOverviewResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          additionalProperties: true
 
     AnalyticsMonthlyTotalsResponse:
       type: object

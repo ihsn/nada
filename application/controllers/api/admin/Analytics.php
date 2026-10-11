@@ -12,6 +12,16 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
  *
  * Query param study_id accepts surveys.id (numeric sid) or catalog IDNO unless
  * id_format=id is set (see get_sid_from_idno).
+ *
+ * Paginated list endpoints return:
+ *   { status: success, data, total, limit, offset, has_more }
+ * with limit clamped to 500 (default 50). Export endpoints cap rows at
+ * analytics_export_max_rows and may set X-Analytics-Export-* headers when truncated.
+ *
+ * Errors use { status: error, message } (HTTP 400). Access denied uses HTTP 403
+ * with the same envelope on this controller.
+ *
+ * OpenAPI: api-documentation/catalog-admin (Analytics tag).
  */
 class Analytics extends MY_REST_Controller
 {
@@ -68,6 +78,88 @@ class Analytics extends MY_REST_Controller
 			header('X-Analytics-Export-Total: ' . (int) $total);
 			header('X-Analytics-Export-Row-Count: ' . (int) $row_count);
 			header('X-Analytics-Export-Max-Rows: ' . (int) $max);
+		}
+	}
+
+	/**
+	 * Analytics API uses status "error" for ACL denial (not "failed").
+	 */
+	protected function access_denied_response()
+	{
+		$this->response(
+			array(
+				'status'  => 'error',
+				'message' => 'ACCESS-DENIED',
+			),
+			REST_Controller::HTTP_FORBIDDEN,
+			false
+		);
+		exit;
+	}
+
+	/**
+	 * @return string csv|json
+	 */
+	protected function parse_export_format()
+	{
+		$format = strtolower($this->input->get('format') ?: 'csv');
+		if ($format !== 'csv' && $format !== 'json') {
+			throw new Exception('Invalid format. Use csv or json');
+		}
+		return $format;
+	}
+
+	/**
+	 * Stream CSV or JSON export for aggregate list endpoints.
+	 *
+	 * @param string   $basename   File basename without extension
+	 * @param string   $format     csv or json
+	 * @param array    $result     Model result with data and total
+	 * @param array    $csv_headers
+	 * @param callable $map_csv_row function(array $row): array
+	 */
+	protected function deliver_aggregate_export($basename, $format, $result, array $csv_headers, callable $map_csv_row)
+	{
+		$rows = $result['data'];
+		$this->send_export_truncation_headers($result['total'], count($rows));
+
+		if ($format === 'json') {
+			$this->deliver_export_attachment('application/json', $basename . '.json', function () use ($rows) {
+				echo json_encode($rows);
+			});
+			return;
+		}
+
+		$this->deliver_export_attachment('text/csv', $basename . '.csv', function () use ($csv_headers, $rows, $map_csv_row) {
+			$out = fopen('php://output', 'w');
+			fputcsv($out, $csv_headers);
+			foreach ($rows as $row) {
+				fputcsv($out, $map_csv_row($row));
+			}
+			fclose($out);
+		});
+	}
+
+	/**
+	 * @param string   $content_type
+	 * @param string   $filename
+	 * @param callable $writer
+	 */
+	protected function deliver_export_attachment($content_type, $filename, callable $writer)
+	{
+		header('Content-Type: ' . $content_type);
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+		$writer();
+		exit;
+	}
+
+	protected function respond_export_exception(Exception $e)
+	{
+		if (!headers_sent()) {
+			$this->set_response(
+				array('status' => 'error', 'message' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
 		}
 	}
 
@@ -513,23 +605,17 @@ class Analytics extends MY_REST_Controller
 				'study_id'  => $study_sid
 			);
 
-			$format = strtolower($this->input->get('format') ?: 'csv');
+			$format = $this->parse_export_format();
 			$export_max = $this->Analytics_model->get_export_max_rows();
 			$result = $this->Analytics_model->get_daily_studies($filters, $export_max, 0);
-			$rows   = $result['data'];
-			$this->send_export_truncation_headers($result['total'], count($rows));
 
-			if ($format === 'json') {
-				header('Content-Type: application/json');
-				header('Content-Disposition: attachment; filename="daily_studies_export.json"');
-				echo json_encode($rows);
-			} else {
-				header('Content-Type: text/csv');
-				header('Content-Disposition: attachment; filename="daily_studies_export.csv"');
-				$out = fopen('php://output', 'w');
-				fputcsv($out, array('date', 'study_id', 'idno', 'title', 'nation', 'study_year', 'pageviews', 'unique_visitors', 'downloads'));
-				foreach ($rows as $row) {
-					fputcsv($out, array(
+			$this->deliver_aggregate_export(
+				'daily_studies_export',
+				$format,
+				$result,
+				array('date', 'study_id', 'idno', 'title', 'nation', 'study_year', 'pageviews', 'unique_visitors', 'downloads'),
+				function ($row) {
+					return array(
 						isset($row['date'])            ? $row['date']            : '',
 						isset($row['study_id'])        ? $row['study_id']        : '',
 						isset($row['idno'])            ? $row['idno']            : '',
@@ -539,14 +625,11 @@ class Analytics extends MY_REST_Controller
 						isset($row['pageviews'])       ? $row['pageviews']       : 0,
 						isset($row['unique_visitors']) ? $row['unique_visitors'] : 0,
 						isset($row['downloads'])       ? $row['downloads']       : 0
-					));
+					);
 				}
-				fclose($out);
-			}
-			exit;
-
+			);
 		} catch (Exception $e) {
-			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+			$this->respond_export_exception($e);
 		}
 	}
 
@@ -567,37 +650,28 @@ class Analytics extends MY_REST_Controller
 				'study_id'  => $study_sid
 			);
 
-			$format = strtolower($this->input->get('format') ?: 'csv');
+			$format = $this->parse_export_format();
 			$export_max = $this->Analytics_model->get_export_max_rows();
 			$result = $this->Analytics_model->get_daily_files($filters, $export_max, 0);
-			$rows   = $result['data'];
-			$this->send_export_truncation_headers($result['total'], count($rows));
 
-			if ($format === 'json') {
-				header('Content-Type: application/json');
-				header('Content-Disposition: attachment; filename="daily_files_export.json"');
-				echo json_encode($rows);
-			} else {
-				header('Content-Type: text/csv');
-				header('Content-Disposition: attachment; filename="daily_files_export.csv"');
-				$out = fopen('php://output', 'w');
-				fputcsv($out, array('date', 'study_id', 'idno', 'title', 'file_name', 'downloads'));
-				foreach ($rows as $row) {
-					fputcsv($out, array(
+			$this->deliver_aggregate_export(
+				'daily_files_export',
+				$format,
+				$result,
+				array('date', 'study_id', 'idno', 'title', 'file_name', 'downloads'),
+				function ($row) {
+					return array(
 						isset($row['date'])      ? $row['date']      : '',
 						isset($row['study_id'])  ? $row['study_id']  : '',
 						isset($row['idno'])      ? $row['idno']      : '',
 						isset($row['title'])     ? $row['title']     : '',
 						isset($row['file_name']) ? $row['file_name'] : '',
 						isset($row['downloads']) ? $row['downloads'] : 0
-					));
+					);
 				}
-				fclose($out);
-			}
-			exit;
-
+			);
 		} catch (Exception $e) {
-			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+			$this->respond_export_exception($e);
 		}
 	}
 
@@ -617,23 +691,17 @@ class Analytics extends MY_REST_Controller
 				'study_id' => $study_sid
 			);
 
-			$format = strtolower($this->input->get('format') ?: 'csv');
+			$format = $this->parse_export_format();
 			$export_max = $this->Analytics_model->get_export_max_rows();
 			$result = $this->Analytics_model->get_monthly_studies($filters, $export_max, 0);
-			$rows   = $result['data'];
-			$this->send_export_truncation_headers($result['total'], count($rows));
 
-			if ($format === 'json') {
-				header('Content-Type: application/json');
-				header('Content-Disposition: attachment; filename="monthly_studies_export.json"');
-				echo json_encode($rows);
-			} else {
-				header('Content-Type: text/csv');
-				header('Content-Disposition: attachment; filename="monthly_studies_export.csv"');
-				$out = fopen('php://output', 'w');
-				fputcsv($out, array('year', 'month', 'study_id', 'idno', 'title', 'nation', 'study_year', 'pageviews', 'unique_visitors', 'downloads', 'finalized'));
-				foreach ($rows as $row) {
-					fputcsv($out, array(
+			$this->deliver_aggregate_export(
+				'monthly_studies_export',
+				$format,
+				$result,
+				array('year', 'month', 'study_id', 'idno', 'title', 'nation', 'study_year', 'pageviews', 'unique_visitors', 'downloads', 'finalized'),
+				function ($row) {
+					return array(
 						isset($row['year'])            ? $row['year']            : '',
 						isset($row['month'])           ? $row['month']           : '',
 						isset($row['study_id'])        ? $row['study_id']        : '',
@@ -645,14 +713,11 @@ class Analytics extends MY_REST_Controller
 						isset($row['unique_visitors']) ? $row['unique_visitors'] : 0,
 						isset($row['downloads'])       ? $row['downloads']       : 0,
 						isset($row['finalized'])       ? $row['finalized']       : 0
-					));
+					);
 				}
-				fclose($out);
-			}
-			exit;
-
+			);
 		} catch (Exception $e) {
-			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+			$this->respond_export_exception($e);
 		}
 	}
 
@@ -673,23 +738,17 @@ class Analytics extends MY_REST_Controller
 				'study_id' => $study_sid
 			);
 
-			$format = strtolower($this->input->get('format') ?: 'csv');
+			$format = $this->parse_export_format();
 			$export_max = $this->Analytics_model->get_export_max_rows();
 			$result = $this->Analytics_model->get_monthly_files($filters, $export_max, 0);
-			$rows   = $result['data'];
-			$this->send_export_truncation_headers($result['total'], count($rows));
 
-			if ($format === 'json') {
-				header('Content-Type: application/json');
-				header('Content-Disposition: attachment; filename="monthly_files_export.json"');
-				echo json_encode($rows);
-			} else {
-				header('Content-Type: text/csv');
-				header('Content-Disposition: attachment; filename="monthly_files_export.csv"');
-				$out = fopen('php://output', 'w');
-				fputcsv($out, array('year', 'month', 'study_id', 'idno', 'title', 'file_name', 'downloads', 'finalized'));
-				foreach ($rows as $row) {
-					fputcsv($out, array(
+			$this->deliver_aggregate_export(
+				'monthly_files_export',
+				$format,
+				$result,
+				array('year', 'month', 'study_id', 'idno', 'title', 'file_name', 'downloads', 'finalized'),
+				function ($row) {
+					return array(
 						isset($row['year'])      ? $row['year']      : '',
 						isset($row['month'])     ? $row['month']     : '',
 						isset($row['study_id'])  ? $row['study_id']  : '',
@@ -698,14 +757,11 @@ class Analytics extends MY_REST_Controller
 						isset($row['file_name']) ? $row['file_name'] : '',
 						isset($row['downloads']) ? $row['downloads'] : 0,
 						isset($row['finalized']) ? $row['finalized'] : 0
-					));
+					);
 				}
-				fclose($out);
-			}
-			exit;
-
+			);
 		} catch (Exception $e) {
-			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+			$this->respond_export_exception($e);
 		}
 	}
 
