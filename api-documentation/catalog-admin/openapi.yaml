@@ -38,7 +38,7 @@ tags:
     description: |
       Site analytics under `/admin/analytics`: raw events, daily/monthly aggregates, overview/meta helpers, CSV/JSON exports (row cap with `X-Analytics-Export-*` headers when truncated), and aggregation jobs.
       Requires `reports/view` or study-scoped access when filtering by `study_id` (numeric `surveys.id` or catalog IDNO).
-      List endpoints use `{ status, data, total, limit, offset, has_more }` with `limit` max 500. Errors use `{ status: error, message }` (HTTP 403 for access denied).
+      List endpoints use `{ status, data, total, limit, offset, has_more }` with `limit` default 50 and max 5000 (`list_max_rows` in `/analytics/meta`). Paginate with `offset` for full exports. Errors use `{ status: error, message }` (HTTP 403 for access denied).
   - name: Data Structures
     description: Admin endpoints for global DSD catalogue management.
   - name: Codelists Admin
@@ -4898,11 +4898,11 @@ components:
     AnalyticsLimit:
       name: limit
       in: query
-      description: Page size (default 50, maximum 500 per request)
+      description: Page size (default 50, maximum 5000 per request; see `list_max_rows` in `/analytics/meta`)
       schema:
         type: integer
         default: 50
-        maximum: 500
+        maximum: 5000
     AnalyticsOffset:
       name: offset
       in: query
@@ -5870,7 +5870,7 @@ components:
     AnalyticsPaginatedListResponse:
       type: object
       description: >-
-        Standard list envelope. `has_more` is true when `offset + limit < total`. `limit` is clamped to 500.
+        Standard list envelope. `has_more` is true when `offset + limit < total`. `limit` is clamped to `list_max_rows` from `/analytics/meta` (default config 5000).
         Rows that join `surveys` include `idno` (catalog ID) and `study_id` (numeric sid).
       properties:
         status:

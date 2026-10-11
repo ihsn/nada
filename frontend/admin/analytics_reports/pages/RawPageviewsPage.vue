@@ -26,7 +26,20 @@
         @update:page="onPage"
       >
         <template #item.ts="{ item }">
-          {{ formatDateTime(item.ts) }}
+          {{ formatDateTime(item.ts, timezone) }}
+        </template>
+        <template #item.study_title="{ item }">
+          <a
+            v-if="item.study_id"
+            :href="catalogStudyUrl(siteUrl, item)"
+            target="_blank"
+            rel="noopener"
+            class="admin-analytics-cell-truncate admin-analytics-study-link"
+            :title="item.study_title || `Study ${item.study_id}`"
+          >
+            {{ item.study_title || `Study ${item.study_id}` }}
+          </a>
+          <span v-else>—</span>
         </template>
         <template #item.session_id="{ item }">
           <span v-if="item.session_id" class="font-mono admin-analytics-mono-cell">
@@ -53,7 +66,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useAnalyticsApi } from '../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../composables/useAnalyticsMessages';
-import { formatDateTime } from '../utils/formatters';
+import { catalogStudyUrl, formatDateTime } from '../utils/formatters';
 import { defaultRawDateRange } from '../utils/dateDefaults';
 import DateRangeFilter from '../components/shared/DateRangeFilter.vue';
 import PaginatedTableFooter from '../components/shared/PaginatedTableFooter.vue';
@@ -61,7 +74,8 @@ import RawLogsHintAlert from '../components/shared/RawLogsHintAlert.vue';
 
 defineOptions({ name: 'RawPageviewsPage' });
 
-const { config } = useAppConfig();
+const { config, siteUrl } = useAppConfig();
+const timezone = computed(() => config.value?.serverTimezone || 'UTC');
 const api = useAnalyticsApi();
 const { notifyError } = useAnalyticsMessages();
 
@@ -78,7 +92,8 @@ const limit = 50;
 
 const headers = [
   { title: 'Time', key: 'ts' },
-  { title: 'Study ID', key: 'study_id' },
+  { title: 'Study', key: 'study_title', minWidth: '200px' },
+  { title: 'ID', key: 'study_id', width: '72px' },
   { title: 'Session', key: 'session_id' },
   { title: 'Page URL', key: 'page_url', maxWidth: '360px' },
   { title: 'Section', key: 'section' },

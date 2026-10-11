@@ -160,6 +160,16 @@
   cursor: default;
 }
 
+.admin-analytics-study-link {
+  color: rgb(var(--v-theme-primary));
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.admin-analytics-study-link:hover {
+  text-decoration: underline;
+}
+
 .admin-analytics-mono-cell {
   font-size: 0.75rem;
 }

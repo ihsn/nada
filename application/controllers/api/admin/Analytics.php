@@ -15,7 +15,7 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
  *
  * Paginated list endpoints return:
  *   { status: success, data, total, limit, offset, has_more }
- * with limit clamped to 500 (default 50). Export endpoints cap rows at
+ * with limit clamped to analytics_api_list_max_rows (default 50). Export endpoints cap rows at
  * analytics_export_max_rows and may set X-Analytics-Export-* headers when truncated.
  *
  * Errors use { status: error, message } (HTTP 400). Access denied uses HTTP 403

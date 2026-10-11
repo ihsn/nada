@@ -272,7 +272,7 @@ class Analytics_model extends CI_Model {
 		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
 
 		$limit = (int)$limit;
-		if ($limit > 0) { $limit = min(500, $limit); }
+		if ($limit > 0) { $limit = $this->clamp_api_list_limit($limit); }
 
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_monthly_studies WHERE year = 0 AND month = 0";
 		$count_params = array();
@@ -325,7 +325,7 @@ class Analytics_model extends CI_Model {
 		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
 
 		$limit = (int)$limit;
-		if ($limit > 0) { $limit = min(500, $limit); }
+		if ($limit > 0) { $limit = $this->clamp_api_list_limit($limit); }
 
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_monthly_files WHERE year = 0 AND month = 0";
 		$count_params = array();
@@ -1223,6 +1223,7 @@ class Analytics_model extends CI_Model {
 			'analytics_enabled' => (bool) $this->config->item('analytics_enabled'),
 			'tracking_source' => $this->config->item('analytics_tracking_source'),
 			'export_max_rows' => $this->get_export_max_rows(),
+			'list_max_rows' => $this->get_api_list_max_rows(),
 			'raw_list_max_days' => $this->get_raw_list_max_days(),
 			'raw_retention_days' => $retention,
 			'pageview_dedupe_window_minutes' => (int) $this->config->item('analytics_pageview_dedupe_window_minutes'),
@@ -1316,7 +1317,7 @@ class Analytics_model extends CI_Model {
 		
 		// Validate limit (0 = no limit for exports)
 		$limit = (int)$limit;
-		if ($limit > 0) { $limit = min(500, $limit); }
+		if ($limit > 0) { $limit = $this->clamp_api_list_limit($limit); }
 		
 		// Build count query using raw SQL to avoid query builder state issues
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_monthly_studies WHERE 1=1";
@@ -1403,7 +1404,7 @@ class Analytics_model extends CI_Model {
 		
 		// Validate limit (0 = no limit for exports)
 		$limit = (int)$limit;
-		if ($limit > 0) { $limit = min(500, $limit); }
+		if ($limit > 0) { $limit = $this->clamp_api_list_limit($limit); }
 		
 		// Build count query using raw SQL to avoid query builder state issues
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_monthly_files WHERE 1=1";
@@ -1489,7 +1490,7 @@ class Analytics_model extends CI_Model {
 		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
 		
 		$limit = (int)$limit;
-		if ($limit > 0) { $limit = min(500, $limit); }
+		if ($limit > 0) { $limit = $this->clamp_api_list_limit($limit); }
 		
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_daily_studies WHERE 1=1";
 		$count_params = array();
@@ -1557,7 +1558,7 @@ class Analytics_model extends CI_Model {
 		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
 		
 		$limit = (int)$limit;
-		if ($limit > 0) { $limit = min(500, $limit); }
+		if ($limit > 0) { $limit = $this->clamp_api_list_limit($limit); }
 		
 		$count_sql = "SELECT COUNT(*) as total FROM analytics_daily_files WHERE 1=1";
 		$count_params = array();
@@ -1628,7 +1629,7 @@ class Analytics_model extends CI_Model {
 		$study_id = isset($filters['study_id']) ? $filters['study_id'] : null;
 		
 		// Validate limit
-		$limit = max(1, min(500, (int)$limit));
+		$limit = max(1, $this->clamp_api_list_limit((int)$limit));
 
 		$ts_from = $date_from ? ($date_from . ' 00:00:00') : null;
 		$ts_to   = $date_to   ? (date('Y-m-d', strtotime($date_to . ' +1 day')) . ' 00:00:00') : null;
@@ -1721,7 +1722,7 @@ class Analytics_model extends CI_Model {
 		$file_type = isset($filters['file_type']) ? $filters['file_type'] : null;
 		
 		// Validate limit
-		$limit = max(1, min(500, (int)$limit));
+		$limit = max(1, $this->clamp_api_list_limit((int)$limit));
 		
 		$ts_from = $date_from ? ($date_from . ' 00:00:00') : null;
 		$ts_to   = $date_to   ? (date('Y-m-d', strtotime($date_to . ' +1 day')) . ' 00:00:00') : null;
@@ -2368,6 +2369,34 @@ class Analytics_model extends CI_Model {
 			$max = 50000;
 		}
 		return $max;
+	}
+
+	/**
+	 * Max limit for paginated admin analytics list API responses.
+	 *
+	 * @return int
+	 */
+	public function get_api_list_max_rows()
+	{
+		$this->load->config('analytics');
+		$max = (int) $this->config->item('analytics_api_list_max_rows');
+		if ($max <= 0) {
+			$max = 5000;
+		}
+		return $max;
+	}
+
+	/**
+	 * @param int $limit requested page size (0 = no limit, used by exports)
+	 * @return int
+	 */
+	private function clamp_api_list_limit($limit)
+	{
+		$limit = (int) $limit;
+		if ($limit <= 0) {
+			return $limit;
+		}
+		return min($this->get_api_list_max_rows(), $limit);
 	}
 
 	/**
