@@ -1129,23 +1129,27 @@ class Analytics_model extends CI_Model {
 		$today = date('Y-m-d');
 		$week_start = date('Y-m-d', strtotime($today . ' -6 days'));
 
-		$today_summary = $this->get_daily_day_summary($today, $study_id);
-		$pv = $this->get_raw_pageviews(array(
+		$today_filters = array(
 			'date_from' => $today,
 			'date_to' => $today,
 			'study_id' => $study_id,
-		), 10, 0, 'ts', 'desc', false);
-		$dl = $this->get_raw_downloads(array(
-			'date_from' => $today,
-			'date_to' => $today,
-			'study_id' => $study_id,
-		), 10, 0, 'ts', 'desc', false);
+		);
+		// Today's KPIs and chart point use raw events (aggregates lag until daily job runs).
+		$pv = $this->get_raw_pageviews($today_filters, 10, 0, 'ts', 'desc', true);
+		$dl = $this->get_raw_downloads($today_filters, 10, 0, 'ts', 'desc', true);
 
 		$daily_last_7 = $this->get_daily_totals(array(
 			'date_from' => $week_start,
 			'date_to' => $today,
 			'study_id' => $study_id,
 		));
+		foreach ($daily_last_7 as $idx => $day_row) {
+			if ($day_row['date'] === $today) {
+				$daily_last_7[$idx]['pageviews'] = (int) $pv['total'];
+				$daily_last_7[$idx]['downloads'] = (int) $dl['total'];
+				break;
+			}
+		}
 
 		$monthly_last_3 = $this->get_monthly_totals(3, $study_id);
 		$kpi_month = $this->resolve_overview_kpi_month($monthly_last_3, $today);
@@ -1176,8 +1180,8 @@ class Analytics_model extends CI_Model {
 			'timezone' => date_default_timezone_get(),
 			'study_id' => $study_id,
 			'today' => array(
-				'pageviews' => (int) $today_summary['pageviews'],
-				'downloads' => (int) $today_summary['downloads'],
+				'pageviews' => (int) $pv['total'],
+				'downloads' => (int) $dl['total'],
 			),
 			'recent_pageviews' => $pv['data'],
 			'recent_downloads' => $dl['data'],
