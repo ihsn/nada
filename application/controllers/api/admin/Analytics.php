@@ -187,6 +187,7 @@ class Analytics extends MY_REST_Controller
 				'date_to' => $this->input->get('date_to'),
 				'study_id' => $study_sid
 			);
+			$this->Analytics_model->validate_admin_raw_date_range($filters['date_from'], $filters['date_to']);
 			
 			$limit = (int)$this->input->get('limit') ?: 50;
 			$offset = (int)$this->input->get('offset') ?: 0;
@@ -240,6 +241,7 @@ class Analytics extends MY_REST_Controller
 				'study_id' => $study_sid,
 				'file_type' => $this->input->get('file_type')
 			);
+			$this->Analytics_model->validate_admin_raw_date_range($filters['date_from'], $filters['date_to']);
 			
 			$limit = (int)$this->input->get('limit') ?: 50;
 			$offset = (int)$this->input->get('offset') ?: 0;

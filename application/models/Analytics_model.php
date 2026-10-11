@@ -1129,16 +1129,17 @@ class Analytics_model extends CI_Model {
 		$today = date('Y-m-d');
 		$week_start = date('Y-m-d', strtotime($today . ' -6 days'));
 
+		$today_summary = $this->get_daily_day_summary($today, $study_id);
 		$pv = $this->get_raw_pageviews(array(
 			'date_from' => $today,
 			'date_to' => $today,
 			'study_id' => $study_id,
-		), 10, 0);
+		), 10, 0, 'ts', 'desc', false);
 		$dl = $this->get_raw_downloads(array(
 			'date_from' => $today,
 			'date_to' => $today,
 			'study_id' => $study_id,
-		), 10, 0);
+		), 10, 0, 'ts', 'desc', false);
 
 		$daily_last_7 = $this->get_daily_totals(array(
 			'date_from' => $week_start,
@@ -1175,8 +1176,8 @@ class Analytics_model extends CI_Model {
 			'timezone' => date_default_timezone_get(),
 			'study_id' => $study_id,
 			'today' => array(
-				'pageviews' => (int) $pv['total'],
-				'downloads' => (int) $dl['total'],
+				'pageviews' => (int) $today_summary['pageviews'],
+				'downloads' => (int) $today_summary['downloads'],
 			),
 			'recent_pageviews' => $pv['data'],
 			'recent_downloads' => $dl['data'],
@@ -1218,6 +1219,7 @@ class Analytics_model extends CI_Model {
 			'analytics_enabled' => (bool) $this->config->item('analytics_enabled'),
 			'tracking_source' => $this->config->item('analytics_tracking_source'),
 			'export_max_rows' => $this->get_export_max_rows(),
+			'raw_list_max_days' => $this->get_raw_list_max_days(),
 			'raw_retention_days' => $retention,
 			'pageview_dedupe_window_minutes' => (int) $this->config->item('analytics_pageview_dedupe_window_minutes'),
 			'download_dedupe_window_minutes' => (int) $this->config->item('analytics_download_dedupe_window_minutes'),
@@ -1615,7 +1617,7 @@ class Analytics_model extends CI_Model {
 	 * @param string $sort_order Sort order (asc/desc)
 	 * @return array Result with data, total, and pagination info
 	 */
-	public function get_raw_pageviews($filters = array(), $limit = 50, $offset = 0, $sort_by = 'ts', $sort_order = 'desc')
+	public function get_raw_pageviews($filters = array(), $limit = 50, $offset = 0, $sort_by = 'ts', $sort_order = 'desc', $count_total = true)
 	{
 		$date_from = isset($filters['date_from']) ? $filters['date_from'] : null;
 		$date_to = isset($filters['date_to']) ? $filters['date_to'] : null;
@@ -1627,25 +1629,28 @@ class Analytics_model extends CI_Model {
 		$ts_from = $date_from ? ($date_from . ' 00:00:00') : null;
 		$ts_to   = $date_to   ? (date('Y-m-d', strtotime($date_to . ' +1 day')) . ' 00:00:00') : null;
 
-		// Build count query using raw SQL to avoid query builder state issues
-		$count_sql = "SELECT COUNT(*) as total FROM analytics_pageview_events WHERE 1=1";
-		$count_params = array();
+		$total = 0;
+		if ($count_total) {
+			// Build count query using raw SQL to avoid query builder state issues
+			$count_sql = "SELECT COUNT(*) as total FROM analytics_pageview_events WHERE 1=1";
+			$count_params = array();
 
-		if ($ts_from) {
-			$count_sql .= " AND ts >= ?";
-			$count_params[] = $ts_from;
-		}
-		if ($ts_to) {
-			$count_sql .= " AND ts < ?";
-			$count_params[] = $ts_to;
-		}
-		if ($study_id) {
-			$count_sql .= " AND study_id = ?";
-			$count_params[] = $study_id;
-		}
+			if ($ts_from) {
+				$count_sql .= " AND ts >= ?";
+				$count_params[] = $ts_from;
+			}
+			if ($ts_to) {
+				$count_sql .= " AND ts < ?";
+				$count_params[] = $ts_to;
+			}
+			if ($study_id) {
+				$count_sql .= " AND study_id = ?";
+				$count_params[] = $study_id;
+			}
 
-		$count_query = $this->db->query($count_sql, $count_params);
-		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
+			$count_query = $this->db->query($count_sql, $count_params);
+			$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
+		}
 
 		// Build data query
 		$this->db->select('analytics_pageview_events.id, analytics_pageview_events.ts, analytics_pageview_events.study_id, analytics_pageview_events.session_id, analytics_pageview_events.page_url, analytics_pageview_events.section, analytics_pageview_events.user_agent, analytics_pageview_events.referrer, surveys.idno, surveys.title as study_title');
@@ -1704,7 +1709,7 @@ class Analytics_model extends CI_Model {
 	 * @param string $sort_order Sort order (asc/desc)
 	 * @return array Result with data, total, and pagination info
 	 */
-	public function get_raw_downloads($filters = array(), $limit = 50, $offset = 0, $sort_by = 'ts', $sort_order = 'desc')
+	public function get_raw_downloads($filters = array(), $limit = 50, $offset = 0, $sort_by = 'ts', $sort_order = 'desc', $count_total = true)
 	{
 		$date_from = isset($filters['date_from']) ? $filters['date_from'] : null;
 		$date_to = isset($filters['date_to']) ? $filters['date_to'] : null;
@@ -1717,29 +1722,31 @@ class Analytics_model extends CI_Model {
 		$ts_from = $date_from ? ($date_from . ' 00:00:00') : null;
 		$ts_to   = $date_to   ? (date('Y-m-d', strtotime($date_to . ' +1 day')) . ' 00:00:00') : null;
 
-		// Build count query using raw SQL to avoid query builder state issues
-		$count_sql = "SELECT COUNT(*) as total FROM analytics_download_events WHERE 1=1";
-		$count_params = array();
+		$total = 0;
+		if ($count_total) {
+			$count_sql = "SELECT COUNT(*) as total FROM analytics_download_events WHERE 1=1";
+			$count_params = array();
 
-		if ($ts_from) {
-			$count_sql .= " AND ts >= ?";
-			$count_params[] = $ts_from;
-		}
-		if ($ts_to) {
-			$count_sql .= " AND ts < ?";
-			$count_params[] = $ts_to;
-		}
-		if ($study_id) {
-			$count_sql .= " AND study_id = ?";
-			$count_params[] = $study_id;
-		}
-		if ($file_type) {
-			$count_sql .= " AND file_type = ?";
-			$count_params[] = $file_type;
-		}
+			if ($ts_from) {
+				$count_sql .= " AND ts >= ?";
+				$count_params[] = $ts_from;
+			}
+			if ($ts_to) {
+				$count_sql .= " AND ts < ?";
+				$count_params[] = $ts_to;
+			}
+			if ($study_id) {
+				$count_sql .= " AND study_id = ?";
+				$count_params[] = $study_id;
+			}
+			if ($file_type) {
+				$count_sql .= " AND file_type = ?";
+				$count_params[] = $file_type;
+			}
 
-		$count_query = $this->db->query($count_sql, $count_params);
-		$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
+			$count_query = $this->db->query($count_sql, $count_params);
+			$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
+		}
 
 		// Build data query
 		$this->db->select('analytics_download_events.id, analytics_download_events.ts, analytics_download_events.study_id, analytics_download_events.file_name, analytics_download_events.file_type, analytics_download_events.user_agent, analytics_download_events.hashed_ip, surveys.idno, surveys.title as study_title');
@@ -2357,6 +2364,73 @@ class Analytics_model extends CI_Model {
 			$max = 50000;
 		}
 		return $max;
+	}
+
+	/**
+	 * Max inclusive days allowed between date_from and date_to on raw list endpoints.
+	 *
+	 * @return int
+	 */
+	public function get_raw_list_max_days()
+	{
+		$this->load->config('analytics');
+		$max = (int) $this->config->item('analytics_raw_list_max_days');
+		if ($max <= 0) {
+			$max = 31;
+		}
+		return $max;
+	}
+
+	/**
+	 * Validate admin raw list date filters (required + max span).
+	 *
+	 * @param string|null $date_from Y-m-d
+	 * @param string|null $date_to   Y-m-d
+	 * @throws Exception
+	 */
+	public function validate_admin_raw_date_range($date_from, $date_to)
+	{
+		if (!$date_from || !$date_to) {
+			throw new Exception('date_from and date_to are required (YYYY-MM-DD)');
+		}
+		$date_from = $this->validate_date_ymd($date_from);
+		$date_to = $this->validate_date_ymd($date_to);
+		if ($date_from > $date_to) {
+			throw new Exception('date_from must be on or before date_to');
+		}
+		$days = (int) floor((strtotime($date_to) - strtotime($date_from)) / 86400) + 1;
+		$max_days = $this->get_raw_list_max_days();
+		if ($days > $max_days) {
+			throw new Exception('Date range cannot exceed ' . $max_days . ' days');
+		}
+	}
+
+	/**
+	 * Site- or study-level totals for one calendar day from daily aggregates.
+	 *
+	 * @param string   $date     Y-m-d
+	 * @param int|null $study_id numeric sid
+	 * @return array pageviews, downloads, unique_visitors
+	 */
+	public function get_daily_day_summary($date, $study_id = null)
+	{
+		$date = $this->validate_date_ymd($date);
+		$sql = "SELECT COALESCE(SUM(pageviews), 0) AS pageviews,
+			COALESCE(SUM(unique_visitors), 0) AS unique_visitors,
+			COALESCE(SUM(downloads), 0) AS downloads
+			FROM analytics_daily_studies WHERE date = ?";
+		$params = array($date);
+		if ($study_id) {
+			$sql .= " AND study_id = ?";
+			$params[] = (int) $study_id;
+		}
+		$query = $this->db->query($sql, $params);
+		$row = $query && $query->num_rows() > 0 ? $query->row_array() : array();
+		return array(
+			'pageviews' => (int) (isset($row['pageviews']) ? $row['pageviews'] : 0),
+			'unique_visitors' => (int) (isset($row['unique_visitors']) ? $row['unique_visitors'] : 0),
+			'downloads' => (int) (isset($row['downloads']) ? $row['downloads'] : 0),
+		);
 	}
 
 	/**

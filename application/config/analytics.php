@@ -50,3 +50,6 @@ $config['analytics_export_max_rows'] = 50000;
 // Raw event retention (days) — used after monthly finalization in aggregation pipeline
 $config['analytics_raw_retention_days'] = 60;
 
+// Max inclusive date span for admin raw event list API (date_from … date_to)
+$config['analytics_raw_list_max_days'] = 31;
+
