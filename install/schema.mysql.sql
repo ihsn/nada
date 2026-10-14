@@ -1091,23 +1091,6 @@ INSERT INTO `menus` VALUES
 UNLOCK TABLES;
 
 --
--- Table structure for table `url_mappings`
---
-
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `url_mappings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `source` varchar(255) DEFAULT NULL,
-  `target` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-
-
-
---
 -- Table structure for table `survey_relationship_types`
 --
 

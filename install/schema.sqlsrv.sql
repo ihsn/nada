@@ -1117,18 +1117,6 @@ set IDENTITY_INSERT menus OFF;
 
 
 --
--- Table structure for table url_mappings
---
-
-CREATE TABLE url_mappings (
-  id int NOT NULL IDENTITY(1,1),
-  source varchar(255) DEFAULT NULL,
-  target varchar(255) DEFAULT NULL,
-  PRIMARY KEY (id)
-) ;
-
-
---
 -- Table structure for table groups
 --
 

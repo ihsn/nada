@@ -124,18 +124,6 @@ class Page extends MY_Controller {
 	
 	function _error_page()
 	{	
-		//check if url mapping is available for the url
-		$uri=$this->uri->uri_string();
-		
-		$this->db->where("source",$uri);
-		$result=$this->db->get("url_mappings")->row_array();
-		
-		if ($result){
-			$destination=$result["target"];
-			redirect($destination);
-			return;
-		}
-		
 		header('HTTP/1.0 404 Not Found');
 		$content=$this->load->view("404_page",NULL,TRUE);
 
