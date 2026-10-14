@@ -595,7 +595,7 @@
     ]
   },
   "datadeposit/main.js": {
-    "file": "assets/public/datadeposit-D4n8pYtH.js",
+    "file": "assets/public/datadeposit-BwFcmw5k.js",
     "name": "datadeposit",
     "src": "datadeposit/main.js",
     "isEntry": true,
@@ -614,7 +614,7 @@
       "_VExpansionPanels-CDUzSxMY.js"
     ],
     "css": [
-      "assets/public/datadeposit-BEtZyzNJ.css",
+      "assets/public/datadeposit-D8T14BsN.css",
       "assets/public/materialdesignicons-f3sFGprf.css"
     ],
     "assets": [

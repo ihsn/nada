@@ -37,6 +37,13 @@ const isDropdown = computed(
   () => displayType.value === 'dropdown' || displayType.value === 'dropdown-custom'
 );
 const allowCustom = computed(() => displayType.value === 'dropdown-custom');
+
+const maxLength = computed(() => {
+  const raw = props.field.max_length ?? props.field.maxLength;
+  if (raw == null || raw === '') return undefined;
+  const n = Number(raw);
+  return n > 0 ? n : undefined;
+});
 </script>
 
 <template>
@@ -51,6 +58,7 @@ const allowCustom = computed(() => displayType.value === 'dropdown-custom');
       auto-grow
       rows="2"
       hide-details="auto"
+      :maxlength="maxLength"
     />
     <v-select
       v-else-if="isDropdown && !allowCustom"
@@ -95,6 +103,7 @@ const allowCustom = computed(() => displayType.value === 'dropdown-custom');
       density="compact"
       variant="outlined"
       hide-details="auto"
+      :maxlength="maxLength"
       :type="field.type === 'integer' || field.type === 'number' ? 'number' : 'text'"
     />
   </div>

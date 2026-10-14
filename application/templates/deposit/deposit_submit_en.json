@@ -89,6 +89,7 @@
               "title": "Notes on embargo",
               "type": "string",
               "display_type": "textarea",
+              "max_length": 5000,
               "required_when": "is_embargoed",
               "help_text": "Describe the embargo period and any conditions that must be met before release."
             }
@@ -105,6 +106,7 @@
               "title": "Disclosure risk",
               "type": "string",
               "display_type": "textarea",
+              "max_length": 5000,
               "help_text": "List identifying or otherwise sensitive variables that should be suppressed before distribution."
             },
             {
@@ -112,6 +114,7 @@
               "title": "Key variables",
               "type": "string",
               "display_type": "textarea",
+              "max_length": 2000,
               "help_text": "List variables that could identify respondents, such as names, official ID numbers, or precise coordinates."
             },
             {
@@ -119,6 +122,7 @@
               "title": "Sensitive variables",
               "type": "string",
               "display_type": "textarea",
+              "max_length": 2000,
               "help_text": "List variables that are sensitive in this study setting (for example ethnicity or religion) even if they are not direct identifiers."
             },
             {
@@ -126,6 +130,7 @@
               "title": "Notes to the library",
               "type": "string",
               "display_type": "textarea",
+              "max_length": 5000,
               "help_text": "Optional notes or special instructions for the library review team."
             },
             {
@@ -133,6 +138,7 @@
               "title": "CC",
               "type": "string",
               "display_type": "text",
+              "max_length": 500,
               "help_text": "Optional extra email addresses for the submission receipt."
             }
           ]

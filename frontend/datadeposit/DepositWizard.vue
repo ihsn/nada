@@ -83,6 +83,12 @@ const liveStatus = ref(String(config.value?.projectStatus || '').toLowerCase());
 const canEdit = computed(() => !!projectCanEdit.value);
 const projectStatus = computed(() => liveStatus.value || String(config.value?.projectStatus || '').toLowerCase());
 
+const fieldLimits = computed(() => ({
+  title: Number(config.value?.fieldLimits?.title) || 500,
+  shortname: Number(config.value?.fieldLimits?.shortname) || 255,
+  description: Number(config.value?.fieldLimits?.description) || 5000,
+}));
+
 const lbl = computed(() => {
   const labels = config.value?.labels || {};
   return {
@@ -779,6 +785,7 @@ watch(
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
+                    :maxlength="fieldLimits.title"
                   />
                 </div>
                 <div class="dd-info-field">
@@ -792,6 +799,7 @@ watch(
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
+                    :maxlength="fieldLimits.shortname"
                   />
                 </div>
                 <div class="dd-info-field">
@@ -804,6 +812,7 @@ watch(
                     auto-grow
                     rows="3"
                     hide-details="auto"
+                    :maxlength="fieldLimits.description"
                   />
                 </div>
                 <div class="dd-info-field">

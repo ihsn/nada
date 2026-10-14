@@ -228,17 +228,11 @@ class Deposit_depositor
 
 		if ($title === '') {
 			$errors[] = array('property' => 'title', 'message' => 'Title is required');
-		} elseif (strlen($title) > 255) {
-			$errors[] = array('property' => 'title', 'message' => 'Title is too long');
 		}
 		if ($shortname === '') {
 			$errors[] = array('property' => 'shortname', 'message' => 'Short name is required');
-		} elseif (strlen($shortname) > 100) {
-			$errors[] = array('property' => 'shortname', 'message' => 'Short name is too long');
 		}
-		if (strlen($description) > 1000) {
-			$errors[] = array('property' => 'description', 'message' => 'Description is too long');
-		}
+		$errors = array_merge($errors, $this->project_info_length_errors($title, $shortname, $description));
 		if ($data_type === null || !in_array($data_type, $creatable, true)) {
 			$errors[] = array('property' => 'data_type', 'message' => 'Invalid project type');
 		}
@@ -1564,6 +1558,8 @@ class Deposit_depositor
 		if ($shortname === '') {
 			$errors[] = array('property' => 'shortname', 'message' => 'Short name is required');
 		}
+		$description = isset($incoming['description']) ? (string) $incoming['description'] : '';
+		$errors = array_merge($errors, $this->project_info_length_errors($title, $shortname, $description));
 
 		list($collaborators, $collab_errors) = $this->collaborators_from_input($incoming);
 		$errors = array_merge($errors, $collab_errors);
@@ -1574,7 +1570,7 @@ class Deposit_depositor
 		$options = array(
 			'title'         => $title,
 			'shortname'     => $shortname,
-			'description'   => isset($incoming['description']) ? (string) $incoming['description'] : '',
+			'description'   => $description,
 			'collaborators' => $collaborators,
 			'last_modified' => date('U'),
 		);
@@ -3212,7 +3208,99 @@ class Deposit_depositor
 				'template'
 			);
 		}
+		$issues = array_merge($issues, $this->submission_length_issues($submission));
 		return $issues;
+	}
+
+	/**
+	 * @return array<int, array{property: string, message: string}>
+	 */
+	protected function project_info_length_errors($title, $shortname, $description)
+	{
+		$this->ci->load->helper('datadeposit');
+		$limits = datadeposit_field_limits();
+		$errors = array();
+		if ($this->mb_len_exceeded($title, $limits['title'])) {
+			$errors[] = array(
+				'property' => 'title',
+				'message'  => $this->field_max_length_message(t('title'), $limits['title']),
+			);
+		}
+		if ($this->mb_len_exceeded($shortname, $limits['shortname'])) {
+			$errors[] = array(
+				'property' => 'shortname',
+				'message'  => $this->field_max_length_message(t('shortname'), $limits['shortname']),
+			);
+		}
+		if ($this->mb_len_exceeded($description, $limits['description'])) {
+			$errors[] = array(
+				'property' => 'description',
+				'message'  => $this->field_max_length_message(t('description'), $limits['description']),
+			);
+		}
+		return $errors;
+	}
+
+	/**
+	 * @return array<int, array{step: string, key: string, property: string, title: string, message: string, source: string}>
+	 */
+	protected function submission_length_issues(array $submission)
+	{
+		$this->ci->load->helper('datadeposit');
+		$limits = datadeposit_field_limits();
+		$embargo_max = (int) $limits['submission_text'];
+		$disclosure_max = (int) $limits['submission_disclosure_text'];
+		$cc_max = (int) $limits['submission_cc'];
+		$field_limits = array(
+			'embargoed' => array('Notes on embargo', $embargo_max),
+			'disclosure_risk' => array('Disclosure risk', $disclosure_max),
+			'key_variables' => array('Key variables', $disclosure_max),
+			'sensitive_variables' => array('Sensitive variables', $disclosure_max),
+			'library_notes' => array('Notes to the library', $disclosure_max),
+		);
+		$issues = array();
+		foreach ($field_limits as $key => $meta) {
+			if (!array_key_exists($key, $submission)) {
+				continue;
+			}
+			$value = $submission[$key];
+			if ($value === null || $value === '') {
+				continue;
+			}
+			$label = $meta[0];
+			$max = $meta[1];
+			if ($this->mb_len_exceeded($value, $max)) {
+				$issues[] = $this->validation_issue(
+					'access',
+					$key,
+					$label,
+					$this->field_max_length_message($label, $max),
+					'template'
+				);
+			}
+		}
+		if (array_key_exists('cc', $submission) && $submission['cc'] !== null && $submission['cc'] !== '') {
+			if ($this->mb_len_exceeded($submission['cc'], $cc_max)) {
+				$issues[] = $this->validation_issue(
+					'access',
+					'cc',
+					'CC',
+					$this->field_max_length_message('CC', $cc_max),
+					'template'
+				);
+			}
+		}
+		return $issues;
+	}
+
+	protected function mb_len_exceeded($value, $max)
+	{
+		return mb_strlen((string) $value) > (int) $max;
+	}
+
+	protected function field_max_length_message($field_label, $max)
+	{
+		return sprintf(t('dd_field_max_length'), $field_label, (int) $max);
 	}
 
 	protected function validation_issue($step, $key, $title, $message, $source)

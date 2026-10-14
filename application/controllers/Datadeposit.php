@@ -161,6 +161,7 @@ class Datadeposit extends MY_Controller
 			'uploadsApiUrl'        => rtrim(site_url('api/uploads'), '/').'/',
 			'allowedResourceTypes' => $this->config->item('allowed_resource_types'),
 			'depositMaxUploadMb'   => datadeposit_max_upload_mb(),
+			'fieldLimits'          => datadeposit_field_limits_for_vue(),
 			'projectTypes'         => $this->_deposit_creatable_project_types(),
 			'flashMessage'         => (string) $this->session->flashdata('message'),
 			'flashError'           => (string) $this->session->flashdata('error'),

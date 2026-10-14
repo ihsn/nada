@@ -187,7 +187,9 @@ $lang['title_project_management'] = "Data Deposit";
 $lang['datadeposit'] = "Data Deposit";
 $lang['study_updated'] = 'Your study description was updated successfully!';
 
+$lang['title'] = 'Title';
 $lang['shortname'] = 'Short name';
+$lang['dd_field_max_length'] = '%s must not exceed %s characters.';
 $lang['dd_required_missing'] = 'Required fields not filled';
 $lang['dd_cannot_submit'] = 'Fix the items listed above before submitting.';
 $lang['dd_validation_issues'] = 'Validation issues';
