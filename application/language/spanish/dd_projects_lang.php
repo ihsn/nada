@@ -26,7 +26,7 @@ $lang['confirm_submit']="Confirmar envío";
 $lang['invalid_email']="¡Dirección de correo electrónico inválida!";
 $lang['add_citations']="Nueva cita";
 $lang['diagnostic']="Diagnóstico";
-$lang['outstanding_fields']="%s Campos Obligatorios Pendientes";
+$lang['outstanding_fields']="%d campos obligatorios pendientes";
 $lang['no_plupload_support']="Su navegador no es compatible con Flash, Silverlight, Gears, BrowserPlus o HTML5.";
 $lang['project_locked_message']="Este proyecto se envió el %s. El proyecto ya no se puede editar, pero puede ver y descargar la información de resumen del proyecto. Si necesita revisar o agregar más archivos a su envío, puede solicitar que se reabra el proyecto.";
 $lang['submit']="Enviar";
@@ -66,7 +66,7 @@ $lang['description_of_scope']="Descripción del alcance";
 $lang['topics_classifications']="Clasificaciones de temas";
 $lang['scope_keywords']="Palabras clave del alcance";
 $lang['confirm_submission']="Ahora está enviando su proyecto. No podrá editar más el estudio. Si desea editar el proyecto después de enviarlo, deberá solicitar que un administrador vuelva a abrir el proyecto por usted. Un enlace para solicitarlo estará disponible en la pestaña Mis proyectos de esta aplicación.";
-$lang['project_was_requested']="Se realizó una solicitud para reabrir este proyecto el &quot;% s&quot;. Si le preocupa no haber recibido una respuesta oportuna a esta solicitud, por favor comuníquese con microdata@worldbank.org.";
+$lang['project_was_requested']="Se realizó una solicitud para reabrir este proyecto el «%s». Si le preocupa no haber recibido una respuesta oportuna a esta solicitud, comuníquese con microdata@worldbank.org.";
 $lang['reopen_requested']="Su solicitud para reabrir este proyecto se ha enviado al Administrador de la Biblioteca de Microdatos. Recibirá un correo electrónico de la Biblioteca de Microdatos una vez que se haya procesado su solicitud.";
 $lang['coverage']="Cobertura";
 $lang['country']="País";
@@ -169,14 +169,18 @@ $lang['project_information_tab']="Información del Proyecto";
 $lang['title_project_management']="Depósito de Datos";
 $lang['datadeposit']="Depósito de Datos";
 $lang['study_updated']="La descripción de su estudio se actualizó correctamente.";
-$lang['notify_admin_new_project_submitted']="&quot;<p> El usuario <b>%s</b> ha enviado un proyecto titulado <b>% s </b>. </p>
-<p> A continuación, se proporciona un resumen del envío. Para administrar el proyecto, visite:% s </p> &quot;";
+$lang['notify_admin_new_project_submitted']="<p>El usuario <b>%s</b> ha enviado un proyecto titulado <b>%s</b>.</p>
+<p>A continuación se proporciona un resumen del envío. Para administrar el proyecto, visite: %s</p>";
 $lang['notice_project_submitted']="[Notificación] - nuevo proyecto recibido - [%s] enviado por [%s]";
 $lang['notice_reopen_request']="[Notificación] - Se ha solicitado la reapertura del proyecto -%s";
 $lang['msg_reopen_request']="&quot;<p> El usuario <b>%s </b> ha solicitado reabrir el proyecto <b>%s</b>. Para administrar el proyecto, visite: %s</p>
 <p> Motivo de la reapertura del proyecto: <b>%s </b> </p> &quot;";
 
+$lang['title'] = 'Título';
 $lang['shortname'] = 'Nombre corto';
+$lang['dd_field_max_length'] = '%s no debe superar los %s caracteres.';
+$lang['dd_filter_required'] = 'Obligatorios';
+$lang['dd_filter_recommended'] = 'Recomendados';
 $lang['dd_required_missing'] = 'Faltan campos obligatorios';
 $lang['dd_cannot_submit'] = 'Corrija los elementos listados arriba antes de enviar.';
 $lang['dd_validation_issues'] = 'Problemas de validación';
@@ -284,6 +288,9 @@ $lang['dd_not_set'] = 'NO DEFINIDO';
 $lang['dd_task_not_found'] = 'No se encontró la tarea';
 $lang['dd_no_files_attached'] = 'No hay archivos adjuntos a este proyecto';
 $lang['dd_history'] = 'Historial';
+$lang['dd_depositor'] = 'Depositante';
+$lang['dd_embargo_filter'] = 'Embargo';
+$lang['dd_not_embargoed'] = 'No sujeto a embargo';
 
 $lang['datadeposit_not_enabled'] = 'El depósito de datos no está habilitado';
 $lang['datadeposit_not_enabled_help'] = 'Establezca enable_datadeposit en true en application/config/datadeposit.php y vuelva a cargar esta página.';

@@ -131,7 +131,7 @@ $lang['mandatory_only']="الحقول الإلزامية ";
 $lang['save_tooltip']="حفظ";
 $lang['edit_title']="قم بتحرير العنوان الخاص بك من صفحة معلومات المشروع ، حيث أنهما مرتبطان ببعضهما البعض.";
 $lang['confirmation_project_submitted']="[تأكيد] - تم تقديم المشروع";
-$lang['msg_project_submitted']="<p> عزيزي % s ، </p>
+$lang['msg_project_submitted']="<p>عزيزي %s،</p>
 <p> شكرًا لك على إيداع دراستك بعنوان <b>%s </b> في مكتبة البيانات الجزئية. </p>
 <p> يراجع فريق مكتبة البيانات الجزئية المعلومات التي قدمتها. إذا احتجنا إلى أي معلومات أخرى منك ، فسنتصل بك.
 بمجرد اكتمال عملية المراجعة ، سيتم إرسال بريد إلكتروني نهائي إليك لتأكيد قبول الدراسة. </p>
@@ -151,7 +151,7 @@ $lang['print_preview']="معاينة قبل الطباعة";
 $lang['provide_email']="يرجى تقديم عنوان بريد إلكتروني صالح لإرسال المشروع الحالي";
 $lang['email_sent_successful']="تم إرسال البريد الإلكتروني بنجاح!";
 $lang['citation_type']="نوع الاقتباس";
-$lang['admin_sent_comments']="من:% s <br/>%s <br/> التعليقات:%s";
+$lang['admin_sent_comments']="من: %s<br/>%s<br/>التعليقات: %s";
 $lang['fail_import']="لم نتمكن من استيراد البيانات الوصفية بنجاح!";
 $lang['success_import']="تم استيراد البيانات الوصفية بنجاح!";
 $lang['embargoed']="محظور";
@@ -162,14 +162,18 @@ $lang['project_information_tab']="معلومات المشروع";
 $lang['title_project_management']="إيداع البيانات";
 $lang['datadeposit']="إيداع البيانات";
 $lang['study_updated']="تم تحديث وصف دراستك بنجاح!";
-$lang['notify_admin_new_project_submitted']="<p> أرسل المستخدم <b>٪ s </b> مشروعًا بعنوان <b>٪ s </b>. </p>
-<p> يتم توفير ملخص للإرسال أدناه. لإدارة المشروع قم بزيارة :٪ s </p>";
-$lang['notice_project_submitted']="[إعلام] - تم استلام مشروع جديد - تم إرسال[s%] بواسطة [s%]";
-$lang['notice_reopen_request']="[إعلام] - طلب إعادة فتح المشروع -s%";
-$lang['msg_reopen_request']="<p> طلب المستخدم <b>%s </b> إعادة فتح المشروع <b>%s </b>. لإدارة المشروع قم بزيارة: s% </p>
+$lang['notify_admin_new_project_submitted']="<p>أرسل المستخدم <b>%s</b> مشروعًا بعنوان <b>%s</b>.</p>
+<p>يرد أدناه ملخص لعملية الإرسال. لإدارة المشروع، انتقل إلى: %s</p>";
+$lang['notice_project_submitted']="[إشعار] - تم استلام مشروع جديد - [%s] أرسله [%s]";
+$lang['notice_reopen_request']="[إشعار] - طُلبت إعادة فتح المشروع - %s";
+$lang['msg_reopen_request']="<p>طلب المستخدم <b>%s</b> إعادة فتح المشروع <b>%s</b>. لإدارة المشروع، انتقل إلى: %s</p>
 <p> سبب إعادة فتح المشروع: <b>%s </b> </p>";
 
+$lang['title'] = 'العنوان';
 $lang['shortname'] = 'الاسم المختصر';
+$lang['dd_field_max_length'] = 'يجب ألا يتجاوز %s عدد %s حرفاً.';
+$lang['dd_filter_required'] = 'إلزامي';
+$lang['dd_filter_recommended'] = 'موصى به';
 $lang['dd_required_missing'] = 'الحقول الإلزامية غير مكتملة';
 $lang['dd_cannot_submit'] = 'أصلح العناصر المدرجة أعلاه قبل الإرسال.';
 $lang['dd_validation_issues'] = 'مشاكل التحقق';
@@ -277,6 +281,9 @@ $lang['dd_not_set'] = 'غير محدد';
 $lang['dd_task_not_found'] = 'لم يتم العثور على المهمة';
 $lang['dd_no_files_attached'] = 'لا توجد ملفات مرفقة بهذا المشروع';
 $lang['dd_history'] = 'السجل';
+$lang['dd_depositor'] = 'المودِع';
+$lang['dd_embargo_filter'] = 'الحظر';
+$lang['dd_not_embargoed'] = 'غير خاضع للحظر';
 
 $lang['datadeposit_not_enabled'] = 'إيداع البيانات غير مفعّل';
 $lang['datadeposit_not_enabled_help'] = 'عيّن enable_datadeposit إلى true في application/config/datadeposit.php ثم أعد تحميل هذه الصفحة.';
