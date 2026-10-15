@@ -124,6 +124,23 @@ $lang['page not found']="Page non trouvée";
 $lang['export_to_csv']="Exporter au format CSV";
 $lang['export_to_json']="Exporter au format JSON";
 $lang['translate']="Traduire";
+$lang['showing %d-%d of %d']="Affichage de %d-%d sur %d";
+$lang['save']="Enregistrer";
+$lang['get_reproducibility_package']="Obtenir le package de reproductibilité";
+$lang['enter_email_to_continue']="Saisissez votre adresse e-mail pour continuer";
+$lang['enter_your_email']="Saisissez votre adresse e-mail";
+$lang['continue']="Continuer";
+$lang['login_with_social']="Se connecter avec un compte social";
+$lang['login_with']="Se connecter avec";
+$lang['login_with_email']="Se connecter avec une adresse e-mail";
+$lang['login_with_password']="Se connecter avec un mot de passe";
+$lang['create_account_with_email']="Créer un compte avec une adresse e-mail";
+$lang['account_exists_with']="Un compte existe déjà avec %s";
+$lang['new_account_will_be_created']="Un nouveau compte sera créé pour vous";
+$lang['message_sent_to_your_email']="Un message contenant les instructions pour réinitialiser votre mot de passe a été envoyé à votre adresse e-mail.";
+$lang['file_manager']="Gestionnaire de fichiers";
+$lang['access_denied_title']="Accès refusé";
+$lang['access_denied_message']="Vous n'avez pas l'autorisation d'accéder à cette page ou à cette ressource. Si vous pensez devoir y avoir accès, veuillez contacter votre administrateur système.";
 
 
 /* End of file general */

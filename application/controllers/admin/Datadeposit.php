@@ -37,12 +37,12 @@ class Datadeposit extends MY_Controller {
 
 	public function tasks()
 	{
-		$this->_render_admin_datadeposit_vue_shell(t('Active tasks'));
+		$this->_render_admin_datadeposit_vue_shell(t('dd_active_tasks'));
 	}
 
 	public function my_tasks()
 	{
-		$this->_render_admin_datadeposit_vue_shell(t('My Tasks'));
+		$this->_render_admin_datadeposit_vue_shell(t('dd_my_tasks'));
 	}
 
 	public function task_info($task_id = null)
@@ -57,7 +57,7 @@ class Datadeposit extends MY_Controller {
 			show_404();
 		}
 
-		$this->_render_admin_datadeposit_vue_shell(t('Task info'));
+		$this->_render_admin_datadeposit_vue_shell(t('dd_task_info'));
 	}
 
 	/**
@@ -242,7 +242,7 @@ class Datadeposit extends MY_Controller {
             show_404();
         }
 
-        $title = !empty($project['title']) ? $project['title'] : t('Assign task');
+        $title = !empty($project['title']) ? $project['title'] : t('dd_assign_task');
         $this->_render_admin_datadeposit_vue_shell($title);
     }
 

@@ -1153,13 +1153,13 @@ class Deposit_depositor
 			array('label' => t('title'), 'value' => isset($row['title']) ? $row['title'] : ''),
 			array('label' => t('shortname'), 'value' => isset($row['shortname']) ? $row['shortname'] : ''),
 			array('label' => t('description'), 'value' => isset($row['description']) ? $row['description'] : ''),
-			array('label' => t('collaborator'), 'value' => implode(', ', $collaborators)),
+			array('label' => t('dd_collaborators'), 'value' => implode(', ', $collaborators)),
 			array('label' => t('type'), 'value' => isset($type_labels[$data_type]) ? $type_labels[$data_type] : $data_type),
 			array('label' => t('created_by'), 'value' => isset($row['created_by']) ? $row['created_by'] : ''),
-			array('label' => 'Date created', 'value' => $this->format_date(isset($row['created_on']) ? $row['created_on'] : null)),
-			array('label' => 'Last modified', 'value' => $this->format_date(isset($row['last_modified']) ? $row['last_modified'] : null)),
-			array('label' => 'Status', 'value' => isset($row['status']) ? $row['status'] : ''),
-			array('label' => 'Project ID', 'value' => (string) $id),
+			array('label' => t('dd_created_on'), 'value' => $this->format_date(isset($row['created_on']) ? $row['created_on'] : null)),
+			array('label' => t('dd_last_modified'), 'value' => $this->format_date(isset($row['last_modified']) ? $row['last_modified'] : null)),
+			array('label' => t('dd_status'), 'value' => isset($row['status']) ? $row['status'] : ''),
+			array('label' => t('dd_project_id'), 'value' => (string) $id),
 		);
 		$info_rows = array_values(array_filter($info_rows, function ($r) {
 			return trim((string) $r['value']) !== '';
@@ -1174,7 +1174,7 @@ class Deposit_depositor
 				'step_info'     => t('project_info'),
 				'step_metadata' => t('study_desc'),
 				'step_files'    => t('files_tab'),
-				'step_access'   => 'Access and notes',
+				'step_access'   => t('dd_access_and_notes'),
 				'no_preview'    => t('metadata_no_preview'),
 				'no_files'      => t('no_files'),
 				'title'         => t('title'),

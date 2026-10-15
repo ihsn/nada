@@ -324,5 +324,41 @@ $lang['metadata.image_description.tags.tag']="Etiqueta
 ";
 
 
+$lang['metadata.image_description.dcmi.date']="Fecha";
+$lang['metadata.image_description.dcmi.caption']="Leyenda";
+$lang['metadata.image_description.dcmi.description']="Descripción";
+$lang['metadata.image_description.dcmi.keywords']="Palabras clave";
+$lang['metadata.image_description.dcmi.keywords.name']="Palabra clave";
+$lang['metadata.image_description.dcmi.keywords.vocabulary']="Vocabulario";
+$lang['metadata.image_description.dcmi.keywords.url']="URL";
+$lang['metadata.image_description.dcmi.topics']="Temas";
+$lang['metadata.image_description.dcmi.topics.name']="Tema";
+$lang['metadata.image_description.dcmi.topics.id']="ID";
+$lang['metadata.image_description.dcmi.topics.parent_id']="ID del tema principal";
+$lang['metadata.image_description.dcmi.vocabulary']="Vocabulario";
+$lang['metadata.image_description.dcmi.vocabulary.url']="URL";
+$lang['metadata.image_description.dcmi.country']="País";
+$lang['metadata.image_description.dcmi.country.name']="País";
+$lang['metadata.image_description.dcmi.country.code']="Código";
+$lang['metadata.image_description.dcmi.coverage']="Cobertura";
+$lang['metadata.image_description.dcmi.format']="Formato";
+$lang['metadata.image_description.dcmi.languages']="Idiomas";
+$lang['metadata.image_description.dcmi.languages.name']="Idioma";
+$lang['metadata.image_description.dcmi.languages.code']="Código";
+$lang['metadata.image_description.dcmi.source']="Fuente";
+$lang['metadata.image_description.dcmi.note']="Nota";
+$lang['metadata.image_description.dcmi.creator']="Creador";
+$lang['metadata.image_description.dcmi.contributor']="Colaborador";
+$lang['metadata.image_description.dcmi.publisher']="Editorial/Publicador";
+$lang['metadata.image_description.dcmi.rights']="Derechos";
+$lang['metadata.image_description.dcmi.relations']="Relaciones";
+$lang['metadata.image_description.dcmi.relations.name']="Relación";
+$lang['metadata.image_description.dcmi.relations.uri']="URI";
+$lang['metadata.image_description.dcmi.relations.type']="Tipo";
+$lang['metadata.image_description.dcmi.gps']="Ubicación";
+$lang['metadata.image_description.dcmi.gps.latitude']="Latitud";
+$lang['metadata.image_description.dcmi.gps.longitude']="Longitud";
+$lang['metadata.image_description.dcmi.gps.altitude']="Altitud";
+
 /* End of file fields_image */
 /* Location: ./application/language/spanish/fields_image */

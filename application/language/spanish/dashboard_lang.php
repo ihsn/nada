@@ -16,7 +16,7 @@ $lang['user_inactive']="Inactivo - nunca se conectó";
 $lang['bug_report']="Informe el error o solicite una nueva funcionalidad";
 $lang['run_database_backup_script']="Ejecutar el comando de copia de seguridad de la base de datos";
 $lang['no_cache_files_found']="No se encontraron archivos caché";
-$lang['clear_cache_files']="Usted tiene <b>%s</b> archivos caché,  <a href=&quot;%s&quot;>haga clic aquí para borrar los archivos caché.</a>";
+$lang['clear_cache_files']="Usted tiene <b>%d</b> archivos en caché, <a href=\"%s\">haga clic aquí para borrar la caché.</a>";
 $lang['recent_studies']="Operaciones estadísticas actualizadas recientemente";
 $lang['logged_in_users']="Conectados";
 $lang['anonymous_users']="Usuarios anónimos visitando el sitio";
@@ -25,14 +25,24 @@ $lang['Administrators']="Administradores ";
 $lang['History']="Historia";
 $lang['Edit']="Editar";
 $lang['Collection']="Colección";
-$lang['collection_contains_n_studies']="La colección contiene %s operaciones estadísticas";
-$lang['catalog_contains_n_studies']="El catálogo contiene %s operaciones estadísticas";
+$lang['collection_contains_n_studies']="La colección contiene %d operaciones estadísticas";
+$lang['catalog_contains_n_studies']="El catálogo contiene %d operaciones estadísticas";
 $lang['studies_with_no_data_files']="Acceso a Archivos de Uso Público sin archivos de microdatos";
 $lang['studies_with_no_questionnaires']="sin cuestionarios";
 $lang['owned']="Propietario";
 $lang['linked']="Vinculado";
 $lang['published']="Publicado";
 $lang['unpublished']="No Publicado";
+$lang['dashboard_summary_catalog']="Catálogo";
+$lang['dashboard_summary_catalog_caption']="{published} publicados · {draft} borradores";
+$lang['dashboard_summary_collections']="Colecciones";
+$lang['dashboard_summary_collections_caption']="{studies} estudios";
+$lang['dashboard_summary_collections_caption_none']="No hay colecciones adicionales";
+$lang['dashboard_summary_licenses']="Solicitudes de licencia";
+$lang['dashboard_summary_licenses_pending']="Pendientes de aprobación";
+$lang['dashboard_summary_licenses_none']="No hay solicitudes pendientes";
+$lang['dashboard_summary_users']="Usuarios";
+$lang['dashboard_summary_users_caption']="{active} activos";
 
 
 /* End of file dashboard_lang.php */

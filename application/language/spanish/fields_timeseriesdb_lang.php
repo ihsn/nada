@@ -181,6 +181,16 @@ $lang['metadata.database_description.copyright']="Derechos de autor (Copyright)
 ";
 $lang['metadata.additional']="Metadatos adicionales personalizados
 ";
+$lang['metadata.database_description.authoring_entity.email']="Correo electrónico";
+$lang['metadata.database_description.authoring_entity.uri']="URI";
+$lang['metadata.database_description.time_coverage.start']="Inicio";
+$lang['metadata.database_description.time_coverage.end']="Fin";
+$lang['metadata.database_description.themes.id']="ID";
+$lang['metadata.database_description.ref_country']="Países de referencia";
+$lang['metadata.database_description.ref_country.name']="Nombre";
+$lang['metadata.database_description.ref_country.code']="Código";
+$lang['metadata.database_description.acknowledgment_statement']="Declaración de agradecimientos";
+$lang['metadata.database_description.license.name']="Nombre";
 
 
 /* End of file fields_timeseriesdb */

@@ -172,6 +172,41 @@ $lang['select_study_thumbnail']="إختر ملف الصورة (PNG ، JPG ، JPE
 $lang['Thumbnal']="الصورة المصغرة";
 $lang['Upload thumbnal']="تحميل الصورة المصغرة";
 
+$lang['metadata_editor_template']="القالب";
+$lang['metadata_reload']="إعادة التحميل";
+$lang['metadata_save_unsaved']="حفظ *";
+$lang['metadata_saved']="تم حفظ البيانات الوصفية";
+$lang['metadata_load_failed']="فشل تحميل البيانات الوصفية";
+$lang['metadata_save_failed']="فشل الحفظ";
+$lang['metadata_unsaved_leave']="لديك تغييرات غير محفوظة. هل تريد مغادرة هذه الصفحة؟";
+$lang['metadata_unsaved_reload']="لديك تغييرات غير محفوظة. هل تريد إعادة التحميل وتجاهلها؟";
+$lang['metadata_validation_failed']="فشل التحقق";
+$lang['metadata_schema_validation_failed']="فشل التحقق من المخطط";
+$lang['metadata_save_anyway']="حفظ مع وجود أخطاء";
+$lang['metadata_save_anyway_confirm']="فشل التحقق من المخطط. هل تريد حفظ هذه التغييرات على أي حال؟ ستبقى المشكلات المدرجة قائمة.";
+$lang['metadata_saved_with_schema_issues']="تم حفظ البيانات الوصفية مع وجود مشكلات في المخطط";
+$lang['metadata_request_failed']="فشل الطلب";
+$lang['metadata_select_section']="اختر قسمًا أو حقلًا من الشجرة.";
+$lang['metadata_add_from_list']="إضافة من القائمة";
+$lang['metadata_add']="إضافة";
+$lang['metadata_add_row']="إضافة صف";
+$lang['metadata_delete_row']="حذف الصف";
+$lang['metadata_delete_row_confirm']="هل تريد حذف هذا الصف؟";
+$lang['metadata_no_rows']="لا توجد صفوف بعد. استخدم «إضافة صف» أدناه.";
+$lang['metadata_no_items']="لا توجد عناصر بعد.";
+$lang['metadata_show_help']="إظهار المساعدة";
+$lang['metadata_hide_help']="إخفاء المساعدة";
+$lang['metadata_container_overview']="نظرة عامة على هذه المجموعة. اختر قسمًا في الشجرة (أو أدناه) لتعديل الحقول.";
+$lang['metadata_sections_in_group']="الأقسام في هذه المجموعة";
+$lang['metadata_nothing_entered']="لم يتم إدخال أي شيء هنا بعد. افتح قسمًا لإضافة البيانات الوصفية.";
+$lang['metadata_no_fields']="لا يحتوي هذا القسم على حقول.";
+$lang['metadata_no_preview']="لم يتم إدخال بيانات وصفية في هذه المجموعة بعد. افتح قسمًا في الشجرة لبدء التحرير.";
+$lang['metadata_edit_section']="تعديل القسم";
+$lang['metadata_tree_nav']="التنقل في نموذج البيانات الوصفية";
+$lang['metadata_item']="عنصر";
+$lang['metadata_true']="صحيح";
+$lang['metadata_false']="خطأ";
+
 
 /* End of file catalog_admin */
 /* Location: ./application/language/arabic/catalog_admin */

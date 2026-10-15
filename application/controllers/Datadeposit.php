@@ -47,7 +47,7 @@ class Datadeposit extends MY_Controller
 			show_error('INVALID ID');
 		}
 		if (!$this->DD_project_model->has_access($id, $this->session->userdata('email'))) {
-			$this->session->set_flashdata('error', t('Access Denied: You don\'t have access to the project'));
+			$this->session->set_flashdata('error', t('dd_access_denied_project'));
 			redirect('datadeposit/projects');
 			return;
 		}
@@ -92,7 +92,7 @@ class Datadeposit extends MY_Controller
 
 		$config = $this->_deposit_spa_config($id);
 		$content = $this->load->view('datadeposit/vue_app', array('config' => $config), true);
-		$this->template->write('title', t('Data Deposit - ').$this->_deposit_spa_title($config), true);
+		$this->template->write('title', t('datadeposit').' - '.$this->_deposit_spa_title($config), true);
 		$this->template->write('content', $content, true);
 		$this->template->render();
 	}
@@ -297,7 +297,7 @@ class Datadeposit extends MY_Controller
 			'title'                     => t('title'),
 			'shortname'                 => t('shortname'),
 			'description'               => t('description'),
-			'collaborators'             => t('collaborator'),
+			'collaborators'             => t('dd_collaborators'),
 			'collaboratorHelp'          => t('create_collab'),
 			'filesHelp'                 => t('dd_files_help'),
 			'dropZoneHint'              => t('dd_drop_zone'),

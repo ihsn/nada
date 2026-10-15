@@ -16,7 +16,7 @@ $lang['user_inactive']="Inactif - Jamais loggé";
 $lang['bug_report']="Rapporter un bogue / Suggérer une amélioration";
 $lang['run_database_backup_script']="Exécuter le programme de backup";
 $lang['no_cache_files_found']="Aucun fichier cache trouvé";
-$lang['clear_cache_files']="Vous avez <b>%s</b> fichiers cachés, <a href=&quot;%s&quot;>Cliquez ici pour purger le cache.</a> ";
+$lang['clear_cache_files']="Vous avez <b>%d</b> fichiers en cache, <a href=\"%s\">cliquez ici pour vider le cache.</a>";
 $lang['recent_studies']="Enquêtes récemment mises à jour";
 $lang['logged_in_users']="Connecté";
 $lang['anonymous_users']="Visiteurs anonymes du site";
@@ -25,14 +25,24 @@ $lang['Administrators']="Administrateurs";
 $lang['History']="Historique";
 $lang['Edit']="Editer la collection";
 $lang['Collection']="Collection";
-$lang['collection_contains_n_studies']="Cette collection contient %s enquêtes";
-$lang['catalog_contains_n_studies']="Ce catalogue contient %s enquêtes";
+$lang['collection_contains_n_studies']="Cette collection contient %d enquêtes";
+$lang['catalog_contains_n_studies']="Ce catalogue contient %d enquêtes";
 $lang['studies_with_no_data_files']="FUP sans fichier de données";
 $lang['studies_with_no_questionnaires']="sans questionnaire";
 $lang['owned']="Propriétaire";
 $lang['linked']="Associé";
 $lang['published']="Publié";
 $lang['unpublished']="Non publié";
+$lang['dashboard_summary_catalog']="Catalogue";
+$lang['dashboard_summary_catalog_caption']="{published} publiées · {draft} brouillons";
+$lang['dashboard_summary_collections']="Collections";
+$lang['dashboard_summary_collections_caption']="{studies} enquêtes";
+$lang['dashboard_summary_collections_caption_none']="Aucune collection supplémentaire";
+$lang['dashboard_summary_licenses']="Demandes d'accès sous licence";
+$lang['dashboard_summary_licenses_pending']="En attente d'approbation";
+$lang['dashboard_summary_licenses_none']="Aucune demande en attente";
+$lang['dashboard_summary_users']="Utilisateurs";
+$lang['dashboard_summary_users_caption']="{active} actifs";
 
 
 /* End of file dashboard_lang.php */
