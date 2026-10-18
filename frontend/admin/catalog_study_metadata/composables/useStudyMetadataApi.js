@@ -60,6 +60,7 @@ export function useStudyMetadataApi() {
     }
     try {
       const { data } = await axios.post(url, body, {
+        params: { id_format: 'id' },
         headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
         withCredentials: true,
       });

@@ -7,17 +7,21 @@
  * served by it when it can be, and by the database when it cannot. This class is the only place that knows that:
  * every call site asks it instead of reading the settings itself.
  *
- *   engine()          what search_engine is set to:
- *                       database | solr | opensearch | nada_ai_opensearch | nada_ai_qdrant
+ *   engine()          what search_engine is set to, the engine that serves searches:
+ *                       database | solr | opensearch | nada_ai
+ *   index_engine()    what search_index_engine is set to, the engine whose index NADA keeps in sync:
+ *                       none | solr | opensearch | nada_ai
  *   provider_for()    the engine that serves one capability (studies | variables | citations): database | solr |
  *                     opensearch | nada_ai
- *   tracked()         whether changes to an object type must be queued for the engine that serves it
+ *   tracked()         whether changes to an object type are queued for the index engine
  *
- * The two nada_ai_* values say which engine nada-ai is expected to run. nada-ai reports what it runs (Nada_ai_link),
- * and a difference is a configuration error, not something to work around (backend_mismatch()).
- *   nada_ai_opensearch  nada-ai's OpenSearch serves studies, variables and citations.
- *   nada_ai_qdrant      Qdrant ranks studies and the catalog database's keyword search is combined with it; the
- *                       database serves everything else (counts, variables, citations).
+ * The two are separate so an index can be built and kept in sync while the database still serves searches (index
+ * everything with search_engine = database, then switch search_engine). search_engine is either database or the index
+ * engine: an engine whose index is not kept in sync cannot serve searches (checked when the settings are saved).
+ *
+ * nada_ai: nada-ai's OpenSearch serves studies, and variables and citations when nada-ai says it can.
+ * nada-ai reports which engine it runs (Nada_ai_link); anything but OpenSearch is a configuration error, not
+ * something to work around (backend_mismatch()).
  * Until the variable search of Solr and NADA's OpenSearch has been checked against this catalog's variable view,
  * they are not asked for variables and the database serves them (NATIVE_ENGINES_SERVE_VARIABLES).
  */
@@ -25,15 +29,17 @@ require_once dirname(__FILE__) . '/Nada_ai_link.php';
 
 class Search_engine_resolver
 {
-    // the site setting
-    const DATABASE           = 'database';
-    const SOLR               = 'solr';
-    const OPENSEARCH         = 'opensearch';
-    const NADA_AI_OPENSEARCH = 'nada_ai_opensearch';
-    const NADA_AI_QDRANT     = 'nada_ai_qdrant';
+    // the site setting, and what provider_for() answers
+    const DATABASE   = 'database';
+    const SOLR       = 'solr';
+    const OPENSEARCH = 'opensearch';
+    const NADA_AI    = 'nada_ai';
 
-    /** provider_for(): serving by nada-ai, whichever engine it runs. */
-    const NADA_AI = 'nada_ai';
+    /** index_engine(): no index is kept in sync. */
+    const NONE = 'none';
+
+    /** The engine nada-ai must run for NADA. */
+    const NADA_AI_BACKEND = 'opensearch';
 
     const STUDIES   = 'studies';
     const VARIABLES = 'variables';
@@ -65,46 +71,40 @@ class Search_engine_resolver
     public function engine()
     {
         $engine = strtolower(trim((string) $this->ci->config->item('search_engine')));
-        $valid  = array(self::SOLR, self::OPENSEARCH, self::NADA_AI_OPENSEARCH, self::NADA_AI_QDRANT);
+        $valid  = array(self::SOLR, self::OPENSEARCH, self::NADA_AI);
         return in_array($engine, $valid, true) ? $engine : self::DATABASE;
     }
 
-    /** Whether the site is set to a nada-ai engine. */
+    /** The engine whose index NADA keeps in sync. */
+    public function index_engine()
+    {
+        $engine = strtolower(trim((string) $this->ci->config->item('search_index_engine')));
+        $valid  = array(self::SOLR, self::OPENSEARCH, self::NADA_AI);
+        return in_array($engine, $valid, true) ? $engine : self::NONE;
+    }
+
+    /** Whether the site is set to nada-ai. */
     public function uses_nada_ai()
     {
-        return in_array($this->engine(), array(self::NADA_AI_OPENSEARCH, self::NADA_AI_QDRANT), true);
+        return $this->engine() === self::NADA_AI;
     }
 
     /**
-     * The engine nada-ai must run for a setting value (opensearch | qdrant), or null when it is not a nada-ai one.
+     * The engine nada-ai must run for a setting value (opensearch), or null when it is not nada_ai.
      * Without an argument, the site's setting.
      */
     public function expected_backend($engine = null)
     {
-        switch ($engine !== null ? $engine : $this->engine()) {
-            case self::NADA_AI_OPENSEARCH:
-                return 'opensearch';
-            case self::NADA_AI_QDRANT:
-                return 'qdrant';
-            default:
-                return null;
-        }
+        return ($engine !== null ? $engine : $this->engine()) === self::NADA_AI ? self::NADA_AI_BACKEND : null;
     }
 
     /**
-     * The setting for a nada-ai that runs $backend (opensearch | qdrant), or null. For the admin search test, which runs
-     * the catalog search through nada-ai before it is the site's engine.
+     * The setting for a nada-ai that runs $backend (nada_ai), or null when NADA cannot use that backend. For the admin
+     * search test, which runs the catalog search through nada-ai before it is the site's engine.
      */
     public function nada_ai_engine_for($backend)
     {
-        switch ($backend) {
-            case 'opensearch':
-                return self::NADA_AI_OPENSEARCH;
-            case 'qdrant':
-                return self::NADA_AI_QDRANT;
-            default:
-                return null;
-        }
+        return $backend === self::NADA_AI_BACKEND ? self::NADA_AI : null;
     }
 
     /**
@@ -163,19 +163,19 @@ class Search_engine_resolver
     }
 
     /**
-     * Whether changes to an object type are queued: NADA keeps an engine other than the database up to date from the
-     * queue, so it is needed when the engine that serves that object type is one.
+     * Whether changes to an object type are queued: every study and citation change is, while an index engine is set,
+     * whichever engine serves the searches. Not whether nada-ai can serve citation search right now: its citation
+     * index is kept up to date either way.
      *
      * @param string $object_type survey | citation
      */
     public function tracked($object_type)
     {
-        $capability = $object_type === self::OBJECT_CITATION ? self::CITATIONS : self::STUDIES;
-        return $this->provider_for($capability) !== self::DATABASE;
+        return $this->index_engine() !== self::NONE;
     }
 
     /**
-     * @return array{engine: string, serves: array<string, string>, nada_ai: array|null, backend_mismatch: array|null, breaker: array, policy: string}
+     * @return array{engine: string, index_engine: string, serves: array<string, string>, nada_ai: array|null, backend_mismatch: array|null, breaker: array, policy: string}
      */
     public function summary()
     {
@@ -187,6 +187,7 @@ class Search_engine_resolver
 
         return array(
             'engine'  => $this->engine(),
+            'index_engine' => $this->index_engine(),
             'serves'  => $serves,
             'nada_ai' => $link->configured() ? $link->capabilities() : null,
             'backend_mismatch' => $this->backend_mismatch(),

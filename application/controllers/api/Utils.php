@@ -110,6 +110,13 @@ class Utils extends MY_REST_Controller
 	{
 		try{
             
+            // queue each study's removal from the search index while its idno can still be read
+            $sids = $this->_sids_by_type($type);
+            $this->load->library('Search_index_manager');
+            foreach ($sids as $sid) {
+                $this->search_index_manager->handle_event('surveys', $sid, 'delete', true);
+            }
+
             $this->db->where('type',$type);
             $this->db->delete('surveys');
 
@@ -168,6 +175,7 @@ class Utils extends MY_REST_Controller
 			);
             $this->db->where('type',$type);
             $result=$this->db->update('surveys',$options);
+            $this->_emit_publish_change($type);
 
 			$response=array(
 				'status'=>'success',
@@ -193,6 +201,7 @@ class Utils extends MY_REST_Controller
 			);
             $this->db->where('type',$type);
             $result=$this->db->update('surveys',$options);
+            $this->_emit_publish_change($type);
 
 			$response=array(
 				'status'=>'success',
@@ -286,5 +295,23 @@ class Utils extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}	
+	}
+
+	/** @return int[] the ids of the studies of one type */
+	private function _sids_by_type($type)
+	{
+		$this->db->select('id');
+		$this->db->where('type', $type);
+		return array_map('intval', array_column($this->db->get('surveys')->result_array(), 'id'));
+	}
+
+	/** The search index follows a change of published status of every study of one type. */
+	private function _emit_publish_change($type)
+	{
+		$sids = $this->_sids_by_type($type);
+		if (!empty($sids)) {
+			$this->load->library('Events');
+			$this->events->emit('db.after.update', 'surveys', $sids, 'publish');
+		}
 	}
 }

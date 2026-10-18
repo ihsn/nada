@@ -9,6 +9,7 @@ window.APP_CONFIG = {
     baseUrl:    "<?php echo addslashes($base_url); ?>",
     apiBaseUrl: "<?php echo addslashes($api_base_url); ?>",
     assetsBase: "<?php echo addslashes(isset($assets_base) ? $assets_base : base_url('frontend/dist/')); ?>",
+    studyEditBaseUrl: "<?php echo addslashes(site_url('admin/catalog/edit/')); ?>",
     csrfToken:  "<?php echo addslashes($csrf_token); ?>",
     canEdit:    <?php echo $can_edit ? 'true' : 'false'; ?>,
     canDelete:  <?php echo $can_delete ? 'true' : 'false'; ?>

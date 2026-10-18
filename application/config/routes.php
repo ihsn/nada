@@ -163,6 +163,8 @@ $route['api/admin/search-metadata-extract/variables']            = 'api/admin/se
 
 $route['api/admin/search-index/status']                         = 'api/admin/search_index/status';
 $route['api/admin/search-index/queue/(:num)/ack']               = 'api/admin/search_index/ack/$1';
+$route['api/admin/search-index/queue/ack']                      = 'api/admin/search_index/ack_batch';
+$route['api/admin/search-index/sync']                           = 'api/admin/search_index/sync';
 $route['api/admin/search-index/queue']                          = 'api/admin/search_index/queue';
 $route['api/admin/search-index/requeue']                        = 'api/admin/search_index/requeue';
 $route['api/admin/search-index/state/bulk']                     = 'api/admin/search_index/state_bulk';

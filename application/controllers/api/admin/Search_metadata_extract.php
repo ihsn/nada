@@ -62,6 +62,7 @@ class Search_metadata_extract extends MY_REST_Controller
 	/**
 	 * GET /api/admin/search-metadata-extract/studies/{idno}
 	 * GET /api/admin/search-metadata-extract/studies?offset=&limit=
+	 * GET /api/admin/search-metadata-extract/studies?sids=1,2,3   (these studies: {studies, missing, errors})
 	 */
 	public function studies_get($idno = null)
 	{
@@ -285,6 +286,13 @@ class Search_metadata_extract extends MY_REST_Controller
 	{
 		$this->_require_admin_catalog_access();
 
+		// ?sids=1,2,3: these studies, in this order (at most the batch limit)
+		$sids = $this->input->get('sids');
+		if ($sids !== false && $sids !== null && $sids !== '') {
+			$this->_studies_by_ids_get(explode(',', (string) $sids));
+			return;
+		}
+
 		$this->config->load('search_metadata_extract');
 		$default_limit = (int) $this->config->item('search_metadata_extract_default_limit') ?: 50;
 		$max_limit     = (int) $this->config->item('search_metadata_extract_max_limit') ?: 100;
@@ -357,6 +365,25 @@ class Search_metadata_extract extends MY_REST_Controller
 		}
 
 		return $filters;
+	}
+
+	private function _studies_by_ids_get(array $sids)
+	{
+		$this->config->load('search_metadata_extract');
+		$max_limit = (int) $this->config->item('search_metadata_extract_max_limit') ?: 100;
+
+		$sids = array_values(array_filter(array_map('intval', $sids), function ($id) {
+			return $id > 0;
+		}));
+		if (empty($sids)) {
+			throw new Exception('SIDS_REQUIRED');
+		}
+		if (count($sids) > $max_limit) {
+			throw new Exception('TOO_MANY_SIDS');
+		}
+
+		$batch = $this->catalog_search_metadata_extract->build_study_documents_by_ids($sids, $this->_study_extract_options());
+		$this->set_response(array('status' => 'success') + $batch, REST_Controller::HTTP_OK);
 	}
 
 	/**

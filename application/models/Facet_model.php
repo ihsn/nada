@@ -541,7 +541,7 @@ class Facet_model extends CI_Model {
             }
         }
 
-		$this->events->emit('db.after.update', 'surveys', $sid,'facet');
+		$this->events->emit('db.after.update', 'surveys', $sid,'filters');
     }
 
 

@@ -49,12 +49,12 @@
           {{ error }}
         </v-alert>
         <v-row dense class="pa-4">
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="4">
             <div class="text-subtitle-2 mb-2">API</div>
             <template v-if="overview?.health?.ok">
               <div class="text-body-2">Backend: <strong>{{ overview.health.data?.backend || '—' }}</strong></div>
               <div class="text-body-2">
-                Collection: <strong>{{ overview.health.data?.collection || '—' }}</strong>
+                Index: <strong>{{ overview.health.data?.collection || '—' }}</strong>
                 <v-icon
                   :icon="overview.health.data?.collection_exists ? 'mdi-check' : 'mdi-close'"
                   :color="overview.health.data?.collection_exists ? 'success' : 'error'"
@@ -69,7 +69,7 @@
             <v-progress-linear v-else indeterminate color="primary" />
           </v-col>
 
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="4">
             <div class="text-subtitle-2 mb-2">Embeddings</div>
             <template v-if="overview?.embeddings?.ok">
               <div v-for="row in embeddingRows" :key="row.label" class="text-body-2">
@@ -83,27 +83,7 @@
             <v-progress-linear v-else indeterminate color="primary" />
           </v-col>
 
-          <v-col cols="12" md="6">
-            <div class="text-subtitle-2 mb-2">Collection</div>
-            <template v-if="overview?.collection?.ok">
-              <div class="text-body-2">Points indexed: <strong>{{ formatCount(collectionInfo.points_count) }}</strong></div>
-              <div class="text-body-2">Vector size: <strong>{{ collectionInfo.vector_size ?? '—' }}</strong></div>
-              <div class="text-body-2">Sparse (BM25): <strong>{{ collectionInfo.sparse ? 'on' : 'off' }}</strong></div>
-              <div class="text-body-2">Status: <strong>{{ collectionInfo.status ?? '—' }}</strong></div>
-              <router-link to="/collection" class="text-decoration-none text-primary text-caption">
-                Full collection info →
-              </router-link>
-            </template>
-            <div v-else-if="engine && engine !== 'qdrant'" class="text-body-2 text-medium-emphasis">
-              Not available for the {{ engine }} engine.
-            </div>
-            <v-alert v-else-if="overview?.collection" type="error" variant="tonal" density="compact">
-              {{ overview.collection.error }}
-            </v-alert>
-            <v-progress-linear v-else indeterminate color="primary" />
-          </v-col>
-
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="4">
             <div class="text-subtitle-2 mb-2">Embedding drift</div>
             <template v-if="overview?.drift?.ok">
               <v-alert
@@ -113,7 +93,7 @@
                 density="compact"
                 class="mb-2"
               >
-                {{ overview.drift.data?.warning || 'Configured model dimension does not match the stored collection.' }}
+                {{ overview.drift.data?.warning || 'Configured model dimension does not match the stored index.' }}
               </v-alert>
               <v-chip
                 v-else-if="overview.drift.data?.dimension_match === true"
@@ -139,7 +119,6 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { formatCount } from '../typeLabels.js';
 
 defineOptions({ name: 'SemanticHealthStrip' });
 
@@ -154,23 +133,6 @@ const props = defineProps({
 defineEmits(['refresh', 'warmup']);
 
 const detailsOpen = ref(false);
-
-/** From the already-fixed GET /health (backend/collection/collection_exists are the same field names for every
- * engine now) — used to tell the Collection card/pill "not applicable" apart from "actually erroring", since the
- * separate GET /admin/qdrant/collection probe below is genuinely Qdrant-only and always errors for any other
- * engine. */
-const engine = computed(() => props.overview?.health?.data?.backend || null);
-
-const collectionInfo = computed(() => {
-  const info = props.overview?.collection?.data?.info || {};
-  const vectors = info?.config?.params?.vectors;
-  return {
-    points_count: info.points_count,
-    status: info.status,
-    vector_size: vectors && typeof vectors === 'object' ? vectors.size : undefined,
-    sparse: !!(info?.config?.params?.sparse_vectors && Object.keys(info.config.params.sparse_vectors).length),
-  };
-});
 
 const embeddingsData = computed(() => props.overview?.embeddings?.data || {});
 
@@ -224,17 +186,6 @@ const pills = computed(() => {
           ? 'Embeddings ready'
           : `Embeddings ${embStatus || 'ok'}`;
 
-  const colNotApplicable = engine.value && engine.value !== 'qdrant';
-  const colOk = ov?.collection?.ok === true;
-  const points = collectionInfo.value.points_count;
-  const colText = colNotApplicable
-    ? 'Collection n/a'
-    : !ov?.collection
-      ? 'Collection…'
-      : !colOk
-        ? 'Collection error'
-        : `${formatCount(points)} points`;
-
   const drift = ov?.drift?.data;
   const driftOk = ov?.drift?.ok === true;
   const mismatch = drift?.dimension_match === false;
@@ -260,12 +211,6 @@ const pills = computed(() => {
       text: embText,
       color: pillColor(ov?.embeddings ? embOk && !embWarn : null, embWarn),
       icon: 'mdi-vector-triangle',
-    },
-    {
-      key: 'col',
-      text: colText,
-      color: colNotApplicable ? 'grey' : pillColor(ov?.collection ? colOk : null),
-      icon: 'mdi-database-outline',
     },
     {
       key: 'drift',

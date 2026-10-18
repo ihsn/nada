@@ -42,15 +42,6 @@
         <template v-if="nadaAi.source === 'stale'">NADA-AI did not answer just now; what it can serve is from its last answer.</template>
         <template v-else>NADA-AI has not answered yet, so what it runs and can serve is not known.</template>
       </div>
-      <div>
-        When NADA-AI is unavailable a search is
-        <strong>{{ status.policy === 'error' ? 'answered with an error' : 'served from the catalog database' }}</strong>
-        (Site configurations &gt; Search).
-      </div>
-      <div v-if="fallbacks.length">
-        Served by the database this hour:
-        <template v-for="(row, i) in fallbacks" :key="row.kind"><template v-if="i > 0">, </template>{{ row.count }} ({{ row.label }})</template>.
-      </div>
     </div>
   </v-card>
 </template>
@@ -65,7 +56,7 @@ defineOptions({ name: 'SemanticEngineStatusCard' });
 
 const { siteUrl } = useAppConfig();
 const { errorMessage } = useSemanticApi();
-const { status, error, loading, refresh, engineLabel, usesNadaAi, breakerOpen, mismatch, fallbacks } = useEngineStatus();
+const { status, error, loading, refresh, engineLabel, usesNadaAi, breakerOpen, mismatch } = useEngineStatus();
 
 const nadaAi = computed(() => status.value?.nada_ai || null);
 const settingsUrl = computed(() => `${String(siteUrl.value || '').replace(/\/$/, '')}/admin/configurations#/search`);

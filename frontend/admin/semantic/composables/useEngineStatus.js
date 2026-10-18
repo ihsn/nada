@@ -19,8 +19,7 @@ export const ENGINE_LABELS = {
   database: 'Database',
   solr: 'Solr',
   opensearch: 'OpenSearch',
-  nada_ai_opensearch: 'NADA-AI with OpenSearch',
-  nada_ai_qdrant: 'NADA-AI with Qdrant',
+  nada_ai: 'NADA-AI',
 };
 
 /** What a serving engine is called in the "serving now" line (provider_for() answers database | solr | opensearch | nada_ai). */
@@ -30,8 +29,6 @@ export const SERVING_LABELS = {
   opensearch: 'OpenSearch',
   nada_ai: 'NADA-AI',
 };
-
-const FALLBACK_KIND_LABELS = { outage: 'NADA-AI failed', breaker_open: 'NADA-AI paused after a failure' };
 
 function clock(unixSeconds) {
   return unixSeconds ? new Date(unixSeconds * 1000).toLocaleTimeString() : '';
@@ -61,18 +58,10 @@ export function useEngineStatus() {
 
   const engine = computed(() => status.value?.engine || null);
   const engineLabel = computed(() => ENGINE_LABELS[engine.value] || engine.value || '—');
-  const usesNadaAi = computed(() => String(engine.value || '').startsWith('nada_ai_'));
+  const usesNadaAi = computed(() => engine.value === 'nada_ai');
   const breaker = computed(() => status.value?.breaker || null);
   const breakerOpen = computed(() => usesNadaAi.value && !!breaker.value?.open);
   const mismatch = computed(() => (usesNadaAi.value ? status.value?.backend_mismatch || null : null));
-
-  /** Fallbacks counted this hour: [{kind, label, count}]. PHP sends an empty list where the counts are empty. */
-  const fallbacks = computed(() => {
-    const counts = breaker.value?.fallbacks_this_hour;
-    if (!counts || Array.isArray(counts)) return [];
-    return Object.entries(counts).map(([kind, count]) => ({ kind, label: FALLBACK_KIND_LABELS[kind] || kind, count }));
-  });
-  const fallbackTotal = computed(() => fallbacks.value.reduce((sum, row) => sum + row.count, 0));
 
   /** Problems worth an admin's attention, worst first: [{key, type, text}]. Empty when everything is fine. */
   const problems = computed(() => {
@@ -96,12 +85,6 @@ export function useEngineStatus() {
         type: status.value.policy === 'error' ? 'error' : 'warning',
         text: `NADA-AI is not answering${b.reason ? ` (${b.reason})` : ''}${b.since ? ` since ${clock(b.since)}` : ''}. ${serves} until ${clock(b.until)}, when NADA-AI is tried again.`,
       });
-    } else if (fallbackTotal.value > 0) {
-      out.push({
-        key: 'fallbacks',
-        type: 'info',
-        text: `${fallbackTotal.value} search${fallbackTotal.value === 1 ? ' was' : 'es were'} served by the database this hour because NADA-AI did not answer.`,
-      });
     }
     return out;
   });
@@ -117,8 +100,6 @@ export function useEngineStatus() {
     breaker,
     breakerOpen,
     mismatch,
-    fallbacks,
-    fallbackTotal,
     problems,
   };
 }

@@ -34,15 +34,13 @@
       {{ errorMessage(error || queueError) }}
     </v-alert>
 
-    <v-alert v-if="status && !trackingOn" type="warning" variant="tonal">
-      NADA does not report this deployment as its search provider yet — the change queue will stay
-      empty until NADA's search provider / tracking configuration points here.
+    <v-alert v-if="status && status.index_engine !== 'nada_ai'" type="warning" variant="tonal">
+      NADA does not track catalog changes for NADA-AI, so this queue stays empty. Set
+      <strong>Index kept in sync</strong> to NADA-AI in Site configurations › Search.
     </v-alert>
 
     <v-alert v-if="lastPoll" type="success" variant="tonal" closable @click:close="lastPoll = null">
-      Submitted {{ lastPoll.polled ?? lastPoll.count ?? 0 }} pending item(s) as jobs. They stay in this queue until the jobs
-      finish —
-      <router-link to="/jobs" class="text-decoration-none">watch progress on Jobs</router-link>.
+      NADA-AI is working through the queue; items leave it as they are done.
     </v-alert>
     <v-alert v-if="lastRequeue != null" type="success" variant="tonal" closable @click:close="lastRequeue = null">
       Requeued {{ lastRequeue }} failed item(s) as pending.
@@ -54,7 +52,8 @@
         <v-spacer />
         <span v-if="status" class="text-caption text-medium-emphasis font-weight-regular">
           {{ trackingOn ? 'Change tracking on' : 'Change tracking off' }}
-          <template v-if="status.search_engine"> · {{ status.search_engine }}</template>
+          <template v-if="status.index_engine"> · index kept in sync: {{ status.index_engine }}</template>
+          <template v-if="status.search_engine"> · search: {{ status.search_engine }}</template>
         </span>
       </v-card-title>
       <v-divider />
@@ -75,10 +74,18 @@
             </div>
           </div>
         </div>
+        <div v-if="tracked" class="text-body-2 text-medium-emphasis mt-4">
+          Tracking since {{ formatQueueTime(tracked.tracked_since) }}
+          · last full sync: {{ tracked.last_sync_at ? formatQueueTime(tracked.last_sync_at) : 'never' }}
+          · NADA-AI last read the queue: {{ tracked.last_poll_at ? formatQueueTime(tracked.last_poll_at) : 'never' }}
+        </div>
+        <div v-if="scheduler" class="text-body-2 mt-2">
+          <strong>NADA-AI:</strong> {{ schedulerLine }}
+        </div>
         <p class="text-caption text-medium-emphasis mb-0 mt-4">
-          Live catalog edits waiting to be indexed — each pending row becomes a job.
-          Coverage drift the queue might have missed is on
-          <router-link to="/diff" class="text-decoration-none">Index</router-link>.
+          Catalog edits, and the work “Update” on
+          <router-link :to="{ name: 'indexing' }" class="text-decoration-none">Indexing</router-link>
+          queues. NADA-AI works through it one item at a time, catalog edits first.
         </p>
       </v-card-text>
     </v-card>
@@ -119,7 +126,10 @@
             <code>{{ item.object_key || item.object_id }}</code>
           </template>
           <template #item.object_type="{ item }">{{ humanizeKey(item.object_type) }}</template>
-          <template #item.change_class="{ item }">{{ changeClassLabel(item.change_class) }}</template>
+          <template #item.change_class="{ item }">
+            {{ changeClassLabel(item.change_class) }}
+            <v-chip v-if="item.priority === 1" size="x-small" variant="tonal" class="ml-1">sync</v-chip>
+          </template>
           <template #item.last_error="{ item }">
             <span
               v-if="item.last_error"
@@ -167,6 +177,8 @@ const {
   reconcileNow,
   requeueFailed,
 } = useSemanticApi();
+const { getSchedulerStatus } = useSemanticApi();
+const scheduler = ref(null);
 const { error: queueError, listChangeQueue } = useSemanticApi();
 
 const status = ref(null);
@@ -192,6 +204,25 @@ const queueHeaders = [
 ];
 
 const trackingOn = computed(() => !!status.value?.tracking_enabled);
+const tracked = computed(() => status.value?.tracked || null);
+
+/** What NADA-AI's scheduler is doing, in one line. */
+const schedulerLine = computed(() => {
+  const s = scheduler.value;
+  if (!s) return '';
+  const pass = s.pass || {};
+  switch (s.state) {
+    case 'processing':
+      return `processing${s.current?.object_key ? ` ${s.current.object_key} (${changeClassLabel(s.current.change_class)})` : ''}`
+        + ` · ${formatCount(pass.processed || 0)} done in this pass${pass.failed ? `, ${pass.failed} failed` : ''}`;
+    case 'idle':
+      return `up to date${s.next_poll_at ? ` · next check at ${formatQueueTime(s.next_poll_at)}` : ''}`;
+    case 'paused':
+      return `paused: ${s.pause?.message || s.pause?.reason || ''}${s.pause?.resume_at ? ` · next try at ${formatQueueTime(s.pause.resume_at)}` : ''}`;
+    default:
+      return s.state;
+  }
+});
 const pendingCount = computed(() => Number(status.value?.queue?.pending ?? pendingTotal.value) || 0);
 const failedCount = computed(() => Number(status.value?.queue?.failed ?? failedTotal.value) || 0);
 const visibleItems = computed(() => (queueView.value === 'failed' ? failedItems.value : pendingItems.value));
@@ -221,6 +252,11 @@ async function loadStatus() {
     status.value = null;
   } finally {
     loadingStatus.value = false;
+  }
+  try {
+    scheduler.value = await getSchedulerStatus();
+  } catch {
+    scheduler.value = null; // NADA-AI not answering: the banner says so
   }
 }
 

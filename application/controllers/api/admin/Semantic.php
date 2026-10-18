@@ -12,13 +12,10 @@ use GuzzleHttp\Exception\RequestException;
  * Base URL: /api/admin/semantic
  *
  * Thin server-side proxy in front of the nada-ai FastAPI admin routes
- * (POST /admin/ingest/from-catalog(/all), GET /jobs, GET /admin/qdrant/collection,
+ * (POST /admin/ingest/from-catalog(/all), GET /jobs, DELETE /admin/index,
  * GET /admin/search-index/status, POST /admin/ingest/reconcile, ...). Holds the
- * nada-ai admin credential (`nada_ai_admin_api_key`, sent as
- * X-NADA-Admin-Key) server-side so the browser never sees it — same pattern as
- * `nada_ai_api_key` for /search, kept as a *separate* secret since it
- * authenticates a different, more privileged surface (see the note on that
- * setting in Site configurations > Search > Semantic search settings).
+ * nada-ai key (`nada_ai_api_key`, sent as X-NADA-Admin-Key) server-side so the
+ * browser never sees it.
  */
 class Semantic extends MY_REST_Controller
 {
@@ -44,15 +41,15 @@ class Semantic extends MY_REST_Controller
 			$base_url = rtrim((string) $this->config->item('nada_ai_url'), '/');
 			if ($base_url === '')
 			{
-				throw new Exception('Semantic search is not configured: set nada_ai_url in Site configurations > Search > Semantic search settings.');
+				throw new Exception('Semantic search is not configured: set the NADA-AI API URL in Site configurations > Search.');
 			}
 
-			$admin_key = (string) $this->config->item('nada_ai_admin_api_key');
+			$api_key = (string) $this->config->item('nada_ai_api_key');
 
 			$headers = array('Accept' => 'application/json');
-			if ($admin_key !== '')
+			if ($api_key !== '')
 			{
-				$headers['X-NADA-Admin-Key'] = $admin_key;
+				$headers['X-NADA-Admin-Key'] = $api_key;
 			}
 
 			$this->client = new Client(array(
@@ -127,35 +124,10 @@ class Semantic extends MY_REST_Controller
 	}
 
 	/**
-	 * nada-ai's active engine ('opensearch' | 'qdrant'), or null if it could not be determined (nada-ai
-	 * unreachable, or an old nada-ai build whose /health has no backend field). Used only to pick which
-	 * of two engine-specific nada-ai routes to forward a call to (see collection_delete()) — a caller that
-	 * only wants to *display* the engine should call GET /api/admin/semantic/health itself instead of adding
-	 * another use of this.
-	 */
-	private function _engine()
-	{
-		try
-		{
-			$response = $this->_client()->request('GET', 'health');
-			$body = json_decode((string) $response->getBody(), true);
-			return is_array($body) ? ($body['backend'] ?? null) : null;
-		}
-		catch (Exception $e)
-		{
-			return null;
-		}
-	}
-
-	/**
 	 * GET /api/admin/semantic/health
 	 *
 	 * A bare forward of nada-ai's own GET /health — just {status, backend, ...},
-	 * no collection/embeddings/drift probes attached. Exists so a page can learn
-	 * which engine is running (backend: 'opensearch' | 'qdrant') with one cheap
-	 * call, instead of the four-probe overview aggregate below, when all it
-	 * needs is the engine — e.g. to decide whether a Qdrant-only action
-	 * (Collection tab, Danger Zone's drop collection) even applies.
+	 * without the embeddings/drift probes of the overview aggregate below.
 	 */
 	public function health_get()
 	{
@@ -198,7 +170,7 @@ class Semantic extends MY_REST_Controller
 	 * studies, the same population search can return, so the two numbers are comparable.
 	 *
 	 * The database side is computed here; the index side is nada-ai's GET /admin/variables/stats, best-effort like
-	 * the overview probes: when nada-ai is unreachable, or its engine has no variable index (501 under Qdrant), the
+	 * the overview probes: when nada-ai is unreachable, or has no variable index (501), the
 	 * database numbers still come back and `index` says why it is missing, so the page can show that instead of
 	 * failing.
 	 */
@@ -326,7 +298,7 @@ class Semantic extends MY_REST_Controller
 	 *
 	 * Citations in this catalog's database against what nada-ai's citation index holds. Both sides count all citations
 	 * and the published ones, since only published citations are searchable. Best-effort on the index side, like
-	 * variables_stats: when nada-ai is unreachable, or its engine has no citation index (501 under Qdrant), the database
+	 * variables_stats: when nada-ai is unreachable, or has no citation index (501), the database
 	 * numbers still come back and `index` says why it is missing.
 	 */
 	public function citations_stats_get()
@@ -389,8 +361,8 @@ class Semantic extends MY_REST_Controller
 	/**
 	 * GET /api/admin/semantic/overview
 	 *
-	 * Aggregates nada-ai health + collection + embedding-drift into one call
-	 * so the Overview tab doesn't need four round trips. Best-effort: any one
+	 * Aggregates nada-ai health + embeddings + embedding-drift into one call
+	 * so the Overview tab doesn't need three round trips. Best-effort: any one
 	 * piece failing (e.g. drift check needs the model warmed up first) is
 	 * reported inline rather than failing the whole response.
 	 */
@@ -420,7 +392,6 @@ class Semantic extends MY_REST_Controller
 
 		$result['health']     = $this->_probe($client, 'GET', 'health');
 		$result['embeddings'] = $this->_probe($client, 'GET', 'health/embeddings');
-		$result['collection'] = $this->_probe($client, 'GET', 'admin/qdrant/collection');
 		$result['drift']      = $this->_probe($client, 'GET', 'admin/embeddings/drift');
 
 		$this->set_response($result, REST_Controller::HTTP_OK);
@@ -479,10 +450,9 @@ class Semantic extends MY_REST_Controller
 	 * POST /api/admin/semantic/search
 	 * body: {query, type?, from?, to?, limit?, offset?}
 	 *
-	 * Runs this site's catalog search through nada-ai, with the driver the engine nada-ai runs needs (OpenSearch, or
-	 * Qdrant combined with the database), in relevance order as the catalog lists a keyword search. So an admin sees
-	 * what the catalog would show, including the database's part of it (pinned blocks, fallbacks, dropped hits), with
-	 * the driver's debug output on — also before nada-ai is the site's search engine.
+	 * Runs this site's catalog search through nada-ai's OpenSearch study search, in relevance order as the catalog
+	 * lists a keyword search. So an admin sees what the catalog would show, including the database's part of it
+	 * (fallbacks, dropped hits), with the driver's debug output on — also before nada-ai is the site's search engine.
 	 */
 	public function search_post()
 	{
@@ -495,10 +465,14 @@ class Semantic extends MY_REST_Controller
 
 		$this->load->library('search_engine_resolver');
 		$this->load->library('nada_ai_link');
-		$nada_ai_engine = $this->search_engine_resolver->nada_ai_engine_for($this->nada_ai_link->backend());
+		$backend = $this->nada_ai_link->backend();
+		$nada_ai_engine = $this->search_engine_resolver->nada_ai_engine_for($backend);
 		if ($nada_ai_engine === NULL)
 		{
-			$this->set_response(array('status' => 'error', 'message' => 'NADA-AI has not said which engine it runs (is it reachable at nada_ai_url?)'), REST_Controller::HTTP_BAD_GATEWAY);
+			$message = $backend === NULL
+				? 'NADA-AI has not said which engine it runs (is it reachable at nada_ai_url?)'
+				: sprintf('NADA-AI is running %s; NADA needs it to run OpenSearch.', $backend);
+			$this->set_response(array('status' => 'error', 'message' => $message), REST_Controller::HTTP_BAD_GATEWAY);
 			return;
 		}
 		$body  = json_decode($this->input->raw_input_stream ?: '{}', true) ?: array();
@@ -564,54 +538,18 @@ class Semantic extends MY_REST_Controller
 	}
 
 	// =====================================================================
-	// Collection info
+	// Index catalog
 	// =====================================================================
 
 	/**
-	 * GET /api/admin/semantic/type_counts
+	 * DELETE /api/admin/semantic/index?confirm=true
 	 *
-	 * Per catalog_type: how many entries NADA's catalog has vs. how many
-	 * documents are indexed for that type — for the "is my catalog actually
-	 * searchable" question the dashboard otherwise has no answer to.
-	 */
-	public function type_counts_get()
-	{
-		try { $this->_require('view'); }
-		catch (AclAccessDeniedException $e)
-		{
-			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
-			return;
-		}
-		$this->_forward('GET', 'admin/catalog/type-counts');
-	}
-
-	/** GET /api/admin/semantic/collection */
-	public function collection_get()
-	{
-		try { $this->_require('view'); }
-		catch (AclAccessDeniedException $e)
-		{
-			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
-			return;
-		}
-		$this->_forward('GET', 'admin/qdrant/collection');
-	}
-
-	/**
-	 * DELETE /api/admin/semantic/collection?confirm=true
-	 *
-	 * Drops the search store with no reindex attached — distinct from
+	 * Drops nada-ai's search indexes with no reindex attached — distinct from
 	 * index_all_post's recreate_index=true, which always drops-then-reingests
 	 * every catalog type in one call. Requires the same 'delete' privilege as
 	 * recreate.
-	 *
-	 * Picks the matching nada-ai route for whichever engine is actually running (Qdrant's collection and
-	 * OpenSearch's index are two different routes there — see docs on GET/DELETE /admin/qdrant/collection
-	 * vs. DELETE /admin/index) so this one dashboard action works under either, rather than the dashboard
-	 * needing to know or ask. When the engine can't be determined nothing is dropped: guessing could send
-	 * the drop to the wrong store.
 	 */
-	public function collection_delete()
+	public function index_delete()
 	{
 		try { $this->_require('delete'); }
 		catch (AclAccessDeniedException $e)
@@ -621,28 +559,8 @@ class Semantic extends MY_REST_Controller
 		}
 		$confirm = $this->input->get('confirm');
 		$confirmed = ($confirm === 'true' || $confirm === '1') ? 'true' : 'false';
-		$engine = $this->_engine();
-		if ($engine === 'opensearch')
-		{
-			$this->_forward('DELETE', 'admin/index', array('query' => array('confirm' => $confirmed)));
-			return;
-		}
-		if ($engine !== 'qdrant')
-		{
-			$this->set_response(
-				array('status' => 'error', 'message' => 'Could not tell which engine NADA-AI runs (its /health did not say), so nothing was dropped.'),
-				REST_Controller::HTTP_SERVICE_UNAVAILABLE
-			);
-			return;
-		}
-		$this->_forward('DELETE', 'admin/qdrant/collection', array(
-			'query' => array('confirm' => $confirmed),
-		));
+		$this->_forward('DELETE', 'admin/index', array('query' => array('confirm' => $confirmed)));
 	}
-
-	// =====================================================================
-	// Index catalog
-	// =====================================================================
 
 	/**
 	 * POST /api/admin/semantic/index
@@ -755,12 +673,16 @@ class Semantic extends MY_REST_Controller
 	{
 		$map = array(
 			'timeseries'   => 'indicator',
-			'timeseriesdb' => 'indicator',
+			'timeseriesdb' => 'indicator-db',
 			'indicator'    => 'indicator',
 			'document'     => 'document',
 			'geospatial'   => 'geospatial',
 			'survey'       => 'microdata',
 			'microdata'    => 'microdata',
+			'table'        => 'table',
+			'script'       => 'script',
+			'image'        => 'image',
+			'video'        => 'video',
 		);
 		$key = strtolower(trim((string) $data_type));
 		return ($key !== '' && isset($map[$key])) ? $map[$key] : null;
@@ -823,12 +745,42 @@ class Semantic extends MY_REST_Controller
 		$this->_forward('DELETE', 'jobs/' . rawurlencode($id));
 	}
 
+	/** POST /api/admin/semantic/job_cancel/{id} — cancel a running/pending job (POST: DELETE is not always allowed) */
+	public function job_cancel_post($id = null)
+	{
+		try { $this->_require('edit'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+		if (empty($id))
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'job id required'), REST_Controller::HTTP_BAD_REQUEST);
+			return;
+		}
+		$this->_forward('POST', 'jobs/' . rawurlencode($id) . '/cancel');
+	}
+
 	// =====================================================================
 	// Sync status (NADA search-index change queue)
 	// =====================================================================
 
-	/** GET /api/admin/semantic/search_index_status */
+	/** GET /api/admin/semantic/search_index_status — NADA's tracking status, read directly */
 	public function search_index_status_get()
+	{
+		$this->_search_index_read(function ($manager) {
+			return $manager->status();
+		});
+	}
+
+	/**
+	 * GET /api/admin/semantic/scheduler_status
+	 *
+	 * NADA-AI's queue scheduler as it reports it (state, pause reason, current item, heartbeat). nada-ai answers it
+	 * from memory, without calling NADA back.
+	 */
+	public function scheduler_status_get()
 	{
 		try { $this->_require('view'); }
 		catch (AclAccessDeniedException $e)
@@ -836,7 +788,127 @@ class Semantic extends MY_REST_Controller
 			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
 			return;
 		}
-		$this->_forward('GET', 'admin/search-index/status');
+		$this->_forward('GET', 'admin/scheduler/status');
+	}
+
+	/** POST /api/admin/semantic/scheduler_pause — NADA-AI finishes the item in hand, then starts nothing until resumed */
+	public function scheduler_pause_post()
+	{
+		try { $this->_require('edit'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+		$this->_forward('POST', 'admin/scheduler/pause');
+	}
+
+	/** POST /api/admin/semantic/scheduler_resume — NADA-AI carries on from the change queue */
+	public function scheduler_resume_post()
+	{
+		try { $this->_require('edit'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+		$this->_forward('POST', 'admin/scheduler/resume');
+	}
+
+	/**
+	 * POST /api/admin/semantic/search_index_sync?object_type=survey|citation|all&refresh_indexed=0|1&data_type=&remove_only=0|1
+	 *
+	 * Queue what NADA-AI's index needs to match the catalog (Search_index_manager::sync()), in NADA: NADA-AI then works
+	 * through the queue.
+	 */
+	public function search_index_sync_post()
+	{
+		try { $this->_require('edit'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+
+		try
+		{
+			$this->load->library('Search_index_manager');
+			$object_type = $this->input->get('object_type');
+			$refresh     = $this->input->get('refresh_indexed');
+			$data_type   = $this->input->get('data_type');
+			$remove_only = $this->input->get('remove_only');
+			$counts = $this->search_index_manager->sync(
+				($object_type !== false && $object_type !== null && $object_type !== '') ? (string) $object_type : 'all',
+				in_array($refresh, array('1', 'true', 'yes'), true),
+				($data_type !== false && $data_type !== null && $data_type !== '') ? (string) $data_type : null,
+				in_array($remove_only, array('1', 'true', 'yes'), true)
+			);
+			$this->set_response(array('status' => 'success', 'queued' => $counts), REST_Controller::HTTP_OK);
+		}
+		catch (Search_index_exception $e)
+		{
+			$this->set_response(
+				array('status' => 'error', 'message' => $e->getMessage()),
+				$e->http_code ?: REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+		catch (Exception $e)
+		{
+			log_message('error', 'Semantic search_index_sync: ' . $e->getMessage());
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * POST /api/admin/semantic/search_index_rebuild?queue=1|0
+	 *
+	 * After NADA-AI's index was emptied: clear NADA's tracking, and with queue=1 (Delete and rebuild) queue every study
+	 * and citation.
+	 */
+	public function search_index_rebuild_post()
+	{
+		try { $this->_require('delete'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+
+		try
+		{
+			$this->load->library('Search_index_manager');
+			$counts = $this->search_index_manager->rebuild($this->input->get('queue') !== '0');
+			$this->set_response(array('status' => 'success', 'queued' => $counts), REST_Controller::HTTP_OK);
+		}
+		catch (Search_index_exception $e)
+		{
+			$this->set_response(
+				array('status' => 'error', 'message' => $e->getMessage()),
+				$e->http_code ?: REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+		catch (Exception $e)
+		{
+			log_message('error', 'Semantic search_index_rebuild: ' . $e->getMessage());
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * POST /api/admin/semantic/search_index_import
+	 *
+	 * NADA-AI reports what its index already holds (a job), then NADA queues what is left to do. For switching to a
+	 * NADA-AI whose index exists, so it is not rebuilt.
+	 */
+	public function search_index_import_post()
+	{
+		try { $this->_require('edit'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+		$this->_forward('POST', 'admin/search-index/import');
 	}
 
 	/** POST /api/admin/semantic/search_index_reconcile — poll NADA's change queue now */
@@ -939,75 +1011,85 @@ class Semantic extends MY_REST_Controller
 	/**
 	 * GET /api/admin/semantic/search_index_diff_summary?object_type=survey
 	 *
-	 * Cheap missing/stale counts — how many catalog entries aren't indexed,
-	 * how many indexed entries are no longer in the catalog. Distinct from
-	 * search_index_reconcile_diff_post below, which actually resolves it.
+	 * Cheap missing/stale counts — how many catalog entries aren't indexed, how many indexed entries are no longer in
+	 * the catalog. Read from NADA's tracking tables directly (not through nada-ai, which would only ask NADA back).
 	 */
 	public function search_index_diff_summary_get()
 	{
-		try { $this->_require('view'); }
-		catch (AclAccessDeniedException $e)
-		{
-			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
-			return;
-		}
-		$object_type = $this->input->get('object_type');
-		$this->_forward('GET', 'admin/search-index/diff-summary', array(
-			'query' => array('object_type' => ($object_type !== false && $object_type !== null && $object_type !== '') ? (string) $object_type : 'survey'),
-		));
+		$this->_search_index_read(function ($manager) {
+			$q = $this->_diff_list_query();
+			$summary = $manager->object_type_summary($q['object_type']);
+			return $summary + array(
+				'missing_total' => $manager->diff_missing($q['object_type'], 1)['total'],
+				'stale_total'   => $manager->diff_stale($q['object_type'], 1)['total'],
+			);
+		});
 	}
 
 	/**
 	 * GET /api/admin/semantic/search_index_type_breakdown?object_type=survey
 	 *
-	 * Per-data-type (microdata/geospatial/document/timeseries/...) catalog vs.
-	 * index coverage — what search_index_diff_summary_get() above can't show
-	 * since it lumps every type under one 'survey' total.
+	 * Per-data-type (microdata/geospatial/document/timeseries/...) catalog vs. index coverage, from NADA directly.
 	 */
 	public function search_index_type_breakdown_get()
 	{
-		try { $this->_require('view'); }
-		catch (AclAccessDeniedException $e)
-		{
-			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
-			return;
-		}
-		$object_type = $this->input->get('object_type');
-		$this->_forward('GET', 'admin/search-index/type-breakdown', array(
-			'query' => array('object_type' => ($object_type !== false && $object_type !== null && $object_type !== '') ? (string) $object_type : 'survey'),
-		));
+		$this->_search_index_read(function ($manager) {
+			$q = $this->_diff_list_query();
+			return array('object_type' => $q['object_type'], 'items' => $manager->type_breakdown($q['object_type']));
+		});
 	}
 
-	/** GET /api/admin/semantic/search_index_diff_missing?object_type=survey&limit=&offset= */
+	/** GET /api/admin/semantic/search_index_diff_missing?object_type=survey&limit=&offset=&data_type=&has_error= */
 	public function search_index_diff_missing_get()
 	{
-		try { $this->_require('view'); }
-		catch (AclAccessDeniedException $e)
-		{
-			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
-			return;
-		}
-		$this->_forward('GET', 'admin/search-index/diff/missing', array('query' => $this->_diff_list_query()));
+		$this->_search_index_read(function ($manager) {
+			$q = $this->_diff_list_query();
+			return $manager->diff_missing($q['object_type'], $q['limit'], $q['offset'], $q['data_type'], $q['has_error']);
+		});
 	}
 
-	/** GET /api/admin/semantic/search_index_diff_stale?object_type=survey&limit=&offset= */
+	/** GET /api/admin/semantic/search_index_diff_stale?object_type=survey&limit=&offset=&data_type= */
 	public function search_index_diff_stale_get()
 	{
-		try { $this->_require('view'); }
-		catch (AclAccessDeniedException $e)
-		{
-			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
-			return;
-		}
-		$this->_forward('GET', 'admin/search-index/diff/stale', array('query' => $this->_diff_list_query()));
+		$this->_search_index_read(function ($manager) {
+			$q = $this->_diff_list_query();
+			return $manager->diff_stale($q['object_type'], $q['limit'], $q['offset'], $q['data_type']);
+		});
 	}
 
 	/**
-	 * Shared object_type/limit/offset/data_type/has_error query resolution for
-	 * the two diff-list actions above. ``has_error`` only affects the missing
-	 * list (nada-ai's diff/stale route ignores it) but is harmless to forward
-	 * either way.
+	 * Run one read of NADA's tracking tables for the dashboard, with the access check and NADA's error codes
+	 * (INDEX_ENGINE_NOT_NADA_AI, ...) passed on as they are.
 	 */
+	private function _search_index_read(callable $read)
+	{
+		try { $this->_require('view'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+
+		try
+		{
+			$this->load->library('Search_index_manager');
+			$this->set_response(array('status' => 'success') + $read($this->search_index_manager), REST_Controller::HTTP_OK);
+		}
+		catch (Search_index_exception $e)
+		{
+			$this->set_response(
+				array('status' => 'error', 'message' => $e->getMessage()),
+				$e->http_code ?: REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+		catch (Exception $e)
+		{
+			log_message('error', 'Semantic search index read: ' . $e->getMessage());
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/** The object_type/limit/offset/data_type/has_error of the diff and coverage reads above. */
 	private function _diff_list_query()
 	{
 		$object_type = $this->input->get('object_type');
@@ -1015,26 +1097,26 @@ class Semantic extends MY_REST_Controller
 		$offset      = $this->input->get('offset');
 		$data_type   = $this->input->get('data_type');
 		$has_error   = $this->input->get('has_error');
-		$query = array(
+		return array(
 			'object_type' => ($object_type !== false && $object_type !== null && $object_type !== '') ? (string) $object_type : 'survey',
+			'limit'       => ($limit !== false && $limit !== null && $limit !== '') ? (int) $limit : 100,
+			'offset'      => ($offset !== false && $offset !== null && $offset !== '') ? (int) $offset : 0,
+			'data_type'   => ($data_type !== false && $data_type !== null && $data_type !== '') ? (string) $data_type : null,
+			'has_error'   => in_array($has_error, array('1', 'true', 'yes'), true),
 		);
-		if ($limit !== false && $limit !== null && $limit !== '') { $query['limit'] = (int) $limit; }
-		if ($offset !== false && $offset !== null && $offset !== '') { $query['offset'] = (int) $offset; }
-		if ($data_type !== false && $data_type !== null && $data_type !== '') { $query['data_type'] = (string) $data_type; }
-		if (in_array($has_error, array('1', 'true', 'yes'), true)) { $query['has_error'] = 'true'; }
-		return $query;
 	}
 
 	/**
-	 * POST /api/admin/semantic/search_index_reconcile_diff?object_type=survey&data_type=
+	 * POST /api/admin/semantic/search_index_reconcile_diff?object_type=survey&data_type=&remove_only=
 	 *
 	 * Index every catalog entry that isn't currently indexed, delete every
 	 * indexed entry no longer in the catalog — same call whether this is a
 	 * first-ever backfill or routine later reconciliation. ``data_type``,
 	 * when given, narrows the run to one surveys.type value (microdata aka
 	 * 'survey', geospatial, document, timeseries, ...) instead of all of
-	 * object_type at once. Runs as a background job on the nada-ai side;
-	 * watch it on the Jobs tab.
+	 * object_type at once. ``remove_only=1`` (the dashboard's Clean up) only
+	 * deletes, and indexes nothing. Runs as a background job on the nada-ai
+	 * side; watch it on the Jobs tab.
 	 */
 	public function search_index_reconcile_diff_post()
 	{
@@ -1048,6 +1130,7 @@ class Semantic extends MY_REST_Controller
 		$data_type   = $this->input->get('data_type');
 		$query = array('object_type' => ($object_type !== false && $object_type !== null && $object_type !== '') ? (string) $object_type : 'survey');
 		if ($data_type !== false && $data_type !== null && $data_type !== '') { $query['data_type'] = (string) $data_type; }
+		if (in_array($this->input->get('remove_only'), array('1', 'true', 'yes'), true)) { $query['remove_only'] = 'true'; }
 		$this->_forward('POST', 'admin/search-index/reconcile-diff', array('query' => $query));
 	}
 }

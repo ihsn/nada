@@ -221,7 +221,7 @@ class Repository_model extends CI_Model {
 		$sids=array_column($this->db->get('surveys')->result_array(),'id');
 
 		if (!empty($sids)){
-			$this->events->emit('db.after.update', 'surveys', $sids, 'refresh');
+			$this->events->emit('db.after.update', 'surveys', $sids, 'filters');
 		}
 	}
 
@@ -329,7 +329,7 @@ class Repository_model extends CI_Model {
 		$this->db->update('surveys',array('repositoryid'=>'central'));
 
 		if (!empty($affected_sids)){
-			$this->events->emit('db.after.update', 'surveys', $affected_sids, 'refresh');
+			$this->events->emit('db.after.update', 'surveys', $affected_sids, 'filters');
 		}
 	}
 

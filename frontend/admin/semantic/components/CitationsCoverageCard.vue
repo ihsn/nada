@@ -16,8 +16,11 @@
           {{ verdict.text }}
         </v-chip>
         <v-spacer />
+        <router-link v-if="manage" :to="{ name: 'indexing', hash: '#citations' }" class="text-body-2 text-decoration-none">
+          Manage →
+        </router-link>
         <v-btn
-          v-if="!notApplicable"
+          v-else-if="!notApplicable"
           size="small"
           variant="tonal"
           color="primary"
@@ -26,14 +29,14 @@
           :disabled="!canEdit"
           @click="startSync"
         >
-          Index citations
+          Update
         </v-btn>
       </template>
     </v-card-text>
     <div v-if="started || startError" class="px-4 pb-4">
       <v-alert v-if="started" type="success" variant="tonal" density="compact">
-        Citation sync started as a background job.
-        <router-link to="/jobs">Follow it in Jobs →</router-link>
+        Citation indexing started as a background job.
+        <router-link :to="{ name: 'activity', query: { tab: 'jobs' } }">Follow it in Activity →</router-link>
       </v-alert>
       <v-alert v-if="startError" type="error" variant="tonal" density="compact">{{ startError }}</v-alert>
     </div>
@@ -49,6 +52,11 @@ import { formatCount } from '../typeLabels.js';
 
 defineOptions({ name: 'SemanticCitationsCoverageCard' });
 
+defineProps({
+  /** Overview: report only, with a link to the Indexing page instead of the action. */
+  manage: { type: Boolean, default: false },
+});
+
 const { canEdit } = useAppConfig();
 const { loading, error, errorMessage, getCitationsStats, syncCitations } = useSemanticApi();
 const stats = ref(null);
@@ -56,7 +64,7 @@ const starting = ref(false);
 const started = ref(false);
 const startError = ref(null);
 
-/** nada-ai answers 501 when the running engine has no citation index (Qdrant). */
+/** nada-ai answers 501 when it has no citation index. */
 const notApplicable = computed(() => stats.value?.index && !stats.value.index.ok && stats.value.index.status === 501);
 
 /** The index side, or null when it is missing, unavailable or not applicable. */
@@ -92,8 +100,8 @@ const detail = computed(() => {
   const idx = stats.value.index;
   if (notApplicable.value) return 'The citation search index is only available with the OpenSearch engine.';
   if (!idx.ok) return idx.error || null;
-  if (!idx.data.exists) return 'The citation index has not been created yet. Use Index citations.';
-  if (difference.value > 0) return 'Some published citations are not indexed. Use Index citations to fill them in.';
+  if (!idx.data.exists) return 'The citation index has not been created yet. Use Update on the Indexing page.';
+  if (difference.value > 0) return 'Some published citations are not indexed. Update indexes every citation again.';
   if (difference.value < 0) {
     return 'The index holds more published citations than the database — usually citations removed or unpublished since they were indexed.';
   }

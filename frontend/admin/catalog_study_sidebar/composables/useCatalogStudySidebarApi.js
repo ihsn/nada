@@ -10,18 +10,12 @@ export function useCatalogStudySidebarApi() {
   }
 
   function studyRef() {
-    const idno = config.value?.studyIdno;
-    if (idno != null && String(idno).trim() !== '') {
-      return encodeURIComponent(String(idno).trim());
-    }
     const sid = config.value?.studySid;
     if (sid == null || sid === '') throw new Error('studySid missing');
     return encodeURIComponent(String(sid));
   }
 
   function studyParams() {
-    const idno = config.value?.studyIdno;
-    if (idno != null && String(idno).trim() !== '') return {};
     return { id_format: 'id' };
   }
 
@@ -85,7 +79,7 @@ export function useCatalogStudySidebarApi() {
     return data;
   }
 
-  /** POST alias for DELETE …/{idno}/thumbnail (same server behaviour as axios.delete thumbnail). */
+  /** POST alias for DELETE …/{sid}/thumbnail (same server behaviour as axios.delete thumbnail). */
   async function removeThumbnail() {
     const { data } = await axios.post(
       `${catalogBase()}thumbnail_delete/${studyRef()}`,

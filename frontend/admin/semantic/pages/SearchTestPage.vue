@@ -21,8 +21,8 @@
           </v-col>
         </v-row>
         <p class="text-caption text-medium-emphasis mt-2 mb-0">
-          Runs the catalog search exactly as the public catalog would with semantic search on (the
-          <strong>{{ engine || '—' }}</strong> engine of NADA-AI, relevance order), with the search driver's debug output.
+          Runs the catalog search exactly as the public catalog would with semantic search on (NADA-AI's OpenSearch,
+          relevance order), with the search driver's debug output.
         </p>
 
         <v-expansion-panels variant="accordion" class="mt-3">
@@ -151,14 +151,11 @@
 <script setup>
 import { ref } from 'vue';
 import { useSemanticApi } from '../composables/useSemanticApi.js';
-import { useEngine } from '../composables/useEngine.js';
 import { typeLabel, formatCount } from '../typeLabels.js';
 
 defineOptions({ name: 'SemanticSearchTestPage' });
 
 const { loading, error, errorMessage, search } = useSemanticApi();
-const { engine, ensureEngine } = useEngine();
-ensureEngine();
 
 const query = ref('');
 const type = ref(null);
@@ -183,7 +180,7 @@ function formatJson(value) {
   return JSON.stringify(value ?? {}, null, 2);
 }
 
-/** Which side found the study: the drivers' semantic_hit.matched_by (qdrant_db and opensearch). */
+/** Which side found the study: the driver's semantic_hit.matched_by. */
 function matchedBy(row) {
   return row.semantic_hit?.matched_by || [];
 }

@@ -41,6 +41,7 @@
               <div id="semantic-page-actions" class="admin-semantic-content-actions" />
             </header>
             <EngineStatusBanner />
+            <SyncHealthBanner />
             <router-view />
           </div>
         </div>
@@ -53,55 +54,42 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useSemanticApi } from './composables/useSemanticApi.js';
-import { useEngine } from './composables/useEngine.js';
 import EngineStatusBanner from './components/EngineStatusBanner.vue';
+import SyncHealthBanner from './components/SyncHealthBanner.vue';
+import { useSyncHealth } from './composables/useSyncHealth.js';
 import './semantic-layout.css';
 
 defineOptions({ name: 'AdminSemanticApp' });
 
 const route = useRoute();
-const { getTypeBreakdown, listJobs, getSyncStatus } = useSemanticApi();
-const { ensureEngine } = useEngine();
-
+const { getTypeBreakdown, listJobs } = useSemanticApi();
 const errorCount = ref(0);
 const runningJobs = ref(0);
-const syncFailed = ref(0);
+// the change queue's counts, kept current while there is work (shared with the banner and the activity card)
+const { status: syncStatus } = useSyncHealth();
+const syncFailed = computed(() => Number(syncStatus.value?.queue?.failed) || 0);
+const queuePending = computed(() => Number(syncStatus.value?.queue?.pending) || 0);
 
 const navItems = computed(() => [
   { name: 'overview', label: 'Overview', to: { name: 'overview' }, icon: 'mdi-view-dashboard-outline' },
   {
-    name: 'diff',
-    label: 'Index',
-    to: { name: 'diff' },
-    icon: 'mdi-wrench-outline',
+    name: 'indexing',
+    label: 'Indexing',
+    to: { name: 'indexing' },
+    icon: 'mdi-database-sync-outline',
     badge: errorCount.value || null,
     badgeColor: 'error',
   },
   {
-    name: 'jobs',
-    label: 'Jobs',
-    to: { name: 'jobs' },
+    name: 'activity',
+    label: 'Activity',
+    to: { name: 'activity' },
     icon: 'mdi-format-list-checks',
-    badge: runningJobs.value || null,
-    badgeColor: 'primary',
+    // a failed catalog edit needs attention; otherwise what is waiting in the change queue or running as a job
+    badge: syncFailed.value || queuePending.value || runningJobs.value || null,
+    badgeColor: syncFailed.value ? 'error' : 'primary',
   },
-  {
-    name: 'sync',
-    label: 'Change queue',
-    to: { name: 'sync' },
-    icon: 'mdi-inbox-arrow-down',
-    badge: syncFailed.value || null,
-    badgeColor: 'error',
-  },
-  { name: 'search', label: 'Try search', to: { name: 'search' }, icon: 'mdi-magnify' },
-  { name: 'collection', label: 'Collection', to: { name: 'collection' }, icon: 'mdi-database-outline' },
-  {
-    name: 'danger',
-    label: 'Danger zone',
-    to: { name: 'danger' },
-    icon: 'mdi-alert-octagon-outline',
-    color: 'error',
-  },
+  { name: 'search', label: 'Test search', to: { name: 'search' }, icon: 'mdi-magnify' },
 ]);
 
 async function loadNavBadges() {
@@ -117,17 +105,10 @@ async function loadNavBadges() {
   } catch {
     /* nav badges are best-effort */
   }
-  try {
-    const data = await getSyncStatus();
-    syncFailed.value = Number(data?.queue?.failed) || 0;
-  } catch {
-    /* nav badges are best-effort */
-  }
 }
 
 onMounted(() => {
   loadNavBadges();
-  ensureEngine();
 });
 watch(() => route.name, loadNavBadges);
 </script>

@@ -10,18 +10,12 @@ export function useStudyRelatedDataApi() {
   }
 
   function studyRef() {
-    const idno = config.value?.studyIdno;
-    if (idno != null && String(idno).trim() !== '') {
-      return encodeURIComponent(String(idno).trim());
-    }
     const sid = config.value?.studySid;
     if (sid == null || sid === '') throw new Error('studySid missing');
     return encodeURIComponent(String(sid));
   }
 
   function studyParams() {
-    const idno = config.value?.studyIdno;
-    if (idno != null && String(idno).trim() !== '') return {};
     return { id_format: 'id' };
   }
 

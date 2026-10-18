@@ -25,18 +25,18 @@ function messageFromApiError(err) {
 }
 
 /**
- * Admin timeseries Mongo API for one study (catalogue idno).
- * Base: /api/admin/timeseries/data/{idno}/…
+ * Admin timeseries Mongo API for one study (numeric surveys.id + id_format=id).
+ * Base: /api/admin/timeseries/data/{sid}/…
  */
-export function useStudyTimeseriesApi(studyIdno) {
+export function useStudyTimeseriesApi(studySid) {
   const { apiBaseUrl } = useAppConfig();
   const loading = ref(false);
 
-  const idnoEncoded = computed(() => encodeURIComponent(String(unref(studyIdno) ?? '').trim()));
+  const sidEncoded = computed(() => encodeURIComponent(String(unref(studySid) ?? '').trim()));
 
   function dataPath() {
     const base = (apiBaseUrl.value || '').replace(/\/$/, '');
-    return `${base}/data/${idnoEncoded.value}`;
+    return `${base}/data/${sidEncoded.value}`;
   }
 
   function importCsvPath() {
@@ -44,7 +44,7 @@ export function useStudyTimeseriesApi(studyIdno) {
   }
 
   function noCacheParams(extra = {}) {
-    return { _nocache: Date.now(), ...extra };
+    return { _nocache: Date.now(), id_format: 'id', ...extra };
   }
 
   async function fetchSchema() {
@@ -79,7 +79,7 @@ export function useStudyTimeseriesApi(studyIdno) {
       const { data } = await axios.post(
         `${dataPath()}/sync-counts`,
         {},
-        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+        { params: { id_format: 'id' }, headers: { 'Content-Type': 'application/json' }, withCredentials: true }
       );
       if (data.status !== 'success') {
         throw new Error(data.message || 'Sync dimension summaries failed');
@@ -113,7 +113,7 @@ export function useStudyTimeseriesApi(studyIdno) {
   }
 
   /**
-   * POST …/data/{idno}/rehash — optional JSON { "limit": n }
+   * POST …/data/{sid}/rehash — optional JSON { "limit": n }
    * @param {{ limit?: number }} [opts]
    */
   async function rehashData(opts = {}) {
@@ -123,6 +123,7 @@ export function useStudyTimeseriesApi(studyIdno) {
     }
     try {
       const { data } = await axios.post(`${dataPath()}/rehash`, body, {
+        params: { id_format: 'id' },
         headers: { 'Content-Type': 'application/json' },
         withCredentials: true,
       });
@@ -136,12 +137,12 @@ export function useStudyTimeseriesApi(studyIdno) {
   }
 
   /**
-   * Multipart CSV import — POST …/data/{idno}/import. Optional `dsdIdno` links that DSD before loading rows.
+   * Multipart CSV import — POST …/data/{sid}/import. Optional `dsdIdno` links that DSD before loading rows.
    * @param {{ file: File; delimiter: string; mapping?: Record<string, string>; ensureUniqueIndex?: boolean; dsdIdno?: string }} opts
    */
   async function importCsvData(opts) {
     const form = new FormData();
-    form.append('idno', String(unref(studyIdno) ?? '').trim());
+    form.append('idno', String(unref(studySid) ?? '').trim());
     form.append('file', opts.file);
     form.append('delimiter', opts.delimiter ?? ',');
     const dsdIdno = opts.dsdIdno != null ? String(opts.dsdIdno).trim() : '';
@@ -155,6 +156,7 @@ export function useStudyTimeseriesApi(studyIdno) {
     form.append('ensure_unique_index', opts.ensureUniqueIndex === false ? '0' : '1');
     try {
       const { data } = await axios.post(importCsvPath(), form, {
+        params: { id_format: 'id' },
         withCredentials: true,
       });
       if (data.status !== 'success') {
@@ -167,14 +169,14 @@ export function useStudyTimeseriesApi(studyIdno) {
   }
 
   /**
-   * POST …/data/{idno}/clear-data — remove all Mongo observations, dimension summaries, and canonical CSV (DSD link unchanged).
+   * POST …/data/{sid}/clear-data — remove all Mongo observations, dimension summaries, and canonical CSV (DSD link unchanged).
    */
   async function clearIndicatorData() {
     try {
       const { data } = await axios.post(
         `${dataPath()}/clear-data`,
         {},
-        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+        { params: { id_format: 'id' }, headers: { 'Content-Type': 'application/json' }, withCredentials: true }
       );
       if (data.status !== 'success') {
         throw new Error(data.message || 'Clear failed');

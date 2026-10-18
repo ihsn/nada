@@ -32,7 +32,6 @@ class Configurations extends MY_REST_Controller
 		'sendgrid_api_key',
 		'microsoft_graph_client_secret',
 		'nada_ai_api_key',
-		'nada_ai_admin_api_key',
 		'acs_access_key',
 		'acs_connection_string',
 	);
@@ -597,43 +596,57 @@ class Configurations extends MY_REST_Controller
 	}
 
 	/**
-	 * search_engine must be a known engine, and nada-ai needs an API URL.
+	 * search_engine and search_index_engine must be known engines; search_engine is database or the index engine (an
+	 * engine whose index is not kept in sync cannot serve searches); nada-ai needs an API URL.
 	 *
-	 * Section saves send only their own keys, so the URL is resolved from the payload first and the stored value
+	 * Section saves send only their own keys, so each value is resolved from the payload first and the stored value
 	 * second.
 	 *
 	 * @param array $options key => value about to be stored (already normalised)
 	 */
 	protected function validate_search_engine(array &$options)
 	{
-		if (!array_key_exists('search_engine', $options) && !array_key_exists('nada_ai_url', $options))
+		$keys = array('search_engine', 'search_index_engine', 'nada_ai_url');
+		if (count(array_intersect($keys, array_keys($options))) === 0)
 		{
 			return;
 		}
 
 		$stored = $this->Configurations_model->get_config_array();
+		$value = function ($key, $default) use ($options, $stored) {
+			if (array_key_exists($key, $options)) {
+				return (string) $options[$key];
+			}
+			return isset($stored[$key]) ? (string) $stored[$key] : $default;
+		};
+
+		$engine = strtolower(trim($value('search_engine', 'database')));
+		if (!in_array($engine, array('database', 'solr', 'opensearch', 'nada_ai'), TRUE))
+		{
+			throw new Exception('INVALID_VALUE:search_engine');
+		}
+
+		$index_engine = strtolower(trim($value('search_index_engine', 'none')));
+		if (!in_array($index_engine, array('none', 'solr', 'opensearch', 'nada_ai'), TRUE))
+		{
+			throw new Exception('INVALID_VALUE:search_index_engine');
+		}
+
+		if ($engine !== 'database' && $engine !== $index_engine)
+		{
+			throw new Exception('SEARCH_ENGINE_NOT_INDEXED');
+		}
 
 		if (array_key_exists('search_engine', $options))
 		{
-			$engine = strtolower(trim((string) $options['search_engine']));
-
-			if (!in_array($engine, array('database', 'solr', 'opensearch', 'nada_ai_opensearch', 'nada_ai_qdrant'), TRUE))
-			{
-				throw new Exception('INVALID_VALUE:search_engine');
-			}
-
 			$options['search_engine'] = $engine;
 		}
-		else
+		if (array_key_exists('search_index_engine', $options))
 		{
-			$engine = isset($stored['search_engine']) ? (string) $stored['search_engine'] : '';
+			$options['search_index_engine'] = $index_engine;
 		}
 
-		$url = array_key_exists('nada_ai_url', $options)
-			? (string) $options['nada_ai_url']
-			: (isset($stored['nada_ai_url']) ? (string) $stored['nada_ai_url'] : '');
-
-		if (strpos($engine, 'nada_ai_') === 0 && trim($url) === '')
+		if (($engine === 'nada_ai' || $index_engine === 'nada_ai') && trim($value('nada_ai_url', '')) === '')
 		{
 			throw new Exception('NADA_AI_URL_REQUIRED');
 		}

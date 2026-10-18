@@ -3,12 +3,17 @@
 require APPPATH . '/libraries/MY_REST_Controller.php';
 
 /**
- * Admin API — search index change queue for the configured provider.
+ * Admin API — search index change queue for the index engine (search_index_engine).
+ *
+ * The queue, ack, state report and diff routes are nada-ai's: they answer only while the tracking rows describe
+ * nada-ai's index (Search_index_manager), and are refused with INDEX_ENGINE_NOT_NADA_AI otherwise.
  *
  * Routes:
  *   GET  /api/admin/search-index/status
  *   GET  /api/admin/search-index/queue
  *   POST /api/admin/search-index/queue/{id}/ack
+ *   POST /api/admin/search-index/queue/ack            (several rows)
+ *   POST /api/admin/search-index/sync
  *   POST /api/admin/search-index/requeue
  *   POST /api/admin/search-index/state/bulk
  *   GET  /api/admin/search-index/diff/missing
@@ -122,17 +127,27 @@ class Search_index extends MY_REST_Controller
 			$status      = $this->input->get('status');
 			$object_type = $this->input->get('object_type');
 			$limit       = $this->input->get('limit');
+			$exclude     = $this->input->get('exclude');
 
 			$page = $this->search_index_manager->list_queue(
 				($status !== false && $status !== null && $status !== '') ? (string) $status : 'pending',
 				(int) $limit,
-				($object_type !== false && $object_type !== null && $object_type !== '') ? (string) $object_type : null
+				($object_type !== false && $object_type !== null && $object_type !== '') ? (string) $object_type : null,
+				($exclude !== false && $exclude !== null && $exclude !== '') ? explode(',', (string) $exclude) : array()
 			);
+			if (!$page['tracking_enabled'] && isset($page['reason']) && $page['reason'] !== 'tracking_disabled') {
+				log_message('info', 'Search_index queue: refused nada-ai poll (' . $page['reason'] . ')');
+			}
+			if ($page['tracking_enabled']) {
+				// this route is nada-ai's poll (the Semantic pages read the queue through their own route)
+				$this->search_index_manager->record_poll();
+			}
 
 			$this->set_response(
 				array(
 					'status'            => 'success',
 					'tracking_enabled'  => $page['tracking_enabled'],
+					'reason'            => isset($page['reason']) ? $page['reason'] : null,
 					'total'             => $page['total'],
 					'limit'             => $page['limit'],
 					'items'             => $page['items'],
@@ -177,13 +192,89 @@ class Search_index extends MY_REST_Controller
 			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
 		}
 		catch (Search_index_exception $e) {
+			$this->_log_refusal('ack', $e);
 			$this->set_response(
 				array('status' => 'failed', 'message' => $e->getMessage()),
 				$e->http_code
 			);
 		}
 		catch (Exception $e) {
+			log_message('error', 'Search_index ack: ' . $e->getMessage());
 			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * POST /api/admin/search-index/queue/ack
+	 * body: {items: [{id, result, changed, error?}, ...]} (at most 100)
+	 *
+	 * Several acks in one call; each row is applied on its own (see ack_post() for one).
+	 */
+	public function ack_batch_post()
+	{
+		try {
+			$this->_require_admin_catalog_access();
+			$body  = $this->_json_body();
+			$items = isset($body['items']) && is_array($body['items']) ? $body['items'] : array();
+			$result = $this->search_index_manager->ack_batch($items);
+			$this->set_response(array('status' => 'success') + $result, REST_Controller::HTTP_OK);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Search_index_exception $e) {
+			$this->_log_refusal('ack batch', $e);
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), $e->http_code);
+		}
+		catch (Exception $e) {
+			log_message('error', 'Search_index ack batch: ' . $e->getMessage());
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * POST /api/admin/search-index/sync?object_type=survey|citation|all&refresh_indexed=0|1&data_type=&remove_only=0|1
+	 *
+	 * Queue what nada-ai's index needs to match the catalog (Search_index_manager::sync()). refresh_indexed=1 also
+	 * queues a partial update (published status, filters) of every indexed object, after nada-ai reported an existing
+	 * index.
+	 */
+	public function sync_post()
+	{
+		try {
+			$this->_require_admin_catalog_access();
+			$object_type = $this->input->get('object_type');
+			$refresh     = $this->input->get('refresh_indexed');
+			$data_type   = $this->input->get('data_type');
+			$remove_only = $this->input->get('remove_only');
+			$counts = $this->search_index_manager->sync(
+				($object_type !== false && $object_type !== null && $object_type !== '') ? (string) $object_type : 'all',
+				in_array($refresh, array('1', 'true', 'yes'), true),
+				($data_type !== false && $data_type !== null && $data_type !== '') ? (string) $data_type : null,
+				in_array($remove_only, array('1', 'true', 'yes'), true)
+			);
+			$this->set_response(array('status' => 'success', 'queued' => $counts), REST_Controller::HTTP_OK);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Search_index_exception $e) {
+			$this->_log_refusal('sync', $e);
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), $e->http_code);
+		}
+		catch (Exception $e) {
+			log_message('error', 'Search_index sync: ' . $e->getMessage());
+			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/** Refusals of nada-ai's calls are logged, so they can be seen on NADA's side too. */
+	private function _log_refusal($what, Search_index_exception $e)
+	{
+		if (in_array($e->getMessage(), array('INDEX_ENGINE_NOT_NADA_AI', 'INDEX_GENERATION_MISMATCH'), true)) {
+			log_message('info', 'Search_index ' . $what . ': refused (' . $e->getMessage() . ')');
 		}
 	}
 
@@ -264,12 +355,14 @@ class Search_index extends MY_REST_Controller
 			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
 		}
 		catch (Search_index_exception $e) {
+			$this->_log_refusal('state bulk', $e);
 			$this->set_response(
 				array('status' => 'failed', 'message' => $e->getMessage()),
 				$e->http_code
 			);
 		}
 		catch (Exception $e) {
+			log_message('error', 'Search_index state bulk: ' . $e->getMessage());
 			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}

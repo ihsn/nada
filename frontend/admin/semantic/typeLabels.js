@@ -4,6 +4,7 @@ const TYPE_LABELS = {
   microdata: 'Microdata',
   timeseries: 'Indicator',
   indicator: 'Indicator',
+  timeseriesdb: 'Indicator database',
   geospatial: 'Geospatial',
   document: 'Document',
   table: 'Table',
@@ -45,15 +46,19 @@ export function changeClassLabel(changeClass) {
   return CHANGE_CLASS_LABELS[changeClass] || humanizeKey(changeClass);
 }
 
-/** NADA surveys.type -> nada-ai metadata_type. Null means this type cannot be ingested by idno. */
+/** NADA surveys.type -> nada-ai metadata_type (same map as Semantic.php and nada-ai). Null: cannot be ingested by idno. */
 const DATASET_TO_METADATA_TYPE = {
   timeseries: 'indicator',
-  timeseriesdb: 'indicator',
+  timeseriesdb: 'indicator-db',
   indicator: 'indicator',
   document: 'document',
   geospatial: 'geospatial',
   survey: 'microdata',
   microdata: 'microdata',
+  table: 'table',
+  script: 'script',
+  image: 'image',
+  video: 'video',
 };
 
 export function metadataTypeFromDataType(type) {

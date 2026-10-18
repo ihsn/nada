@@ -19,7 +19,7 @@ class Catalog_search{
 
         $ci =& get_instance();
         $ci->load->library('search_engine_resolver');
-        $valid_engines = array('database', 'solr', 'opensearch', 'nada_ai_opensearch', 'nada_ai_qdrant');
+        $valid_engines = array('database', 'solr', 'opensearch', 'nada_ai');
 
         // an explicit engine in $params (the admin search test, the variable view) wins over the site setting
         $search_engine = (isset($params['search_engine']) && in_array($params['search_engine'], $valid_engines, true))
@@ -31,7 +31,7 @@ class Catalog_search{
             $driver = 'solr';
         } elseif ($search_engine === 'opensearch') {
             $driver = 'opensearch';
-        } elseif ($search_engine === 'nada_ai_opensearch' || $search_engine === 'nada_ai_qdrant') {
+        } elseif ($search_engine === 'nada_ai') {
             $driver = 'semantic';
         }
 
@@ -56,17 +56,11 @@ class Catalog_search{
                 $this->search_obj= new catalog_search_opensearch($params);
                 break;
             case 'semantic';
-                // nada-ai runs the engine the setting names, and says which it runs: a difference is an error, because the
-                // driver and its index belong to one engine. OpenSearch uses nada-ai's standard study search; Qdrant uses
-                // the driver that combines it with the database keyword search.
+                // nada-ai says which engine it runs: anything but OpenSearch is an error, because the driver and its
+                // index belong to nada-ai's OpenSearch study search.
                 $ci->search_engine_resolver->assert_backend($search_engine);
-                if ($search_engine === 'nada_ai_opensearch') {
-                    require_once dirname(__FILE__) . '/Catalog_search_semantic_studies.php';
-                    $this->search_obj= new catalog_search_semantic_studies($params);
-                } else {
-                    require_once dirname(__FILE__) . '/Catalog_search_semantic_fused.php';
-                    $this->search_obj= new catalog_search_semantic_fused($params);
-                }
+                require_once dirname(__FILE__) . '/Catalog_search_semantic_studies.php';
+                $this->search_obj= new catalog_search_semantic_studies($params);
                 break;
             default:
                 throw new exception(sprintf("DRIVER [%s] NOT SUPPORTED",$driver));

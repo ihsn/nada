@@ -214,7 +214,7 @@ class Nada_ai_link
     /**
      * What nada-ai runs and can serve.
      *
-     * @return array{engine: string|null, studies_search: bool, variables_search: bool, citations_search: bool, source: string}
+     * @return array{engine: string|null, generation: string|null, studies_search: bool, variables_search: bool, citations_search: bool, source: string}
      *         source: info (read just now or a minute ago) | stale (nada-ai could not be asked; the last answer) |
      *         unknown (never asked and not reachable: only the study search is assumed, and the engine is not known)
      */
@@ -245,6 +245,7 @@ class Nada_ai_link
 
         return array(
             'engine'            => null,
+            'generation'        => null,
             self::CAP_STUDIES   => true,
             self::CAP_VARIABLES => false,
             self::CAP_CITATIONS => false,
@@ -252,7 +253,7 @@ class Nada_ai_link
         );
     }
 
-    /** The engine nada-ai runs (opensearch | qdrant), or null when it has never been asked. */
+    /** The engine nada-ai runs (NADA needs opensearch), or null when it has never been asked. */
     public function backend()
     {
         $caps = $this->capabilities();
@@ -265,11 +266,41 @@ class Nada_ai_link
         return !empty($caps[$capability]);
     }
 
+    /** Forget the /info answers kept in the cache, so the next capabilities() asks nada-ai (its index just changed). */
+    public function forget_info()
+    {
+        $cache = $this->cache();
+        if ($cache === null) {
+            return;
+        }
+        $key = 'nada_ai_info_' . md5($this->url());
+        $cache->delete($key . '_fresh');
+        $cache->delete($key . '_stale');
+    }
+
+    /**
+     * The generation of nada-ai's study index as /info reported it within the last minute: it changes whenever the
+     * index is recreated. null when there is no study index. false when it is not known right now (nada-ai could not be
+     * asked, or only an older answer is kept), so it must not be compared.
+     *
+     * @return string|null|false
+     */
+    public function index_generation()
+    {
+        $caps = $this->capabilities();
+        if ($caps['source'] !== 'info') {
+            return false;
+        }
+        return isset($caps['generation']) ? $caps['generation'] : null;
+    }
+
     private function capabilities_from_info(array $info)
     {
-        $caps = isset($info['capabilities']) && is_array($info['capabilities']) ? $info['capabilities'] : array();
+        $caps  = isset($info['capabilities']) && is_array($info['capabilities']) ? $info['capabilities'] : array();
+        $index = isset($info['index']) && is_array($info['index']) ? $info['index'] : array();
         return array(
             'engine'            => isset($info['engine']) ? (string) $info['engine'] : null,
+            'generation'        => isset($index['generation']) && $index['generation'] !== '' ? (string) $index['generation'] : null,
             self::CAP_STUDIES   => !empty($caps['studies_search']),
             self::CAP_VARIABLES => !empty($caps['variables_search']),
             self::CAP_CITATIONS => !empty($caps['citations_search']),

@@ -63,6 +63,54 @@ class Catalog_search_metadata_extract
     }
 
     /**
+     * The export documents of the given studies, in the order given (nada-ai fetches one page of queue rows at once).
+     * A study whose document cannot be built is reported in errors instead of failing the others.
+     *
+     * @param int[] $survey_ids
+     * @param array $options include_metadata, include_admin_metadata, include_resources
+     * @return array{studies: array, missing: int[], errors: array<int, array{catalog_id: int, message: string}>}
+     */
+    public function build_study_documents_by_ids(array $survey_ids, array $options = array())
+    {
+        $survey_ids = array_values(array_unique(array_filter(array_map('intval', $survey_ids), function ($id) {
+            return $id > 0;
+        })));
+        if (empty($survey_ids)) {
+            return array('studies' => array(), 'missing' => array(), 'errors' => array());
+        }
+
+        $this->ci->db->select($this->study_select_fields(), false);
+        $this->ci->db->from('surveys');
+        $this->ci->db->join('forms', 'surveys.formid = forms.formid', 'left');
+        $this->ci->db->join('repositories', 'surveys.repositoryid = repositories.repositoryid', 'left');
+        $this->ci->db->where_in('surveys.id', $survey_ids);
+        $rows = array();
+        foreach ($this->ci->db->get()->result_array() as $row) {
+            $rows[(int) $row['catalog_id']] = $row;
+        }
+
+        $relations = $this->load_study_relations(array_keys($rows));
+
+        $studies = array();
+        $missing = array();
+        $errors  = array();
+        foreach ($survey_ids as $id) {
+            if (!isset($rows[$id])) {
+                $missing[] = $id;
+                continue;
+            }
+            try {
+                $studies[] = $this->assemble_study_document($rows[$id], $relations, $options);
+            } catch (Exception $e) {
+                log_message('error', 'Catalog_search_metadata_extract: study ' . $id . ': ' . $e->getMessage());
+                $errors[] = array('catalog_id' => $id, 'message' => $e->getMessage());
+            }
+        }
+
+        return array('studies' => $studies, 'missing' => $missing, 'errors' => $errors);
+    }
+
+    /**
      * @param int   $offset
      * @param int   $limit
      * @param array $options  include_metadata, include_admin_metadata, types (array of survey type strings)

@@ -1,10 +1,10 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Catalog Search — shared base of the semantic (AI) drivers that use nada-ai with NADA's internal study ids
- * (catalog_search_semantic_studies, catalog_search_semantic_fused).
+ * Catalog Search — base of the semantic (AI) driver that uses nada-ai with NADA's internal study ids
+ * (catalog_search_semantic_studies).
  *
- * Holds what both need: the search parameters, resolution of the NADA filters to ids, the HTTP call to nada-ai,
+ * Holds the search parameters, resolution of the NADA filters to ids, the HTTP call to nada-ai,
  * loading the rows of a page from this database, the result envelope, and access to the database search driver
  * of this installation (MySQL or SQL Server).
  *
@@ -53,7 +53,6 @@ abstract class catalog_search_semantic_base
     protected $ci;
     protected $api_url;
     protected $api_key;
-    protected $admin_api_key;
     protected $timeout;
     protected $debug;
 
@@ -81,10 +80,9 @@ abstract class catalog_search_semantic_base
 
         $this->api_url       = rtrim((string) $this->ci->config->item('nada_ai_url'), '/');
         $this->api_key       = (string) $this->ci->config->item('nada_ai_api_key');
-        $this->admin_api_key = (string) $this->ci->config->item('nada_ai_admin_api_key');
         $timeout             = (int) $this->ci->config->item('nada_ai_timeout');
         $this->timeout       = min(max(1, $timeout > 0 ? $timeout : self::API_MAX_TIMEOUT_SEC), self::API_MAX_TIMEOUT_SEC);
-        // only for a user allowed to see the debug payloads: they reach the browser, and debugging sends the admin key.
+        // only for a user allowed to see the debug payloads: they reach the browser.
         // semantic_debug is set by the admin dashboard's search test (api/admin/Semantic::search_post) only.
         $this->ci->load->helper('catalog');
         $this->debug         = !empty($params['semantic_debug']) || nada_ai_debug_enabled();
@@ -485,7 +483,7 @@ abstract class catalog_search_semantic_base
 
     /**
      * The database search driver (MySQL or SQL Server) with the current search parameters: the baseline
-     * search, the source of the catalog total, and of the keyword ranking the fused driver combines.
+     * search, and the one a request nada-ai cannot take falls back to.
      */
     protected function database_search()
     {
@@ -495,19 +493,6 @@ abstract class catalog_search_semantic_base
         }
 
         return $this->db_driver;
-    }
-
-    /**
-     * A database search driver with the current search parameters and the given overrides (for example
-     * ['exclude_sid' => [...]]), separate from the shared one returned by database_search().
-     *
-     * @param array<string, mixed> $overrides
-     */
-    protected function database_search_with(array $overrides)
-    {
-        require_once dirname(__FILE__) . '/Catalog_study_idno_lookup.php';
-
-        return Catalog_study_idno_lookup::create_driver(array_merge($this->database_params(), $overrides));
     }
 
     /**

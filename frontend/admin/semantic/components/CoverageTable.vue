@@ -9,10 +9,10 @@
         <tr>
           <th style="width: 140px">Type</th>
           <th style="min-width: 160px">Coverage</th>
-          <th class="text-right">DB</th>
-          <th class="text-right">Indexed</th>
-          <th class="text-right">Missing</th>
-          <th class="text-right">Stale</th>
+          <th class="text-right">In catalog</th>
+          <th class="text-right">Searchable</th>
+          <th class="text-right">To add</th>
+          <th class="text-right">To remove</th>
           <th class="text-right">Errors</th>
           <th v-if="showActions" />
         </tr>
@@ -62,15 +62,18 @@
             >{{ formatCount(row.errors) }}</a>
             <span v-else class="text-medium-emphasis">0</span>
           </td>
-          <td v-if="showActions" class="text-right">
+          <td v-if="showActions" class="text-right text-no-wrap">
             <v-btn
               size="small"
               variant="text"
               :disabled="!canEdit || (row.missing === 0 && row.stale === 0)"
               :loading="isSubmitting(row.data_type)"
-              @click="$emit('index-type', row.data_type)"
+              @click="$emit('update-type', row.data_type)"
             >
-              Index
+              Update
+            </v-btn>
+            <v-btn size="small" variant="text" :disabled="!canEdit" @click="$emit('rebuild-type', row.data_type)">
+              Rebuild…
             </v-btn>
           </td>
         </tr>
@@ -96,17 +99,19 @@
     <div class="semantic-coverage-legend">
       <span class="semantic-coverage-legend__item">
         <span class="semantic-coverage-legend__swatch" style="background: rgb(var(--v-theme-success))" />
-        Indexed
+        Searchable
       </span>
       <span class="semantic-coverage-legend__item">
         <span class="semantic-coverage-legend__swatch" style="background: rgb(var(--v-theme-warning))" />
-        Missing
+        To add
       </span>
       <span class="semantic-coverage-legend__item">
         <span class="semantic-coverage-legend__swatch" style="background: rgb(var(--v-theme-error))" />
-        Errors
+        Errors (counted in To add)
       </span>
-      <span class="text-caption text-medium-emphasis">Bar totals are catalog records per type.</span>
+      <span class="text-caption text-medium-emphasis">
+        To remove: still in the index, no longer published in the catalog.
+      </span>
     </div>
   </div>
 </template>
@@ -128,7 +133,7 @@ defineProps({
   rowSegments: { type: Function, required: true },
 });
 
-defineEmits(['select-errors', 'select-missing', 'select-stale', 'index-type']);
+defineEmits(['select-errors', 'select-missing', 'select-stale', 'update-type', 'rebuild-type']);
 </script>
 
 <style scoped>

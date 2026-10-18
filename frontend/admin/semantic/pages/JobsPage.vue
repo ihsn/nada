@@ -16,6 +16,13 @@
       <v-btn variant="outlined" prepend-icon="mdi-refresh" :loading="loading" @click="load">Refresh</v-btn>
     </div>
 
+    <v-alert type="info" variant="tonal" density="compact" class="mb-4">
+      Catalog changes and syncs are worked through from the change queue one item at a time and are not listed as
+      jobs here —
+      <router-link :to="{ name: 'activity', query: { tab: 'queue' } }">see Change queue</router-link>.
+      Jobs are the indexing runs started by hand (Force re-index, variable or citation sync, Use the existing index).
+    </v-alert>
+
     <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable @click:close="error = null">
       {{ errorMessage(error) }}
     </v-alert>

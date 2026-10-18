@@ -295,7 +295,7 @@ defineOptions({ name: 'StudyTimeseriesDataPage' });
 const setMessage = inject('setMessage', () => {});
 
 const { config, apiBaseUrl, dataStructuresApiBaseUrl } = useAppConfig();
-const studyIdno = computed(() => String(config.value?.studyIdno ?? '').trim());
+const studySid = computed(() => String(config.value?.studySid ?? '').trim());
 
 const {
   fetchSchema,
@@ -306,7 +306,7 @@ const {
     importCsvData,
     rehashData,
     clearIndicatorData,
-  } = useStudyTimeseriesApi(studyIdno);
+  } = useStudyTimeseriesApi(studySid);
 
 const pageLoading = ref(true);
 const obsLoading = ref(false);
@@ -365,9 +365,9 @@ const hasLinkedDsd = computed(() => !!schema.value?.data_structure?.idno);
 
 const indicatorImportCsvUrl = computed(() => {
   const base = (apiBaseUrl.value || '').replace(/\/$/, '');
-  const id = studyIdno.value;
+  const id = studySid.value;
   if (!base || !id) return '#';
-  return `${base}/data/${encodeURIComponent(id)}/import-csv`;
+  return `${base}/data/${encodeURIComponent(id)}/import-csv?id_format=id`;
 });
 
 /** Canonical import file exists on disk (schema from GET …/schema). */
@@ -559,7 +559,7 @@ async function postDsdLink(idno) {
     setMessage('Timeseries API URL is not configured.', 'error');
     return false;
   }
-  const url = `${base}/data/${encodeURIComponent(studyIdno.value)}/attach-dsd`;
+  const url = `${base}/data/${encodeURIComponent(studySid.value)}/attach-dsd?id_format=id`;
   const selected = dsdSelectItems.value.find((item) => String(item?.value || '') === String(idno));
   const resolvedIdno = String(selected?.reference?.idno || idno || '').trim();
   if (!resolvedIdno) {
@@ -584,7 +584,7 @@ async function postDsdDetach() {
     setMessage('Timeseries API URL is not configured.', 'error');
     return false;
   }
-  const url = `${base}/data/${encodeURIComponent(studyIdno.value)}/attach-dsd`;
+  const url = `${base}/data/${encodeURIComponent(studySid.value)}/attach-dsd?id_format=id`;
   const { data } = await axios.post(
     url,
     { detach: true },
@@ -665,7 +665,7 @@ async function removeStructureAndData() {
 }
 
 async function runResyncRehash() {
-  if (!studyIdno.value || !schema.value?.dsd_id) {
+  if (!studySid.value || !schema.value?.dsd_id) {
     setMessage('Link a DSD first.', 'warning');
     return;
   }
@@ -775,7 +775,7 @@ async function confirmClearIndicatorData() {
 }
 
 async function loadValueCountsSummary() {
-  if (!studyIdno.value || !schema.value?.dsd_id) {
+  if (!studySid.value || !schema.value?.dsd_id) {
     valueCountsSummary.value = { total_rows: 0, total_distinct_codes: 0, total_observations: 0, components: [] };
     valueCountsError.value = '';
     return;
@@ -799,7 +799,7 @@ async function loadValueCountsSummary() {
 }
 
 async function runValueCountsSync() {
-  if (!studyIdno.value || !schema.value?.dsd_id) {
+  if (!studySid.value || !schema.value?.dsd_id) {
     setMessage('No linked DSD to sync.', 'warning');
     return;
   }
@@ -828,7 +828,7 @@ function formatCell(val) {
 }
 
 async function reloadObservations() {
-  if (!studyIdno.value) return;
+  if (!studySid.value) return;
   obsLoading.value = true;
   try {
     const res = await fetchData({
@@ -859,7 +859,7 @@ function goNext() {
 }
 
 async function loadAll() {
-  if (!studyIdno.value) {
+  if (!studySid.value) {
     fatalError.value = 'Missing study IDNO in page configuration.';
     missingDsd.value = false;
     pageLoading.value = false;

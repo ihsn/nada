@@ -175,6 +175,8 @@ class Country_region_model extends CI_Model {
 			}
 		}
 		
+		$countries_before = $this->region_country_ids(array($id));
+
 		//update db
 		$this->db->where('id', $id);
 		$result=$this->db->update('regions', $data); 
@@ -199,6 +201,7 @@ class Country_region_model extends CI_Model {
 			}	
 		}
 
+		$this->emit_region_change(array_merge($countries_before, $this->region_country_ids(array($id))));
 		return $result;		
 	}
 	
@@ -257,6 +260,7 @@ class Country_region_model extends CI_Model {
 			}	
 		}
 
+		$this->emit_region_change($this->region_country_ids(array($id)));
 		return $result;
 	}
 	
@@ -277,6 +281,8 @@ class Country_region_model extends CI_Model {
 			}
 		}
 		
+		$countries_before = $this->region_country_ids($regions);
+
 		//delete the regions + sub-regions
 		$this->db->where_in('id', $regions);
 		$this->db->delete('regions');
@@ -290,6 +296,26 @@ class Country_region_model extends CI_Model {
 		{
 			$this->delete_region_related_countries($id);
 		}	
+
+		$this->emit_region_change($countries_before);
+	}
+
+	/** @return int[] the countries of these regions */
+	private function region_country_ids(array $region_ids)
+	{
+		if (empty($region_ids)) {
+			return array();
+		}
+		$this->db->select('country_id');
+		$this->db->where_in('region_id', $region_ids);
+		return array_map('intval', array_column($this->db->get('region_countries')->result_array(), 'country_id'));
+	}
+
+	/** The studies of these countries have other regions now: the search index follows (filters only). */
+	private function emit_region_change(array $country_ids)
+	{
+		$this->load->model('Country_model');
+		$this->Country_model->emit_filters_change($this->Country_model->sids_with_countries($country_ids));
 	}
 	
 	

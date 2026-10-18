@@ -18,29 +18,34 @@
           variant="tonal"
           :color="compactVerdict.color"
           :prepend-icon="compactVerdict.icon"
-          :append-icon="hasGaps ? (expanded ? 'mdi-chevron-up' : 'mdi-chevron-down') : undefined"
-          :style="hasGaps ? 'cursor: pointer' : undefined"
-          @click="hasGaps && (expanded = !expanded)"
+          :append-icon="canExpand ? (expanded ? 'mdi-chevron-up' : 'mdi-chevron-down') : undefined"
+          :style="canExpand ? 'cursor: pointer' : undefined"
+          @click="canExpand && (expanded = !expanded)"
         >
           {{ compactVerdict.text }}
         </v-chip>
         <v-spacer />
-        <v-btn
-          v-if="!notApplicable"
-          size="small"
-          variant="tonal"
-          color="primary"
-          prepend-icon="mdi-database-sync-outline"
-          :loading="starting"
-          :disabled="!canEdit"
-          @click="startSync()"
-        >
-          Index variables
-        </v-btn>
+        <router-link v-if="manage" :to="{ name: 'indexing', hash: '#variables' }" class="text-body-2 text-decoration-none">
+          Manage →
+        </router-link>
+        <template v-else-if="!notApplicable">
+          <v-btn
+            size="small"
+            variant="tonal"
+            color="primary"
+            prepend-icon="mdi-database-sync-outline"
+            :loading="starting"
+            :disabled="!canEdit || !hasGaps"
+            @click="startSync(gapIdnos)"
+          >
+            Update
+          </v-btn>
+          <v-btn size="small" variant="text" :disabled="!canEdit || starting" @click="rebuild">Rebuild…</v-btn>
+        </template>
       </template>
     </v-card-text>
     <v-expand-transition>
-      <div v-if="expanded && hasGaps" class="px-4 pb-4">
+      <div v-if="expanded && canExpand" class="px-4 pb-4">
         <VariablesGapsTable
           :gaps="coverage.gaps"
           :total="coverage.gap_total"
@@ -52,8 +57,8 @@
     </v-expand-transition>
     <div v-if="started || startError" class="px-4 pb-4">
       <v-alert v-if="started" type="success" variant="tonal" density="compact">
-        Variable sync started as a background job.
-        <router-link to="/jobs">Follow it in Jobs →</router-link>
+        Variable indexing started as a background job.
+        <router-link :to="{ name: 'activity', query: { tab: 'jobs' } }">Follow it in Activity →</router-link>
       </v-alert>
       <v-alert v-if="startError" type="error" variant="tonal" density="compact">{{ startError }}</v-alert>
     </div>
@@ -70,6 +75,11 @@ import VariablesGapsTable from './VariablesGapsTable.vue';
 
 defineOptions({ name: 'SemanticVariablesCoverageCard' });
 
+const props = defineProps({
+  /** Overview: report only, with a link to the Indexing page instead of the actions. */
+  manage: { type: Boolean, default: false },
+});
+
 const { canEdit } = useAppConfig();
 const { loading, error, errorMessage, getVariablesStats, getVariablesCoverage, syncVariables } = useSemanticApi();
 const coverage = ref(null);
@@ -79,7 +89,7 @@ const starting = ref(false);
 const started = ref(false);
 const startError = ref(null);
 
-/** nada-ai answers 501 when the running engine has no variable index (Qdrant). */
+/** nada-ai answers 501 when it has no variable index. */
 const notApplicable = computed(() => stats.value?.index && !stats.value.index.ok && stats.value.index.status === 501);
 
 /** The index side, or null when it is missing, unavailable or not applicable. */
@@ -115,10 +125,10 @@ const detail = computed(() => {
   if (notApplicable.value) return 'The variable search index is only available with the OpenSearch engine.';
   if (!idx.ok) return idx.error || null;
   if (!idx.data.exists) {
-    return 'The variable index has not been created yet. Use Index variables, or index a microdata study.';
+    return 'The variable index has not been created yet. Use Rebuild, or index a microdata study.';
   }
   if (difference.value > 0) {
-    return 'Some variables are not indexed. Use Index variables to fill in the missing ones.';
+    return 'Some variables are not indexed. Use Rebuild to index every variable again.';
   }
   if (difference.value < 0) {
     return 'The index holds more variables than the database publishes — usually studies removed or unpublished since they were indexed.';
@@ -127,6 +137,17 @@ const detail = computed(() => {
 });
 
 const hasGaps = computed(() => (coverage.value?.gap_total || 0) > 0);
+/** The studies whose variables Update re-indexes (the listed gaps; a long list is capped by the API). */
+const gapIdnos = computed(() => (coverage.value?.gaps || []).map((g) => g.idno));
+/** The list of studies to sync is an Indexing-page detail. */
+const canExpand = computed(() => hasGaps.value && !props.manage);
+
+function rebuild() {
+  if (!window.confirm('Index every variable of every published microdata study again? This runs as a background job.')) {
+    return;
+  }
+  startSync();
+}
 
 /** The chip: a study-level gap outranks the totals, which can agree while studies differ. */
 const compactVerdict = computed(() => {

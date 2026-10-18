@@ -247,6 +247,8 @@ class Country_model extends CI_Model {
 		
 		//delete aliases
 		$this->delete_aliases($countryid);
+
+		$this->emit_filters_change($this->sids_with_countries(array((int) $countryid)));
 	}
 	
 
@@ -275,12 +277,42 @@ class Country_model extends CI_Model {
 	**/
 	function update_survey_country_code($name,$cid)
 	{
+		$this->db->select('sid');
+		$this->db->where('country_name',$name);
+		$this->db->where('cid',0);
+		$sids = array_map('intval', array_column($this->db->get('survey_countries')->result_array(), 'sid'));
+
 		$options=array(
 			'cid'=>$cid			
 		);
 		$this->db->where('country_name',$name);
 		$this->db->where('cid',0);
 		$this->db->update('survey_countries',$options);
+
+		$this->emit_filters_change($sids);
+	}
+
+	/** @return int[] the studies with any of these countries */
+	function sids_with_countries(array $country_ids)
+	{
+		$country_ids = array_values(array_filter(array_map('intval', $country_ids)));
+		if (empty($country_ids)) {
+			return array();
+		}
+		$this->db->distinct();
+		$this->db->select('sid');
+		$this->db->where_in('cid', $country_ids);
+		return array_map('intval', array_column($this->db->get('survey_countries')->result_array(), 'sid'));
+	}
+
+	/** The search index follows a change of these studies' countries or regions (filters only). */
+	function emit_filters_change(array $sids)
+	{
+		$sids = array_values(array_unique($sids));
+		if (!empty($sids)) {
+			$this->load->library('Events');
+			$this->events->emit('db.after.update', 'surveys', $sids, 'filters');
+		}
 	}
 	
 	

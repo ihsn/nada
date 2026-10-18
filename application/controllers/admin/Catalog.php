@@ -1778,7 +1778,6 @@ class Catalog extends MY_Controller {
 	private function _study_edit_metadata_app_config($id, array $survey_row)
 	{
 		$type = isset($survey_row['type']) ? $survey_row['type'] : '';
-		$idno = isset($survey_row['idno']) ? $survey_row['idno'] : '';
 		$tpl = $this->_load_catalog_editor_template($type);
 
 		return array_merge(
@@ -1789,7 +1788,7 @@ class Catalog extends MY_Controller {
 				'templateName'     => isset($tpl['name']) ? $tpl['name'] : '',
 				'formTemplate'     => $tpl['template'],
 				'metadataApiUrl'   => site_url('api/admin/catalog/' . (int) $id),
-				'updateUrl'        => site_url('api/admin/catalog/update/' . $type . '/' . rawurlencode($idno)),
+				'updateUrl'        => site_url('api/admin/catalog/update/' . $type . '/' . (int) $id),
 				'apiBaseUrl'       => rtrim(site_url('api/admin/catalog'), '/') . '/',
 				'labels'           => array(
 					'metadataTab'            => t('tab_metadata'),

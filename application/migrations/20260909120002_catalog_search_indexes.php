@@ -4,7 +4,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 require_once(APPPATH . 'core/MY_Migration.php');
 
 /**
- * Search index queue/state plus catalog sidebar filter indexes.
+ * Search index queue/state/meta plus catalog sidebar filter indexes.
+ *
+ * search_index_queue.priority orders the work: 0 for catalog changes, 1 for rows a sync queued, so a change made
+ * during a long sync is not processed after all of it.
+ *
+ * search_index_meta has one row (added by 20260926120001_rename_search_engine_settings, once search_index_engine is
+ * set) describing the rows in search_index_state / search_index_queue:
+ *   engine            the engine they were written for (not always search_index_engine: the tables are cleared on
+ *                     the first catalog change after the index engine changed)
+ *   index_generation  nada-ai's study index generation they were written against (a new one = the index was recreated)
+ *   nada_ai_url       the nada-ai they were written for (another URL = another nada-ai and index)
+ *   tracked_since     when tracking for that engine and index started
+ *   last_sync_at      when a full sync of that index last finished
+ *   last_poll_at      when nada-ai last read the change queue
+ *
  * Each step is idempotent.
  */
 class Migration_Catalog_search_indexes extends MY_Migration {
@@ -26,6 +40,8 @@ class Migration_Catalog_search_indexes extends MY_Migration {
 	public function up()
 	{
 		$this->create_search_index_schema();
+		$this->add_queue_priority();
+		$this->add_meta_nada_ai_url();
 		$this->create_catalog_filter_indexes();
 	}
 
@@ -50,9 +66,11 @@ class Migration_Catalog_search_indexes extends MY_Migration {
 						`attempts` INT(11) NOT NULL DEFAULT 0,
 						`last_error` VARCHAR(500) DEFAULT NULL,
 						`changed` INT(11) NOT NULL,
+						`priority` SMALLINT NOT NULL DEFAULT 0,
 						PRIMARY KEY (`id`),
 						UNIQUE KEY `uk_search_index_queue_object` (`object_type`, `object_id`),
-						KEY `idx_search_index_queue_status_changed` (`status`, `changed`)
+						KEY `idx_search_index_queue_status_changed` (`status`, `changed`),
+						KEY `idx_search_index_queue_status_priority` (`status`, `priority`, `changed`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 				");
 			}
@@ -67,6 +85,21 @@ class Migration_Catalog_search_indexes extends MY_Migration {
 						`changed` INT(11) NOT NULL,
 						PRIMARY KEY (`object_type`, `object_id`),
 						KEY `idx_search_index_state_status` (`status`)
+					) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+				");
+			}
+
+			if (!$this->db->table_exists('search_index_meta')) {
+				$this->db->query("
+					CREATE TABLE `search_index_meta` (
+						`id` INT(11) NOT NULL,
+						`engine` VARCHAR(32) NOT NULL,
+						`index_generation` VARCHAR(64) DEFAULT NULL,
+						`nada_ai_url` VARCHAR(255) DEFAULT NULL,
+						`tracked_since` INT(11) NOT NULL,
+						`last_sync_at` INT(11) DEFAULT NULL,
+						`last_poll_at` INT(11) DEFAULT NULL,
+						PRIMARY KEY (`id`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 				");
 			}
@@ -89,11 +122,13 @@ class Migration_Catalog_search_indexes extends MY_Migration {
 					attempts INT NOT NULL CONSTRAINT df_search_index_queue_attempts DEFAULT 0,
 					last_error VARCHAR(500) NULL,
 					changed INT NOT NULL,
+					priority SMALLINT NOT NULL CONSTRAINT df_search_index_queue_priority DEFAULT 0,
 					PRIMARY KEY (id),
 					CONSTRAINT uk_search_index_queue_object UNIQUE (object_type, object_id)
 				)
 			");
 			$this->db->query("CREATE NONCLUSTERED INDEX idx_search_index_queue_status_changed ON search_index_queue (status, changed)");
+			$this->db->query("CREATE NONCLUSTERED INDEX idx_search_index_queue_status_priority ON search_index_queue (status, priority, changed)");
 		}
 
 		if (!$this->db->table_exists('search_index_state')) {
@@ -109,6 +144,54 @@ class Migration_Catalog_search_indexes extends MY_Migration {
 			");
 			$this->db->query("CREATE NONCLUSTERED INDEX idx_search_index_state_status ON search_index_state (status)");
 		}
+
+		if (!$this->db->table_exists('search_index_meta')) {
+			$this->db->query("
+				CREATE TABLE search_index_meta (
+					id INT NOT NULL,
+					engine VARCHAR(32) NOT NULL,
+					index_generation VARCHAR(64) NULL,
+					nada_ai_url VARCHAR(255) NULL,
+					tracked_since INT NOT NULL,
+					last_sync_at INT NULL,
+					last_poll_at INT NULL,
+					PRIMARY KEY (id)
+				)
+			");
+		}
+	}
+
+	/** search_index_meta created before the nada_ai_url column existed */
+	private function add_meta_nada_ai_url()
+	{
+		if (!$this->db->table_exists('search_index_meta') || $this->db->field_exists('nada_ai_url', 'search_index_meta')) {
+			return;
+		}
+		$driver = $this->db->dbdriver;
+		if (in_array($driver, array('mysql', 'mysqli'), true)) {
+			$this->db->query("ALTER TABLE `search_index_meta` ADD COLUMN `nada_ai_url` VARCHAR(255) DEFAULT NULL AFTER `index_generation`");
+		} elseif ($driver === 'sqlsrv') {
+			$this->db->query("ALTER TABLE search_index_meta ADD nada_ai_url VARCHAR(255) NULL");
+		}
+		$this->forget_table_cache();
+	}
+
+	/** search_index_queue created before the priority column existed */
+	private function add_queue_priority()
+	{
+		if (!$this->db->table_exists('search_index_queue') || $this->db->field_exists('priority', 'search_index_queue')) {
+			return;
+		}
+
+		$driver = $this->db->dbdriver;
+		if (in_array($driver, array('mysql', 'mysqli'), true)) {
+			$this->db->query("ALTER TABLE `search_index_queue` ADD COLUMN `priority` SMALLINT NOT NULL DEFAULT 0");
+			$this->db->query("ALTER TABLE `search_index_queue` ADD INDEX `idx_search_index_queue_status_priority` (`status`, `priority`, `changed`)");
+		} elseif ($driver === 'sqlsrv') {
+			$this->db->query("ALTER TABLE search_index_queue ADD priority SMALLINT NOT NULL CONSTRAINT df_search_index_queue_priority DEFAULT 0");
+			$this->db->query("CREATE NONCLUSTERED INDEX idx_search_index_queue_status_priority ON search_index_queue (status, priority, changed)");
+		}
+		$this->forget_table_cache();
 	}
 
 	private function create_catalog_filter_indexes()

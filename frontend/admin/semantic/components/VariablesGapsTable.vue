@@ -34,7 +34,7 @@
         Index variables of {{ gaps.length === total ? 'these' : 'the first' }} {{ formatCount(gaps.length) }} studies
       </v-btn>
       <span v-if="total > gaps.length" class="text-caption text-medium-emphasis">
-        {{ formatCount(total - gaps.length) }} more not listed; run this again afterwards, or use Index variables for
+        {{ formatCount(total - gaps.length) }} more not listed; run this again afterwards, or use Rebuild for
         everything.
       </span>
     </div>

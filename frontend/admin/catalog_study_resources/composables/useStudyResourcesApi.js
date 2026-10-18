@@ -3,7 +3,7 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
 
 /**
  * Admin study external resources — api/admin/resources/{studyRef}/resources/…
- * Uses study IDNO in the URL when present; otherwise numeric surveys.id + id_format=id.
+ * Uses numeric surveys.id in the URL + id_format=id.
  */
 export function useStudyResourcesApi() {
   const { csrfToken, csrfTokenName, config } = useAppConfig();
@@ -15,12 +15,8 @@ export function useStudyResourcesApi() {
     return `${site}/api/admin/resources/`;
   }
 
-  /** Path segment after …/resources/ — encoded IDNO or numeric sid */
+  /** Path segment after …/resources/ — numeric sid */
   function studyRefSegment() {
-    const idno = config.value?.studyIdno;
-    if (idno != null && String(idno).trim() !== '') {
-      return encodeURIComponent(String(idno).trim());
-    }
     const sid = config.value?.studySid;
     if (sid == null || sid === '') throw new Error('studySid missing');
     return encodeURIComponent(String(sid));
@@ -28,8 +24,6 @@ export function useStudyResourcesApi() {
 
   /** Query params required so get_sid_from_idno resolves numeric URL segment */
   function studyRefParams() {
-    const idno = config.value?.studyIdno;
-    if (idno != null && String(idno).trim() !== '') return {};
     return { id_format: 'id' };
   }
 

@@ -4472,8 +4472,18 @@ paths:
 
         Use `offset` + `limit` to page through the full catalog.
         Filter by one or more dataset types with the `type` parameter.
+
+        With `sids`, returns those studies instead, in the order given (the other paging and type parameters are
+        ignored): `{studies, missing, errors}`. `missing` lists ids with no study; `errors` lists ids whose document
+        could not be built, without failing the others.
       operationId: searchMetadataExtractStudiesList
       parameters:
+        - name: sids
+          in: query
+          description: Comma-separated study ids (`surveys.id`, `core_fields.catalog_id`), at most 100
+          schema:
+            type: string
+            example: 12,57,104
         - name: offset
           in: query
           description: Number of records to skip (default 0)
@@ -4506,10 +4516,10 @@ paths:
               value: survey,timeseries,geospatial
         - name: include_metadata
           in: query
-          description: Include full raw metadata JSON in each study document (default false)
+          description: Include the study's full metadata JSON in each study document (default true; send false for core fields and filters only)
           schema:
             type: boolean
-            default: false
+            default: true
         - name: include_admin_metadata
           in: query
           description: Include admin-only metadata in each study document (default false)
@@ -4554,10 +4564,10 @@ paths:
             enum: [id]
         - name: include_metadata
           in: query
-          description: Include full raw metadata JSON (default false)
+          description: Include the study's full metadata JSON (default true; send false for core fields and filters only)
           schema:
             type: boolean
-            default: false
+            default: true
         - name: include_admin_metadata
           in: query
           description: Include admin-only metadata (default false)
@@ -4629,6 +4639,15 @@ paths:
       tags:
         - Search index
       summary: List pending or failed queue items
+      description: |
+        nada-ai's poll. The queue, ack, state report and diff routes answer only while the tracking rows describe
+        nada-ai's index; otherwise they fail with 400 `INDEX_ENGINE_NOT_NADA_AI` (this one returns an empty page
+        with `tracking_enabled: false`). Once search_index_engine is nada_ai, the first of these calls clears rows
+        written for another engine.
+
+        nada-ai sends its study index generation in `X-Index-Generation`. When NADA knows the generation of its own
+        nada-ai (from that nada-ai's `/info`) and the header differs, the call is refused with
+        `INDEX_GENERATION_MISMATCH` (reason `other_nada_ai` here): another nada-ai is pointed at this NADA.
       operationId: searchIndexQueueList
       parameters:
         - name: status
@@ -4649,6 +4668,11 @@ paths:
             default: 50
             maximum: 100
             minimum: 1
+        - name: exclude
+          in: query
+          description: Comma-separated queue row ids to leave out (rows the caller holds in this pass), so the page reaches past them
+          schema:
+            type: string
       responses:
         '200':
           description: Success
@@ -4706,6 +4730,134 @@ paths:
           $ref: '#/components/responses/SearchIndexFailed'
         '409':
           $ref: '#/components/responses/SearchIndexFailed'
+
+  /admin/search-index/queue/ack:
+    post:
+      tags:
+        - Search index
+      summary: Ack several queue items
+      description: |
+        At most 100 items. Each is applied on its own, with the same rules as a single ack: a row that changed
+        (`QUEUE_CHANGED`) or is gone (`QUEUE_NOT_FOUND`) is reported in its result and does not stop the others.
+      operationId: searchIndexQueueAckBatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  maxItems: 100
+                  items:
+                    type: object
+                    required: [id, result, changed]
+                    properties:
+                      id:
+                        type: integer
+                      result:
+                        type: string
+                        enum: [indexed, failed]
+                      changed:
+                        type: integer
+                      error:
+                        type: string
+      responses:
+        '200':
+          description: Per-item results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  applied:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        applied:
+                          type: boolean
+                        result:
+                          type: string
+                          enum: [indexed, failed, deleted]
+                        error:
+                          type: string
+                          enum: [ID_REQUIRED, INVALID_RESULT, CHANGED_REQUIRED, QUEUE_NOT_FOUND, QUEUE_CHANGED]
+        '400':
+          description: '`ITEMS_REQUIRED`, `TOO_MANY_ITEMS`, `INDEX_ENGINE_NOT_NADA_AI`, `INDEX_GENERATION_MISMATCH`'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
+
+  /admin/search-index/sync:
+    post:
+      tags:
+        - Search index
+      summary: Queue what nada-ai's index needs to match the catalog
+      description: |
+        Queues rows of priority 1: `delete` for tracked objects gone from the catalog, `upsert_full` for catalog
+        objects with no `indexed` state, and with `refresh_indexed=1` an `upsert_partial` (published status and
+        filters, no embedding) for every `indexed` object. Objects already in the queue are left as they are, so a
+        second call while the work is processed queues nothing again. `tracked.last_sync_at` in the status is set when
+        none of the queued rows is pending any more.
+      operationId: searchIndexSync
+      parameters:
+        - name: object_type
+          in: query
+          schema:
+            type: string
+            enum: [survey, citation, all]
+            default: all
+        - name: refresh_indexed
+          in: query
+          schema:
+            type: string
+            enum: ['0', '1']
+            default: '0'
+        - name: data_type
+          in: query
+          description: Only studies of this `surveys.type` (citations are skipped)
+          schema:
+            type: string
+        - name: remove_only
+          in: query
+          description: Queue the deletes only (clean up)
+          schema:
+            type: string
+            enum: ['0', '1']
+            default: '0'
+      responses:
+        '200':
+          description: Rows queued per object type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  queued:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        delete:
+                          type: integer
+                        upsert_full:
+                          type: integer
+                        upsert_partial:
+                          type: integer
+        '400':
+          description: '`INDEX_ENGINE_NOT_NADA_AI`, `INDEX_GENERATION_MISMATCH`, `OBJECT_TYPE_REQUIRED`'
+        '403':
+          $ref: '#/components/responses/SearchMetadataExtractForbidden'
 
   /admin/search-index/requeue:
     post:
@@ -6269,9 +6421,41 @@ components:
           example: success
         search_engine:
           type: string
-          example: nada_ai_opensearch
+          description: The engine that serves searches
+          enum: [database, solr, opensearch, nada_ai]
+        index_engine:
+          type: string
+          description: The engine whose index NADA keeps in sync (search_index_engine)
+          enum: [none, solr, opensearch, nada_ai]
         tracking_enabled:
           type: boolean
+        tracked:
+          type: object
+          nullable: true
+          description: |
+            What the tracking rows describe (search_index_meta); null while tracking is off. `engine` differs
+            from `index_engine` until the first catalog change (or nada-ai's first call) after the index engine
+            changed: the rows are cleared then, and the counts are 0 until it happens.
+          properties:
+            engine:
+              type: string
+            index_generation:
+              type: string
+              nullable: true
+              description: nada-ai's study index generation the rows were written against
+            nada_ai_url:
+              type: string
+              nullable: true
+              description: The NADA-AI the rows were written for (another URL clears the tracking, like another engine)
+            tracked_since:
+              type: integer
+            last_sync_at:
+              type: integer
+              nullable: true
+            last_poll_at:
+              type: integer
+              nullable: true
+              description: When nada-ai last read the queue
         queue:
           type: object
           properties:
@@ -6279,6 +6463,17 @@ components:
               type: integer
             failed:
               type: integer
+            sync_pending:
+              type: integer
+              description: Pending rows a sync queued
+            oldest_pending_at:
+              type: integer
+              nullable: true
+              description: '`changed` of the oldest pending row'
+            last_result_at:
+              type: integer
+              nullable: true
+              description: When a result (indexed or failed) was last recorded — by an ack or a state report
         state:
           type: object
           properties:
@@ -6287,8 +6482,6 @@ components:
             pending:
               type: integer
             failed:
-              type: integer
-            deleted:
               type: integer
 
     SearchIndexQueueItem:
@@ -6317,6 +6510,14 @@ components:
           nullable: true
         changed:
           type: integer
+        priority:
+          type: integer
+          enum: [0, 1]
+          description: 0 for a catalog change, 1 for a row a sync queued. Pages list priority 0 first.
+        data_type:
+          type: string
+          nullable: true
+          description: The study's `surveys.type` (or the type last seen for a deleted study); null for citations
         fetch_document:
           type: boolean
 
@@ -6327,6 +6528,11 @@ components:
           type: string
         tracking_enabled:
           type: boolean
+        reason:
+          type: string
+          nullable: true
+          enum: [not_tracking_for_nada_ai, other_nada_ai, tracking_disabled]
+          description: Why the page is empty when `tracking_enabled` is false
         total:
           type: integer
         limit:
@@ -6383,7 +6589,7 @@ components:
         metadata:
           type: object
           nullable: true
-          description: Full raw metadata JSON — only present when `include_metadata=1`
+          description: Full raw metadata JSON — present unless `include_metadata=0`
           additionalProperties: true
         admin_metadata:
           type: object

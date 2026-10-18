@@ -61,7 +61,7 @@ function nada_ai_debug_enabled()
 }
 
 /**
- * Whether catalog search is served by NADA-AI (search_engine is one of the nada_ai_* engines).
+ * Whether catalog search is served by NADA-AI (search_engine = nada_ai).
  */
 function nada_ai_search_enabled()
 {

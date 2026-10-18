@@ -3,7 +3,7 @@
 /**
  * Catalog Search — Semantic (AI), study search API driver
  *
- * Used when search_engine = nada_ai_opensearch. (nada_ai_qdrant uses catalog_search_semantic_fused.)
+ * Used when search_engine = nada_ai.
  *
  * The search is done by nada-ai's engine-agnostic study search, POST /studies/search:
  *   1. NADA translates its request (keywords, sidebar filters, sort, page) into the API request. NADA resolves
@@ -153,10 +153,7 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
 
     protected function auth_headers(): array
     {
-        // the admin key is used while debugging, because include_debug needs the admin role
-        $key = ($this->debug && $this->admin_api_key !== '') ? $this->admin_api_key : $this->api_key;
-
-        return $key !== '' ? ['X-NADA-Admin-Key: ' . $key] : [];
+        return $this->api_key !== '' ? ['X-NADA-Admin-Key: ' . $this->api_key] : [];
     }
 
     // =========================================================================
@@ -264,24 +261,40 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
     }
 
     /** API variable-search response -> the {found, total, limit, offset, rows} shape both database drivers return. */
+    /**
+     * The API returns the matching variables by id; the variables themselves are read from the database (the
+     * variable index stores ids only), in the order of the hits. A hit whose variable or study is gone, or whose study
+     * is not published, is left out.
+     */
     private function variable_result(array $response, int $limit, int $offset, int $total): array
     {
-        $rows = array_map(static function (array $hit): array {
-            return [
-                'uid'  => $hit['uid'],
-                'sid'  => $hit['sid'],
-                'fid'  => $hit['fid'] ?? null,
-                'vid'  => $hit['vid'] ?? null,
-                'name' => $hit['name'] ?? null,
-                'labl' => $hit['label'] ?? null,
-                'qstn' => $hit['question'] ?? null,
-                'title'      => $hit['title'] ?? null,
-                'idno'       => $hit['idno'] ?? null,
-                'nation'     => $hit['nation'] ?? null,
-                'year_start' => $hit['year_start'] ?? null,
-                'year_end'   => $hit['year_end'] ?? null,
-            ];
+        $uids = array_map(static function (array $hit): int {
+            return (int) $hit['uid'];
         }, $response['hits']);
+
+        $by_uid = [];
+        if (!empty($uids)) {
+            $this->ci->db->select(
+                'v.uid, v.sid, v.fid, v.vid, v.name, v.labl, v.qstn,'
+                . ' surveys.title AS title, surveys.idno, surveys.nation, surveys.year_start, surveys.year_end,'
+                . ' surveys.authoring_entity',
+                false
+            );
+            $this->ci->db->from('variables v');
+            $this->ci->db->join('surveys', 'v.sid = surveys.id', 'inner');
+            $this->ci->db->where('surveys.published', 1);
+            $this->ci->db->where_in('v.uid', $uids);
+            foreach ($this->ci->db->get()->result_array() as $row) {
+                $by_uid[(int) $row['uid']] = $row;
+            }
+        }
+
+        $rows = [];
+        foreach ($uids as $uid) {
+            if (isset($by_uid[$uid])) {
+                $rows[] = $by_uid[$uid];
+            }
+        }
 
         return [
             'found'  => (int) $response['found'],
@@ -318,8 +331,7 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
             $body['sort'] = $sort;
         }
 
-        // include_debug needs the admin role, so it is only asked for when an admin key is configured
-        if ($this->debug && $this->admin_api_key !== '') {
+        if ($this->debug) {
             $body['include_debug'] = true;
         }
 

@@ -3,12 +3,11 @@ import axios from 'axios';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 
 /**
- * Talks to application/controllers/api/admin/Semantic.php, a thin server-side
- * proxy in front of nada-ai's own admin/ingest/jobs HTTP API. Response bodies
- * on success are nada-ai's own JSON shapes, relayed as-is (not a NADA-style
- * {status:'success', ...} envelope) — errors come back the same way: either
- * nada-ai's own error body (e.g. FastAPI's {detail: "..."}) or, for access
- * checks handled in PHP before ever reaching nada-ai, {message: "ACCESS_DENIED"}.
+ * Talks to application/controllers/api/admin/Semantic.php. Most calls are a thin proxy in front of nada-ai's own
+ * admin/ingest/jobs HTTP API: their bodies are nada-ai's JSON shapes, relayed as-is, and errors are nada-ai's own
+ * (e.g. FastAPI's {detail: "..."}). The change-tracking calls (search_index_*: status, diffs, coverage, queue, sync,
+ * requeue, rebuild) are answered by NADA itself from its tracking tables, as {status:'success', ...} or
+ * {status:'error', message: CODE}. Access checks in PHP answer {message: "ACCESS_DENIED"}.
  */
 export function useSemanticApi() {
   const { apiBaseUrl } = useAppConfig();
@@ -19,9 +18,19 @@ export function useSemanticApi() {
     return apiBaseUrl.value || '';
   }
 
+  /** NADA's change-tracking error codes, as text. */
+  const TRACKING_ERRORS = {
+    INDEX_ENGINE_NOT_NADA_AI:
+      'NADA does not track catalog changes for NADA-AI. Set "Index kept in sync" to NADA-AI in Site configurations › Search.',
+    INDEX_GENERATION_MISMATCH: 'NADA tracks changes for another NADA-AI index than the one answering.',
+    TRACKING_DISABLED: 'Change tracking is off.',
+    SEARCH_INDEX_META_MISSING: 'The search index tables are not set up: run the database migrations.',
+  };
+
   /** Best-effort message extraction from either error shape described above. */
   function errorMessage(e) {
-    return e?.response?.data?.detail || e?.response?.data?.message || e?.message || 'Request failed';
+    const raw = e?.response?.data?.detail || e?.response?.data?.message || e?.message || 'Request failed';
+    return TRACKING_ERRORS[raw] || raw;
   }
 
   async function _run(fn) {
@@ -39,11 +48,6 @@ export function useSemanticApi() {
 
   function getOverview() {
     return _run(async () => (await axios.get(`${base()}overview`)).data);
-  }
-
-  /** Bare nada-ai health: {status, backend, ...} — cheaper than getOverview() when only the engine is needed. */
-  function getHealth() {
-    return _run(async () => (await axios.get(`${base()}health`)).data);
   }
 
   /**
@@ -92,18 +96,9 @@ export function useSemanticApi() {
     return _run(async () => (await axios.post(`${base()}search`, body)).data);
   }
 
-  function getCollection() {
-    return _run(async () => (await axios.get(`${base()}collection`)).data);
-  }
-
-  /** Per catalog_type: {catalog_total, indexed_documents}. */
-  function getTypeCounts() {
-    return _run(async () => (await axios.get(`${base()}type_counts`)).data);
-  }
-
-  /** Drop the Qdrant collection with no reindex attached — distinct from indexAll({recreate_index: true}). */
-  function deleteCollection() {
-    return _run(async () => (await axios.delete(`${base()}collection`, { params: { confirm: 'true' } })).data);
+  /** Drop the search index with no reindex attached — distinct from indexAll({recreate_index: true}). */
+  function deleteIndex() {
+    return _run(async () => (await axios.delete(`${base()}index`, { params: { confirm: 'true' } })).data);
   }
 
   /** Loads the embedding model into memory now instead of on first search/ingest. */
@@ -142,7 +137,17 @@ export function useSemanticApi() {
   }
 
   function cancelJob(id) {
-    return _run(async () => (await axios.delete(`${base()}job/${encodeURIComponent(id)}`)).data);
+    return _run(async () => (await axios.post(`${base()}job_cancel/${encodeURIComponent(id)}`)).data);
+  }
+
+  /** Pause NADA-AI's scheduler: it finishes the item in hand, then starts nothing until resumed. */
+  function pauseScheduler() {
+    return _run(async () => (await axios.post(`${base()}scheduler_pause`)).data);
+  }
+
+  /** Resume NADA-AI's scheduler: it carries on from the change queue. */
+  function resumeScheduler() {
+    return _run(async () => (await axios.post(`${base()}scheduler_resume`)).data);
   }
 
   function getSyncStatus() {
@@ -151,6 +156,44 @@ export function useSemanticApi() {
 
   function listChangeQueue({ status = 'pending', limit = 100 } = {}) {
     return _run(async () => (await axios.get(`${base()}search_index_queue`, { params: { status, limit } })).data);
+  }
+
+  /**
+   * Queue in NADA what the index needs to match the catalog: deletes for studies gone from it, full indexing for
+   * the ones not indexed and, with refreshIndexed, a partial update (published status, filters) of the indexed ones.
+   * dataType narrows studies to one type; removeOnly queues the deletes only. NADA-AI then works through the queue.
+   * @returns {Promise<{queued: Object<string, {delete:number, upsert_full:number, upsert_partial:number}>}>}
+   */
+  function syncIndex({ objectType = 'all', dataType = null, refreshIndexed = false, removeOnly = false } = {}) {
+    const params = { object_type: objectType };
+    if (dataType) params.data_type = dataType;
+    if (refreshIndexed) params.refresh_indexed = '1';
+    if (removeOnly) params.remove_only = '1';
+    return _run(async () => (await axios.post(`${base()}search_index_sync`, null, { params })).data);
+  }
+
+  /** After the index was emptied: clear NADA's tracking and, unless queue is false, queue everything. */
+  function rebuildTracking({ queue = true } = {}) {
+    return _run(
+      async () => (await axios.post(`${base()}search_index_rebuild`, null, { params: { queue: queue ? '1' : '0' } })).data
+    );
+  }
+
+  /** Queue one study or citation for full indexing (a deleted one for removal). */
+  function requeueObject(objectType, objectId) {
+    return _run(
+      async () => (await axios.post(`${base()}search_index_requeue`, { object_type: objectType, object_id: objectId })).data
+    );
+  }
+
+  /** NADA-AI reports what its index already holds (a job), then NADA queues the rest — no rebuild. */
+  function importIndex() {
+    return _run(async () => (await axios.post(`${base()}search_index_import`)).data);
+  }
+
+  /** NADA-AI's queue scheduler as it reports it: state, pause reason, current item, heartbeat. */
+  function getSchedulerStatus() {
+    return _run(async () => (await axios.get(`${base()}scheduler_status`)).data);
   }
 
   function reconcileNow() {
@@ -172,11 +215,12 @@ export function useSemanticApi() {
   /**
    * Index everything missing, delete everything stale — submits a background job.
    * `dataType`, when given, narrows the run to one surveys.type value (e.g. 'geospatial')
-   * instead of all of objectType at once.
+   * instead of all of objectType at once. `removeOnly` only deletes (Clean up).
    */
-  function reconcileDiffNow(objectType = 'survey', dataType = null) {
+  function reconcileDiffNow(objectType = 'survey', dataType = null, { removeOnly = false } = {}) {
     const params = { object_type: objectType };
     if (dataType) params.data_type = dataType;
+    if (removeOnly) params.remove_only = '1';
     return _run(async () => (await axios.post(`${base()}search_index_reconcile_diff`, null, { params })).data);
   }
 
@@ -214,16 +258,13 @@ export function useSemanticApi() {
     error,
     errorMessage,
     getOverview,
-    getHealth,
     getVariablesStats,
     getEngineStatus,
     getVariablesCoverage,
     getCitationsStats,
     syncCitations,
     search,
-    getCollection,
-    getTypeCounts,
-    deleteCollection,
+    deleteIndex,
     warmupEmbeddings,
     indexOne,
     indexByIdno,
@@ -236,6 +277,13 @@ export function useSemanticApi() {
     listChangeQueue,
     reconcileNow,
     requeueFailed,
+    syncIndex,
+    rebuildTracking,
+    requeueObject,
+    importIndex,
+    getSchedulerStatus,
+    pauseScheduler,
+    resumeScheduler,
     getDiffSummary,
     reconcileDiffNow,
     getDiffMissing,

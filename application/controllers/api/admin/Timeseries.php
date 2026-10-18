@@ -210,7 +210,7 @@ class Timeseries extends MY_REST_Controller {
 				'status' => 'success',
 				'result' => [
 					'sid' => $sid,
-					'idno' => $idno,
+					'idno' => $this->Dataset_model->get_idno($sid),
 					'data_structure_id' => $link ? (int) $link['id'] : null,
 					'data_structure_reference' => $link ? (string) $link['idno'] : null,
 					'ts_dimensions' => $update['ts_dimensions'] ?? null,
