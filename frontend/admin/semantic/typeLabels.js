@@ -34,11 +34,12 @@ export function humanizeKey(key) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** What a queued change does, in the words of the catalog (not of the queue). */
 const CHANGE_CLASS_LABELS = {
-  upsert_full: 'Full',
-  upsert_partial: 'Partial',
+  upsert_full: 'Metadata (full re-index)',
+  upsert_partial: 'Published status / filters',
   variables: 'Variables',
-  delete: 'Delete',
+  delete: 'Removal',
 };
 
 export function changeClassLabel(changeClass) {

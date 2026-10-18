@@ -98,7 +98,12 @@ export function useSemanticApi() {
 
   /** Drop the search index with no reindex attached — distinct from indexAll({recreate_index: true}). */
   function deleteIndex() {
-    return _run(async () => (await axios.delete(`${base()}index`, { params: { confirm: 'true' } })).data);
+    return _run(async () => (await axios.post(`${base()}index_drop`, null, { params: { confirm: 'true' } })).data);
+  }
+
+  /** Empty NADA-AI's study index (new mapping, new generation); the chunk and variable indexes are kept. */
+  function recreateStudiesIndex() {
+    return _run(async () => (await axios.post(`${base()}studies_index_recreate`, null, { params: { confirm: 'true' } })).data);
   }
 
   /** Loads the embedding model into memory now instead of on first search/ingest. */
@@ -186,6 +191,19 @@ export function useSemanticApi() {
     );
   }
 
+  /**
+   * Catalog changes waiting to be indexed (newest first) and the latest results, each with the study's or citation's
+   * title. @returns {Promise<{waiting: object[], sync_waiting: number, results: object[]}>}
+   */
+  function getRecentChanges(limit = 10) {
+    return _run(async () => (await axios.get(`${base()}search_index_recent`, { params: { limit } })).data);
+  }
+
+  /** Queue a variables-only update of these studies (by sid). @returns {Promise<{queued: number}>} */
+  function queueVariables(sids) {
+    return _run(async () => (await axios.post(`${base()}search_index_queue_variables`, { sids })).data);
+  }
+
   /** NADA-AI reports what its index already holds (a job), then NADA queues the rest — no rebuild. */
   function importIndex() {
     return _run(async () => (await axios.post(`${base()}search_index_import`)).data);
@@ -265,6 +283,7 @@ export function useSemanticApi() {
     syncCitations,
     search,
     deleteIndex,
+    recreateStudiesIndex,
     warmupEmbeddings,
     indexOne,
     indexByIdno,
@@ -281,6 +300,8 @@ export function useSemanticApi() {
     rebuildTracking,
     requeueObject,
     importIndex,
+    getRecentChanges,
+    queueVariables,
     getSchedulerStatus,
     pauseScheduler,
     resumeScheduler,

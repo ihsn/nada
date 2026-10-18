@@ -1366,7 +1366,7 @@
     ]
   },
   "admin/semantic/main.js": {
-    "file": "assets/admin/admin_semantic-BYzVDxW2.js",
+    "file": "assets/admin/admin_semantic-B4m6OY1r.js",
     "name": "admin_semantic",
     "src": "admin/semantic/main.js",
     "isEntry": true,
@@ -1374,15 +1374,15 @@
       "_router-O58a3F5g.js",
       "_useAppConfig-B7j1tmre.js",
       "_vue-router-DM_qcwmP.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_VList-B-dGhqR7.js",
       "_VCard-uTiO8bUJ.js",
       "_VChip-ckCCDbBU.js",
       "_VSpacer-hlm4EQpF.js",
       "_VApp-DsL7oD30.js",
-      "_VList-B-dGhqR7.js",
       "_VAlert-D884PtN7.js",
       "_VRow-BpZ_Fh6t.js",
       "_VDataTable-CCWSaHUn.js",
-      "__plugin-vue_export-helper-DlAUqK2U.js",
       "_VSelect-BNTLt1ed.js",
       "_VExpansionPanels-VWGxtIQS.js",
       "_VSwitch-C7PD4K1y.js",
@@ -1402,7 +1402,7 @@
       "_VSheet-DMcvZjDm.js"
     ],
     "css": [
-      "assets/admin/admin_semantic-B1aOHgqC.css"
+      "assets/admin/admin_semantic-BSDnm0VC.css"
     ]
   },
   "admin/site_configurations/main.js": {

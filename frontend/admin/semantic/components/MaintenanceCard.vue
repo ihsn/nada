@@ -51,14 +51,35 @@
 
       <div class="semantic-maintenance-row">
         <div>
+          <div class="font-weight-medium text-error">Rebuild the study index</div>
+          <div class="text-body-2 text-medium-emphasis">
+            Empties the study index only, then queues every study to be indexed again. Embeddings and the variable index
+            are kept, so nothing is embedded again: much faster than Delete and rebuild. Needed after an update that
+            changes what the study index holds. Keyword search is incomplete until NADA-AI has worked through the queue.
+          </div>
+        </div>
+        <v-btn variant="tonal" color="error" prepend-icon="mdi-database-refresh-outline" :loading="rebuildingStudies" :disabled="!canDelete" @click="rebuildStudies">
+          Rebuild the study index…
+        </v-btn>
+      </div>
+      <v-alert v-if="studiesResult" :type="studiesResult.ok ? 'success' : 'error'" variant="tonal" density="compact" class="mb-3">
+        {{ studiesResult.message }}
+        <router-link v-if="studiesResult.ok" :to="{ name: 'activity', query: { tab: 'queue' } }">Follow them in Activity →</router-link>
+      </v-alert>
+
+      <v-divider />
+
+      <div class="semantic-maintenance-row">
+        <div>
           <div class="font-weight-medium text-error">Delete and rebuild</div>
           <div class="text-body-2 text-medium-emphasis">
             Empties the search index, then queues every study and citation to be indexed again from the catalog. Search
             is incomplete until NADA-AI has worked through the queue — minutes to hours depending on the catalog. With
-            OpenSearch the variable index is emptied too and refills as microdata studies are indexed. There is no undo.
+            OpenSearch the variable and citation indexes are emptied too and refill as studies and citations are indexed.
+            There is no undo.
           </div>
         </div>
-        <v-btn color="error" variant="tonal" prepend-icon="mdi-delete-alert" :disabled="!canDelete" @click="recreateDialog = true">
+        <v-btn variant="tonal" color="error" prepend-icon="mdi-delete-alert" :disabled="!canDelete" @click="recreateDialog = true">
           Delete and rebuild…
         </v-btn>
       </div>
@@ -80,7 +101,7 @@
             Update. There is no undo.
           </div>
         </div>
-        <v-btn color="error" variant="outlined" prepend-icon="mdi-trash-can-outline" :disabled="!canDelete" @click="dropDialog = true">
+        <v-btn variant="tonal" color="error" prepend-icon="mdi-trash-can-outline" :disabled="!canDelete" @click="dropDialog = true">
           Delete index…
         </v-btn>
       </div>
@@ -154,6 +175,8 @@ const { loading: dropping, error: dropError, errorMessage: dropErrorMessage, del
   useSemanticApi();
 
 const { loading: importing, importIndex } = useSemanticApi();
+const { loading: rebuildingStudies, recreateStudiesIndex, rebuildTracking: queueEverything } = useSemanticApi();
+const studiesResult = ref(null);
 const cleanResult = ref(null);
 const importResult = ref(null);
 const recreateDialog = ref(false);
@@ -196,6 +219,21 @@ async function importExisting() {
     importResult.value = { ok: true, message: 'Started: NADA-AI reads its index, then NADA queues the rest.' };
   } catch (e) {
     importResult.value = { ok: false, message: `Could not start: ${failure(e)}` };
+  }
+  emit('changed');
+}
+
+/** Empty NADA-AI's study index, then let NADA forget what it tracked and queue everything (embeddings are reused). */
+async function rebuildStudies() {
+  if (!window.confirm('Empty the study index and index every study again? Embeddings are kept; keyword search is incomplete until it is done.')) return;
+  try {
+    await recreateStudiesIndex();
+    const data = await queueEverything({ queue: true });
+    const total = Object.values(data?.queued || {}).reduce((sum, c) => sum + (Number(c?.upsert_full) || 0), 0);
+    await startProcessing();
+    studiesResult.value = { ok: true, message: `Study index emptied; ${formatCount(total)} studies and citations queued.` };
+  } catch (e) {
+    studiesResult.value = { ok: false, message: `Could not rebuild the study index: ${failure(e)}` };
   }
   emit('changed');
 }

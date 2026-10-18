@@ -2,14 +2,14 @@
   <div>
     <IndexingActivityCard />
     <v-tabs v-model="tab" color="primary" class="mb-4" density="comfortable">
-      <v-tab value="jobs">Jobs</v-tab>
       <v-tab value="queue">
         Change queue
         <v-chip v-if="queueFailed" size="x-small" color="error" variant="tonal" class="ml-2">{{ queueFailed }}</v-chip>
       </v-tab>
+      <v-tab value="jobs">Jobs</v-tab>
     </v-tabs>
-    <JobsPage v-if="tab === 'jobs'" />
-    <SyncStatusPage v-else />
+    <SyncStatusPage v-if="tab === 'queue'" />
+    <JobsPage v-else />
   </div>
 </template>
 
@@ -30,7 +30,8 @@ const { getSyncStatus } = useSemanticApi();
 const queueFailed = ref(0);
 
 const tab = computed({
-  get: () => (route.query.tab === 'queue' ? 'queue' : 'jobs'),
+  // the change queue is what is usually looked for; jobs (runs started by hand) are rarer
+  get: () => (route.query.tab === 'jobs' ? 'jobs' : 'queue'),
   set: (value) => router.replace({ query: { ...route.query, tab: value } }),
 });
 

@@ -14,8 +14,9 @@ function when(ts) {
 const DEFAULT_POLL_GRACE_MINUTES = 15;
 /** How long items may wait with no result recorded, while NADA-AI reads the queue, before it counts as stuck. */
 const STALLED_MINUTES = 30;
-/** How often the status is read again while there is work. */
+/** How often the status is read again while there is work, and while there is none (to notice new changes). */
 const ACTIVE_REFRESH_MS = 12000;
+const IDLE_REFRESH_MS = 60000;
 
 // One copy for the whole dashboard: the banner, the activity card and the menu badge read the same status, and only
 // one refresh runs at a time.
@@ -35,8 +36,8 @@ function hasWork() {
 function schedule() {
   clearTimeout(timer);
   timer = null;
-  if (users > 0 && hasWork()) {
-    timer = setTimeout(refresh, ACTIVE_REFRESH_MS);
+  if (users > 0) {
+    timer = setTimeout(refresh, hasWork() ? ACTIVE_REFRESH_MS : IDLE_REFRESH_MS);
   }
 }
 
@@ -60,7 +61,7 @@ async function refresh() {
 
 /**
  * Whether NADA-AI keeps the index in sync: NADA's own tracking status (always available) and NADA-AI's scheduler
- * status (when NADA-AI answers). Read again every few seconds while there is work, and not at all while idle.
+ * status (when NADA-AI answers). Read again every few seconds while there is work, and every minute while idle.
  *
  * problems: what needs attention, {key, type, text}, most serious first (the banner).
  * activity: what is being done now (the activity card), see below.
@@ -144,6 +145,7 @@ export function useSyncHealth() {
         manual: `Indexing is paused${pause.since ? ` since ${when(pause.since)}` : ''}: catalog changes are queued but not applied until it is resumed (Indexing activity › Resume).`,
         acks_failing: `NADA-AI processes changes but NADA does not record the results: ${pause.message || ''}`,
         access_denied: `NADA refuses NADA-AI's key: ${pause.message || 'check the key NADA-AI uses for NADA'}`,
+        error: `NADA-AI could not read the queue or the records from NADA (see NADA-AI's log): ${pause.message || ''}`,
         firewall: `A firewall blocks NADA-AI's requests to NADA${pause.message ? `: ${pause.message}` : ''}. Allow NADA-AI's address, or point it at NADA's internal URL.`,
         nada_unavailable: 'NADA-AI cannot reach NADA.',
         not_tracking: 'NADA does not track changes for this NADA-AI.',
@@ -154,7 +156,7 @@ export function useSyncHealth() {
       } else if (sch.state === 'stuck') {
         out.push({ key: 'stuck', type: 'error', text: `NADA-AI's scheduler has not moved since ${when(sch.heartbeat_at)}${sch.current?.object_key ? ` (on ${sch.current.object_key})` : ''}. Restart NADA-AI.` });
       } else if (sch.state === 'disabled') {
-        out.push({ key: 'disabled', type: 'warning', text: "NADA-AI's scheduler is turned off: catalog changes stay queued until someone uses Process pending (NADA_RECONCILE_SEARCH_INDEX_ENABLED)." });
+        out.push({ key: 'disabled', type: 'warning', text: "NADA-AI's scheduler is turned off: catalog changes stay queued until someone uses Process now (NADA_RECONCILE_SEARCH_INDEX_ENABLED)." });
       } else if (sch.state === 'not_configured') {
         out.push({ key: 'not_configured', type: 'error', text: "NADA-AI does not have NADA's URL configured." });
       } else if (pause.reason === 'manual') {

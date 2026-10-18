@@ -24,6 +24,15 @@
         >
           {{ pausedByHand ? 'Resume' : 'Pause' }}
         </v-btn>
+        <v-btn
+          v-if="scheduler"
+          size="small"
+          variant="text"
+          :append-icon="showDetails ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+          @click="showDetails = !showDetails"
+        >
+          Details
+        </v-btn>
         <router-link :to="{ name: 'activity', query: { tab: 'queue' } }" class="text-body-2 text-decoration-none">
           Change queue →
         </router-link>
@@ -56,6 +65,13 @@
       <div v-if="activity.lastResultAt" class="text-caption text-medium-emphasis mt-2">
         Last result recorded {{ timeText(activity.lastResultAt) }}
       </div>
+
+      <v-expand-transition>
+        <div v-if="showDetails && scheduler">
+          <v-divider class="my-4" />
+          <SchedulerDetails :scheduler="scheduler" />
+        </div>
+      </v-expand-transition>
     </v-card-text>
   </v-card>
 </template>
@@ -66,6 +82,7 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useSemanticApi } from '../composables/useSemanticApi.js';
 import { useSyncHealth } from '../composables/useSyncHealth.js';
 import { changeClassLabel, formatCount } from '../typeLabels.js';
+import SchedulerDetails from './SchedulerDetails.vue';
 
 defineOptions({ name: 'SemanticIndexingActivityCard' });
 
@@ -73,10 +90,11 @@ defineOptions({ name: 'SemanticIndexingActivityCard' });
  * What NADA-AI is doing with the change queue right now: shown only while NADA tracks changes for NADA-AI, and read
  * again every few seconds while there is work (useSyncHealth).
  */
-const { activity, tracksNadaAi, refresh } = useSyncHealth();
+const { activity, scheduler, tracksNadaAi, refresh } = useSyncHealth();
 const { canEdit } = useAppConfig();
 const { pauseScheduler, resumeScheduler } = useSemanticApi();
 const switching = ref(false);
+const showDetails = ref(false);
 
 /** Paused by hand (not a pause NADA-AI chose itself, which it lifts on its own). */
 const pausedByHand = computed(() => activity.value.pause?.reason === 'manual');

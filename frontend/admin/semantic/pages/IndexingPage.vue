@@ -77,7 +77,8 @@
           <v-select
             v-model="missingDataType"
             :items="dataTypeOptions"
-            label="Type"
+            placeholder="All types"
+            persistent-placeholder
             variant="outlined"
             density="compact"
             hide-details
@@ -152,7 +153,8 @@
           <v-select
             v-model="staleDataType"
             :items="dataTypeOptions"
-            label="Type"
+            placeholder="All types"
+            persistent-placeholder
             variant="outlined"
             density="compact"
             hide-details

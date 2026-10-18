@@ -26,7 +26,7 @@
         :disabled="!canEdit || !trackingOn || pendingCount === 0"
         @click="processPending"
       >
-        Process pending
+        Process now
       </v-btn>
     </Teleport>
 
@@ -50,71 +50,73 @@
       <v-card-title class="semantic-card-title d-flex align-center flex-wrap ga-2">
         Queue
         <v-spacer />
-        <span v-if="status" class="text-caption text-medium-emphasis font-weight-regular">
-          {{ trackingOn ? 'Change tracking on' : 'Change tracking off' }}
-          <template v-if="status.index_engine"> · index kept in sync: {{ status.index_engine }}</template>
-          <template v-if="status.search_engine"> · search: {{ status.search_engine }}</template>
-        </span>
+        <template v-if="status">
+          <v-chip size="small" variant="tonal" :color="trackingOn ? 'success' : 'warning'">
+            {{ trackingOn ? 'Change tracking on' : 'Change tracking off' }}
+          </v-chip>
+          <v-chip v-if="status.index_engine" size="small" variant="tonal">Kept in sync: {{ status.index_engine }}</v-chip>
+          <v-chip v-if="status.search_engine" size="small" variant="tonal">Search: {{ status.search_engine }}</v-chip>
+        </template>
       </v-card-title>
       <v-divider />
-      <v-card-text>
+      <v-card-text class="pt-4">
         <v-progress-linear v-if="loadingStatus && !status" indeterminate color="primary" class="mb-4" />
-        <div v-else class="d-flex flex-wrap" style="gap: 32px">
+        <div v-else class="semantic-queue-facts">
           <div>
-            <div class="text-caption text-medium-emphasis">Pending</div>
-            <div class="text-h6 font-weight-bold mt-1">{{ formatCount(pendingCount) }}</div>
+            <div class="semantic-queue-label">Pending</div>
+            <div class="text-h6 font-weight-bold">{{ formatCount(pendingCount) }}</div>
           </div>
           <div>
-            <div class="text-caption text-medium-emphasis">Failed</div>
-            <div
-              class="text-h6 font-weight-bold mt-1"
-              :class="failedCount > 0 ? 'text-error' : ''"
-            >
+            <div class="semantic-queue-label">Failed</div>
+            <div class="text-h6 font-weight-bold" :class="failedCount > 0 ? 'text-error' : ''">
               {{ formatCount(failedCount) }}
             </div>
           </div>
+          <template v-if="tracked">
+            <div>
+              <div class="semantic-queue-label">Tracking since</div>
+              <div class="text-body-2">{{ formatQueueTime(tracked.tracked_since) }}</div>
+            </div>
+            <div>
+              <div class="semantic-queue-label">Last full sync</div>
+              <div class="text-body-2">{{ tracked.last_sync_at ? formatQueueTime(tracked.last_sync_at) : 'Never' }}</div>
+            </div>
+            <div>
+              <div class="semantic-queue-label">NADA-AI last read the queue</div>
+              <div class="text-body-2">{{ tracked.last_poll_at ? formatQueueTime(tracked.last_poll_at) : 'Never' }}</div>
+            </div>
+          </template>
         </div>
-        <div v-if="tracked" class="text-body-2 text-medium-emphasis mt-4">
-          Tracking since {{ formatQueueTime(tracked.tracked_since) }}
-          · last full sync: {{ tracked.last_sync_at ? formatQueueTime(tracked.last_sync_at) : 'never' }}
-          · NADA-AI last read the queue: {{ tracked.last_poll_at ? formatQueueTime(tracked.last_poll_at) : 'never' }}
-        </div>
-        <div v-if="scheduler" class="text-body-2 mt-2">
-          <strong>NADA-AI:</strong> {{ schedulerLine }}
-        </div>
-        <p class="text-caption text-medium-emphasis mb-0 mt-4">
-          Catalog edits, and the work “Update” on
-          <router-link :to="{ name: 'indexing' }" class="text-decoration-none">Indexing</router-link>
-          queues. NADA-AI works through it one item at a time, catalog edits first.
-        </p>
-      </v-card-text>
-    </v-card>
 
-    <v-card elevation="1" rounded="lg">
-      <v-card-title class="semantic-card-title d-flex align-center flex-wrap ga-2">
-        <v-btn-toggle v-model="queueView" density="compact" divided mandatory>
-          <v-btn value="pending" size="small">
-            Pending
-            <v-chip size="x-small" class="ml-2">{{ pendingCount }}</v-chip>
-          </v-btn>
-          <v-btn value="failed" size="small">
-            Failed
-            <v-chip size="x-small" class="ml-2" :color="failedCount > 0 ? 'error' : undefined">
-              {{ failedCount }}
-            </v-chip>
-          </v-btn>
-        </v-btn-toggle>
-        <v-spacer />
-        <span class="text-caption text-medium-emphasis font-weight-regular">
-          {{
-            queueView === 'pending'
-              ? 'Waiting to be processed'
-              : 'Failed the last attempt — requeue to try again'
-          }}
-        </span>
-      </v-card-title>
-      <v-divider />
-      <v-card-text class="pt-3">
+        <div v-if="scheduler" class="semantic-queue-scheduler">
+          <v-icon icon="mdi-robot-outline" size="18" color="primary" />
+          <div>
+            <div class="semantic-queue-label">NADA-AI</div>
+            <div class="text-body-2">{{ schedulerLine }}</div>
+          </div>
+        </div>
+
+        <div class="semantic-queue-items-bar">
+          <v-btn-toggle v-model="queueView" density="compact" divided mandatory>
+            <v-btn value="pending" size="small">
+              Pending
+              <v-chip size="x-small" class="ml-2">{{ pendingCount }}</v-chip>
+            </v-btn>
+            <v-btn value="failed" size="small">
+              Failed
+              <v-chip size="x-small" class="ml-2" :color="failedCount > 0 ? 'error' : undefined">
+                {{ failedCount }}
+              </v-chip>
+            </v-btn>
+          </v-btn-toggle>
+          <span class="text-body-2 text-medium-emphasis">
+            {{
+              queueView === 'pending'
+                ? 'Waiting to be processed'
+                : 'Failed the last attempt — requeue to try again'
+            }}
+          </span>
+        </div>
         <v-data-table
           :headers="queueHeaders"
           :items="visibleItems"
@@ -155,6 +157,12 @@
           class="text-caption text-medium-emphasis mb-0 mt-2"
         >
           Showing {{ visibleItems.length }} of {{ formatCount(visibleTotal) }}.
+        </p>
+
+        <p class="semantic-queue-note text-body-2 text-medium-emphasis">
+          Catalog edits, and the work “Update” on
+          <router-link :to="{ name: 'indexing' }" class="text-decoration-none">Indexing</router-link>
+          queues, wait here. NADA-AI works through them one item at a time, catalog edits first.
         </p>
       </v-card-text>
     </v-card>
@@ -213,12 +221,12 @@ const schedulerLine = computed(() => {
   const pass = s.pass || {};
   switch (s.state) {
     case 'processing':
-      return `processing${s.current?.object_key ? ` ${s.current.object_key} (${changeClassLabel(s.current.change_class)})` : ''}`
+      return `Processing${s.current?.object_key ? ` ${s.current.object_key} (${changeClassLabel(s.current.change_class)})` : ''}`
         + ` · ${formatCount(pass.processed || 0)} done in this pass${pass.failed ? `, ${pass.failed} failed` : ''}`;
     case 'idle':
-      return `up to date${s.next_poll_at ? ` · next check at ${formatQueueTime(s.next_poll_at)}` : ''}`;
+      return `Up to date${s.next_poll_at ? ` · next check at ${formatQueueTime(s.next_poll_at)}` : ''}`;
     case 'paused':
-      return `paused: ${s.pause?.message || s.pause?.reason || ''}${s.pause?.resume_at ? ` · next try at ${formatQueueTime(s.pause.resume_at)}` : ''}`;
+      return `Paused: ${s.pause?.message || s.pause?.reason || ''}${s.pause?.resume_at ? ` · next try at ${formatQueueTime(s.pause.resume_at)}` : ''}`;
     default:
       return s.state;
   }
@@ -316,3 +324,43 @@ async function requeue() {
 
 onMounted(loadAll);
 </script>
+
+<style scoped>
+.semantic-queue-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px 32px;
+}
+
+.semantic-queue-label {
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), 0.6);
+  margin-bottom: 4px;
+}
+
+.semantic-queue-items-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin: 24px 0 8px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.semantic-queue-note {
+  margin: 24px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.semantic-queue-scheduler {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(var(--v-theme-primary), 0.06);
+}
+</style>

@@ -1,36 +1,48 @@
 <template>
   <div>
-    <div class="semantic-page-toolbar">
-      <v-select
-        v-model="statusFilter"
-        :items="statusOptions"
-        variant="outlined"
-        density="compact"
-        hide-details
-        style="max-width: 200px"
-        label="Status"
-        @update:model-value="load"
-      />
-      <v-switch v-model="autoRefresh" label="Auto-refresh (10s)" hide-details density="compact" />
-      <v-spacer />
-      <v-btn variant="outlined" prepend-icon="mdi-refresh" :loading="loading" @click="load">Refresh</v-btn>
-    </div>
-
-    <v-alert type="info" variant="tonal" density="compact" class="mb-4">
-      Catalog changes and syncs are worked through from the change queue one item at a time and are not listed as
-      jobs here —
-      <router-link :to="{ name: 'activity', query: { tab: 'queue' } }">see Change queue</router-link>.
-      Jobs are the indexing runs started by hand (Force re-index, variable or citation sync, Use the existing index).
-    </v-alert>
-
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable @click:close="error = null">
-      {{ errorMessage(error) }}
-    </v-alert>
-
     <v-card elevation="1" rounded="lg">
-      <v-data-table :headers="headers" :items="jobs" :loading="loading" item-value="id" density="comfortable">
+      <v-card-title class="semantic-card-title d-flex align-center flex-wrap ga-2">
+        Jobs
+        <v-chip size="small" variant="tonal">{{ jobs.length }}</v-chip>
+        <v-spacer />
+        <span class="text-caption text-medium-emphasis font-weight-regular">Indexing runs started by hand</span>
+      </v-card-title>
+      <v-divider />
+      <v-card-text class="pt-4">
+        <div class="semantic-jobs-toolbar">
+          <v-select
+            v-model="statusFilter"
+            :items="statusOptions"
+            variant="outlined"
+            density="compact"
+            hide-details
+            style="max-width: 200px"
+            label="Status"
+            @update:model-value="load"
+          />
+          <v-switch v-model="autoRefresh" label="Auto-refresh (10s)" color="primary" hide-details density="compact" />
+          <v-spacer />
+          <v-btn variant="outlined" prepend-icon="mdi-refresh" :loading="loading" @click="load">Refresh</v-btn>
+        </div>
+
+        <div class="semantic-jobs-note">
+          <v-icon icon="mdi-information-outline" size="18" color="info" />
+          <div>
+            Jobs are the indexing runs started by hand: Force re-index, variable or citation sync, Use the existing
+            index. Catalog changes and syncs are worked through from the change queue one item at a time and are not
+            listed here —
+            <router-link :to="{ name: 'activity', query: { tab: 'queue' } }" class="text-decoration-none">see Change queue</router-link>.
+          </div>
+        </div>
+
+        <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mt-4" closable @click:close="error = null">
+          {{ errorMessage(error) }}
+        </v-alert>
+      </v-card-text>
+      <v-divider />
+      <v-data-table :headers="headers" :items="jobs" :loading="loading" item-value="id" density="comfortable" class="semantic-jobs-table">
         <template #no-data>
-          <div class="text-medium-emphasis py-6">No jobs yet. Start from Index.</div>
+          <div class="text-medium-emphasis py-8">No jobs yet. Start one from Indexing.</div>
         </template>
         <template #item.status="{ item }">
           <v-chip size="small" :color="statusColor(item.status)">{{ item.status }}</v-chip>
@@ -352,3 +364,31 @@ onBeforeUnmount(() => clearInterval(timer));
 
 watch(autoRefresh, scheduleAutoRefresh);
 </script>
+
+<style scoped>
+.semantic-jobs-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.semantic-jobs-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: rgba(var(--v-theme-on-surface), 0.75);
+  background: rgba(var(--v-theme-info), 0.06);
+}
+
+.semantic-jobs-table :deep(th),
+.semantic-jobs-table :deep(td) {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+</style>

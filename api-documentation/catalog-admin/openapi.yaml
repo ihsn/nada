@@ -4516,7 +4516,7 @@ paths:
               value: survey,timeseries,geospatial
         - name: include_metadata
           in: query
-          description: Include the study's full metadata JSON in each study document (default true; send false for core fields and filters only)
+          description: Include the study's full metadata JSON in each study document (default true; send false for core fields and filters only). With the full metadata only, `core_fields.all_text` lists every other text value of the metadata for search (one array element per value, without ids, links, values equal to a searched core field, repeats and `doc_desc`; at most 200 KB)
           schema:
             type: boolean
             default: true
@@ -4564,7 +4564,7 @@ paths:
             enum: [id]
         - name: include_metadata
           in: query
-          description: Include the study's full metadata JSON (default true; send false for core fields and filters only)
+          description: Include the study's full metadata JSON (default true; send false for core fields and filters only). With the full metadata only, `core_fields.all_text` lists every other text value of the metadata for search (one array element per value, without ids, links, values equal to a searched core field, repeats and `doc_desc`; at most 200 KB)
           schema:
             type: boolean
             default: true

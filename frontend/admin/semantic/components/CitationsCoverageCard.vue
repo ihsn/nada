@@ -35,8 +35,8 @@
     </v-card-text>
     <div v-if="started || startError" class="px-4 pb-4">
       <v-alert v-if="started" type="success" variant="tonal" density="compact">
-        Citation indexing started as a background job.
-        <router-link :to="{ name: 'activity', query: { tab: 'jobs' } }">Follow it in Activity →</router-link>
+        {{ started }}
+        <router-link :to="{ name: 'activity', query: { tab: 'queue' } }">Follow it in Activity →</router-link>
       </v-alert>
       <v-alert v-if="startError" type="error" variant="tonal" density="compact">{{ startError }}</v-alert>
     </div>
@@ -58,7 +58,7 @@ defineProps({
 });
 
 const { canEdit } = useAppConfig();
-const { loading, error, errorMessage, getCitationsStats, syncCitations } = useSemanticApi();
+const { loading, error, errorMessage, getCitationsStats, syncIndex, reconcileNow } = useSemanticApi();
 const stats = ref(null);
 const starting = ref(false);
 const started = ref(false);
@@ -113,8 +113,12 @@ async function startSync() {
   started.value = false;
   startError.value = null;
   try {
-    await syncCitations();
-    started.value = true;
+    // queue the citations the index is missing or still holds after their removal; NADA-AI applies them
+    const data = await syncIndex({ objectType: 'citation' });
+    await reconcileNow().catch(() => {});
+    const c = data?.queued?.citation || {};
+    const n = (Number(c.upsert_full) || 0) + (Number(c.delete) || 0);
+    started.value = n ? `${n} citation change${n === 1 ? '' : 's'} queued.` : 'Nothing to queue: the citations are up to date or already queued.';
   } catch (e) {
     startError.value = errorMessage(e);
   } finally {

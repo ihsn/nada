@@ -36,7 +36,7 @@
             prepend-icon="mdi-database-sync-outline"
             :loading="starting"
             :disabled="!canEdit || !hasGaps"
-            @click="startSync(gapIdnos)"
+            @click="queueGaps(gapSids)"
           >
             Update
           </v-btn>
@@ -51,14 +51,14 @@
           :total="coverage.gap_total"
           :can-edit="canEdit"
           :starting="starting"
-          @sync="startSync"
+          @sync="queueGaps"
         />
       </div>
     </v-expand-transition>
     <div v-if="started || startError" class="px-4 pb-4">
       <v-alert v-if="started" type="success" variant="tonal" density="compact">
-        Variable indexing started as a background job.
-        <router-link :to="{ name: 'activity', query: { tab: 'jobs' } }">Follow it in Activity →</router-link>
+        {{ started }}
+        <router-link :to="{ name: 'activity', query: { tab: startedTab } }">Follow it in Activity →</router-link>
       </v-alert>
       <v-alert v-if="startError" type="error" variant="tonal" density="compact">{{ startError }}</v-alert>
     </div>
@@ -81,7 +81,9 @@ const props = defineProps({
 });
 
 const { canEdit } = useAppConfig();
-const { loading, error, errorMessage, getVariablesStats, getVariablesCoverage, syncVariables } = useSemanticApi();
+const { loading, error, errorMessage, getVariablesStats, getVariablesCoverage, syncVariables, queueVariables, reconcileNow } =
+  useSemanticApi();
+const startedTab = ref('queue');
 const coverage = ref(null);
 const expanded = ref(false);
 const stats = ref(null);
@@ -138,15 +140,20 @@ const detail = computed(() => {
 
 const hasGaps = computed(() => (coverage.value?.gap_total || 0) > 0);
 /** The studies whose variables Update re-indexes (the listed gaps; a long list is capped by the API). */
-const gapIdnos = computed(() => (coverage.value?.gaps || []).map((g) => g.idno));
+const gapSids = computed(() => (coverage.value?.gaps || []).map((g) => g.sid));
 /** The list of studies to sync is an Indexing-page detail. */
 const canExpand = computed(() => hasGaps.value && !props.manage);
 
-function rebuild() {
-  if (!window.confirm('Index every variable of every published microdata study again? This runs as a background job.')) {
+/** Rebuild: every variable of every study again, as a NADA-AI job outside the change queue (a rare, heavy run). */
+async function rebuild() {
+  if (!window.confirm('Index every variable of every published microdata study again? This runs as a NADA-AI job outside the change queue.')) {
     return;
   }
-  startSync();
+  await run(async () => {
+    await syncVariables(undefined);
+    startedTab.value = 'jobs';
+    return 'Variable rebuild started as a NADA-AI job.';
+  });
 }
 
 /** The chip: a study-level gap outranks the totals, which can agree while studies differ. */
@@ -158,13 +165,23 @@ const compactVerdict = computed(() => {
   return verdict.value;
 });
 
-async function startSync(idnos) {
+/** Update: queue a variables-only update of these studies; NADA-AI applies it from the change queue. */
+async function queueGaps(sids) {
+  await run(async () => {
+    const data = await queueVariables(sids || []);
+    await reconcileNow().catch(() => {});
+    startedTab.value = 'queue';
+    const n = Number(data?.queued) || 0;
+    return `${formatCount(n)} ${n === 1 ? 'study' : 'studies'} queued for a variables update.`;
+  });
+}
+
+async function run(fn) {
   starting.value = true;
   started.value = false;
   startError.value = null;
   try {
-    await syncVariables(Array.isArray(idnos) ? idnos : undefined);
-    started.value = true;
+    started.value = await fn();
   } catch (e) {
     startError.value = errorMessage(e);
   } finally {

@@ -15,7 +15,7 @@
           variant="text"
           :disabled="!canEdit"
           :loading="starting"
-          @click="$emit('sync', [item.idno])"
+          @click="$emit('sync', [item.sid])"
         >
           Index
         </v-btn>
@@ -29,7 +29,7 @@
         prepend-icon="mdi-database-sync-outline"
         :loading="starting"
         :disabled="!canEdit"
-        @click="$emit('sync', gaps.map((g) => g.idno))"
+        @click="$emit('sync', gaps.map((g) => g.sid))"
       >
         Index variables of {{ gaps.length === total ? 'these' : 'the first' }} {{ formatCount(gaps.length) }} studies
       </v-btn>

@@ -448,6 +448,95 @@ class Search_index_manager
 		return $queue ? $this->sync('all') : array();
 	}
 
+	/**
+	 * What changed lately, for the dashboard: the catalog changes waiting to be indexed (newest first; rows a sync
+	 * queued are only counted, not listed, so a long sync does not crowd them out), and the latest results recorded.
+	 * Each item carries the study's or citation's title.
+	 *
+	 * @return array{waiting: array, sync_waiting: int, results: array}
+	 */
+	public function recent_changes($limit = 10)
+	{
+		$limit = max(1, min((int) $limit, 50));
+		$out = array('waiting' => array(), 'sync_waiting' => 0, 'results' => array());
+		if (!$this->tables_ready() || !$this->rows_describe_index_engine()) {
+			return $out;
+		}
+
+		$title = "COALESCE(s.title, c.title)";
+		$joins = "
+			LEFT JOIN surveys s ON x.object_type = 'survey' AND s.id = x.object_id
+			LEFT JOIN citations c ON x.object_type = 'citation' AND c.id = x.object_id";
+
+		$rows = $this->ci->db->query(
+			"SELECT x.object_type, x.object_id, x.object_key, x.change_class, x.status, x.changed, x.last_error,
+				{$title} AS title
+			FROM search_index_queue x {$joins}
+			WHERE x.priority = ?
+			ORDER BY x.changed DESC" . $this->paginate_clause($limit, 0),
+			array(self::PRIORITY_LIVE)
+		)->result_array();
+		foreach ($rows as $r) {
+			$out['waiting'][] = $this->recent_item($r, $r['status'] === self::STATUS_FAILED ? 'failed' : 'waiting');
+		}
+
+		$out['sync_waiting'] = (int) $this->ci->db->from('search_index_queue')
+			->where('status', self::STATUS_PENDING)->where('priority', self::PRIORITY_SYNC)->count_all_results();
+
+		$rows = $this->ci->db->query(
+			"SELECT x.object_type, x.object_id, x.object_key, NULL AS change_class, x.status, x.changed, x.last_error,
+				{$title} AS title
+			FROM search_index_state x {$joins}
+			WHERE x.status IN (?, ?)
+			ORDER BY x.changed DESC" . $this->paginate_clause($limit, 0),
+			array(self::STATUS_INDEXED, self::STATUS_FAILED)
+		)->result_array();
+		foreach ($rows as $r) {
+			$out['results'][] = $this->recent_item($r, $r['status']);
+		}
+
+		return $out;
+	}
+
+	private function recent_item(array $r, $status)
+	{
+		return array(
+			'object_type' => $r['object_type'],
+			'object_id'   => (int) $r['object_id'],
+			'object_key'  => $r['object_key'],
+			'title'       => $r['title'],
+			'change'      => $r['change_class'],
+			'status'      => $status,
+			'at'          => (int) $r['changed'],
+			'error'       => $r['last_error'],
+		);
+	}
+
+	/**
+	 * Queue a variables-only update of these studies (their variables are synced again; the study is not
+	 * re-indexed). For the variables the index is missing.
+	 *
+	 * @param int[] $sids
+	 * @return int how many were queued
+	 */
+	public function queue_variables(array $sids)
+	{
+		if (!$this->tracking_enabled() || !$this->tables_ready()) {
+			throw new Search_index_exception('TRACKING_DISABLED', 400);
+		}
+		$this->follow_index_engine();
+		$sids = array_values(array_unique(array_filter(array_map('intval', $sids))));
+		if (empty($sids)) {
+			return 0;
+		}
+		$rows = $this->ci->db->select('id, idno')->where_in('id', $sids)->get('surveys')->result_array();
+		foreach ($rows as $row) {
+			$queued = $this->enqueue(self::OBJECT_SURVEY, (int) $row['id'], $row['idno'], self::CLASS_VARIABLES);
+			$this->process_inline($queued);
+		}
+		return count($rows);
+	}
+
 	public function requeue_object($object_type, $object_id)
 	{
 		if (!$this->tracking_enabled()) {
@@ -1154,6 +1243,12 @@ class Search_index_manager
 
 	private function coalesce_class($current, $incoming)
 	{
+		// a partial update (options, filters) and a variables update cover different things: together they need the
+		// full index, which does both — keeping either one alone would drop the other change
+		$pair = array($current, $incoming);
+		if (in_array(self::CLASS_PARTIAL, $pair, true) && in_array(self::CLASS_VARIABLES, $pair, true)) {
+			return self::CLASS_FULL;
+		}
 		$rank = array(
 			self::CLASS_PARTIAL   => 1,
 			self::CLASS_VARIABLES => 2,

@@ -42,6 +42,14 @@
       </v-btn>
     </div>
 
+    <v-alert v-if="outdatedIndexes.length" type="warning" variant="tonal" density="compact" class="mx-3 mb-3">
+      These search indexes were created before a change to what they hold, and reject updates until they are rebuilt
+      under Maintenance: Rebuild the study index for the study index, Delete and rebuild for the others.
+      <div v-for="row in outdatedIndexes" :key="row.index" class="text-body-2 mt-1">
+        <strong>{{ row.index }}</strong> — missing or changed: {{ row.fields }}
+      </div>
+    </v-alert>
+
     <v-expand-transition>
       <div v-if="detailsOpen">
         <v-divider />
@@ -138,6 +146,14 @@ const embeddingsData = computed(() => props.overview?.embeddings?.data || {});
 
 const needsWarmup = computed(() => embeddingsData.value?.status === 'not_initialized');
 
+/** Indexes NADA-AI reports as created before a mapping change ({index: [field, ...]} in its /health). */
+const outdatedIndexes = computed(() =>
+  Object.entries(props.overview?.health?.data?.outdated_indexes || {}).map(([index, fields]) => ({
+    index,
+    fields: (fields || []).join(', '),
+  })),
+);
+
 const embeddingRows = computed(() => {
   const data = embeddingsData.value;
   if (!data || typeof data !== 'object') return [];
@@ -172,6 +188,7 @@ const pills = computed(() => {
   const ov = props.overview;
   const healthOk = ov?.health?.ok === true;
   const healthStatus = ov?.health?.data?.status || (healthOk ? 'ok' : null);
+  const healthWarn = healthOk && healthStatus !== 'ok';
 
   const embOk = ov?.embeddings?.ok === true;
   const embStatus = embeddingsData.value?.status;
@@ -203,8 +220,8 @@ const pills = computed(() => {
     {
       key: 'api',
       text: !ov?.health ? 'API…' : healthOk ? `API ${healthStatus}` : 'API error',
-      color: pillColor(ov?.health ? healthOk : null),
-      icon: healthOk ? 'mdi-check-circle' : 'mdi-heart-pulse',
+      color: pillColor(ov?.health ? healthOk && !healthWarn : null, healthWarn),
+      icon: healthWarn ? 'mdi-alert-circle' : healthOk ? 'mdi-check-circle' : 'mdi-heart-pulse',
     },
     {
       key: 'emb',

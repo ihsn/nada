@@ -12,6 +12,15 @@ class Catalog_search_metadata_extract
     const VARIABLE_DOCTYPE = 2;
     const CITATION_DOCTYPE = 3;
 
+    /** all_text stops growing past this many bytes (one very large study must not bloat a page of records). */
+    const ALL_TEXT_MAX_BYTES = 200000;
+
+    /** Metadata keys whose values are not text to search: the metadata about the metadata file, ids and links. */
+    const ALL_TEXT_SKIP_KEYS = array('doc_desc', 'idno', 'uri', 'url', 'uuid', 'email', 'schematype');
+
+    /** Core fields searched on their own: all_text leaves out a value equal to one of them. */
+    const ALL_TEXT_OWN_FIELDS = array('idno', 'title', 'nation', 'authoring_entity', 'abstract', 'methodology');
+
     /** @var CI_Controller */
     private $ci;
 
@@ -586,6 +595,12 @@ class Catalog_search_metadata_extract
             $include_resources = filter_var($options['include_resources'], FILTER_VALIDATE_BOOLEAN);
         }
 
+        // every other text value of the metadata, for search: only with the full record (a partial update -- published,
+        // filters -- leaves the one indexed as it is)
+        if ($include_metadata) {
+            $core_fields['all_text'] = $this->build_all_text($decoded, $core_fields);
+        }
+
         $doc = array(
             'core_fields'   => $core_fields,
             'filters'       => $filters,
@@ -777,6 +792,90 @@ class Catalog_search_metadata_extract
                 'countries'    => array_values($country_map[$sid] ?? array()),
             ),
         );
+    }
+
+    /**
+     * Every text value of the study's metadata, one array element per value, in metadata order: what search reads
+     * beyond the fields it searches on their own. Leaves out ids, links, values without a letter (numbers, dates,
+     * codes), values equal to a core field searched on its own, repeats, and the metadata about the metadata file.
+     * HTML is reduced to its text. Stops at ALL_TEXT_MAX_BYTES.
+     *
+     * @param array|null $metadata
+     * @param array      $core_fields
+     * @return string[]
+     */
+    private function build_all_text($metadata, array $core_fields)
+    {
+        if (empty($metadata) || !is_array($metadata)) {
+            return array();
+        }
+        $seen = array();
+        foreach (self::ALL_TEXT_OWN_FIELDS as $field) {
+            $text = $this->all_text_value($core_fields[$field] ?? null);
+            if ($text !== '') {
+                $seen[mb_strtolower($text)] = true;
+            }
+        }
+        $values = array();
+        $size = 0;
+        $this->collect_all_text($metadata, $values, $seen, $size);
+        return $values;
+    }
+
+    /**
+     * @param mixed    $node
+     * @param string[] $values
+     * @param array    $seen
+     * @param int      $size
+     * @return bool false once ALL_TEXT_MAX_BYTES is reached
+     */
+    private function collect_all_text($node, array &$values, array &$seen, &$size)
+    {
+        if (is_array($node)) {
+            foreach ($node as $key => $child) {
+                if (is_string($key) && in_array(strtolower($key), self::ALL_TEXT_SKIP_KEYS, true)) {
+                    continue;
+                }
+                if (!$this->collect_all_text($child, $values, $seen, $size)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        $text = $this->all_text_value($node);
+        if ($text === '' || !preg_match('/\pL/u', $text) || preg_match('~^(https?://|www\.|mailto:)\S*$~i', $text)
+            || filter_var($text, FILTER_VALIDATE_EMAIL)) {
+            return true;
+        }
+        $key = mb_strtolower($text);
+        if (isset($seen[$key])) {
+            return true;
+        }
+        if ($size + strlen($text) > self::ALL_TEXT_MAX_BYTES) {
+            return false;
+        }
+        $seen[$key] = true;
+        $values[] = $text;
+        $size += strlen($text);
+        return true;
+    }
+
+    /**
+     * A metadata value as plain text: HTML reduced to its text, whitespace collapsed; '' for anything but a string.
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private function all_text_value($value)
+    {
+        if (!is_string($value)) {
+            return '';
+        }
+        // only markup is stripped: "age<15 and >49" is text, not a tag
+        $text = preg_match('~</?[a-z][^>]*>~i', $value) ? strip_tags($value) : $value;
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        return trim((string) preg_replace('/\s+/u', ' ', $text));
     }
 
     /**

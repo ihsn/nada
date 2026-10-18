@@ -542,14 +542,14 @@ class Semantic extends MY_REST_Controller
 	// =====================================================================
 
 	/**
-	 * DELETE /api/admin/semantic/index?confirm=true
+	 * POST /api/admin/semantic/index_drop?confirm=true
 	 *
 	 * Drops nada-ai's search indexes with no reindex attached — distinct from
 	 * index_all_post's recreate_index=true, which always drops-then-reingests
 	 * every catalog type in one call. Requires the same 'delete' privilege as
-	 * recreate.
+	 * recreate. POST, not DELETE: some networks block DELETE from the browser.
 	 */
-	public function index_delete()
+	public function index_drop_post()
 	{
 		try { $this->_require('delete'); }
 		catch (AclAccessDeniedException $e)
@@ -560,6 +560,26 @@ class Semantic extends MY_REST_Controller
 		$confirm = $this->input->get('confirm');
 		$confirmed = ($confirm === 'true' || $confirm === '1') ? 'true' : 'false';
 		$this->_forward('DELETE', 'admin/index', array('query' => array('confirm' => $confirmed)));
+	}
+
+	/**
+	 * POST /api/admin/semantic/studies_index_recreate?confirm=true
+	 *
+	 * Drops nada-ai's study index and creates it empty with the current mapping, keeping the chunk index (and its
+	 * embeddings) and the variable index. Meant to be followed by search_index_rebuild, which queues every study: they
+	 * are indexed again without embedding anything. For a change to what the study index holds.
+	 */
+	public function studies_index_recreate_post()
+	{
+		try { $this->_require('delete'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+		$confirm = $this->input->get('confirm');
+		$confirmed = ($confirm === 'true' || $confirm === '1') ? 'true' : 'false';
+		$this->_forward('POST', 'admin/index/studies/recreate', array('query' => array('confirm' => $confirmed)));
 	}
 
 	/**
@@ -726,23 +746,6 @@ class Semantic extends MY_REST_Controller
 			return;
 		}
 		$this->_forward('GET', 'jobs/' . rawurlencode($id));
-	}
-
-	/** DELETE /api/admin/semantic/job/{id} — cancel a running/pending job */
-	public function job_delete($id = null)
-	{
-		try { $this->_require('edit'); }
-		catch (AclAccessDeniedException $e)
-		{
-			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
-			return;
-		}
-		if (empty($id))
-		{
-			$this->set_response(array('status' => 'error', 'message' => 'job id required'), REST_Controller::HTTP_BAD_REQUEST);
-			return;
-		}
-		$this->_forward('DELETE', 'jobs/' . rawurlencode($id));
 	}
 
 	/** POST /api/admin/semantic/job_cancel/{id} — cancel a running/pending job (POST: DELETE is not always allowed) */
@@ -1005,6 +1008,49 @@ class Semantic extends MY_REST_Controller
 		catch (Exception $e)
 		{
 			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/** GET /api/admin/semantic/search_index_recent?limit=10 — catalog changes waiting, and the latest results */
+	public function search_index_recent_get()
+	{
+		$this->_search_index_read(function ($manager) {
+			$limit = $this->input->get('limit');
+			return $manager->recent_changes(($limit !== false && $limit !== null && $limit !== '') ? (int) $limit : 10);
+		});
+	}
+
+	/**
+	 * POST /api/admin/semantic/search_index_queue_variables  body: {sids: [..]}
+	 *
+	 * Queue a variables-only update of these studies (the variables the index is missing).
+	 */
+	public function search_index_queue_variables_post()
+	{
+		try { $this->_require('edit'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+
+		try
+		{
+			$this->load->library('Search_index_manager');
+			$raw  = trim((string) $this->input->raw_input_stream);
+			$body = $raw === '' ? array() : json_decode($raw, true);
+			$sids = (is_array($body) && isset($body['sids']) && is_array($body['sids'])) ? $body['sids'] : array();
+			$queued = $this->search_index_manager->queue_variables($sids);
+			$this->set_response(array('status' => 'success', 'queued' => $queued), REST_Controller::HTTP_OK);
+		}
+		catch (Search_index_exception $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), $e->http_code ?: REST_Controller::HTTP_BAD_REQUEST);
+		}
+		catch (Exception $e)
+		{
+			log_message('error', 'Semantic search_index_queue_variables: ' . $e->getMessage());
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
 		}
 	}
 
