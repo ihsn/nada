@@ -141,6 +141,17 @@
               :text="error"
               closable
             />
+            <div v-if="pagingNotice" class="catalog-paging-notice mb-4" role="status">
+              <span class="catalog-paging-notice__text">{{ pagingNotice }}</span>
+              <button
+                type="button"
+                class="catalog-paging-notice__close"
+                :aria-label="t('close', 'Close')"
+                @click="dismissPagingNotice"
+              >
+                <v-icon icon="$close" size="16" />
+              </button>
+            </div>
 
             <SemanticSearchDebug
               v-if="!loading && showDebug && semanticDebug"
@@ -164,6 +175,7 @@
                 :query="query"
                 @sort="setSort"
                 @page="onPage"
+                @cursor="onCursor"
                 @page-size="setPageSize"
               />
               <CatalogResultsList
@@ -177,6 +189,7 @@
                 :show-debug="showDebug"
                 @sort="setSort"
                 @page="onPage"
+                @cursor="onCursor"
                 @page-size="setPageSize"
                 @image-view="setImageView"
               />
@@ -228,9 +241,9 @@ const { count: compareCartCount } = useVariableCompareCart();
 const {
   query, results, facets, tabs, site, semanticDebug,
   enabledFilters, relatedCollections,
-  loading, error, showTypeTabs, hasSearched,
+  loading, error, showTypeTabs, hasSearched, pagingNotice,
   activeFilters, isVariableView, showVariableToggle,
-  resetPage, goToPage, setSort, setPageSize, setImageView, clearFilter, clearFilterValue, clearAllFilters, setSearchView,
+  resetPage, goToPage, goToCursor, setSort, setPageSize, setImageView, clearFilter, clearFilterValue, clearAllFilters, setSearchView,
   siteUrl,
 } = useCatalogSearch();
 
@@ -322,11 +335,59 @@ function onPage(page) {
   goToPage(page);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+function dismissPagingNotice() {
+  pagingNotice.value = null;
+}
+
+function onCursor(cursor) {
+  goToCursor(cursor);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 </script>
 
 <style scoped>
 .catalog-search-main {
   padding-top: 0 !important;
+}
+
+/* "Page not found" when a requested page was past what the search pages: readable dark text on a pale background */
+.catalog-paging-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px 10px 14px;
+  border: 1px solid #f3d38a;
+  border-left: 4px solid #d99a00;
+  border-radius: 6px;
+  background: #fff8e6;
+  color: #3d2e00;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.catalog-paging-notice__text {
+  flex: 1;
+}
+
+.catalog-paging-notice__close {
+  appearance: none;
+  display: inline-flex;
+  padding: 2px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #6b5413;
+  cursor: pointer;
+}
+
+.catalog-paging-notice__close:hover {
+  background: rgba(61, 46, 0, 0.08);
+}
+
+.catalog-paging-notice__close:focus-visible {
+  outline: 2px solid #d99a00;
+  outline-offset: 1px;
 }
 
 /* Tight top spacing below site header / breadcrumbs — no extra title band. */

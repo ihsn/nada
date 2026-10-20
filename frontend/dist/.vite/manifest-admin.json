@@ -1366,7 +1366,7 @@
     ]
   },
   "admin/semantic/main.js": {
-    "file": "assets/admin/admin_semantic-B4m6OY1r.js",
+    "file": "assets/admin/admin_semantic-C2A1bBCP.js",
     "name": "admin_semantic",
     "src": "admin/semantic/main.js",
     "isEntry": true,
@@ -1402,11 +1402,11 @@
       "_VSheet-DMcvZjDm.js"
     ],
     "css": [
-      "assets/admin/admin_semantic-BSDnm0VC.css"
+      "assets/admin/admin_semantic-eSp_83v5.css"
     ]
   },
   "admin/site_configurations/main.js": {
-    "file": "assets/admin/admin_site_configurations-CEMXCPdD.js",
+    "file": "assets/admin/admin_site_configurations-B6jo0CAP.js",
     "name": "admin_site_configurations",
     "src": "admin/site_configurations/main.js",
     "isEntry": true,

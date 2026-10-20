@@ -62,11 +62,12 @@ import './semantic-layout.css';
 defineOptions({ name: 'AdminSemanticApp' });
 
 const route = useRoute();
-const { getTypeBreakdown, listJobs } = useSemanticApi();
+const { getTypeBreakdown } = useSemanticApi();
 const errorCount = ref(0);
-const runningJobs = ref(0);
-// the change queue's counts, kept current while there is work (shared with the banner and the activity card)
-const { status: syncStatus } = useSyncHealth();
+// the change queue's counts and NADA-AI's running jobs, kept current while there is work (shared with the banner and
+// the activity card)
+const { status: syncStatus, runningJobs: liveJobs } = useSyncHealth();
+const runningJobs = computed(() => liveJobs.value.length);
 const syncFailed = computed(() => Number(syncStatus.value?.queue?.failed) || 0);
 const queuePending = computed(() => Number(syncStatus.value?.queue?.pending) || 0);
 
@@ -96,12 +97,6 @@ async function loadNavBadges() {
   try {
     const data = await getTypeBreakdown('survey');
     errorCount.value = (data?.items || []).reduce((sum, row) => sum + (Number(row.errors) || 0), 0);
-  } catch {
-    /* nav badges are best-effort */
-  }
-  try {
-    const data = await listJobs({ status: 'running', limit: 50 });
-    runningJobs.value = (data?.jobs || []).length;
   } catch {
     /* nav badges are best-effort */
   }

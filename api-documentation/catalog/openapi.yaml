@@ -222,9 +222,16 @@ paths:
             type: integer
         - name: page
           in: query
-          description: Page number to return (1-based). Default is 1.
+          description: Page number to return (1-based), for the first `max_offset` results. Default is 1.
           schema:
             type: integer
+        - name: cursor
+          in: query
+          description: >-
+            Browse only (no `sk`): the `next_cursor` or `prev_cursor` of the previous page of the same browse, in place
+            of `page`, to page past `max_offset` studies. Keyword searches page by `page` only.
+          schema:
+            type: string
         - name: sort_by
           in: query
           description: >-
@@ -287,7 +294,21 @@ paths:
                         example: 0
                       page:
                         type: integer
-                        description: Current page number
+                        description: Current page number (worked out from `offset` on a page reached by cursor)
+                      max_offset:
+                        type: integer
+                        nullable: true
+                        description: >-
+                          Results reachable by `page` (10,000); a browse continues with its cursors. Null when the
+                          catalog's own database serves the search (no limit).
+                      next_cursor:
+                        type: string
+                        nullable: true
+                        description: Browse only — cursor of the next page; null on the last page and for keyword searches
+                      prev_cursor:
+                        type: string
+                        nullable: true
+                        description: Browse only — cursor of the previous page; null on the first page
                         example: 1
                       rows:
                         type: array
@@ -411,7 +432,10 @@ paths:
                       ps: "2"
                       created: ""
         "400":
-          description: Bad input
+          description: >-
+            Bad input. A paging error carries `error_code`: `page_out_of_range` (a page past `max_offset`; a browse
+            continues with `next_cursor`) or `cursor_invalid` (the cursor is not one of this search; start again from
+            the first page).
 
   /catalog/stats:
     get:
@@ -624,6 +648,15 @@ paths:
         * `/api/catalog/variables?idno=SUR_2020_HH&sk=income` — per-study keyword search
 
         * `/api/catalog/variables?idno=SUR_2020_HH&var_id=V1` — single variable lookup
+
+
+        **Paging.** The first `max_offset` results (1,000 by default) are paged by `page`. Past them, page with
+        `cursor`: send the `next_cursor` (or `prev_cursor`) of the previous response, with the same search
+        parameters, in place of `page`. A cursor is an opaque string; pass it back unchanged. A `page` past
+        `max_offset` answers 400 with `error_code: page_out_of_range`; a cursor that does not belong to the search
+        answers 400 with `error_code: cursor_invalid`. `max_offset` is `null` (no limit, no cursors) when the
+        catalog's own database serves the search (pages of more than 100 results, or a search engine other than
+        NADA-AI).
       operationId: searchVariables
       parameters:
         - name: sk
@@ -693,9 +726,16 @@ paths:
             type: integer
         - name: page
           in: query
-          description: Page number
+          description: Page number, for the first `max_offset` results
           schema:
             type: integer
+        - name: cursor
+          in: query
+          description: >-
+            `next_cursor` or `prev_cursor` of the previous page of this search, in place of `page`, to page past
+            `max_offset` results
+          schema:
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -710,15 +750,34 @@ paths:
                       found:
                         type: integer
                         description: Number of variables matching the search
+                      found_is_lower_bound:
+                        type: boolean
+                        description: >-
+                          True when only the first matches were counted (a very broad keyword search): `found` is a
+                          lower bound ("20,000+")
                       total:
                         type: integer
-                        description: Total published variables in the catalog
+                        description: Total published variables in the catalog (refreshed every few minutes)
                       limit:
                         type: integer
                       offset:
                         type: integer
+                        description: Position of the first row of this page in the whole result list (0-based)
                       page:
                         type: integer
+                        description: Page number; on a page reached by cursor, worked out from `offset`
+                      max_offset:
+                        type: integer
+                        nullable: true
+                        description: Results reachable by `page`; past them, use the cursors. Null when unlimited.
+                      next_cursor:
+                        type: string
+                        nullable: true
+                        description: Cursor of the next page; null on the last page
+                      prev_cursor:
+                        type: string
+                        nullable: true
+                        description: Cursor of the previous page; null on the first page
                       rows:
                         type: array
                         items:
@@ -752,7 +811,10 @@ paths:
                   params:
                     type: object
         "400":
-          description: Bad input
+          description: >-
+            Bad input. A paging error carries `error_code`: `page_out_of_range` (a page past `max_offset`, with
+            `max_offset`; page further with `next_cursor`) or `cursor_invalid` (the cursor is not one of this search;
+            start again from the first page).
 
   /catalog/{IDNo}/variables:
     get:

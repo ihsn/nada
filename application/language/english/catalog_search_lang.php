@@ -382,5 +382,19 @@ $lang['You have selected the maximum variables to compare']="You have selected t
 $lang['Select two or more variables to compare']="Select two or more variables to compare";
 $lang['catalog_search_empty_hint']="Try different keywords, or clear your filters to browse all datasets.";
 
+// Result pager ("Page N of M" and ‹ 1 … pages … ›; pages past the numbered ones are reached with ›)
+$lang['pagination']="Pagination";
+$lang['pager_prev']="Previous page";
+$lang['pager_next']="Next page";
+$lang['pager_page_n']="Page %s";
+$lang['pager_page_of']="Page %s of %s";
+$lang['pager_range']="%s–%s of %s";
+$lang['pager_past_numbered']="Results past %s are not numbered. Refine the search or reverse the sort order to reach the end.";
+$lang['pager_page_not_found']="Page not found.";
+$lang['sort_study_title_az']="Study title (A-Z)";
+$lang['sort_study_title_za']="Study title (Z-A)";
+$lang['sort_variable_name_az']="Variable name (A-Z)";
+$lang['sort_variable_name_za']="Variable name (Z-A)";
+
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

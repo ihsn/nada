@@ -1286,12 +1286,13 @@ class Catalog_search_mysql{
 
 		$this->ci->db->limit($limit, $offset);
 		$this->ci->db->select(
-			'v.uid, v.name, v.labl, v.qstn, v.vid, v.fid, v.sid,'
+			'v.uid, v.name, v.labl, v.qstn, v.vid, v.fid, df.file_name, v.sid,'
 			. ' surveys.title AS title, surveys.idno, surveys.nation,'
 			. ' surveys.year_start, surveys.year_end, surveys.authoring_entity',
 			FALSE
 		);
 		$this->ci->db->join('surveys', 'v.sid = surveys.id','inner');
+		$this->ci->db->join('data_files df', 'df.sid = v.sid AND df.file_id = v.fid', 'left'); // the file's name
 		if ($dtype !== FALSE && $dtype !== '') {
 			$this->ci->db->join('forms', 'surveys.formid = forms.formid', 'left');
 		}
@@ -1377,10 +1378,11 @@ class Catalog_search_mysql{
 
 		//search
 		$this->ci->db->limit($limit, $offset);
-		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn,v.fid", FALSE);
+		$this->ci->db->select("v.uid,v.name,v.labl,v.vid,v.qstn,v.fid,df.file_name", FALSE);
+		$this->ci->db->join('data_files df', 'df.sid = v.sid AND df.file_id = v.fid', 'left'); // the file's name
 		$this->ci->db->order_by($sort_by, $sort_order);
 		$this->ci->db->where($where, NULL, FALSE);
-		$this->ci->db->where('sid', $sid);
+		$this->ci->db->where('v.sid', $sid);
 
 		$result = $this->ci->db->get("variables as v")->result_array();
 

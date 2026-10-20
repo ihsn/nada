@@ -285,6 +285,8 @@ class Catalog extends MY_REST_Controller
 			'country_iso3'		=> $search_options->country_iso3,
 			'ps'				=> $this->security->xss_clean($this->input->get("ps")),
 			'created'			=> $this->security->xss_clean($this->input->get("created")),
+			// a browse (no keyword) past max_offset studies continues by cursor (next_cursor/prev_cursor of a result)
+			'cursor'			=> trim((string) $this->security->xss_clean($this->input->get("cursor"))),
 		);
 
 		$varcount_param=xss_clean($this->input->get('varcount'));
@@ -344,7 +346,7 @@ class Catalog extends MY_REST_Controller
 
 			if(isset($result['rows'])){
 				
-				$result['page']=$page;
+				$result['page']=catalog_search_result_page($result, $page);
 
 				$iso3_codes=array();
 
@@ -434,6 +436,12 @@ class Catalog extends MY_REST_Controller
 				'status'=>'failed',
 				'errors'=>$e->getMessage()
 			);
+			// a browse page past max_offset asked by number, or a cursor of another search (error_code)
+			$this->load->helper('catalog');
+			$paging = catalog_search_paging_error($e);
+			if ($paging !== null) {
+				$error_output = array('status' => 'failed', 'errors' => $paging['message']) + $paging;
+			}
 			$error_output = array_merge($error_output, $this->nada_ai_debug_for_exception($e));
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}		
@@ -458,14 +466,18 @@ class Catalog extends MY_REST_Controller
 			$data = $this->catalog_browse_service->run_search($load_facets);
 			$response = $this->catalog_browse_service->build_browse_client_response($data, $load_facets);
 			$this->set_response($response, REST_Controller::HTTP_OK);
-		} catch (RuntimeException $e) {
-			$response = array('status' => 'failed', 'message' => $e->getMessage());
-			$response = array_merge($response, $this->nada_ai_debug_for_exception($e));
-			$this->set_response($response, REST_Controller::HTTP_BAD_REQUEST);
 		} catch (Exception $e) {
-			$response = array('status' => 'failed', 'message' => $e->getMessage());
+			// a variable search paged past what it can serve (error_code): the client starts again from the first page
+			$this->load->helper('catalog');
+			$paging = catalog_search_paging_error($e);
+			$response = $paging !== null
+				? array('status' => 'failed') + $paging
+				: array('status' => 'failed', 'message' => $e->getMessage());
 			$response = array_merge($response, $this->nada_ai_debug_for_exception($e));
-			$this->set_response($response, REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+			$status = ($paging !== null || $e instanceof RuntimeException)
+				? REST_Controller::HTTP_BAD_REQUEST
+				: REST_Controller::HTTP_INTERNAL_SERVER_ERROR;
+			$this->set_response($response, $status);
 		}
 	}
 
@@ -921,17 +933,23 @@ class Catalog extends MY_REST_Controller
 					'variable_keywords' => $sk,
 					'sort_by'           => $vsb,
 					'sort_order'        => $vso,
+					'cursor'            => trim((string) xss_clean($this->input->get('cursor'))),
 				);
 				$this->load->library('catalog_search', $params);
 				$variables = $this->catalog_search->v_quick_search($sid, $limit, $offset);
 
+				$this->load->helper('catalog');
 				$response = array(
-					'found'     => $variables['found']  ?? 0,
-					'total'     => $variables['total']  ?? 0,
-					'limit'     => $variables['limit']  ?? $limit,
-					'offset'    => $variables['offset'] ?? $offset,
-					'page'      => $page,
-					'variables' => $variables['rows']   ?? array(),
+					'found'                => $variables['found']  ?? 0,
+					'found_is_lower_bound' => $variables['found_is_lower_bound'] ?? false,
+					'total'                => $variables['total']  ?? 0,
+					'limit'                => $variables['limit']  ?? $limit,
+					'offset'               => $variables['offset'] ?? $offset,
+					'page'                 => catalog_search_result_page($variables, $page),
+					'max_offset'           => $variables['max_offset'] ?? null,
+					'next_cursor'          => $variables['next_cursor'] ?? null,
+					'prev_cursor'          => $variables['prev_cursor'] ?? null,
+					'variables'            => $variables['rows']   ?? array(),
 				);
 			} else {
 				$variables = $this->Variable_model->list_by_dataset($sid);
@@ -945,8 +963,12 @@ class Catalog extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
+			$this->load->helper('catalog');
+			$paging = catalog_search_paging_error($e);
 			$this->set_response(
-				array('status' => 'failed', 'message' => $e->getMessage()),
+				$paging !== null
+					? array('status' => 'failed') + $paging
+					: array('status' => 'failed', 'message' => $e->getMessage()),
 				REST_Controller::HTTP_BAD_REQUEST
 			);
 		}
@@ -964,8 +986,12 @@ class Catalog extends MY_REST_Controller
 	 *   dtype       data access type (model name)
 	 *   type        dataset type
 	 *   sort_by, sort_order
-	 *   page, ps    pagination
+	 *   page, ps    pagination by page number, for the first max_offset results
+	 *   cursor      a next_cursor/prev_cursor of an earlier page of the same search, in place of page: pages past
+	 *               max_offset (see the result's next_cursor, prev_cursor, max_offset, found_is_lower_bound)
 	 *
+	 * A page number past max_offset answers 400 page_out_of_range; a cursor of another search answers 400
+	 * cursor_invalid (error_code in the body).
 	 */
 	private function _vsearch_get()
 	{
@@ -996,12 +1022,14 @@ class Catalog extends MY_REST_Controller
 			'type'              => $type,
 			'sort_by'           => $vsb,
 			'sort_order'        => $vso,
+			'cursor'            => trim((string) xss_clean($this->input->get('cursor'))),
 		);
 
 		try{
+			$this->load->helper('catalog');
 			$this->load->library('catalog_search', $params);
 			$result         = $this->catalog_search->vsearch($limit, $offset);
-			$result['page'] = $page;
+			$result['page'] = catalog_search_result_page($result, $page);
 
 			// Nest study context fields — keep sid at row level, move title/idno/nation under study{}
 			if (!empty($result['rows'])) {
@@ -1032,8 +1060,11 @@ class Catalog extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
+			$paging = catalog_search_paging_error($e);
 			$this->set_response(
-				array('status' => 'failed', 'errors' => $e->getMessage()),
+				$paging !== null
+					? array('status' => 'failed', 'errors' => $paging['message']) + $paging
+					: array('status' => 'failed', 'errors' => $e->getMessage()),
 				REST_Controller::HTTP_BAD_REQUEST
 			);
 		}

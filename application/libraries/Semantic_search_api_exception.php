@@ -37,6 +37,14 @@ class Semantic_search_api_exception extends RuntimeException
         $this->response      = is_array($decoded) ? $decoded : null;
     }
 
+    /** nada-ai's contract error code (error.code of its error envelope, e.g. cursor_invalid), or null. */
+    public function error_code(): ?string
+    {
+        $code = $this->response['error']['code'] ?? null;
+
+        return is_string($code) ? $code : null;
+    }
+
     /**
      * Debug payload for API / UI consumers.
      *
@@ -58,5 +66,13 @@ class Semantic_search_api_exception extends RuntimeException
  * outage without waiting for another timeout.
  */
 class Nada_ai_unavailable_exception extends Semantic_search_api_exception
+{
+}
+
+/**
+ * A cursor given to a search it cannot page: one the database search must serve (it pages by offset), so the cursor came
+ * from another search. The caller starts again from the first page.
+ */
+class Search_cursor_exception extends InvalidArgumentException
 {
 }

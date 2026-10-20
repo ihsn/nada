@@ -11,7 +11,6 @@
         size="small"
         variant="outlined"
         color="primary"
-        rounded
         class="variable-results-compare-btn text-none"
         @click="onCompareClick"
       >
@@ -30,7 +29,7 @@
         </span>
       </v-btn>
 
-      <CatalogSortSelect :query="query" @sort="(by, order) => emit('sort', by, order)" />
+      <CatalogSortSelect variables :query="query" @sort="(by, order) => emit('sort', by, order)" />
     </div>
 
     <div
@@ -81,11 +80,6 @@
           {{ row.qstn }}
         </div>
 
-        <div v-if="row.fid" class="variable-row__file">
-          <span class="variable-row__file-label">{{ t('file') }}:</span>
-          {{ row.fid }}
-        </div>
-
         <div class="variable-row__study">
           <a
             :href="studyUrl(row)"
@@ -101,22 +95,21 @@
             {{ studyMeta(row) }}
           </div>
         </div>
+
+        <div v-if="row.file_name || row.fid" class="variable-row__file">
+          <span class="variable-row__file-label">{{ t('file') }}:</span>
+          {{ row.file_name || row.fid }}
+        </div>
       </div>
     </div>
 
-    <div v-if="totalPages > 1" class="d-flex justify-space-between align-center mt-6 flex-wrap" style="gap: 12px;">
-      <div class="catalog-pagination-status">
-        {{ t('showing_pages', 'Page %s of %s', query.page, totalPages.toLocaleString()) }}
-      </div>
-      <v-pagination
-        :model-value="query.page"
-        :length="totalPages"
-        :total-visible="7"
-        density="comfortable"
-        rounded
-        @update:model-value="onPage"
-      />
-    </div>
+    <CatalogPager
+      :results="results"
+      :query="query"
+      :window-size="pagerNumbers"
+      @page="onPage"
+      @cursor="(cursor) => emit('cursor', cursor)"
+    />
 
     <CatalogPageSizeSelect
       :model-value="query.ps"
@@ -138,6 +131,7 @@ import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import CatalogSortSelect from './CatalogSortSelect.vue';
 import CatalogPageSizeSelect from './CatalogPageSizeSelect.vue';
+import CatalogPager from './CatalogPager.vue';
 import { useVariableCompareCart } from '../composables/useVariableCompareCart';
 import { joinSiteUrl } from '../catalogUrls';
 import { catalogResultsRange } from '../catalogResultsRange';
@@ -155,19 +149,17 @@ const props = defineProps({
   results: { type: Object, required: true },
   query:   { type: Object, required: true },
 });
-const emit = defineEmits(['sort', 'page', 'page-size']);
+const emit = defineEmits(['sort', 'page', 'cursor', 'page-size']);
 
 const { t } = useI18n();
-const { siteUrl } = useAppConfig();
+const { siteUrl, siteConfig } = useAppConfig();
+/** Page numbers the pager shows around the current page (site setting). */
+const pagerNumbers = computed(() => Number(siteConfig.value?.catalog_pager_numbers) || 5);
 const { isSelected, toggleSelection, tryOpenCompare, count } = useVariableCompareCart();
 
 const detailOpen = ref(false);
 const detailStudyId = ref(null);
 const detailVariable = ref(null);
-
-const totalPages = computed(() =>
-  props.results.found > 0 ? Math.ceil(props.results.found / props.query.ps) : 1
-);
 
 const range = computed(() => catalogResultsRange(props.results, props.query));
 const fromNum = computed(() => range.value.from);
@@ -180,7 +172,7 @@ const resultsCountLabel = computed(() =>
     '%s–%s of %s variables',
     fromNum.value.toLocaleString(),
     toNum.value.toLocaleString(),
-    displayTotal.value.toLocaleString()
+    `${displayTotal.value.toLocaleString()}${range.value.lowerBound ? '+' : ''}`
   )
 );
 
@@ -358,6 +350,10 @@ function onPage(p) {
 .results-toolbar {
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   padding-bottom: 12px;
+}
+
+.variable-results-compare-btn {
+  border-radius: 4px; /* the sort dropdown's outlined field corners */
 }
 
 .variable-results-compare-btn__inner {

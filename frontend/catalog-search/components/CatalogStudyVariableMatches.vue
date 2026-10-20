@@ -67,7 +67,7 @@
                 />
               </td>
               <td v-if="hasFileColumn">
-                <div class="study-variable-matches__file">{{ variable.fid }}</div>
+                <div class="study-variable-matches__file">{{ variable.file_name || variable.fid }}</div>
               </td>
               <td>
                 <button
@@ -179,7 +179,7 @@ const summaryLabel = computed(() =>
 
 const hasFileColumn = computed(() =>
   Array.isArray(variables.value)
-  && variables.value.some((v) => v.fid != null && v.fid !== '')
+  && variables.value.some((v) => (v.file_name || v.fid) != null && (v.file_name || v.fid) !== '')
 );
 
 const compareSummary = computed(() => {

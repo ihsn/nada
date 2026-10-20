@@ -45,19 +45,13 @@
       </div>
     </template>
 
-    <div v-if="totalPages > 1" class="d-flex justify-space-between align-center mt-6 flex-wrap" style="gap: 12px;">
-      <div class="catalog-pagination-status">
-        {{ t('showing_pages', 'Page %s of %s', query.page, totalPages.toLocaleString()) }}
-      </div>
-      <v-pagination
-        :model-value="query.page"
-        :length="totalPages"
-        :total-visible="7"
-        density="comfortable"
-        rounded
-        @update:model-value="onPage"
-      />
-    </div>
+    <CatalogPager
+      :results="results"
+      :query="query"
+      :window-size="pagerNumbers"
+      @page="onPage"
+      @cursor="(cursor) => emit('cursor', cursor)"
+    />
 
     <CatalogPageSizeSelect
       :model-value="query.ps"
@@ -69,9 +63,11 @@
 <script setup>
 import { computed, defineAsyncComponent } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
+import { useAppConfig } from '@/shared/composables/useAppConfig';
 import CatalogStudyCard from './CatalogStudyCard.vue';
 import CatalogSortSelect from './CatalogSortSelect.vue';
 import CatalogPageSizeSelect from './CatalogPageSizeSelect.vue';
+import CatalogPager from './CatalogPager.vue';
 import CatalogImageViewToggle from './CatalogImageViewToggle.vue';
 import { catalogResultsRange } from '../catalogResultsRange';
 
@@ -94,13 +90,12 @@ const props = defineProps({
   showAbstract:         { type: Boolean, default: false },
   showDebug:            { type: Boolean, default: false },
 });
-const emit = defineEmits(['sort', 'page', 'page-size', 'image-view']);
+const emit = defineEmits(['sort', 'page', 'cursor', 'page-size', 'image-view']);
 
 const { t } = useI18n();
-
-const totalPages = computed(() =>
-  props.results.found > 0 ? Math.ceil(props.results.found / props.query.ps) : 1
-);
+const { siteConfig } = useAppConfig();
+/** Page numbers the pager shows around the current page (site setting). */
+const pagerNumbers = computed(() => Number(siteConfig.value?.catalog_pager_numbers) || 5);
 
 const range = computed(() => catalogResultsRange(props.results, props.query));
 const fromNum = computed(() => range.value.from);

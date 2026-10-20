@@ -61,13 +61,17 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
 
     public function search(int $limit = 15, int $offset = 0): array
     {
+        // a browse (no keyword) past max_offset studies continues by cursor (next_cursor/prev_cursor of a result)
+        $cursor = trim((string) $this->cursor);
+
         // an exact idno or alias is answered by the database, as in every other driver
         $exact = Catalog_study_idno_lookup::try_search_from_params($this->database_params(), $limit, $offset);
         if ($exact !== null) {
-            return $exact;
+            return $this->with_offset_paging($exact);
         }
 
         if ($limit > self::API_MAX_PAGE_SIZE) {
+            $this->refuse_cursor($cursor, 'a page of more than ' . self::API_MAX_PAGE_SIZE . ' studies');
             return $this->search_in_database(
                 $limit,
                 $offset,
@@ -80,10 +84,11 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
 
         if ($filters === null) {
             // a filter was given whose values match nothing: no study can match, nothing to ask the API
-            return $this->result([], [], 0, [], $limit, $offset);
+            return $this->with_offset_paging($this->result([], [], 0, [], $limit, $offset));
         }
 
         if (count($filters['sids'] ?? []) > self::API_MAX_SIDS) {
+            $this->refuse_cursor($cursor, 'a search the catalog database serves (more than ' . self::API_MAX_SIDS . ' studies selected)');
             return $this->search_in_database(
                 $limit,
                 $offset,
@@ -95,6 +100,10 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         }
 
         $body = $this->build_request($filters, $limit, $offset);
+        if ($cursor !== '') {
+            unset($body['offset']);
+            $body['cursor'] = $cursor;
+        }
 
         try {
             $response = $this->post_json('/studies/search', $body, ['found', 'hits', 'search_counts_by_type']);
@@ -102,8 +111,9 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
             if (!$this->falls_back($e)) {
                 throw $e;
             }
-            return $this->search_in_database_after($e, $limit, $offset);
+            return $this->search_in_database_after($e, $limit, $cursor === '' ? $offset : 0);
         }
+        $offset = (int) ($response['offset'] ?? $offset);
 
         $hits = $response['hits'];
         list($rows, $dropped) = $this->load_rows($hits);
@@ -131,6 +141,13 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
             $limit,
             $offset
         );
+        $result += [
+            'found_is_lower_bound' => false,
+            'max_offset'           => isset($response['max_offset']) ? (int) $response['max_offset'] : null,
+            'next_cursor'          => $response['next_cursor'] ?? null,
+            'prev_cursor'          => $response['prev_cursor'] ?? null,
+            'paging'               => $response['applied']['paging'] ?? 'offset',
+        ];
 
         if ($this->debug) {
             $result['debug'] = [
@@ -157,27 +174,168 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
     }
 
     // =========================================================================
-    // Variable search — POST /variables/search (lexical only; see nada-ai's
-    // docs/variables-search-contract.md). Served by the database search when the API cannot answer the request:
-    // there is no keyword to match (the API always requires a query, but a keyword-less variable browse is a real,
-    // supported database case), or a sidebar filter the API does not have is set (see variable_filters_in_database()).
+    // Variable search — POST /variables/search (lexical only; see nada-ai's docs/variables-search-contract.md).
+    //
+    // Keyword searches and keyword-less browsing both go to the API, with every sidebar filter (dataset type,
+    // countries, years, collections, repository, data access type): nada-ai applies them to the variable's study,
+    // through its study index, with the same meaning as for the study search.
+    // A page is reached by offset for the first max_offset rows (nada-ai's setting), then by the cursors each result
+    // carries (next_cursor/prev_cursor, passed through unread: set $cursor to one to get its page). The result adds
+    // found_is_lower_bound, max_offset, next_cursor, prev_cursor and paging to the database drivers' shape.
+    //
+    // Served by the database search instead (offset paging, any depth, max_offset null): a page of more than
+    // API_MAX_PAGE_SIZE rows, a per-study listing without a keyword, or an outage (then from the first page when a
+    // cursor was given, since the database cannot read one).
     // =========================================================================
 
     public function vsearch(int $limit = 15, int $offset = 0): array
     {
+        $cursor   = trim((string) $this->cursor);
         $keywords = trim((string) $this->variable_keywords);
-        if ($keywords === '' || $this->variable_filters_in_database()) {
-            return $this->database_search()->vsearch($limit, $offset);
+
+        if ($limit > self::API_MAX_PAGE_SIZE) {
+            $this->refuse_cursor($cursor, 'a page of more than ' . self::API_MAX_PAGE_SIZE . ' variables');
+            return $this->with_offset_paging($this->database_search()->vsearch($limit, $offset));
         }
 
-        $body = [
-            'query'  => $keywords,
-            'limit'  => $limit,
-            'offset' => $offset,
-        ];
-        $types = $this->tab_types();
+        $filters = $this->variable_api_filters();
+        if ($filters === null) {
+            // a country or data access filter whose values match nothing: no variable can match, nothing to ask the API
+            return $this->with_offset_paging(['found' => 0, 'total' => 0, 'limit' => $limit, 'offset' => 0, 'rows' => []]);
+        }
+
+        $body = $this->variable_request($keywords, $filters, $limit, $offset, $cursor);
+        try {
+            $response = $this->post_json('/variables/search', $body, ['found', 'hits', 'offset']);
+        } catch (Semantic_search_api_exception $e) {
+            if (!$this->falls_back($e)) {
+                throw $e;
+            }
+            return $this->variables_in_database_after($e, $this->database_search()->vsearch($limit, $cursor === '' ? $offset : 0));
+        }
+
+        return $this->variable_result($response, $limit, $this->published_variable_total());
+    }
+
+    /** How long the catalog-wide published variable count is reused (seconds). */
+    private const VARIABLE_TOTAL_TTL = 600;
+
+    /**
+     * The catalog's published variable count (`total` of a variable search result). It counts every published variable
+     * in the database — a heavy query on a large catalog for a number that changes slowly — so it is cached for
+     * VARIABLE_TOTAL_TTL seconds rather than counted on every search.
+     */
+    private function published_variable_total(): int
+    {
+        $this->ci->load->driver('cache', ['adapter' => 'file']);
+        $cache = $this->ci->cache->file->is_supported() ? $this->ci->cache->file : null;
+        $key   = 'nada_ai_published_variable_total';
+        if ($cache !== null) {
+            $cached = $cache->get($key);
+            if ($cached !== false) {
+                return (int) $cached;
+            }
+        }
+        $total = (int) $this->database_search()->get_total_variable_count();
+        if ($cache !== null) {
+            $cache->save($key, $total, self::VARIABLE_TOTAL_TTL);
+        }
+
+        return $total;
+    }
+
+    public function v_quick_search(?int $sid = null, int $limit = 50, int $offset = 0): array
+    {
+        $cursor   = trim((string) $this->cursor);
+        $keywords = trim((string) $this->variable_keywords);
+
+        if ($sid === null || $keywords === '' || $limit > self::API_MAX_PAGE_SIZE) {
+            $this->refuse_cursor($cursor, 'a study variable listing without a keyword, or a page of more than '
+                . self::API_MAX_PAGE_SIZE . ' variables');
+            return $this->with_offset_paging($this->database_search()->v_quick_search($sid, $limit, $offset));
+        }
+
+        $body = $this->variable_request($keywords, ['sids' => [$sid]], $limit, $offset, $cursor);
+        try {
+            $response = $this->post_json('/variables/search', $body, ['found', 'hits', 'offset']);
+        } catch (Semantic_search_api_exception $e) {
+            if (!$this->falls_back($e)) {
+                throw $e;
+            }
+            return $this->variables_in_database_after(
+                $e,
+                $this->database_search()->v_quick_search($sid, $limit, $cursor === '' ? $offset : 0)
+            );
+        }
+
+        // total is this one study's own variable count, not the catalog's — same denominator the database
+        // driver's v_quick_search() uses.
+        $total = (int) $this->ci->db->where('sid', $sid)->count_all_results('variables');
+
+        return $this->variable_result($response, $limit, $total);
+    }
+
+    /**
+     * The API filters of a catalog-wide variable search: dataset types (the tab), countries (names, codes and regions
+     * resolved to ids), the data collection year range, data access forms, collections and the active repository —
+     * built as the study search builds them (build_filters()).
+     *
+     * @return array|null null when a country or data access filter matches nothing (nothing can match)
+     */
+    private function variable_api_filters(): ?array
+    {
+        $filters = [];
+        $types   = $this->tab_types();
         if (!empty($types)) {
-            $body['filters'] = ['types' => $types];
+            $filters['types'] = $types;
+        }
+        $countries = $this->resolve_country_ids();
+        if ($countries === false) {
+            return null;
+        }
+        if (!empty($countries)) {
+            $filters['countries'] = $countries;
+        }
+        list($year_from, $year_to) = $this->year_bounds();
+        if ($year_from > 0) {
+            $filters['year_from'] = $year_from;
+        }
+        if ($year_to > 0) {
+            $filters['year_to'] = $year_to;
+        }
+        $form_ids = $this->resolve_form_ids();
+        if ($form_ids === false) {
+            return null;
+        }
+        if (!empty($form_ids)) {
+            $filters['form_ids'] = $form_ids;
+        }
+        $collections = $this->normalise_array($this->collections);
+        if (!empty($collections)) {
+            $filters['collections'] = $collections;
+        }
+        $repo = trim((string) $this->repo);
+        if ($repo !== '' && $repo !== 'central') {
+            $filters['repository'] = $repo;
+        }
+
+        return $filters;
+    }
+
+    /** The POST /variables/search body: no query for a browse, and the cursor in place of the offset when given. */
+    private function variable_request(string $keywords, array $filters, int $limit, int $offset, string $cursor): array
+    {
+        $body = ['limit' => $limit];
+        if ($keywords !== '') {
+            $body['query'] = $keywords;
+        }
+        if ($cursor !== '') {
+            $body['cursor'] = $cursor;
+        } else {
+            $body['offset'] = $offset;
+        }
+        if (!empty($filters)) {
+            $body['filters'] = $filters;
         }
         $sort = $this->variable_sort_field();
         if ($sort !== null) {
@@ -185,69 +343,24 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
             $body['order'] = $sort['order'];
         }
 
-        try {
-            $response = $this->post_json('/variables/search', $body, ['found', 'hits']);
-        } catch (Semantic_search_api_exception $e) {
-            if (!$this->falls_back($e)) {
-                throw $e;
-            }
-            return $this->database_search()->vsearch($limit, $offset);
-        }
-
-        return $this->variable_result($response, $limit, $offset, $this->database_search()->get_total_variable_count());
-    }
-
-    public function v_quick_search(?int $sid = null, int $limit = 50, int $offset = 0): array
-    {
-        $keywords = trim((string) $this->variable_keywords);
-        if ($sid === null || $keywords === '') {
-            return $this->database_search()->v_quick_search($sid, $limit, $offset);
-        }
-
-        $body = [
-            'query'   => $keywords,
-            'limit'   => $limit,
-            'offset'  => $offset,
-            'filters' => ['sids' => [$sid]],
-        ];
-
-        try {
-            $response = $this->post_json('/variables/search', $body, ['found', 'hits']);
-        } catch (Semantic_search_api_exception $e) {
-            if (!$this->falls_back($e)) {
-                throw $e;
-            }
-            return $this->database_search()->v_quick_search($sid, $limit, $offset);
-        }
-
-        // total is this one study's own variable count, not the catalog's — same denominator the database
-        // driver's v_quick_search() uses.
-        $total = (int) $this->ci->db->where('sid', $sid)->count_all_results('variables');
-
-        return $this->variable_result($response, $limit, $offset, $total);
+        return $body;
     }
 
     /**
-     * Whether a sidebar filter of the database vsearch() is set that the variable search API does not have (it only
-     * filters by dataset type): countries, years, collections, repository or data access type. Such a search is
-     * served by the database, so the filter is applied instead of dropped.
+     * A cursor pages a search the API serves: one given to a search the database must serve came from another search
+     * (its page size changed since). Raised (Search_cursor_exception) rather than silently restarting from the first page.
      */
-    private function variable_filters_in_database(): bool
+    private function refuse_cursor(string $cursor, string $why): void
     {
-        list($year_from, $year_to) = $this->year_bounds();
-        $repo = trim((string) $this->repo);
-
-        return !empty($this->normalise_array($this->countries))
-            || $year_from > 0 || $year_to > 0
-            || !empty($this->normalise_array($this->collections))
-            || ($repo !== '' && $repo !== 'central')
-            || !empty($this->normalise_array($this->dtype));
+        if ($cursor !== '') {
+            throw new Search_cursor_exception("A cursor cannot page {$why}: start again from the first page.");
+        }
     }
 
     /**
      * The API's `sort` (`name` or `title`) and `order` (`asc`/`desc`), sent as two top-level fields.
      *
-     * @return array{by: string, order: string}|null null = the API default (relevance)
+     * @return array{by: string, order: string}|null null = the API default (relevance with a query, title without)
      */
     private function variable_sort_field(): ?array
     {
@@ -260,13 +373,36 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         return ['by' => $sort, 'order' => strtolower((string) $this->sort_order) === 'desc' ? 'desc' : 'asc'];
     }
 
-    /** API variable-search response -> the {found, total, limit, offset, rows} shape both database drivers return. */
+    /** A database variable result with the paging fields of an API one: offset paging to any depth, no cursors. */
+    private function with_offset_paging(array $result): array
+    {
+        return $result + [
+            'found_is_lower_bound' => false,
+            'max_offset'           => null,
+            'next_cursor'          => null,
+            'prev_cursor'          => null,
+            'paging'               => 'offset',
+        ];
+    }
+
+    private function variables_in_database_after(Semantic_search_api_exception $e, array $result): array
+    {
+        $result = $this->with_offset_paging($result);
+        $result['semantic_fallback'] = 'Semantic search is unavailable, so these results come from the catalog database search.';
+        if ($this->debug) {
+            $result['debug'] = ['fallback_reason' => $e->getMessage(), 'url' => $e->url, 'http_status' => $e->http_status];
+        }
+
+        return $result;
+    }
+
     /**
-     * The API returns the matching variables by id; the variables themselves are read from the database (the
+     * API variable-search response -> the database drivers' {found, total, limit, offset, rows} shape plus the paging
+     * fields. The API returns the matching variables by id; the variables themselves are read from the database (the
      * variable index stores ids only), in the order of the hits. A hit whose variable or study is gone, or whose study
      * is not published, is left out.
      */
-    private function variable_result(array $response, int $limit, int $offset, int $total): array
+    private function variable_result(array $response, int $limit, int $total): array
     {
         $uids = array_map(static function (array $hit): int {
             return (int) $hit['uid'];
@@ -275,13 +411,14 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         $by_uid = [];
         if (!empty($uids)) {
             $this->ci->db->select(
-                'v.uid, v.sid, v.fid, v.vid, v.name, v.labl, v.qstn,'
+                'v.uid, v.sid, v.fid, df.file_name, v.vid, v.name, v.labl, v.qstn,'
                 . ' surveys.title AS title, surveys.idno, surveys.nation, surveys.year_start, surveys.year_end,'
                 . ' surveys.authoring_entity',
                 false
             );
             $this->ci->db->from('variables v');
             $this->ci->db->join('surveys', 'v.sid = surveys.id', 'inner');
+            $this->ci->db->join('data_files df', 'df.sid = v.sid AND df.file_id = v.fid', 'left'); // the file's name
             $this->ci->db->where('surveys.published', 1);
             $this->ci->db->where_in('v.uid', $uids);
             foreach ($this->ci->db->get()->result_array() as $row) {
@@ -296,13 +433,23 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
             }
         }
 
-        return [
-            'found'  => (int) $response['found'],
-            'total'  => $total,
-            'limit'  => $limit,
-            'offset' => $offset,
-            'rows'   => $rows,
+        $result = [
+            'found'                => (int) $response['found'],
+            'total'                => $total,
+            'limit'                => $limit,
+            'offset'               => (int) $response['offset'],
+            'rows'                 => $rows,
+            'found_is_lower_bound' => !empty($response['found_is_lower_bound']),
+            'max_offset'           => isset($response['max_offset']) ? (int) $response['max_offset'] : null,
+            'next_cursor'          => $response['next_cursor'] ?? null,
+            'prev_cursor'          => $response['prev_cursor'] ?? null,
+            'paging'               => $response['applied']['paging'] ?? 'offset',
         ];
+        if ($this->debug) {
+            $result['debug'] = ['request_applied' => $response['applied'] ?? null, 'timing_ms' => $response['timing_ms'] ?? null];
+        }
+
+        return $result;
     }
 
     // =========================================================================
@@ -518,7 +665,7 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
     /** A search the API cannot take, served by the database search; $reason goes to semantic_note. */
     private function search_in_database(int $limit, int $offset, string $reason): array
     {
-        $result = $this->database_search()->search($limit, $offset);
+        $result = $this->with_offset_paging($this->database_search()->search($limit, $offset));
         $result['semantic_note'] = $reason;
 
         return $result;
@@ -526,7 +673,7 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
 
     private function search_in_database_after(Semantic_search_api_exception $e, int $limit, int $offset): array
     {
-        $result = $this->database_search()->search($limit, $offset);
+        $result = $this->with_offset_paging($this->database_search()->search($limit, $offset));
         $result['semantic_fallback'] = 'Semantic search is unavailable, so these results come from the catalog database search.';
 
         if ($this->debug) {

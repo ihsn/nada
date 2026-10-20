@@ -3,7 +3,7 @@
 export const STANDARD_QUERY_KEYS = new Set([
   'sk', 'tab_type', 'type', 'collection', 'region', 'dtype', 'data_class',
   'country', 'tag', 'from', 'to', 'sort_by', 'sort_order', 'page', 'ps',
-  'view', 'vk', 'vf', 'image_view',
+  'view', 'vk', 'vf', 'image_view', 'cursor',
 ]);
 
 /** PHP array query keys: country[] → country */
@@ -72,6 +72,8 @@ export const DEFAULT_QUERY = {
   vk: '',
   vf: '',
   image_view: '',
+  /** A variable search page past max_offset (next_cursor/prev_cursor of a result), in place of `page`. */
+  cursor: '',
 };
 
 /**

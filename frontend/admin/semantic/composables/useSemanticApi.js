@@ -106,6 +106,16 @@ export function useSemanticApi() {
     return _run(async () => (await axios.post(`${base()}studies_index_recreate`, null, { params: { confirm: 'true' } })).data);
   }
 
+  /** Empty NADA-AI's variable index (new mapping) and index every variable again, as one NADA-AI job. */
+  function recreateVariablesIndex() {
+    return _run(async () => (await axios.post(`${base()}variables_index_recreate`, null, { params: { confirm: 'true' } })).data);
+  }
+
+  /** Empty NADA-AI's citation index (new mapping) and index every citation again, as one NADA-AI job. */
+  function recreateCitationsIndex() {
+    return _run(async () => (await axios.post(`${base()}citations_index_recreate`, null, { params: { confirm: 'true' } })).data);
+  }
+
   /** Loads the embedding model into memory now instead of on first search/ingest. */
   function warmupEmbeddings() {
     return _run(async () => (await axios.post(`${base()}warmup`)).data);
@@ -284,6 +294,8 @@ export function useSemanticApi() {
     search,
     deleteIndex,
     recreateStudiesIndex,
+    recreateVariablesIndex,
+    recreateCitationsIndex,
     warmupEmbeddings,
     indexOne,
     indexByIdno,

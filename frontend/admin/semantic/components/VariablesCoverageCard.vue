@@ -60,7 +60,10 @@
         {{ started }}
         <router-link :to="{ name: 'activity', query: { tab: startedTab } }">Follow it in Activity →</router-link>
       </v-alert>
-      <v-alert v-if="startError" type="error" variant="tonal" density="compact">{{ startError }}</v-alert>
+      <v-alert v-if="startError" :type="startConflict ? 'warning' : 'error'" variant="tonal" density="compact">
+        {{ startError }}
+        <router-link v-if="startConflict" :to="{ name: 'activity', query: { tab: 'jobs' } }">See it in Activity →</router-link>
+      </v-alert>
     </div>
     <p v-if="detail && !hasGaps" class="text-caption text-medium-emphasis px-4 pb-3 mb-0">{{ detail }}</p>
   </v-card>
@@ -71,6 +74,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useSemanticApi } from '../composables/useSemanticApi.js';
 import { formatCount } from '../typeLabels.js';
+import { conflictMessage } from '../jobConflict.js';
 import VariablesGapsTable from './VariablesGapsTable.vue';
 
 defineOptions({ name: 'SemanticVariablesCoverageCard' });
@@ -90,6 +94,8 @@ const stats = ref(null);
 const starting = ref(false);
 const started = ref(false);
 const startError = ref(null);
+/** The start was refused because a job holding the same key is running (shown as a warning with a link). */
+const startConflict = ref(false);
 
 /** nada-ai answers 501 when it has no variable index. */
 const notApplicable = computed(() => stats.value?.index && !stats.value.index.ok && stats.value.index.status === 501);
@@ -180,10 +186,13 @@ async function run(fn) {
   starting.value = true;
   started.value = false;
   startError.value = null;
+  startConflict.value = false;
   try {
     started.value = await fn();
   } catch (e) {
-    startError.value = errorMessage(e);
+    const busy = conflictMessage(e);
+    startConflict.value = busy !== null;
+    startError.value = busy ?? errorMessage(e);
   } finally {
     starting.value = false;
   }

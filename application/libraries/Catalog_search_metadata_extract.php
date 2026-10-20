@@ -175,8 +175,7 @@ class Catalog_search_metadata_extract
             return null;
         }
 
-        $country_map = $this->load_variable_country_ids(array((int) $rows[0]['sid']));
-        return $this->assemble_variable_document($rows[0], $country_map);
+        return $this->assemble_variable_document($rows[0]);
     }
 
     /**
@@ -249,12 +248,9 @@ class Catalog_search_metadata_extract
             array_pop($rows);
         }
 
-        $survey_ids  = array_values(array_unique(array_map('intval', array_column($rows, 'sid'))));
-        $country_map = $this->load_variable_country_ids($survey_ids);
-
         $variables = array();
         foreach ($rows as $row) {
-            $variables[] = $this->assemble_variable_document($row, $country_map);
+            $variables[] = $this->assemble_variable_document($row);
         }
 
         return array(
@@ -702,10 +698,8 @@ class Catalog_search_metadata_extract
         $after_uid = null
     ) {
         $this->ci->db->select(
-            'variables.uid, variables.sid, variables.fid, variables.vid,
-             variables.name, variables.labl, variables.qstn, variables.catgry,
-             surveys.idno, surveys.title, surveys.nation, surveys.type as dataset_type,
-             surveys.year_start, surveys.year_end, surveys.published'
+            'variables.uid, variables.sid, variables.name, variables.labl, variables.qstn, variables.catgry,
+             surveys.title'
         );
         $this->ci->db->from('variables');
         $this->ci->db->join('surveys', 'surveys.id = variables.sid', 'inner');
@@ -732,64 +726,24 @@ class Catalog_search_metadata_extract
     }
 
     /**
-     * @param int[] $survey_ids
-     * @return array survey id => country ids
-     */
-    private function load_variable_country_ids(array $survey_ids)
-    {
-        if (empty($survey_ids)) {
-            return array();
-        }
-
-        $this->ci->db->select('sid, cid');
-        $this->ci->db->where_in('sid', $survey_ids);
-        $this->ci->db->where('cid >', 0);
-        $rows = $this->ci->db->get('survey_countries')->result_array();
-
-        $map = array();
-        foreach ($rows as $r) {
-            $sid = (int) $r['sid'];
-            if (!isset($map[$sid])) {
-                $map[$sid] = array();
-            }
-            $map[$sid][] = (int) $r['cid'];
-        }
-        return $map;
-    }
-
-    /**
-     * @param array $row         one row from load_variable_rows()
-     * @param array $country_map survey id => country ids, from load_variable_country_ids()
+     * One variable as nada-ai indexes it: the variable, and its study's id and title (to sort by). Nothing else about
+     * the study: nada-ai reads its published state, type, countries, years, collections and data access from its
+     * study index at search time, so a change to the study never has to reach its variables.
+     *
+     * @param array $row one row from load_variable_rows()
      * @return array
      */
-    private function assemble_variable_document(array $row, array $country_map)
+    private function assemble_variable_document(array $row)
     {
-        $sid = (int) $row['sid'];
-
         return array(
             'core_fields' => array(
-                'uid'          => (int) $row['uid'],
-                'catalog_id'   => $sid,
-                'fid'          => $row['fid'] ?? null,
-                'vid'          => $row['vid'] ?? null,
-                'name'         => $row['name'] ?? null,
-                'label'        => $row['labl'] ?? null,
-                'question'     => $row['qstn'] ?? null,
-                'categories'   => $row['catgry'] ?? null,
-                'idno'         => $row['idno'] ?? null,
-                'title'        => $row['title'] ?? null,
-                'nation'       => $row['nation'] ?? null,
-                'dataset_type' => $row['dataset_type'] ?? null,
-            ),
-            'filters' => array(
-                'doctype'      => self::VARIABLE_DOCTYPE,
-                'published'    => isset($row['published']) ? (int) $row['published'] : 0,
-                'catalog_id'   => $sid,
-                'idno'         => $row['idno'] ?? null,
-                'dataset_type' => $row['dataset_type'] ?? null,
-                'year_start'   => isset($row['year_start']) ? (int) $row['year_start'] : null,
-                'year_end'     => isset($row['year_end']) ? (int) $row['year_end'] : null,
-                'countries'    => array_values($country_map[$sid] ?? array()),
+                'uid'        => (int) $row['uid'],
+                'catalog_id' => (int) $row['sid'],
+                'name'       => $row['name'] ?? null,
+                'label'      => $row['labl'] ?? null,
+                'question'   => $row['qstn'] ?? null,
+                'categories' => $row['catgry'] ?? null,
+                'title'      => $row['title'] ?? null,
             ),
         );
     }

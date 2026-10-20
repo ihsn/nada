@@ -8,6 +8,11 @@ $ssr_page = isset($ssr_page) ? max(1, (int) $ssr_page) : 1;
 $ssr_ps = isset($ssr_ps) ? max(1, (int) $ssr_ps) : 15;
 $ssr_repo = isset($ssr_repo) ? $ssr_repo : null;
 $ssr_total_pages = $ssr_ps > 0 ? (int) ceil($ssr_found / $ssr_ps) : 0;
+// a search pages by number only through its first max_offset results (then by cursor, in the client):
+// the links stop at the last numbered page, so crawlers never follow one past it
+if (!empty($ssr_max_offset) && $ssr_ps > 0) {
+	$ssr_total_pages = min($ssr_total_pages, intdiv((int) $ssr_max_offset, $ssr_ps));
+}
 $is_variable_ssr = ($ssr_search_type === 'variable');
 ?>
 <div id="catalog-ssr" class="catalog-ssr<?php echo $is_variable_ssr ? ' catalog-ssr--variable' : ''; ?>">

@@ -87,6 +87,11 @@ class Nada_ai_link
      */
     public function is_outage(Semantic_search_api_exception $e)
     {
+        // nada-ai's own search_timeout (504) is one search that took too long, not nada-ai being down: it must not
+        // open the breaker for every other search. A 504 from a proxy in front of nada-ai carries no such code.
+        if ($e->error_code() === 'search_timeout') {
+            return false;
+        }
         return $e->http_status === 0 || $e->http_status === 429 || ($e->http_status >= 500 && $e->http_status !== 501);
     }
 

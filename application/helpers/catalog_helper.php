@@ -171,6 +171,57 @@ function catalog_browse_sanitize_search_result(array $result)
 }
 
 /**
+ * A variable search paging error, as the API reports it, or null for any other error.
+ *
+ *   cursor_invalid    — the cursor is not one of this search (unreadable, edited, another sort or page size):
+ *                       start again from the first page.
+ *   page_out_of_range — a page past max_offset rows asked by number: page further with next_cursor.
+ *
+ * @return array{error_code: string, message: string, max_offset?: int}|null
+ */
+function catalog_search_paging_error(Exception $e)
+{
+	if ($e instanceof Search_cursor_exception) {
+		return array('error_code' => 'cursor_invalid', 'message' => $e->getMessage());
+	}
+	if (!($e instanceof Semantic_search_api_exception)) {
+		return null;
+	}
+	$code = $e->error_code();
+	if ($code === 'cursor_invalid') {
+		return array(
+			'error_code' => 'cursor_invalid',
+			'message'    => 'The cursor does not belong to this search; start again from the first page.',
+		);
+	}
+	if ($code === 'offset_out_of_range') {
+		$max = $e->response['error']['details']['max_offset'] ?? null;
+		$out = array(
+			'error_code' => 'page_out_of_range',
+			'message'    => 'Pages past the first ' . ($max !== null ? (int) $max . ' ' : '')
+				. 'results are reached with next_cursor, not by page number.',
+		);
+		if ($max !== null) {
+			$out['max_offset'] = (int) $max;
+		}
+		return $out;
+	}
+	return null;
+}
+
+/**
+ * The page number of a variable search result: the requested one, or worked out from the offset of a page reached by
+ * cursor (for display only).
+ */
+function catalog_search_result_page(array $result, $requested_page)
+{
+	if (($result['paging'] ?? 'offset') === 'cursor' && !empty($result['limit'])) {
+		return intdiv((int) ($result['offset'] ?? 0), (int) $result['limit']) + 1;
+	}
+	return (int) $requested_page;
+}
+
+/**
  * Default catalog browse query values (mirrors frontend catalogQuery.js).
  *
  * @return array<string, int|string>
@@ -198,6 +249,7 @@ function catalog_browse_default_query()
 		'vk' => '',
 		'vf' => '',
 		'image_view' => '',
+		'cursor' => '',
 	);
 }
 
@@ -305,6 +357,7 @@ function catalog_browse_query_fingerprint($query = null)
 function catalog_browse_pagination_query_string($page, $query = null)
 {
 	$params = catalog_browse_serialize_query($query);
+	unset($params['cursor']); // a page-number link never continues a cursor (the search would follow the cursor)
 	if ($page > 1) {
 		$params['page'] = (string) $page;
 	} else {

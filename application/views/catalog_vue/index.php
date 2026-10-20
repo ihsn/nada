@@ -24,7 +24,9 @@ window.APP_CONFIG = {
     activeRepoInfo: <?php echo json_encode(isset($active_repo_object) && $active_repo_object ? $active_repo_object : null); ?>,
     translations: <?php echo json_encode($translations, JSON_HEX_APOS | JSON_HEX_TAG); ?>,
     initialSearch: <?php echo json_encode(isset($initial_search) && $initial_search ? $initial_search : null, JSON_HEX_APOS | JSON_HEX_TAG | JSON_UNESCAPED_UNICODE); ?>,
-    initialSearchQueryKey: <?php echo json_encode(isset($initial_search_query_key) ? $initial_search_query_key : '', JSON_HEX_APOS | JSON_HEX_TAG); ?>
+    initialSearchQueryKey: <?php echo json_encode(isset($initial_search_query_key) ? $initial_search_query_key : '', JSON_HEX_APOS | JSON_HEX_TAG); ?>,
+    // the requested page was past what the search pages (answered 404): the first page is shown, with a notice
+    pageNotFound: <?php echo !empty($page_not_found) ? 'true' : 'false'; ?>
 };
 </script>
 <?php if ($use_vite_dev): ?>

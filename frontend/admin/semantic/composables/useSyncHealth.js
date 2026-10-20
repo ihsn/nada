@@ -24,13 +24,20 @@ const status = ref(null);
 const scheduler = ref(null);
 const schedulerError = ref(false);
 const loadedAt = ref(null);
+/** NADA-AI's running background jobs (whole-catalog syncs, index rebuilds): work that the change queue does not show. */
+const runningJobs = ref([]);
 let timer = null;
 let users = 0;
 let running = null;
 
 function hasWork() {
   const queue = status.value?.queue || {};
-  return scheduler.value?.state === 'processing' || (queue.pending || 0) > 0 || (queue.sync_pending || 0) > 0;
+  return (
+    scheduler.value?.state === 'processing' ||
+    (queue.pending || 0) > 0 ||
+    (queue.sync_pending || 0) > 0 ||
+    runningJobs.value.length > 0
+  );
 }
 
 function schedule() {
@@ -45,10 +52,16 @@ async function refresh() {
   if (running) return running;
   const api = useSemanticApi();
   running = (async () => {
-    const [s, sch] = await Promise.allSettled([api.getSyncStatus(), api.getSchedulerStatus()]);
+    const [s, sch, jobs] = await Promise.allSettled([
+      api.getSyncStatus(),
+      api.getSchedulerStatus(),
+      api.listJobs({ status: 'running', limit: 50 }),
+    ]);
     status.value = s.status === 'fulfilled' ? s.value : null;
     scheduler.value = sch.status === 'fulfilled' ? sch.value : null;
     schedulerError.value = sch.status === 'rejected';
+    // a failed read keeps the last list: an outage is reported by the scheduler status, not by jobs vanishing
+    if (jobs.status === 'fulfilled') runningJobs.value = jobs.value?.jobs || [];
     loadedAt.value = Date.now();
   })();
   try {
@@ -205,7 +218,7 @@ export function useSyncHealth() {
       out.push({
         key: 'sync-needed',
         type: 'info',
-        text: 'NADA started tracking this index afresh. If NADA-AI already has an index, use Indexing › Maintenance › Use the existing index; otherwise Update all on the Indexing page.',
+        text: 'NADA started tracking this index afresh. If NADA-AI already has an index, use Indexing › Maintenance › Restore tracking from the index; otherwise Update all on the Indexing page.',
       });
     }
 
@@ -213,20 +226,47 @@ export function useSyncHealth() {
   });
 
   /**
-   * Call ``callback`` when a new result has been recorded (the queue moved), at most every ``minIntervalMs``: for
-   * coverage numbers that should follow the indexing without reloading the page.
+   * Call ``callback`` when the indexing moved — a result recorded in the queue, or a background job progressed,
+   * started or finished — for coverage numbers that should follow it without reloading the page. At most every
+   * ``minIntervalMs``: a change inside that interval is delayed to its end, not dropped, so the last change is always
+   * shown. When the work is over (queue empty, no job running) it is called at once.
    */
   function onProgress(callback, minIntervalMs = 30000) {
     let last = 0;
+    let delayed = null;
+    // the status's first load is not a change: the page has just loaded its own sections
+    let primed = !!loadedAt.value;
+
+    function run() {
+      clearTimeout(delayed);
+      delayed = null;
+      last = Date.now();
+      callback();
+    }
+
     watch(
-      () => status.value?.queue?.last_result_at,
+      () =>
+        JSON.stringify([
+          status.value?.queue?.last_result_at,
+          runningJobs.value.map((j) => [j.id, j.progress?.processed ?? null]),
+        ]),
       (now, before) => {
-        if (!before || now === before || Date.now() - last < minIntervalMs) return;
-        last = Date.now();
-        callback();
+        if (now === before) return;
+        if (!primed) {
+          primed = true;
+          return;
+        }
+        if (!hasWork()) {
+          run();
+          return;
+        }
+        const wait = last + minIntervalMs - Date.now();
+        if (wait <= 0) run();
+        else if (!delayed) delayed = setTimeout(run, wait);
       }
     );
+    onUnmounted(() => clearTimeout(delayed));
   }
 
-  return { status, scheduler, schedulerError, tracksNadaAi, activity, problems, refresh, onProgress };
+  return { status, scheduler, schedulerError, tracksNadaAi, activity, problems, runningJobs, refresh, onProgress };
 }

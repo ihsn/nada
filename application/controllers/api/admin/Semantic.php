@@ -583,6 +583,46 @@ class Semantic extends MY_REST_Controller
 	}
 
 	/**
+	 * POST /api/admin/semantic/variables_index_recreate?confirm=true
+	 *
+	 * Drops nada-ai's variable index, creates it empty with the current mapping and indexes every variable again, as
+	 * one nada-ai background job (Activity › Jobs). The chunk, study and citation indexes are kept. For a change to
+	 * the variable mapping. Answers 409, dropping nothing, while a whole-catalog variable sync is running.
+	 */
+	public function variables_index_recreate_post()
+	{
+		try { $this->_require('delete'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+		$confirm = $this->input->get('confirm');
+		$confirmed = ($confirm === 'true' || $confirm === '1') ? 'true' : 'false';
+		$this->_forward('POST', 'admin/index/variables/recreate', array('query' => array('confirm' => $confirmed)));
+	}
+
+	/**
+	 * POST /api/admin/semantic/citations_index_recreate?confirm=true
+	 *
+	 * Drops nada-ai's citation index, creates it empty with the current mapping and indexes every citation again, as
+	 * one nada-ai background job (Activity › Jobs). The chunk, study and variable indexes are kept. Answers 409,
+	 * dropping nothing, while a whole-catalog citation sync is running.
+	 */
+	public function citations_index_recreate_post()
+	{
+		try { $this->_require('delete'); }
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+			return;
+		}
+		$confirm = $this->input->get('confirm');
+		$confirmed = ($confirm === 'true' || $confirm === '1') ? 'true' : 'false';
+		$this->_forward('POST', 'admin/index/citations/recreate', array('query' => array('confirm' => $confirmed)));
+	}
+
+	/**
 	 * POST /api/admin/semantic/index
 	 * body: {catalog_type, ps?, limit?, force?, recreate_index?}
 	 */

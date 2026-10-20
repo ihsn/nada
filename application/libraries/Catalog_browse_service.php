@@ -326,7 +326,10 @@ class Catalog_browse_service {
 			}
 		}
 
-		$allowed_fields = array('year', 'title', 'nation', 'country', 'popularity', 'rank', 'relevance');
+		// the variable view sorts variables: relevance, its study's title, or the variable name
+		$allowed_fields = ($search_options->view === 'v')
+			? array('relevance', 'rank', 'title', 'name')
+			: array('year', 'title', 'nation', 'country', 'popularity', 'rank', 'relevance');
 		$allowed_order = array('asc', 'desc');
 		if ( ! in_array(trim((string) $search_options->sort_by), $allowed_fields, true)) {
 			$search_options->sort_by = '';
@@ -361,16 +364,21 @@ class Catalog_browse_service {
 		}
 
 		$this->CI->load->library('catalog_study_sort');
-		$ft_for_sort = ($search_options->view === 'v')
-			? trim((string) $variable_keywords)
-			: trim((string) $search_options->sk);
-		list($search_options->sort_by, $search_options->sort_order) = Catalog_study_sort::resolve(
-			$ft_for_sort,
-			$search_options->sort_by,
-			$search_options->sort_order,
-			$this->CI->config->item('catalog_default_sort_by'),
-			$this->CI->config->item('catalog_default_sort_order')
-		);
+		if ($search_options->view === 'v') {
+			list($search_options->sort_by, $search_options->sort_order) = self::variable_sort(
+				trim((string) $variable_keywords),
+				$search_options->sort_by,
+				$search_options->sort_order
+			);
+		} else {
+			list($search_options->sort_by, $search_options->sort_order) = Catalog_study_sort::resolve(
+				trim((string) $search_options->sk),
+				$search_options->sort_by,
+				$search_options->sort_order,
+				$this->CI->config->item('catalog_default_sort_by'),
+				$this->CI->config->item('catalog_default_sort_order')
+			);
+		}
 
 		$params = array(
 			'collections' => $search_options->collection,
@@ -392,6 +400,9 @@ class Catalog_browse_service {
 			'type' => $search_options->type,
 			'country_iso3' => $search_options->country_iso3,
 		);
+		// pages past the search's max_offset are reached by cursor (next_cursor/prev_cursor of a result): a variable
+		// search, or a study browse
+		$params['cursor'] = trim((string) xss_clean($this->CI->input->get('cursor')));
 
 		foreach ($this->facets as $facet_key => $facet) {
 			if (isset($facet['type']) && $facet['type'] === 'user') {
@@ -412,15 +423,19 @@ class Catalog_browse_service {
 		$this->CI->load->library('catalog_search', $params);
 		$data['is_regional_search'] = $this->regional_search;
 
+		$data['current_page'] = $search_options->page;
 		if ($search_options->view === 'v') {
 			$data['variables'] = $this->CI->catalog_search->vsearch($limit, $offset);
 			$data['search_type'] = 'variable';
+			$this->CI->load->helper('catalog');
+			$data['current_page'] = catalog_search_result_page($data['variables'], $search_options->page);
 		} else {
 			$data['surveys'] = $this->CI->catalog_search->search($limit, $offset);
 			$data['search_type'] = 'study';
+			$this->CI->load->helper('catalog');
+			$data['current_page'] = catalog_search_result_page($data['surveys'], $search_options->page);
 		}
 
-		$data['current_page'] = $search_options->page;
 		$data['search_options'] = $search_options;
 		$data['data_access_types'] = $this->facets['da_types'] ?? array();
 		$data['data_classifications'] = $this->facets['data_class'] ?? array();
@@ -443,6 +458,22 @@ class Catalog_browse_service {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Sort of the variable view: relevance with keywords unless title or name is asked for; without keywords, the
+	 * study's title (then the variable name) unless name is asked for. Title and name sort ascending by default.
+	 *
+	 * @return array{0: string, 1: string} [sort_by, sort_order]
+	 */
+	private static function variable_sort($keywords, $sort_by, $sort_order)
+	{
+		$by    = in_array($sort_by, array('title', 'name'), true) ? $sort_by : '';
+		$order = in_array($sort_order, array('asc', 'desc'), true) ? $sort_order : 'asc';
+		if ($by === '') {
+			return $keywords !== '' ? array('relevance', 'desc') : array('title', 'asc');
+		}
+		return array($by, $order);
 	}
 
 	public function build_tabs($data)
@@ -492,6 +523,7 @@ class Catalog_browse_service {
 			'da_search' => $this->da_search,
 			'catalog_variable_view' => $this->CI->config->item('catalog_variable_view'),
 			'catalog_show_abstract' => ($show_abstract === false) ? 'yes' : $show_abstract,
+			'catalog_pager_numbers' => max(1, (int) ($this->CI->config->item('catalog_pager_numbers') ?: 5)),
 			'search_engine' => $this->CI->search_engine_resolver->engine(),
 			'catalog_public_search_ui' => catalog_public_search_ui(),
 			'catalog_search_debug' => catalog_search_debug_enabled(),

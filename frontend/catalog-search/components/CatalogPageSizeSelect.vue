@@ -40,12 +40,12 @@ const PAGE_SIZES = [15, 30, 50];
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-top: 16px;
+  gap: 6px 10px;
+  margin-top: 28px;
 }
 
 .catalog-page-size__label {
-  font-size: var(--catalog-font-ui, 0.875rem);
+  font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
@@ -54,7 +54,7 @@ const PAGE_SIZES = [15, 30, 50];
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 
 .catalog-page-size__btn {
@@ -62,13 +62,13 @@ const PAGE_SIZES = [15, 30, 50];
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.25rem;
-  padding: 7px 10px;
+  min-width: 1.875rem;
+  padding: 5px 7px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 4px;
   background: #e9ecef;
   color: rgb(var(--v-theme-primary, 21, 101, 192));
-  font-size: var(--catalog-font-small, 0.75rem);
+  font-size: 0.6875rem;
   font-weight: 500;
   line-height: 1;
   cursor: pointer;

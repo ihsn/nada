@@ -43,6 +43,8 @@ abstract class catalog_search_semantic_base
     public $country_iso3      = '';
     public $sort_by           = 'title';
     public $sort_order        = 'asc';
+    /** A next_cursor/prev_cursor of an earlier page of this variable search (nada-ai's, passed through unread). */
+    public $cursor            = '';
 
     /** @var array Full search params including user-defined facet keys. */
     protected $params      = [];

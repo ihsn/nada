@@ -824,6 +824,22 @@ onMounted(async () => {
                 <div class="site-config-field__hint">{{ tr('instruction_catalog_records_per_page') }}</div>
               </v-col>
               <v-col cols="12">
+                <label class="site-config-field__label">{{ tr('catalog_pager_numbers') }}</label>
+                <div class="site-config-field--fixed-width">
+                  <v-text-field
+                    v-model="settings.catalog_pager_numbers"
+                    type="number"
+                    min="1"
+                    max="15"
+                    placeholder="5"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details
+                  />
+                </div>
+                <div class="site-config-field__hint">{{ tr('instruction_catalog_pager_numbers') }}</div>
+              </v-col>
+              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('catalog_variable_view') }}</label>
                 <div class="d-flex align-center ga-3 mt-1 flex-wrap">
                   <v-switch

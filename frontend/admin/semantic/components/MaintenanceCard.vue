@@ -7,8 +7,7 @@
         <div>
           <div class="font-weight-medium">Clean up</div>
           <div class="text-body-2 text-medium-emphasis">
-            Queues the removal of studies and citations that are still in the index but no longer in the catalog
-            <template v-if="toRemove != null">({{ formatCount(toRemove) }} studies now)</template>. Adds nothing.
+            Remove studies and citations no longer in the catalog<template v-if="toRemove != null"> ({{ formatCount(toRemove) }} now)</template>.
           </div>
         </div>
         <v-btn
@@ -31,15 +30,13 @@
 
       <div class="semantic-maintenance-row">
         <div>
-          <div class="font-weight-medium">Use the existing index</div>
+          <div class="font-weight-medium">Restore tracking from the index</div>
           <div class="text-body-2 text-medium-emphasis">
-            After NADA started tracking a NADA-AI whose index already exists: NADA-AI reports what the index holds, then
-            NADA queues the removal of what is gone from the catalog, a refresh of published status and filters for
-            what is indexed, and the indexing of what is missing. Nothing already indexed is embedded again.
+            After switching engines: mark what NADA-AI already holds as indexed, instead of indexing it all again.
           </div>
         </div>
         <v-btn variant="tonal" color="primary" prepend-icon="mdi-database-import-outline" :loading="importing" :disabled="!canEdit" @click="importExisting">
-          Use the existing index
+          Restore tracking
         </v-btn>
       </div>
       <v-alert v-if="importResult" :type="importResult.ok ? 'success' : 'error'" variant="tonal" density="compact" class="mb-3">
@@ -52,14 +49,10 @@
       <div class="semantic-maintenance-row">
         <div>
           <div class="font-weight-medium text-error">Rebuild the study index</div>
-          <div class="text-body-2 text-medium-emphasis">
-            Empties the study index only, then queues every study to be indexed again. Embeddings and the variable index
-            are kept, so nothing is embedded again: much faster than Delete and rebuild. Needed after an update that
-            changes what the study index holds. Keyword search is incomplete until NADA-AI has worked through the queue.
-          </div>
+          <div class="text-body-2 text-medium-emphasis">Empty it and index every study again. Embeddings are reused.</div>
         </div>
         <v-btn variant="tonal" color="error" prepend-icon="mdi-database-refresh-outline" :loading="rebuildingStudies" :disabled="!canDelete" @click="rebuildStudies">
-          Rebuild the study index…
+          Rebuild…
         </v-btn>
       </div>
       <v-alert v-if="studiesResult" :type="studiesResult.ok ? 'success' : 'error'" variant="tonal" density="compact" class="mb-3">
@@ -67,17 +60,44 @@
         <router-link v-if="studiesResult.ok" :to="{ name: 'activity', query: { tab: 'queue' } }">Follow them in Activity →</router-link>
       </v-alert>
 
+      <template v-for="index in INDEX_REBUILDS" :key="index.what">
+        <v-divider />
+        <div class="semantic-maintenance-row">
+          <div>
+            <div class="font-weight-medium text-error">Rebuild the {{ index.label }} index</div>
+            <div class="text-body-2 text-medium-emphasis">Empty it and index every {{ index.label }} again. OpenSearch only.</div>
+          </div>
+          <v-btn
+            variant="tonal"
+            color="error"
+            prepend-icon="mdi-database-refresh-outline"
+            :loading="rebuilding === index.what"
+            :disabled="!canDelete || rebuilding !== null"
+            @click="rebuildIndex(index)"
+          >
+            Rebuild…
+          </v-btn>
+        </div>
+        <v-alert
+          v-if="rebuildResults[index.what]"
+          :type="rebuildResults[index.what].ok ? 'success' : rebuildResults[index.what].busy ? 'warning' : 'error'"
+          variant="tonal"
+          density="compact"
+          class="mb-3"
+        >
+          {{ rebuildResults[index.what].message }}
+          <router-link v-if="rebuildResults[index.what].ok || rebuildResults[index.what].busy" :to="{ name: 'activity', query: { tab: 'jobs' } }">
+            {{ rebuildResults[index.what].busy ? 'See it in Activity →' : 'Follow it in Activity →' }}
+          </router-link>
+        </v-alert>
+      </template>
+
       <v-divider />
 
       <div class="semantic-maintenance-row">
         <div>
           <div class="font-weight-medium text-error">Delete and rebuild</div>
-          <div class="text-body-2 text-medium-emphasis">
-            Empties the search index, then queues every study and citation to be indexed again from the catalog. Search
-            is incomplete until NADA-AI has worked through the queue — minutes to hours depending on the catalog. With
-            OpenSearch the variable and citation indexes are emptied too and refill as studies and citations are indexed.
-            There is no undo.
-          </div>
+          <div class="text-body-2 text-medium-emphasis">Empty every index and index everything again, embeddings included. Slow.</div>
         </div>
         <v-btn variant="tonal" color="error" prepend-icon="mdi-delete-alert" :disabled="!canDelete" @click="recreateDialog = true">
           Delete and rebuild…
@@ -96,10 +116,7 @@
       <div class="semantic-maintenance-row">
         <div>
           <div class="font-weight-medium text-error">Delete index</div>
-          <div class="text-body-2 text-medium-emphasis">
-            Empties the search index and indexes nothing. Semantic search returns no results until you use Rebuild or
-            Update. There is no undo.
-          </div>
+          <div class="text-body-2 text-medium-emphasis">Empty every index. Nothing is indexed again.</div>
         </div>
         <v-btn variant="tonal" color="error" prepend-icon="mdi-trash-can-outline" :disabled="!canDelete" @click="dropDialog = true">
           Delete index…
@@ -158,6 +175,7 @@ import { ref } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useSemanticApi } from '../composables/useSemanticApi.js';
 import { formatCount } from '../typeLabels.js';
+import { conflictMessage } from '../jobConflict.js';
 
 defineOptions({ name: 'SemanticMaintenanceCard' });
 
@@ -176,7 +194,17 @@ const { loading: dropping, error: dropError, errorMessage: dropErrorMessage, del
 
 const { loading: importing, importIndex } = useSemanticApi();
 const { loading: rebuildingStudies, recreateStudiesIndex, rebuildTracking: queueEverything } = useSemanticApi();
+const { recreateVariablesIndex, recreateCitationsIndex } = useSemanticApi();
 const studiesResult = ref(null);
+
+/** Indexes rebuilt on their own, each as one NADA-AI job (drop, create with the current mapping, index all again). */
+const INDEX_REBUILDS = [
+  { what: 'variables', label: 'variable', recreate: recreateVariablesIndex },
+  { what: 'citations', label: 'citation', recreate: recreateCitationsIndex },
+];
+/** The index being asked to rebuild, or null. */
+const rebuilding = ref(null);
+const rebuildResults = ref({});
 const cleanResult = ref(null);
 const importResult = ref(null);
 const recreateDialog = ref(false);
@@ -235,6 +263,28 @@ async function rebuildStudies() {
   } catch (e) {
     studiesResult.value = { ok: false, message: `Could not rebuild the study index: ${failure(e)}` };
   }
+  emit('changed');
+}
+
+/** Empty one NADA-AI index and index all of it again, as one NADA-AI job. */
+async function rebuildIndex(index) {
+  if (!window.confirm(`Empty the ${index.label} index and index every ${index.label} again? Its search returns little or nothing until the job is done.`)) return;
+  rebuilding.value = index.what;
+  let outcome;
+  try {
+    await index.recreate();
+    outcome = { ok: true, message: `The ${index.label} index was emptied; every ${index.label} is being indexed again.` };
+  } catch (e) {
+    const busy = conflictMessage(e);
+    outcome = {
+      ok: false,
+      busy: busy !== null,
+      message: busy ? `${busy} The ${index.label} index was not emptied.` : `Could not rebuild the ${index.label} index: ${failure(e)}`,
+    };
+  } finally {
+    rebuilding.value = null;
+  }
+  rebuildResults.value = { ...rebuildResults.value, [index.what]: outcome };
   emit('changed');
 }
 

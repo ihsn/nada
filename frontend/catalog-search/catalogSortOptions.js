@@ -14,9 +14,25 @@ export const CATALOG_SORT_OPTION_DEFS = [
   { sortBy: 'country',    sortOrder: 'desc', labelKey: 'Country (Z-A)',       labelFallback: 'Country (Z-A)' },
 ];
 
-/** @param {(key: string, fallback?: string) => string} t */
-export function buildCatalogSortOptions(t) {
-  return CATALOG_SORT_OPTION_DEFS.map((def) => ({
+/**
+ * The variable view sorts variables: relevance, their study's title, or the variable name. Each sorts both ways, which
+ * is how the end of a long list is reached (the pager has no "last page").
+ */
+export const VARIABLE_SORT_OPTION_DEFS = [
+  { sortBy: 'relevance', sortOrder: 'desc', labelKey: 'Relevance',            labelFallback: 'Relevance' },
+  { sortBy: 'title',     sortOrder: 'asc',  labelKey: 'sort_study_title_az',  labelFallback: 'Study title (A-Z)' },
+  { sortBy: 'title',     sortOrder: 'desc', labelKey: 'sort_study_title_za',  labelFallback: 'Study title (Z-A)' },
+  { sortBy: 'name',      sortOrder: 'asc',  labelKey: 'sort_variable_name_az', labelFallback: 'Variable name (A-Z)' },
+  { sortBy: 'name',      sortOrder: 'desc', labelKey: 'sort_variable_name_za', labelFallback: 'Variable name (Z-A)' },
+];
+
+/**
+ * @param {(key: string, fallback?: string) => string} t
+ * @param {{ variables?: boolean }} [options] variables: the variable view's sorts
+ */
+export function buildCatalogSortOptions(t, { variables = false } = {}) {
+  const defs = variables ? VARIABLE_SORT_OPTION_DEFS : CATALOG_SORT_OPTION_DEFS;
+  return defs.map((def) => ({
     value: `${def.sortBy}:${def.sortOrder}`,
     sortBy: def.sortBy,
     sortOrder: def.sortOrder,
@@ -32,7 +48,7 @@ export function catalogSortSelectionKey(sortBy, sortOrder) {
 }
 
 function defaultSortOrderForField(sortBy) {
-  if (sortBy === 'title' || sortBy === 'country') return 'asc';
+  if (sortBy === 'title' || sortBy === 'country' || sortBy === 'name') return 'asc';
   return 'desc';
 }
 

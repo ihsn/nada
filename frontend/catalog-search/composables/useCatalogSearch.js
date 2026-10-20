@@ -75,8 +75,21 @@ export function useCatalogSearch() {
   const error              = ref(null);
   const hasSearched        = ref(false);
   const semanticDebug      = ref(null);
+  /** "Page not found" when the requested page was past what the search pages (the first page is shown), or null. */
+  const pagingNotice       = ref(null);
   let cachedFacetsContextKey = null;
   let initialBootstrapConsumed = false;
+
+  // The server answered 404 for a page past what the search pages (an old link, a hand-made URL) and rendered the
+  // first page of the same search instead: show that page's URL, and say the requested page was not found.
+  if (config.value?.pageNotFound) {
+    const firstPage = { ...locationQuery.value };
+    delete firstPage.page;
+    delete firstPage.cursor;
+    writeLocationQuery(firstPage, { replace: true });
+    locationQuery.value = firstPage;
+    pagingNotice.value = t('pager_page_not_found', 'Page not found.');
+  }
 
   function applyRouteToQuery() {
     const parsed = parseRouteQuery(locationQuery.value);
@@ -91,8 +104,15 @@ export function useCatalogSearch() {
   /**
    * Push or replace URL query from current `query` state.
    * URL change triggers the location watcher → fresh API search.
+   *
+   * Any navigation drops the variable search cursor (it belongs to one search, sort and page size), except following
+   * one (`keepCursor`, from goToCursor).
    */
-  function navigateFromState(replace = false) {
+  function navigateFromState(replace = false, { keepCursor = false } = {}) {
+    if (!keepCursor) {
+      query.cursor = '';
+    }
+    pagingNotice.value = null;
     const { from, to } = normalizeYearRange(query.from, query.to);
     query.from = from;
     query.to = to;
@@ -274,6 +294,13 @@ export function useCatalogSearch() {
     return navigateFromState(true);
   }
 
+  /** A variable search page past the numbered pages: the next_cursor or prev_cursor of the page shown. */
+  function goToCursor(cursor) {
+    query.cursor = cursor;
+    query.page = DEFAULT_QUERY.page; // the page number comes back with the result
+    return navigateFromState(true, { keepCursor: true });
+  }
+
   function setPageSize(ps) {
     query.ps   = ps;
     query.page = 1;
@@ -380,7 +407,7 @@ export function useCatalogSearch() {
     const strKeys = [
       'sk', 'tab_type', 'type', 'collection', 'region', 'dtype', 'data_class', 'database',
       'country', 'tag', 'from', 'to', 'sort_by', 'sort_order',
-      'view', 'vk', 'vf', 'image_view',
+      'view', 'vk', 'vf', 'image_view', 'cursor',
     ];
     for (const key of strKeys) {
       if (query[key] !== '' && query[key] != null) apiParams.set(key, query[key]);
@@ -399,8 +426,11 @@ export function useCatalogSearch() {
 
     try {
       const res = await fetch(url, { credentials: 'same-origin', signal });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const json = await res.json();
+      const json = await res.json().catch(() => null);
+      if (restartPagingAfter(json)) {
+        return;
+      }
+      if (!res.ok || !json) throw new Error('HTTP ' + res.status);
       if (json.status !== 'success') {
         let msg = json.message || json.errors || 'Search failed';
         if (json.semantic_debug) {
@@ -421,6 +451,26 @@ export function useCatalogSearch() {
         hasSearched.value = true;
       }
     }
+  }
+
+  /**
+   * A page the server cannot serve there — a page number past its numbered pages (page_out_of_range) or a cursor that
+   * is not this search's (cursor_invalid), found after the page loaded (e.g. Back/Forward to a stale cursor): show the
+   * first page of the same search with "Page not found", as the server does for the same URL.
+   * @returns {boolean} whether the response was such a paging limit
+   */
+  function restartPagingAfter(json) {
+    const code = json?.error_code;
+    if (code !== 'page_out_of_range' && code !== 'cursor_invalid') {
+      return false;
+    }
+    if (!query.cursor && Number(query.page) <= 1) {
+      return false; // already on the first page: nothing to go back to, let the error show
+    }
+    query.page = DEFAULT_QUERY.page;
+    navigateFromState(true); // drops the cursor
+    pagingNotice.value = t('pager_page_not_found', 'Page not found.');
+    return true;
   }
 
   /**
@@ -455,9 +505,9 @@ export function useCatalogSearch() {
   return {
     query, results, searchType, facets, tabs, site, semanticDebug,
     enabledFilters, relatedCollections,
-    loading, error, showTypeTabs, hasSearched,
+    loading, error, showTypeTabs, hasSearched, pagingNotice,
     hasActiveFilters, activeFilters, isVariableView, showVariableToggle,
-    resetPage, goToPage, setSort, setPageSize, setImageView, clearFilter, clearFilterValue, clearAllFilters, setSearchView,
+    resetPage, goToPage, goToCursor, setSort, setPageSize, setImageView, clearFilter, clearFilterValue, clearAllFilters, setSearchView,
     siteUrl,
   };
 }

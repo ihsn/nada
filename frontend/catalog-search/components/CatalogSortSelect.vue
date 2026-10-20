@@ -29,16 +29,23 @@ defineOptions({ name: 'CatalogSortSelect' });
 
 const props = defineProps({
   query: { type: Object, required: true },
+  /** The variable view's sorts (relevance, study title, variable name). */
+  variables: { type: Boolean, default: false },
 });
 const emit = defineEmits(['sort']);
 
 const { t } = useI18n();
 
-const sortOptions = computed(() => buildCatalogSortOptions(t));
+const sortOptions = computed(() => buildCatalogSortOptions(t, { variables: props.variables }));
 
-const activeValue = computed(() =>
-  catalogSortSelectionKey(props.query.sort_by, props.query.sort_order)
-);
+const activeValue = computed(() => {
+  // a variable browse (no keyword) with no sort chosen is sorted by study title, not relevance
+  const keywords = props.variables ? (props.query.vk || props.query.sk) : props.query.sk;
+  if (props.variables && !props.query.sort_by && !keywords) {
+    return catalogSortSelectionKey('title', 'asc');
+  }
+  return catalogSortSelectionKey(props.query.sort_by, props.query.sort_order);
+});
 
 function onSelect(composite) {
   const { sortBy, sortOrder } = parseCatalogSortValue(composite);
