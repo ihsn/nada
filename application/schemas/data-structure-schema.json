@@ -131,7 +131,7 @@
 		},
 		"dsdComponent": {
 			"type": "object",
-			"description": "One DSD column. For dimension/geography, supply codelist_reference (existing catalogue idno) and/or codelist for inline create/reuse with items.",
+			"description": "One DSD column. For dimension/geography/periodicity, a codelist is optional (as in SDMX); when enumerated, supply codelist_reference (existing catalogue idno) and/or codelist for inline create/reuse with items. Without a codelist the component is exported with a non-enumerated (TextFormat) representation.",
 			"properties": {
 				"name": {
 					"title": "Name",

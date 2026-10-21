@@ -1417,6 +1417,7 @@ INSERT INTO `configurations` VALUES ('app_version','5.0.0','Application version'
 INSERT INTO `configurations` VALUES ('cache_default_expires','7200','Cache expiry (in mili seconds)',NULL,NULL);
 INSERT INTO `configurations` VALUES ('cache_disabled','1','Enable/disable site caching',NULL,NULL);
 INSERT INTO `configurations` VALUES ('cache_path','cache/','Site cache folder',NULL,NULL);
+INSERT INTO `configurations` VALUES ('catalog_public_search_ui','classic','Public catalog search UI',NULL,NULL);
 INSERT INTO `configurations` VALUES ('catalog_records_per_page','15','Catalog search page - records per page',NULL,NULL);
 INSERT INTO `configurations` VALUES ('catalog_root','datafiles','Survey catalog folder',NULL,NULL);
 INSERT INTO `configurations` VALUES ('collections_vocab','2','survey collections vocabulary',NULL,NULL);
@@ -1428,6 +1429,7 @@ INSERT INTO `configurations` VALUES ('data_classifications_enabled','yes','Enabl
 INSERT INTO `configurations` VALUES ('legacy_study_templates','[]','Study description layout','JSON list of catalog types that still use PHP metadata_templates views.',NULL);
 INSERT INTO `configurations` VALUES ('db_version','5.0.0','Database version',NULL,NULL);
 INSERT INTO `configurations` VALUES ('ddi_import_folder','imports','Survey catalog import folder',NULL,NULL);
+INSERT INTO `configurations` VALUES ('deposit_max_upload_size','2048','Data deposit max file size (MB)','Maximum size in megabytes for one file uploaded to a data-deposit project.',NULL);
 INSERT INTO `configurations` VALUES ('default_home_page','home','Default home page','Default home page',NULL);
 INSERT INTO `configurations` VALUES ('html_folder','/pages',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('lang','en-us','Site Language','Site Language code',NULL);

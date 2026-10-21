@@ -1,9 +1,7 @@
 swagger: "2.0"
 info:
   description: >-
-    The Downloads API allows browsing and downloading study resources and files. 
-    The API provides endpoints to search for downloadable files across all studies, 
-    list files for specific studies, and download resources with appropriate access control.
+    The Downloads API lists and downloads files for one published study.
     
 
     Find out more about NADA at
@@ -29,118 +27,16 @@ x-tagGroups:
       - Downloads
 paths:
 
-  /downloads:
-    get:
-      tags:
-        - Downloads
-      summary: Search downloadable files
-      description: >-
-        Search downloadable files across all studies with optional filters for 
-        countries, years, data access types, resource types, and specific studies.
-      operationId: searchDownloads
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - name: limit
-          in: query
-          description: Number of results per page (default is 15)
-          type: integer
-          default: 15
-        - name: offset
-          in: query
-          description: Starting position for pagination (default is 0)
-          type: integer
-          default: 0
-        - name: type
-          in: query
-          description: >-
-            Resource type filter. Can be a category (microdata, data, documentation, doc) 
-            or a specific code (doc/qst, dat/micro, tbl, aud, vid, etc.)
-          type: string
-          enum:
-            - microdata
-            - data
-            - documentation
-            - doc
-            - doc/qst
-            - dat/micro
-            - tbl
-            - aud
-            - vid
-        - name: countries
-          in: query
-          description: Country filter (can be array or single value)
-          type: string
-        - name: years
-          in: query
-          description: Year filter (can be array or single value)
-          type: string
-        - name: data_access_type
-          in: query
-          description: Filter by data access type
-          type: string
-          enum:
-            - open
-            - direct
-            - public
-            - licensed
-            - enclave
-            - remote
-            - other
-        - name: idno
-          in: query
-          description: Filter by study IDNO
-          type: string
-        - name: sort_by
-          in: query
-          description: Field to sort results by
-          type: string
-        - name: sort_order
-          in: query
-          description: Sort order (ascending or descending)
-          type: string
-          enum:
-            - asc
-            - desc
-          default: asc
-      responses:
-        "200":
-          description: successful operation
-          schema:
-            type: object
-            properties:
-              status:
-                type: string
-                example: success
-              data:
-                type: object
-                properties:
-                  total:
-                    type: integer
-                    description: Total number of results
-                  limit:
-                    type: integer
-                    description: Results per page
-                  offset:
-                    type: integer
-                    description: Starting position
-                  files:
-                    type: array
-                    items:
-                      $ref: "#/definitions/DownloadableFile"
-        "400":
-          description: Bad request
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-
   /downloads/files/{idno}:
     get:
       tags:
         - Downloads
       summary: List downloadable files by study
-      description: Get a list of all downloadable files for a specific study by its IDNO
+      description: >-
+        Files for one published study that the caller is allowed to download.
+        Documentation is included. Microdata is included for open or direct
+        access, for a public-use request with accepted terms, or for an
+        approved licensed request for that file.
       operationId: listFilesByStudy
       consumes:
         - application/json

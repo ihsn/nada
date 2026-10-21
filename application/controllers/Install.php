@@ -391,6 +391,63 @@ class Install extends CI_Controller {
 
 		$this->_run_install_sql_file(APPPATH.'../install/schema.'.$db_driver.'.sql');
 		$this->_run_install_sql_file(APPPATH.'../install/schema.dd.'.$db_driver.'.sql');
+
+		$this->_seed_display_templates();
+		$this->_set_migration_version_to_latest();
+	}
+
+	/**
+	 * Register shipped display template cores and per-type defaults.
+	 */
+	function _seed_display_templates()
+	{
+		$this->load->helper('display_template');
+		$this->load->model('Display_template_model');
+
+		try
+		{
+			$this->Display_template_model->sync_shipped_cores();
+		}
+		catch (Exception $e)
+		{
+			log_message('error', 'Install: display template seed failed: '.$e->getMessage());
+			show_error('Installation failed while seeding display templates: '.html_escape($e->getMessage()));
+		}
+	}
+
+	/**
+	 * Fresh installs ship the full schema, so mark every migration as applied.
+	 */
+	function _set_migration_version_to_latest()
+	{
+		$latest = '0';
+		foreach (glob(APPPATH.'migrations/*_*.php') as $file)
+		{
+			if (preg_match('/^(\d{14})_/', basename($file), $matches) && $matches[1] > $latest)
+			{
+				$latest = $matches[1];
+			}
+		}
+
+		if ($latest === '0')
+		{
+			return;
+		}
+
+		if (!$this->db->table_exists('migrations'))
+		{
+			$this->dbforge->add_field(array(
+				'version' => array('type' => 'BIGINT', 'constraint' => 20, 'unsigned' => TRUE),
+			));
+			$this->dbforge->add_key('version', TRUE);
+			$this->dbforge->create_table('migrations', TRUE);
+		}
+
+		$this->db->truncate('migrations');
+		if (!$this->db->insert('migrations', array('version' => $latest)))
+		{
+			show_error('Installation failed while setting the migration version.');
+		}
 	}
 
 	/**

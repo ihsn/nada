@@ -241,7 +241,7 @@ $config['directory_trigger'] = 'd';
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 0;
+$config['log_threshold'] = 1;
 
 /*
 |--------------------------------------------------------------------------
@@ -653,6 +653,7 @@ $config['fb_catalog_image']='images/nada-logo.gif';
 | Enable or disable fulltext searching for Microsoft SQLSRV database
 */
 $config['sqlsrv_use_fulltext']=TRUE;
+// Managed via Site Administration > Settings > Login.
 $config['site_user_register']='yes';
 
 /*

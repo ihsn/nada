@@ -188,7 +188,7 @@ class Data_structure_json_import {
 
 			$hasRef = !empty($row['codelist_reference']) && is_array($row['codelist_reference']);
 			$refIdno = $hasRef && isset($row['codelist_reference']['idno']) ? trim((string) $row['codelist_reference']['idno']) : '';
-			$cl = (!$hasRef || $refIdno === '') && isset($row['codelist']) && is_array($row['codelist']) ? $row['codelist'] : null;
+			$cl = (!$hasRef || $refIdno === '') && !empty($row['codelist']) && is_array($row['codelist']) ? $row['codelist'] : null;
 			if ($hasRef && $refIdno !== '') {
 				$cl = null;
 			}
@@ -196,8 +196,8 @@ class Data_structure_json_import {
 			$clName = $cl !== null && isset($cl['name']) ? trim((string) $cl['name']) : '';
 			$clItems = $cl !== null && isset($cl['items']) && is_array($cl['items']) ? $cl['items'] : [];
 
-			$needs = in_array($ct, ['dimension', 'geography'], true);
-			if ($needs) {
+			$supportsCodelist = in_array($ct, ['dimension', 'geography'], true);
+			if ($supportsCodelist && ($hasRef || $cl !== null)) {
 				if ($hasRef) {
 					if ($refIdno === '') {
 						$errors[] = ['path' => "data_structure.components[{$idx}].codelist_reference.idno", 'message' => 'Required when codelist_reference is set.'];
@@ -207,8 +207,6 @@ class Data_structure_json_import {
 							$errors[] = ['path' => "data_structure.components[{$idx}].codelist_reference.idno", 'message' => "No catalogue codelist found for idno '{$refIdno}'."];
 						}
 					}
-				} elseif ($cl === null) {
-					$errors[] = ['path' => "data_structure.components[{$idx}]", 'message' => 'dimension/geography requires codelist_reference or codelist.'];
 				} else {
 					$existingCl = $this->_find_existing_codelist_binding($cl);
 					if (!$existingCl) {
@@ -356,20 +354,17 @@ class Data_structure_json_import {
 	protected function _resolve_codelist_for_component(array $comp, $overwrite, array &$summary)
 	{
 		$ct = isset($comp['column_type']) ? trim((string) $comp['column_type']) : '';
-		// dimension/geography require a codelist; periodicity supports an optional one
-		$required  = in_array($ct, ['dimension', 'geography'], true);
-		$supported = $required || $ct === 'periodicity';
+		// Codelists are optional (SDMX allows non-enumerated representation)
+		$supported = in_array($ct, ['dimension', 'geography', 'periodicity'], true);
 		if (!$supported) {
 			return null;
 		}
-		// If periodicity and no codelist provided, skip gracefully
 		$hasInline = !empty($comp['codelist']) && is_array($comp['codelist']);
 		$hasRef    = !empty($comp['codelist_reference']) && is_array($comp['codelist_reference']);
-		if (!$required && !$hasInline && !$hasRef) {
+		if (!$hasInline && !$hasRef) {
 			return null;
 		}
 
-		$hasRef = !empty($comp['codelist_reference']) && is_array($comp['codelist_reference']);
 		$refIdno = $hasRef && isset($comp['codelist_reference']['idno']) ? trim((string) $comp['codelist_reference']['idno']) : '';
 
 		if ($hasRef && $refIdno !== '') {
