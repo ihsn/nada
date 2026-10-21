@@ -1163,6 +1163,10 @@ class Survey_resource_model extends CI_Model {
 			throw new Exception("RESOURCE_NOT_FOUND");
 		}
 
+		if ((int) $resource['survey_id'] !== (int) $survey_id) {
+			throw new Exception('RESOURCE_NOT_FOUND');
+		}
+
 		$user_id=isset($user->id) ? $user->id : false;
 		
 		$this->whitelist_download($user_id,$survey_id,$resource);
