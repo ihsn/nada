@@ -208,14 +208,7 @@ class Facets extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/facets');
-			}	
+			nada_redirect($destination, 'admin/facets');
 		}
 		else if ($this->input->post('submit')!='')
 		{
@@ -235,14 +228,7 @@ class Facets extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/facets');
-			}	
+			nada_redirect($destination, 'admin/facets');
 		}
 		else
 		{

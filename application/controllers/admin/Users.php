@@ -1464,14 +1464,7 @@ class Users extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/users');
-			}	
+			nada_redirect($destination, 'admin/users');
 		}
 		else if ($this->input->post('submit')!='')
 		{
@@ -1504,14 +1497,7 @@ class Users extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/users');
-			}	
+			nada_redirect($destination, 'admin/users');
 		}
 		else
 		{

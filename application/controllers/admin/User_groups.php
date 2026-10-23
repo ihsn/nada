@@ -168,14 +168,7 @@ class User_groups extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/user_groups');
-			}	
+			nada_redirect($destination, 'admin/user_groups');
 		}
 		else if ($this->input->post('submit')!='')
 		{
@@ -195,14 +188,7 @@ class User_groups extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/user_groups');
-			}	
+			nada_redirect($destination, 'admin/user_groups');
 		}
 		else
 		{

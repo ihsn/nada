@@ -72,14 +72,7 @@ class Resources extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/catalog');
-			}	
+			nada_redirect($destination, 'admin/catalog');
 		}
 		else if ($this->input->post('submit')!='')
 		{
@@ -99,14 +92,7 @@ class Resources extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/catalog');
-			}	
+			nada_redirect($destination, 'admin/catalog');
 		}
 		else
 		{

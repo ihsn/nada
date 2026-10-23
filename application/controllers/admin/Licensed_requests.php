@@ -657,14 +657,7 @@ class Licensed_requests extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/licensed_requests');
-			}	
+			nada_redirect($destination, 'admin/licensed_requests');
 		}
 		else if ($this->input->post('submit')!='')
 		{
@@ -688,14 +681,7 @@ class Licensed_requests extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/licensed_requests');
-			}	
+			nada_redirect($destination, 'admin/licensed_requests');
 		}
 		else
 		{

@@ -108,12 +108,7 @@ class Page extends MY_Controller {
 			//set language in the user session cooke
 			$this->session->set_userdata('language',strtolower($lang));
 			
-			$destination=site_home();
-			
-			if ($this->input->get("destination")){
-				$destination=$this->input->get("destination");
-			}			
-			redirect($destination);
+			nada_redirect($this->input->get("destination"), site_home());
 		}
 		else{
 			show_error("Invalid Language selected!");
