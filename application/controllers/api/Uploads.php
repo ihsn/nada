@@ -40,6 +40,7 @@ class Uploads extends MY_REST_Controller
 	function init_post()
 	{
 		try {
+			$this->_require_upload_starter();
 			$input = $this->raw_json_input();
 			
 			if (empty($input)) {
@@ -149,6 +150,7 @@ class Uploads extends MY_REST_Controller
 			if (empty($upload_id)) {
 				throw new Exception("INVALID_INPUT: upload_id is required (or provide init parameters for first chunk)");
 			}
+			$this->_require_upload_owner($upload_id);
 			
 			// Read chunk data from request body
 			// Check Content-Type to determine how to read chunk data
@@ -223,6 +225,7 @@ class Uploads extends MY_REST_Controller
 			if (empty($upload_id)) {
 				throw new Exception("INVALID_INPUT: upload_id is required");
 			}
+			$this->_require_upload_owner($upload_id);
 			
 			$metadata = $this->uploader->get_upload_metadata($upload_id);
 			
@@ -278,6 +281,7 @@ class Uploads extends MY_REST_Controller
 			if (empty($upload_id)) {
 				throw new Exception("INVALID_INPUT: upload_id is required");
 			}
+			$this->_require_upload_owner($upload_id);
 			
 			$metadata = $this->uploader->get_upload_metadata($upload_id);
 			
@@ -320,6 +324,7 @@ class Uploads extends MY_REST_Controller
 			if (empty($upload_id)) {
 				throw new Exception("INVALID_INPUT: upload_id is required");
 			}
+			$this->_require_upload_owner($upload_id);
 			
 			$result = $this->uploader->delete_upload($upload_id);
 			
@@ -368,7 +373,8 @@ class Uploads extends MY_REST_Controller
 	function cleanup_post()
 	{
 		try {
-			$stats = $this->uploader->cleanup_expired_uploads();
+			$owner_user_id = $this->is_admin() ? null : (int) $this->get_api_user_id();
+			$stats = $this->uploader->cleanup_expired_uploads($owner_user_id);
 			
 			$response = array(
 				'status' => 'success',
@@ -399,6 +405,21 @@ class Uploads extends MY_REST_Controller
 	{
 		try {
 			$uploads = $this->uploader->list_uploads();
+			if (!$this->is_admin()) {
+				$uid = (int) $this->get_api_user_id();
+				$own = array();
+				foreach ($uploads as $row) {
+					if (empty($row['upload_id'])) {
+						continue;
+					}
+					$meta = $this->uploader->get_upload_metadata($row['upload_id']);
+					$owner = ($meta && isset($meta['_upload_owner_user_id'])) ? (int) $meta['_upload_owner_user_id'] : 0;
+					if ($owner === $uid) {
+						$own[] = $row;
+					}
+				}
+				$uploads = $own;
+			}
 			
 			$response = array(
 				'status' => 'success',
@@ -440,7 +461,8 @@ class Uploads extends MY_REST_Controller
 			'CHUNK_SIZE_MISMATCH' => 'CHUNK_SIZE_MISMATCH',
 			'FILE_TYPE_NOT_ALLOWED' => 'FILE_TYPE_NOT_ALLOWED',
 			'FILE_TOO_LARGE' => 'FILE_TOO_LARGE',
-			'INVALID_INPUT' => 'INVALID_INPUT'
+			'INVALID_INPUT' => 'INVALID_INPUT',
+			'ACCESS-DENIED' => 'ACCESS-DENIED'
 		);
 		
 		foreach ($error_map as $code => $pattern) {
@@ -507,6 +529,7 @@ class Uploads extends MY_REST_Controller
 	 */
 	private function auto_init_upload()
 	{
+		$this->_require_upload_starter();
 		$filename = $this->get_parameter('filename', 'X-Upload-Filename');
 		$total_size = $this->get_parameter('total_size', 'X-Upload-Total-Size');
 		$total_chunks = $this->get_parameter('total_chunks', 'X-Upload-Total-Chunks');
@@ -595,6 +618,92 @@ class Uploads extends MY_REST_Controller
 			);
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * Starting an upload needs a catalog, table, deposit, or configuration permission.
+	 * A signed-in account with none of those cannot create one.
+	 */
+	private function _require_upload_starter()
+	{
+		if ($this->_caller_may_start_upload()) {
+			return;
+		}
+
+		throw new Exception('ACCESS-DENIED');
+	}
+
+	/**
+	 * Status, download, chunk, and delete are limited to the upload owner.
+	 * A site admin may use any upload.
+	 */
+	private function _require_upload_owner($upload_id)
+	{
+		if ($this->is_admin()) {
+			return;
+		}
+
+		$metadata = $this->uploader->get_upload_metadata($upload_id);
+		if (!$metadata) {
+			throw new Exception('UPLOAD_NOT_FOUND');
+		}
+
+		$owner = isset($metadata['_upload_owner_user_id']) ? (int) $metadata['_upload_owner_user_id'] : 0;
+		if ($owner < 1 || $owner !== (int) $this->get_api_user_id()) {
+			throw new Exception('ACCESS-DENIED');
+		}
+	}
+
+	/**
+	 * @return bool
+	 */
+	private function _caller_may_start_upload()
+	{
+		if ($this->is_admin()) {
+			return true;
+		}
+
+		$user = $this->ion_auth->get_user((int) $this->get_api_user_id());
+		if (empty($user) || empty($user->id)) {
+			return false;
+		}
+
+		$global = array(
+			array('study', 'edit'),
+			array('study', 'create'),
+			array('configurations', 'edit'),
+			array('table', 'edit'),
+			array('datadeposit', 'edit'),
+		);
+		foreach ($global as $pair) {
+			if ($this->acl_manager->user_has_access($pair[0], $pair[1], $user)) {
+				return true;
+			}
+		}
+
+		$roles = $this->acl_manager->get_user_roles($user->id);
+		foreach ($this->acl_manager->get_roles_permissions(array_keys($roles)) as $perm) {
+			$resource = isset($perm['resource']) ? (string) $perm['resource'] : '';
+			$privileges = isset($perm['permissions']) ? (array) $perm['permissions'] : array();
+			if (preg_match('/^.+-study$/', $resource)
+				&& (in_array('edit', $privileges, true) || in_array('create', $privileges, true))) {
+				return true;
+			}
+		}
+
+		$uid = (int) $user->id;
+		$slugs = array_merge(
+			$this->acl_manager->repositories_acl_repository_slugs_for_user_permission_prefix($uid, 'study_'),
+			$this->acl_manager->repositories_acl_repository_slugs_for_user_permission_prefix($uid, 'collection_')
+		);
+		foreach (array_unique($slugs) as $slug) {
+			if ($this->acl_manager->user_has_access('study', 'edit', $user, $slug)
+				|| $this->acl_manager->user_has_access('study', 'create', $user, $slug)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
 

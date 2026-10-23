@@ -569,11 +569,12 @@ class Resumable_upload {
 	}
 	
 	/**
-	 * Cleanup expired uploads
-	 * 
+	 * Cleanup expired uploads.
+	 *
+	 * @param int|null $owner_user_id When set, only that user's uploads are removed
 	 * @return array Statistics
 	 */
-	public function cleanup_expired_uploads()
+	public function cleanup_expired_uploads($owner_user_id = null)
 	{
 		$stats = array(
 			'checked' => 0,
@@ -603,11 +604,14 @@ class Resumable_upload {
 				continue;
 			}
 			
-			$stats['checked']++;
-			
 			// Check metadata
 			$metadata_path = unix_path($upload_path . '/metadata.json');
 			if (!file_exists($metadata_path)) {
+				// No owner recorded; a scoped cleanup leaves these for the full cleanup
+				if ($owner_user_id !== null) {
+					continue;
+				}
+				$stats['checked']++;
 				// No metadata, delete if old enough
 				if (@filemtime($upload_path) < $expiry_time) {
 					if ($this->delete_directory($upload_path)) {
@@ -623,6 +627,15 @@ class Resumable_upload {
 			if (!$metadata) {
 				continue;
 			}
+
+			if ($owner_user_id !== null) {
+				$owner = isset($metadata['_upload_owner_user_id']) ? (int) $metadata['_upload_owner_user_id'] : 0;
+				if ($owner !== (int) $owner_user_id) {
+					continue;
+				}
+			}
+
+			$stats['checked']++;
 			
 			// Delete expired uploads (complete or incomplete)
 			// For completed uploads, use completed_at if available, otherwise updated_at
