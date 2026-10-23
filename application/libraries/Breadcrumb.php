@@ -643,10 +643,6 @@ class Breadcrumb
 					$breadcrumbs['admin/catalog/edit/'.$segments[5]]=$this->get_study_title($segments[5]);
 					$breadcrumbs['admin/menu/add/']=t('add_new_resource');
 				break;
-
-				case 'upload':
-					$breadcrumbs['admin/resources/upload/'.$segments[4]]=t('upload_resources');
-				break;
 			}
 		}
 		

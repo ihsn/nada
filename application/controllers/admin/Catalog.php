@@ -1611,7 +1611,8 @@ class Catalog extends MY_Controller {
 				'apiBaseUrl'          => site_url('api/admin/catalog/'),
 				'uploadsApiUrl'       => rtrim(site_url('api/uploads'), '/') . '/',
 				'resourcesEditBase'   => rtrim(site_url('admin/resources/edit'), '/'),
-				'managefilesEditBase' => rtrim(site_url('admin/managefiles/' . (int) $id . '/edit'), '/'),
+				// Read by the built files screen. Creates a resource for a file that has none yet.
+				'managefilesEditBase' => rtrim(site_url('admin/resources/edit/add/' . (int) $id), '/'),
 				'labels'              => array(
 					'name'                 => t('name'),
 					'size'                 => t('size'),
