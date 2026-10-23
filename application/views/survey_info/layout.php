@@ -101,11 +101,13 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 <div class="container-fluid page-header">
 <div class="container">
 <?php if(intval($published)===0):?>
-	<?php if($this->session->userdata('user_id')):?>
-		<div class="content-unpublished"><?php echo t('content_is_not_published');?></div>		
-	<?php else:?>	
-		<?php show_404();?>
-	<?php endif;?>
+	<?php
+		$_review_uid = $this->session->userdata('user_id');
+		if (empty($sid) || !$this->acl_manager->dataset_is_publicly_readable($sid, $_review_uid ? (int) $_review_uid : null)) {
+			show_404();
+		}
+	?>
+	<div class="content-unpublished"><?php echo t('content_is_not_published');?></div>
 <?php endif;?>
 
 
