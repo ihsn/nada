@@ -30,7 +30,7 @@
 	/**
    	* Track the number of failed login attempts for each user or ip. 
    	**/
-	$config['track_login_attempts'] = FALSE;
+	$config['track_login_attempts'] = TRUE;
 	
 	/**
 	* Set the maximum number of failed login attempts.
@@ -49,7 +49,7 @@
 	 * false - the time between requests is not throttled
 	 *  
 	 */
-	$config['forgot_password_throttle'] = false;
+	$config['forgot_password_throttle'] = true;
 
 	
 	/**

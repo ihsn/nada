@@ -270,7 +270,6 @@ class DefaultAuth implements AuthInterface
 				if ($max_login_limit)
 				{
 					$this->ci->session->set_flashdata('error', t("max_login_attempted"));
-					sleep(3);
 					redirect("auth/login");
 				}
 			}
@@ -280,6 +279,7 @@ class DefaultAuth implements AuthInterface
 
 			if ($user==false)
 			{
+				$this->ci->ion_auth_model->increase_login_attempts($email);
 				//failed login, redirect to login page
 	        	$this->ci->session->set_flashdata('error', t("login_failed"));
 				$this->ci->db_logger->write_log('login-failed',$email);

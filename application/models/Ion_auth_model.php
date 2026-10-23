@@ -760,8 +760,14 @@ class Ion_auth_model extends CI_Model
 	 **/
 	public function login($identity, $password, $remember=FALSE)
 	{
-	    if (empty($identity) || empty($password) || !$this->identity_check($identity))
+	    if (empty($identity) || empty($password))
 	    {
+	        return FALSE;
+	    }
+
+	    if (!$this->identity_check($identity))
+	    {
+	        $this->increase_login_attempts($identity);
 	        return FALSE;
 	    }
 
@@ -814,7 +820,8 @@ class Ion_auth_model extends CI_Model
     		    {
     		    	$this->remember_user($result->id);
     		    }
-    		    
+
+    		    $this->clear_login_attempts($identity, 0);
     		    return TRUE;
     		}
         }
@@ -1478,15 +1485,16 @@ class Ion_auth_model extends CI_Model
 	{
 		if ($this->config->item('track_login_attempts')) 
 		{
-			$ip_address = $this->input->ip_address();
+			if (!is_string($identity) || $identity === '') {
+				return;
+			}
 
-			$this->db->where(array('ip_address' => $ip_address, 'login' => $identity));
-			// Purge obsolete login attempts
-			$this->db->where('time <', time() - $expire_period);
+			$this->db->where('login', $identity);
+			if ((int) $expire_period > 0) {
+				$this->db->where('time <', time() - (int) $expire_period);
+			}
 
 			$this->db->delete($this->tables['login_attempts']);
-			//echo date("H:i:s",time()- $expire_period);
-			//echo $this->db->last_query();exit;
 		}
 	}
 	
@@ -1541,10 +1549,7 @@ class Ion_auth_model extends CI_Model
 	 */
 	function get_attempts_num($identity)
 	{
-		$ip_address = $this->input->ip_address();
-
 		$this->db->select('1', FALSE);
-		//$this->db->where('ip_address', $ip_address);
 		if (strlen($identity) > 0) $this->db->where('login', $identity);
 
 		$qres = $this->db->get($this->tables['login_attempts']);

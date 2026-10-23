@@ -67,7 +67,6 @@ class AzureAuth extends DefaultAuth implements AuthInterface {
 				if ($max_login_limit)
 				{
 					$this->ci->session->set_flashdata('error', t("max_login_attempted"));
-					sleep(3);
 					redirect("auth/login");
 				}
 			}
