@@ -421,6 +421,9 @@ class Users extends MY_Controller {
 		$data = array('active' => (int) $status);
 		if ((int) $status === 1) {
 			$data['activation_code'] = '';
+			$data['activation_code_expiry'] = null;
+			$data['activation_attempt_count'] = 0;
+			$data['activation_attempt_ts'] = null;
 		}
 		$this->db->where('id', (int) $user_id);
 		return $this->db->update('users', $data);

@@ -172,28 +172,33 @@ class Ion_auth_model extends CI_Model
 		$result=FALSE;
 	    if ($code != false) 
 	    {  
-		    $query = $this->db->select($this->identity_column)
-	        	->where('activation_code', $code)
-	        	->limit(1)
-	        	->get($this->tables['users']);
-
-			$result = $query->row();
-
-			if ($query->num_rows() !== 1)
-			{
-				log_message('error', "account activate failed: id=$id, code=$code");
+			$user_id = (int) $id;
+			if ($user_id < 1) {
 				return FALSE;
 			}
-		    
-			$identity = $result->{$this->identity_column};
-			
-			$data = array(
-				'activation_code' => '',
-				'active'          => 1
-			);
+
+			$this->db->where('id', $user_id);
+			$this->db->where($this->ion_auth->_extra_where);
+			$user = $this->db->get($this->tables['users'])->row();
+			if (!$user) {
+				return FALSE;
+			}
+
+			if ($this->_activation_attempts_throttled($user)) {
+				log_message('error', 'account activate throttled: id='.$user_id);
+				return FALSE;
+			}
+
+			if (!$this->_activation_code_matches($user, $code) || $this->_activation_code_expired($user)) {
+				$this->_record_activation_attempt($user);
+				log_message('error', 'account activate failed: id='.$user_id);
+				return FALSE;
+			}
+
+			$data = $this->_activation_clear_fields(1);
 
 			$this->db->where($this->ion_auth->_extra_where);
-			$result=$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
+			$result=$this->db->update($this->tables['users'], $data, array('id' => $user_id));
 	    }
 	    else 
 	    {
@@ -203,10 +208,7 @@ class Ion_auth_model extends CI_Model
 				return false;
 			}
 
-			$data = array(
-				'activation_code' => '',
-				'active' => 1
-			);
+			$data = $this->_activation_clear_fields(1);
 		   
 			$this->db->where($this->ion_auth->_extra_where);
 			$result=$this->db->update($this->tables['users'], $data, array('id' => $id));
@@ -229,11 +231,14 @@ class Ion_auth_model extends CI_Model
 	        return FALSE;
 	    }
 	    
-		$activation_code       = sha1(md5(microtime()));
+		$activation_code       = bin2hex(random_bytes(32));
 		$this->activation_code = $activation_code;
 		
 		$data = array(
-			'activation_code' => $activation_code,
+			'activation_code' => hash('sha256', $activation_code),
+			'activation_code_expiry' => time() + (48 * 3600),
+			'activation_attempt_count' => 0,
+			'activation_attempt_ts' => null,
 			'active'          => 0
 		);
         
@@ -522,9 +527,8 @@ class Ion_auth_model extends CI_Model
 			return FALSE;
 		}
 		
-		$update_data = array(
-			'activation_code' => null
-		);
+		$update_data = $this->_activation_clear_fields(null);
+		$update_data['activation_code'] = null;
 		
 		if (!empty($user->activation_code)) {
 			$update_data['active'] = 1;
@@ -1959,6 +1963,109 @@ class Ion_auth_model extends CI_Model
 
 		$this->db->where('email',$email);
 		return $this->db->update('users',$options);		
+	}
+
+	/**
+	 * Fields cleared once a code is used, replaced, or an admin activates the account.
+	 *
+	 * @param int|null $active
+	 * @return array
+	 */
+	private function _activation_clear_fields($active)
+	{
+		$data = array(
+			'activation_code' => '',
+			'activation_code_expiry' => null,
+			'activation_attempt_count' => 0,
+			'activation_attempt_ts' => null,
+		);
+		if ($active !== null) {
+			$data['active'] = (int) $active;
+		}
+		return $data;
+	}
+
+	/**
+	 * New codes are sha256 of the mailed value. Older rows still store the mailed value.
+	 *
+	 * @param object $user
+	 * @param string $code
+	 * @return bool
+	 */
+	private function _activation_code_matches($user, $code)
+	{
+		$stored = isset($user->activation_code) ? (string) $user->activation_code : '';
+		$code = (string) $code;
+		if ($stored === '' || $code === '') {
+			return false;
+		}
+
+		$hashed = hash('sha256', $code);
+		if (strlen($stored) === strlen($hashed) && hash_equals($stored, $hashed)) {
+			return true;
+		}
+
+		if (strlen($stored) === 40 && strlen($code) === 40 && hash_equals($stored, $code)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Rows written before expiry existed have an empty expiry and stay valid until used.
+	 *
+	 * @param object $user
+	 * @return bool
+	 */
+	private function _activation_code_expired($user)
+	{
+		if (!isset($user->activation_code_expiry) || $user->activation_code_expiry === null || $user->activation_code_expiry === '') {
+			return false;
+		}
+
+		return (int) $user->activation_code_expiry < time();
+	}
+
+	/**
+	 * Ten failures inside fifteen minutes. The window starts at the first failure.
+	 *
+	 * @param object $user
+	 * @return bool
+	 */
+	private function _activation_attempts_throttled($user)
+	{
+		$count = isset($user->activation_attempt_count) ? (int) $user->activation_attempt_count : 0;
+		$ts = isset($user->activation_attempt_ts) ? (int) $user->activation_attempt_ts : 0;
+		if ($count < 10 || $ts < 1) {
+			return false;
+		}
+
+		return (time() - $ts) < 900;
+	}
+
+	/**
+	 * @param object $user
+	 * @return void
+	 */
+	private function _record_activation_attempt($user)
+	{
+		$count = isset($user->activation_attempt_count) ? (int) $user->activation_attempt_count : 0;
+		$ts = isset($user->activation_attempt_ts) ? (int) $user->activation_attempt_ts : 0;
+		$now = time();
+
+		if ($ts < 1 || ($now - $ts) >= 900) {
+			$count = 1;
+			$ts = $now;
+		} else {
+			$count++;
+		}
+
+		$this->db->where('id', (int) $user->id);
+		$this->db->update($this->tables['users'], array(
+			'activation_attempt_count' => $count,
+			'activation_attempt_ts' => $ts,
+		));
 	}
 
 
