@@ -3,47 +3,95 @@
 
 /**
  * Password Hashing wrapper class
- * 
  *
- *
+ * New hashes are bcrypt at a fixed cost. Older phpass hashes ($P$ / $H$)
+ * still verify, and the caller replaces them after a successful check.
  *
  * @subpackage	Libraries
  *
- */ 
+ */
 class Password_hasher{
-    
-	private $hasher=NULL;
-	
+
+	const BCRYPT_COST = 12;
+	const MAX_PASSWORD_BYTES = 72;
+
+	private $legacy_hasher=NULL;
+
 	function __construct($params=NULL)
 	{
-		//load Portable PHP password hashing framework
 		require_once APPPATH."libraries/PasswordHash.php";
-		
-		# Try to use stronger but system-specific hashes, with a possible fallback to
-		# the weaker portable hashes.
-		$this->hasher = new PasswordHash(8, FALSE);		
+		$this->legacy_hasher = new PasswordHash(8, TRUE);
 	}
-	
+
 	//create a hashed password
 	public function hash_password($password)
 	{
-		if (strlen($password)>72)
+		if (!$this->acceptable_password($password))
 		{
 			return FALSE;
 		}
-		
-		return $this->hasher->HashPassword($password);
+
+		return password_hash($password, PASSWORD_BCRYPT, array('cost' => self::BCRYPT_COST));
 	}
-	
+
 	//check if password matches the hash
 	public function check_password($password,$hash)
 	{
-		if (strlen($password)>72)
+		if (!$this->acceptable_password($password) || !is_string($hash) || $hash === '')
 		{
 			return FALSE;
 		}
-		
-		return $this->hasher->CheckPassword($password, $hash);
+
+		if (password_verify($password, $hash))
+		{
+			return TRUE;
+		}
+
+		if ($this->is_legacy_phpass($hash))
+		{
+			return $this->legacy_hasher->CheckPassword($password, $hash);
+		}
+
+		return FALSE;
+	}
+
+	/**
+	 * True when a verified hash should be stored again with the current algorithm.
+	 *
+	 * @param string $hash
+	 * @return bool
+	 */
+	public function needs_rehash($hash)
+	{
+		if (!is_string($hash) || $hash === '')
+		{
+			return FALSE;
+		}
+
+		if ($this->is_legacy_phpass($hash))
+		{
+			return TRUE;
+		}
+
+		return password_needs_rehash($hash, PASSWORD_BCRYPT, array('cost' => self::BCRYPT_COST));
+	}
+
+	/**
+	 * @param string $password
+	 * @return bool
+	 */
+	private function acceptable_password($password)
+	{
+		return is_string($password) && $password !== '' && strlen($password) <= self::MAX_PASSWORD_BYTES;
+	}
+
+	/**
+	 * @param string $hash
+	 * @return bool
+	 */
+	private function is_legacy_phpass($hash)
+	{
+		return strncmp($hash, '$P$', 3) === 0 || strncmp($hash, '$H$', 3) === 0;
 	}
 
 }

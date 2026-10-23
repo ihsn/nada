@@ -1439,7 +1439,7 @@ INSERT INTO `configurations` VALUES ('lang','en-us','Site Language','Site Langua
 INSERT INTO `configurations` VALUES ('language','english',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('login_timeout','40','Login timeout (minutes)',NULL,NULL);
 INSERT INTO `configurations` VALUES ('mail_protocol','smtp','Select method for sending emails','Supported protocols: MAIL, SMTP, SENDMAIL',NULL);
-INSERT INTO `configurations` VALUES ('min_password_length','5','Minimum password length',NULL,NULL);
+INSERT INTO `configurations` VALUES ('min_password_length','8','Minimum password length',NULL,NULL);
 INSERT INTO `configurations` VALUES ('news_feed_url','http://ihsn.org/nada/index.php?q=news/feed','','','');
 INSERT INTO `configurations` VALUES ('regional_search','no','Enable regional search',NULL,NULL);
 INSERT INTO `configurations` VALUES ('regional_search_weight','3',NULL,NULL,NULL);

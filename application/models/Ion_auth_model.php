@@ -108,6 +108,28 @@ class Ion_auth_model extends CI_Model
 	    
 		return $this->password_hasher->hash_password($password);		
 	}
+
+	/**
+	 * Replace a verified legacy hash with the current bcrypt hash.
+	 *
+	 * @param string $identity
+	 * @param string $password
+	 * @param string $stored_hash
+	 * @return void
+	 */
+	private function upgrade_stored_password($identity, $password, $stored_hash)
+	{
+		if (!$this->password_hasher->needs_rehash($stored_hash))
+		{
+			return;
+		}
+
+		$replacement = $this->hash_password($password);
+		if ($replacement)
+		{
+			$this->set_password($identity, $replacement);
+		}
+	}
 	
 	/**
 	 * This function takes a password and validates it
@@ -324,7 +346,11 @@ class Ion_auth_model extends CI_Model
 			else
 			{
 				//use default mroe complex password hashing
-				$password_validated=$this->password_hasher->check_password($password,$hash=$result->password);
+				$password_validated=$this->password_hasher->check_password($password,$result->password);
+				if ($password_validated)
+				{
+					$this->upgrade_stored_password($identity, $password, $result->password);
+				}
 			}
 			
 			if ($password_validated)
@@ -798,7 +824,11 @@ class Ion_auth_model extends CI_Model
 			else
 			{
 				//use default mroe complex password hashing
-				$password_validated=$this->password_hasher->check_password($password,$hash=$result->password);
+				$password_validated=$this->password_hasher->check_password($password,$result->password);
+				if ($password_validated)
+				{
+					$this->upgrade_stored_password($identity, $password, $result->password);
+				}
 			}
 			
 			//$password = $this->hash_password_db($identity, $password);

@@ -93,12 +93,12 @@
 	/**
 	 * Minimum Required Length of Password
 	 **/
-	$config['min_password_length'] = 5;
+	$config['min_password_length'] = 8;
 	
 	/**
 	 * Maximum Allowed Length of Password
 	 **/
-	$config['max_password_length'] = 20;	
+	$config['max_password_length'] = 72;	
 
 	/**
 	 * Enable complex password
