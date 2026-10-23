@@ -309,10 +309,12 @@ class Ion_auth_model extends CI_Model
 			if (strlen($result->password)==32)
 			{
 				//use MD5 for old accounts
-				$password_validated=$result->password === md5($password);
-				
-				//upgrade account password				
-				$this->set_password($identity,$this->hash_password($password));
+				$password_validated=hash_equals($result->password, md5($password));
+
+				if ($password_validated)
+				{
+					$this->set_password($identity,$this->hash_password($password));
+				}
 			}
 			else
 			{
@@ -776,10 +778,12 @@ class Ion_auth_model extends CI_Model
 			if (strlen($result->password)==32)
 			{
 				//use MD5 for old accounts
-				$password_validated=$result->password === md5($password);
-				
-				//upgrade account password				
-				$this->set_password($identity,$this->hash_password($password));
+				$password_validated=hash_equals($result->password, md5($password));
+
+				if ($password_validated)
+				{
+					$this->set_password($identity,$this->hash_password($password));
+				}
 			}
 			else
 			{
