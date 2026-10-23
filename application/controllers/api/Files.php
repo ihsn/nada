@@ -85,6 +85,13 @@ class Files extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($dataset_idno);
 			$this->has_dataset_access('edit',$sid);
 
+			if(is_numeric($resource_id)){
+				$resource=$this->Survey_resource_model->get_single_resource_by_survey($sid,$resource_id);
+				if(!$resource){
+					throw new Exception("RESOURCE_NOT_FOUND");
+				}
+			}
+
 			$result=$this->Survey_resource_model->upload_file($sid,$file_field_name='file', $remove_spaces=false);
 
 			$uploaded_file_name=$result['file_name'];
