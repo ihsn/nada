@@ -11,11 +11,12 @@ class Solr extends CI_Controller {
 
 	function index()
 	{
+		$this->load->helper('form');
 		echo '<h2>Solr Management</h2>';
 		echo '<ul>';
-		echo '<li><a href="'.site_url('solr/import_surveys_batch/0/50').'">Index all datasets</a></li>';
-		echo '<li><a href="'.site_url('solr/import_variables_batch').'">Index variables</a></li>';
-		echo '<li><a href="'.site_url('solr/clear_index').'">clear index</a></li>';
+		echo '<li>'.form_open('solr/import_surveys_batch/0/50').form_submit('submit', 'Index all datasets').form_close().'</li>';
+		echo '<li>'.form_open('solr/import_variables_batch').form_submit('submit', 'Index variables').form_close().'</li>';
+		echo '<li>'.form_open('solr/clear_index').form_submit('submit', 'clear index').form_close().'</li>';
 		echo '<li><a href="'.site_url('solr/commit').'">commit</a></li>';
 		echo '<li><a href="'.site_url('solr/get_total_documents_count').'">get total documents count</a></li>';
 		echo '<li><a href="'.site_url('solr/sync_solr_with_db').'">sync solr with db</a></li>';
@@ -32,7 +33,8 @@ class Solr extends CI_Controller {
 	 *
 	 * */
 	public function import_surveys_batch($start_row=NULL, $limit=10, $loop=FALSE)
-	{		
+	{
+        $this->_require_post();
         $result=$this->solr_manager->import_surveys_batch($start_row, $limit, false);
         
         var_dump($result);
@@ -60,6 +62,7 @@ class Solr extends CI_Controller {
 	 *
 	 **/
 	function clear_index(){
+		$this->_require_post();
 		$this->solr_manager->clear_index();
 	}
 
@@ -84,6 +87,7 @@ class Solr extends CI_Controller {
 	 * */
 	public function import_variables_by_survey_batch($survey_id, $start_row=0, $limit=200, $loop=TRUE)
 	{
+		$this->_require_post();
 		$result = $this->solr_manager->import_variables_by_survey_batch($survey_id, $start_row, $limit, $loop);
 
         var_dump($result);
@@ -104,6 +108,7 @@ class Solr extends CI_Controller {
 	 * */
 	public function import_variables_batch($start_row=NULL, $limit=100, $loop=FALSE)
 	{
+		$this->_require_post();
 		$result=$this->solr_manager->import_variables_batch($start_row, $limit, false);
 
         var_dump($result);
@@ -126,6 +131,7 @@ class Solr extends CI_Controller {
 	 * */
 	public function import_citations_batch($start_row=NULL, $limit=100, $loop=TRUE)
 	{
+		$this->_require_post();
 		$this->solr_manager->import_citations_batch($start_row, $limit, $loop);
 	}
 
@@ -146,6 +152,13 @@ class Solr extends CI_Controller {
 	function commit()
 	{
 		$this->solr_manager->commit_index_changes();
+	}
+
+	private function _require_post()
+	{
+		if (strtoupper((string) $this->input->server('REQUEST_METHOD')) !== 'POST') {
+			show_error('The action you have requested is not allowed.', 405);
+		}
 	}
 
 }

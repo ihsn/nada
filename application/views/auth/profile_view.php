@@ -55,7 +55,9 @@
         </div>
         <div class="col-md-4">
             <?php if (is_array($api_keys) && count($api_keys) < 5 || !is_array($api_keys)) : ?>                
-            <a href="<?php echo site_url('auth/generate_api_key'); ?>" class="btn btn-primary btn-sm float-right"><?php echo t('generate_api_key'); ?></a>
+            <?php echo form_open('auth/generate_api_key', array('class' => 'float-right mb-0')); ?>
+            <button type="submit" class="btn btn-primary btn-sm"><?php echo t('generate_api_key'); ?></button>
+            <?php echo form_close(); ?>
             <?php endif; ?>
         </div>
     </div>
@@ -125,11 +127,10 @@
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <a href="<?php echo site_url('auth/delete_api_key') . '?key_id=' . urlencode($key_data['id']); ?>" 
-                                           class="text-danger" 
-                                           onclick="return confirm('<?php echo t('confirm_delete_api_key'); ?>');">
-                                            <?php echo t('delete'); ?>
-                                        </a>
+                                        <?php echo form_open('auth/delete_api_key', array('class' => 'd-inline mb-0', 'onsubmit' => "return confirm('" . t('confirm_delete_api_key') . "');")); ?>
+                                        <input type="hidden" name="key_id" value="<?php echo html_escape($key_data['id']); ?>">
+                                        <button type="submit" class="btn btn-link text-danger p-0 align-baseline"><?php echo t('delete'); ?></button>
+                                        <?php echo form_close(); ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

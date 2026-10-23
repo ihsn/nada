@@ -18,6 +18,7 @@ class DefaultAuth implements AuthInterface
         $this->ci->load->library('form_validation');
         $this->ci->load->database();
         $this->ci->load->helper('url');
+        $this->ci->load->helper('form');
     	$this->ci->load->helper('admin_notifications');
 
     	$this->ci->template->set_template('default');
@@ -48,10 +49,30 @@ class DefaultAuth implements AuthInterface
 		header( 'Cache-Control: post-check=0, pre-check=0', false );
 		header( 'Pragma: no-cache' );
 	}
+
+	/**
+	 * Auth URLs are outside the global CSRF check. These account changes
+	 * accept a POST whose token matches the CSRF cookie.
+	 */
+	private function _require_post_with_csrf()
+	{
+		if (strtoupper((string) $this->ci->input->server('REQUEST_METHOD')) !== 'POST') {
+			show_error('The action you have requested is not allowed.', 405);
+		}
+
+		$token_name = $this->ci->security->get_csrf_token_name();
+		$posted = isset($_POST[$token_name]) ? $_POST[$token_name] : '';
+		$hash = $this->ci->security->get_csrf_hash();
+
+		if (!is_string($posted) || $posted === '' || !is_string($hash) || !hash_equals($hash, $posted)) {
+			show_error('The action you have requested is not allowed.', 403);
+		}
+	}
 	
 	function generate_api_key()
 	{
 		$this->_is_logged_in();
+		$this->_require_post_with_csrf();
 
 		//check if user already has 5 api keys
 		$api_keys=$this->ci->ion_auth->get_api_keys($this->ci->session->userdata('user_id'));
@@ -77,11 +98,12 @@ class DefaultAuth implements AuthInterface
 	function delete_api_key()
 	{
 		$this->_is_logged_in();
+		$this->_require_post_with_csrf();
 		
 		// Support both key_id (new) and api_key (legacy) for backward compatibility
-		$key_identifier = $this->ci->input->get("key_id");
+		$key_identifier = $this->ci->input->post("key_id");
 		if (!$key_identifier) {
-			$key_identifier = $this->ci->input->get("api_key"); // Legacy support
+			$key_identifier = $this->ci->input->post("api_key"); // Legacy support
 		}
 		
 		if ($key_identifier) {
@@ -554,6 +576,10 @@ class DefaultAuth implements AuthInterface
 	function activate($id=NULL, $code=false)
 	{
 		$this->disable_page_cache();
+		// Email links carry a code and stay GET. Activating by user id does not.
+		if ($code == false) {
+			$this->_require_post_with_csrf();
+		}
 		$activation = $this->ci->ion_auth->activate($id, $code);
 
 		//always return true
@@ -570,6 +596,7 @@ class DefaultAuth implements AuthInterface
 	function deactivate($id)
 	{
 		$this->disable_page_cache();
+		$this->_require_post_with_csrf();
 		if ($this->ci->ion_auth->logged_in() && $this->ci->ion_auth->is_admin())
 		{
 	        //de-activate the user

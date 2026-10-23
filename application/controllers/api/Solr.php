@@ -41,7 +41,7 @@ class Solr extends MY_REST_Controller
 	 * @limit number of records to read at a time
 	 *
 	 * */
-	public function import_surveys_batch_get($start_row=NULL, $limit=10)
+	public function import_surveys_batch_post($start_row=NULL, $limit=10)
 	{
         $debug = $this->get('debug') === 'true' || $this->get('debug') === true;
         
@@ -125,7 +125,7 @@ class Solr extends MY_REST_Controller
 	 * @internal_batch_size number of rows to fetch per database query (default: 100)
 	 *
 	 * */
-	public function import_variables_batch_get($start_row=0, $limit=100)
+	public function import_variables_batch_post($start_row=0, $limit=100)
 	{
         $debug = $this->get('debug') === 'true' || $this->get('debug') === true;
         $max_time_seconds = (int)$this->get('max_time_seconds');
@@ -275,7 +275,7 @@ class Solr extends MY_REST_Controller
      * @param int $start_row Starting variable row number (default: 0)
      * @param int $limit Number of variables per batch (default: 200)
      */
-    public function import_variables_by_survey_batch_get($survey_id, $start_row=0, $limit=200)
+    public function import_variables_by_survey_batch_post($survey_id, $start_row=0, $limit=200)
     {
         try{            
             $auto_process_all = ($start_row == 0 && $limit == 200);
@@ -309,7 +309,7 @@ class Solr extends MY_REST_Controller
 	 * @limit number of records to read at a time
 	 *
 	 * */
-	public function import_citations_batch_get($start_row=0, $limit=5000)
+	public function import_citations_batch_post($start_row=0, $limit=5000)
 	{
         try{
 			$output=$this->solr_manager->import_citations_batch($start_row, $limit, $loop=false);
@@ -407,7 +407,7 @@ class Solr extends MY_REST_Controller
     }
 
 
-    public function clear_index_get()
+    public function clear_index_post()
     {        
         try{
             $output=$this->solr_manager->clear_index();
@@ -1006,9 +1006,9 @@ class Solr extends MY_REST_Controller
     
     /**
      * Create a new Solr core
-     * GET /api/solr/core_create/{core_name}?instance_dir={dir}&config_set={set}
+     * POST /api/solr/core_create/{core_name}?instance_dir={dir}&config_set={set}
      */
-    public function core_create_get($core_name)
+    public function core_create_post($core_name)
     {
         try{
             $instance_dir = $this->get('instance_dir') ?: $core_name;
@@ -1173,9 +1173,9 @@ class Solr extends MY_REST_Controller
     
     /**
      * Delete/unload a Solr core
-     * GET /api/solr/core_delete/{core_name}?delete_index=true&delete_data_dir=true&delete_instance_dir=true
+     * POST /api/solr/core_delete/{core_name}?delete_index=true&delete_data_dir=true&delete_instance_dir=true
      */
-    public function core_delete_get($core_name)
+    public function core_delete_post($core_name)
     {
         try{
             $delete_index = $this->get('delete_index') !== 'false';

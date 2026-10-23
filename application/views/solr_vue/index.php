@@ -1921,7 +1921,7 @@
                     
                     let url=CI.base_url + '/api/solr/clear_index';
                     vm=this;
-                    axios.get(url)
+                    axios.post(url)
                     .then(function (response) {
                         console.log(response);
                         vm.pingSolr();
@@ -2117,7 +2117,7 @@
                     
                     let url=CI.base_url + '/api/solr/import_surveys_batch/'+start_row + '/'+limit;
                     vm=this;
-                    axios.get(url)
+                    axios.post(url)
                     .then(function (response) {
                         // Check if processing was stopped during request
                         if (!vm.indexing_running) {
@@ -2176,7 +2176,7 @@
                     
                     let url=CI.base_url + '/api/solr/import_variables_batch/'+start_row + '/'+limit;
                     vm=this;
-                    axios.get(url)
+                    axios.post(url)
                     .then(function (response) {
                         // Check if processing was stopped during request
                         if (!vm.var_processing) {
@@ -2232,7 +2232,7 @@
 
                     let url = CI.base_url + '/api/solr/import_citations_batch/' + start_row + '/' + limit;
                     let vm = this;
-                    axios.get(url)
+                    axios.post(url)
                     .then(function(response) {
                         if (!vm.citation_processing) {
                             return;
@@ -2322,7 +2322,7 @@
                     let url = CI.base_url + '/api/solr/import_variables_by_survey_batch/' + survey_id + '/' + start_id + '/' + chunk_size;
                     vm = this;
                     
-                    axios.get(url)
+                    axios.post(url)
                     .then(function (response) {
                         // Check again if processing was stopped during the request
                         if (!vm.survey_var_processing) {
@@ -3119,7 +3119,7 @@
                     let url = CI.base_url + '/api/solr/core_create/' + encodeURIComponent(this.configured_core);
                     let vm = this;
                     
-                    axios.get(url)
+                    axios.post(url)
                         .then(function (response) {
                             console.log('Core created:', response);
                             if (response.data.status === 'success') {
