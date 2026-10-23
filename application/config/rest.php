@@ -186,7 +186,6 @@ $config['auth_library_function'] = '';
 
 //no authentication required
 $config['auth_override_class_method']['catalog']['*'] = 'none';
-$config['auth_override_class_method']['auth']['*'] = 'none';
 
 // Tables API: public read endpoints only
 $config['auth_override_class_method']['tables']['index'] = 'none';
