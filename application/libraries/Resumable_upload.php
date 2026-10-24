@@ -444,7 +444,7 @@ class Resumable_upload {
 		}
 		
 		foreach ($dirs as $dir) {
-			if ($dir == '.' || $dir == '..') {
+			if (!$this->is_valid_upload_id($dir)) { // also skips . and .. and anything not created by init_upload
 				continue;
 			}
 			
@@ -518,7 +518,7 @@ class Resumable_upload {
 				break;
 			}
 			
-			if ($dir == '.' || $dir == '..') {
+			if (!$this->is_valid_upload_id($dir)) { // also skips . and .. and anything not created by init_upload
 				continue;
 			}
 			
@@ -594,7 +594,7 @@ class Resumable_upload {
 		}
 		
 		foreach ($dirs as $dir) {
-			if ($dir == '.' || $dir == '..') {
+			if (!$this->is_valid_upload_id($dir)) { // also skips . and .. and anything not created by init_upload
 				continue;
 			}
 			
@@ -1162,7 +1162,21 @@ class Resumable_upload {
 	 */
 	private function get_upload_path($upload_id)
 	{
+		// upload_id comes from the request; only accept the UUID form generate_upload_id() makes,
+		// so it cannot point outside temp_path.
+		if (!$this->is_valid_upload_id($upload_id)) {
+			throw new Exception("INVALID_INPUT: upload_id is not valid");
+		}
 		return unix_path($this->temp_path . '/' . $upload_id);
+	}
+
+	/**
+	 * TRUE for a lowercase UUID v4 string, the form generate_upload_id() returns.
+	 */
+	private function is_valid_upload_id($upload_id)
+	{
+		return is_string($upload_id)
+			&& preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/D', $upload_id) === 1;
 	}
 	
 	/**
