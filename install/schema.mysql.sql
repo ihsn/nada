@@ -708,7 +708,7 @@ INSERT INTO `codelist_item_translation` (`codelist_item_id`,`lang`,`title`) VALU
 INSERT INTO `codelist_group` (`id`,`codelist_id`,`name`,`sort_order`) VALUES
 (1,1,'questionnaires',10),
 (2,1,'reports',20),
-(3,1,'technical',30)
+(3,1,'technical',30);
 
 INSERT INTO `codelist_group_item` (`codelist_group_id`,`codelist_item_id`,`sort_order`) VALUES
 (1,4,0),
@@ -1995,9 +1995,11 @@ CREATE TABLE `search_index_queue` (
   `attempts` INT(11) NOT NULL DEFAULT 0,
   `last_error` VARCHAR(500) DEFAULT NULL,
   `changed` INT(11) NOT NULL,
+  `priority` SMALLINT NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_search_index_queue_object` (`object_type`, `object_id`),
-  KEY `idx_search_index_queue_status_changed` (`status`, `changed`)
+  KEY `idx_search_index_queue_status_changed` (`status`, `changed`),
+  KEY `idx_search_index_queue_status_priority` (`status`, `priority`, `changed`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `search_index_state` (
@@ -2006,7 +2008,23 @@ CREATE TABLE `search_index_state` (
   `object_key` VARCHAR(200) NOT NULL,
   `status` VARCHAR(16) NOT NULL,
   `changed` INT(11) NOT NULL,
+  `last_error` VARCHAR(500) NULL DEFAULT NULL,
+  `data_type` VARCHAR(32) NULL DEFAULT NULL,
   PRIMARY KEY (`object_type`, `object_id`),
   KEY `idx_search_index_state_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- one row: the engine and index the tracking rows describe (search_index_engine defaults to none)
+CREATE TABLE `search_index_meta` (
+  `id` INT(11) NOT NULL,
+  `engine` VARCHAR(32) NOT NULL,
+  `index_generation` VARCHAR(64) DEFAULT NULL,
+  `nada_ai_url` VARCHAR(255) DEFAULT NULL,
+  `tracked_since` INT(11) NOT NULL,
+  `last_sync_at` INT(11) DEFAULT NULL,
+  `last_poll_at` INT(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `search_index_meta` (`id`, `engine`, `tracked_since`) VALUES (1, 'none', UNIX_TIMESTAMP());
 

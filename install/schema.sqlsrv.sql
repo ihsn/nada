@@ -2193,10 +2193,12 @@ CREATE TABLE search_index_queue (
   attempts INT NOT NULL CONSTRAINT df_search_index_queue_attempts DEFAULT 0,
   last_error VARCHAR(500) NULL,
   changed INT NOT NULL,
+  priority SMALLINT NOT NULL CONSTRAINT df_search_index_queue_priority DEFAULT 0,
   PRIMARY KEY (id),
   CONSTRAINT uk_search_index_queue_object UNIQUE (object_type, object_id)
 );
 CREATE NONCLUSTERED INDEX idx_search_index_queue_status_changed ON search_index_queue (status, changed);
+CREATE NONCLUSTERED INDEX idx_search_index_queue_status_priority ON search_index_queue (status, priority, changed);
 
 CREATE TABLE search_index_state (
   object_type VARCHAR(32) NOT NULL,
@@ -2204,7 +2206,23 @@ CREATE TABLE search_index_state (
   object_key VARCHAR(200) NOT NULL,
   status VARCHAR(16) NOT NULL,
   changed INT NOT NULL,
+  last_error VARCHAR(500) NULL,
+  data_type VARCHAR(32) NULL,
   PRIMARY KEY (object_type, object_id)
 );
 CREATE NONCLUSTERED INDEX idx_search_index_state_status ON search_index_state (status);
+
+-- one row: the engine and index the tracking rows describe (search_index_engine defaults to none)
+CREATE TABLE search_index_meta (
+  id INT NOT NULL,
+  engine VARCHAR(32) NOT NULL,
+  index_generation VARCHAR(64) NULL,
+  nada_ai_url VARCHAR(255) NULL,
+  tracked_since INT NOT NULL,
+  last_sync_at INT NULL,
+  last_poll_at INT NULL,
+  PRIMARY KEY (id)
+);
+
+INSERT INTO search_index_meta (id, engine, tracked_since) VALUES (1, 'none', DATEDIFF(SECOND, '1970-01-01', GETUTCDATE()));
 
