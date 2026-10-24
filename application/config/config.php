@@ -18,17 +18,40 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 
+/*
+| allowed_hosts  Allowed Host names
+|                array('www.example.com', 'data.example.com', 'localhost', 'localhost:8080').
+|
+| site_protocol  'https' or 'http'. Empty = detect from the server ($_SERVER['HTTPS']),
+|
+*/
+
+$config['allowed_hosts'] = array();
+$config['site_protocol'] = '';
+
 if (!isset($_SERVER['HTTP_HOST']))
 {
 	$_SERVER['HTTP_HOST']='127.0.0.1';
 }
 
-//$config['base_url']	= "http://localhost/nada3/";
-$config['base_url'] = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http");
-$config['base_url'] .= "://".$_SERVER['HTTP_HOST'];
-$config['base_url'] .= str_replace(basename($_SERVER['SCRIPT_NAME']),"",$_SERVER['SCRIPT_NAME']);
+$_host = strtolower(trim($_SERVER['HTTP_HOST']));
+$_allowed_hosts = isset($config['allowed_hosts']) ? array_map('strtolower', (array) $config['allowed_hosts']) : array();
+
+if (count($_allowed_hosts) > 0 && !in_array($_host, $_allowed_hosts, true)) {
+	$_host = $_allowed_hosts[0];
+}
+
+$_protocol = isset($config['site_protocol']) ? strtolower(trim($config['site_protocol'])) : '';
+if ($_protocol !== 'http' && $_protocol !== 'https') {
+	$_protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https' : 'http';
+}
+
+$config['base_url'] = $_protocol . '://' . $_host
+	. str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
 
 
+// [Recommended] Set fixed base URL
+// $config['base_url'] = 'http://example.com/';
 
 /*
 |--------------------------------------------------------------------------
@@ -422,7 +445,7 @@ $config['cookie_prefix']	= '';
 $config['cookie_domain']	= '';
 $config['cookie_path']		= '/';
 $config['cookie_secure']	= FALSE;
-$config['cookie_httponly'] 	= FALSE;
+$config['cookie_httponly'] 	= TRUE;
 
 /*
 |--------------------------------------------------------------------------
