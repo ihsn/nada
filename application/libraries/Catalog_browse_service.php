@@ -15,6 +15,8 @@ class Catalog_browse_service {
 	public $active_repo_id = null;
 	public $active_tab = '';
 	public $facets = array();
+	/** dynamic: the facets were counted by nada-ai for this search; static: database facets per repository and tab. */
+	public $facet_mode = 'static';
 	public $enabled_filters = array();
 	public $filters_list = array();
 	public $regional_search = 'no';
@@ -22,6 +24,8 @@ class Catalog_browse_service {
 	public $da_search = 'no';
 	public $data_types_nav_bar = null;
 	public $search_box_orientation = 'default';
+	/** @var array|null Facet_model rows keyed by name, read once per request (see facet_rows()). */
+	private $facet_rows = null;
 
 	public function __construct()
 	{
@@ -35,7 +39,7 @@ class Catalog_browse_service {
 		$this->CI->load->model('Facet_model');
 		$this->CI->load->config('facets');
 		$this->CI->lang->load('catalog_search');
-		$this->filters_list = array_keys($this->CI->Facet_model->select_all());
+		$this->filters_list = array_keys($this->facet_rows());
 		$this->regional_search = ($this->CI->config->item('regional_search') === false) ? 'no' : $this->CI->config->item('regional_search');
 		$this->collection_search = ($this->CI->config->item('collection_search') === false) ? 'no' : $this->CI->config->item('collection_search');
 		$this->da_search = ($this->CI->config->item('da_search') === false) ? 'no' : $this->CI->config->item('da_search');
@@ -127,7 +131,7 @@ class Catalog_browse_service {
 
 		$this->facets['types'] = $this->CI->Search_helper_model->get_dataset_types($repo_id);
 
-		$facets_list = $this->CI->Facet_model->select_all();
+		$facets_list = $this->facet_rows();
 		foreach ($facets_list as $fc) {
 			if ($fc['facet_type'] === 'user') {
 				$this->facets[$fc['name']] = array(
@@ -188,7 +192,7 @@ class Catalog_browse_service {
 
 		$this->facets['types'] = $this->CI->Search_helper_model->get_dataset_types($repo_id);
 
-		$facets_list = $this->CI->Facet_model->select_all();
+		$facets_list = $this->facet_rows();
 		foreach ($facets_list as $fc) {
 			if ($fc['facet_type'] === 'user') {
 				$this->facets[$fc['name']] = array(
@@ -205,6 +209,42 @@ class Catalog_browse_service {
 				);
 			}
 		}
+	}
+
+	/** Facet_model rows keyed by name (the facets table), read once per request. */
+	protected function facet_rows()
+	{
+		if ($this->facet_rows === null) {
+			$this->facet_rows = $this->CI->Facet_model->select_all();
+		}
+		return $this->facet_rows;
+	}
+
+	/** Facet_model rows of the user-defined facets. */
+	protected function user_facet_rows()
+	{
+		return array_values(array_filter($this->facet_rows(), function ($fc) {
+			return $fc['facet_type'] === 'user';
+		}));
+	}
+
+	/**
+	 * The sidebar facets from nada-ai's counts for this search (facet_mode dynamic). The type facet and the tabs
+	 * keep their list of types, counted by the search.
+	 *
+	 * @param array $counts         the search result's facet_counts
+	 * @param array $counts_by_type the search result's search_counts_by_type
+	 */
+	protected function load_counted_facets(array $counts, array $counts_by_type)
+	{
+		$this->CI->load->library('catalog_facet_labels');
+		$types = $this->facets['types'] ?? array();
+		foreach ($types as $code => $type) {
+			$types[$code]['found'] = (int) ($counts_by_type[$code] ?? 0);
+		}
+		$this->facets = $this->CI->catalog_facet_labels->build($counts, $this->user_facet_rows());
+		$this->facets['types'] = $types;
+		$this->facet_mode = 'dynamic';
 	}
 
 	protected function is_facet_enabled($type, $facet)
@@ -268,18 +308,18 @@ class Catalog_browse_service {
 	}
 
 	/**
+	 * Run the search. The sidebar facets come from nada-ai when it counted them for this search (facet_mode dynamic:
+	 * always, whatever $load_facets says); otherwise from the database, per repository and tab, when $load_facets.
+	 *
 	 * @param bool $load_facets When false, skip sidebar facet DB queries (catalog_browse search-only).
 	 */
 	public function run_search($load_facets = true)
 	{
 		$keywords = trim((string) xss_clean($this->CI->input->get('sk')));
 
-		if ($load_facets) {
-			$this->load_facets_context();
-		} else {
-			$this->set_enabled_filters();
-			$this->load_search_facet_registry();
-		}
+		$this->facet_mode = 'static';
+		$this->set_enabled_filters();
+		$this->load_search_facet_registry();
 
 		$search_options = new StdClass();
 		$limit = $this->get_page_size();
@@ -420,6 +460,15 @@ class Catalog_browse_service {
 			$params['search_engine'] = 'database';
 		}
 
+		if ($search_options->view !== 'v') {
+			$this->CI->load->library('catalog_facet_labels');
+			$params['facet_request'] = $this->CI->catalog_facet_labels->request(
+				$this->enabled_filters,
+				array_column($this->user_facet_rows(), 'name'),
+				empty($this->active_repo_id) || $this->active_repo_id === 'central'
+			);
+		}
+
 		$this->CI->load->library('catalog_search', $params);
 		$data['is_regional_search'] = $this->regional_search;
 
@@ -435,6 +484,13 @@ class Catalog_browse_service {
 			$this->CI->load->helper('catalog');
 			$data['current_page'] = catalog_search_result_page($data['surveys'], $search_options->page);
 		}
+
+		if (isset($data['surveys']['facet_counts'])) {
+			$this->load_counted_facets($data['surveys']['facet_counts'], $data['surveys']['search_counts_by_type'] ?? array());
+		} elseif ($load_facets) {
+			$this->load_facets_data();
+		}
+		unset($data['surveys']['facet_counts']);
 
 		$data['search_options'] = $search_options;
 		$data['data_access_types'] = $this->facets['da_types'] ?? array();
@@ -577,7 +633,8 @@ class Catalog_browse_service {
 			'enabled_filters' => $this->enabled_filters,
 		);
 
-		if ($include_facets) {
+		$response['facet_mode'] = $this->facet_mode;
+		if ($include_facets || $this->facet_mode === 'dynamic') {
 			$response['facets'] = $this->facets;
 		}
 

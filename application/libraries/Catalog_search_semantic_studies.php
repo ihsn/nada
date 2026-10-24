@@ -7,10 +7,11 @@
  *
  * The search is done by nada-ai's engine-agnostic study search, POST /studies/search:
  *   1. NADA translates its request (keywords, sidebar filters, sort, page) into the API request. NADA resolves
- *      vocabulary (country names, ISO codes, regions, form codes, topics, timeseries databases) into ids; the
- *      API only matches ids.
+ *      vocabulary (country names, ISO codes, form codes) into ids; the API only matches ids.
  *   2. The API returns one page of studies as internal study ids (surveys.id), plus the number of studies found
- *      and the per-type tab counts. Both describe the relevant studies, not the whole filter universe.
+ *      and the per-type tab counts. Both describe the relevant studies, not the whole filter universe. When asked
+ *      ($facet_request) and nada-ai counts facets, it also returns the sidebar facet counts of the same studies
+ *      (result facet_counts, see nada-ai docs/studies-search-facets.md).
  *   3. NADA loads the rows of that page from its own database by id, in the order the API returned them, so the
  *      cards look the same whatever the engine.
  *
@@ -21,8 +22,8 @@
  * is left out of the page and reported in semantic_note.
  *
  * An exact idno or alias is answered by the database, as in every other driver. A request the API cannot take (a page
- * of more than API_MAX_PAGE_SIZE studies, or topic/database/sid filters selecting more than API_MAX_SIDS studies) is
- * served by the database search, and semantic_note says why.
+ * of more than API_MAX_PAGE_SIZE studies, or a sid filter of more than API_MAX_SIDS studies) is served by the
+ * database search, and semantic_note says why.
  *
  * When nada-ai cannot be reached or fails on its side (timeout, HTTP 5xx or 429), the page is served by the
  * database search and result.semantic_fallback says so. A request the API rejects (HTTP 4xx: bad key, invalid
@@ -82,9 +83,15 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         $t0      = microtime(true);
         $filters = $this->build_filters();
 
+        $facets = $this->facets_to_count();
+
         if ($filters === null) {
             // a filter was given whose values match nothing: no study can match, nothing to ask the API
-            return $this->with_offset_paging($this->result([], [], 0, [], $limit, $offset));
+            $result = $this->with_offset_paging($this->result([], [], 0, [], $limit, $offset));
+            if ($facets !== null) {
+                $result['facet_counts'] = ['values' => [], 'user' => [], 'years' => null];
+            }
+            return $result;
         }
 
         if (count($filters['sids'] ?? []) > self::API_MAX_SIDS) {
@@ -93,13 +100,16 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
                 $limit,
                 $offset,
                 sprintf(
-                    'The topic, database or study filters select more than %d studies, so these results come from the catalog database search.',
+                    'The study filter selects more than %d studies, so these results come from the catalog database search.',
                     self::API_MAX_SIDS
                 )
             );
         }
 
         $body = $this->build_request($filters, $limit, $offset);
+        if ($facets !== null) {
+            $body['facets'] = $facets;
+        }
         if ($cursor !== '') {
             unset($body['offset']);
             $body['cursor'] = $cursor;
@@ -148,6 +158,12 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
             'prev_cursor'          => $response['prev_cursor'] ?? null,
             'paging'               => $response['applied']['paging'] ?? 'offset',
         ];
+        if ($facets !== null) {
+            if (!isset($response['facets']) || !is_array($response['facets'])) {
+                throw new RuntimeException('nada-ai did not return the facet counts it was asked for');
+            }
+            $result['facet_counts'] = $response['facets'];
+        }
 
         if ($this->debug) {
             $result['debug'] = [
@@ -456,6 +472,24 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
     // Request building
     // =========================================================================
 
+    /**
+     * The API `facets` request, or null: none asked for ($facet_request), or nada-ai does not count facets (then the
+     * sidebar keeps the database facets).
+     */
+    private function facets_to_count(): ?array
+    {
+        $keys = array_values(array_unique(array_map('strval', (array) ($this->facet_request['keys'] ?? []))));
+        $user = array_values(array_unique(array_map('strval', (array) ($this->facet_request['user'] ?? []))));
+        if (empty($keys) && empty($user)) {
+            return null;
+        }
+        if (!$this->link()->supports(Nada_ai_link::CAP_FACETS)) {
+            return null;
+        }
+
+        return ['keys' => $keys, 'user' => $user];
+    }
+
     private function build_request(array $filters, int $limit, int $offset): array
     {
         $body = [
@@ -525,12 +559,27 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
             $filters['types'] = $types;
         }
 
-        $countries = $this->resolve_country_ids();
+        $countries = $this->resolve_country_ids(false);
         if ($countries === false) {
             return null;
         }
         if (!empty($countries)) {
             $filters['countries'] = $countries;
+        }
+
+        $regions = $this->normalise_int_array($this->regions);
+        if (!empty($regions)) {
+            $filters['regions'] = $regions;
+        }
+
+        $topics = $this->normalise_int_array($this->topics);
+        if (!empty($topics)) {
+            $filters['topics'] = $topics;
+        }
+
+        $databases = $this->normalise_array($this->database);
+        if (!empty($databases)) {
+            $filters['databases'] = $databases;
         }
 
         $sids = $this->resolve_sids();

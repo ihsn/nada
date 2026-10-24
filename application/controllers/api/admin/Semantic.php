@@ -662,7 +662,7 @@ class Semantic extends MY_REST_Controller
 
 	/**
 	 * POST /api/admin/semantic/variables_sync
-	 * body: {idnos?: string[]} — omit idnos to sync every variable in the catalog. Runs as a background job in
+	 * body: {sids?: int[]} — omit sids to sync every variable in the catalog. Runs as a background job in
 	 * nada-ai; only the variable index is touched (no study document, no chunks, no embeddings).
 	 */
 	public function variables_sync_post()
@@ -676,20 +676,19 @@ class Semantic extends MY_REST_Controller
 
 		$body = json_decode($this->input->raw_input_stream ?: '{}', true) ?: array();
 		$payload = array();
-		if (isset($body['idnos'])) { $payload['idnos'] = $body['idnos']; }
+		if (isset($body['sids'])) { $payload['sids'] = $body['sids']; }
 
 		$this->_forward('POST', 'admin/variables/sync', array('json' => (object) $payload));
 	}
 
 	/**
-	 * POST /api/admin/semantic/index_idno
-	 * body: {idno, type?, metadata_type?, force?}
+	 * POST /api/admin/semantic/index_study
+	 * body: {sid, force?}
 	 *
-	 * ``type`` is NADA's surveys.type (survey/document/timeseries/geospatial);
-	 * mapped here to nada-ai's metadata_type. ``force`` re-fetches even if
-	 * cached — use it when the row already has a last_error.
+	 * Indexes one study in full, by its internal id (surveys.id); nada-ai reads its type from the study's record.
+	 * ``force`` embeds every chunk again.
 	 */
-	public function index_idno_post()
+	public function index_study_post()
 	{
 		try { $this->_require('edit'); }
 		catch (AclAccessDeniedException $e)
@@ -699,53 +698,16 @@ class Semantic extends MY_REST_Controller
 		}
 
 		$body = json_decode($this->input->raw_input_stream ?: '{}', true) ?: array();
-		$idno = isset($body['idno']) ? trim((string) $body['idno']) : '';
-		if ($idno === '')
+		$sid  = isset($body['sid']) ? (int) $body['sid'] : 0;
+		if ($sid <= 0)
 		{
-			$this->set_response(array('status' => 'error', 'message' => 'idno required'), REST_Controller::HTTP_BAD_REQUEST);
+			$this->set_response(array('status' => 'error', 'message' => 'sid required'), REST_Controller::HTTP_BAD_REQUEST);
 			return;
 		}
 
-		$metadata_type = isset($body['metadata_type']) ? trim((string) $body['metadata_type']) : '';
-		if ($metadata_type === '')
-		{
-			$metadata_type = $this->_metadata_type(isset($body['type']) ? $body['type'] : null);
-		}
-		if ($metadata_type === null || $metadata_type === '')
-		{
-			$this->set_response(
-				array('status' => 'error', 'message' => 'Unsupported catalog type for single-idno ingest'),
-				REST_Controller::HTTP_BAD_REQUEST
-			);
-			return;
-		}
-
-		$this->_forward('POST', 'admin/catalog/' . rawurlencode($idno) . '/index', array(
-			'json' => array(
-				'metadata_type' => $metadata_type,
-				'force'         => !empty($body['force']),
-			),
+		$this->_forward('POST', 'admin/catalog/' . $sid . '/index', array(
+			'json' => array('force' => !empty($body['force'])),
 		));
-	}
-
-	/** NADA surveys.type -> nada-ai metadata_type (same map as nada-ai search_index_sync). */
-	private function _metadata_type($data_type)
-	{
-		$map = array(
-			'timeseries'   => 'indicator',
-			'timeseriesdb' => 'indicator-db',
-			'indicator'    => 'indicator',
-			'document'     => 'document',
-			'geospatial'   => 'geospatial',
-			'survey'       => 'microdata',
-			'microdata'    => 'microdata',
-			'table'        => 'table',
-			'script'       => 'script',
-			'image'        => 'image',
-			'video'        => 'video',
-		);
-		$key = strtolower(trim((string) $data_type));
-		return ($key !== '' && isset($map[$key])) ? $map[$key] : null;
 	}
 
 	// =====================================================================

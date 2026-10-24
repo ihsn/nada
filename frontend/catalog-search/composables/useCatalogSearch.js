@@ -48,7 +48,10 @@ function mergeFeaturedRows(result, featuredStudies) {
 
 let activeAbortController = null;
 
-/** Repo + data-type tab — sidebar facets only change when this changes. */
+/**
+ * Repo + data-type tab — database (static) sidebar facets only change when this changes. Facets counted by nada-ai
+ * (facet_mode "dynamic") describe one search and come with every response, so they are never cached.
+ */
 function facetsContextKey(activeRepo, tabType) {
   return `${activeRepo || ''}|${tabType || ''}`;
 }
@@ -334,7 +337,9 @@ export function useCatalogSearch() {
 
     if (json.facets != null) {
       facets.value = json.facets;
-      cachedFacetsContextKey = facetsContextKey(activeRepo.value, query.tab_type);
+      cachedFacetsContextKey = json.facet_mode === 'dynamic'
+        ? null
+        : facetsContextKey(activeRepo.value, query.tab_type);
     }
 
     if (Array.isArray(json.enabled_filters)) {

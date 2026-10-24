@@ -24,6 +24,8 @@ class Nada_ai_link
     const CAP_STUDIES   = 'studies_search';
     const CAP_VARIABLES = 'variables_search';
     const CAP_CITATIONS = 'citations_search';
+    /** The study search counts facets (dynamic sidebar filters). */
+    const CAP_FACETS    = 'facets';
 
     const POLICY_DATABASE = 'database';
     const POLICY_ERROR    = 'error';
@@ -222,7 +224,7 @@ class Nada_ai_link
     /**
      * What nada-ai runs and can serve.
      *
-     * @return array{engine: string|null, generation: string|null, studies_search: bool, variables_search: bool, citations_search: bool, source: string}
+     * @return array{engine: string|null, generation: string|null, studies_search: bool, variables_search: bool, citations_search: bool, facets: bool, source: string}
      *         source: info (read just now or a minute ago) | stale (nada-ai could not be asked; the last answer) |
      *         unknown (never asked and not reachable: only the study search is assumed, and the engine is not known)
      */
@@ -257,6 +259,7 @@ class Nada_ai_link
             self::CAP_STUDIES   => true,
             self::CAP_VARIABLES => false,
             self::CAP_CITATIONS => false,
+            self::CAP_FACETS    => false,
             'source'            => 'unknown',
         );
     }
@@ -312,6 +315,7 @@ class Nada_ai_link
             self::CAP_STUDIES   => !empty($caps['studies_search']),
             self::CAP_VARIABLES => !empty($caps['variables_search']),
             self::CAP_CITATIONS => !empty($caps['citations_search']),
+            self::CAP_FACETS    => !empty($caps['facets']),
             // nada-ai's own paging and search limits (its settings), for the admin to see
             'limits'            => isset($info['limits']) && is_array($info['limits']) ? $info['limits'] : null,
         );

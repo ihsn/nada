@@ -325,7 +325,8 @@ class Search_index extends MY_REST_Controller
 
 	/**
 	 * POST /api/admin/search-index/state/bulk
-	 * body: {items: [{object_type, object_key, status}, ...]}
+	 * body: {items: [{object_type, object_id, object_key?, status, error?}, ...]} — keyed by object_id (sid /
+	 * citation id); object_key (idno / uuid) is informative
 	 *
 	 * Direct search_index_state upsert for a batch of items — for content
 	 * indexed/deleted via an admin/bulk operation, which has no pre-existing

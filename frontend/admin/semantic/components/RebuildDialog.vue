@@ -49,11 +49,13 @@
                   />
                 </v-col>
                 <v-col cols="6">
-                  <label class="semantic-field-label" for="rebuild-ps">Catalog page size</label>
+                  <label class="semantic-field-label" for="rebuild-ps">Studies fetched per request (1–100)</label>
                   <v-text-field
                     id="rebuild-ps"
                     v-model.number="ps"
                     type="number"
+                    min="1"
+                    max="100"
                     variant="outlined"
                     density="comfortable"
                     hide-details
@@ -117,7 +119,7 @@ const typeOptions = computed(() => [
 ]);
 
 const catalogType = ref(ALL_TYPES);
-const ps = ref(100);
+const ps = ref(20);
 const limit = ref(null);
 const resume = ref(false);
 const submitted = ref(false);
@@ -140,7 +142,7 @@ watch(
 
 async function submit() {
   // A rebuild re-reads and re-indexes every study, already-indexed ones included: that is `force`.
-  const body = { ps: ps.value || 100, force: true, resume: !!resume.value };
+  const body = { ps: ps.value || 20, force: true, resume: !!resume.value };
   if (limit.value) body.limit = limit.value;
 
   try {

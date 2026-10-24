@@ -67,7 +67,7 @@
               </v-progress-linear>
               <div class="text-caption text-medium-emphasis mt-1">
                 <span v-if="item.progress.failed">{{ item.progress.failed }} failed · </span>
-                <code>{{ item.progress.current_idno }}</code>
+                <code>{{ item.progress.current_sid ?? item.progress.current_id }}</code>
               </div>
             </div>
             <span v-else>—</span>
@@ -130,7 +130,9 @@
               <div class="text-caption text-medium-emphasis mt-1">
                 {{ details.progress.processed }} / {{ details.progress.total }} processed
                 <span v-if="details.progress.failed">· {{ details.progress.failed }} failed</span>
-                <span v-if="details.progress.current_idno"> · last: <code>{{ details.progress.current_idno }}</code></span>
+                <span v-if="(details.progress.current_sid ?? details.progress.current_id) != null">
+                  · last: <code>{{ details.progress.current_sid ?? details.progress.current_id }}</code>
+                </span>
               </div>
             </div>
 
@@ -157,15 +159,16 @@
                   Load errors ({{ details.result.load_errors.length }})
                 </div>
                 <div class="text-caption text-medium-emphasis mb-2">
-                  Metadata failed to fetch/parse for these idnos before a document was even built.
+                  Metadata failed to fetch/parse for these studies before a document was even built.
                 </div>
                 <v-table density="compact">
                   <thead>
-                    <tr><th>idno</th><th>type</th><th>error</th></tr>
+                    <tr><th>id</th><th>idno</th><th>type</th><th>error</th></tr>
                   </thead>
                   <tbody>
                     <tr v-for="(e, i) in details.result.load_errors" :key="i">
-                      <td><code>{{ e.idno }}</code></td>
+                      <td><code>{{ e.sid }}</code></td>
+                      <td><code>{{ e.idno || '—' }}</code></td>
                       <td>{{ e.metadata_type }}</td>
                       <td class="text-caption">{{ e.error }}</td>
                     </tr>
@@ -196,16 +199,17 @@
                 </div>
                 <div class="text-caption text-medium-emphasis mb-2">
                   Loaded without error but produced nothing to index — a data characteristic of
-                  the catalog record, not a failure. "indexed" above counts documents, not idnos,
-                  so <code>rows − load errors − no-content</code> is the idno count that actually
-                  produced the indexed documents (one idno can yield more than one document).
+                  the catalog record, not a failure. "indexed" above counts documents, not studies,
+                  so <code>rows − load errors − no-content</code> is the number of studies that actually
+                  produced the indexed documents (one study can yield more than one document).
                 </div>
                 <v-table density="compact">
                   <thead>
-                    <tr><th>idno</th><th>type</th><th>reason</th></tr>
+                    <tr><th>id</th><th>idno</th><th>type</th><th>reason</th></tr>
                   </thead>
                   <tbody>
                     <tr v-for="(e, i) in details.result.empty_docs" :key="i">
+                      <td><code>{{ e.sid }}</code></td>
                       <td><code>{{ e.idno }}</code></td>
                       <td>{{ e.metadata_type }}</td>
                       <td class="text-caption">{{ e.reason }}</td>

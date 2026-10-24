@@ -267,7 +267,8 @@ function dictToItems(dict, labelFn, valueFn) {
       count: item.found != null ? item.found : null,
       groupName: item.group_name || '',
     }))
-    .filter((i) => i.label && i.value != null && i.value !== '');
+    // a value no study of the result has is not shown (a count of null means the count is not known)
+    .filter((i) => i.label && i.value != null && i.value !== '' && i.count !== 0 && i.count !== '0');
 }
 
 const countryItems = computed(() =>

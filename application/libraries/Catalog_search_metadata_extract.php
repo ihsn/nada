@@ -438,6 +438,8 @@ class Catalog_search_metadata_extract
             'countries'     => array(),
             'repositories'  => array(),
             'years'         => array(),
+            'topics'        => array(),
+            'ts_databases'  => array(),
             'user_facets'   => array(),
             'regions_map'   => array(),
         );
@@ -476,6 +478,19 @@ class Catalog_search_metadata_extract
                 $out['years'][$sid] = array();
             }
             $out['years'][$sid][] = (int) $r['data_coll_year'];
+        }
+
+        $this->ci->db->select('sid, tid');
+        $this->ci->db->where_in('sid', $survey_ids);
+        foreach ($this->ci->db->get('survey_topics')->result_array() as $r) {
+            $out['topics'][(int) $r['sid']][] = (int) $r['tid'];
+        }
+
+        // the timeseries databases a series belongs to (a series row is the study)
+        $this->ci->db->select('series_id, db_idno');
+        $this->ci->db->where_in('series_id', $survey_ids);
+        foreach ($this->ci->db->get('timeseries_db_links')->result_array() as $r) {
+            $out['ts_databases'][(int) $r['series_id']][] = (string) $r['db_idno'];
         }
 
         $out['user_facets'] = $this->ci->Facet_model->facet_terms_by_studies($survey_ids);
@@ -535,6 +550,8 @@ class Catalog_search_metadata_extract
             'regions'       => array_values($regions),
             'data_class_id' => isset($row['data_class_id']) ? (int) $row['data_class_id'] : null,
             'tags'          => $this->ci->Catalog_tags_model->survey_tags_list($sid),
+            'topics'        => array_values(array_unique($relations['topics'][$sid] ?? array())),
+            'ts_databases'  => array_values(array_unique($relations['ts_databases'][$sid] ?? array())),
         );
 
         $user_facets = $relations['user_facets'][$sid] ?? array();

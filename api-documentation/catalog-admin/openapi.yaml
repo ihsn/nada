@@ -6494,9 +6494,10 @@ components:
           enum: [survey, citation]
         object_id:
           type: integer
+          description: The study's internal id (`surveys.id`) or the citation's id — the key the index uses
         object_key:
           type: string
-          description: Study idno or citation uuid
+          description: Study idno or citation uuid (informative only — an idno is reused when a study is created again)
         change_class:
           type: string
           enum: [upsert_full, upsert_partial, variables, delete]

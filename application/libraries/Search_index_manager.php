@@ -781,14 +781,15 @@ class Search_index_manager
 	 *
 	 * For content indexed via an admin/bulk operation (not a DB change event),
 	 * there is no pre-existing search_index_queue row to ack against — this is
-	 * the write path for that case: given just (object_type, object_key,
-	 * status), resolve the internal id and upsert state directly ('deleted'
-	 * removes every state row with that key instead, matched by key since the
-	 * catalog row may be gone — see STATUS_DELETED). Never
-	 * touches search_index_queue; a genuine queue-driven change for the same
-	 * object is unaffected and still processed normally later.
+	 * the write path for that case: given (object_type, object_id, status),
+	 * upsert state directly ('deleted' removes the state row). The id (sid /
+	 * citation id) is the key, as in the index: also for an object gone from the
+	 * catalog, so the stale diff finds it. object_key (idno / uuid) is
+	 * informative: NADA reuses an idno when a study is deleted and created again.
+	 * Never touches search_index_queue; a genuine queue-driven change for the
+	 * same object is unaffected and still processed normally later.
 	 *
-	 * @param array $items each: {object_type, object_key, status}
+	 * @param array $items each: {object_type, object_id, object_key?, status, error?}
 	 * @return array {applied: int, results: array} one result entry per item, in order
 	 */
 	public function bulk_set_state(array $items)
@@ -801,55 +802,41 @@ class Search_index_manager
 
 		foreach ($items as $item) {
 			$object_type = isset($item['object_type']) ? $this->normalize_object_type($item['object_type']) : null;
-			$object_key  = isset($item['object_key']) ? trim((string) $item['object_key']) : '';
+			$object_id   = isset($item['object_id']) ? (int) $item['object_id'] : 0;
 			$status      = isset($item['status']) ? (string) $item['status'] : '';
 
 			if ($object_type === null) {
-				$results[] = array('object_key' => $object_key, 'applied' => false, 'error' => 'INVALID_OBJECT_TYPE');
+				$results[] = array('object_id' => $object_id, 'applied' => false, 'error' => 'INVALID_OBJECT_TYPE');
 				continue;
 			}
-			if ($object_key === '') {
-				$results[] = array('object_key' => $object_key, 'applied' => false, 'error' => 'OBJECT_KEY_REQUIRED');
+			if ($object_id <= 0) {
+				$results[] = array('object_id' => $object_id, 'applied' => false, 'error' => 'OBJECT_ID_REQUIRED');
 				continue;
 			}
 			if (!in_array($status, $allowed_status, true)) {
-				$results[] = array('object_key' => $object_key, 'applied' => false, 'error' => 'INVALID_STATUS');
+				$results[] = array('object_id' => $object_id, 'applied' => false, 'error' => 'INVALID_STATUS');
 				continue;
 			}
 
-			// object_id (sid / citation id) as the index holds it: also for an object gone from the catalog, so the
-			// stale diff finds it. Without it, the key is resolved through the catalog.
-			$object_id = (isset($item['object_id']) && (int) $item['object_id'] > 0) ? (int) $item['object_id'] : null;
-
-			// the index no longer holds this key: forget every state row that has it. Matched by key, not through the
-			// catalog, because a study deleted from the catalog (the stale case) has no row to resolve an id from.
 			if ($status === self::STATUS_DELETED) {
-				if ($object_id !== null) {
-					$this->delete_state($object_type, $object_id);
-				} else {
-					$this->delete_state_by_key($object_type, $object_key);
-				}
-				$results[] = array('object_key' => $object_key, 'applied' => true, 'status' => $status);
+				$this->delete_state($object_type, $object_id);
+				$results[] = array('object_id' => $object_id, 'applied' => true, 'status' => $status);
 				continue;
-			}
-
-			if ($object_id === null) {
-				$object_id = $this->resolve_object_id($object_type, $object_key);
-				if ($object_id === null) {
-					$results[] = array('object_key' => $object_key, 'applied' => false, 'error' => 'OBJECT_KEY_NOT_FOUND');
-					continue;
-				}
 			}
 
 			// a queued change is newer than what the report describes: its ack sets the state
 			if ($this->get_queue_row($object_type, $object_id)) {
-				$results[] = array('object_key' => $object_key, 'applied' => false, 'error' => 'QUEUED');
+				$results[] = array('object_id' => $object_id, 'applied' => false, 'error' => 'QUEUED');
 				continue;
 			}
 
+			$object_key = isset($item['object_key']) ? trim((string) $item['object_key']) : '';
+			if ($object_key === '') {
+				$object_key = (string) $this->lookup_live_key($object_type, $object_id);
+			}
 			$last_error = ($status === self::STATUS_FAILED && isset($item['error'])) ? (string) $item['error'] : null;
 			$this->upsert_state($object_type, $object_id, $object_key, $status, $now, $last_error);
-			$results[] = array('object_key' => $object_key, 'applied' => true, 'status' => $status);
+			$results[] = array('object_id' => $object_id, 'applied' => true, 'status' => $status);
 		}
 
 		$applied = 0;
@@ -881,7 +868,7 @@ class Search_index_manager
 	 * i.e. genuinely attempted and failed, as opposed to simply never having
 	 * been attempted yet (which is most of "missing" on a fresh backfill).
 	 *
-	 * @return array{items: array{idno: string, type: string}[], total: int}
+	 * @return array{items: array{object_id: int, idno: string, type: string, last_error: string|null}[], total: int}
 	 */
 	public function diff_missing($object_type, $limit = 100, $offset = 0, $data_type = null, $has_error = false)
 	{
@@ -950,8 +937,8 @@ class Search_index_manager
 
 	/**
 	 * search_index_state rows of $object_type marked 'indexed' whose catalog
-	 * row is gone entirely, and whose key no live catalog row has either
-	 * (see stale_condition()) — these should be removed from the index.
+	 * row is gone entirely (see stale_condition()) — these should be removed
+	 * from the index, by object_id.
 	 *
 	 * Published status is not considered — see diff_missing()'s docblock for
 	 * why. An unpublished row is not "stale"; only a genuinely deleted one is.
@@ -959,7 +946,7 @@ class Search_index_manager
 	 * ``$data_type``, when given, narrows to one search_index_state.data_type
 	 * value — ignored for citations (see diff_missing()'s docblock).
 	 *
-	 * @return array{items: array{idno: string}[], total: int}
+	 * @return array{items: array{object_id: int, idno: string, type: string|null}[], total: int}
 	 */
 	public function diff_stale($object_type, $limit = 100, $offset = 0, $data_type = null)
 	{
@@ -1008,20 +995,17 @@ class Search_index_manager
 	}
 
 	/**
-	 * SQL condition on search_index_state `st`: the row is stale — its catalog row is gone, and no live catalog row
-	 * has its key either. The index is keyed by idno/uuid, so a key that now belongs to another catalog row (a study
-	 * deleted and re-created with the same idno) is not stale: deleting it from the index would remove the live one.
-	 * That leftover state row is dropped when the live row is indexed (see upsert_state()).
+	 * SQL condition on search_index_state `st`: the row is stale — its catalog row is gone. The index is keyed by the
+	 * same id, so a study deleted and created again with the same idno (a new id) is two objects: the old one is
+	 * stale, the new one missing.
 	 */
 	private function stale_condition($object_type)
 	{
 		if ($object_type === self::OBJECT_SURVEY) {
-			return "NOT EXISTS (SELECT 1 FROM surveys live WHERE live.id = st.object_id)
-				AND NOT EXISTS (SELECT 1 FROM surveys same_key WHERE same_key.idno = st.object_key)";
+			return "NOT EXISTS (SELECT 1 FROM surveys live WHERE live.id = st.object_id)";
 		}
 
-		return "NOT EXISTS (SELECT 1 FROM citations live WHERE live.id = st.object_id)
-				AND NOT EXISTS (SELECT 1 FROM citations same_key WHERE same_key.uuid = st.object_key)";
+		return "NOT EXISTS (SELECT 1 FROM citations live WHERE live.id = st.object_id)";
 	}
 
 	/** MySQL/SQL Server both back this app (see migrations) — LIMIT/OFFSET syntax differs between them. */
@@ -1033,22 +1017,6 @@ class Search_index_manager
 			return " OFFSET {$offset} ROWS FETCH NEXT {$limit} ROWS ONLY";
 		}
 		return " LIMIT {$limit} OFFSET {$offset}";
-	}
-
-	private function resolve_object_id($object_type, $object_key)
-	{
-		if ($object_type === self::OBJECT_SURVEY) {
-			$this->ci->load->library('Dataset_manager');
-			$sid = $this->ci->dataset_manager->find_by_idno($object_key);
-			return $sid ? (int) $sid : null;
-		}
-
-		$row = $this->ci->db->select('id')
-			->from('citations')
-			->where('uuid', $object_key)
-			->get()
-			->row_array();
-		return $row ? (int) $row['id'] : null;
 	}
 
 	/**
@@ -1320,10 +1288,6 @@ class Search_index_manager
 			'last_error' => $this->truncate_error($last_error),
 			'data_type'  => $data_type,
 		);
-		if ($status === self::STATUS_INDEXED) {
-			// the index (keyed by object_key) now describes this object
-			$this->delete_other_states_with_key($object_type, $object_id, $object_key);
-		}
 		if ($existing) {
 			$this->ci->db->where('object_type', $object_type);
 			$this->ci->db->where('object_id', $object_id);
@@ -1333,25 +1297,6 @@ class Search_index_manager
 		$data['object_type'] = $object_type;
 		$data['object_id']   = $object_id;
 		$this->ci->db->insert('search_index_state', $data);
-	}
-
-	/**
-	 * Drop the state rows of other objects that carry this key: a study deleted and re-created with the same idno
-	 * leaves the old id's row behind, and the index (keyed by idno) now describes the live one.
-	 */
-	private function delete_other_states_with_key($object_type, $object_id, $object_key)
-	{
-		$this->ci->db->where('object_type', $object_type);
-		$this->ci->db->where('object_key', $object_key);
-		$this->ci->db->where('object_id !=', (int) $object_id);
-		$this->ci->db->delete('search_index_state');
-	}
-
-	private function delete_state_by_key($object_type, $object_key)
-	{
-		$this->ci->db->where('object_type', $object_type);
-		$this->ci->db->where('object_key', $object_key);
-		$this->ci->db->delete('search_index_state');
 	}
 
 	private function delete_state($object_type, $object_id)

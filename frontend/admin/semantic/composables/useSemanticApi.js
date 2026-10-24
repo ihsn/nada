@@ -126,14 +126,14 @@ export function useSemanticApi() {
     return _run(async () => (await axios.post(`${base()}index`, body)).data);
   }
 
-  /** Index one catalog idno. `type` is NADA's surveys.type; `force` re-fetches a failed/cached load. */
-  function indexByIdno({ idno, type, force = false } = {}) {
-    return _run(async () => (await axios.post(`${base()}index_idno`, { idno, type, force })).data);
+  /** Index one study in full, by its internal id (`surveys.id`). `force` embeds every chunk again. */
+  function indexStudy({ sid, force = false } = {}) {
+    return _run(async () => (await axios.post(`${base()}index_study`, { sid, force })).data);
   }
 
-  /** Sync only the variable index, as a background job. Omit `idnos` for every variable in the catalog. */
-  function syncVariables(idnos) {
-    const body = Array.isArray(idnos) ? { idnos } : {};
+  /** Sync only the variable index, as a background job. Omit `sids` for every variable in the catalog. */
+  function syncVariables(sids) {
+    const body = Array.isArray(sids) ? { sids } : {};
     return _run(async () => (await axios.post(`${base()}variables_sync`, body)).data);
   }
 
@@ -298,7 +298,7 @@ export function useSemanticApi() {
     recreateCitationsIndex,
     warmupEmbeddings,
     indexOne,
-    indexByIdno,
+    indexStudy,
     indexAll,
     syncVariables,
     listJobs,

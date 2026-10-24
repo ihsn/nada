@@ -45,6 +45,11 @@ abstract class catalog_search_semantic_base
     public $sort_order        = 'asc';
     /** A next_cursor/prev_cursor of an earlier page of this variable search (nada-ai's, passed through unread). */
     public $cursor            = '';
+    /**
+     * The sidebar facets to count, as the API's `facets` request ({keys: [...], user: [...]}); empty for none. Sent
+     * only when nada-ai counts facets (Nada_ai_link::CAP_FACETS); the result then carries them as facet_counts.
+     */
+    public $facet_request     = [];
 
     /** @var array Full search params including user-defined facet keys. */
     protected $params      = [];
@@ -126,12 +131,13 @@ abstract class catalog_search_semantic_base
     // =========================================================================
 
     /**
-     * Country filter: country ids, names, ISO2/ISO3 codes and regions, in any mix, all resolved to country ids.
-     * The three sources (countries, iso3, regions) must all hold, so their id sets are intersected.
+     * Country filter: country ids, names and ISO2/ISO3 codes in any mix, and (with $with_regions) the countries of the
+     * selected regions, all resolved to country ids. The sources must all hold, so their id sets are intersected.
+     * The study search sends regions as their own filter instead (the region facet needs it): $with_regions false.
      *
      * @return int[]|false ids; [] when no country filter was requested; false when nothing can match
      */
-    protected function resolve_country_ids()
+    protected function resolve_country_ids(bool $with_regions = true)
     {
         $sets = [];
 
@@ -150,7 +156,7 @@ abstract class catalog_search_semantic_base
             $sets[] = array_map('intval', array_column($rows, 'countryid'));
         }
 
-        $regions = $this->normalise_int_array($this->regions);
+        $regions = $with_regions ? $this->normalise_int_array($this->regions) : [];
         if (!empty($regions)) {
             $rows   = $this->ci->db->distinct()->select('country_id')->where_in('region_id', $regions)->get('region_countries')->result_array();
             $sets[] = array_map('intval', array_column($rows, 'country_id'));
@@ -160,34 +166,19 @@ abstract class catalog_search_semantic_base
     }
 
     /**
-     * Study id filter: the sid parameter, and the studies of the selected topics and timeseries databases,
-     * resolved from this database. All requested sources must hold, so their id sets are intersected.
+     * Study id filter: the sid parameter (comma-separated ids).
      *
      * @return int[]|false ids; [] when no such filter was requested; false when nothing can match
      */
     protected function resolve_sids()
     {
-        $sets = [];
-
         $raw = trim((string) $this->sid);
-        if ($raw !== '') {
-            $ids    = array_values(array_filter(array_map('intval', array_filter(explode(',', $raw), 'is_numeric')), static fn($v) => $v > 0));
-            $sets[] = $ids;
+        if ($raw === '') {
+            return [];
         }
+        $ids = array_values(array_filter(array_map('intval', array_filter(explode(',', $raw), 'is_numeric')), static fn($v) => $v > 0));
 
-        $topics = $this->normalise_int_array($this->topics);
-        if (!empty($topics)) {
-            $rows   = $this->ci->db->distinct()->select('sid')->where_in('tid', $topics)->get('survey_topics')->result_array();
-            $sets[] = array_map('intval', array_column($rows, 'sid'));
-        }
-
-        $databases = $this->normalise_array($this->database);
-        if (!empty($databases)) {
-            $rows   = $this->ci->db->distinct()->select('series_id')->where_in('db_idno', $databases)->get('timeseries_db_links')->result_array();
-            $sets[] = array_map('intval', array_column($rows, 'series_id'));
-        }
-
-        return $this->intersect($sets);
+        return empty($ids) ? false : $ids;
     }
 
     /**

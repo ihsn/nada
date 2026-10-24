@@ -1366,7 +1366,7 @@
     ]
   },
   "admin/semantic/main.js": {
-    "file": "assets/admin/admin_semantic-DADyCq7G.js",
+    "file": "assets/admin/admin_semantic-js_sw7Um.js",
     "name": "admin_semantic",
     "src": "admin/semantic/main.js",
     "isEntry": true,
@@ -1402,7 +1402,7 @@
       "_VSheet-DMcvZjDm.js"
     ],
     "css": [
-      "assets/admin/admin_semantic-eSp_83v5.css"
+      "assets/admin/admin_semantic-5Xq41wzw.css"
     ]
   },
   "admin/site_configurations/main.js": {

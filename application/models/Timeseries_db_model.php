@@ -187,7 +187,8 @@ class Timeseries_db_model extends CI_Model {
 	/**
 	 * Upsert timeseries_db_links rows from database_description.indicators[].
 	 * Called when a timeseriesdb entry is created or updated.
-	 * Only adds rows — never removes (series saves manage their own rows).
+	 * Only adds rows — never removes (series saves manage their own rows). A series that gains a link is sent to the
+	 * search index again (its filters list the databases it belongs to).
 	 */
 	function sync_series_links($db_idno, $metadata)
 	{
@@ -204,6 +205,7 @@ class Timeseries_db_model extends CI_Model {
 			return;
 		}
 
+		$linked = array();
 		foreach ($indicators as $indicator) {
 			$idno = isset($indicator['id']) ? trim((string)$indicator['id']) : '';
 			if ($idno === '') {
@@ -219,6 +221,14 @@ class Timeseries_db_model extends CI_Model {
 				'INSERT IGNORE INTO timeseries_db_links (series_id, db_idno, is_primary) VALUES (?, ?, 0)',
 				array((int)$row['id'], $db_idno)
 			);
+			if ($this->db->affected_rows() > 0) {
+				$linked[] = (int)$row['id'];
+			}
+		}
+
+		if (!empty($linked)) {
+			$this->load->library('Events');
+			$this->events->emit('db.after.update', 'surveys', $linked, 'filters');
 		}
 	}
 
