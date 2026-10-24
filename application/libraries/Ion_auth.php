@@ -415,7 +415,25 @@ class Ion_auth
 
 		return $this->ci->acl_manager->has_site_admin_access($user);
 	}
-	
+
+	/**
+	 * TRUE when OTP is on and this session's user has site admin access but has not entered
+	 * the emailed code yet. Used to stop such a session from creating an API key on the profile page.
+	 */
+	function otp_pending($user_id=null)
+	{
+		if ($this->ci->config->item("otp_verification")!==1) {
+			return false;
+		}
+
+		if ($this->ci->session->userdata('verify_otp')===1) {
+			return false;
+		}
+
+		$this->ci->load->library('acl_manager');
+		return $this->can_access_site_admin($user_id);
+	}
+
 	/**
 	 * is_group
 	 *

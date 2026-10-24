@@ -74,6 +74,11 @@ class DefaultAuth implements AuthInterface
 		$this->_is_logged_in();
 		$this->_require_post_with_csrf();
 
+		// A key works without OTP, so an admin session must enter the code first.
+		if ($this->ci->ion_auth->otp_pending()) {
+			redirect("auth/verify_code", 'refresh');
+		}
+
 		//check if user already has 5 api keys
 		$api_keys=$this->ci->ion_auth->get_api_keys($this->ci->session->userdata('user_id'));
 		
@@ -789,7 +794,8 @@ class DefaultAuth implements AuthInterface
 	 */
 	function verify_code()
 	{
-		if ($this->ci->config->item("otp_verification")!==1 || !$this->ci->ion_auth->is_admin()){
+		// Same users MY_Controller sends here: anyone with site admin access, not only full admins.
+		if ($this->ci->config->item("otp_verification")!==1 || !$this->ci->ion_auth->can_access_site_admin()){
 			show_404();
 		}
 
@@ -810,25 +816,42 @@ class DefaultAuth implements AuthInterface
 			$user=$this->ci->ion_auth->current_user();
 			$code=$this->ci->input->post("code");
 
-			try{							
+			try{
 					//otp expired or not set?
 					if (date("U")>$user->otp_expiry || !$user->otp_code){
 						throw new Exception("Code has expired");
 					}
-				
-				if($code==$user->otp_code){
+
+				if($this->ci->ion_auth_model->verify_otp_code($user->id, $code)){
+					// Single use: clear the code, start a new session id, mark the session verified.
+					$this->ci->ion_auth_model->clear_otp_code($user->id);
+					$this->ci->session->sess_regenerate();
+					$this->ci->session->unset_userdata('otp_attempts');
 					$this->ci->session->set_userdata("verify_otp",1);
-					$this->ci->session->set_userdata("verified_otp",$code);
 					redirect("admin", 'refresh');
 				}
-				
+
 				throw new exception("Code verification failed");
 			}
 			catch(Exception $e){
 				$this->ci->db_logger->write_log('otp-error',$e->getMessage(). ' user: '.$user->email);
+
+				// Failed codes also count toward the login lockout. After 5 in one session the code is
+				// cleared and the user is signed out, so guessing needs a new login and a new code.
+				$this->ci->ion_auth_model->increase_login_attempts($user->email);
+				$attempts=(int) $this->ci->session->userdata('otp_attempts') + 1;
+
+				if ($attempts >= 5) {
+					$this->ci->ion_auth_model->clear_otp_code($user->id);
+					$this->ci->db_logger->write_log('otp-error','too many failed codes, signed out user: '.$user->email);
+					$this->ci->ion_auth->logout();
+					redirect("auth/login", 'refresh');
+				}
+
+				$this->ci->session->set_userdata('otp_attempts', $attempts);
 				$this->ci->session->set_flashdata('error', $e->getMessage());
 				redirect("auth/verify_code", 'refresh');
-			}			
+			}
 	    }
 	}
 
@@ -840,11 +863,19 @@ class DefaultAuth implements AuthInterface
 	 */
 	function send_otp_code()
 	{
-		if ($this->ci->config->item("otp_verification")!==1 || !$this->ci->ion_auth->is_admin()){
+		if ($this->ci->config->item("otp_verification")!==1 || !$this->ci->ion_auth->can_access_site_admin()){
 			show_404();
 		}
-		
+
 		$user_id=$this->ci->session->userdata('user_id');
+
+		// At most one new code per minute. Codes last 15 minutes, so issue time = expiry - 900.
+		$user=$this->ci->ion_auth->current_user();
+		if ($user && !empty($user->otp_code) && (int) $user->otp_expiry - 900 > time() - 60) {
+			$this->ci->session->set_flashdata('message', t('Check your email for verification code'));
+			redirect("auth/verify_code", 'refresh');
+		}
+
 		$this->ci->ion_auth->send_otp_code($user_id);
 		//write_log($type, $message=NULL, $section=NULL,$surveyid=0)
 		$this->ci->db_logger->write_log('otp','code sent for user:'.$user_id);

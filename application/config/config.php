@@ -423,7 +423,7 @@ $config['sess_cookie_name'] = 'ihsn_nada';
 $config['sess_expiration'] = 7200; //7200 default
 $config['sess_save_path'] = FCPATH.'files/sessions';
 $config['sess_match_ip'] = FALSE;
-$config['sess_time_to_update'] = 0;
+$config['sess_time_to_update'] = 600;
 $config['sess_regenerate_destroy'] = FALSE;
 
 /*

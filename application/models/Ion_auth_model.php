@@ -1780,19 +1780,30 @@ class Ion_auth_model extends CI_Model
 	 */
 	function generate_otp_code()
 	{
-		$code=sprintf('%010d', mt_rand(1,mt_getrandmax()));
+		$code=sprintf('%010d', random_int(0, 9999999999));
 		return $code;
 	}
 
+	/**
+	 * Stored form of an OTP code: base64 SHA-256 of user id and code (44 chars, fits otp_code).
+	 */
+	private function hash_otp_code($user_id, $code)
+	{
+		return base64_encode(hash('sha256', (int) $user_id . ':' . trim((string) $code), true));
+	}
+
+	/**
+	 * Create a new code, store its hash, and return the plain code for the email.
+	 */
 	function store_otp_code($user_id)
 	{
 		$code=$this->generate_otp_code();
 
 		$expiry_time=new DateTime();
-		$expiry_time->modify("15 minutes");		
+		$expiry_time->modify("15 minutes");
 
 		$options=array(
-			'otp_code'=>$code,
+			'otp_code'=>$this->hash_otp_code($user_id, $code),
 			'otp_expiry'=>$expiry_time->format("U")
 		);
 
@@ -1800,6 +1811,31 @@ class Ion_auth_model extends CI_Model
 		$this->db->update('users',$options);
 
 		return $code;
+	}
+
+	/**
+	 * Check a submitted code against the stored hash and expiry.
+	 *
+	 * @return bool
+	 */
+	function verify_otp_code($user_id, $code)
+	{
+		$user = $this->db->select('otp_code, otp_expiry')->where('id', (int) $user_id)->get('users')->row();
+
+		if (!$user || empty($user->otp_code) || empty($user->otp_expiry) || time() > (int) $user->otp_expiry) {
+			return FALSE;
+		}
+
+		return hash_equals((string) $user->otp_code, $this->hash_otp_code($user_id, $code));
+	}
+
+	/**
+	 * Remove the stored code so it cannot be used again.
+	 */
+	function clear_otp_code($user_id)
+	{
+		$this->db->where('id', (int) $user_id);
+		return $this->db->update('users', array('otp_code' => NULL, 'otp_expiry' => NULL));
 	}
 
 

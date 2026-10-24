@@ -320,7 +320,14 @@ class Citation_model extends CI_Model {
 	
 	function select_all($sort_by='title', $sort_order='ASC')
 	{
-		$this->db->select('id,title,authors,dcdate,changed');	
+		// Only sort by a selected column; anything else falls back to title ASC.
+		$sort_fields=array('id','title','authors','dcdate','changed');
+		if (!in_array($sort_by, $sort_fields, true)) {
+			$sort_by='title';
+		}
+		$sort_order=(strtoupper((string) $sort_order)==='DESC') ? 'DESC' : 'ASC';
+
+		$this->db->select('id,title,authors,dcdate,changed');
 		$this->db->order_by($sort_by, $sort_order);
 		$this->db->where('published', 1); 
 		return $this->db->get('citations')->result_array();
