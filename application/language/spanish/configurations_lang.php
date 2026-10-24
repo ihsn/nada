@@ -132,7 +132,6 @@ $lang['max_resource_upload_size_note']="Tamaño máximo en megabytes para los ar
 $lang['fulltext_search']="Búsqueda de texto completo";
 $lang['search_provider']="Proveedor de búsqueda";
 $lang['search_provider_db']="Base de datos (integrado)";
-$lang['search_provider_opensearch']="OpenSearch";
 $lang['search_provider_solr']="Solr";
 $lang['search_provider_semantic']="Búsqueda semántica (IA)";
 $lang['search_provider_note']="Motor utilizado para la búsqueda de texto completo en el catálogo. Para cambiarlo, el proveedor seleccionado debe estar configurado y en funcionamiento.";

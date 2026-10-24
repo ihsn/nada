@@ -131,7 +131,6 @@ $lang['datadeposit_allowed_types_note']="Set in application/config/config.php (a
 $lang['fulltext_search']="Fulltext search";
 $lang['search_provider']="Search provider";
 $lang['search_provider_db']="Database (built-in)";
-$lang['search_provider_opensearch']="OpenSearch";
 $lang['search_provider_solr']="Solr";
 $lang['search_provider_semantic']="Semantic Search (AI)";
 $lang['search_provider_note']="Engine used for catalog fulltext search. Changing this requires the selected provider to be configured and running.";

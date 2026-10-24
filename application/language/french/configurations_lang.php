@@ -132,7 +132,6 @@ $lang['max_resource_upload_size_note']="Taille maximale en mégaoctets des fichi
 $lang['fulltext_search']="Recherche en texte intégral";
 $lang['search_provider']="Moteur de recherche";
 $lang['search_provider_db']="Base de données (intégré)";
-$lang['search_provider_opensearch']="OpenSearch";
 $lang['search_provider_solr']="Solr";
 $lang['search_provider_semantic']="Recherche sémantique (IA)";
 $lang['search_provider_note']="Moteur utilisé pour la recherche en texte intégral du catalogue. Ce changement nécessite que le moteur sélectionné soit configuré et en cours d'exécution.";

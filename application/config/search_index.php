@@ -5,10 +5,10 @@
  * Database search does not write tracking rows.
  */
 
-$config['search_index_tracking_providers'] = array('solr', 'opensearch', 'semantic');
+$config['search_index_tracking_providers'] = array('solr', 'semantic');
 
-/** Process queue rows on the catalog request (keeps Solr/OpenSearch live). Semantic is pull-only. */
-$config['search_index_inline_providers'] = array('solr', 'opensearch');
+/** Process queue rows on the catalog request (keeps Solr live). Semantic is pull-only. */
+$config['search_index_inline_providers'] = array('solr');
 
 $config['search_index_queue_default_limit'] = 50;
 $config['search_index_queue_max_limit']     = 100;

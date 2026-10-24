@@ -776,7 +776,6 @@ $config['catalog_default_sort_order']='';
 |
 | db - use database builtin search - no configurations required
 | solr - use solr for search. solr instance info must be added to solr config file
-| opensearch - use OpenSearch for search. OpenSearch endpoint must be added to the config file
 |
 | Managed via Site Administration > Settings. 
 */

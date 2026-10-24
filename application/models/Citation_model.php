@@ -15,14 +15,6 @@ class Citation_model extends CI_Model {
     {
         $search_provider = $this->config->item('search_provider');
 
-        if ($search_provider === 'opensearch') {
-            require_once APPPATH . 'libraries/OpenSearch/Citation_search_opensearch.php';
-            $searcher = new Citation_search_opensearch();
-            $result   = $searcher->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
-            $this->search_found_rows = $searcher->search_found_rows;
-            return $result;
-        }
-
         if ($search_provider === 'solr') {
             $this->load->library('citation_search_solr');
             $result = $this->citation_search_solr->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
