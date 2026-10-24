@@ -1322,7 +1322,7 @@ class Catalog extends MY_REST_Controller
 			header('Content-Encoding: UTF-8');
 			header( "Content-Disposition: attachment;filename=study-$idno.rdf");
 
-			echo $this->Catalog_model->get_survey_rdf($sid);
+			echo $this->Catalog_model->get_survey_rdf($sid, true);
 			die();
         }		
 		catch(Exception $e){
@@ -1347,6 +1347,19 @@ class Catalog extends MY_REST_Controller
 			$this->_require_public_dataset($sid);
 			$this->load->model("Survey_resource_model");
 			$resources=$this->Survey_resource_model->get_survey_resources($sid);
+			$access=$this->Form_model->get_form_by_survey($sid);
+			if (isset($access['model']) && $access['model']==='licensed'){
+				$kept=array();
+				foreach($resources as $resource){
+					$type=isset($resource['resource_type']) ? $resource['resource_type'] : null;
+					$dctype=isset($resource['dctype']) ? $resource['dctype'] : '';
+					if ($this->Survey_resource_model->is_microdata_resource_type($type) || $this->Survey_resource_model->is_microdata_resource($dctype)){
+						continue;
+					}
+					$kept[]=$resource;
+				}
+				$resources=$kept;
+			}
 			array_walk($resources, 'unix_date_to_gmt',array('created','changed'));
 			
 			foreach($resources as $idx=>$resource){				
