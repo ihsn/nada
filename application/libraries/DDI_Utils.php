@@ -247,7 +247,7 @@ class DDI_Utils
 		}
 
 		$doc = new DOMDocument;
-		$doc->load($ddi_file);
+		$doc->load($ddi_file, LIBXML_NONET);
 
 		$xpath=new DOMXPath($doc);
 		$rootNamespace = $doc->lookupNamespaceUri($doc->namespaceURI);

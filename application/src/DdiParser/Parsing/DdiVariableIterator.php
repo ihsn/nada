@@ -27,7 +27,7 @@ class DdiVariableIterator implements \Iterator
     {
         $this->xml_reader = new \XMLReader();
 
-        if (!$this->xml_reader->open($this->file, null, LIBXML_NOERROR | LIBXML_NOWARNING)) {
+        if (!$this->xml_reader->open($this->file, null, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING)) {
             throw new \Exception("DDIVARIABLEITERATOR::FAILED TO OPEN FILE:" . $this->file);
         }
 
@@ -47,7 +47,7 @@ class DdiVariableIterator implements \Iterator
         if ($this->xml_reader->nodeType == \XMLReader::ELEMENT && $this->xml_reader->localName == 'var') {
             $xml = $this->xml_reader->readOuterXML();
 
-            if (!$xml_obj = simplexml_load_string($xml)) {
+            if (!$xml_obj = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NONET)) {
                 throw new \Exception("VARIABLE OUTPUT NOT VALID: " . $xml);
             }
 

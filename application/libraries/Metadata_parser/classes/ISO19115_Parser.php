@@ -15,7 +15,7 @@ class ISO19115_Parser
         {
             throw new exception("FILE NOT FOUND ". $xml_file);
         }
-        $this->xml_obj= simplexml_load_file($xml_file);
+        $this->xml_obj= simplexml_load_file($xml_file, 'SimpleXMLElement', LIBXML_NONET);
 
         //set namespaced root element name
         if ($this->xml_obj->getName()=='MD_Metadata'){

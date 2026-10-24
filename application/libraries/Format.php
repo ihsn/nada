@@ -469,7 +469,7 @@ class Format {
      */
     protected function _from_xml($data)
     {
-        return $data ? (array) simplexml_load_string($data, 'SimpleXMLElement', LIBXML_NOCDATA) : [];
+        return $data ? (array) simplexml_load_string($data, 'SimpleXMLElement', LIBXML_NONET | LIBXML_NOCDATA) : [];
     }
 
     /**
