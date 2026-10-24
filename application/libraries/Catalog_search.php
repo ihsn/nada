@@ -19,7 +19,7 @@ class Catalog_search{
 
         $ci =& get_instance();
         $ci->load->library('search_engine_resolver');
-        $valid_engines = array('database', 'solr', 'opensearch', 'nada_ai');
+        $valid_engines = array('database', 'solr', 'nada_ai');
 
         // an explicit engine in $params (the admin search test, the variable view) wins over the site setting
         $search_engine = (isset($params['search_engine']) && in_array($params['search_engine'], $valid_engines, true))
@@ -29,8 +29,6 @@ class Catalog_search{
         $driver = $ci->db->dbdriver;
         if ($search_engine === 'solr') {
             $driver = 'solr';
-        } elseif ($search_engine === 'opensearch') {
-            $driver = 'opensearch';
         } elseif ($search_engine === 'nada_ai') {
             $driver = 'semantic';
         }
@@ -50,10 +48,6 @@ class Catalog_search{
             case 'solr';
                 require_once dirname(__FILE__) . '/Catalog_search_solr.php';
                 $this->search_obj= new catalog_search_solr($params);
-                break;
-            case 'opensearch';
-                require_once dirname(__FILE__) . '/OpenSearch/Catalog_search_opensearch.php';
-                $this->search_obj= new catalog_search_opensearch($params);
                 break;
             case 'semantic';
                 // nada-ai says which engine it runs: anything but OpenSearch is an error, because the driver and its

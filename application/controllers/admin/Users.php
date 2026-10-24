@@ -234,6 +234,120 @@ class Users extends MY_Controller {
 		return $out;
 	}
 
+	/**
+	 * Roles a non-admin may assign. Admins see every role.
+	 *
+	 * @return array
+	 */
+	private function _roles_for_assignment_form()
+	{
+		$roles = $this->acl_manager->get_roles();
+		if ($this->acl_manager->user_is_admin()) {
+			return $roles;
+		}
+
+		return array_values(array_filter($roles, function ($role) {
+			return empty($role['is_admin']);
+		}));
+	}
+
+	/**
+	 * @param array $role_ids
+	 * @return bool
+	 */
+	private function _role_ids_include_admin($role_ids)
+	{
+		if ( ! is_array($role_ids) || $role_ids === array()) {
+			return false;
+		}
+
+		$admin_ids = array();
+		foreach ($this->acl_manager->get_roles() as $role) {
+			if ( ! empty($role['is_admin'])) {
+				$admin_ids[(int) $role['id']] = true;
+			}
+		}
+
+		foreach ($role_ids as $role_id) {
+			if (isset($admin_ids[(int) $role_id])) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * @return int
+	 */
+	private function _current_user_id()
+	{
+		$user = $this->acl_manager->current_user();
+		if ( ! $user || empty($user->id)) {
+			return 0;
+		}
+
+		return (int) $user->id;
+	}
+
+	/**
+	 * A non-admin must not edit, delete, or change the status of an admin-role account.
+	 *
+	 * @param int         $user_id
+	 * @param object|null $user
+	 * @return bool
+	 */
+	private function _target_is_protected_admin($user_id, $user = null)
+	{
+		if ($this->acl_manager->user_is_admin()) {
+			return false;
+		}
+
+		if ($user === null) {
+			$user = $this->ion_auth->get_user($user_id);
+		}
+
+		if ( ! $user) {
+			return false;
+		}
+
+		return $this->acl_manager->user_is_admin($user);
+	}
+
+	/**
+	 * @param int   $user_id
+	 * @param array $role_ids
+	 * @return bool
+	 */
+	private function _would_remove_own_admin_role($user_id, $role_ids)
+	{
+		if ((int) $user_id !== $this->_current_user_id()) {
+			return false;
+		}
+
+		if ( ! $this->acl_manager->user_is_admin()) {
+			return false;
+		}
+
+		return ! $this->_role_ids_include_admin($role_ids);
+	}
+
+	/**
+	 * Skip the caller, and skip admin-role accounts when the caller is not an admin.
+	 *
+	 * @param int $user_id
+	 * @return bool
+	 */
+	private function _may_change_user_account($user_id)
+	{
+		$user_id = (int) $user_id;
+		if ($user_id < 1 || $user_id === $this->_current_user_id()) {
+			return false;
+		}
+
+		return ! $this->_target_is_protected_admin($user_id);
+	}
+
 	function bulk_action()
 	{
 		$this->acl_manager->has_access_or_die('user', 'edit');
@@ -281,7 +395,7 @@ class Users extends MY_Controller {
 		$success_count = 0;
 
 		foreach ($user_ids as $user_id) {
-			if (is_numeric($user_id) && $this->User_model->delete($user_id)) {
+			if (is_numeric($user_id) && $this->_may_change_user_account($user_id) && $this->User_model->delete($user_id)) {
 				$success_count++;
 			}
 		}
@@ -294,7 +408,7 @@ class Users extends MY_Controller {
 		$success_count = 0;
 
 		foreach ($user_ids as $user_id) {
-			if (is_numeric($user_id) && $this->_update_user_status($user_id, $status)) {
+			if (is_numeric($user_id) && $this->_may_change_user_account($user_id) && $this->_update_user_status($user_id, $status)) {
 				$success_count++;
 			}
 		}
@@ -307,6 +421,9 @@ class Users extends MY_Controller {
 		$data = array('active' => (int) $status);
 		if ((int) $status === 1) {
 			$data['activation_code'] = '';
+			$data['activation_code_expiry'] = null;
+			$data['activation_attempt_count'] = 0;
+			$data['activation_attempt_ts'] = null;
 		}
 		$this->db->where('id', (int) $user_id);
 		return $this->db->update('users', $data);
@@ -543,6 +660,7 @@ class Users extends MY_Controller {
         	$email     = $this->input->post('email');
         	$password  = $this->input->post('password');
         	
+        	$role_ids = $this->_filter_assignable_role_ids($this->role_ids_from_post());
         	$additional_data = array('first_name' => $this->input->post('first_name'),
         							 'last_name'  => $this->input->post('last_name'),
         							 'company'    => $this->input->post('company'),
@@ -550,7 +668,7 @@ class Users extends MY_Controller {
 									 'active'     => $this->input->post('active'),
 									 'country'    => $this->input->post('country'),
         							 'active'     => $this->input->post('active'),
-									 'role_id'    => $this->role_ids_from_post()
+									 'role_id'    => $role_ids
         							);
         	
         	//register the user
@@ -637,7 +755,7 @@ class Users extends MY_Controller {
 				$this->data['user_role'] = $this->role_ids_from_post();
 			}
 			
-			$this->data['roles']= $this->acl_manager->get_roles();//full list of roles
+			$this->data['roles']= $this->_roles_for_assignment_form();
 			$this->data['options_country']= $this->ion_auth_model->get_all_countries();
 			
             $content=$this->load->view('users/create', $this->data,TRUE);
@@ -652,6 +770,14 @@ class Users extends MY_Controller {
 	function edit($id) 
 	{  		
 		$this->acl_manager->has_access_or_die('user', 'edit');
+		$db_data=$this->ion_auth->get_user($id);
+		if (!$db_data){
+			show_404();
+		}
+		if ($this->_target_is_protected_admin($id, $db_data)) {
+			$this->acl_manager->show_access_denied('feature');
+		}
+
 		$this->data['page_title'] = t("edit_user_account");	
 		$use_complex_password=$this->config->item("require_complex_password");
 	              		
@@ -679,9 +805,16 @@ class Users extends MY_Controller {
 				'company'    => $this->input->post('company'),
 				'phone'      => $this->input->post('phone1'),
 				'active'     => $this->input->post('active'),
-				'role_id'     => $this->role_ids_from_post(),
 				'country'     => $this->input->post('country'),
 			);
+
+			$role_ids = $this->_filter_assignable_role_ids($this->role_ids_from_post());
+			if ($this->_would_remove_own_admin_role($id, $role_ids)) {
+				$this->session->set_flashdata('error', 'You cannot remove your own admin role.');
+				redirect('admin/users/edit/'.$id, 'refresh');
+				return;
+			}
+			$data['role_id'] = $role_ids;
 						
 			//change password, if not empty
 			if ($this->input->post("password") ){
@@ -697,14 +830,7 @@ class Users extends MY_Controller {
 		else 
 		{ 
 			//displaying the form for the first time
-	        
-			//get user id
-			$db_data=$this->ion_auth->get_user($id);
 
-			if (!$db_data){
-				show_404();
-			}
-			
 			//load data from post-back. need this for loading user group selection, 
 			//other values are populated on postback			
 			
@@ -783,7 +909,7 @@ class Users extends MY_Controller {
 				$this->data['user_role']= $db_data->user_role;//roles assigned to user
 			}
 
-			$this->data['roles']= $this->acl_manager->get_roles();//full list of roles
+			$this->data['roles']= $this->_roles_for_assignment_form();
 			$this->data['options_country']= $this->ion_auth_model->get_all_countries();
 			
 			// Load user's API keys for admin management
@@ -1338,41 +1464,40 @@ class Users extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/users');
-			}	
+			nada_redirect($destination, 'admin/users');
 		}
 		else if ($this->input->post('submit')!='')
 		{
+			$deleted = 0;
 			foreach($delete_arr as $item)
 			{
-				//confirm delete	
+				if ( ! $this->_may_change_user_account($item)) {
+					continue;
+				}
 				$this->User_model->delete($item);
+				$deleted++;
 			}
 
 			//for ajax calls, return output as JSON						
 			if ($ajax!='')
 			{
-				echo json_encode(array('success'=>"true") );
+				if ($deleted > 0) {
+					echo json_encode(array('success'=>"true") );
+				}
+				else {
+					echo json_encode(array('error'=>"You cannot delete your own account or an admin account.") );
+				}
 				exit;
+			}
+
+			if ($deleted === 0) {
+				$this->session->set_flashdata('error', 'You cannot delete your own account or an admin account.');
 			}
 						
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/users');
-			}	
+			nada_redirect($destination, 'admin/users');
 		}
 		else
 		{

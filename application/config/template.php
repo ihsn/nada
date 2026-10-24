@@ -98,7 +98,15 @@ $template['embed_table']['template'] = '../../themes/nada52/embed_table';
 $template['embed_table']['theme_folder'] = 'nada52';
 
 // Public Vue catalog search — lean head (no Google Fonts / classic catalog CSS)
-$template['public_vue']['template'] = '../../themes/'.$theme_name.'/layout_vue';
+$public_vue_layout_theme = $theme_name;
+$public_vue_layout_file = dirname(APPPATH) . '/themes/' . $theme_name . '/layout_vue.php';
+
+if (!is_file($public_vue_layout_file)) {
+	$public_vue_layout_theme = 'nada52';
+	log_message('info', 'Public Vue catalog layout missing in themes/' . $theme_name . '; using themes/nada52/layout_vue.php');
+}
+
+$template['public_vue']['template'] = '../../themes/' . $public_vue_layout_theme . '/layout_vue';
 $template['public_vue']['theme_folder'] = $theme_name;
 $template['public_vue']['regions'] = array(
   'header'=>array('content' => array('<h1>heading 1</h1>')),

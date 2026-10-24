@@ -141,6 +141,24 @@ $lang['export_to_csv']="Exportar a CSV
 ";
 $lang['translate']="Traducir
 ";
+$lang['showing %d-%d of %d']="Mostrando %d-%d de %d";
+$lang['save']="Guardar";
+$lang['export_to_json']="Exportar a JSON";
+$lang['get_reproducibility_package']="Obtener paquete de reproducibilidad";
+$lang['enter_email_to_continue']="Ingrese su dirección de correo electrónico para continuar";
+$lang['enter_your_email']="Ingrese su dirección de correo electrónico";
+$lang['continue']="Continuar";
+$lang['login_with_social']="Iniciar sesión con una cuenta social";
+$lang['login_with']="Iniciar sesión con";
+$lang['login_with_email']="Iniciar sesión con correo electrónico";
+$lang['login_with_password']="Iniciar sesión con contraseña";
+$lang['create_account_with_email']="Crear cuenta con correo electrónico";
+$lang['account_exists_with']="Ya existe una cuenta con %s";
+$lang['new_account_will_be_created']="Se creará una nueva cuenta para usted";
+$lang['message_sent_to_your_email']="Se ha enviado un mensaje a su dirección de correo electrónico con instrucciones para restablecer su contraseña.";
+$lang['file_manager']="Administrador de archivos";
+$lang['access_denied_title']="Acceso denegado";
+$lang['access_denied_message']="No tiene permiso para acceder a esta página o recurso. Si considera que debería tener acceso, comuníquese con el administrador del sistema.";
 
 //home page
 $lang['home_search_intro']="Busque y explore %s conjuntos de datos";

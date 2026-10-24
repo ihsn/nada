@@ -69,8 +69,8 @@ export function useStudyRelatedDataApi() {
   }
 
   async function updateRelationship(relatedSid, relationshipId) {
-    const { data } = await axios.patch(
-      `${catalogBase()}${studyRef()}/related-studies/${encodeURIComponent(String(relatedSid))}`,
+    const { data } = await axios.post(
+      `${catalogBase()}${studyRef()}/related-studies/${encodeURIComponent(String(relatedSid))}/update`,
       { relationship_id: relationshipId },
       {
         params: studyParams(),
@@ -83,8 +83,9 @@ export function useStudyRelatedDataApi() {
   }
 
   async function detachStudy(relatedSid) {
-    const { data } = await axios.delete(
-      `${catalogBase()}${studyRef()}/related-studies/${encodeURIComponent(String(relatedSid))}`,
+    const { data } = await axios.post(
+      `${catalogBase()}${studyRef()}/related-studies/${encodeURIComponent(String(relatedSid))}/delete`,
+      {},
       {
         params: studyParams(),
         withCredentials: true,

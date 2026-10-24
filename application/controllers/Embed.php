@@ -29,7 +29,7 @@ class Embed extends MY_Controller {
 		}
 
 		$survey = $this->Dataset_model->get_row($sid);
-		if (!$survey || $survey['type'] !== 'timeseries') {
+		if (!$survey || $survey['type'] !== 'timeseries' || !$this->_dataset_is_publicly_readable($sid)) {
 			show_404();
 		}
 
@@ -88,7 +88,7 @@ class Embed extends MY_Controller {
 		}
 
 		$survey = $this->Dataset_model->get_row($sid);
-		if (!$survey || $survey['type'] !== 'timeseries') {
+		if (!$survey || $survey['type'] !== 'timeseries' || !$this->_dataset_is_publicly_readable($sid)) {
 			show_404();
 		}
 
@@ -132,5 +132,15 @@ class Embed extends MY_Controller {
 		$this->template->write('title', $page_title, true);
 		$this->template->write('content', $content, true);
 		$this->template->render();
+	}
+
+	/**
+	 * @param int $sid
+	 * @return bool
+	 */
+	private function _dataset_is_publicly_readable($sid)
+	{
+		$uid = $this->session->userdata('user_id');
+		return $this->acl_manager->dataset_is_publicly_readable($sid, $uid ? (int) $uid : null);
 	}
 }

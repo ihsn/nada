@@ -63,6 +63,9 @@ $lang['upload_failed']="Error al subir";
 $lang['upload_failed_prefix']="Error al subir: ";
 $lang['network_error_upload']="Error de red durante la carga.";
 $lang['close']="Cerrar";
+$lang['showing %d-%d of %d']="Mostrando %d-%d de %d";
+$lang['parent_page']="Página padre";
+$lang['none_top_level']="Ninguna (nivel superior)";
 
 /* End of file menu_lang.php */
 /* Location: ./application/language/spanish/menu_lang.php */

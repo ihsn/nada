@@ -53,5 +53,31 @@ $lang['metadata.description.referenceSystemInfo.code']="Code";
 $lang['resourceMaintenance.maintenanceAndUpdateFrequency']="Fréquence de mise à jour";
 
 
+$lang['citation.alternateTitle']="Titre alternatif";
+$lang['transferOptions']="Options de transfert";
+$lang['transferOptions.onLine']="Ressources en ligne";
+$lang['onLine.linkage']="Lien";
+$lang['onLine.name']="Nom";
+$lang['onLine.protocol']="Protocole";
+$lang['onLine.function']="Fonction";
+$lang['dataQualityInfo']="Qualité des données";
+$lang['scope']="Portée";
+$lang['lineage.statement']="Généalogie";
+$lang['description']="Production des métadonnées";
+$lang['metadata.description.fileIdentifier']="Identifiant de la fiche";
+$lang['metadata.description.language']="Langue";
+$lang['metadata.description.hierarchyLevel']="Niveau de hiérarchie";
+$lang['metadata.description.contact']="Contacts";
+$lang['metadata.description.dateStamp']="Date des métadonnées";
+$lang['metadata.description.metadataStandardName']="Norme de métadonnées";
+$lang['metadata.description.referenceSystemInfo']="Système de référence";
+$lang['metadata.description.referenceSystemInfo.codeSpace']="Espace de codes";
+$lang['feature_catalogue']="Catalogue d'objets";
+$lang['lineage.processStep']="Étape du processus de généalogie";
+$lang['lineage.processStep.processor']="Responsable du traitement";
+$lang['spatialResolution']="Résolution spatiale";
+$lang['spatialResolution.uom']="Unité de mesure";
+$lang['spatialResolution.value']="Valeur";
+
 /* End of file iso19139_fields */
 /* Location: ./application/language/french/iso19139_fields */

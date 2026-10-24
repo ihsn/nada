@@ -222,11 +222,19 @@ class Licensed_model extends CI_Model {
 	}
 
 	function update_request_files($request_id,$file_options)
-	{		
+	{
+		$request_id = (int) $request_id;
+		$allowed = $this->get_request_allowed_resource_ids($request_id);
+
 		foreach($file_options as $key=>$option)
 		{
+			$resource_id = (int) $key;
+			if ($resource_id < 1 || ! isset($allowed[$resource_id])) {
+				throw new Exception('INVALID_RESOURCE');
+			}
+
 			$data= array(
-				'fileid'=>$key,
+				'fileid'=>$resource_id,
 				'requestid'=>$request_id,
 				'download_limit' => $option['download_limit'],
 				'expiry' => $option['expiry']
@@ -257,6 +265,43 @@ class Licensed_model extends CI_Model {
 		//update request expiry date
 		$this->update_request_expiry($request_id);
 		return TRUE;
+	}
+
+	/**
+	 * Resource ids that may be granted on a licensed request: resources
+	 * whose survey is linked to that request.
+	 *
+	 * @param int $request_id
+	 * @return array resource_id => true
+	 */
+	function get_request_allowed_resource_ids($request_id)
+	{
+		$request_id = (int) $request_id;
+		if ($request_id < 1) {
+			return array();
+		}
+
+		$this->db->select('resources.resource_id');
+		$this->db->from('resources');
+		$this->db->join(
+			'survey_lic_requests',
+			'survey_lic_requests.sid = resources.survey_id',
+			'inner'
+		);
+		$this->db->where('survey_lic_requests.request_id', $request_id);
+		$rows = $this->db->get()->result_array();
+
+		$allowed = array();
+		if (is_array($rows)) {
+			foreach ($rows as $row) {
+				$rid = (int) $row['resource_id'];
+				if ($rid > 0) {
+					$allowed[$rid] = true;
+				}
+			}
+		}
+
+		return $allowed;
 	}
 	
 	
@@ -1008,12 +1053,26 @@ class Licensed_model extends CI_Model {
 	
 	/**
 	*
-	* Delete licensed request
+	* Delete licensed request and related rows
 	*/
 	function delete($requestid)
-	{		
-		$this->db->where('id',$requestid);	
-		return $this->db->delete('lic_requests'); 
+	{
+		$requestid = (int) $requestid;
+		if ($requestid < 1) {
+			return false;
+		}
+
+		$this->delete_request_files($requestid);
+		$this->remove_request_history($requestid);
+
+		$this->db->where('requestid', $requestid);
+		$this->db->delete('lic_files_log');
+
+		$this->db->where('request_id', $requestid);
+		$this->db->delete('survey_lic_requests');
+
+		$this->db->where('id', $requestid);
+		return $this->db->delete('lic_requests');
 	}
 
 	/**

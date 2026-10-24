@@ -2,18 +2,15 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 require_once(APPPATH . 'core/MY_Migration.php');
-require_once(APPPATH . 'migrations/traits/Catalog_schema_gaps_trait.php');
 
 /**
- * Add PID-family versioning to codelists (aligned with data_structures).
+ * @deprecated Applied by install/nada56-codelists-dsd-*.sql via migration 20260701000004.
  */
 class Migration_Codelists_versioning_pid extends MY_Migration {
 
-	use Catalog_schema_gaps_trait;
-
 	public function up()
 	{
-		$this->ensure_codelists_pid_versioning();
+		log_message('info', 'Migration_Codelists_versioning_pid: superseded by nada56-codelists-dsd SQL');
 	}
 
 	public function down()

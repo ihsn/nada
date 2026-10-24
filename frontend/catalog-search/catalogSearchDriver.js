@@ -2,15 +2,14 @@
 export function searchDriverGroup(engine) {
   const e = String(engine || 'database').toLowerCase();
   if (e === 'nada_ai') return 'semantic';
-  if (e === 'solr' || e === 'opensearch') return 'fulltext';
+  if (e === 'solr') return 'fulltext';
   return 'db';
 }
 
-/** Human-readable engine name for tooltips (includes Solr vs OpenSearch). */
+/** Human-readable engine name for tooltips. */
 export function searchDriverLabel(engine) {
   const e = String(engine || 'database').toLowerCase();
   if (e === 'nada_ai') return 'NADA-AI';
-  if (e === 'opensearch') return 'OpenSearch';
   if (e === 'solr') return 'Solr';
   return 'Database';
 }

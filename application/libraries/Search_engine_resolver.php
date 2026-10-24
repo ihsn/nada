@@ -8,11 +8,11 @@
  * every call site asks it instead of reading the settings itself.
  *
  *   engine()          what search_engine is set to, the engine that serves searches:
- *                       database | solr | opensearch | nada_ai
+ *                       database | solr | nada_ai
  *   index_engine()    what search_index_engine is set to, the engine whose index NADA keeps in sync:
- *                       none | solr | opensearch | nada_ai
+ *                       none | solr | nada_ai
  *   provider_for()    the engine that serves one capability (studies | variables | citations): database | solr |
- *                     opensearch | nada_ai
+ *                     nada_ai
  *   tracked()         whether changes to an object type are queued for the index engine
  *
  * The two are separate so an index can be built and kept in sync while the database still serves searches (index
@@ -22,8 +22,8 @@
  * nada_ai: nada-ai's OpenSearch serves studies, and variables and citations when nada-ai says it can.
  * nada-ai reports which engine it runs (Nada_ai_link); anything but OpenSearch is a configuration error, not
  * something to work around (backend_mismatch()).
- * Until the variable search of Solr and NADA's OpenSearch has been checked against this catalog's variable view,
- * they are not asked for variables and the database serves them (NATIVE_ENGINES_SERVE_VARIABLES).
+ * Until Solr's variable search has been checked against this catalog's variable view, it is not asked for variables
+ * and the database serves them (NATIVE_ENGINES_SERVE_VARIABLES).
  */
 require_once dirname(__FILE__) . '/Nada_ai_link.php';
 
@@ -32,7 +32,6 @@ class Search_engine_resolver
     // the site setting, and what provider_for() answers
     const DATABASE   = 'database';
     const SOLR       = 'solr';
-    const OPENSEARCH = 'opensearch';
     const NADA_AI    = 'nada_ai';
 
     /** index_engine(): no index is kept in sync. */
@@ -48,7 +47,7 @@ class Search_engine_resolver
     const OBJECT_SURVEY   = 'survey';
     const OBJECT_CITATION = 'citation';
 
-    /** Solr and NADA's own OpenSearch have a variable search, but the catalog's variable view has not been checked with it. */
+    /** Solr has a variable search, but the catalog's variable view has not been checked with it. */
     const NATIVE_ENGINES_SERVE_VARIABLES = false;
 
     /** Capability => the key in nada-ai's /info capabilities. */
@@ -71,7 +70,7 @@ class Search_engine_resolver
     public function engine()
     {
         $engine = strtolower(trim((string) $this->ci->config->item('search_engine')));
-        $valid  = array(self::SOLR, self::OPENSEARCH, self::NADA_AI);
+        $valid  = array(self::SOLR, self::NADA_AI);
         return in_array($engine, $valid, true) ? $engine : self::DATABASE;
     }
 
@@ -79,7 +78,7 @@ class Search_engine_resolver
     public function index_engine()
     {
         $engine = strtolower(trim((string) $this->ci->config->item('search_index_engine')));
-        $valid  = array(self::SOLR, self::OPENSEARCH, self::NADA_AI);
+        $valid  = array(self::SOLR, self::NADA_AI);
         return in_array($engine, $valid, true) ? $engine : self::NONE;
     }
 

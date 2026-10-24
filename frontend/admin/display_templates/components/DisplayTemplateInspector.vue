@@ -424,6 +424,22 @@
               </div>
             </div>
 
+            <div v-if="showScrollableControls" class="dt-opt-row">
+              <div class="dt-opt-label">Scrollable table</div>
+              <div class="dt-opt-control">
+                <v-switch
+                  :model-value="displayScrollable"
+                  color="primary"
+                  density="compact"
+                  hide-details
+                  class="dt-opt-switch"
+                  :disabled="readonly"
+                  @update:model-value="onDisplayScrollableChange"
+                />
+              </div>
+              <p class="dt-opt-hint">Limit table height to 400px with vertical scroll for large row counts.</p>
+            </div>
+
             <div class="dt-opt-row">
               <div class="dt-opt-label">Hide field</div>
               <div class="dt-opt-control">
@@ -469,6 +485,7 @@ import {
   supportsDisplayFormat,
   supportsFieldLayout,
   supportsLinkify,
+  supportsScrollable,
   hasActiveDateFormatting,
   hasActiveUri,
   normalizeDisplayLayoutFieldNodeInPlace,
@@ -563,6 +580,8 @@ const showLinkifyControls = computed(
   () => displayValueMode.value === 'text' && supportsLinkify(node.value)
 );
 
+const showScrollableControls = computed(() => supportsScrollable(node.value));
+
 const showFieldLayoutControls = computed(
   () =>
     supportsFieldLayout(node.value) &&
@@ -592,6 +611,8 @@ const displayFormat = computed(() => {
 });
 
 const displayLinkify = computed(() => !!node.value?.display_options?.linkify);
+
+const displayScrollable = computed(() => !!node.value?.display_options?.scrollable);
 
 const displayLayout = computed(() =>
   node.value?.display_options?.layout === 'inline' ? 'inline' : 'stacked'
@@ -836,6 +857,19 @@ function onDisplayLinkifyChange(value) {
   const n = node.value;
   if (!n || props.readonly) return;
   ensureDisplayOptionsObject(n).linkify = !!value;
+  emit('dirty');
+}
+
+function onDisplayScrollableChange(value) {
+  const n = node.value;
+  if (!n || props.readonly) return;
+  const o = ensureDisplayOptionsObject(n);
+  if (value) {
+    o.scrollable = true;
+  } else {
+    delete o.scrollable;
+  }
+  normalizeDisplayOptions(o, n.type);
   emit('dirty');
 }
 

@@ -25,9 +25,9 @@ $config['data_types_nav_bar']='no';
 $config['max_resource_upload_size']='3000';
 $config['deposit_max_upload_size']='2048';
 $config['admin_header_background']='#212121';
-// Which engine serves catalog search: database | solr | opensearch | nada_ai (database or search_index_engine)
+// Which engine serves catalog search: database | solr | nada_ai (database or search_index_engine)
 $config['search_engine']='database';
-// Which engine's index NADA keeps in sync (change tracking): none | solr | opensearch | nada_ai
+// Which engine's index NADA keeps in sync (change tracking): none | solr | nada_ai
 $config['search_index_engine']='none';
 $config['nada_ai_url']='';
 $config['nada_ai_api_key']='';
@@ -37,6 +37,7 @@ $config['nada_ai_on_outage']='database';
 // Whether NADA-AI's embedding model matches queries across languages: yes | no. The home page only invites
 // searches in other languages when it does.
 $config['nada_ai_multilingual']='no';
+$config['site_user_register']='yes';
 
 //default cache expiration in seconds
 $config['cache_default_expires'] = 60*60*2;//2 hours

@@ -39,11 +39,16 @@ class Breadcrumb
 		$breadcrumbs=array();
 		$breadcrumbs['']=t('Home');
 		
-		$segments=$this->ci->uri->segment_array();
-	
-		if (!is_array($segments) && count($segments)===0)
+		$segment1 = $this->ci->uri->segment(1, '');
+		if ($segment1 === '' || $segment1 === null)
 		{
-			return FALSE;
+			return $breadcrumbs;
+		}
+
+		$segments = $this->ci->uri->segment_array();
+		if (!is_array($segments))
+		{
+			$segments = array();
 		}
 		
 		//set active repository
@@ -64,7 +69,7 @@ class Breadcrumb
 		$repository_title=t('central_data_catalog');
 		
 		
-		if($segments[1]=='catalog' && isset($segments[2]))
+		if ($segment1 === 'catalog' && isset($segments[2]))
 		{
 		
 			if(!is_numeric($segments[2]) )
@@ -80,7 +85,7 @@ class Breadcrumb
 			}
 		}
 		
-		switch($segments[1])
+		switch ($segment1)
 		{
 				case 'about':
 				case 'resources':
@@ -89,7 +94,7 @@ class Breadcrumb
 				case 'deposit':
 				case 'help':
 				case 'faqs':
-					$breadcrumbs[$segments[1]]=t($segments[1]);
+					$breadcrumbs[$segment1]=t($segment1);
 				break;
 				
 				case 'collections':
@@ -638,10 +643,6 @@ class Breadcrumb
 					$breadcrumbs['admin/catalog/edit/'.$segments[5]]=$this->get_study_title($segments[5]);
 					$breadcrumbs['admin/menu/add/']=t('add_new_resource');
 				break;
-
-				case 'upload':
-					$breadcrumbs['admin/resources/upload/'.$segments[4]]=t('upload_resources');
-				break;
 			}
 		}
 		
@@ -711,6 +712,25 @@ class Breadcrumb
 	}
 
 	//Helper functions
+
+	/**
+	 * Parse a URI segment as surveys.id (positive SQL Server int). Rejects is_numeric() traps like "2936.".
+	 *
+	 * @param mixed $value
+	 * @return int|false
+	 */
+	private function parse_study_id($value)
+	{
+		if ($value === null || $value === '') {
+			return false;
+		}
+
+		$sid = filter_var((string) $value, FILTER_VALIDATE_INT, array(
+			'options' => array('min_range' => 1, 'max_range' => 2147483647),
+		));
+
+		return ($sid === false) ? false : $sid;
+	}
 	
 	/**
 	*
@@ -718,9 +738,14 @@ class Breadcrumb
 	*
 	**/
 	function get_study_info($id)
-	{		
+	{
+		$sid = $this->parse_study_id($id);
+		if ($sid === false) {
+			return $id;
+		}
+
 		$this->ci->load->model('Survey_model');
-		$survey=$this->ci->Survey_model->get_row($id);
+		$survey=$this->ci->Survey_model->get_row($sid);
 		
 		if(!$survey)
 		{
@@ -850,6 +875,11 @@ class Breadcrumb
 	**/
 	public function get_survey_owner_repo($sid)
 	{
+		$sid = $this->parse_study_id($sid);
+		if ($sid === false) {
+			return false;
+		}
+
 		$this->ci->db->select('r.repositoryid,r.title');
 		$this->ci->db->join('survey_repos', 'survey_repos.repositoryid= r.repositoryid','inner');		
 		$this->ci->db->where('survey_repos.sid',$sid);
@@ -870,6 +900,11 @@ class Breadcrumb
 	**/
 	function get_survey_country($sid)
 	{
+		$sid = $this->parse_study_id($sid);
+		if ($sid === false) {
+			return false;
+		}
+
 		$this->ci->db->select('nation');
 		$this->ci->db->where('id',$sid);
 		$query=$this->ci->db->get('surveys');

@@ -969,7 +969,10 @@ CREATE TABLE users (
   password varchar(1000) NOT NULL,
   salt varchar(40) DEFAULT NULL,
   email varchar(100) NOT NULL,
-  activation_code varchar(40) DEFAULT NULL,
+  activation_code varchar(64) DEFAULT NULL,
+  activation_code_expiry int DEFAULT NULL,
+  activation_attempt_count int NOT NULL DEFAULT 0,
+  activation_attempt_ts int DEFAULT NULL,
   forgotten_password_code varchar(100) DEFAULT NULL,
   forgotten_code_expiry int default NULL,
   remember_code varchar(40) DEFAULT NULL,
@@ -1114,18 +1117,6 @@ INSERT INTO menus (id,url,title,body,published,target,changed,linktype,weight,pi
 (56,'home','Home',NULL,1,'0',1281460217,1,0,0);
 set IDENTITY_INSERT menus OFF;
 
-
-
---
--- Table structure for table url_mappings
---
-
-CREATE TABLE url_mappings (
-  id int NOT NULL IDENTITY(1,1),
-  source varchar(255) DEFAULT NULL,
-  target varchar(255) DEFAULT NULL,
-  PRIMARY KEY (id)
-) ;
 
 
 --
@@ -1523,6 +1514,7 @@ INSERT INTO configurations VALUES ('app_version','4.0.0-06.02.2013','Application
 INSERT INTO configurations VALUES ('cache_default_expires','7200','Cache expiry (in mili seconds)',NULL,NULL);
 INSERT INTO configurations VALUES ('cache_disabled','0','Enable/disable site caching',NULL,NULL);
 INSERT INTO configurations VALUES ('cache_path','cache/','Site cache folder',NULL,NULL);
+INSERT INTO configurations VALUES ('catalog_public_search_ui','classic','Public catalog search UI',NULL,NULL);
 INSERT INTO configurations VALUES ('catalog_records_per_page','15','Catalog search page - records per page',NULL,NULL);
 INSERT INTO configurations VALUES ('catalog_root','datafiles','Survey catalog folder',NULL,NULL);
 INSERT INTO configurations VALUES ('collections_vocab','2','survey collections vocabulary',NULL,NULL);
@@ -1530,20 +1522,24 @@ INSERT INTO configurations VALUES ('collection_search','no',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('collection_search_weight','5',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('da_search','no',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('da_search_weight','2',NULL,NULL,NULL);
+INSERT INTO configurations VALUES ('data_classifications_enabled','yes','Enable data classifications',NULL,NULL);
+INSERT INTO configurations VALUES ('legacy_study_templates','[]','Study description layout','JSON list of catalog types that still use PHP metadata_templates views.',NULL);
 INSERT INTO configurations VALUES ('db_version','4.0.0-06.02.2013','Database version',NULL,NULL);
 INSERT INTO configurations VALUES ('ddi_import_folder','imports','Survey catalog import folder',NULL,NULL);
+INSERT INTO configurations VALUES ('deposit_max_upload_size','2048','Data deposit max file size (MB)','Maximum size in megabytes for one file uploaded to a data-deposit project.',NULL);
 INSERT INTO configurations VALUES ('default_home_page','home','Default home page','Default home page',NULL);
 INSERT INTO configurations VALUES ('html_folder','/pages',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('lang','en-us','Site Language','Site Language code',NULL);
 INSERT INTO configurations VALUES ('language','english',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('login_timeout','40','Login timeout (minutes)',NULL,NULL);
 INSERT INTO configurations VALUES ('mail_protocol','smtp','Select method for sending emails','Supported protocols: MAIL, SMTP, SENDMAIL',NULL);
-INSERT INTO configurations VALUES ('min_password_length','5','Minimum password length',NULL,NULL);
+INSERT INTO configurations VALUES ('min_password_length','8','Minimum password length',NULL,NULL);
 INSERT INTO configurations VALUES ('news_feed_url','http://ihsn.org/nada/index.php?q=news/feed','','','');
 INSERT INTO configurations VALUES ('regional_search','no','Enable regional search',NULL,NULL);
 INSERT INTO configurations VALUES ('regional_search_weight','3',NULL,NULL,NULL);
 INSERT INTO configurations VALUES ('repository_identifier','default','Repository Identifier',NULL,NULL);
 INSERT INTO configurations VALUES ('site_password_protect','no','Password protect website',NULL,NULL);
+INSERT INTO configurations VALUES ('site_user_register','yes','Allow user self-registration',NULL,NULL);
 INSERT INTO configurations VALUES ('smtp_host','','SMTP Host name',NULL,NULL);
 INSERT INTO configurations VALUES ('smtp_pass','','SMTP password',NULL,NULL);
 INSERT INTO configurations VALUES ('smtp_port','25','SMTP port',NULL,NULL);
@@ -1725,9 +1721,8 @@ CREATE TABLE api_keys (
   PRIMARY KEY (id),
 );
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys on [dbo].[api_keys](
-	[api_key] ASC
-);
+CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys_legacy ON api_keys(api_key)
+WHERE api_key IS NOT NULL;
 
 CREATE NONCLUSTERED INDEX idx_key_prefix ON api_keys(key_prefix);
 CREATE NONCLUSTERED INDEX idx_key_hash ON api_keys(key_hash);
@@ -2044,7 +2039,7 @@ CREATE NONCLUSTERED INDEX [idx_ts] ON [analytics_pageview_events] ([ts] ASC);
 CREATE NONCLUSTERED INDEX [idx_study] ON [analytics_pageview_events] ([study_id] ASC);
 CREATE NONCLUSTERED INDEX [idx_session] ON [analytics_pageview_events] ([session_id] ASC);
 CREATE NONCLUSTERED INDEX [idx_ts_study] ON [analytics_pageview_events] ([ts] ASC, [study_id] ASC);
-CREATE NONCLUSTERED INDEX [idx_dedup] ON [analytics_pageview_events] ([study_id] ASC, [session_id] ASC, [section] ASC, [page_url] ASC, [ts] ASC);
+CREATE NONCLUSTERED INDEX [idx_dedup] ON [analytics_pageview_events] ([study_id] ASC, [session_id] ASC, [section] ASC, [ts] ASC) INCLUDE ([page_url]);
 
 
 CREATE TABLE [analytics_download_events] (

@@ -18,6 +18,12 @@ const projectTypes = computed(() =>
   Array.isArray(config.value?.projectTypes) ? config.value.projectTypes : []
 );
 
+const fieldLimits = computed(() => ({
+  title: Number(config.value?.fieldLimits?.title) || 500,
+  shortname: Number(config.value?.fieldLimits?.shortname) || 255,
+  description: Number(config.value?.fieldLimits?.description) || 5000,
+}));
+
 const form = ref({
   data_type: defaultDataType(),
   title: '',
@@ -136,7 +142,13 @@ async function submitCreate() {
         <div class="dd-info-field">
           <label class="dd-info-label">{{ lbl.title }} <span class="text-error">*</span></label>
           <p class="text-caption text-medium-emphasis mb-1">{{ lbl.titleHelp }}</p>
-          <v-text-field v-model="form.title" variant="outlined" density="comfortable" hide-details="auto" />
+          <v-text-field
+            v-model="form.title"
+            variant="outlined"
+            density="comfortable"
+            hide-details="auto"
+            :maxlength="fieldLimits.title"
+          />
         </div>
         <div class="dd-info-field">
           <label class="dd-info-label">{{ lbl.shortname }} <span class="text-error">*</span></label>
@@ -146,6 +158,7 @@ async function submitCreate() {
             variant="outlined"
             density="comfortable"
             hide-details="auto"
+            :maxlength="fieldLimits.shortname"
           />
         </div>
         <div class="dd-info-field">
@@ -157,6 +170,7 @@ async function submitCreate() {
             auto-grow
             rows="3"
             hide-details="auto"
+            :maxlength="fieldLimits.description"
           />
         </div>
         <div class="dd-info-field">

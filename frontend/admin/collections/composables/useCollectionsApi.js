@@ -149,13 +149,13 @@ export function useCollectionsApi() {
     }
   }
 
-  /** DELETE {apiBase}delete/{repo_id} — delete a collection */
+  /** POST {apiBase}delete/{repo_id} — delete a collection */
   async function deleteCollection(repositoryId, options = {}) {
     const quiet = !!options.quiet;
     if (!quiet) loading.value = true;
     error.value = null;
     try {
-      const { data } = await axios.delete(`${base()}delete/${encodeURIComponent(repositoryId)}`);
+      const { data } = await axios.post(`${base()}delete/${encodeURIComponent(repositoryId)}`);
       if (data.status !== 'success') throw new Error(data.message || 'Failed to delete collection');
       return true;
     } catch (e) {

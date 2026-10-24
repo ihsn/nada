@@ -53,6 +53,10 @@ $lang['metadata.document_description.title_statement.alternate_title']="Abreviat
 ";
 $lang['metadata.document_description.title_statement.abbreviated_title']="Título abreviado
 ";
+$lang['metadata.document_description.title_statement.translated_title']="Título traducido";
+$lang['metadata.document_description.identifiers']="Identificadores";
+$lang['metadata.document_description.identifiers.type']="Tipo";
+$lang['metadata.document_description.identifiers.identifier']="Identificador";
 $lang['metadata.document_description.type']="Tipo de recurso
 ";
 $lang['metadata.document_description.status']="Estado
@@ -78,6 +82,10 @@ $lang['metadata.document_description.notes.note']="Nota
 ";
 $lang['metadata.document_description.scope']="Alcance
 ";
+$lang['metadata.document_description.geographic_units']="Unidades geográficas";
+$lang['metadata.document_description.geographic_units.name']="Nombre";
+$lang['metadata.document_description.geographic_units.code']="Código";
+$lang['metadata.document_description.geographic_units.type']="Tipo";
 $lang['metadata.document_description.ref_country']="País de referencia
 ";
 $lang['metadata.document_description.ref_country.name']="Nombre del país
@@ -128,6 +136,7 @@ $lang['metadata.document_description.journal']="Nombre de la revista
 ";
 $lang['metadata.document_description.volume']="Número de volumen
 ";
+$lang['metadata.document_description.number']="Número";
 $lang['metadata.document_description.issue']="Número de emisión
 ";
 $lang['metadata.document_description.pages']="Número de páginas
@@ -146,6 +155,8 @@ $lang['metadata.document_description.authors.last_name']="Apellido
 ";
 $lang['metadata.document_description.authors.affiliation']="Afiliación
 ";
+$lang['metadata.document_description.authors.author_id']="ID";
+$lang['metadata.document_description.authors.full_name']="Nombre completo";
 $lang['metadata.document_description.editors']="Editores
 ";
 $lang['metadata.document_description.editors.first_name']="Primer nombre
@@ -174,10 +185,27 @@ $lang['metadata.document_description.contributors.initial']="Inicial
 $lang['metadata.document_description.contributors.last_name']="Apellido";
 $lang['metadata.document_description.contributors.affiliation']="Afiliación
 ";
+$lang['metadata.document_description.contributors.role']="Rol";
+$lang['metadata.document_description.contributors.contribution']="Contribución";
+$lang['metadata.document_description.contacts']="Contactos";
+$lang['metadata.document_description.contacts.name']="Nombre";
+$lang['metadata.document_description.contacts.role']="Rol";
+$lang['metadata.document_description.contacts.affiliation']="Afiliación";
+$lang['metadata.document_description.contacts.email']="Correo electrónico";
+$lang['metadata.document_description.contacts.telephone']="Teléfono";
+$lang['metadata.document_description.contacts.uri']="URI";
 $lang['metadata.document_description.publisher']="Editorial/Publicador
 ";
 $lang['metadata.document_description.publisher_address']="Dirección de la editorial/publicador
 ";
+$lang['metadata.document_description.annote']="Anotación";
+$lang['metadata.document_description.booktitle']="Título del libro";
+$lang['metadata.document_description.crossref']="Referencia cruzada";
+$lang['metadata.document_description.howpublished']="Forma de publicación";
+$lang['metadata.document_description.key']="Clave";
+$lang['metadata.document_description.organization']="Organización";
+$lang['metadata.document_description.url']="URI";
+$lang['metadata.document_description.disclaimer']="Descargo de responsabilidad";
 $lang['metadata.document_description.rights']="Derechos
 ";
 $lang['metadata.document_description.copyright']="Derechos de autor
@@ -198,6 +226,10 @@ $lang['metadata.document_description.sources.source_char']="Características de 
 ";
 $lang['metadata.document_description.sources.source_doc']="Documentación fuente
 ";
+$lang['metadata.document_description.data_sources']="Fuentes de datos";
+$lang['metadata.document_description.data_sources.name']="Nombre";
+$lang['metadata.document_description.data_sources.uri']="URI";
+$lang['metadata.document_description.data_sources.note']="Nota";
 $lang['metadata.document_description.keywords']="Palabras clave
 ";
 $lang['metadata.document_description.keywords.name']="Nombre
@@ -208,6 +240,7 @@ $lang['metadata.document_description.keywords.uri']="URI del vocabulario
 ";
 $lang['metadata.document_description.themes']="Temas
 ";
+$lang['metadata.document_description.themes.id']="Identificador";
 $lang['metadata.document_description.themes.name']="Nombre
 ";
 $lang['metadata.document_description.themes.vocabulary']="Nombre del vocabulario
@@ -229,6 +262,7 @@ $lang['metadata.document_description.topics.uri']="URI del vocabulario
 ";
 $lang['metadata.document_description.disciplines']="Disciplinas
 ";
+$lang['metadata.document_description.disciplines.id']="Identificador";
 $lang['metadata.document_description.disciplines.name']="Título o nombre de la disciplina
 ";
 $lang['metadata.document_description.disciplines.vocabulary']="Vocabulario
@@ -264,6 +298,7 @@ $lang['metadata.document_description.lda_topics.model_info']="Modelo de informac
 ";
 $lang['metadata.document_description.lda_topics.model_info.source']="Fuente
 ";
+$lang['lda_model.source']="Fuente";
 $lang['lda_model.author']="Autor
 ";
 $lang['lda_model.version']="Versión
@@ -312,6 +347,14 @@ $lang['metadata.tags']="Etiquetas
 $lang['metadata.tags.tag']="Etiqueta
 ";
 
+
+$lang['scope and coverage']="Alcance y cobertura";
+$lang['bibliographic information']="Información bibliográfica";
+$lang['metadata.embeddings']="Representaciones vectoriales (embeddings)";
+$lang['metadata.embeddings.id']="ID";
+$lang['metadata.embeddings.description']="Descripción";
+$lang['metadata.embeddings.date']="Fecha";
+$lang['metadata.embeddings.vector']="Vector";
 
 /* End of file fields_document */
 /* Location: ./application/language/spanish/fields_document */

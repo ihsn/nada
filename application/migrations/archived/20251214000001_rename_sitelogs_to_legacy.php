@@ -43,10 +43,7 @@ class Migration_Rename_sitelogs_to_legacy extends MY_Migration {
                 'RENAME TABLE sitelogs TO sitelogs_legacy'
             );
         } elseif ($db_driver === 'sqlsrv') {
-            $this->assert_db_query(
-                $this->db->query("EXEC sp_rename 'sitelogs', 'sitelogs_legacy'"),
-                "EXEC sp_rename 'sitelogs', 'sitelogs_legacy'"
-            );
+            $this->sqlsrv_rename_table('sitelogs', 'sitelogs_legacy');
         } else {
             throw new Exception('Unsupported database driver: ' . $db_driver);
         }
@@ -99,10 +96,7 @@ class Migration_Rename_sitelogs_to_legacy extends MY_Migration {
                 'RENAME TABLE sitelogs_legacy TO sitelogs'
             );
         } elseif ($db_driver === 'sqlsrv') {
-            $this->assert_db_query(
-                $this->db->query("EXEC sp_rename 'sitelogs_legacy', 'sitelogs'"),
-                "EXEC sp_rename 'sitelogs_legacy', 'sitelogs'"
-            );
+            $this->sqlsrv_rename_table('sitelogs_legacy', 'sitelogs');
         }
 
         log_message('info', 'Successfully rolled back rename');

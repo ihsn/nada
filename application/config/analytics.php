@@ -44,3 +44,15 @@ $config['analytics_api_url'] = '/api/analytics';
 // Example: './backup/analytics/' or FCPATH . 'backup/analytics/'
 $config['analytics_archive_path'] = FCPATH . 'logs/analytics/';
 
+// Maximum rows returned by daily/monthly aggregate export endpoints
+$config['analytics_export_max_rows'] = 50000;
+
+// Maximum page size (limit) for admin analytics list API endpoints (default limit remains 50)
+$config['analytics_api_list_max_rows'] = 5000;
+
+// Raw event retention (days) — used after monthly finalization in aggregation pipeline
+$config['analytics_raw_retention_days'] = 60;
+
+// Max inclusive date span for admin raw event list API (date_from … date_to)
+$config['analytics_raw_list_max_days'] = 31;
+

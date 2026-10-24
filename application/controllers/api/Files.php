@@ -85,6 +85,13 @@ class Files extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($dataset_idno);
 			$this->has_dataset_access('edit',$sid);
 
+			if(is_numeric($resource_id)){
+				$resource=$this->Survey_resource_model->get_single_resource_by_survey($sid,$resource_id);
+				if(!$resource){
+					throw new Exception("RESOURCE_NOT_FOUND");
+				}
+			}
+
 			$result=$this->Survey_resource_model->upload_file($sid,$file_field_name='file', $remove_spaces=false);
 
 			$uploaded_file_name=$result['file_name'];
@@ -148,6 +155,16 @@ class Files extends MY_REST_Controller
 			);
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * POST /api/files/delete/{dataset_idno}/{filename}
+	 * POST /api/datasets/{dataset_idno}/files/{filename}/delete
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	function delete_post($dataset_idno=null, $filename=null)
+	{
+		return $this->index_delete($dataset_idno, $filename);
 	}
 
 	

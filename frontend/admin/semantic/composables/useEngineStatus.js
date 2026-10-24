@@ -18,15 +18,13 @@ const THROTTLE_MS = 10000;
 export const ENGINE_LABELS = {
   database: 'Database',
   solr: 'Solr',
-  opensearch: 'OpenSearch',
   nada_ai: 'NADA-AI',
 };
 
-/** What a serving engine is called in the "serving now" line (provider_for() answers database | solr | opensearch | nada_ai). */
+/** What a serving engine is called in the "serving now" line (provider_for() answers database | solr | nada_ai). */
 export const SERVING_LABELS = {
   database: 'database',
   solr: 'Solr',
-  opensearch: 'OpenSearch',
   nada_ai: 'NADA-AI',
 };
 

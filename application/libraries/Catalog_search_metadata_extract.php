@@ -4,7 +4,7 @@
  * Canonical catalog search document builder.
  *
  * Produces study/citation payloads (metadata JSON, core_fields, filters) for
- * external indexers. Solr/OpenSearch adapters can consume this shape later.
+ * external indexers (nada-ai).
  */
 class Catalog_search_metadata_extract
 {

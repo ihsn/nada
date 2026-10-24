@@ -42,8 +42,7 @@ function catalog_search_debug_enabled()
 {
 	$CI =& get_instance();
 	$CI->config->load('semantic_search');
-	$enabled = filter_var($CI->config->item('nada_ai_debug'), FILTER_VALIDATE_BOOLEAN)
-		|| filter_var($CI->config->item('opensearch_debug'), FILTER_VALIDATE_BOOLEAN);
+	$enabled = filter_var($CI->config->item('nada_ai_debug'), FILTER_VALIDATE_BOOLEAN);
 
 	return $enabled && catalog_search_debug_viewer();
 }

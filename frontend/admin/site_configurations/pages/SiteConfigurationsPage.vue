@@ -239,6 +239,9 @@ async function reloadAll() {
   if (s.deposit_max_upload_size === undefined || s.deposit_max_upload_size === '') {
     s.deposit_max_upload_size = '2048';
   }
+  if (s.site_user_register === undefined || s.site_user_register === '') {
+    s.site_user_register = 'yes';
+  }
   settings.value = { ...s };
   meta.value = { ...m };
   savedEngine.value = s.search_engine;
@@ -388,7 +391,7 @@ const saveVisible = computed(() => {
 const pathsOk = computed(() => meta.value?.paths_ok || {});
 
 /** The engine sections of the page, one per search_engine value. */
-const ENGINE_GROUPS = ['database', 'solr', 'opensearch', 'nada_ai'];
+const ENGINE_GROUPS = ['database', 'solr', 'nada_ai'];
 /** The engine as saved (loaded with the settings), for the line at the top of the section. */
 const savedEngine = ref('database');
 const draftEngine = computed(() => settings.value.search_engine || 'database');
@@ -398,7 +401,7 @@ const draftEngine = computed(() => settings.value.search_engine || 'database');
  * picking another search engine makes it the index engine too, and changing the index engine away from the search
  * engine puts the search back on the database.
  */
-const INDEX_ENGINES = ['none', 'solr', 'opensearch', 'nada_ai'];
+const INDEX_ENGINES = ['none', 'solr', 'nada_ai'];
 const savedIndexEngine = ref('none');
 const indexEngineLabel = (engine) => (engine === 'none' ? tr('search_index_engine_none') : tr(`search_engine_${engine}`));
 const indexEngineItems = computed(() => INDEX_ENGINES.map((value) => ({ value, title: indexEngineLabel(value) })));
@@ -1260,6 +1263,11 @@ onMounted(async () => {
             <v-radio-group v-model="settings.site_password_protect" class="mt-1">
               <v-radio value="yes" :label="tr('require_all_users_to_login')" />
               <v-radio value="no" :label="tr('login_not_required')" />
+            </v-radio-group>
+            <label class="site-config-field__label mt-4">{{ tr('site_user_register') }}</label>
+            <v-radio-group v-model="settings.site_user_register" class="mt-1">
+              <v-radio value="yes" :label="tr('site_user_register_enable')" />
+              <v-radio value="no" :label="tr('site_user_register_disable')" />
             </v-radio-group>
             <v-row dense class="mt-4">
               <v-col cols="12">

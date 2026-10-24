@@ -41,7 +41,8 @@ CREATE NONCLUSTERED INDEX [idx_session] ON [analytics_pageview_events] ([session
 GO
 CREATE NONCLUSTERED INDEX [idx_ts_study] ON [analytics_pageview_events] ([ts] ASC, [study_id] ASC);
 GO
-CREATE NONCLUSTERED INDEX [idx_dedup] ON [analytics_pageview_events] ([study_id] ASC, [session_id] ASC, [section] ASC, [page_url] ASC, [ts] ASC);
+-- page_url omitted from key columns: nvarchar(512) would exceed SQL Server's 1700-byte index key limit.
+CREATE NONCLUSTERED INDEX [idx_dedup] ON [analytics_pageview_events] ([study_id] ASC, [session_id] ASC, [section] ASC, [ts] ASC) INCLUDE ([page_url]);
 GO
 
 -- ============================================================

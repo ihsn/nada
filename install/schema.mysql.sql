@@ -971,7 +971,10 @@ CREATE TABLE `users` (
   `password` varchar(1000) NOT NULL,
   `salt` varchar(40) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
-  `activation_code` varchar(40) DEFAULT NULL,
+  `activation_code` varchar(64) DEFAULT NULL,
+  `activation_code_expiry` int DEFAULT NULL,
+  `activation_attempt_count` int NOT NULL DEFAULT 0,
+  `activation_attempt_ts` int DEFAULT NULL,
   `forgotten_password_code` varchar(40) DEFAULT NULL,
   `remember_code` varchar(40) DEFAULT NULL,
   `created_on` int NOT NULL,
@@ -1089,23 +1092,6 @@ INSERT INTO `menus` VALUES
 (56,'home','Home',NULL,1,'0',1281460217,1,0,0);
 /*!40000 ALTER TABLE `menus` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Table structure for table `url_mappings`
---
-
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `url_mappings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `source` varchar(255) DEFAULT NULL,
-  `target` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-
-
 
 --
 -- Table structure for table `survey_relationship_types`
@@ -1434,6 +1420,7 @@ INSERT INTO `configurations` VALUES ('app_version','5.0.0','Application version'
 INSERT INTO `configurations` VALUES ('cache_default_expires','7200','Cache expiry (in mili seconds)',NULL,NULL);
 INSERT INTO `configurations` VALUES ('cache_disabled','1','Enable/disable site caching',NULL,NULL);
 INSERT INTO `configurations` VALUES ('cache_path','cache/','Site cache folder',NULL,NULL);
+INSERT INTO `configurations` VALUES ('catalog_public_search_ui','classic','Public catalog search UI',NULL,NULL);
 INSERT INTO `configurations` VALUES ('catalog_records_per_page','15','Catalog search page - records per page',NULL,NULL);
 INSERT INTO `configurations` VALUES ('catalog_root','datafiles','Survey catalog folder',NULL,NULL);
 INSERT INTO `configurations` VALUES ('collections_vocab','2','survey collections vocabulary',NULL,NULL);
@@ -1445,18 +1432,20 @@ INSERT INTO `configurations` VALUES ('data_classifications_enabled','yes','Enabl
 INSERT INTO `configurations` VALUES ('legacy_study_templates','[]','Study description layout','JSON list of catalog types that still use PHP metadata_templates views.',NULL);
 INSERT INTO `configurations` VALUES ('db_version','5.0.0','Database version',NULL,NULL);
 INSERT INTO `configurations` VALUES ('ddi_import_folder','imports','Survey catalog import folder',NULL,NULL);
+INSERT INTO `configurations` VALUES ('deposit_max_upload_size','2048','Data deposit max file size (MB)','Maximum size in megabytes for one file uploaded to a data-deposit project.',NULL);
 INSERT INTO `configurations` VALUES ('default_home_page','home','Default home page','Default home page',NULL);
 INSERT INTO `configurations` VALUES ('html_folder','/pages',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('lang','en-us','Site Language','Site Language code',NULL);
 INSERT INTO `configurations` VALUES ('language','english',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('login_timeout','40','Login timeout (minutes)',NULL,NULL);
 INSERT INTO `configurations` VALUES ('mail_protocol','smtp','Select method for sending emails','Supported protocols: MAIL, SMTP, SENDMAIL',NULL);
-INSERT INTO `configurations` VALUES ('min_password_length','5','Minimum password length',NULL,NULL);
+INSERT INTO `configurations` VALUES ('min_password_length','8','Minimum password length',NULL,NULL);
 INSERT INTO `configurations` VALUES ('news_feed_url','http://ihsn.org/nada/index.php?q=news/feed','','','');
 INSERT INTO `configurations` VALUES ('regional_search','no','Enable regional search',NULL,NULL);
 INSERT INTO `configurations` VALUES ('regional_search_weight','3',NULL,NULL,NULL);
 INSERT INTO `configurations` VALUES ('repository_identifier','default','Repository Identifier',NULL,NULL);
 INSERT INTO `configurations` VALUES ('site_password_protect','no','Password protect website',NULL,NULL);
+INSERT INTO `configurations` VALUES ('site_user_register','yes','Allow user self-registration',NULL,NULL);
 INSERT INTO `configurations` VALUES ('smtp_host','','SMTP Host name',NULL,NULL);
 INSERT INTO `configurations` VALUES ('smtp_pass','','SMTP password',NULL,NULL);
 INSERT INTO `configurations` VALUES ('smtp_port','25','SMTP port',NULL,NULL);

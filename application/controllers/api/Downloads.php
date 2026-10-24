@@ -16,104 +16,34 @@ class Downloads extends MY_REST_Controller
 
 
 	/**
-	 * 
-	 * 
-	 * Search downloadable files across all studies
-	 * 
-	 * GET params:
-	 *  - limit: Number of results per page (default: 15)
-	 *  - offset: Starting position (default: 0)
-	 *  - type: Resource type filter - Category (microdata, data, documentation, doc) or specific code (doc/qst, dat/micro, tbl, aud, vid, etc.)
-	 *  - countries: Country filter (array or single value)
-	 *  - years: Year filter (array or single value)
-	 *  - data_access_type: Access type filter
-	 *  - idno: Study IDNO filter
-	 *  - sort_by: Sort field
-	 *  - sort_order: Sort order (asc/desc)
-	 * 
-	 */
-	function index_get($idno=null,$resource_id=null)
-	{	
-		try{
-		$limit = $this->get('limit') ? (int)$this->get('limit') : 15;
-		$offset = $this->get('offset') ? (int)$this->get('offset') : 0;
-		
-		$filters = array();
-		
-		if ($this->get('countries')) {
-			$filters['countries'] = $this->get('countries');
-		}
-		
-		if ($this->get('years')) {
-			$filters['years'] = $this->get('years');
-		}
-		
-		if ($this->get('data_access_type')) {
-			$filters['data_access_type'] = $this->get('data_access_type');
-		}
-		
-		if ($this->get('type')) {
-			$filters['type'] = $this->get('type');
-		}
-		
-		if ($idno) {
-			$filters['idno'] = $idno;
-		} elseif ($this->get('idno')) {
-			$filters['idno'] = $this->get('idno');
-		}
-			
-			$sort_by = $this->get('sort_by') ? $this->get('sort_by') : '';
-			$sort_order = $this->get('sort_order') ? $this->get('sort_order') : 'asc';
-			
-			$results = $this->downloads_service->search($limit, $offset, $filters, $sort_by, $sort_order);
-			
-			$response = array(
-				'status' => 'success',
-				'data' => $results
-			);
-
-			$this->set_response($response, REST_Controller::HTTP_OK);
-		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'errors'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-	}
-
-
-
-	/**
-	 * 
-	 * 
-	 * Get a list of downloadable files by study IDNO
-	 * 
+	 * Files for one published study that this caller is allowed to download.
+	 *
 	 * GET params:
 	 *  - type: Resource type filter - Category (microdata, data, documentation, doc) or specific code (doc/qst, dat/micro, tbl, etc.)
-	 * 
 	 */
 	function files_get($idno=null)
 	{
 		try{
-		if (!$idno) {
-			throw new Exception('IDNO is required');
-		}
+			if (!$idno) {
+				throw new Exception('IDNO is required');
+			}
 
-		$sid=$this->get_sid_from_idno($idno);
+			$sid=$this->get_sid_from_idno($idno);
+			$this->require_published_study($sid);
 
-        
-		$type = $this->get('type');
+			$type = $this->get('type');
+			$user = $this->api_user();
+			$files = $this->downloads_service->list_downloads($sid, $type);
+			$files = array_values(array_filter($files, function ($file) use ($user, $sid) {
+				return $this->caller_may_see_download($user, $sid, $file);
+			}));
 
-		$files = $this->downloads_service->list_downloads($sid, $type);
+			$response = array(
+				'status' => 'success',
+				'files' => $files
+			);
 
-		$response = array(
-			'status' => 'success',
-			'files' => $files
-		);
-
-		$this->set_response($response, REST_Controller::HTTP_OK);
+			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
 			$error_output=array(
@@ -144,9 +74,12 @@ class Downloads extends MY_REST_Controller
 				throw new Exception('Resource ID is required');
 			}
 
+			$this->require_published_study($sid);
+
 			$resource = $this->downloads_service->get_resource_info($sid, $resource_id, $formatted=true);
-			
-			if (!$resource) {
+			$user = $this->api_user();
+
+			if (!$resource || !$this->caller_may_see_download($user, $sid, $resource[0])) {
 				throw new Exception('Resource not found');
 			}
 
@@ -183,6 +116,8 @@ class Downloads extends MY_REST_Controller
 				throw new Exception('Resource ID is required');
 			}
 
+            $this->require_published_study($sid);
+
             $user = $this->api_user();
 			$resource = $this->downloads_service->get_resource_info($sid, $resource_id);
 			
@@ -199,6 +134,13 @@ class Downloads extends MY_REST_Controller
 
 			if ($allow_download === false) {
 				throw new Exception("You don't have permissions to access the file.");
+			}
+
+			if ($this->is_public_microdata($resource)) {
+				$this->load->model('Public_model');
+				if (!$user || !$this->Public_model->check_user_has_data_access($user->id, $sid)) {
+					throw new Exception('TERMS_NOT_ACCEPTED');
+				}
 			}
 
 			$this->Survey_resource_model->download($user, $sid, $resource_id);
@@ -219,6 +161,76 @@ class Downloads extends MY_REST_Controller
 	function _auth_override_check()
 	{
 		return true;
+	}
+
+
+	private function require_published_study($sid)
+	{
+		$survey = $this->Dataset_model->get_row($sid);
+		if (!$survey || (int) $survey['published'] !== 1) {
+			throw new Exception('Resource not found');
+		}
+	}
+
+
+	/**
+	 * List and info show a file only when this caller could download it.
+	 * Documentation is included. Microdata requires open/direct access, accepted
+	 * public-use terms, or an approved licensed request for that file.
+	 */
+	private function caller_may_see_download($user, $survey_id, $file)
+	{
+		$dctype = isset($file['dctype']) ? $file['dctype'] : '';
+		if (!$this->Survey_resource_model->is_microdata_resource($dctype)) {
+			return true;
+		}
+
+		$access = isset($file['data_access_type']) ? strtolower(trim($file['data_access_type'])) : '';
+		$user_id = ($user && isset($user->id)) ? $user->id : false;
+
+		if ($access === 'open' || $access === 'direct') {
+			return true;
+		}
+
+		if ($access === 'public') {
+			if (!$user_id) {
+				return false;
+			}
+			$this->load->model('Public_model');
+			return (bool) $this->Public_model->check_user_has_data_access($user_id, $survey_id);
+		}
+
+		if ($access === 'licensed') {
+			if (!$user_id) {
+				return false;
+			}
+			return $this->has_approved_licensed_download($user_id, $file['resource_id']);
+		}
+
+		return false;
+	}
+
+
+	private function is_public_microdata($resource)
+	{
+		$access = isset($resource['data_access_type']) ? strtolower(trim($resource['data_access_type'])) : '';
+		$dctype = isset($resource['dctype']) ? $resource['dctype'] : '';
+		return $access === 'public' && $this->Survey_resource_model->is_microdata_resource($dctype);
+	}
+
+
+	private function has_approved_licensed_download($user_id, $resource_id)
+	{
+		$this->load->model('Licensed_model');
+		$requests = $this->Licensed_model->get_requests_by_file($resource_id, $user_id);
+		foreach ($requests as $req) {
+			if (strtoupper(trim($req['status'])) == 'APPROVED'
+				&& $req['expiry'] > date('U')
+				&& (int) $req['downloads'] < (int) $req['download_limit']) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

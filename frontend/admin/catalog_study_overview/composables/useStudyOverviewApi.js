@@ -171,7 +171,7 @@ export function useStudyOverviewApi() {
   async function deleteTagRow(tagRow) {
     const id = tagRow?.id;
     if (id != null && id !== '') {
-      const { data } = await axios.delete(`${base()}${sidPart()}/tags`, {
+      const { data } = await axios.post(`${base()}${sidPart()}/tags/delete`, {}, {
         params: { id_format: 'id', id },
         withCredentials: true,
       });
@@ -180,7 +180,7 @@ export function useStudyOverviewApi() {
     }
     const tag = tagRow?.tag;
     if (!tag) throw new Error('TAG_DELETE_EMPTY');
-    const { data } = await axios.delete(`${base()}${sidPart()}/tags`, {
+    const { data } = await axios.post(`${base()}${sidPart()}/tags/delete`, {}, {
       params: { id_format: 'id', tag },
       withCredentials: true,
     });
@@ -208,7 +208,7 @@ export function useStudyOverviewApi() {
     const params = { id_format: 'id' };
     if (id != null && id !== '') params.id = id;
     if (alt) params.alternate_id = alt;
-    const { data } = await axios.delete(`${base()}${sidPart()}/aliases`, {
+    const { data } = await axios.post(`${base()}${sidPart()}/aliases/delete`, {}, {
       params,
       withCredentials: true,
     });

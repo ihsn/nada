@@ -3,7 +3,11 @@
         <div class="col-12">
             <h1 class="page-title"><?php echo $page_title; ?></h1>
             <p class="text-muted">
-                Migration Version: <strong><?php echo htmlspecialchars($version); ?></strong>
+                <?php if ($version === 'latest' && !empty($version_run)): ?>
+                    Requested: <strong>latest</strong> (ran <strong><?php echo htmlspecialchars($version_run); ?></strong> only)
+                <?php else: ?>
+                    Migration Version: <strong><?php echo htmlspecialchars($version); ?></strong>
+                <?php endif; ?>
                 <?php if ($before_version && $after_version): ?>
                     <br>Version: <?php echo htmlspecialchars($before_version); ?> → <?php echo htmlspecialchars($after_version); ?>
                 <?php endif; ?>
@@ -14,6 +18,10 @@
     <?php if ($migration_success): ?>
         <div class="alert alert-success">
             <strong>✓ Migration completed successfully!</strong>
+            <?php if (!empty($next_pending_version)): ?>
+                <br>Next pending: <code><?php echo htmlspecialchars($next_pending_version); ?></code>.
+                Run it before any later version (each click runs one migration).
+            <?php endif; ?>
             <?php if ($db_debug_was_enabled): ?>
                 <br><small>Note: Database debug mode was temporarily disabled during migration.</small>
             <?php endif; ?>
@@ -44,6 +52,18 @@
     
     <div class="row">
         <div class="col-12">
+            <?php if ($migration_success && !empty($next_pending_version)): ?>
+                <a href="<?php echo site_url('admin/database_migration/run/' . $next_pending_version); ?>"
+                   class="btn btn-success"
+                   onclick="return confirm('Run migration <?php echo $next_pending_version; ?>?\n\nMake sure you have a database backup.');">
+                    Run Next (<?php echo htmlspecialchars($next_pending_version); ?>)
+                </a>
+                <a href="<?php echo site_url('admin/database_migration/run/latest'); ?>"
+                   class="btn btn-outline-success"
+                   onclick="return confirm('Run the next pending migration?\n\nOnly one migration runs per request.');">
+                    Run Next via Latest
+                </a>
+            <?php endif; ?>
             <a href="<?php echo site_url('admin/database_migration'); ?>" class="btn btn-primary">
                 ← Return to Migrations
             </a>

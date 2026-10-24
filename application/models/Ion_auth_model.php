@@ -108,6 +108,28 @@ class Ion_auth_model extends CI_Model
 	    
 		return $this->password_hasher->hash_password($password);		
 	}
+
+	/**
+	 * Replace a verified legacy hash with the current bcrypt hash.
+	 *
+	 * @param string $identity
+	 * @param string $password
+	 * @param string $stored_hash
+	 * @return void
+	 */
+	private function upgrade_stored_password($identity, $password, $stored_hash)
+	{
+		if (!$this->password_hasher->needs_rehash($stored_hash))
+		{
+			return;
+		}
+
+		$replacement = $this->hash_password($password);
+		if ($replacement)
+		{
+			$this->set_password($identity, $replacement);
+		}
+	}
 	
 	/**
 	 * This function takes a password and validates it
@@ -172,28 +194,33 @@ class Ion_auth_model extends CI_Model
 		$result=FALSE;
 	    if ($code != false) 
 	    {  
-		    $query = $this->db->select($this->identity_column)
-	        	->where('activation_code', $code)
-	        	->limit(1)
-	        	->get($this->tables['users']);
-
-			$result = $query->row();
-
-			if ($query->num_rows() !== 1)
-			{
-				log_message('error', "account activate failed: id=$id, code=$code");
+			$user_id = (int) $id;
+			if ($user_id < 1) {
 				return FALSE;
 			}
-		    
-			$identity = $result->{$this->identity_column};
-			
-			$data = array(
-				'activation_code' => '',
-				'active'          => 1
-			);
+
+			$this->db->where('id', $user_id);
+			$this->db->where($this->ion_auth->_extra_where);
+			$user = $this->db->get($this->tables['users'])->row();
+			if (!$user) {
+				return FALSE;
+			}
+
+			if ($this->_activation_attempts_throttled($user)) {
+				log_message('error', 'account activate throttled: id='.$user_id);
+				return FALSE;
+			}
+
+			if (!$this->_activation_code_matches($user, $code) || $this->_activation_code_expired($user)) {
+				$this->_record_activation_attempt($user);
+				log_message('error', 'account activate failed: id='.$user_id);
+				return FALSE;
+			}
+
+			$data = $this->_activation_clear_fields(1);
 
 			$this->db->where($this->ion_auth->_extra_where);
-			$result=$this->db->update($this->tables['users'], $data, array($this->identity_column => $identity));
+			$result=$this->db->update($this->tables['users'], $data, array('id' => $user_id));
 	    }
 	    else 
 	    {
@@ -203,10 +230,7 @@ class Ion_auth_model extends CI_Model
 				return false;
 			}
 
-			$data = array(
-				'activation_code' => '',
-				'active' => 1
-			);
+			$data = $this->_activation_clear_fields(1);
 		   
 			$this->db->where($this->ion_auth->_extra_where);
 			$result=$this->db->update($this->tables['users'], $data, array('id' => $id));
@@ -229,11 +253,14 @@ class Ion_auth_model extends CI_Model
 	        return FALSE;
 	    }
 	    
-		$activation_code       = sha1(md5(microtime()));
+		$activation_code       = bin2hex(random_bytes(32));
 		$this->activation_code = $activation_code;
 		
 		$data = array(
-			'activation_code' => $activation_code,
+			'activation_code' => hash('sha256', $activation_code),
+			'activation_code_expiry' => time() + (48 * 3600),
+			'activation_attempt_count' => 0,
+			'activation_attempt_ts' => null,
 			'active'          => 0
 		);
         
@@ -309,15 +336,21 @@ class Ion_auth_model extends CI_Model
 			if (strlen($result->password)==32)
 			{
 				//use MD5 for old accounts
-				$password_validated=$result->password === md5($password);
-				
-				//upgrade account password				
-				$this->set_password($identity,$this->hash_password($password));
+				$password_validated=hash_equals($result->password, md5($password));
+
+				if ($password_validated)
+				{
+					$this->set_password($identity,$this->hash_password($password));
+				}
 			}
 			else
 			{
 				//use default mroe complex password hashing
-				$password_validated=$this->password_hasher->check_password($password,$hash=$result->password);
+				$password_validated=$this->password_hasher->check_password($password,$result->password);
+				if ($password_validated)
+				{
+					$this->upgrade_stored_password($identity, $password, $result->password);
+				}
 			}
 			
 			if ($password_validated)
@@ -520,9 +553,8 @@ class Ion_auth_model extends CI_Model
 			return FALSE;
 		}
 		
-		$update_data = array(
-			'activation_code' => null
-		);
+		$update_data = $this->_activation_clear_fields(null);
+		$update_data['activation_code'] = null;
 		
 		if (!empty($user->activation_code)) {
 			$update_data['active'] = 1;
@@ -754,8 +786,14 @@ class Ion_auth_model extends CI_Model
 	 **/
 	public function login($identity, $password, $remember=FALSE)
 	{
-	    if (empty($identity) || empty($password) || !$this->identity_check($identity))
+	    if (empty($identity) || empty($password))
 	    {
+	        return FALSE;
+	    }
+
+	    if (!$this->identity_check($identity))
+	    {
+	        $this->increase_login_attempts($identity);
 	        return FALSE;
 	    }
 
@@ -776,15 +814,21 @@ class Ion_auth_model extends CI_Model
 			if (strlen($result->password)==32)
 			{
 				//use MD5 for old accounts
-				$password_validated=$result->password === md5($password);
-				
-				//upgrade account password				
-				$this->set_password($identity,$this->hash_password($password));
+				$password_validated=hash_equals($result->password, md5($password));
+
+				if ($password_validated)
+				{
+					$this->set_password($identity,$this->hash_password($password));
+				}
 			}
 			else
 			{
 				//use default mroe complex password hashing
-				$password_validated=$this->password_hasher->check_password($password,$hash=$result->password);
+				$password_validated=$this->password_hasher->check_password($password,$result->password);
+				if ($password_validated)
+				{
+					$this->upgrade_stored_password($identity, $password, $result->password);
+				}
 			}
 			
 			//$password = $this->hash_password_db($identity, $password);
@@ -802,11 +846,7 @@ class Ion_auth_model extends CI_Model
 
     		    //$this->session->set_userdata('group',  $group_row->name);
     		    
-    		    if ($remember && $this->config->item('remember_users'))
-    		    {
-    		    	$this->remember_user($result->id);
-    		    }
-    		    
+    		    $this->clear_login_attempts($identity, 0);
     		    return TRUE;
     		}
         }
@@ -1186,98 +1226,7 @@ class Ion_auth_model extends CI_Model
 		
 		return TRUE;
 	}
-	
-	/**
-	 * login_remembed_user
-	 *
-	 * @return bool
-	 * @author Ben Edmunds
-	 **/
-	public function login_remembered_user()
-	{
-		//check for valid data
-		if (!get_cookie('identity') || !get_cookie('remember_code') || !$this->identity_check(get_cookie('identity'))) 
-		{
-			return FALSE;
-		}
-		
-		//get the user
-		$query = $this->db->select($this->identity_column.', id, username')
-						  ->where($this->identity_column, get_cookie('identity'))
-						  ->where('remember_code', get_cookie('remember_code'))
-						  ->limit(1)
-						  ->get($this->tables['users']);
-        
-		//if the user was found, sign them in
-        if ($query->num_rows() == 1)
-        {
-        	$user = $query->row();
-        	
-        	$this->update_last_login($user->id);
-        	
-            $this->session->set_userdata($this->identity_column,  $user->{$this->identity_column});
-    		$this->session->set_userdata('id',  $user->id); //kept for backwards compatibility
-    		$this->session->set_userdata('user_id',  $user->id); //everyone likes to overwrite id so we'll use user_id
-    		//$this->session->set_userdata('group_id',  $user->group_id);
-    		$this->session->set_userdata('username',  $user->username);
-    		    
-    		//$group_row = $this->db->select('name')->where('id', $user->group_id)->get($this->tables['groups'])->row();
-	    
-    		//$this->session->set_userdata('group',  $group_row->name);
-    		
-    		//extend the users cookies if the option is enabled
-    		if ($this->config->item('user_extend_on_login'))
-    		{
-    			$this->remember_user($user->id);
-    		}
-    		
-    		return TRUE;
-          }
-        
-		  return FALSE;		
-	}
-	
-	/**
-	 * remember_user
-	 *
-	 * @return bool
-	 * @author Ben Edmunds
-	 **/
-	private function remember_user($id)
-	{
-		return FALSE;
-		
-		if (!$id) 
-		{			
-			return FALSE;
-		}
-		
-		$salt = sha1(md5(microtime()));
-		
-		$is_updated=$this->db->update($this->tables['users'], array('remember_code' => $salt), array('id' => $id));
-		
-		if ($is_updated !== FALSE) 
-		{
-			$user = $this->get_user($id)->row();
-			
-			$identity = array('name'   => 'identity',
-	                   		  'value'  => $user->{$this->identity_column},
-	                   		  'expire' => $this->config->item('user_expire'),
-	               			 );
-			set_cookie($identity); 
-			
-			$remember_code = array('name'   => 'remember_code',
-	                   		  	   'value'  => $salt,
-	                   		  	   'expire' => $this->config->item('user_expire'),
-	               			 	  );
-			set_cookie($remember_code); 
-			
-			return TRUE;
-		}
-		
-		return FALSE;
-	}	
-	
+
 	/**
 	* Returns a list of all countries in the database
 	*
@@ -1470,15 +1419,16 @@ class Ion_auth_model extends CI_Model
 	{
 		if ($this->config->item('track_login_attempts')) 
 		{
-			$ip_address = $this->input->ip_address();
+			if (!is_string($identity) || $identity === '') {
+				return;
+			}
 
-			$this->db->where(array('ip_address' => $ip_address, 'login' => $identity));
-			// Purge obsolete login attempts
-			$this->db->where('time <', time() - $expire_period);
+			$this->db->where('login', $identity);
+			if ((int) $expire_period > 0) {
+				$this->db->where('time <', time() - (int) $expire_period);
+			}
 
 			$this->db->delete($this->tables['login_attempts']);
-			//echo date("H:i:s",time()- $expire_period);
-			//echo $this->db->last_query();exit;
 		}
 	}
 	
@@ -1533,10 +1483,7 @@ class Ion_auth_model extends CI_Model
 	 */
 	function get_attempts_num($identity)
 	{
-		$ip_address = $this->input->ip_address();
-
 		$this->db->select('1', FALSE);
-		//$this->db->where('ip_address', $ip_address);
 		if (strlen($identity) > 0) $this->db->where('login', $identity);
 
 		$qres = $this->db->get($this->tables['login_attempts']);
@@ -1770,7 +1717,7 @@ class Ion_auth_model extends CI_Model
 		// Check if legacy support is enabled
 		$legacy_support = $this->config->item('api_key_enable_legacy_support');
 		if($legacy_support === NULL){
-			$legacy_support = TRUE; // enabled by default
+			$legacy_support = FALSE; // off unless rest.php turns it on
 		}
 		
 		if($legacy_support){
@@ -1780,6 +1727,7 @@ class Ion_auth_model extends CI_Model
 			$this->db->join($this->tables['users'], 'api_keys.user_id = ' . $this->tables['users'] . '.id', 'inner');
 			$this->db->where("api_keys.api_key", $key);
 			$this->db->where("api_keys.key_hash", NULL); // Only unmigrated legacy keys
+			$this->db->where("api_keys.revoked_at", NULL); // Not revoked
 			$this->db->where($this->tables['users'] . '.active', 1); // User account must be active
 			$row = $this->db->get()->row();
 			
@@ -1832,19 +1780,30 @@ class Ion_auth_model extends CI_Model
 	 */
 	function generate_otp_code()
 	{
-		$code=sprintf('%010d', mt_rand(1,mt_getrandmax()));
+		$code=sprintf('%010d', random_int(0, 9999999999));
 		return $code;
 	}
 
+	/**
+	 * Stored form of an OTP code: base64 SHA-256 of user id and code (44 chars, fits otp_code).
+	 */
+	private function hash_otp_code($user_id, $code)
+	{
+		return base64_encode(hash('sha256', (int) $user_id . ':' . trim((string) $code), true));
+	}
+
+	/**
+	 * Create a new code, store its hash, and return the plain code for the email.
+	 */
 	function store_otp_code($user_id)
 	{
 		$code=$this->generate_otp_code();
 
 		$expiry_time=new DateTime();
-		$expiry_time->modify("15 minutes");		
+		$expiry_time->modify("15 minutes");
 
 		$options=array(
-			'otp_code'=>$code,
+			'otp_code'=>$this->hash_otp_code($user_id, $code),
 			'otp_expiry'=>$expiry_time->format("U")
 		);
 
@@ -1852,6 +1811,31 @@ class Ion_auth_model extends CI_Model
 		$this->db->update('users',$options);
 
 		return $code;
+	}
+
+	/**
+	 * Check a submitted code against the stored hash and expiry.
+	 *
+	 * @return bool
+	 */
+	function verify_otp_code($user_id, $code)
+	{
+		$user = $this->db->select('otp_code, otp_expiry')->where('id', (int) $user_id)->get('users')->row();
+
+		if (!$user || empty($user->otp_code) || empty($user->otp_expiry) || time() > (int) $user->otp_expiry) {
+			return FALSE;
+		}
+
+		return hash_equals((string) $user->otp_code, $this->hash_otp_code($user_id, $code));
+	}
+
+	/**
+	 * Remove the stored code so it cannot be used again.
+	 */
+	function clear_otp_code($user_id)
+	{
+		$this->db->where('id', (int) $user_id);
+		return $this->db->update('users', array('otp_code' => NULL, 'otp_expiry' => NULL));
 	}
 
 
@@ -1955,6 +1939,109 @@ class Ion_auth_model extends CI_Model
 
 		$this->db->where('email',$email);
 		return $this->db->update('users',$options);		
+	}
+
+	/**
+	 * Fields cleared once a code is used, replaced, or an admin activates the account.
+	 *
+	 * @param int|null $active
+	 * @return array
+	 */
+	private function _activation_clear_fields($active)
+	{
+		$data = array(
+			'activation_code' => '',
+			'activation_code_expiry' => null,
+			'activation_attempt_count' => 0,
+			'activation_attempt_ts' => null,
+		);
+		if ($active !== null) {
+			$data['active'] = (int) $active;
+		}
+		return $data;
+	}
+
+	/**
+	 * New codes are sha256 of the mailed value. Older rows still store the mailed value.
+	 *
+	 * @param object $user
+	 * @param string $code
+	 * @return bool
+	 */
+	private function _activation_code_matches($user, $code)
+	{
+		$stored = isset($user->activation_code) ? (string) $user->activation_code : '';
+		$code = (string) $code;
+		if ($stored === '' || $code === '') {
+			return false;
+		}
+
+		$hashed = hash('sha256', $code);
+		if (strlen($stored) === strlen($hashed) && hash_equals($stored, $hashed)) {
+			return true;
+		}
+
+		if (strlen($stored) === 40 && strlen($code) === 40 && hash_equals($stored, $code)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Rows written before expiry existed have an empty expiry and stay valid until used.
+	 *
+	 * @param object $user
+	 * @return bool
+	 */
+	private function _activation_code_expired($user)
+	{
+		if (!isset($user->activation_code_expiry) || $user->activation_code_expiry === null || $user->activation_code_expiry === '') {
+			return false;
+		}
+
+		return (int) $user->activation_code_expiry < time();
+	}
+
+	/**
+	 * Ten failures inside fifteen minutes. The window starts at the first failure.
+	 *
+	 * @param object $user
+	 * @return bool
+	 */
+	private function _activation_attempts_throttled($user)
+	{
+		$count = isset($user->activation_attempt_count) ? (int) $user->activation_attempt_count : 0;
+		$ts = isset($user->activation_attempt_ts) ? (int) $user->activation_attempt_ts : 0;
+		if ($count < 10 || $ts < 1) {
+			return false;
+		}
+
+		return (time() - $ts) < 900;
+	}
+
+	/**
+	 * @param object $user
+	 * @return void
+	 */
+	private function _record_activation_attempt($user)
+	{
+		$count = isset($user->activation_attempt_count) ? (int) $user->activation_attempt_count : 0;
+		$ts = isset($user->activation_attempt_ts) ? (int) $user->activation_attempt_ts : 0;
+		$now = time();
+
+		if ($ts < 1 || ($now - $ts) >= 900) {
+			$count = 1;
+			$ts = $now;
+		} else {
+			$count++;
+		}
+
+		$this->db->where('id', (int) $user->id);
+		$this->db->update($this->tables['users'], array(
+			'activation_attempt_count' => $count,
+			'activation_attempt_ts' => $ts,
+		));
 	}
 
 

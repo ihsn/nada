@@ -31,11 +31,27 @@ else
 {
 	$datamatching=t('no');
 }
+
+$forward_note = '';
+$escape_forward_note = false;
+if (isset($forward_message) && trim((string) $forward_message) !== '') {
+	$forward_note = (string) $forward_message;
+	$escape_forward_note = true;
+} else {
+	$posted_body = $this->input->post('body');
+	if ($posted_body !== null && trim((string) $posted_body) !== '') {
+		$forward_note = (string) $posted_body;
+	}
+}
 ?>
-<div style="background-color:gainsboro;padding:10px;font-size:14px;">
-<?php echo nl2br($this->input->post("body"));?>
+<?php if ($forward_note !== ''): ?>
+<div style="font-size:14px;">
+<?php echo $escape_forward_note ? nl2br(htmlspecialchars($forward_note, ENT_QUOTES, 'UTF-8')) : nl2br($forward_note); ?>
 </div>
-<br /><br  />
+<br /><br /><br />
+<div>-----</div>
+<br /><br /><br />
+<?php endif; ?>
   <table class="public-use" border="0" width="100%" style="border-collapse:collapse;border:1px solid gainsboro;">
       <tr class="border" valign="top">
       <td width="200px"><?php echo t('request_information');?></td>
@@ -145,18 +161,10 @@ else
   <tr class="border">
     <td><?php print t('identification_data_files_and_variables_needed');?></td>
     <td>
-		<?php if ( isset($dataset_access) ): ?>
-			<?php if ($dataset_access=='whole'): ?>
-                <span >
-                <input type="checkbox" name="access_whole" id="access_whole" value="1" checked="checked" disabled="disabled"/>
-                <?php print t('whole_dataset');?></span>
-            <?php else:?>    
-                <br/><span>
-                <input type="checkbox" name="access_subset" id="access_subset" value="1" checked="checked" disabled="disabled"/>
-                <?php print t('subset_dataset');?></span>
-            <?php endif;?>
-        <?php endif;?>    			    
+		<?php if (isset($dataset_access)): ?>
+			<?php echo ($dataset_access == 'whole') ? t('whole_dataset') : t('subset_dataset'); ?>
+        <?php endif; ?>    			    
 	</td>
   </tr>
   </table>
-<body>  
+</body>

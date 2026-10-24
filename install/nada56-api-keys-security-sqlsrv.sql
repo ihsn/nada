@@ -24,6 +24,22 @@ CREATE NONCLUSTERED INDEX IX_api_keys_key_hash ON api_keys(key_hash);
 CREATE NONCLUSTERED INDEX IX_api_keys_expires_at ON api_keys(expires_at);
 CREATE NONCLUSTERED INDEX IX_api_keys_user_revoked ON api_keys(user_id, revoked_at);
 
+-- SQL Server unique indexes treat all NULLs as equal, so IX_api_keys on api_key
+-- allows only one secure key (api_key IS NULL). Replace with a filtered index
+-- that enforces uniqueness for legacy plaintext keys only.
+IF EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE object_id = OBJECT_ID('api_keys') AND name = 'IX_api_keys'
+)
+    DROP INDEX [IX_api_keys] ON [api_keys];
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE object_id = OBJECT_ID('api_keys') AND name = 'IX_api_keys_legacy'
+)
+    CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys_legacy ON api_keys(api_key)
+    WHERE api_key IS NOT NULL;
+
 -- Note: Legacy keys (where key_hash IS NULL) will continue to work
 -- They will be automatically migrated to secure format on first use
 

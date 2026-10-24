@@ -11,7 +11,8 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
  */
 class Db_logs extends MY_REST_Controller {
 
-    private $chunk_size;
+    /** Rows selected and deleted per DB batch (kept small for CI query builder / PCRE limits). */
+    private $batch_size;
     private $csv_dir;
     private $retention_days;
     private $csv_dir_in_webroot;
@@ -23,7 +24,8 @@ class Db_logs extends MY_REST_Controller {
         $this->load->config('db_logs');
         $this->load->model('Sitelog_model');
         
-        $this->chunk_size = $this->config->item('db_logs_chunk_size') ?: 10000;
+        $configured = (int) ($this->config->item('db_logs_chunk_size') ?: 500);
+        $this->batch_size = ($configured > 0 && $configured <= 500) ? $configured : 500;
         $this->csv_dir = $this->config->item('db_logs_csv_dir') ?: FCPATH . 'logs/db_logs/';
         $this->retention_days = $this->config->item('db_logs_retention_days') ?: 180;
 
@@ -344,9 +346,9 @@ class Db_logs extends MY_REST_Controller {
      * Process multiple chunks within a time window - stateless endpoint
      * 
      * 
-     * Body: { "chunk_size": 10000, "time_limit": 20 } (optional, defaults to config value and 20 seconds)
+     * Body: { "time_limit": 20 } (optional, default 20 seconds)
      * 
-     * Processes as many chunks as possible within the time limit (default 20 seconds)
+     * Processes as many fixed-size batches as possible within the time limit (default 20 seconds)
      * Reads oldest rows, exports to CSV, deletes from DB
      * Returns total rows processed, rows deleted, files created
      */
@@ -355,13 +357,8 @@ class Db_logs extends MY_REST_Controller {
             $this->check_csv_dir_safe();
 
             $input = json_decode($this->input->raw_input_stream, true);
-            $chunk_size = isset($input['chunk_size']) ? (int)$input['chunk_size'] : $this->chunk_size;
             $time_limit = isset($input['time_limit']) ? (int)$input['time_limit'] : 20;
-            
-            if ($chunk_size <= 0 || $chunk_size > 20000) {
-                $chunk_size = 10000;
-            }
-            
+
             if ($time_limit <= 0 || $time_limit > 30) {
                 $time_limit = 10;
             }
@@ -392,7 +389,7 @@ class Db_logs extends MY_REST_Controller {
                 }
                 
                 // Process a single chunk
-                $result = $this->process_chunk($cutoff_timestamp, $chunk_size);
+                $result = $this->process_chunk($cutoff_timestamp);
                 
                 // No more rows to process, exit loop
                 if ($result['rows_processed'] == 0) {
@@ -485,19 +482,15 @@ class Db_logs extends MY_REST_Controller {
      * Process a single chunk
      * 
      */
-    private function process_chunk($cutoff_timestamp, $chunk_size = null) 
+    private function process_chunk($cutoff_timestamp)
     {
-        if ($chunk_size === null) {
-            $chunk_size = $this->chunk_size;
-        }
-        
         try {
             $this->db->trans_start();
             
             $query = $this->db->select('id, sessionid, logtime, ip, url, logtype, surveyid, section, keyword, username, useragent')
                               ->where('logtime <', $cutoff_timestamp)
                               ->order_by('id', 'ASC')
-                              ->limit($chunk_size)
+                              ->limit($this->batch_size)
                               ->get('sitelogs');
             
             $rows = $query->result_array();
@@ -572,8 +565,7 @@ class Db_logs extends MY_REST_Controller {
                 fclose($file);
             }
             
-            $this->db->where_in('id', $ids)->delete('sitelogs');
-            $deleted_count = $this->db->affected_rows();
+            $deleted_count = $this->delete_rows_by_ids('sitelogs', $ids);
             
             $this->db->trans_complete();
             
@@ -680,11 +672,9 @@ class Db_logs extends MY_REST_Controller {
             $this->check_csv_dir_safe();
 
             $input = json_decode($this->input->raw_input_stream, true);
-            $chunk_size = isset($input['chunk_size']) ? (int)$input['chunk_size'] : $this->chunk_size;
             $time_limit = isset($input['time_limit']) ? (int)$input['time_limit'] : 20;
 
-            if ($chunk_size <= 0 || $chunk_size > 20000) { $chunk_size = 10000; }
-            if ($time_limit <= 0 || $time_limit > 30)    { $time_limit = 10; }
+            if ($time_limit <= 0 || $time_limit > 30) { $time_limit = 10; }
 
             if (!is_dir($this->csv_dir)) {
                 mkdir($this->csv_dir, 0755, true);
@@ -703,7 +693,7 @@ class Db_logs extends MY_REST_Controller {
             while (true) {
                 if (microtime(true) - $start_time >= $time_limit) { break; }
 
-                $result = $this->process_api_logs_chunk($cutoff_timestamp, $chunk_size);
+                $result = $this->process_api_logs_chunk($cutoff_timestamp);
 
                 if ($result['rows_processed'] == 0) { break; }
 
@@ -770,10 +760,8 @@ class Db_logs extends MY_REST_Controller {
      * Process a single chunk of api_logs:
      * reads rows older than cutoff, appends to api_log-YYYY-MM.csv, deletes from DB.
      */
-    private function process_api_logs_chunk($cutoff_timestamp, $chunk_size = null)
+    private function process_api_logs_chunk($cutoff_timestamp)
     {
-        if ($chunk_size === null) { $chunk_size = $this->chunk_size; }
-
         try {
             $this->db->trans_start();
 
@@ -781,7 +769,7 @@ class Db_logs extends MY_REST_Controller {
                 ->select('id, uri, method, params, user_id, api_key, ip_address, time, rtime, authorized, response_code')
                 ->where('time <', $cutoff_timestamp)
                 ->order_by('id', 'ASC')
-                ->limit($chunk_size)
+                ->limit($this->batch_size)
                 ->get('api_logs')
                 ->result_array();
 
@@ -838,8 +826,7 @@ class Db_logs extends MY_REST_Controller {
 
             foreach ($files_opened as $file) { fclose($file); }
 
-            $this->db->where_in('id', $ids)->delete('api_logs');
-            $deleted_count = $this->db->affected_rows();
+            $deleted_count = $this->delete_rows_by_ids('api_logs', $ids);
 
             $this->db->trans_complete();
 
@@ -864,6 +851,22 @@ class Db_logs extends MY_REST_Controller {
         }
     }
 
+
+    /**
+     * Delete rows by primary key in small where_in batches (avoids CI PCRE limits).
+     */
+    private function delete_rows_by_ids($table, array $ids)
+    {
+        $deleted = 0;
+        foreach (array_chunk($ids, $this->batch_size) as $id_chunk) {
+            if (empty($id_chunk)) {
+                continue;
+            }
+            $this->db->where_in('id', $id_chunk)->delete($table);
+            $deleted += (int) $this->db->affected_rows();
+        }
+        return $deleted;
+    }
 
     private function format_bytes($size, $precision = 2) {
         if ($size == 0) return '0 B';

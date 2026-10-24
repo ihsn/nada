@@ -19,7 +19,17 @@
 				<td><?php echo $user['last_name']?></td>
 				<td><?php echo $user['email'];?></td>
 				<td><?php echo $user['group_description'];?></td>
-				<td><?php echo ($user['active']) ? anchor("auth/deactivate/".$user['id'], 'Active') : anchor("auth/activate/". $user['id'], 'Inactive');?></td>
+				<td>
+					<?php if ($user['active']): ?>
+						<?php echo form_open('auth/deactivate/'.$user['id'], array('class' => 'd-inline mb-0')); ?>
+						<button type="submit" class="btn btn-link p-0">Active</button>
+						<?php echo form_close(); ?>
+					<?php else: ?>
+						<?php echo form_open('auth/activate/'.$user['id'], array('class' => 'd-inline mb-0')); ?>
+						<button type="submit" class="btn btn-link p-0">Inactive</button>
+						<?php echo form_close(); ?>
+					<?php endif; ?>
+				</td>
 			</tr>
 		<?php endforeach;?>
 	</table>

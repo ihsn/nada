@@ -530,6 +530,16 @@ class Configurations extends MY_REST_Controller
 				$value = $v;
 			}
 
+			if (in_array($key, array('site_user_register', 'site_password_protect'), TRUE))
+			{
+				$v = strtolower(trim((string) $value));
+				if (! in_array($v, array('yes', 'no'), true))
+				{
+					throw new Exception('INVALID_VALUE:'.$key);
+				}
+				$value = $v;
+			}
+
 			if ($key === 'nada_ai_url')
 			{
 				$value = rtrim(trim((string) $value), '/');
@@ -621,13 +631,13 @@ class Configurations extends MY_REST_Controller
 		};
 
 		$engine = strtolower(trim($value('search_engine', 'database')));
-		if (!in_array($engine, array('database', 'solr', 'opensearch', 'nada_ai'), TRUE))
+		if (!in_array($engine, array('database', 'solr', 'nada_ai'), TRUE))
 		{
 			throw new Exception('INVALID_VALUE:search_engine');
 		}
 
 		$index_engine = strtolower(trim($value('search_index_engine', 'none')));
-		if (!in_array($index_engine, array('none', 'solr', 'opensearch', 'nada_ai'), TRUE))
+		if (!in_array($index_engine, array('none', 'solr', 'nada_ai'), TRUE))
 		{
 			throw new Exception('INVALID_VALUE:search_index_engine');
 		}

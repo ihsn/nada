@@ -203,7 +203,7 @@ onUnmounted(() => {
   color: var(--color-button-primary, #0071bc) !important;
 }
 
-/* Full-text index (Solr / OpenSearch) */
+/* Full-text index (Solr) */
 .search-shell__submit--fulltext {
   background: rgba(0, 137, 123, 0.14);
 }

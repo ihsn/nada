@@ -116,6 +116,14 @@ $lang['Apply']="Aplicar";
 $lang['Filter by type']="Filtrar por tipo";
 $lang['citations']="Citas";
 $lang['showing %s-%s of %s']="Mostrando %s-%s de %s";
+$lang['find_studies']="Buscar conjuntos de datos";
+$lang['Refine by']="Refinar por";
+$lang['Flags']="Indicadores";
+$lang['By user']="Por usuario";
+$lang['Other options']="Otras opciones";
+$lang['Has notes']="Con notas";
+$lang['status']="Estado";
+$lang['Search by title, country and year']="Buscar por título, país y año";
 
 
 /* End of file citations */

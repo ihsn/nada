@@ -29,7 +29,7 @@ foreach($option_formats as $key=>$value)
 <div class="container-fluid page-resources-edit">
 <div class="page-links">
 	<?php 
-	// Flexible back link - works for both Resources and Managefiles controllers
+	// Flexible back link. The files screen returns to the study files tab.
 	$back_url = isset($back_link) ? $back_link : 'admin/catalog/edit/'.$this->uri->segment(5).'/resources';
 	$back_text = isset($back_text) ? $back_text : t('link_resource_home');
 	echo anchor($back_url, $back_text, array('class'=>'button'));

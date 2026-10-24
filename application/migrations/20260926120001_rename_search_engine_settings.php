@@ -8,9 +8,11 @@ require_once(APPPATH . 'core/MY_Migration.php');
  *
  *   search_provider                db | mysql | mysqli | sqlsrv -> search_engine = database
  *                                  solr                          -> search_engine = solr
- *                                  opensearch                    -> search_engine = opensearch
+ *                                  opensearch                    -> search_engine = database (NADA's own OpenSearch
+ *                                                                   engine was removed)
  *                                  semantic                      -> search_engine = nada_ai
  *   search_engine                  nada_ai_opensearch | nada_ai_qdrant (earlier drafts) -> nada_ai
+ *                                  opensearch | opensearch_native -> database
  *   semantic_search_url            -> nada_ai_url
  *   semantic_search_api_key        -> nada_ai_api_key
  *   semantic_search_admin_api_key  removed: NADA has one key now, nada-ai's admin key. When an admin key is stored
@@ -19,11 +21,12 @@ require_once(APPPATH . 'core/MY_Migration.php');
  *   semantic_search_debug          -> nada_ai_debug
  *   semantic_search_engine         removed: nada-ai always runs OpenSearch for NADA.
  *   citation_search_provider       removed: citations follow the search engine.
- *   search_index_engine            added: the engine whose index NADA keeps in sync (none | solr | opensearch |
- *                                  nada_ai), set from search_engine (database -> none). Change tracking used to
- *                                  follow search_engine, so that is the engine the tracking rows were written for.
+ *   search_index_engine            added: the engine whose index NADA keeps in sync (none | solr | nada_ai), set
+ *                                  from search_engine (database -> none). Change tracking used to follow
+ *                                  search_engine, so that is the engine the tracking rows were written for. A stored
+ *                                  opensearch becomes none.
  *   search_index_meta              its row is added, saying the tracking rows describe that engine (the table is
- *                                  created by 20260909120002_catalog_search_indexes).
+ *                                  created by 20260909120002_catalog_search_queue_filters).
  *
  * A value already stored under a new name is kept (the old row is dropped). Every step is idempotent, so running
  * `migrate latest` twice changes nothing the second time. Works on both MySQL and SQL Server.
@@ -36,7 +39,7 @@ class Migration_Rename_search_engine_settings extends MY_Migration {
         'mysqli'     => 'database',
         'sqlsrv'     => 'database',
         'solr'       => 'solr',
-        'opensearch' => 'opensearch',
+        'opensearch' => 'database',
     );
 
     private static $renames = array(
@@ -108,9 +111,10 @@ class Migration_Rename_search_engine_settings extends MY_Migration {
         }
 
         // values of an earlier draft of these settings
-        if (isset($stored['search_engine']) && $stored['search_engine'] === 'opensearch_native') {
-            $this->set('search_engine', 'opensearch');
-            $this->emit("  search_engine 'opensearch_native' -> 'opensearch'\n");
+        // NADA's own OpenSearch engine was removed
+        if (isset($stored['search_engine']) && in_array($stored['search_engine'], array('opensearch', 'opensearch_native'), true)) {
+            $this->set('search_engine', 'database');
+            $this->emit("  search_engine '{$stored['search_engine']}' -> 'database' (NADA's OpenSearch engine was removed)\n");
         }
         if (isset($stored['search_engine']) && in_array($stored['search_engine'], array('nada_ai_opensearch', 'nada_ai_qdrant'), true)) {
             $this->set('search_engine', 'nada_ai');
@@ -132,7 +136,7 @@ class Migration_Rename_search_engine_settings extends MY_Migration {
     /** @return string the index engine as stored after this step */
     private function set_index_engine()
     {
-        $valid = array('solr', 'opensearch', 'nada_ai');
+        $valid = array('solr', 'nada_ai');
 
         // read again: search_engine may have been set above
         $stored = array();
@@ -142,7 +146,13 @@ class Migration_Rename_search_engine_settings extends MY_Migration {
 
         if (array_key_exists('search_index_engine', $stored)) {
             $engine = strtolower(trim((string) $stored['search_index_engine']));
-            return in_array($engine, $valid, true) ? $engine : 'none';
+            if (in_array($engine, $valid, true) || $engine === 'none') {
+                return $engine;
+            }
+            // an engine NADA no longer has (opensearch)
+            $this->set('search_index_engine', 'none');
+            $this->emit("  search_index_engine '{$engine}' -> 'none'\n");
+            return 'none';
         }
 
         $search_engine = isset($stored['search_engine']) ? strtolower(trim((string) $stored['search_engine'])) : '';
@@ -155,7 +165,7 @@ class Migration_Rename_search_engine_settings extends MY_Migration {
     private function add_index_meta_row($engine)
     {
         if (!$this->db->table_exists('search_index_meta')) {
-            throw new Exception('search_index_meta does not exist: run 20260909120002_catalog_search_indexes first');
+            throw new Exception('search_index_meta does not exist: run 20260909120002_catalog_search_queue_filters first');
         }
         if ($this->db->where('id', 1)->count_all_results('search_index_meta') > 0) {
             return;

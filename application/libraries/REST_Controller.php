@@ -1085,8 +1085,9 @@ abstract class REST_Controller extends CI_Controller {
         $this->rest->user_id = NULL;
         $this->rest->ignore_limits = FALSE;
 
-        // Find the key from server or arguments
-        if (($key = isset($this->_args[$api_key_variable]) ? $this->_args[$api_key_variable] : $this->input->server($key_name)))
+        // Read the key from the request header only. A key in the query string ends up in
+        // server, proxy, and API logs (params stores QUERY_STRING) and in browser history.
+        if (($key = $this->input->server($key_name)))
         {
             $this->load->model('ion_auth_model');
             

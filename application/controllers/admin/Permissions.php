@@ -186,12 +186,7 @@ class Permissions extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!=""){
-				redirect($destination);
-			}
-			else{
-				redirect('admin/permissions');
-			}	
+			nada_redirect($destination, 'admin/permissions');
 		}
 		else if ($this->input->post('submit')!='')
 		{			
@@ -201,12 +196,7 @@ class Permissions extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!=""){
-				redirect($destination);
-			}
-			else{
-				redirect('admin/permissions');
-			}	
+			nada_redirect($destination, 'admin/permissions');
 		}
 		else
 		{

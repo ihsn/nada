@@ -12,6 +12,7 @@ class Dataaccess_whitelist extends MY_REST_Controller
 		$this->load->model("Survey_resource_model");
 		$this->load->model("Data_access_whitelist_model");
 		$this->is_authenticated_or_die();
+		$this->is_admin_or_die();
 	}
 	
 
@@ -23,7 +24,6 @@ class Dataaccess_whitelist extends MY_REST_Controller
 	function index_get()
 	{
 		try{
-			$this->has_access($resource_='citation', $privilege='view');
 			$result=$this->Data_access_whitelist_model->select_all();
 
 			$response=array(
@@ -53,7 +53,6 @@ class Dataaccess_whitelist extends MY_REST_Controller
     function index_post()
 	{
 		try{
-			$this->has_access($resource_='citation', $privilege='edit');
             $options=$this->raw_json_input();
 
 			$collection_name=isset($options['collection_name']) ? $options['collection_name'] :null;
@@ -91,8 +90,6 @@ class Dataaccess_whitelist extends MY_REST_Controller
 	function index_delete()
 	{
 		try{
-			$this->has_access($resource_='citation', $privilege='edit');
-			
 			$options=$this->raw_json_input();
 
 			$collection_name=isset($options['collection_name']) ? $options['collection_name'] :null;
@@ -126,6 +123,15 @@ class Dataaccess_whitelist extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * POST /api/dataaccess_whitelist/delete
+	 * Alias for DELETE. JSON body: collection_name, email.
+	 */
+	function delete_post()
+	{
+		return $this->index_delete();
 	}
 
 	

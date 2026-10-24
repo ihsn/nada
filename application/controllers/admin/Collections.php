@@ -69,10 +69,7 @@ class Collections extends MY_Controller {
 		$result = $this->Repository_model->set_active_repo($repositoryid);
 
 		if ($result){
-			if ($this->input->get('destination')){
-				redirect($this->input->get('destination', true)); return;
-			}
-			redirect('admin/catalog');
+			nada_redirect($this->input->get('destination', true), 'admin/catalog');
 		}
 
 		show_error("CANT_SET_ACTIVE_REPO");

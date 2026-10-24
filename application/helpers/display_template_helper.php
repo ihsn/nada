@@ -1026,9 +1026,42 @@ if (!function_exists('display_template_overlay_text')) {
 	}
 }
 
+if (!function_exists('display_template_resolve_section_title')) {
+	/**
+	 * Section heading label (legacy-compatible).
+	 *
+	 * Resolution order:
+	 * 1. Display-template translation overlay keyed by section node key (non-primary site languages).
+	 * 2. Metadata field language file via short section key (e.g. data_access → "Access policy").
+	 * 3. Template title string as fallback when no lang entry exists.
+	 *
+	 * Template section titles should be legacy short keys (data_access, disclaimer_copyright),
+	 * not duplicate English prose. Field labels use display_template_resolve_title() instead.
+	 *
+	 * @param string $section_key Section node key from the template JSON
+	 * @param string $title      Section title from the template JSON (usually a lang key)
+	 * @return string
+	 */
+	function display_template_resolve_section_title($section_key, $title)
+	{
+		$over = display_template_overlay_text($section_key);
+		if ($over !== null) {
+			return $over;
+		}
+		return tt(strtolower((string) $title), (string) $title);
+	}
+}
+
 if (!function_exists('display_template_resolve_title')) {
 	/**
-	 * Public label: overlay → tt('metadata.{key}') → node title.
+	 * Field/array label (legacy-compatible).
+	 *
+	 * Resolution order:
+	 * 1. Display-template translation overlay keyed by metadata field path.
+	 * 2. Metadata field language file via metadata.{key} (ddi_fields_lang.php, etc.).
+	 * 3. Template title as fallback when no lang entry exists.
+	 *
+	 * When a lang entry exists, the template title is documentation only and is not shown.
 	 *
 	 * @param string $key
 	 * @param string $title

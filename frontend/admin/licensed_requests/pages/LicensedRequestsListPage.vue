@@ -75,7 +75,24 @@
     </v-tabs>
 
     <v-card elevation="1">
+      <div v-if="showBatchDelete" class="pa-3 d-flex flex-wrap align-center gap-2 border-b">
+        <v-select
+          v-model="batchAction"
+          :items="batchItems"
+          item-title="title"
+          item-value="value"
+          density="compact"
+          variant="outlined"
+          hide-details
+          style="max-width: 220px"
+        />
+        <v-btn size="small" variant="tonal" :disabled="!selected.length || batchAction === '-1'" @click="onBatchApply">
+          {{ t('apply', 'Apply') }}
+        </v-btn>
+      </div>
+
       <v-data-table
+        v-model="selected"
         v-model:sort-by="sortBy"
         :headers="headers"
         :items="rows"
@@ -83,6 +100,7 @@
         :items-per-page="-1"
         hide-default-footer
         item-value="id"
+        :show-select="showBatchDelete"
         class="elevation-0"
       >
         <template #item.created="{ item }">
@@ -102,6 +120,15 @@
         <template #item.actions="{ item }">
           <v-btn size="small" variant="text" color="primary" :href="editUrl(item.id)">
             {{ t('edit', 'Edit') }}
+          </v-btn>
+          <v-btn
+            v-if="item.can_delete"
+            size="small"
+            variant="text"
+            color="error"
+            @click="openDeleteSingle(item)"
+          >
+            {{ t('delete', 'Delete') }}
           </v-btn>
         </template>
       </v-data-table>
@@ -130,6 +157,26 @@
         </div>
       </div>
     </v-card>
+
+    <v-dialog v-model="deleteDialog.open" max-width="420">
+      <v-card>
+        <v-card-title class="text-h6">{{ t('confirm_delete', 'Confirm delete') }}</v-card-title>
+        <v-card-text>
+          {{ deleteDialog.message }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="deleteDialog.open = false">{{ t('cancel', 'Cancel') }}</v-btn>
+          <v-btn color="error" variant="flat" :loading="deleteDialog.saving" @click="confirmDelete">
+            {{ t('delete', 'Delete') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-snackbar v-model="toast.open" :color="toast.color" location="bottom right" :timeout="4000">
+      {{ toast.message }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -143,7 +190,7 @@ defineOptions({ name: 'LicensedRequestsListPage' });
 
 const { t } = useI18n();
 const { siteUrl } = useAppConfig();
-const { loading, search, fetchBootstrap } = useLicensedRequestsApi();
+const { loading, search, fetchBootstrap, deleteRequests } = useLicensedRequestsApi();
 
 const siteBaseUrl = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));
 
@@ -165,6 +212,27 @@ const keywords = ref('');
 const ownerRepo = ref('');
 const collectionItems = ref([]);
 const statusTab = ref('');
+const selected = ref([]);
+const batchAction = ref('-1');
+const canDeleteAny = ref(false);
+
+const batchItems = computed(() => [
+  { title: t('batch_actions', 'Batch actions'), value: '-1' },
+  { title: t('delete', 'Delete'), value: 'delete' },
+]);
+
+const showBatchDelete = computed(
+  () => canDeleteAny.value || rows.value.some((r) => r.can_delete)
+);
+
+const deleteDialog = ref({
+  open: false,
+  message: '',
+  ids: [],
+  saving: false,
+});
+
+const toast = ref({ open: false, message: '', color: 'success' });
 
 const page = ref(1);
 const pageSize = ref(30);
@@ -187,7 +255,7 @@ const headers = computed(() => [
     width: '100px',
   },
   { title: t('created', 'Created'), key: 'created', sortable: true },
-  { title: '', key: 'actions', sortable: false, width: '100px' },
+  { title: t('actions', 'Actions'), key: 'actions', sortable: false, width: '160px' },
 ]);
 
 const pageCount = computed(() => {
@@ -235,6 +303,51 @@ function onPageSizeChange() {
   load();
 }
 
+function openDeleteSingle(item) {
+  const title = item.request_title ? `“${item.request_title}”` : `#${item.id}`;
+  deleteDialog.value = {
+    open: true,
+    message: t('js_confirm_delete', 'Are you sure you want to delete the selected item(s)?') + ` ${title}`,
+    ids: [item.id],
+    saving: false,
+  };
+}
+
+function onBatchApply() {
+  if (batchAction.value !== 'delete') return;
+  const deletable = selected.value.filter((id) => {
+    const row = rows.value.find((r) => String(r.id) === String(id));
+    return !!row?.can_delete;
+  });
+  if (!deletable.length) return;
+  deleteDialog.value = {
+    open: true,
+    message: t('js_confirm_delete', 'Are you sure you want to delete the selected item(s)?'),
+    ids: deletable,
+    saving: false,
+  };
+}
+
+async function confirmDelete() {
+  deleteDialog.value.saving = true;
+  try {
+    await deleteRequests(deleteDialog.value.ids);
+    deleteDialog.value.open = false;
+    selected.value = [];
+    batchAction.value = '-1';
+    toast.value = { open: true, message: t('deleted', 'Deleted'), color: 'success' };
+    await load();
+  } catch (e) {
+    toast.value = {
+      open: true,
+      message: e?.response?.data?.message || e?.message || 'Error',
+      color: 'error',
+    };
+  } finally {
+    deleteDialog.value.saving = false;
+  }
+}
+
 async function load() {
   accessDenied.value = false;
   const sb = sortBy.value[0];
@@ -256,6 +369,7 @@ async function load() {
     const result = await search(params);
     rows.value = result.rows || [];
     total.value = result.total ?? 0;
+    selected.value = [];
   } catch (e) {
     rows.value = [];
     total.value = 0;
@@ -269,6 +383,7 @@ onMounted(async () => {
   try {
     const boot = await fetchBootstrap();
     collectionItems.value = boot.collections || [];
+    canDeleteAny.value = !!boot.can_delete;
   } catch (e) {
     if (e?.response?.status === 403) {
       accessDenied.value = true;
@@ -287,5 +402,9 @@ onMounted(async () => {
 .lr-breadcrumbs :deep(.v-breadcrumbs-item),
 .lr-breadcrumbs :deep(.v-breadcrumbs-divider) {
   font-size: 0.8125rem;
+}
+
+.border-b {
+  border-bottom: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 </style>

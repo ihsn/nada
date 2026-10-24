@@ -150,7 +150,7 @@ class Facets extends MY_REST_Controller
 	 * @loop whether to recursively call the function till the end of rows
 	 *
 	 * */
-	public function reindex_get($start_row=NULL, $limit=10)
+	public function reindex_post($start_row=NULL, $limit=10)
 	{		  
         $output=$this->Facet_model->reindex($start_row, $limit, $loop=false);      
         try{
@@ -173,7 +173,7 @@ class Facets extends MY_REST_Controller
 
 
 
-    public function clear_index_get()
+    public function clear_index_post()
     {        
         try{
             $output=$this->Facet_model->clear_index();

@@ -251,7 +251,7 @@ class Access_public extends MY_Controller {
 		//get survey folder path
 		$survey_folder=$this->_get_survey_folder($sid);
 				
-		if (!$fileinfo)
+		if (!$fileinfo || (int) $fileinfo['survey_id'] !== (int) $sid)
 		{
 			show_error("file was not found");
 		}

@@ -4,7 +4,7 @@
  * Search index change tracking.
  *
  * Tracks one index: the index engine (search_index_engine), whichever engine serves the searches. No rows are written
- * while it is none. Solr/OpenSearch process queue rows inline; nada-ai pulls them through the search-index API.
+ * while it is none. Solr processes queue rows inline; nada-ai pulls them through the search-index API.
  *
  * search_index_meta (one row) says which engine and which nada-ai index the rows in search_index_state and
  * search_index_queue describe. The tables are cleared when that stops being true:
@@ -65,14 +65,14 @@ class Search_index_manager
 		return $this->ci->search_engine_resolver->tracked($object_type === self::OBJECT_CITATION ? 'citation' : 'survey');
 	}
 
-	/** The engine that serves searches: database | solr | opensearch | nada_ai (see Search_engine_resolver). */
+	/** The engine that serves searches: database | solr | nada_ai (see Search_engine_resolver). */
 	public function current_engine()
 	{
 		$this->ci->load->library('search_engine_resolver');
 		return $this->ci->search_engine_resolver->engine();
 	}
 
-	/** The engine whose index is tracked: none | solr | opensearch | nada_ai (see Search_engine_resolver). */
+	/** The engine whose index is tracked: none | solr | nada_ai (see Search_engine_resolver). */
 	public function index_engine()
 	{
 		$this->ci->load->library('search_engine_resolver');
@@ -1120,7 +1120,7 @@ class Search_index_manager
 		$engine = $this->index_engine();
 		$inline = $this->ci->config->item('search_index_inline_engines');
 		if (!is_array($inline)) {
-			$inline = array('solr', 'opensearch');
+			$inline = array('solr');
 		}
 		if (!in_array($engine, $inline, true)) {
 			return;
@@ -1158,20 +1158,6 @@ class Search_index_manager
 				$this->engine_action($row['change_class']),
 				$id
 			);
-			return;
-		}
-
-		if ($engine === 'opensearch') {
-			$this->ci->load->library('OpenSearch/OpenSearch_manager');
-			if ($row['object_type'] === self::OBJECT_SURVEY && $row['change_class'] === self::CLASS_VARIABLES) {
-				$this->ci->opensearch_manager->index_survey_variables($id);
-				return;
-			}
-			$this->ci->opensearch_manager->process_delta_update(
-				$table,
-				$this->engine_action($row['change_class']),
-				$id
-			);
 		}
 	}
 
@@ -1193,7 +1179,7 @@ class Search_index_manager
 			return self::CLASS_PARTIAL;
 		}
 		// only filter fields changed (facets, repositories, countries, regions): nada-ai's partial update rewrites every
-		// filter without embedding; Solr's and NADA's OpenSearch's partial update covers fewer fields, so a full one
+		// filter without embedding; Solr's partial update covers fewer fields, so a full one
 		if ($action === 'filters' || $action === 'facet') {
 			return $this->index_engine() === self::ENGINE_NADA_AI ? self::CLASS_PARTIAL : self::CLASS_FULL;
 		}

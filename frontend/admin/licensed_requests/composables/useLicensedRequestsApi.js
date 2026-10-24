@@ -57,7 +57,7 @@ export function useLicensedRequestsApi() {
    */
   async function patchDetail(id, payload) {
     const base = apiBaseUrl.value || '';
-    const { data } = await axios.patch(`${base}item/${encodeURIComponent(String(id))}`, payload, {
+    const { data } = await axios.post(`${base}item/${encodeURIComponent(String(id))}`, payload, {
       headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
     });
     if (data.status !== 'success') throw new Error(data.message || 'Update failed');
@@ -77,6 +77,35 @@ export function useLicensedRequestsApi() {
     );
     if (data.status !== 'success') throw new Error(data.message || 'Send failed');
     return data.data;
+  }
+
+  /**
+   * @param {number|string} id
+   */
+  async function deleteRequest(id) {
+    const base = apiBaseUrl.value || '';
+    const rid = encodeURIComponent(String(id));
+    const { data } = await axios.post(
+      `${base}item_delete/${rid}`,
+      {},
+      { headers: { 'Content-Type': 'application/json', ...csrfHeaders() } }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Delete failed');
+    return data.result;
+  }
+
+  /**
+   * @param {Array<number|string>} ids
+   */
+  async function deleteRequests(ids) {
+    const base = apiBaseUrl.value || '';
+    const { data } = await axios.post(
+      `${base}batch_delete`,
+      { ids },
+      { headers: { 'Content-Type': 'application/json', ...csrfHeaders() } }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Delete failed');
+    return data.result;
   }
 
   /**
@@ -101,6 +130,8 @@ export function useLicensedRequestsApi() {
     search,
     fetchDetail,
     patchDetail,
+    deleteRequest,
+    deleteRequests,
     sendMail,
     forwardMail,
   };

@@ -186,7 +186,6 @@ $config['auth_library_function'] = '';
 
 //no authentication required
 $config['auth_override_class_method']['catalog']['*'] = 'none';
-$config['auth_override_class_method']['auth']['*'] = 'none';
 
 // Tables API: public read endpoints only
 $config['auth_override_class_method']['tables']['index'] = 'none';
@@ -376,7 +375,7 @@ $config['rest_key_column'] = 'api_key';
 | Set to FALSE to disable legacy key support (all legacy keys will be rejected)
 |
 */
-$config['api_key_enable_legacy_support'] = TRUE;
+$config['api_key_enable_legacy_support'] = FALSE;
 
 /*
 |--------------------------------------------------------------------------

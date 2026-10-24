@@ -13,7 +13,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  *   search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid)
  * Sets $this->search_found_rows after each call.
  *
- * Limitations vs DB / OpenSearch backends:
+ * Limitations vs the DB and nada-ai backends:
  *   - authors returned as raw string (not structured array); Solr index stores
  *     the citations.authors text column, not the citation_authors table rows.
  *   - survey_count always 0 — not stored in Solr index.

@@ -203,7 +203,6 @@ const { fetchFiles, deleteFile, uploadFile, downloadHref } = useStudyFilesApi();
 
 const lbl = computed(() => config.value?.labels || {});
 const resourcesEditBase = computed(() => config.value?.resourcesEditBase || '');
-const managefilesEditBase = computed(() => config.value?.managefilesEditBase || '');
 const studySid = computed(() => config.value?.studySid ?? null);
 
 const loading = ref(true);
@@ -280,10 +279,9 @@ function resourceEditUrl(item) {
   }
 
   const token = item?.base64;
-  const mfBase = String(managefilesEditBase.value || '').replace(/\/+$/, '');
-  if (token && mfBase) {
+  if (token && editBase) {
     const params = new URLSearchParams({ t: token });
-    return `${mfBase}?${params.toString()}`;
+    return `${editBase}/add/${encodeURIComponent(String(sid))}?${params.toString()}`;
   }
 
   return null;

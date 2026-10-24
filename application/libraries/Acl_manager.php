@@ -813,6 +813,37 @@ class Acl_manager
 	}
 
 	/**
+	 * Published studies are readable by anyone. Unpublished studies require study view.
+	 *
+	 * @param int      $sid
+	 * @param int|null $user_id
+	 * @return bool
+	 */
+	public function dataset_is_publicly_readable($sid, $user_id = null)
+	{
+		$sid = (int) $sid;
+		if ($sid < 1) {
+			return false;
+		}
+
+		$this->ci->load->model('Dataset_model');
+		if ((int) $this->ci->Dataset_model->is_published($sid) === 1) {
+			return true;
+		}
+
+		if (!$user_id) {
+			return false;
+		}
+
+		try {
+			$this->check_study_access('view', (int) $user_id, $sid);
+			return true;
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	/**
 	 * Require study view on each study id (throws on first denial).
 	 *
 	 * @param int[]    $study_ids

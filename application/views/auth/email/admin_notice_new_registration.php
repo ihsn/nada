@@ -5,7 +5,9 @@
     	<?php echo t('first_name');?>: <?php echo $first_name; ?><br/>
         <?php echo t('last_name');?>: <?php echo $last_name; ?><br/>
         <?php echo t('email');?>: <?php echo $email; ?><br/>
+        <?php if (!empty($country)): ?>
         <?php echo t('country');?>: <?php echo $country; ?><br/>
+        <?php endif; ?>
       </p>  
 </body>
 </html>

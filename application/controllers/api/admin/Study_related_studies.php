@@ -11,8 +11,10 @@ require APPPATH . '/libraries/MY_REST_Controller.php';
  *   GET    /api/admin/catalog/{idno}/related-studies
  *   GET    /api/admin/catalog/{idno}/related-studies/search
  *   POST   /api/admin/catalog/{idno}/related-studies
- *   PATCH  /api/admin/catalog/{idno}/related-studies/{related_sid}
- *   DELETE /api/admin/catalog/{idno}/related-studies/{related_sid}
+ *   POST   /api/admin/catalog/{idno}/related-studies/{related_sid}/update
+ *   POST   /api/admin/catalog/{idno}/related-studies/{related_sid}/delete
+ *   PATCH  /api/admin/catalog/{idno}/related-studies/{related_sid}  (same as POST …/update; blocked on prod)
+ *   DELETE /api/admin/catalog/{idno}/related-studies/{related_sid}  (same as POST …/delete; blocked on prod)
  */
 class Study_related_studies extends MY_REST_Controller
 {
@@ -263,9 +265,20 @@ class Study_related_studies extends MY_REST_Controller
 	}
 
 	/**
-	 * Update relationship type for one related study (JSON: relationship_id).
+	 * PATCH /api/admin/catalog/{idno}/related-studies/{related_sid}
+	 * Prod blocks PATCH. Clients should POST …/update.
 	 */
 	public function index_patch($idno = null, $related_sid = null)
+	{
+		return $this->update_post($idno, $related_sid);
+	}
+
+	/**
+	 * POST /api/admin/catalog/{idno}/related-studies/{related_sid}/update
+	 *
+	 * JSON: relationship_id
+	 */
+	public function update_post($idno = null, $related_sid = null)
 	{
 		try {
 			$user = $this->api_user();
@@ -284,7 +297,7 @@ class Study_related_studies extends MY_REST_Controller
 				throw new Exception('INVALID_RELATED_SID');
 			}
 
-			$options = $this->patch();
+			$options = $this->raw_json_input();
 			if (! is_array($options)) {
 				$options = array();
 			}
@@ -312,6 +325,15 @@ class Study_related_studies extends MY_REST_Controller
 		catch (Exception $e) {
 			$this->set_response(array('status' => 'failed', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * POST /api/admin/catalog/{idno}/related-studies/{related_sid}/delete
+	 * Alias for DELETE when that verb is blocked.
+	 */
+	public function delete_post($idno = null, $related_sid = null)
+	{
+		return $this->index_delete($idno, $related_sid);
 	}
 
 	public function index_delete($idno = null, $related_sid = null)

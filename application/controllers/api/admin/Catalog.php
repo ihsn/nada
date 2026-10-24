@@ -3853,7 +3853,7 @@ class Catalog extends MY_REST_Controller
 		}
 
 		libxml_use_internal_errors(true);
-		$xml = simplexml_load_file($path);
+		$xml = simplexml_load_file($path, 'SimpleXMLElement', LIBXML_NONET);
 		if ($xml === false) {
 			libxml_clear_errors();
 			throw new Exception('INVALID_XML');

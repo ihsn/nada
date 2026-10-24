@@ -134,12 +134,12 @@ export function useFacetsApi() {
   }
 
   async function reindex(startRow = 0, limit = 30, signal = null) {
-    const { data } = await axios.get(`${base()}reindex/${startRow}/${limit}`, { signal });
+    const { data } = await axios.post(`${base()}reindex/${startRow}/${limit}`, null, { signal });
     return data.result;
   }
 
   async function clearIndex() {
-    await axios.get(`${base()}clear_index/`);
+    await axios.post(`${base()}clear_index/`);
   }
 
   return {

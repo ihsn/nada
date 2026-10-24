@@ -7,15 +7,14 @@ import { fetchJson } from '@/shared/http/fetchJson';
 export function isLocalPdfResource(resource) {
   if (!resource || typeof resource !== 'object') return false;
 
-  if (resource.is_url === 1 || resource.is_url === '1' || resource.external_link === true) {
-    return false;
-  }
-
   const filename = String(resource.filename || '').trim();
-  if (/^https?:\/\//i.test(filename)) return false;
+  if (!filename) return false;
+
+  // External links are not streamable via pdf-stream; infer from filename only.
+  if (/^(https?:\/\/|ftp:\/\/|www\.)/i.test(filename)) return false;
 
   const fmt = String(resource.dcformat || '').toLowerCase();
-  if (fmt === 'application/pdf') return true;
+  if (fmt.includes('application/pdf')) return true;
 
   return filename.toLowerCase().endsWith('.pdf');
 }

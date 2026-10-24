@@ -618,14 +618,7 @@ class Citations extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/citations');
-			}
+			nada_redirect($destination, 'admin/citations');
 		}
 		else if ($this->input->post('submit')!='')
 		{
@@ -656,14 +649,7 @@ class Citations extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/citations');
-			}
+			nada_redirect($destination, 'admin/citations');
 		}
 		else
 		{

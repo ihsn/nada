@@ -11,8 +11,8 @@ class Citation_model extends CI_Model {
     }
 	
 	/**
-	 * Search citations with the engine that serves them (Search_engine_resolver): nada-ai, Solr, NADA's OpenSearch or
-	 * the database. That is the site's search engine, or the database when the engine has no citation search.
+	 * Search citations with the engine that serves them (Search_engine_resolver): nada-ai, Solr or the
+	 * database. That is the site's search engine, or the database when the engine has no citation search.
 	 */
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
     {
@@ -24,13 +24,6 @@ class Citation_model extends CI_Model {
                 $this->load->library('citation_search_nada_ai');
                 $result = $this->citation_search_nada_ai->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
                 $this->search_found_rows = $this->citation_search_nada_ai->search_found_rows;
-                return $result;
-
-            case Search_engine_resolver::OPENSEARCH:
-                require_once APPPATH . 'libraries/OpenSearch/Citation_search_opensearch.php';
-                $searcher = new Citation_search_opensearch();
-                $result   = $searcher->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
-                $this->search_found_rows = $searcher->search_found_rows;
                 return $result;
 
             case Search_engine_resolver::SOLR:
@@ -348,7 +341,14 @@ class Citation_model extends CI_Model {
 	
 	function select_all($sort_by='title', $sort_order='ASC')
 	{
-		$this->db->select('id,title,authors,dcdate,changed');	
+		// Only sort by a selected column; anything else falls back to title ASC.
+		$sort_fields=array('id','title','authors','dcdate','changed');
+		if (!in_array($sort_by, $sort_fields, true)) {
+			$sort_by='title';
+		}
+		$sort_order=(strtoupper((string) $sort_order)==='DESC') ? 'DESC' : 'ASC';
+
+		$this->db->select('id,title,authors,dcdate,changed');
 		$this->db->order_by($sort_by, $sort_order);
 		$this->db->where('published', 1); 
 		return $this->db->get('citations')->result_array();

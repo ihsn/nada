@@ -288,10 +288,10 @@ class Display_template{
         $output=array();
         $output[]='<div class="field-section-container pb-3">';
         $section_key = isset($item['key']) ? $item['key'] : '';
-        $section_title = display_template_overlay_text($section_key);
-        if ($section_title === null) {
-            $section_title = tt(strtolower($item['title']), $item['title']);
-        }
+        $section_title = display_template_resolve_section_title(
+            $section_key,
+            isset($item['title']) ? $item['title'] : ''
+        );
         $output[]='<h2 class="field-section" id="'.$item['key'].'">'.$section_title.'</h2>';
 
         if (isset($item['items'])){
