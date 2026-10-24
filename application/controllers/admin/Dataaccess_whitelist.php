@@ -12,12 +12,14 @@ class Dataaccess_whitelist extends MY_Controller {
         $this->load->library( array('acl_manager','form_validation','pagination') );
 
         $this->lang->load('general');
-        //$this->output->enable_profiler(TRUE);        
+
+        if (!$this->acl_manager->user_is_admin()) {
+            $this->acl_manager->show_access_denied('feature');
+        }
     }
 
     function index()
     {
-        $this->acl_manager->has_access_or_die('citation', 'view');
         $options['rows']=$this->Data_access_whitelist_model->select_all();
         $options['collections']=$this->Repository_model->list_all();
 
@@ -30,8 +32,6 @@ class Dataaccess_whitelist extends MY_Controller {
 
     function create()
     {
-        $this->acl_manager->has_access_or_die('citation', 'edit');
-
         $user_id=$this->Data_access_whitelist_model->get_user_id($this->input->post("email"));
         $repository_id=$this->input->post("repository_id");
 
@@ -54,8 +54,6 @@ class Dataaccess_whitelist extends MY_Controller {
 
     function delete($id)
     {
-        $this->acl_manager->has_access_or_die('citation', 'edit');
-
         $this->Data_access_whitelist_model->delete_by_id($id);
         $this->session->set_flashdata('message', t('form_update_success'));
 		redirect("admin/dataaccess_whitelist","refresh");
