@@ -103,12 +103,6 @@ class Ion_auth
 		$this->message_end_delimiter   = $this->ci->config->item('message_end_delimiter');
 		$this->error_start_delimiter   = $this->ci->config->item('error_start_delimiter');
 		$this->error_end_delimiter     = $this->ci->config->item('error_end_delimiter');
-		
-		//auto-login the user if they are remembered
-		if (get_cookie('identity') && get_cookie('remember_code'))
-		{
-			$this->ci->ion_auth_model->login_remembered_user();
-		}
 	}
 	
 	/**
@@ -300,7 +294,6 @@ class Ion_auth
 						  'id'         	=> $user->id,
         				  'email'      	=> $email,
         				  'activation' 	=> $activation_code,
-						  'password'	=> $password
 						 );
             
 			$message = $this->ci->load->view($this->ci->config->item('email_templates').$this->ci->config->item('email_activate'), $data, true);

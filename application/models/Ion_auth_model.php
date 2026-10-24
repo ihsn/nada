@@ -846,11 +846,6 @@ class Ion_auth_model extends CI_Model
 
     		    //$this->session->set_userdata('group',  $group_row->name);
     		    
-    		    if ($remember && $this->config->item('remember_users'))
-    		    {
-    		    	$this->remember_user($result->id);
-    		    }
-
     		    $this->clear_login_attempts($identity, 0);
     		    return TRUE;
     		}
@@ -1231,98 +1226,7 @@ class Ion_auth_model extends CI_Model
 		
 		return TRUE;
 	}
-	
-	/**
-	 * login_remembed_user
-	 *
-	 * @return bool
-	 * @author Ben Edmunds
-	 **/
-	public function login_remembered_user()
-	{
-		//check for valid data
-		if (!get_cookie('identity') || !get_cookie('remember_code') || !$this->identity_check(get_cookie('identity'))) 
-		{
-			return FALSE;
-		}
-		
-		//get the user
-		$query = $this->db->select($this->identity_column.', id, username')
-						  ->where($this->identity_column, get_cookie('identity'))
-						  ->where('remember_code', get_cookie('remember_code'))
-						  ->limit(1)
-						  ->get($this->tables['users']);
-        
-		//if the user was found, sign them in
-        if ($query->num_rows() == 1)
-        {
-        	$user = $query->row();
-        	
-        	$this->update_last_login($user->id);
-        	
-            $this->session->set_userdata($this->identity_column,  $user->{$this->identity_column});
-    		$this->session->set_userdata('id',  $user->id); //kept for backwards compatibility
-    		$this->session->set_userdata('user_id',  $user->id); //everyone likes to overwrite id so we'll use user_id
-    		//$this->session->set_userdata('group_id',  $user->group_id);
-    		$this->session->set_userdata('username',  $user->username);
-    		    
-    		//$group_row = $this->db->select('name')->where('id', $user->group_id)->get($this->tables['groups'])->row();
-	    
-    		//$this->session->set_userdata('group',  $group_row->name);
-    		
-    		//extend the users cookies if the option is enabled
-    		if ($this->config->item('user_extend_on_login'))
-    		{
-    			$this->remember_user($user->id);
-    		}
-    		
-    		return TRUE;
-          }
-        
-		  return FALSE;		
-	}
-	
-	/**
-	 * remember_user
-	 *
-	 * @return bool
-	 * @author Ben Edmunds
-	 **/
-	private function remember_user($id)
-	{
-		return FALSE;
-		
-		if (!$id) 
-		{			
-			return FALSE;
-		}
-		
-		$salt = sha1(md5(microtime()));
-		
-		$is_updated=$this->db->update($this->tables['users'], array('remember_code' => $salt), array('id' => $id));
-		
-		if ($is_updated !== FALSE) 
-		{
-			$user = $this->get_user($id)->row();
-			
-			$identity = array('name'   => 'identity',
-	                   		  'value'  => $user->{$this->identity_column},
-	                   		  'expire' => $this->config->item('user_expire'),
-	               			 );
-			set_cookie($identity); 
-			
-			$remember_code = array('name'   => 'remember_code',
-	                   		  	   'value'  => $salt,
-	                   		  	   'expire' => $this->config->item('user_expire'),
-	               			 	  );
-			set_cookie($remember_code); 
-			
-			return TRUE;
-		}
-		
-		return FALSE;
-	}	
-	
+
 	/**
 	* Returns a list of all countries in the database
 	*
@@ -1813,7 +1717,7 @@ class Ion_auth_model extends CI_Model
 		// Check if legacy support is enabled
 		$legacy_support = $this->config->item('api_key_enable_legacy_support');
 		if($legacy_support === NULL){
-			$legacy_support = TRUE; // enabled by default
+			$legacy_support = FALSE; // off unless rest.php turns it on
 		}
 		
 		if($legacy_support){
@@ -1823,6 +1727,7 @@ class Ion_auth_model extends CI_Model
 			$this->db->join($this->tables['users'], 'api_keys.user_id = ' . $this->tables['users'] . '.id', 'inner');
 			$this->db->where("api_keys.api_key", $key);
 			$this->db->where("api_keys.key_hash", NULL); // Only unmigrated legacy keys
+			$this->db->where("api_keys.revoked_at", NULL); // Not revoked
 			$this->db->where($this->tables['users'] . '.active', 1); // User account must be active
 			$row = $this->db->get()->row();
 			
