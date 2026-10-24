@@ -34,6 +34,9 @@ class Nada_ai_link
     const INFO_STALE_TTL = 86400;
     /** Seconds one request may spend asking /info. */
     const INFO_TIMEOUT = 3;
+
+    /** Seconds to open the connection: an unreachable nada-ai is noticed this fast, not after the whole timeout. */
+    const CONNECT_TIMEOUT = 2;
     /** Seconds a probe marker keeps the other requests away from a nada-ai that is being tried again. */
     const PROBE_TTL = 5;
     /** Seconds the last failure is remembered, to know that the first request after the cooldown is a probe. */
@@ -309,6 +312,8 @@ class Nada_ai_link
             self::CAP_STUDIES   => !empty($caps['studies_search']),
             self::CAP_VARIABLES => !empty($caps['variables_search']),
             self::CAP_CITATIONS => !empty($caps['citations_search']),
+            // nada-ai's own paging and search limits (its settings), for the admin to see
+            'limits'            => isset($info['limits']) && is_array($info['limits']) ? $info['limits'] : null,
         );
     }
 
@@ -326,6 +331,7 @@ class Nada_ai_link
         curl_setopt_array($ch, array(
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => self::INFO_TIMEOUT,
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
             CURLOPT_HTTPHEADER     => array_merge(array('Accept: application/json'), $this->auth_headers()),
         ));
         $raw    = curl_exec($ch);
@@ -374,6 +380,7 @@ class Nada_ai_link
             CURLOPT_POSTFIELDS     => $payload,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
             CURLOPT_HTTPHEADER     => array_merge(array('Content-Type: application/json', 'Accept: application/json'), $headers),
         ));
 
@@ -418,6 +425,12 @@ class Nada_ai_link
         $decoded = json_decode($raw, true);
         $error   = is_array($decoded) ? ($decoded['error'] ?? null) : null;
         if (is_array($error) && isset($error['code'], $error['message'])) {
+            // shown to the person searching: say what to do, not which API answered what (the code stays on the
+            // exception, see error_code(), for logs and debugging)
+            if ($error['code'] === 'search_timeout') {
+                $this->ci->lang->load('catalog_search');
+                return t('search_took_too_long');
+            }
             return sprintf('Semantic search API returned HTTP %d (%s): %s', $status, $error['code'], $error['message']);
         }
 

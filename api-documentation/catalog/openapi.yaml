@@ -217,7 +217,7 @@ paths:
             enum: [0, 1]
         - name: ps
           in: query
-          description: Number of results per page. Default is 15.
+          description: Number of results per page, 1 to 100 (larger values give 100). Default is 15.
           schema:
             type: integer
         - name: page
@@ -721,7 +721,7 @@ paths:
             enum: [asc, desc]
         - name: ps
           in: query
-          description: Number of results per page. Default is 15
+          description: Number of results per page, 1 to 100 (larger values give 100). Default is 15
           schema:
             type: integer
         - name: page
@@ -853,7 +853,7 @@ paths:
             enum: [asc, desc]
         - name: ps
           in: query
-          description: Number of results per page when `sk` is provided. Default is 15
+          description: Number of results per page when `sk` is provided, 1 to 100 (larger values give 100). Default is 15
           schema:
             type: integer
         - name: page

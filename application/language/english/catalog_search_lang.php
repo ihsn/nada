@@ -391,6 +391,7 @@ $lang['pager_page_of']="Page %s of %s";
 $lang['pager_range']="%s–%s of %s";
 $lang['pager_past_numbered']="Results past %s are not numbered. Refine the search or reverse the sort order to reach the end.";
 $lang['pager_page_not_found']="Page not found.";
+$lang['search_took_too_long']="The search took too long. Try again, or narrow it with more words or filters.";
 $lang['sort_study_title_az']="Study title (A-Z)";
 $lang['sort_study_title_za']="Study title (Z-A)";
 $lang['sort_variable_name_az']="Variable name (A-Z)";

@@ -38,6 +38,7 @@
     </v-card-text>
 
     <div v-if="status && usesNadaAi" class="px-4 pb-3 text-caption text-medium-emphasis">
+      <div v-if="limitsText">NADA-AI limits (set in NADA-AI): {{ limitsText }}</div>
       <div v-if="nadaAi && nadaAi.source !== 'info'">
         <template v-if="nadaAi.source === 'stale'">NADA-AI did not answer just now; what it can serve is from its last answer.</template>
         <template v-else>NADA-AI has not answered yet, so what it runs and can serve is not known.</template>
@@ -59,6 +60,25 @@ const { errorMessage } = useSemanticApi();
 const { status, error, loading, refresh, engineLabel, usesNadaAi, breakerOpen, mismatch } = useEngineStatus();
 
 const nadaAi = computed(() => status.value?.nada_ai || null);
+
+/** NADA-AI's paging and search limits, read-only: they are NADA-AI settings (GET /info limits). */
+const limitsText = computed(() => {
+  const l = nadaAi.value?.limits;
+  if (!l) return '';
+  const n = (v) => Number(v).toLocaleString();
+  const parts = [];
+  if (l.max_limit) parts.push(`up to ${n(l.max_limit)} results per page`);
+  if (l.variables_max_offset || l.max_offset) {
+    const numbered = [
+      l.variables_max_offset ? `${n(l.variables_max_offset)} variables` : null,
+      l.max_offset ? `${n(l.max_offset)} studies` : null,
+    ].filter(Boolean).join(' / ');
+    parts.push(`numbered pages up to ${numbered}, then Next by cursor`);
+  }
+  if (l.variables_count_cap) parts.push(`matches counted exactly up to ${n(l.variables_count_cap)}`);
+  if (l.search_timeout_seconds) parts.push(`searches stop after ${l.search_timeout_seconds} s`);
+  return parts.join(' · ');
+});
 const settingsUrl = computed(() => `${String(siteUrl.value || '').replace(/\/$/, '')}/admin/configurations#/search`);
 
 const SEARCHES = [

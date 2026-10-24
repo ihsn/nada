@@ -73,6 +73,24 @@ The web UI is **not** suitable for the initial upgrade from an older schema beca
 
 ---
 
+## robots.txt (recommended)
+
+Catalog search pages past the numbered pages are reached with a cursor (URLs ending in `…&cursor=…`), an endless
+chain of URLs crawlers should not follow. NADA does not install a `robots.txt` (a site may already have its own), so:
+
+- If the web root has no `robots.txt`, copy `robots.txt.example` there as `robots.txt`.
+- If it already has one, add these lines to it:
+
+  ```
+  User-agent: *
+  Disallow: /*cursor=
+  ```
+
+`robots.txt` is only read at the root of the host (`https://your-host/robots.txt`); when NADA is installed in a
+subfolder, the file goes in the host's root folder, not NADA's. This applies to fresh installs too.
+
+---
+
 ## Fresh installs
 
 New installations run `install/schema.mysql.sql` (or `schema.sqlsrv.sql`) plus `install/schema.dd.{mysql,sqlsrv}.sql`. The main schema already includes the catalog migrations. You do not need to run `migrate latest` unless you installed from an older schema file. Data deposit stays off until `enable_datadeposit` is true.

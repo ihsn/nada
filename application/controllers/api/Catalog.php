@@ -26,16 +26,15 @@ class Catalog extends MY_REST_Controller
 	 */
 	private function get_page_size()
 	{
-		$page_size_min=1;
-		$page_size_max=300;
+		$page_size_max=100; // the most NADA-AI's searches serve in one page
 
 		$page_size=(int)$this->input->get('ps');
 
-		if($page_size>=$page_size_min && $page_size<=$page_size_max){
-			return $page_size;
+		if ($page_size<1){
+			return 15;//default page size
 		}
 
-		return 15;//default page size
+		return min($page_size, $page_size_max);
 	}
 
 	/**
@@ -327,13 +326,6 @@ class Catalog extends MY_REST_Controller
 			}
 		}
 		
-		//default page size
-		$limit=15;
-
-		if (is_numeric($params['ps']) && $params['ps']>0){
-			$limit=$params['ps'];
-		}
-
 		$page=(int)$this->input->get('page');		
 		$page= ($page >0) ? $page : 1;
 		$offset=($page-1)*$limit;

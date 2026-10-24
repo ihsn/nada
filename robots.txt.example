@@ -1,0 +1,7 @@
+# Example robots.txt for NADA. Copy to robots.txt in the web root (the folder that serves https://your-host/), or
+# merge these lines into the robots.txt you already have there. robots.txt is only read at the root of the host.
+
+User-agent: *
+# Catalog search pages past the numbered pages are reached with a cursor (…&cursor=…): an endless chain of URLs that
+# crawlers should not follow. Numbered pages (page=2, page=3, …) stay crawlable.
+Disallow: /*cursor=
