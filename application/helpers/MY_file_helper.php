@@ -84,12 +84,8 @@ if ( ! function_exists('is_url'))
 {
 	function is_url($str)
 	{
-		$str=trim($str);
-		if (strpos($str,'http:')!==FALSE || strpos($str,'https:')!==FALSE || strpos($str,'ftp:')!==FALSE )
-		{
-			return TRUE;
-		}
-		return FALSE;
+		// Must start with the scheme. Matching "http:" 
+		return preg_match('#^(https?|ftp)://#i', trim((string) $str)) === 1;
 	}
 }
 /**
