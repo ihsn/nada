@@ -247,7 +247,7 @@ class Configurations extends MY_Controller {
 	 */
 	function send_test_email()
 	{
-		$this->config->load('email');
+		$this->config->load('email', FALSE, TRUE); // email.php is optional: blank defaults without it
 		$this->load->library('email');
 
 		$email_driver = $this->input->post('email_driver');

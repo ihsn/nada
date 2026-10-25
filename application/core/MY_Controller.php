@@ -268,7 +268,8 @@ class MY_Controller extends CI_Controller
 			return TRUE;
 		}
 
-		// Lock file missing — check DB for app_installed row
+		// Lock file missing — check DB for app_installed row (the connection is open: Db_connection_guard, autoloaded,
+		// stops the request otherwise)
 		$this->db->select('name');
 		$this->db->where('name', 'app_installed');
 		$query = $this->db->get('configurations');
@@ -283,31 +284,8 @@ class MY_Controller extends CI_Controller
 			return TRUE;
 		}
 
-		// configurations table missing or app_installed row absent — test raw DB connection
-		// to distinguish "not installed" from "DB unreachable"
-		$conn_id = FALSE;
-		switch ($this->db->dbdriver)
-		{
-			case 'mysqli':
-				$conn_id = @mysqli_connect($this->db->hostname, $this->db->username, $this->db->password);
-				break;
-			case 'sqlsrv':
-				$auth_info = array('UID' => $this->db->username, 'PWD' => $this->db->password);
-				$conn_id = @sqlsrv_connect($this->db->hostname, $auth_info);
-				break;
-			default:
-				show_error('MY_CONTROLLER::database not supported '.$this->db->dbdriver);
-		}
-
-		if (!$conn_id)
-		{
-			show_error('Failed to connect to database, check database settings');
-		}
-		else
-		{
-			// Can reach DB server but app is not installed
-			redirect('install');
-		}
+		// connected, but the app is not installed
+		redirect('install');
 	}
 
 

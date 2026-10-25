@@ -2,6 +2,9 @@
 
 class Install extends CI_Controller {
 
+	/** @var array|null the last Db_connection_check result (see _test_connection()) */
+	public $db_check = NULL;
+
 	function __construct()
 	{
 		parent::__construct();
@@ -101,7 +104,7 @@ class Install extends CI_Controller {
 			//test database connection
 			if($this->_test_connection()===FALSE)
 			{
-				$this->session->set_flashdata('message', t('database_connection_failed'));
+				$this->session->set_flashdata('message', $this->db_check['message']);
 				redirect('install');
 			}
 
@@ -113,7 +116,7 @@ class Install extends CI_Controller {
 			//test database connection
 			if($this->_test_connection()===FALSE)
 			{
-				$this->session->set_flashdata('error', t('database_connection_failed'));
+				$this->session->set_flashdata('error', $this->db_check['message']);
 				redirect('install');
 			}
 
@@ -164,7 +167,8 @@ class Install extends CI_Controller {
 									 'country'     => $this->input->post('country'),
         							);
         	
-        	//register the user
+        	//register the user; the admin account is activated below, so no activation email (the site may have no email set up yet)
+        	$this->config->set_item('email_activation', FALSE);
         	$user_created=$this->ion_auth->register($username,$password,$email,$additional_data);
 
 			//get the user data by email
@@ -303,6 +307,13 @@ class Install extends CI_Controller {
 			show_error('You have not setup database settings');
 		}
 		
+		//the installer needs the server, the login and the (empty) database; checked before any query: with no
+		//connection, MySQL's query builder fails escaping values
+		if (!$this->_test_connection())
+		{
+			show_error(html_escape($this->db_check['message']));
+		}
+
 		//test reading from database tables
 		$this->db->select("name");	
 		$this->db->where("name", "app_installed");
@@ -319,43 +330,26 @@ class Install extends CI_Controller {
 				exit;
 			}
 		}
-				
-		//test database connection only if everything else above has failed
-		$connected=$this->_test_connection();
 
-		if (!$connected) 
-        {
-            //cannot connect to database server
-			show_error('Failed to connect to database, check database settings');
-        } 
 	}
 	
 	
 	
 	/**
-	*
-	* Test database connectivity
-	*
-	* return	bool
-	*/
+	 * Whether the app's database connection (database.php settings) is open: server, login and database. The
+	 * reason it is not is in $this->db_check (message for the page; the raw driver error goes to the log).
+	 *
+	 * @return bool
+	 */
 	function _test_connection()
 	{
-		$conn_id = FALSE;
-
-		switch ($this->db->dbdriver)
+		$this->load->library('db_connection_check');
+		$this->db_check = $this->db_connection_check->check($this->db);
+		if ($this->db_check['status'] !== Db_connection_check::OK)
 		{
-			case 'mysqli':
-				$conn_id = @mysqli_connect($this->db->hostname, $this->db->username, $this->db->password);
-				break;
-			case 'sqlsrv':
-				$auth_info = array("UID" => $this->db->username, "PWD" => $this->db->password, "Database" => $this->db->database);
-				$conn_id = @sqlsrv_connect($this->db->hostname, $auth_info);
-				break;
-			default:
-				show_error('INSTALLER::database not supported');
+			log_message('error', 'Install: database connection: '.$this->db_check['status'].': '.$this->db_check['detail']);
 		}
-
-		return $conn_id ? TRUE : FALSE;
+		return $this->db_check['status'] === Db_connection_check::OK;
 	}
 	
 	

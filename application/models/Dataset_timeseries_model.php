@@ -172,16 +172,18 @@ class Dataset_timeseries_model extends Dataset_model {
 			return;
 		}
 
+		// the rows were deleted above, so only repeats within the list can collide (no INSERT IGNORE: SQL Server has none)
+		$seen = array();
 		foreach ($databases as $db) {
 			$idno = isset($db['id']) ? trim((string)$db['id']) : '';
-			if ($idno === '') {
+			if ($idno === '' || isset($seen[$idno])) {
 				continue;
 			}
+			$seen[$idno] = true;
 			$is_primary = !empty($db['is_primary']) ? 1 : 0;
-			$this->db->query(
-				'INSERT IGNORE INTO timeseries_db_links (series_id, db_idno, is_primary) VALUES (?, ?, ?)',
-				array($sid, $idno, $is_primary)
-			);
+			if (!$this->db->insert('timeseries_db_links', array('series_id' => $sid, 'db_idno' => $idno, 'is_primary' => $is_primary))) {
+				throw new Exception('Failed to link series ' . $sid . ' to timeseries database ' . $idno);
+			}
 		}
 	}
 

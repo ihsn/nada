@@ -812,7 +812,7 @@ class Configurations extends MY_REST_Controller
 		try
 		{
 			$this->require_configurations_edit();
-			$this->config->load('email');
+			$this->config->load('email', FALSE, TRUE); // email.php is optional: blank defaults without it
 
 			$auth = $this->config->item('smtp_auth');
 			$crypto = $this->config->item('smtp_crypto');
@@ -873,7 +873,7 @@ class Configurations extends MY_REST_Controller
 				return;
 			}
 
-			$this->config->load('email');
+			$this->config->load('email', FALSE, TRUE); // email.php is optional: blank defaults without it
 
 			$smtp_pass = isset($body['smtp_pass']) ? (string) $body['smtp_pass'] : '';
 			if ($smtp_pass === '')

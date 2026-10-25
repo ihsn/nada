@@ -53,6 +53,7 @@ $autoload['packages'] = array(APPPATH.'third_party');
 
 $autoload['libraries'] = array(
 							'database',
+							'db_connection_guard',	// stops the request when the database connection did not open
 							'template',
 							'session',
 							'site_configurations',

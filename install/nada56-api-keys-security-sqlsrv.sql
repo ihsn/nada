@@ -4,8 +4,9 @@
 -- # Run this script to upgrade api_keys table for secure key management
 -- ###################################################################################
 
--- Modify api_key column to allow NULL (for new secure keys)
-ALTER TABLE api_keys ALTER COLUMN api_key VARCHAR(40) NULL;
+-- Modify api_key column to allow NULL (for new secure keys); only while it is NOT NULL, so a re-run does not fail
+-- once IX_api_keys_legacy (below) depends on the column
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('api_keys') AND name = 'api_key' AND is_nullable = 0) ALTER TABLE api_keys ALTER COLUMN api_key VARCHAR(40) NULL;
 
 -- Add new columns to api_keys table
 ALTER TABLE api_keys ADD key_hash VARCHAR(255) NULL;

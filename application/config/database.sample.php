@@ -51,6 +51,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |				'ssl_cipher' - List of *allowed* ciphers to be used for the encryption, separated by colons (':')
 |				'ssl_verify' - TRUE/FALSE; Whether verify the server certificate or not ('mysqli' only)
 |
+|	['trust_server_certificate'] TRUE/FALSE (SQL Server only, NADA) - accept the server's TLS certificate
+|				 without validating it. ODBC Driver 18 encrypts by default and rejects a self-signed
+|				 certificate; prefer a trusted certificate on the server.
+|	['login_timeout'] Seconds (SQL Server only, NADA) to wait for the login; unset keeps the ODBC driver's
+|				 15 seconds. After a failed attempt NADA does not try again in the same request.
 |	['compress'] Whether or not to use client compression (MySQL only)
 |	['stricton'] TRUE/FALSE - forces 'Strict Mode' connections
 |							- good for ensuring strict SQL while developing

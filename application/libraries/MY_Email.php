@@ -36,7 +36,15 @@ class MY_Email extends CI_Email {
      * @var string
      */
     protected $driver_name;
-    
+
+    /**
+     * FALSE when the site has no application/config/email.php: email is optional, so send() then fails
+     * (returns FALSE) instead of the request stopping on a missing config file.
+     *
+     * @var bool
+     */
+    protected $configured = TRUE;
+
     /**
      * CodeIgniter instance
      * 
@@ -248,14 +256,19 @@ class MY_Email extends CI_Email {
      * @return object
      */
     public function initialize(array $config = array()) {
+        $this->configured = TRUE;
+
         // If no config provided, load from email.php config file
         if (empty($config)) {
             $this->CI->load->helper('email');
             $config = load_email_settings();
             
-            if (empty($config)) {
+            if (empty($config) && !$this->CI->config->load('email', FALSE, TRUE)) {
+                // no email.php: email is not set up on this site
+                $this->configured = FALSE;
+                log_message('info', 'Email is not configured (application/config/email.php is missing)');
+            } elseif (empty($config)) {
                 // Final fallback: load directly from config
-                $this->CI->config->load('email');
                 $config = array(
                     'email_driver' => $this->CI->config->item('email_driver') ?: 'smtp',
                     'smtp_host' => $this->CI->config->item('smtp_host'),
@@ -539,6 +552,12 @@ class MY_Email extends CI_Email {
      */
     public function send($auto_clear = true) {
         $auto_clear = !empty($auto_clear);
+
+        if (!$this->configured) {
+            $this->_set_error_message('Email is not configured: copy application/config/email.sample.php to email.php and set it up.');
+            log_message('error', 'Email not sent: email is not configured (application/config/email.php is missing)');
+            return FALSE;
+        }
 
         if ($this->driver) {
             $result = $this->driver->send();

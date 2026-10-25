@@ -53,7 +53,6 @@ class Template {
    var $parse_template = FALSE;
    var $base_url = '';
    
-   var $version='v41';
    var $template_group = 'default';
    var $builtin_analytics_injected = FALSE;
 
@@ -91,26 +90,17 @@ class Template {
 	 {
 	 	$this->base_url=base_url();
 	 }
-	 
-	 //set cs/js version
-	 $this->version=date("mY");	
-	 
-	 if ($this->CI->config->item('js_css_version') )
-	 {
-	 	$this->version=$this->CI->config->item('js_css_version');
-	 }
-	 else
-	 {
-	 	//add key if not exist
-		$this->CI->load->model('Configurations_model');
-	 	$this->CI->Configurations_model->add($name='js_css_version', $value=date("U"),$label='JS/CSS version');		
-	 }
  }
    
-   //returns the js/css version number
+   /**
+    * The js/css version (?v= on the links add_js()/add_css() write): the js_css_version site setting, else the month.
+    * Read when a link is written, not in the constructor: this library loads before site_configurations, so the
+    * setting is not known yet there.
+    */
    function get_js_css_version()
    {
-   		return $this->version;
+   		$version = $this->CI->config->item('js_css_version');
+   		return $version ? $version : date("mY");
    }
    
    // --------------------------------------------------------------------
@@ -489,7 +479,7 @@ class Template {
       {
          case 'import':
             $filepath = $this->base_url . $script;
-            $js = '<script type="text/javascript" src="'. $filepath . '?v='.$this->version. '"';
+            $js = '<script type="text/javascript" src="'. $filepath . '?v='.$this->get_js_css_version(). '"';
             if ($defer)
             {
                $js .= ' defer="defer"';
@@ -609,7 +599,7 @@ class Template {
       {
          case 'link':
             
-            $css = '<link type="text/css" rel="stylesheet" href="'. $filepath . '?v='.$this->version.'"';
+            $css = '<link type="text/css" rel="stylesheet" href="'. $filepath . '?v='.$this->get_js_css_version().'"';
             if ($media)
             {
                $css .= ' media="'. $media .'"';

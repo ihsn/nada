@@ -92,19 +92,19 @@ IF OBJECT_ID(N'dbo.display_templates', N'U') IS NULL
 BEGIN
 	CREATE TABLE dbo.display_templates (
 		id BIGINT NOT NULL IDENTITY(1,1),
-		uid VARCHAR(191) NOT NULL,
-		template_type VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_template_type DEFAULT 'custom',
-		source VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline',
-		data_type VARCHAR(64) NOT NULL,
-		lang VARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en',
-		name VARCHAR(255) NOT NULL,
-		version VARCHAR(50) NULL,
-		organization VARCHAR(255) NULL,
-		author VARCHAR(255) NULL,
+		uid NVARCHAR(191) NOT NULL,
+		template_type NVARCHAR(20) NOT NULL CONSTRAINT df_display_templates_template_type DEFAULT 'custom',
+		source NVARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline',
+		data_type NVARCHAR(64) NOT NULL,
+		lang NVARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en',
+		name NVARCHAR(255) NOT NULL,
+		version NVARCHAR(50) NULL,
+		organization NVARCHAR(255) NULL,
+		author NVARCHAR(255) NULL,
 		description NVARCHAR(MAX) NULL,
-		status VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_status DEFAULT 'draft',
+		status NVARCHAR(20) NOT NULL CONSTRAINT df_display_templates_status DEFAULT 'draft',
 		template_json NVARCHAR(MAX) NULL,
-		file_path VARCHAR(255) NULL,
+		file_path NVARCHAR(255) NULL,
 		is_deleted BIT NOT NULL CONSTRAINT df_display_templates_is_deleted DEFAULT 0,
 		created_by INT NULL,
 		changed_by INT NULL,
@@ -142,8 +142,8 @@ IF OBJECT_ID(N'dbo.display_templates_default', N'U') IS NULL
 BEGIN
 	CREATE TABLE dbo.display_templates_default (
 		id BIGINT NOT NULL IDENTITY(1,1),
-		data_type VARCHAR(64) NOT NULL,
-		template_uid VARCHAR(191) NOT NULL,
+		data_type NVARCHAR(64) NOT NULL,
+		template_uid NVARCHAR(191) NOT NULL,
 		created_by INT NULL,
 		updated_by INT NULL,
 		created_at DATETIME2 NOT NULL CONSTRAINT df_display_templates_default_created_at DEFAULT SYSDATETIME(),
@@ -214,7 +214,7 @@ END
 IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
 AND COL_LENGTH(N'dbo.display_templates', N'source') IS NULL
 BEGIN
-	ALTER TABLE dbo.display_templates ADD source VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline'
+	ALTER TABLE dbo.display_templates ADD source NVARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline'
 END
 			"), 'add display_templates.source');
 			$this->assert_db_query($this->db->query("
@@ -229,14 +229,14 @@ END
 IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
 AND COL_LENGTH(N'dbo.display_templates', N'lang') IS NULL
 BEGIN
-	ALTER TABLE dbo.display_templates ADD lang VARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en'
+	ALTER TABLE dbo.display_templates ADD lang NVARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en'
 END
 			"), 'add display_templates.lang');
 			$this->assert_db_query($this->db->query("
 IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
 AND COL_LENGTH(N'dbo.display_templates', N'file_path') IS NULL
 BEGIN
-	ALTER TABLE dbo.display_templates ADD file_path VARCHAR(255) NULL
+	ALTER TABLE dbo.display_templates ADD file_path NVARCHAR(255) NULL
 END
 			"), 'add display_templates.file_path');
 			$this->assert_db_query($this->db->query("
@@ -296,7 +296,7 @@ BEGIN
 	CREATE TABLE dbo.display_template_translations (
 		id BIGINT NOT NULL IDENTITY(1,1),
 		template_id BIGINT NOT NULL,
-		lang VARCHAR(16) NOT NULL,
+		lang NVARCHAR(16) NOT NULL,
 		translations NVARCHAR(MAX) NOT NULL,
 		created_at DATETIME2 NOT NULL CONSTRAINT df_display_template_translations_created_at DEFAULT SYSDATETIME(),
 		updated_at DATETIME2 NOT NULL CONSTRAINT df_display_template_translations_updated_at DEFAULT SYSDATETIME(),

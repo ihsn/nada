@@ -72,6 +72,38 @@ class CI_DB_sqlsrv_driver extends CI_DB {
 	 */
 	public $scrollable;
 
+	/**
+	 * NADA: accept the server's TLS certificate without validating it (database.php 'trust_server_certificate'),
+	 * e.g. a self-signed certificate with ODBC Driver 18, which encrypts by default.
+	 *
+	 * @var	bool
+	 */
+	public $trust_server_certificate = FALSE;
+
+	/**
+	 * NADA: seconds to wait for the login (database.php 'login_timeout'); NULL keeps the ODBC driver's 15 seconds.
+	 *
+	 * @var	int|null
+	 */
+	public $login_timeout = NULL;
+
+	/**
+	 * NADA: sqlsrv_errors() of the last failed connection attempt (empty after a successful one), for
+	 * Db_connection_check to say what failed.
+	 *
+	 * @var	array
+	 */
+	public $connect_errors = array();
+
+	/**
+	 * NADA: connection targets (server, user, database) that failed in this request, with their sqlsrv_errors().
+	 * While there is no connection, CI_DB::simple_query() reconnects before every query and CI_Loader::database()
+	 * builds a new driver on every call; each attempt to an unreachable server waits the whole login timeout.
+	 *
+	 * @var	array<string, array>
+	 */
+	protected static $_failed_targets = array();
+
 	// --------------------------------------------------------------------
 
 	/**
@@ -156,6 +188,14 @@ class CI_DB_sqlsrv_driver extends CI_DB {
 	 */
 	public function db_connect($pooling = FALSE)
 	{
+		// NADA: fail at once when this target already failed in this request (see $_failed_targets)
+		$target = $this->hostname.'|'.$this->username.'|'.$this->database;
+		if (isset(self::$_failed_targets[$target]))
+		{
+			$this->connect_errors = self::$_failed_targets[$target];
+			return FALSE;
+		}
+
 		$charset = in_array(strtolower($this->char_set), array('utf-8', 'utf8'), TRUE)
 			? 'UTF-8' : SQLSRV_ENC_CHAR;
 
@@ -169,6 +209,16 @@ class CI_DB_sqlsrv_driver extends CI_DB {
 			'ReturnDatesAsStrings'	=> 1
 		);
 
+		// NADA: optional settings from database.php
+		if ($this->trust_server_certificate === TRUE)
+		{
+			$connection['TrustServerCertificate'] = 1;
+		}
+		if (is_numeric($this->login_timeout) && (int) $this->login_timeout > 0)
+		{
+			$connection['LoginTimeout'] = (int) $this->login_timeout;
+		}
+
 		// If the username and password are both empty, assume this is a
 		// 'Windows Authentication Mode' connection.
 		if (empty($connection['UID']) && empty($connection['PWD']))
@@ -176,8 +226,15 @@ class CI_DB_sqlsrv_driver extends CI_DB {
 			unset($connection['UID'], $connection['PWD']);
 		}
 
-		if (FALSE !== ($this->conn_id = sqlsrv_connect($this->hostname, $connection)))
+		$this->conn_id = sqlsrv_connect($this->hostname, $connection);
+		if ($this->conn_id === FALSE)
 		{
+			$this->connect_errors = sqlsrv_errors(SQLSRV_ERR_ERRORS) ?: array();
+			self::$_failed_targets[$target] = $this->connect_errors;
+		}
+		else
+		{
+			$this->connect_errors = array();
 			// Determine how identifiers are escaped
 			$query = $this->query('SELECT CASE WHEN (@@OPTIONS | 256) = @@OPTIONS THEN 1 ELSE 0 END AS qi');
 			$query = $query->row_array();

@@ -2,6 +2,9 @@
 
 class Citation_search_sqlsrv
 {
+    /** Columns a keyword search matches (as Citation_search_mysql); all are in the citations full-text index. */
+    const FULLTEXT_COLUMNS = 'title,subtitle,authors,doi,keywords,abstract,notes,organization';
+
     var $ci;
     var $errors            = array();
     var $search_found_rows = 0;
@@ -199,13 +202,14 @@ class Citation_search_sqlsrv
                         if ($for_count) {
                             // FREETEXT() predicate — no row limit, correct for COUNT
                             $this->ci->db->where(
-                                sprintf('FREETEXT((ft_keywords), %s)', $this->ci->db->escape($keywords)),
+                                sprintf('FREETEXT((%s), %s)', self::FULLTEXT_COLUMNS, $this->ci->db->escape($keywords)),
                                 NULL, FALSE
                             );
                         } else {
                             // FREETEXTTABLE — returns relevance KEY_RANK for ORDER BY
                             $freetext_join = sprintf(
-                                'freetexttable(citations,(ft_keywords),%s,%d) as KEY_TBL',
+                                'freetexttable(citations,(%s),%s,%d) as KEY_TBL',
+                                self::FULLTEXT_COLUMNS,
                                 $this->ci->db->escape($keywords),
                                 $limit
                             );

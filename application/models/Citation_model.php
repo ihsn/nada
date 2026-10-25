@@ -932,7 +932,7 @@ class Citation_model extends CI_Model {
 					KEY_TBL.*
 					FROM citations
 					INNER JOIN
-						freetexttable (citations,(ft_keywords),%s,15) as KEY_TBL
+						freetexttable (citations,(title,subtitle,alt_title,authors,editors,translators),%s,15) as KEY_TBL
 					ON citations.id=KEY_TBL.[KEY]
 					WHERE KEY_TBL.RANK >=10
 					ORDER BY KEY_TBL.RANK DESC;",$this->db->escape($keywords));

@@ -902,9 +902,9 @@ CREATE TABLE `resources` (
   `contributor` varchar(500) DEFAULT NULL,
   `publisher` varchar(500) DEFAULT NULL,
   `rights` text DEFAULT NULL,
-  `description` text,
-  `abstract` text,
-  `toc` text,
+  `description` mediumtext,
+  `abstract` mediumtext,
+  `toc` mediumtext,
   `subjects` text DEFAULT NULL,
   `data_file_id` int(11) DEFAULT NULL,
   `sort_order` int(11) DEFAULT 0,
@@ -916,7 +916,15 @@ CREATE TABLE `resources` (
   `changed_by` int(11) DEFAULT NULL,
   PRIMARY KEY (`resource_id`),
   KEY `idx_survey_id` (`survey_id`),
-  KEY `idx_resource_type` (`resource_type`)
+  KEY `idx_resource_type` (`resource_type`),
+  UNIQUE KEY `uk_survey_resource_idno` (`survey_id`, `resource_idno`),
+  KEY `idx_filename` (`survey_id`, `filename`(191)),
+  KEY `idx_status` (`status`),
+  KEY `idx_is_url` (`is_url`),
+  KEY `idx_sort_order` (`survey_id`, `sort_order`),
+  KEY `idx_created` (`created`),
+  KEY `idx_changed` (`changed`),
+  KEY `idx_data_file_id` (`data_file_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -975,7 +983,7 @@ CREATE TABLE `users` (
   `activation_code_expiry` int DEFAULT NULL,
   `activation_attempt_count` int NOT NULL DEFAULT 0,
   `activation_attempt_ts` int DEFAULT NULL,
-  `forgotten_password_code` varchar(40) DEFAULT NULL,
+  `forgotten_password_code` varchar(100) DEFAULT NULL,
   `remember_code` varchar(40) DEFAULT NULL,
   `created_on` int NOT NULL,
   `last_login` int NOT NULL,
@@ -987,7 +995,9 @@ CREATE TABLE `users` (
   `forgot_request_count` int DEFAULT '0',
   `authtype` varchar(40) DEFAULT NULL,
   `authtype_id` varchar(300) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_authtype` (`authtype`),
+  KEY `idx_authtype_id` (`authtype`,`authtype_id`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1377,7 +1387,7 @@ CREATE TABLE `sitelogs` (
   `logtype` varchar(45) NOT NULL,
   `surveyid` int(11) DEFAULT '0',
   `section` varchar(255) DEFAULT NULL,
-  `keyword` text,
+  `keyword` varchar(300) DEFAULT NULL,
   `username` varchar(100) DEFAULT NULL,
   `useragent` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -1388,7 +1398,9 @@ CREATE TABLE `sitelogs` (
   KEY `idx_ip` (`ip`),
   KEY `idx_section` (`section`),
   KEY `idx_logtime_logtype` (`logtime`, `logtype`),
-  KEY `idx_surveyid_logtime` (`surveyid`, `logtime`)
+  KEY `idx_surveyid_logtime` (`surveyid`, `logtime`),
+  KEY `idx_logtime_ip` (`logtime`, `ip`),
+  KEY `idx_logtime_username` (`logtime`, `username`)
 ) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1694,12 +1706,6 @@ CREATE TABLE `user_roles` (
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 
---
--- migrate admins from previous version
---
-
-insert into user_roles (user_id, role_id) 
-	select user_id, group_id from users_groups;
 
 
 
@@ -1829,7 +1835,7 @@ CREATE TABLE `survey_data_api` (
 CREATE TABLE `analytics_pageview_events` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `ts` DATETIME NOT NULL,
-    `study_id` VARCHAR(100) NOT NULL COMMENT 'Study page referenced',
+    `study_id` INT NOT NULL COMMENT 'Study page referenced',
     `session_id` VARCHAR(255) NULL COMMENT 'Client-generated session token',
     `page_url` VARCHAR(512) NULL COMMENT 'Client page URL or AJAX request path',
     `section` VARCHAR(100) NULL COMMENT 'Study tab/section for AJAX pageviews',
@@ -1848,7 +1854,7 @@ CREATE TABLE `analytics_pageview_events` (
 CREATE TABLE `analytics_download_events` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `ts` DATETIME NOT NULL,
-    `study_id` VARCHAR(100) NOT NULL,
+    `study_id` INT NOT NULL,
     `file_name` VARCHAR(255) NOT NULL,
     `file_type` VARCHAR(50) NULL,
     `hashed_ip` CHAR(64) NULL,
@@ -1862,7 +1868,7 @@ CREATE TABLE `analytics_download_events` (
 
 CREATE TABLE `analytics_daily_studies` (
     `date` DATE NOT NULL,
-    `study_id` VARCHAR(100) NOT NULL,
+    `study_id` INT NOT NULL,
     `pageviews` INT UNSIGNED NOT NULL DEFAULT 0,
     `unique_visitors` INT UNSIGNED NOT NULL DEFAULT 0,
     `downloads` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Sum of all file downloads for the study',
@@ -1874,7 +1880,7 @@ CREATE TABLE `analytics_daily_studies` (
 CREATE TABLE `analytics_monthly_studies` (
   `year` smallint NOT NULL,
   `month` tinyint NOT NULL,
-  `study_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `study_id` int NOT NULL,
   `pageviews` int unsigned NOT NULL DEFAULT '0',
   `unique_visitors` int unsigned NOT NULL DEFAULT '0',
   `downloads` int unsigned NOT NULL DEFAULT '0' COMMENT 'Sum of file-level monthly downloads',
@@ -1887,7 +1893,7 @@ CREATE TABLE `analytics_monthly_studies` (
 
 CREATE TABLE `analytics_daily_files` (
     `date` DATE NOT NULL,
-    `study_id` VARCHAR(100) NOT NULL,
+    `study_id` INT NOT NULL,
     `file_name` VARCHAR(255) NOT NULL,
     `downloads` INT UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY (`date`, `study_id`, `file_name`),
@@ -1898,7 +1904,7 @@ CREATE TABLE `analytics_daily_files` (
 CREATE TABLE `analytics_monthly_files` (
   `year` smallint NOT NULL,
   `month` tinyint NOT NULL,
-  `study_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `study_id` int NOT NULL,
   `file_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `downloads` int unsigned NOT NULL DEFAULT '0',
   `finalized` tinyint(1) NOT NULL DEFAULT '0',
@@ -2017,3 +2023,41 @@ CREATE TABLE `search_index_meta` (
 
 INSERT INTO `search_index_meta` (`id`, `engine`, `tracked_since`) VALUES (1, 'none', UNIX_TIMESTAMP());
 
+
+--
+-- Analytics aggregation progress (as install/analytics-schema-mysql.sql)
+--
+CREATE TABLE `analytics_aggregation_status` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `status` varchar(20) NOT NULL DEFAULT 'idle',
+  `current_step` varchar(50) DEFAULT NULL,
+  `current_item` varchar(100) DEFAULT NULL,
+  `total_items` int DEFAULT '0',
+  `processed_items` int DEFAULT '0',
+  `progress_percent` int DEFAULT '0',
+  `message` text,
+  `started_at` datetime DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `last_updated_at` datetime DEFAULT NULL,
+  `error_message` text,
+  `context` varchar(20) NOT NULL DEFAULT 'cli' COMMENT 'cli or web',
+  `user_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `status` (`status`),
+  KEY `last_updated_at` (`last_updated_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
+
+--
+-- Study admin metadata (as migration 20260608120001_create_study_admin_metadata_schema)
+--
+CREATE TABLE `study_admin_metadata` (
+  `sid` INT NOT NULL,
+  `metadata` JSON NOT NULL,
+  `created_by` INT UNSIGNED DEFAULT NULL,
+  `changed_by` INT UNSIGNED DEFAULT NULL,
+  `created` INT UNSIGNED DEFAULT NULL,
+  `changed` INT UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (`sid`),
+  KEY `idx_study_admin_metadata_changed` (`changed`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

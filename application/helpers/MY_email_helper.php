@@ -23,8 +23,10 @@ function load_email_settings()
 {
   $ci =& get_instance();
   
-  // Load email configuration from email.php config file
-  $ci->config->load('email');
+  // Load email configuration from email.php config file; email is optional, so a site may have none
+  if (!$ci->config->load('email', FALSE, TRUE)) {
+    return FALSE;
+  }
   
   // Get email driver (new system) or fallback to legacy useragent
   $email_driver = $ci->config->item("email_driver");

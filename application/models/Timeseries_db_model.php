@@ -217,13 +217,15 @@ class Timeseries_db_model extends CI_Model {
 				continue;
 			}
 
-			$this->db->query(
-				'INSERT IGNORE INTO timeseries_db_links (series_id, db_idno, is_primary) VALUES (?, ?, 0)',
-				array((int)$row['id'], $db_idno)
-			);
-			if ($this->db->affected_rows() > 0) {
-				$linked[] = (int)$row['id'];
+			// insert when missing (no INSERT IGNORE: SQL Server has none)
+			$exists = $this->db->where('series_id', (int)$row['id'])->where('db_idno', $db_idno)->count_all_results('timeseries_db_links');
+			if ($exists) {
+				continue;
 			}
+			if (!$this->db->insert('timeseries_db_links', array('series_id' => (int)$row['id'], 'db_idno' => $db_idno, 'is_primary' => 0))) {
+				throw new Exception('Failed to link series ' . $row['id'] . ' to timeseries database ' . $db_idno);
+			}
+			$linked[] = (int)$row['id'];
 		}
 
 		if (!empty($linked)) {

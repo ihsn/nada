@@ -531,7 +531,7 @@ CREATE TABLE codelist_item (
   PRIMARY KEY (id),
   CONSTRAINT unq_codelist_item_code UNIQUE (codelist_id, code),
   CONSTRAINT fk_codelist_item_codelist FOREIGN KEY (codelist_id) REFERENCES codelists (id) ON DELETE CASCADE,
-  CONSTRAINT fk_codelist_item_parent FOREIGN KEY (parent_id) REFERENCES codelist_item (id) ON DELETE SET NULL
+  CONSTRAINT fk_codelist_item_parent FOREIGN KEY (parent_id) REFERENCES codelist_item (id) ON DELETE NO ACTION
 );
 CREATE INDEX idx_codelist_item_parent ON codelist_item (parent_id);
 CREATE INDEX idx_codelist_item_sort ON codelist_item (codelist_id, sort_order);
@@ -566,7 +566,7 @@ CREATE TABLE codelist_group_item (
   PRIMARY KEY (id),
   CONSTRAINT unq_codelist_group_item UNIQUE (codelist_group_id, codelist_item_id),
   CONSTRAINT fk_codelist_grp_item_grp FOREIGN KEY (codelist_group_id) REFERENCES codelist_group (id) ON DELETE CASCADE,
-  CONSTRAINT fk_codelist_grp_item_item FOREIGN KEY (codelist_item_id) REFERENCES codelist_item (id) ON DELETE CASCADE
+  CONSTRAINT fk_codelist_grp_item_item FOREIGN KEY (codelist_item_id) REFERENCES codelist_item (id) ON DELETE NO ACTION
 );
 
 CREATE TABLE codelist_group_translation (
@@ -984,10 +984,11 @@ CREATE TABLE users (
   otp_expiry int DEFAULT NULL,
   forgot_request_ts INT NULL, 
   forgot_request_count INT DEFAULT 0,
-  authtype varchar(40) DEFAULT NULL,
-  authtype_id varchar(300) DEFAULT NULL,
+  authtype_id nvarchar(300) DEFAULT NULL,
   PRIMARY KEY (id)
 );
+CREATE NONCLUSTERED INDEX idx_authtype ON users (authtype);
+CREATE NONCLUSTERED INDEX idx_authtype_id ON users (authtype, authtype_id);
 
 
 --
@@ -1436,7 +1437,7 @@ CREATE TABLE ci_sessions (
   id varchar(128) NOT NULL,
   ip_address varchar(45) NOT NULL,
   timestamp int DEFAULT '0',
-  data blob,
+  data varbinary(max),
   PRIMARY KEY (id)
 );
 
@@ -1474,7 +1475,7 @@ CREATE TABLE sitelogs (
   logtype varchar(45) NOT NULL,
   surveyid int DEFAULT '0',
   section varchar(255) DEFAULT NULL,
-  keyword varchar(max),
+  keyword varchar(300) DEFAULT NULL,
   username varchar(100) DEFAULT NULL,
   useragent varchar(300) DEFAULT NULL,
   PRIMARY KEY (id)
@@ -1489,6 +1490,8 @@ CREATE NONCLUSTERED INDEX idx_ip ON sitelogs(ip);
 CREATE NONCLUSTERED INDEX idx_section ON sitelogs(section);
 CREATE NONCLUSTERED INDEX idx_logtime_logtype ON sitelogs(logtime, logtype);
 CREATE NONCLUSTERED INDEX idx_surveyid_logtime ON sitelogs(surveyid, logtime);
+CREATE NONCLUSTERED INDEX idx_logtime_ip ON sitelogs(logtime, ip);
+CREATE NONCLUSTERED INDEX idx_logtime_username ON sitelogs(logtime, username);
 
 
 
@@ -1570,10 +1573,6 @@ CREATE UNIQUE INDEX pk_idx_surveys ON dbo.surveys(id);
 CREATE FULLTEXT CATALOG ft AS DEFAULT;
 
 
---drop existing fulltext index
-DROP FULLTEXT INDEX ON surveys;
-
-
 --add table columns to index
 CREATE FULLTEXT INDEX ON surveys
 (
@@ -1590,7 +1589,6 @@ KEY INDEX pk_idx_surveys ;
 
 -- create a unique index or use the PK
 CREATE UNIQUE INDEX pk_idx_variables ON dbo.variables(uid);
-go
 
 --add table columns to index
 CREATE FULLTEXT INDEX ON variables
@@ -1601,6 +1599,20 @@ CREATE FULLTEXT INDEX ON variables
   qstn		Language 1033
  ) 
 KEY INDEX pk_idx_variables; 
+
+---------------------------------------------------------
+-- CITATIONS (one full-text index: SQL Server allows one per table; the
+-- searches name the columns they match, as the MySQL indexes do)
+---------------------------------------------------------
+
+CREATE UNIQUE INDEX pk_idx_citations ON dbo.citations(id);
+
+CREATE FULLTEXT INDEX ON citations
+(
+  title, subtitle, alt_title, authors, editors, translators,
+  organization, abstract, keywords, notes, doi
+)
+KEY INDEX pk_idx_citations;
 
 
 
@@ -1724,10 +1736,10 @@ CREATE TABLE api_keys (
 CREATE UNIQUE NONCLUSTERED INDEX IX_api_keys_legacy ON api_keys(api_key)
 WHERE api_key IS NOT NULL;
 
-CREATE NONCLUSTERED INDEX idx_key_prefix ON api_keys(key_prefix);
-CREATE NONCLUSTERED INDEX idx_key_hash ON api_keys(key_hash);
-CREATE NONCLUSTERED INDEX idx_expires_at ON api_keys(expires_at);
-CREATE NONCLUSTERED INDEX idx_user_revoked ON api_keys(user_id, revoked_at);
+CREATE NONCLUSTERED INDEX IX_api_keys_key_prefix ON api_keys(key_prefix);
+CREATE NONCLUSTERED INDEX IX_api_keys_key_hash ON api_keys(key_hash);
+CREATE NONCLUSTERED INDEX IX_api_keys_expires_at ON api_keys(expires_at);
+CREATE NONCLUSTERED INDEX IX_api_keys_user_revoked ON api_keys(user_id, revoked_at);
 
 
 --
@@ -1929,23 +1941,6 @@ CREATE TABLE survey_widgets (
 );
 
 
-CREATE TABLE ts_databases (
-  id int NOT NULL identity(1,1),
-  idno varchar(150) DEFAULT NULL,
-  title varchar(300) DEFAULT NULL,
-  abstract varchar(max),
-  published int DEFAULT NULL,
-  created varchar(45) DEFAULT NULL,
-  changed varchar(45) DEFAULT NULL,
-  created_by int DEFAULT NULL,
-  changed_by int DEFAULT NULL,
-  metadata varchar(max),
-  PRIMARY KEY (id)
-);
-
-CREATE UNIQUE NONCLUSTERED INDEX IX_ts_db on [dbo].[ts_databases](
-    [idno] ASC
-);
 
  
 
@@ -2024,7 +2019,7 @@ CREATE TABLE survey_data_api (
 CREATE TABLE [analytics_pageview_events] (
     [id] bigint NOT NULL IDENTITY(1,1),
     [ts] datetime NOT NULL,
-    [study_id] nvarchar(100) NOT NULL,
+    [study_id] int NOT NULL,
     [session_id] nvarchar(255) NULL,
     [page_url] nvarchar(512) NULL,
     [section] nvarchar(100) NULL,
@@ -2045,7 +2040,7 @@ CREATE NONCLUSTERED INDEX [idx_dedup] ON [analytics_pageview_events] ([study_id]
 CREATE TABLE [analytics_download_events] (
     [id] bigint NOT NULL IDENTITY(1,1),
     [ts] datetime NOT NULL,
-    [study_id] nvarchar(100) NOT NULL,
+    [study_id] int NOT NULL,
     [file_name] nvarchar(255) NOT NULL,
     [file_type] nvarchar(50) NULL,
     [hashed_ip] nchar(64) NULL,
@@ -2061,7 +2056,7 @@ CREATE NONCLUSTERED INDEX [idx_ts_study_file] ON [analytics_download_events] ([t
 
 CREATE TABLE [analytics_daily_studies] (
     [date] date NOT NULL,
-    [study_id] nvarchar(100) NOT NULL,
+    [study_id] int NOT NULL,
     [pageviews] int NOT NULL DEFAULT 0,
     [unique_visitors] int NOT NULL DEFAULT 0,
     [downloads] int NOT NULL DEFAULT 0,
@@ -2074,7 +2069,7 @@ CREATE NONCLUSTERED INDEX [idx_date] ON [analytics_daily_studies] ([date] ASC);
 CREATE TABLE [analytics_monthly_studies] (
     [year] smallint NOT NULL,
     [month] tinyint NOT NULL,
-    [study_id] nvarchar(100) NOT NULL,
+    [study_id] int NOT NULL,
     [pageviews] int NOT NULL DEFAULT 0,
     [unique_visitors] int NOT NULL DEFAULT 0,
     [downloads] int NOT NULL DEFAULT 0,
@@ -2088,7 +2083,7 @@ CREATE NONCLUSTERED INDEX [idx_period] ON [analytics_monthly_studies] ([year] AS
 
 CREATE TABLE [analytics_daily_files] (
     [date] date NOT NULL,
-    [study_id] nvarchar(100) NOT NULL,
+    [study_id] int NOT NULL,
     [file_name] nvarchar(255) NOT NULL,
     [downloads] int NOT NULL DEFAULT 0,
     PRIMARY KEY ([date], [study_id], [file_name])
@@ -2100,7 +2095,7 @@ CREATE NONCLUSTERED INDEX [idx_file] ON [analytics_daily_files] ([file_name] ASC
 CREATE TABLE [analytics_monthly_files] (
     [year] smallint NOT NULL,
     [month] tinyint NOT NULL,
-    [study_id] nvarchar(100) NOT NULL,
+    [study_id] int NOT NULL,
     [file_name] nvarchar(255) NOT NULL,
     [downloads] int NOT NULL DEFAULT 0,
     [finalized] tinyint NOT NULL DEFAULT 0,
@@ -2221,3 +2216,42 @@ CREATE TABLE search_index_meta (
 
 INSERT INTO search_index_meta (id, engine, tracked_since) VALUES (1, 'none', DATEDIFF(SECOND, '1970-01-01', GETUTCDATE()));
 
+
+--
+-- Analytics aggregation progress (as install/analytics-schema-sqlsrv.sql)
+--
+CREATE TABLE analytics_aggregation_status (
+  id int NOT NULL IDENTITY(1,1),
+  status nvarchar(20) NOT NULL DEFAULT 'idle',
+  current_step nvarchar(50) NULL,
+  current_item nvarchar(100) NULL,
+  total_items int NULL DEFAULT 0,
+  processed_items int NULL DEFAULT 0,
+  progress_percent int NULL DEFAULT 0,
+  message nvarchar(max) NULL,
+  started_at datetime NULL,
+  completed_at datetime NULL,
+  last_updated_at datetime NULL,
+  error_message nvarchar(max) NULL,
+  context nvarchar(20) NOT NULL DEFAULT 'cli',
+  user_id int NULL,
+  PRIMARY KEY (id)
+);
+CREATE NONCLUSTERED INDEX idx_status ON analytics_aggregation_status (status);
+CREATE NONCLUSTERED INDEX idx_last_updated_at ON analytics_aggregation_status (last_updated_at);
+
+
+--
+-- Study admin metadata (as migration 20260608120001_create_study_admin_metadata_schema)
+--
+CREATE TABLE study_admin_metadata (
+  sid INT NOT NULL,
+  metadata NVARCHAR(MAX) NOT NULL,
+  created_by INT NULL,
+  changed_by INT NULL,
+  created INT NULL,
+  changed INT NULL,
+  PRIMARY KEY (sid),
+  CONSTRAINT ck_study_admin_metadata_metadata_isjson CHECK (ISJSON(metadata)=1)
+);
+CREATE INDEX idx_study_admin_metadata_changed ON study_admin_metadata (changed);

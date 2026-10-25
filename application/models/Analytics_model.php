@@ -380,15 +380,9 @@ class Analytics_model extends CI_Model {
 	 */
 	public function set_legacy_study_totals($study_id, $pageviews, $unique_visitors, $downloads)
 	{
-		$sql = "
-			INSERT INTO analytics_monthly_studies (year, month, study_id, pageviews, unique_visitors, downloads)
-			VALUES (0, 0, ?, ?, ?, ?)
-			ON DUPLICATE KEY UPDATE
-				pageviews        = VALUES(pageviews),
-				unique_visitors  = VALUES(unique_visitors),
-				downloads        = VALUES(downloads)
-		";
-		return $this->db->query($sql, array($study_id, (int)$pageviews, (int)$unique_visitors, (int)$downloads));
+		$key    = array('year' => 0, 'month' => 0, 'study_id' => $study_id);
+		$totals = array('pageviews' => (int)$pageviews, 'unique_visitors' => (int)$unique_visitors, 'downloads' => (int)$downloads);
+		return $this->upsert_row('analytics_monthly_studies', $key, $totals);
 	}
 
 	/**
@@ -404,13 +398,25 @@ class Analytics_model extends CI_Model {
 	 */
 	public function set_legacy_file_totals($study_id, $file_name, $downloads)
 	{
-		$sql = "
-			INSERT INTO analytics_monthly_files (year, month, study_id, file_name, downloads)
-			VALUES (0, 0, ?, ?, ?)
-			ON DUPLICATE KEY UPDATE
-				downloads = VALUES(downloads)
-		";
-		return $this->db->query($sql, array($study_id, $file_name, (int)$downloads));
+		$key = array('year' => 0, 'month' => 0, 'study_id' => $study_id, 'file_name' => $file_name);
+		return $this->upsert_row('analytics_monthly_files', $key, array('downloads' => (int)$downloads));
+	}
+
+	/**
+	 * Update the row with $key, or insert it (no ON DUPLICATE KEY UPDATE: SQL Server has none).
+	 *
+	 * @param string $table
+	 * @param array  $key    column => value of the row's unique key
+	 * @param array  $values column => value to set
+	 * @return bool Success
+	 */
+	private function upsert_row($table, array $key, array $values)
+	{
+		$exists = $this->db->where($key)->count_all_results($table);
+		if ($exists) {
+			return (bool) $this->db->where($key)->update($table, $values);
+		}
+		return (bool) $this->db->insert($table, $key + $values);
 	}
 
 	/**
