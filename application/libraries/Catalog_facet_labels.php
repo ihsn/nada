@@ -62,19 +62,31 @@ class Catalog_facet_labels
     /**
      * The sidebar facets from nada-ai's counts.
      *
+     * A selected value the result has none of (another filter excludes it) is not among nada-ai's buckets; it is kept
+     * with a count of 0, so the sidebar still shows it, ticked, to untick.
+     *
      * @param array $counts      the response's `facets`: {values: {key: {buckets: [{value, count}]}}, user: {...}, years}
      * @param array $user_facets Facet_model rows of the user-defined facets (id, name, title)
+     * @param array $selected    the request's selected values: nada-ai facet key (or user facet name) => string[]
      * @return array facets keyed as Catalog_browse_service::load_facets_data() keys them
      */
-    public function build(array $counts, array $user_facets)
+    public function build(array $counts, array $user_facets, array $selected = array())
     {
         $values = isset($counts['values']) && is_array($counts['values']) ? $counts['values'] : array();
-        $found = function ($key) use ($values) {
+        $with_selected = function (array $buckets, $key) use ($selected) {
             $out = array();
-            foreach ($values[$key]['buckets'] ?? array() as $bucket) {
+            foreach ($buckets as $bucket) {
                 $out[(string) $bucket['value']] = (int) $bucket['count'];
             }
+            foreach ($selected[$key] ?? array() as $value) {
+                if (!isset($out[(string) $value])) {
+                    $out[(string) $value] = 0;
+                }
+            }
             return $out;
+        };
+        $found = function ($key) use ($values, $with_selected) {
+            return $with_selected($values[$key]['buckets'] ?? array(), $key);
         };
 
         $facets = array(
@@ -95,10 +107,7 @@ class Catalog_facet_labels
 
         $user_counts = isset($counts['user']) && is_array($counts['user']) ? $counts['user'] : array();
         foreach ($user_facets as $facet) {
-            $buckets = array();
-            foreach ($user_counts[$facet['name']]['buckets'] ?? array() as $bucket) {
-                $buckets[(string) $bucket['value']] = (int) $bucket['count'];
-            }
+            $buckets = $with_selected($user_counts[$facet['name']]['buckets'] ?? array(), $facet['name']);
             $facets[$facet['name']] = array(
                 'type'   => 'user',
                 'title'  => $facet['title'],

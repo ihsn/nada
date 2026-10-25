@@ -34,9 +34,10 @@
 
     <?php if ($rows): ?>
     <?php
-    //pagination
-    $page_nums=$this->pagination->create_links();
-    $current_page=($this->pagination->cur_page == 0) ? 1 : $this->pagination->cur_page;
+    //pager: built by Citations::_search() (numbered pages, then Previous/Next past them on nada-ai)
+    $page_nums=isset($pager_links) ? $pager_links : '';
+    $pager=isset($pager_text) ? $pager_text : '';
+    $pager_note=isset($pager_note) ? $pager_note : '';
 
     //sort
     $sort_by=$this->input->get("sort_by");
@@ -44,32 +45,6 @@
 
     //current page url
     $page_url=site_url().'/citations';//form_prep($this->uri->uri_string());
-    ?>
-
-    <?php
-    $from_page=1;
-
-    if ($this->pagination->cur_page>0) {
-        $from_page=(($this->pagination->cur_page-1)*$this->pagination->per_page+(1));
-        $to_page=$this->pagination->per_page*$this->pagination->cur_page;
-
-        if ($to_page> $this->pagination->get_total_rows())
-        {
-            $to_page=$this->pagination->get_total_rows();
-        }
-
-        $pager=sprintf(t('showing %s-%s of %s')
-            ,(($this->pagination->cur_page-1)*$this->pagination->per_page+(1))
-            ,$to_page
-            ,$this->pagination->get_total_rows());
-    }
-    else
-    {
-        $pager=sprintf(t('showing %s-%s of %s')
-            ,$current_page
-            ,$this->pagination->get_total_rows()
-            ,$this->pagination->get_total_rows());
-    }
 
     $persist_qfields=array('keywords','field','collection','ctype');
     ?>
@@ -100,7 +75,7 @@
         <?php $k=0;foreach($rows as $row): ?>
             <div class="citation-row nada-citation-row" data-url="<?php echo site_url('/citations/'.$row['id'].'?collection='.$active_repo);?>">
                 <div class="row">
-                    <!--<div class="col-1 page-num"><?php echo $from_page+$k;?></div>-->
+                    
                     <div class="col-12 row-body">
                         <div class=" badge-tiny"><?php echo t($row['ctype']);?></div>
                         <!--<h5><?php echo $row['title'];?></h5>-->
@@ -125,6 +100,9 @@
                     </nav>
                 </div>
             </div>
+            <?php if ($pager_note !== ''):?>
+                <div class="text-muted small text-center text-md-right mt-2"><?php echo html_escape($pager_note);?></div>
+            <?php endif;?>
 
         </div>
 

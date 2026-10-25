@@ -67,7 +67,7 @@
               </v-progress-linear>
               <div class="text-caption text-medium-emphasis mt-1">
                 <span v-if="item.progress.failed">{{ item.progress.failed }} failed · </span>
-                <code>{{ item.progress.current_sid ?? item.progress.current_id }}</code>
+                <code v-if="currentItem(item.progress)">{{ currentItem(item.progress) }}</code>
               </div>
             </div>
             <span v-else>—</span>
@@ -130,8 +130,8 @@
               <div class="text-caption text-medium-emphasis mt-1">
                 {{ details.progress.processed }} / {{ details.progress.total }} processed
                 <span v-if="details.progress.failed">· {{ details.progress.failed }} failed</span>
-                <span v-if="(details.progress.current_sid ?? details.progress.current_id) != null">
-                  · last: <code>{{ details.progress.current_sid ?? details.progress.current_id }}</code>
+                <span v-if="currentItem(details.progress)">
+                  · last: <code>{{ currentItem(details.progress) }}</code>
                 </span>
               </div>
             </div>
@@ -301,6 +301,13 @@ let timer = null;
 
 const detailsDialog = ref(false);
 const details = ref(null);
+
+/** What a job is working on: a study job reports current_sid, a citation job current_citation_id. */
+function currentItem(progress) {
+  if (progress?.current_sid != null) return `study ${progress.current_sid}`;
+  if (progress?.current_citation_id != null) return `citation ${progress.current_citation_id}`;
+  return '';
+}
 
 function isTerminal(status) {
   return ['succeeded', 'failed', 'cancelled'].includes(status);

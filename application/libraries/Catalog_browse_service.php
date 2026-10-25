@@ -242,9 +242,42 @@ class Catalog_browse_service {
 		foreach ($types as $code => $type) {
 			$types[$code]['found'] = (int) ($counts_by_type[$code] ?? 0);
 		}
-		$this->facets = $this->CI->catalog_facet_labels->build($counts, $this->user_facet_rows());
+		$this->facets = $this->CI->catalog_facet_labels->build($counts, $this->user_facet_rows(), $this->selected_facet_values());
 		$this->facets['types'] = $types;
+		// no study of the result has a year (e.g. nothing found): the catalog's range, as the database facets show it
+		if (empty($this->facets['years']['min_year']) || empty($this->facets['years']['max_year'])) {
+			$range = $this->CI->Search_helper_model->get_min_max_years();
+			$this->facets['years'] = array(
+				'min_year' => (int) ($range['min_year'] ?? 0),
+				'max_year' => (int) ($range['max_year'] ?? 0),
+			);
+		}
 		$this->facet_mode = 'dynamic';
+	}
+
+	/** The request's selected facet values, keyed as nada-ai's facets (user facets by name). */
+	protected function selected_facet_values()
+	{
+		$params = array(
+			'countries'      => 'country',
+			'regions'        => 'region',
+			'collections'    => 'collection',
+			'form_ids'       => 'dtype',
+			'data_class_ids' => 'data_class',
+			'tags'           => 'tag',
+			'databases'      => 'database',
+		);
+		foreach ($this->user_facet_rows() as $facet) {
+			$params[$facet['name']] = $facet['name'];
+		}
+		$selected = array();
+		foreach ($params as $key => $param) {
+			$values = $this->parse_multi_value_param(xss_clean($this->CI->input->get($param)));
+			if ($values) {
+				$selected[$key] = $values;
+			}
+		}
+		return $selected;
 	}
 
 	protected function is_facet_enabled($type, $facet)

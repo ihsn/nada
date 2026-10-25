@@ -18,6 +18,12 @@
  * bigger than the API's. The same happens when nada-ai is unreachable or fails on its side (timeout, HTTP 5xx or 429).
  * A request the API rejects (HTTP 4xx: bad key, invalid filters, an engine without the citation search) is a
  * configuration or contract error and is raised, not hidden.
+ *
+ * Paging: offsets reach the first max_offset results (the API's citations_max_offset); past them the API pages with
+ * cursors. $cursor (a next_cursor/prev_cursor of an earlier page) is sent in place of the offset, and $paging reports
+ * the page: {offset, max_offset, next_cursor, prev_cursor}. It stays NULL when the database served the request
+ * (numbered pages reach every row there). An offset past max_offset or a cursor of another search is an API error
+ * (offset_out_of_range, cursor_invalid): the caller decides what to show.
  */
 
 require_once dirname(__FILE__) . '/Semantic_search_api_exception.php';
@@ -26,6 +32,12 @@ class Citation_search_nada_ai
 {
     var $ci;
     var $search_found_rows = 0;
+
+    /** A next_cursor/prev_cursor of an earlier page of the same search, in place of the offset; '' for none. */
+    var $cursor = '';
+
+    /** The page the API served: {offset, max_offset, next_cursor, prev_cursor}; NULL when the database served it. */
+    var $paging = NULL;
 
     /** Largest page the API serves (its `limit` maximum). */
     const API_MAX_LIMIT = 100;
@@ -53,6 +65,7 @@ class Citation_search_nada_ai
 
     function search($limit = NULL, $offset = NULL, $filter = NULL, $sort_by = NULL, $sort_order = NULL, $published = NULL, $repositoryid = NULL)
     {
+        $this->paging = NULL;
         $request = $this->build_request($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
         if ($request === NULL) {
             return $this->database_search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
@@ -68,6 +81,12 @@ class Citation_search_nada_ai
         }
 
         $this->search_found_rows = (int) $response['found'];
+        $this->paging = array(
+            'offset'      => (int) ($response['offset'] ?? 0),
+            'max_offset'  => (int) ($response['max_offset'] ?? 0),
+            'next_cursor' => $response['next_cursor'] ?? null,
+            'prev_cursor' => $response['prev_cursor'] ?? null,
+        );
 
         return $this->rows_by_ids(array_map('intval', array_column($response['hits'], 'citation_id')));
     }
@@ -131,8 +150,13 @@ class Citation_search_nada_ai
             'sort'   => $api_sort,
             'order'  => strtolower((string) $sort_order) === 'desc' ? 'desc' : 'asc',
             'limit'  => $limit,
-            'offset' => max(0, (int) ($offset ?? 0)),
         );
+        $cursor = trim((string) $this->cursor);
+        if ($cursor !== '') {
+            $request['cursor'] = $cursor;
+        } else {
+            $request['offset'] = max(0, (int) ($offset ?? 0));
+        }
         if (!empty($filters)) {
             $request['filters'] = $filters;
         }

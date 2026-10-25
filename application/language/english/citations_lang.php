@@ -113,6 +113,7 @@ $lang['Has notes']="Has notes";
 $lang['status']="Status";
 $lang['Search by title, country and year']="Search by title, country and year";
 
+$lang['showing %s-%s of %s']="Showing %s-%s of %s";
 
 /* End of file citations */
 /* Location: ./application/language/english/citations */

@@ -258,8 +258,10 @@ function onYear(field, value) {
   emit('change');
 }
 
-function dictToItems(dict, labelFn, valueFn) {
+/** `selected`: the facet's selected values (comma-separated, as in the query). */
+function dictToItems(dict, labelFn, valueFn, selected = '') {
   if (!dict || typeof dict !== 'object') return [];
+  const chosen = new Set(String(selected || '').split(',').map((s) => s.trim()).filter(Boolean));
   return Object.entries(dict)
     .map(([key, item]) => ({
       label: labelFn(item, key),
@@ -267,15 +269,18 @@ function dictToItems(dict, labelFn, valueFn) {
       count: item.found != null ? item.found : null,
       groupName: item.group_name || '',
     }))
-    // a value no study of the result has is not shown (a count of null means the count is not known)
-    .filter((i) => i.label && i.value != null && i.value !== '' && i.count !== 0 && i.count !== '0');
+    // a value no study of the result has is not shown, unless it is selected (to untick); a count of null means
+    // the count is not known
+    .filter((i) => i.label && i.value != null && i.value !== ''
+      && (chosen.has(String(i.value)) || (i.count !== 0 && i.count !== '0')));
 }
 
 const countryItems = computed(() =>
   dictToItems(
     props.facets?.countries,
     (i) => i.title,
-    (i, key) => String(key)
+    (i, key) => String(key),
+    props.query.country
   )
 );
 
@@ -283,7 +288,8 @@ const regionItems = computed(() =>
   dictToItems(
     props.facets?.regions,
     (i) => i.title,
-    (i) => String(i.id)
+    (i) => String(i.id),
+    props.query.region
   )
 );
 
@@ -291,7 +297,8 @@ const collectionItems = computed(() =>
   dictToItems(
     props.facets?.repositories,
     (i) => i.title,
-    (i) => i.repositoryid
+    (i) => i.repositoryid,
+    props.query.collection
   )
 );
 
@@ -299,7 +306,8 @@ const typeItems = computed(() =>
   dictToItems(
     props.facets?.types,
     (i, key) => catalogDatasetTypeLabel(t, key, i?.title),
-    (i, key) => String(key)
+    (i, key) => String(key),
+    props.query.type
   )
 );
 
@@ -307,7 +315,8 @@ const dtypeItems = computed(() =>
   dictToItems(
     props.facets?.da_types,
     (i) => dataAccessLabel(i, t),
-    (i, key) => String(key)
+    (i, key) => String(key),
+    props.query.dtype
   )
 );
 
@@ -315,7 +324,8 @@ const dataClassItems = computed(() =>
   dictToItems(
     props.facets?.data_class,
     (i) => dataClassLabel(i, t),
-    (i) => String(i.id)
+    (i) => String(i.id),
+    props.query.data_class
   )
 );
 
@@ -323,7 +333,8 @@ const databaseItems = computed(() =>
   dictToItems(
     props.facets?.databases,
     (i) => i.title,
-    (i) => i.idno
+    (i) => i.idno,
+    props.query.database
   )
 );
 
@@ -331,7 +342,8 @@ const tagItems = computed(() =>
   dictToItems(
     props.facets?.tags,
     (i) => i.title,
-    (i) => i.title
+    (i) => i.title,
+    props.query.tag
   )
 );
 
@@ -346,7 +358,8 @@ const userFacets = computed(() => {
       items: dictToItems(
         facet.values,
         (i) => i.title,
-        (i) => String(i.id)
+        (i) => String(i.id),
+        props.query[key]
       ),
     }))
     .filter((f) => f.items.length > 0);

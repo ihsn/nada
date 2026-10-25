@@ -16,6 +16,7 @@ class Citations extends MY_Controller {
 
 		$this->lang->load('general');
 		$this->lang->load('citations');
+		$this->lang->load('catalog_search'); // result pager strings
 		//$this->output->enable_profiler(TRUE);
 
 		//set template for print
@@ -34,6 +35,9 @@ class Citations extends MY_Controller {
 		}
 
 		$data['rows']=$this->_search();
+		$data['pager_text']=$this->pager_text;
+		$data['pager_links']=$this->pager_links;
+		$data['pager_note']=$this->pager_note;
 		$data['active_repo']=$collection;
 		$data['repo']=$repo;
 		$content=$this->load->view('citations/public_search', $data,true);
@@ -81,10 +85,21 @@ class Citations extends MY_Controller {
 	}
 
 
+	/** Set by _search() for the view: "X-Y of N", the pager links (HTML), and a note under them ('' for none). */
+	public $pager_text = '';
+	public $pager_links = '';
+	public $pager_note = '';
+
+	/** Query string fields a page link keeps. */
+	private $pager_fields = array('keywords', 'field', 'sort_by', 'sort_order', 'collection', 'ctype', 'from', 'to');
+
 	/**
 	* returns the paginated result
 	*
 	* supports: sorting, searching, pagination
+	*
+	* Pages are numbered (?offset=) as far as the search engine reaches by offset: every row for the database search;
+	* nada-ai's citations_max_offset rows, then Previous/Next by cursor (?cursor=, see Citation_model::$search_paging).
 	*/
 	function _search()
 	{
@@ -92,15 +107,13 @@ class Citations extends MY_Controller {
 		$per_page = 30;
 
 		//current page
-		$offset=(int)$this->input->get('offset');//$this->uri->segment(4);
+		$offset=max(0, (int)$this->input->get('offset'));
+		$cursor=trim((string) xss_clean($this->input->get('cursor')));
 		$collection=$this->input->get('collection');
 
 		//sort order
 		$sort_order=$this->input->get('sort_order') ? $this->input->get('sort_order') : 'asc';
 		$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'rank';
-
-		//filter
-		$filter=NULL;
 
 		$search_options=array(
 			'keywords'=>$this->input->get("keywords"),
@@ -109,37 +122,114 @@ class Citations extends MY_Controller {
 			'ctype'=>$this->input->get("ctype")
 		);
 
-		//records
-		$rows=$this->Citation_model->search($per_page, $offset,$search_options, $sort_by, $sort_order,$published=1,$repository=$collection);
+		$search = function ($offset, $cursor) use ($per_page, $search_options, $sort_by, $sort_order, $collection) {
+			$this->Citation_model->search_cursor = $cursor;
+			return $this->Citation_model->search($per_page, $offset, $search_options, $sort_by, $sort_order, $published=1, $repository=$collection);
+		};
+
+		try {
+			$rows = $search($offset, $cursor);
+		}
+		catch (Semantic_search_api_exception $e) {
+			if ($e->error_code() === 'cursor_invalid') {
+				// a cursor of another search (edited, or kept from another sort): the first page
+				$offset = 0;
+				$cursor = '';
+				$rows = $search($offset, $cursor);
+			}
+			elseif ($e->error_code() === 'offset_out_of_range' && isset($e->response['error']['details']['max_offset'])) {
+				// a page number past what offsets reach (typed in): the last numbered page
+				$max_offset = (int) $e->response['error']['details']['max_offset'];
+				$offset = max(0, (int) (floor(($max_offset - $per_page) / $per_page) * $per_page));
+				$cursor = '';
+				$rows = $search($offset, $cursor);
+			}
+			else {
+				throw $e;
+			}
+		}
 
 		//total records found
 		$total = $this->Citation_model->search_count();
+		$paging = $this->Citation_model->search_paging;
 
-		if ($offset>$total){
-			$offset=$total-$per_page;
+		// a numbered page past the last row (an old or typed-in link): the last numbered page that has rows
+		if ($cursor === '' && $total > 0 && $offset >= $total){
+			$reach = $paging !== NULL ? min($total, (int) $paging['max_offset']) : $total;
+			$offset = (int) (floor(($reach - 1) / $per_page) * $per_page);
 
 			//search again
-			$rows=$this->Citation_model->search($per_page, $offset,$filter, $sort_by, $sort_order,$published=1,$repository=$collection);
+			$rows=$search($offset, '');
+			$total = $this->Citation_model->search_count();
+			$paging = $this->Citation_model->search_paging;
 		}
 
-		//set pagination options		
-		$base_url = site_url('citations');
-		$config['base_url'] = $base_url;
-		$config['total_rows'] = $total;
+		$this->set_pager($rows, $total, $offset, $per_page, $cursor !== '' ? $paging : NULL, $paging);
+		return $rows;
+	}
+
+	/**
+	 * The pager for the view: numbered links (MY_Pagination) for the rows offsets reach, and past them (nada-ai) the
+	 * cursor links.
+	 *
+	 * @param array      $rows        this page
+	 * @param int        $total       rows found
+	 * @param int        $offset      requested offset (offset paging)
+	 * @param array|null $cursor_page the paging of a cursor page, or NULL on a numbered page
+	 * @param array|null $paging      the search's paging (NULL: numbered pages reach every row)
+	 */
+	private function set_pager(array $rows, $total, $offset, $per_page, $cursor_page, $paging)
+	{
+		$first = ($cursor_page !== NULL ? (int) $cursor_page['offset'] : $offset) + 1;
+		$this->pager_text = $rows ? sprintf(t('showing %s-%s of %s'), $first, $first + count($rows) - 1, $total) : '';
+
+		$query = get_querystring($this->pager_fields);
+		$link = function ($label, $url) {
+			return '<a class="page-link" href="'.html_escape($url).'">'.$label.'</a>';
+		};
+		$cursor_url = function ($token) use ($query) {
+			return site_url('citations').'/?'.($query !== '' ? $query.'&' : '').'cursor='.rawurlencode($token);
+		};
+
+		if ($cursor_page !== NULL) {
+			// past the numbered pages: back to the first page, Previous, Next
+			$links = $link(sprintf(t('pager_page_n'), 1), site_url('citations').'/?'.$query);
+			if (!empty($cursor_page['prev_cursor'])) {
+				$links .= $link('&lsaquo; '.t('pager_prev'), $cursor_url($cursor_page['prev_cursor']));
+			}
+			if (!empty($cursor_page['next_cursor'])) {
+				$links .= $link(t('pager_next').' &rsaquo;', $cursor_url($cursor_page['next_cursor']));
+			}
+			$this->pager_links = '<ul class="pagination pagination-md page-nums">'.$links.'</ul>';
+			$this->pager_note = sprintf(t('pager_past_numbered'), number_format((int) $cursor_page['max_offset']));
+			return;
+		}
+
+		// numbered pages: as far as offsets reach (nada-ai: max_offset rows)
+		$numbered = $paging !== NULL ? min($total, (int) $paging['max_offset']) : $total;
+		$config['base_url'] = site_url('citations');
+		$config['total_rows'] = $numbered;
 		$config['per_page'] = $per_page;
 		$config['query_string_segment']="offset";
 		$config['page_query_string'] = TRUE;
-		$config['additional_querystring']=get_querystring( array('keywords', 'field','sort_by','sort_order','collection','ctype','from','to'));//pass any additional querystrings
+		$config['additional_querystring']=$query;//pass any additional querystrings
 		$config['num_links'] = 1;
 		$config['full_tag_open'] = '<ul class="pagination pagination-md page-nums">' ;
 		$config['full_tag_close'] = '</ul>';
 		$config['last_link'] = '&raquo;';
 		$config['first_link'] = '&laquo;';
-		
-
-		//intialize pagination
 		$this->pagination->initialize($config);
-		return $rows;
+		$this->pager_links = $this->pagination->create_links();
+		$this->pager_note = '';
+
+		// on the last numbered page of a longer result: Next continues by cursor
+		if ($paging !== NULL && $total > $numbered && $offset + count($rows) >= $numbered && !empty($paging['next_cursor'])) {
+			$next = $link(t('pager_next').' &rsaquo;', $cursor_url($paging['next_cursor']));
+			$this->pager_links = $this->pager_links !== ''
+				? preg_replace('#</ul>$#', $next.'</ul>', $this->pager_links)
+				: '<ul class="pagination pagination-md page-nums">'.$next.'</ul>';
+			$this->pager_note = sprintf(t('pager_past_numbered'), number_format($numbered));
+		}
 	}
 
 	/**

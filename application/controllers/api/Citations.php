@@ -61,6 +61,9 @@ class Citations extends MY_REST_Controller
 				'ctype'=>array_filter(explode(",",$this->input->get("ctype")))
 			);			
 	
+			// past the offsets the search engine reaches (nada-ai), pages continue with next_cursor / prev_cursor
+			$this->Citation_model->search_cursor = trim((string) xss_clean($this->input->get('cursor')));
+
 			$rows=$this->Citation_model->search(
 				$per_page, 
 				$offset,
@@ -72,21 +75,35 @@ class Citations extends MY_REST_Controller
 			);
 
 			$total = $this->Citation_model->search_count();
+			$paging = $this->Citation_model->search_paging;
 
 			$response=array(
 				'published' =>$published,
 				'status'	=> 'success',
 				'total'		=> $total,
 				'found'		=> count($rows),
-				'offset'	=> $offset,
+				'offset'	=> $paging !== NULL ? $paging['offset'] : $offset,
 				'per_page'	=> $per_page,
 				'citations'	=> $rows,
 				
 			);
+			// nada-ai: offset reaches max_offset rows; next_cursor / prev_cursor (in place of offset) page past them
+			if ($paging !== NULL) {
+				$response['max_offset'] = $paging['max_offset'];
+				$response['next_cursor'] = $paging['next_cursor'];
+				$response['prev_cursor'] = $paging['prev_cursor'];
+			}
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
+			// an offset past max_offset (page_out_of_range) or a cursor of another search (cursor_invalid)
+			$this->load->helper('catalog');
+			$paging_error = catalog_search_paging_error($e);
+			if ($paging_error !== null) {
+				$this->set_response(array('status' => 'failed', 'errors' => $paging_error['message']) + $paging_error, REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
 			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}

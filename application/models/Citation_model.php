@@ -3,6 +3,15 @@ class Citation_model extends CI_Model {
  
  	//no. of rows found by search
  	var $search_found_rows=0;
+
+	/** Input of search(): a next_cursor/prev_cursor of an earlier page (nada-ai only, past its offset limit); '' for none. */
+	var $search_cursor = '';
+
+	/**
+	 * Output of search(): NULL when numbered (offset) pages reach every row (database, Solr); for nada-ai,
+	 * {offset, max_offset, next_cursor, prev_cursor} (see Citation_search_nada_ai).
+	 */
+	var $search_paging = NULL;
 	
     public function __construct()
     {
@@ -17,13 +26,16 @@ class Citation_model extends CI_Model {
     function search($limit = NULL, $offset = NULL,$filter=NULL,$sort_by=NULL,$sort_order=NULL,$published=NULL,$repositoryid=NULL)
     {
         $this->load->library('search_engine_resolver');
+        $this->search_paging = NULL;
 
         switch ($this->search_engine_resolver->provider_for(Search_engine_resolver::CITATIONS)) {
             case Search_engine_resolver::NADA_AI:
                 $this->search_engine_resolver->assert_backend();
                 $this->load->library('citation_search_nada_ai');
+                $this->citation_search_nada_ai->cursor = $this->search_cursor;
                 $result = $this->citation_search_nada_ai->search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid);
                 $this->search_found_rows = $this->citation_search_nada_ai->search_found_rows;
+                $this->search_paging = $this->citation_search_nada_ai->paging;
                 return $result;
 
             case Search_engine_resolver::SOLR:
