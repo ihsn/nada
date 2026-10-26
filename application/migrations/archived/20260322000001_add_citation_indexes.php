@@ -5,7 +5,8 @@ require_once(APPPATH . 'core/MY_Migration.php');
 
 /**
  * Citation search and batch-loading indexes.
- * Runs install/nada56-citation-indexes-{mysql,sqlsrv}.sql via execute_sql_file (idempotent).
+ * Runs install/nada56-citation-indexes-{mysql,sqlsrv}.sql via execute_sql_file
+ * (idempotent: duplicate index errors are skipped on MySQL).
  */
 class Migration_Add_citation_indexes extends MY_Migration {
 

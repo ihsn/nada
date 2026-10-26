@@ -30,7 +30,7 @@
 	/**
    	* Track the number of failed login attempts for each user or ip. 
    	**/
-	$config['track_login_attempts'] = FALSE;
+	$config['track_login_attempts'] = TRUE;
 	
 	/**
 	* Set the maximum number of failed login attempts.
@@ -49,7 +49,7 @@
 	 * false - the time between requests is not throttled
 	 *  
 	 */
-	$config['forgot_password_throttle'] = false;
+	$config['forgot_password_throttle'] = true;
 
 	
 	/**
@@ -93,12 +93,12 @@
 	/**
 	 * Minimum Required Length of Password
 	 **/
-	$config['min_password_length'] = 5;
+	$config['min_password_length'] = 8;
 	
 	/**
 	 * Maximum Allowed Length of Password
 	 **/
-	$config['max_password_length'] = 20;	
+	$config['max_password_length'] = 72;	
 
 	/**
 	 * Enable complex password

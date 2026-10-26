@@ -283,7 +283,7 @@ class DDI_Writer
         
         $stdy_desc->preserveWhiteSpace = false;
         $stdy_desc->formatOutput = true;
-        $stdy_desc->loadXML($xml_str);        
+        $stdy_desc->loadXML($xml_str, LIBXML_NONET);        
         return $stdy_desc->saveXML($stdy_desc->documentElement);
     }
 

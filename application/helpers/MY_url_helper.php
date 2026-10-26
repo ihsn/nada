@@ -441,5 +441,63 @@ if ( ! function_exists('_parse_attributes'))
 			return $output;
 		}
 	}
+	/**
+	 * A destination that redirect() may turn into an address on this site.
+	 * Rejects absolute URLs, protocol-relative URLs, and other schemes.
+	 *
+	 * @param mixed $uri
+	 * @return bool
+	 */
+	if ( ! function_exists('is_local_redirect'))
+	{
+		function is_local_redirect($uri)
+		{
+			if (!is_string($uri)) {
+				return false;
+			}
+
+			$uri = trim($uri);
+			if ($uri === '' || strlen($uri) > 2048) {
+				return false;
+			}
+
+			if (preg_match('/[\x00-\x1F\x7F\\\\]/', $uri)) {
+				return false;
+			}
+
+			if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $uri)) {
+				return false;
+			}
+
+			if (strncmp($uri, '//', 2) === 0) {
+				return false;
+			}
+
+			return true;
+		}
+	}
+
+	/**
+	 * Redirect to a path on this site. An outside address uses $fallback.
+	 * With no fallback, an outside address is left for the caller.
+	 *
+	 * @param mixed $uri
+	 * @param string $fallback
+	 * @return void
+	 */
+	if ( ! function_exists('nada_redirect'))
+	{
+		function nada_redirect($uri, $fallback = '')
+		{
+			if (is_local_redirect($uri)) {
+				redirect($uri);
+			}
+
+			if ($fallback !== '') {
+				redirect($fallback);
+			}
+		}
+	}
+
 /* End of file MY_url_helper.php */
 /* Location: ./application/helpers/MY_url_helper.php */

@@ -64,7 +64,6 @@
                     <v-spacer />
                     <div class="chart-toolbar-controls">
                     <v-btn-toggle
-                      v-if="chartModeToggleVisible"
                       v-model="chartType"
                       mandatory
                       density="compact"
@@ -73,8 +72,15 @@
                       rounded="md"
                       class="chart-type-toggle chart-toolbar-toggles"
                     >
+                      <v-btn
+                        value="auto"
+                        size="x-small"
+                        class="text-none chart-toolbar-toggle-btn"
+                        title="Pick the chart type from the number of time periods and series"
+                      >Auto</v-btn>
                       <v-btn value="line" size="x-small" class="text-none chart-toolbar-toggle-btn">Line</v-btn>
                       <v-btn value="column" size="x-small" class="text-none chart-toolbar-toggle-btn">Columns</v-btn>
+                      <v-btn value="hbar" size="x-small" class="text-none chart-toolbar-toggle-btn">Bars</v-btn>
                     </v-btn-toggle>
                     <v-menu
                       v-if="dataLoadCommitted"
@@ -167,7 +173,18 @@
                     rounded="lg"
                     class="mb-3 text-body-2"
                   >
-                    Showing {{ chartModel?.datasets?.length ?? 0 }} series ({{ seriesDropped }} additional series hidden).
+                    Showing {{ chartModel?.shownSeries ?? 0 }} series ({{ seriesDropped }} additional series hidden).
+                  </v-alert>
+                  <v-alert
+                    v-if="!isIndicatorEmbed && dataLoadCommitted && chartModel?.mixedMeasures"
+                    type="warning"
+                    variant="tonal"
+                    density="compact"
+                    rounded="lg"
+                    class="mb-3 text-body-2"
+                  >
+                    Several measures are shown on one axis and may use different units. Filter to one measure for a
+                    like-for-like comparison.
                   </v-alert>
                   <v-progress-linear
                     v-if="dataLoadCommitted && chartLoading"
@@ -177,13 +194,27 @@
                     height="3"
                   />
 
-                  <div class="chart-canvas-wrap chart-shell chart-shell--padded" :class="chartShellThemeClass">
+                  <div
+                    class="chart-canvas-wrap chart-shell chart-shell--padded"
+                    :class="chartShellThemeClass"
+                    :style="chartWrapStyle"
+                  >
                     <div class="chart-canvas-area" role="img" :aria-label="chartAriaLabel">
                       <canvas
                         v-show="!chartLoading && chartModel && chartModel.datasets.length"
                         ref="chartCanvasRef"
                         class="chart-canvas"
                       ></canvas>
+                    </div>
+                    <div v-if="!chartLoading && chartNoteTextLines(chartModel).length" class="chart-notes" role="note" aria-label="Notes">
+                      <div class="chart-notes__title">Notes</div>
+                      <p v-for="(tn, i) in chartTableNotes" :key="'tn-' + i" class="chart-notes__table-note">{{ tn.note }}</p>
+                      <ol v-if="chartModel.notes.length" class="chart-notes__items">
+                        <li v-for="n in chartModel.notes" :key="n.number" :value="n.number">
+                          <span v-if="!n.missing">{{ n.text }}</span>
+                          <span v-else class="text-medium-emphasis">{{ CHART_NOTE_MISSING_TEXT }}</span>
+                        </li>
+                      </ol>
                     </div>
                     <div v-if="indicatorChartSourceVisible" class="chart-source">
                       <span class="chart-source__label text-medium-emphasis">Source:</span>
@@ -341,6 +372,7 @@ import debounce from 'lodash/debounce';
 import Chart from 'chart.js/auto';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { buildIndicatorFilterContextLine } from '@/shared/timeseries/indicatorFilterContext.js';
+import { cellNoteIds, createNoteNumbering, formatMarkers, noteLines } from '@/shared/timeseries/indicatorNotes.js';
 import { usePublicTimeseriesApi } from '../composables/usePublicTimeseriesApi';
 import IndicatorFilterSidebar from '../components/IndicatorFilterSidebar.vue';
 import IndicatorTimeFilterPanel from '../components/IndicatorTimeFilterPanel.vue';
@@ -359,6 +391,17 @@ const studyTitle = computed(() => String(config.value?.studyTitle ?? '').trim())
 const { fetchSchema, fetchFilterOptions, fetchObservationCount, fetchChartData } = usePublicTimeseriesApi(studyIdno);
 
 const MAX_SERIES = 16;
+/** Single-period bar charts: categories shown before truncating (bars stay readable well past MAX_SERIES). */
+const MAX_BAR_CATEGORIES = 60;
+/** Category tick labels on single-period bar charts are shortened past this length (full text stays in the tooltip). */
+const BAR_LABEL_MAX_CHARS = 28;
+
+/** Horizontal bars: Chart.js caps the category axis at about half the chart width and lets longer labels overflow the canvas. */
+function barLabelMaxChars(chartWidth) {
+  const w = Number(chartWidth) || 0;
+  if (w <= 0) return BAR_LABEL_MAX_CHARS;
+  return Math.max(10, Math.min(BAR_LABEL_MAX_CHARS, Math.floor((w / 2 - 40) / 6.5)));
+}
 const CHART_API_LIMIT = 5000;
 const CHART_TABLE_ROWS_PER_PAGE = 30;
 
@@ -406,8 +449,14 @@ const schema = ref(null);
 const filteredObservationCount = ref(0);
 /** Chart-ready rows from GET …/data/{idno}/chart (server aggregation). */
 const chartRecords = ref([]);
+/** Note text of the notes used by chartRecords: { id: { note } } */
+const chartNotesDictionary = ref({});
+/** Table notes (scope = table): shown under the chart, without markers */
+const chartTableNotes = ref([]);
 const chartMetadata = ref({});
-const chartType = ref('line');
+/** URL query `chart`: auto | line | column | hbar (`bar` / `columns` are accepted for older URLs and mapped to column) */
+const VALID_CHART_TYPES = ['auto', 'line', 'column', 'hbar'];
+const chartType = ref('auto');
 
 /** URL query `chart_bg`: light | dark (`white` is accepted for older URLs and mapped to light) */
 const Q_CHART_BG = 'chart_bg';
@@ -646,8 +695,8 @@ function readChartTypeFromQuery(q) {
     const ct = String(q.get(Q_CHART) || '')
       .trim()
       .toLowerCase();
-    if (ct === 'column' || ct === 'bar' || ct === 'columns') chartType.value = 'column';
-    else chartType.value = 'line';
+    if (ct === 'bar' || ct === 'columns') chartType.value = 'column';
+    else chartType.value = VALID_CHART_TYPES.includes(ct) ? ct : 'line';
   }
 }
 
@@ -794,7 +843,7 @@ function stripCatalogQueryKeys(sp) {
 
 function buildCatalogQueryParams() {
   const p = new URLSearchParams();
-  p.set(Q_CHART, chartType.value === 'column' ? 'column' : 'line');
+  p.set(Q_CHART, VALID_CHART_TYPES.includes(chartType.value) ? chartType.value : 'auto');
   p.set(Q_CHART_BG, normalizeChartBg(chartBg.value));
   const fr = String(filterDraft.from || '').trim();
   const to = String(filterDraft.to || '').trim();
@@ -994,6 +1043,8 @@ function formatCell(val) {
 function clearCatalogData() {
   filteredObservationCount.value = 0;
   chartRecords.value = [];
+  chartNotesDictionary.value = {};
+  chartTableNotes.value = [];
   chartMetadata.value = {};
 }
 
@@ -1182,11 +1233,20 @@ function buildChartExportRowsForFile() {
     const base = row && typeof row === 'object' ? { ...row } : {};
     const seriesColumns = seriesColumnsFromKey(sk);
     const seriesLabelCsv = seriesLabelForId(sk).replace(/ · /g, ' | ');
-    return {
+    const out = {
       ...base,
       ...seriesColumns,
       series_label: seriesLabelCsv,
     };
+    const ids = cellNoteIds(row);
+    if (ids.length) {
+      // Text of the cell's notes; several joined with ' || ' (as in the editor's note text import).
+      out.note_text = ids
+        .map((id) => chartNotesDictionary.value?.[id]?.note || '')
+        .filter((t) => String(t).trim() !== '')
+        .join(' || ');
+    }
+    return out;
   });
 }
 
@@ -1196,9 +1256,12 @@ function buildChartExportPayload() {
     studySid: studySid.value,
     studyIdno: studyIdno.value,
     chartType: chartType.value,
+    chartTypeRendered: chartModel.value?.type ?? null,
     filters: activeFilters.value,
     metadata: chartMetadata.value,
     records: buildChartExportRowsForFile(),
+    notes: chartNotesDictionary.value,
+    table_notes: chartTableNotes.value,
   };
 }
 
@@ -1217,12 +1280,12 @@ function exportChartDataCsv() {
     new Set(
       rows.flatMap((r) =>
         Object.keys(r).filter(
-          (k) => !['time_period', 'observation_value', 'series_key', 'series_label'].includes(k)
+          (k) => !['time_period', 'observation_value', 'series_key', 'series_label', 'notes', 'note_text'].includes(k)
         )
       )
     )
   ).sort((a, b) => a.localeCompare(b));
-  const tailKeys = ['series_key', 'series_label'];
+  const tailKeys = ['series_key', 'series_label', 'note_text'];
   const keys = [...baseKeys, ...seriesDimKeys, ...tailKeys];
   const present = keys.filter((k) => rows.some((r) => Object.prototype.hasOwnProperty.call(r, k)));
   const header = present.join(',');
@@ -1329,8 +1392,174 @@ function classifyTimeKeys(sortedTimes) {
   return { useNumeric: false, kind: null, parse: null };
 }
 
+/** Concrete chart type for the toolbar selection; `auto` picks by number of time periods and series (same rules as Metadata Editor). */
+function resolveChartType(selected, periodCount, seriesCount) {
+  if (selected === 'line' || selected === 'column' || selected === 'hbar') return selected;
+  if (periodCount <= 1) return 'hbar';
+  if (periodCount <= 5 && seriesCount <= 8) return 'column';
+  return 'line';
+}
+
+function componentColumnType(name) {
+  const c = componentsSorted.value.find((x) => x?.name === name);
+  return c?.column_type ? String(c.column_type) : '';
+}
+
+function codeLabelForColumn(colName, code) {
+  const items = codelistSelectItems.value[colName] || [];
+  const hit = items.find((it) => it.value === code);
+  return hit?.title ? String(hit.title) : String(code ?? '');
+}
+
+/** Split `COL=code | …` series keys into columns and find which columns vary across the loaded series. */
+function seriesDimensionInfo(seriesIds) {
+  const partsById = {};
+  const keys = [];
+  for (const id of seriesIds) {
+    const parts = seriesColumnsFromKey(id);
+    partsById[id] = parts;
+    for (const k of Object.keys(parts)) {
+      if (!keys.includes(k)) keys.push(k);
+    }
+  }
+  const varying = keys.filter((k) => new Set(seriesIds.map((id) => partsById[id][k] ?? '')).size > 1);
+  return { partsById, keys, varying };
+}
+
+/** Series label using only the columns that vary (constant ones are already in the chart subtitle). */
+function shortSeriesLabel(id, dims) {
+  const parts = dims?.partsById?.[id];
+  if (!parts || !dims.varying.length) return seriesLabelForId(id);
+  return dims.varying.map((k) => codeLabelForColumn(k, parts[k] ?? '')).join(' · ');
+}
+
+/**
+ * One time period as bars. One varying column: a bar per series, sorted by value.
+ * Two or more: the non-measure column with the fewest values sets the bar color; the other varying columns form the categories.
+ */
+function buildSinglePeriodBarModel(seriesIds, bySeries, period, dims) {
+  const rows = seriesIds
+    .map((id) => ({ id, value: bySeries.get(id)?.get(period) }))
+    .filter((r) => Number.isFinite(r.value));
+  if (!rows.length) return null;
+
+  const base = {
+    singlePeriod: true,
+    period,
+    sortedTimes: [period],
+    useNumericTimeX: false,
+    timeXKind: null,
+    totalPoints: rows.length,
+  };
+  const barStyle = (color) => ({
+    borderColor: color,
+    backgroundColor: hexToRgba(color, 0.82),
+    borderWidth: 0,
+  });
+
+  if (dims.varying.length < 2) {
+    rows.sort((a, b) => b.value - a.value);
+    const shown = rows.slice(0, MAX_BAR_CATEGORIES);
+    return {
+      ...base,
+      labels: shown.map((r) => shortSeriesLabel(r.id, dims)),
+      datasets: [{
+        label: String(period),
+        data: shown.map((r) => r.value),
+        noteIds: shown.map((r) => chartNotesByPoint.value.get(chartNoteKey(r.id, period)) || []),
+        ...barStyle(wbCategoryColor(0)),
+      }],
+      dropped: rows.length - shown.length,
+      shownSeries: shown.length,
+    };
+  }
+
+  const distinctCount = (k) => new Set(rows.map((r) => dims.partsById[r.id][k] ?? '')).size;
+  const nonMeasure = dims.varying.filter((k) => componentColumnType(k) !== 'measure');
+  const candidates = nonMeasure.length ? nonMeasure : dims.varying;
+  const colorKey = [...candidates].sort(
+    (a, b) => distinctCount(a) - distinctCount(b) || dims.varying.indexOf(b) - dims.varying.indexOf(a)
+  )[0];
+  const categoryKeys = dims.varying.filter((k) => k !== colorKey);
+
+  const categories = [];
+  const groups = [];
+  const values = new Map();
+  const pointIds = new Map();
+  for (const r of rows) {
+    const parts = dims.partsById[r.id];
+    const cat = categoryKeys.map((k) => codeLabelForColumn(k, parts[k] ?? '')).join(' · ');
+    const grp = codeLabelForColumn(colorKey, parts[colorKey] ?? '');
+    if (!categories.includes(cat)) categories.push(cat);
+    if (!groups.includes(grp)) groups.push(grp);
+    values.set(`${cat}\u0000${grp}`, r.value);
+    pointIds.set(`${cat}\u0000${grp}`, r.id);
+  }
+
+  const shownCats = categories.slice(0, MAX_BAR_CATEGORIES);
+  let shownSeries = 0;
+  const datasets = groups.map((grp, gi) => ({
+    label: grp,
+    data: shownCats.map((cat) => {
+      const v = values.get(`${cat}\u0000${grp}`);
+      if (v === undefined) return null;
+      shownSeries++;
+      return v;
+    }),
+    noteIds: shownCats.map((cat) => {
+      const id = pointIds.get(`${cat}\u0000${grp}`);
+      return id ? chartNotesByPoint.value.get(chartNoteKey(id, period)) || [] : [];
+    }),
+    ...barStyle(wbCategoryColor(gi)),
+  }));
+
+  return {
+    ...base,
+    labels: shownCats,
+    datasets,
+    dropped: rows.length - shownSeries,
+    shownSeries,
+  };
+}
+
+/** `${seriesId}\u0000${time}` => note IDs, for every record (including noted values without data). */
+const chartNotesByPoint = computed(() => {
+  const m = new Map();
+  for (const row of chartRecords.value || []) {
+    const ids = cellNoteIds(row);
+    if (!ids.length) continue;
+    const sid = row.series_key != null && String(row.series_key) !== '' ? String(row.series_key) : 'Series';
+    m.set(`${sid}\u0000${row.time_period}`, ids);
+  }
+  return m;
+});
+
+/**
+ * Number the notes of the plotted points (category, then series) into `ds.noteMarkers` and return the model
+ * with `notes`, the list for the view. Notes on values without data are not listed (the Table tab shows them).
+ */
+function attachChartNotes(model) {
+  if (!model) return model;
+  const numbering = createNoteNumbering(chartNotesDictionary.value);
+  const len = Math.max(0, ...model.datasets.map((ds) => (ds.noteIds || []).length));
+  for (const ds of model.datasets) ds.noteMarkers = (ds.noteIds || []).map(() => []);
+  for (let i = 0; i < len; i++) {
+    for (const ds of model.datasets) {
+      const ids = ds.noteIds && ds.noteIds[i];
+      const point = ds.data ? ds.data[i] : null;
+      if (point == null) continue; // no value plotted here
+      if (ids && ids.length) ds.noteMarkers[i] = numbering.markers(ids);
+    }
+  }
+  return { ...model, notes: numbering.list() };
+}
+
+const chartNoteKey = (sid, t) => `${sid}\u0000${t}`;
+
 /** Pivot server chart `records` into Chart.js datasets (same shape as Metadata Editor client transform). */
-const chartModel = computed(() => {
+const chartModel = computed(() => attachChartNotes(buildChartModel()));
+
+function buildChartModel() {
   const records = chartRecords.value;
   if (!records?.length) return null;
 
@@ -1352,18 +1581,28 @@ const chartModel = computed(() => {
   const sortedTimes = Array.from(timeSet).sort((a, b) => (String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0));
   if (!sortedTimes.length) return null;
 
-  const scale = classifyTimeKeys(sortedTimes);
-
-  let seriesIds = Array.from(bySeries.keys()).sort((a, b) =>
+  const allSeriesIds = Array.from(bySeries.keys()).sort((a, b) =>
     String(seriesLabelForId(a)).localeCompare(String(seriesLabelForId(b)), undefined, { sensitivity: 'base' })
   );
+  const type = resolveChartType(chartType.value, sortedTimes.length, allSeriesIds.length);
+  const isBar = type === 'column' || type === 'hbar';
+  const dims = seriesDimensionInfo(allSeriesIds);
+  const mixedMeasures = dims.varying.some((k) => componentColumnType(k) === 'measure');
+
+  if (isBar && sortedTimes.length === 1) {
+    const model = buildSinglePeriodBarModel(allSeriesIds, bySeries, sortedTimes[0], dims);
+    return model ? { ...model, type, mixedMeasures } : null;
+  }
+
+  const scale = isBar ? { useNumeric: false, kind: null, parse: null } : classifyTimeKeys(sortedTimes);
+
+  let seriesIds = allSeriesIds;
   let dropped = 0;
   if (seriesIds.length > MAX_SERIES) {
     dropped = seriesIds.length - MAX_SERIES;
     seriesIds = seriesIds.slice(0, MAX_SERIES);
   }
 
-  const isBar = chartType.value === 'column' && seriesIds.length === 1;
   const sparsePoints = sortedTimes.length > 150;
 
   let totalPoints = 0;
@@ -1379,7 +1618,7 @@ const chartModel = computed(() => {
         const x = scale.parse(t);
         if (x == null || !Number.isFinite(Number(x))) continue;
         totalPoints++;
-        data.push({ x, y: v });
+        data.push({ x, y: v, t });
       }
       data.sort((a, b) => a.x - b.x);
     } else {
@@ -1394,9 +1633,13 @@ const chartModel = computed(() => {
     }
 
     const color = wbCategoryColor(idx);
+    const noteIds = scale.useNumeric && scale.parse
+      ? data.map((p) => chartNotesByPoint.value.get(chartNoteKey(id, p.t)) || [])
+      : sortedTimes.map((t) => chartNotesByPoint.value.get(chartNoteKey(id, t)) || []);
     return {
-      label: seriesLabelForId(id),
+      label: shortSeriesLabel(id, dims),
       data,
+      noteIds,
       borderColor: color,
       backgroundColor: isBar ? hexToRgba(color, 0.82) : hexToRgba(color, 0.12),
       tension: 0,
@@ -1410,15 +1653,19 @@ const chartModel = computed(() => {
 
   if (totalPoints === 0) return null;
   return {
+    type,
+    singlePeriod: false,
     labels: sortedTimes,
     sortedTimes,
     useNumericTimeX: scale.useNumeric,
     timeXKind: scale.kind,
     datasets,
     dropped,
+    shownSeries: datasets.length,
     totalPoints,
+    mixedMeasures,
   };
-});
+}
 
 const chartAriaLabel = computed(() => {
   const n = chartModel.value?.totalPoints ?? 0;
@@ -1432,7 +1679,33 @@ const chartAriaLabel = computed(() => {
 const seriesTruncated = computed(() => (chartModel.value?.dropped ?? 0) > 0);
 const seriesDropped = computed(() => chartModel.value?.dropped ?? 0);
 
-const chartModeToggleVisible = computed(() => (chartModel.value?.datasets?.length ?? 0) <= 1);
+/** Horizontal bars with many categories: grow the plot instead of squashing bars (catalog page only; embeds flex-fill). */
+const CHART_NOTE_LINE_PX = 20;
+const CHART_NOTE_MISSING_TEXT = 'No text available for this note.';
+
+/** Lines of the notes block under the plot (inside the chart container, so embeds include it). Used to size the container. */
+function chartNoteTextLines(model) {
+  if (!model) return [];
+  const lines = chartTableNotes.value.map((tn) => String(tn.note));
+  for (const n of model.notes || []) {
+    lines.push(`${n.number}. ${n.missing ? CHART_NOTE_MISSING_TEXT : n.text}`);
+  }
+  return lines;
+}
+
+const chartWrapStyle = computed(() => {
+  const m = chartModel.value;
+  if (isIndicatorEmbed.value || !m) return {};
+  // Grow the container by the notes block so the plot keeps its height (estimate; text wraps at ~110 chars).
+  const lines = chartNoteTextLines(m);
+  const notesExtra = lines.reduce((h, line) => h + Math.ceil(line.length / 110) * CHART_NOTE_LINE_PX, 0);
+  const extra = lines.length ? notesExtra + 40 : 0;
+  if (m.type === 'hbar') {
+    const bars = (m.labels?.length ?? 0) * (m.datasets?.length ?? 0);
+    if (bars > 14) return { height: `${Math.min(bars * 22 + 220, 2400) + extra}px` };
+  }
+  return extra ? { height: `${520 + extra}px` } : {};
+});
 
 const chartCanvasRef = ref(null);
 const chartInstance = shallowRef(null);
@@ -1544,10 +1817,15 @@ async function renderOrUpdateChart() {
   const canvas = chartCanvasRef.value;
   if (!model?.datasets?.length || !canvas) return;
 
-  const isBar = chartType.value === 'column' && model.datasets.length === 1;
+  const isBar = model.type === 'column' || model.type === 'hbar';
+  const isHorizontal = model.type === 'hbar';
   const numericX = model.useNumericTimeX === true;
+  const legendVisible = model.datasets.length > 0 && !(model.singlePeriod && model.datasets.length === 1);
   const chartTitleText = studyTitle.value || 'Chart';
-  const chartSubtitleText = chartFilterSubtitle.value;
+  let chartSubtitleText = String(chartFilterSubtitle.value ?? '');
+  if (model.singlePeriod && !chartSubtitleText.includes(String(model.period))) {
+    chartSubtitleText = chartSubtitleText ? `${model.period} · ${chartSubtitleText}` : String(model.period);
+  }
   const maxTextW = getChartTitleMaxTextWidth(canvas);
   const measureCtx = canvas.getContext('2d');
   measureCtx.font = `600 ${CHART_TITLE_FONT_PX}px ${CHART_FONT_FAMILY}`;
@@ -1556,6 +1834,7 @@ async function renderOrUpdateChart() {
   const chartSubtitleLines = String(chartSubtitleText).trim()
     ? wrapTextToMeasuredLines(chartSubtitleText, measureCtx, maxTextW)
     : [];
+
   const T = getChartJsTheme(chartBg.value);
 
   const inst = new Chart(canvas, {
@@ -1570,6 +1849,7 @@ async function renderOrUpdateChart() {
         family: CHART_FONT_FAMILY,
         size: 11,
       },
+      indexAxis: isHorizontal ? 'y' : 'x',
       responsive: true,
       maintainAspectRatio: false,
       layout: {
@@ -1582,6 +1862,7 @@ async function renderOrUpdateChart() {
       },
       interaction: {
         mode: numericX ? 'nearest' : 'index',
+        axis: isHorizontal ? 'y' : 'x',
         intersect: false,
       },
       plugins: {
@@ -1618,11 +1899,11 @@ async function renderOrUpdateChart() {
           },
         },
         legend: {
-          display: model.datasets.length > 0,
+          display: legendVisible,
           position: 'bottom',
           align: 'start',
           title: {
-            display: model.datasets.length > 0,
+            display: legendVisible,
             text: '\u200b',
             color: 'transparent',
             font: {
@@ -1640,8 +1921,8 @@ async function renderOrUpdateChart() {
           labels: {
             color: T.text,
             usePointStyle: false,
-            boxWidth: 28,
-            boxHeight: 3,
+            boxWidth: isBar ? 12 : 28,
+            boxHeight: isBar ? 12 : 3,
             padding: 12,
             font: {
               family: CHART_FONT_FAMILY,
@@ -1704,11 +1985,27 @@ async function renderOrUpdateChart() {
               const i = items[0]?.dataIndex;
               return i >= 0 ? String(model.labels[i] ?? '') : '';
             },
+            label(item) {
+              let line = `${item.dataset.label || ''}: ${item.formattedValue}`;
+              const nums = item.dataset.noteMarkers && item.dataset.noteMarkers[item.dataIndex];
+              if (nums && nums.length) line += `  [${formatMarkers(nums)}]`;
+              return line;
+            },
+            footer(items) {
+              const nums = [];
+              for (const it of items || []) {
+                for (const n of (it.dataset.noteMarkers && it.dataset.noteMarkers[it.dataIndex]) || []) {
+                  if (!nums.includes(n)) nums.push(n);
+                }
+              }
+              nums.sort((a, b) => a - b);
+              return noteLines(nums, model.notes || [], CHART_NOTE_MISSING_TEXT, 90);
+            },
           },
         },
       },
       scales: {
-        x: {
+        [isHorizontal ? 'y' : 'x']: {
           type: numericX ? 'linear' : 'category',
           title: {
             display: false,
@@ -1723,10 +2020,18 @@ async function renderOrUpdateChart() {
           },
           ticks: {
             color: T.textSubtle,
-            maxRotation: 45,
+            maxRotation: isHorizontal ? 0 : 45,
             minRotation: 0,
-            autoSkip: true,
-            maxTicksLimit: model.timeXKind === 'day' ? 12 : 8,
+            ...(model.singlePeriod
+              ? {
+                  autoSkip: false,
+                  callback(val) {
+                    const s = String(this.getLabelForValue(val) ?? '');
+                    const max = isHorizontal ? barLabelMaxChars(this.chart?.width) : BAR_LABEL_MAX_CHARS;
+                    return s.length > max ? `${s.slice(0, max - 1)}…` : s;
+                  },
+                }
+              : { autoSkip: true, maxTicksLimit: model.timeXKind === 'day' ? 12 : 8 }),
             ...(numericX
               ? {
                   callback(val) {
@@ -1742,12 +2047,12 @@ async function renderOrUpdateChart() {
               : {}),
           },
         },
-        y: {
+        [isHorizontal ? 'x' : 'y']: {
           title: {
             display: false,
             text: valueAxisLabel.value,
           },
-          beginAtZero: false,
+          beginAtZero: isBar,
           border: {
             display: false,
             dash(context) {
@@ -1781,19 +2086,12 @@ const debouncedChartRelayoutOnResize = debounce(() => {
 }, 120);
 
 watch(
-  () => chartModel.value?.datasets?.length ?? 0,
-  (n) => {
-    if (n > 1 && chartType.value === 'column') {
-      chartType.value = 'line';
-    }
-  }
-);
-
-watch(
   () => [
     chartLoading.value,
     chartType.value,
     chartBg.value,
+    chartModel.value?.type ?? '',
+    chartModel.value?.labels?.join('\u0000') ?? '',
     chartModel.value?.totalPoints ?? 0,
     studyTitle.value,
     chartFilterSubtitle.value,
@@ -1865,6 +2163,8 @@ async function reloadChart() {
   if (!studyIdno.value) return;
   if (!activeFilters.value) {
     chartRecords.value = [];
+    chartNotesDictionary.value = {};
+    chartTableNotes.value = [];
     chartMetadata.value = {};
     chartLoading.value = false;
     return;
@@ -1877,9 +2177,13 @@ async function reloadChart() {
     });
     chartRecords.value = res.records || [];
     chartMetadata.value = res.metadata || {};
+    chartNotesDictionary.value = res.notes || {};
+    chartTableNotes.value = Array.isArray(res.table_notes) ? res.table_notes : [];
   } catch (e) {
     setMessage(e?.response?.data?.message || e?.message || 'Could not load chart data.', 'warning');
     chartRecords.value = [];
+    chartNotesDictionary.value = {};
+    chartTableNotes.value = [];
     chartMetadata.value = {};
   } finally {
     chartLoading.value = false;
@@ -2567,6 +2871,43 @@ onMounted(() => {
   width: 100% !important;
   height: 100% !important;
   display: block;
+}
+
+.chart-notes {
+  flex: 0 0 auto;
+  align-self: stretch;
+  box-sizing: border-box;
+  margin: 0.75rem 20px 0 28px;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.chart-notes__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.chart-notes__table-note {
+  margin: 0 0 0.5rem;
+}
+
+.chart-notes__items {
+  margin: 0;
+  padding-left: 1.75rem;
+}
+
+.chart-notes__items li + li {
+  margin-top: 0.2rem;
+}
+
+/* Embeds have a fixed height: the notes scroll instead of squeezing the plot. */
+.catalog-indicator-page--embed .chart-notes {
+  max-height: 35%;
+  overflow-y: auto;
 }
 
 .chart-source {

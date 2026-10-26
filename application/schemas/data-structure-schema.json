@@ -131,7 +131,7 @@
 		},
 		"dsdComponent": {
 			"type": "object",
-			"description": "One DSD column. For dimension/geography, supply codelist_reference (existing catalogue idno) and/or codelist for inline create/reuse with items.",
+			"description": "One DSD column. For dimension/geography/periodicity, a codelist is optional (as in SDMX); when enumerated, supply codelist_reference (existing catalogue idno) and/or codelist for inline create/reuse with items. Without a codelist the component is exported with a non-enumerated (TextFormat) representation.",
 			"properties": {
 				"name": {
 					"title": "Name",
@@ -222,6 +222,12 @@
 					"title": "Value presence",
 					"type": "string",
 					"enum": ["Mandatory", "Conditional"]
+				},
+				"display_role": {
+					"title": "Display as",
+					"description": "How attribute/annotation values are shown. 'footnote': the column holds note IDs (separated by ';') whose text is in the study's data_notes.",
+					"type": "string",
+					"enum": ["none", "footnote"]
 				}
 			},
 			"required": ["name", "column_type"],

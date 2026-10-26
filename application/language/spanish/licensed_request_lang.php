@@ -62,7 +62,7 @@ $lang['subject']="Asunto";
 $lang['body']="Cuerpo del mensaje";
 $lang['send']="Enviar";
 $lang['title_download_expired']="¡El enlace para la descarga ha caducado!";
-$lang['msg_download_limit_reached']="Usted ha llegado al límite de descarga para éste archivo. Usted está limitado a %s descargas para éste archivo. Si desea tener un mayor número de descargas permitido, por favor escriba a %s para solicitar el cambio.";
+$lang['msg_download_limit_reached']="Usted ha llegado al límite de descarga para éste archivo. Usted está limitado a %d descargas para éste archivo. Si desea tener un mayor número de descargas permitido, por favor escriba a %s para solicitar el cambio.";
 $lang['apply']="Aplicar";
 $lang['not_attached_any_licensed_files']="No ha adjuntado ningún archivo para el acceso a datos con licencia, visite la página &quot;Acceso a datos con licencia&quot; para configurar los archivos.";
 $lang['restrict_data_access_by_id']="Restringir el acceso de datos por IP";
@@ -133,6 +133,7 @@ $lang['request_title']="Título de la solicitud
 ";
 $lang['download_microdata_and_resources']="Descargar Microdatos y otros materiales relacionados
 ";
+$lang['msg_date_limit_reached']="Ha alcanzado la fecha límite de descarga para este archivo. La fecha límite era %s. Si desea extender la fecha límite para acceder al documento, escriba a %s para solicitar el cambio de la fecha de vencimiento.";
 
 
 /* End of file licensed_request */

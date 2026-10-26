@@ -1319,10 +1319,6 @@ class Data_structures extends MY_REST_Controller {
 					$errors[] = ['path' => "components[{$idx}].codelist_id", 'message' => 'Codelist not found.'];
 				}
 			}
-			$needs_codelist = in_array($ct, ['dimension', 'geography'], true);
-			if ($needs_codelist && (empty($cid) || (int) $cid <= 0)) {
-				$errors[] = ['path' => "components[{$idx}].codelist_id", 'message' => 'codelist_id is required for dimension and geography.'];
-			}
 		}
 		return $errors;
 	}

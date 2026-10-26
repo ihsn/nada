@@ -151,6 +151,7 @@ class Tables extends MY_REST_Controller
 			$result=$this->Data_table_mongo_model->get_table_info($db_id,$table_id);
 
 			$metadata = $result['table_type'];
+			$table_type_full = $result['table_type'];
 
 			// Remove fields
 			$remove_fields = array('import_progress', 'last_imported_at', 'csv_file_path', 'csv_uploaded_at');
@@ -176,9 +177,25 @@ class Tables extends MY_REST_Controller
 			$metadata['_links']['data_dictionary_url'] = site_url('api/tables/data_dictionary/'.$db_id.'/'.$table_id);
 			$metadata['_links']['data_url'] = site_url('api/tables/data/'.$db_id.'/'.$table_id);
 
+			$stored_csv = array(
+				'available' => false,
+				'uploaded_at' => isset($table_type_full['csv_uploaded_at']) ? $table_type_full['csv_uploaded_at'] : null,
+				'download_url' => site_url('api/tables/download/' . $db_id . '/' . $table_id),
+			);
+			if (!empty($table_type_full['csv_file_path'])) {
+				try {
+					$validated_path = validate_file_path($table_type_full['csv_file_path'], $db_id, $table_id);
+					$stored_csv['available'] = file_exists('datafiles/' . $validated_path);
+					$stored_csv['file_path'] = $validated_path;
+				} catch (Exception $e) {
+					$stored_csv['available'] = false;
+				}
+			}
+
 			$result=array(
 				'count'=>$result['count'],
-				'metadata'=>$metadata
+				'metadata'=>$metadata,
+				'stored_csv'=>$stored_csv,
 			);
 			
 			$response=array(
@@ -194,6 +211,36 @@ class Tables extends MY_REST_Controller
 				'message'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Validate table definition, dictionary, stored CSV, data, and indexes.
+	 *
+	 * GET /api/tables/validate/{db_id}/{table_id}
+	 */
+	function validate_get($db_id = null, $table_id = null)
+	{
+		$this->require_access('table', 'edit');
+
+		try {
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			$report = $this->Data_table_mongo_model->validate_table($db_id, $table_id);
+
+			$this->set_response(array(
+				'status' => 'success',
+				'valid' => $report['valid'],
+				'summary' => $report['summary'],
+				'issues' => $report['issues'],
+				'context' => $report['context'],
+			), REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->set_response(array(
+				'status' => 'failed',
+				'message' => $e->getMessage(),
+			), REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
 
@@ -410,6 +457,75 @@ class Tables extends MY_REST_Controller
 				'status'=>'success',
                 'result'=>$output,
 				'message'=>"Deleted {$output['indexes_dropped']} index(es). {$output['indexes_remaining']} index(es) remaining (_id_ is preserved)."
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * POST /api/tables/indexes/{db_id}/{table_id}/apply
+	 * Create indexes on the data collection from table_types.indexes.
+	 */
+	function indexes_apply_post($db_id=null,$table_id=null)
+	{
+		$this->require_access('table', 'edit');
+
+		try{
+			$options=$this->raw_json_input();
+			if (!is_array($options)) {
+				$options = array();
+			}
+			$missing_only = isset($options['missing_only']) ? (bool) $options['missing_only'] : true;
+
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			$result = $this->Data_table_mongo_model->apply_table_index_definitions($db_id, $table_id, $missing_only);
+
+			$response=array(
+				'status'=>'success',
+				'result'=>$result,
+				'message'=>count($result['applied']) . ' index(es) applied'
+			);
+
+			$this->set_response($response, REST_Controller::HTTP_OK);
+		}
+		catch(Exception $e){
+			$error_output=array(
+				'status'=>'failed',
+				'message'=>$e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * POST /api/tables/indexes/{db_id}/{table_id}/sync_definition
+	 * Copy live MongoDB indexes into table_types.indexes (excludes _id_).
+	 */
+	function indexes_sync_definition_post($db_id=null,$table_id=null)
+	{
+		$this->require_access('table', 'edit');
+
+		try{
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			$definitions = $this->Data_table_mongo_model->sync_table_index_definitions_from_collection($db_id, $table_id);
+
+			$response=array(
+				'status'=>'success',
+				'indexes'=>$definitions,
+				'count'=>count($definitions),
+				'message'=>count($definitions) . ' index definition(s) saved on table metadata'
 			);
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
@@ -655,6 +771,8 @@ class Tables extends MY_REST_Controller
 				$options=$tmp_options;
 			}
 			
+			$options = $this->Data_table_mongo_model->coerce_insert_rows($db_id, $table_id, $options);
+
 			$result=$this->Data_table_mongo_model->table_batch_insert($db_id,$table_id,$options);   
 
 			$response=array(
@@ -827,6 +945,41 @@ class Tables extends MY_REST_Controller
 		}
 	}
 
+	/**
+	 * Re-import from the table's stored CSV (clears data and resets import progress first).
+	 *
+	 * POST /api/tables/import/reload/{db_id}/{table_id}
+	 */
+	function import_reload_post($db_id = null, $table_id = null)
+	{
+		$this->require_access('table', 'edit');
+
+		try {
+			$options = $this->raw_json_input();
+			if (!is_array($options)) {
+				$options = array();
+			}
+
+			if (!$db_id) {
+				$db_id = $options['db_id'] ?? null;
+				$table_id = $options['table_id'] ?? null;
+			}
+
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			$result = $this->Data_table_mongo_model->process_import_reload_request($db_id, $table_id, $options);
+
+			$this->set_response($result, REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$error_output = array(
+				'status' => 'failed',
+				'message' => $e->getMessage()
+			);
+			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
 	
 	/**
 	 * 
@@ -912,6 +1065,23 @@ class Tables extends MY_REST_Controller
 				unset($options['data_dictionary']); // Remove from table metadata
 			}
 
+			if ($fields && !empty($fields)) {
+				$field_names = array();
+				foreach ($fields as $field_metadata) {
+					if (isset($field_metadata['name']) && trim((string) $field_metadata['name']) !== '') {
+						$field_names[] = trim((string) $field_metadata['name']);
+					}
+				}
+				$this->Data_table_mongo_model->validate_field_name_list($field_names);
+				foreach ($field_names as $field_name) {
+					if ($this->Data_table_mongo_model->field_name_conflicts_with_reserved_query_param($field_name)) {
+						throw new Exception(
+							'Field name "' . $field_name . '" is reserved and cannot be used as a column name'
+						);
+					}
+				}
+			}
+
             // Create table metadata
 			$result = $this->Data_table_mongo_model->create_table($db_id, $table_id, $options);
 			
@@ -919,20 +1089,12 @@ class Tables extends MY_REST_Controller
 			$fields_created = 0;
 			if ($fields && !empty($fields)) {
 				foreach ($fields as $field_metadata) {
-					try {
-						// Ensure field_metadata has required fields
-						if (!isset($field_metadata['name'])) {
-							continue; // Skip fields without name
-						}
-						
-						// Create field metadata
-						$field_result = $this->Data_table_mongo_model->create_field_metadata($db_id, $table_id, $field_metadata);
-						if ($field_result > 0) {
-							$fields_created++;
-						}
-					} catch (Exception $e) {
-						// Log error but continue with other fields
-						log_message('error', "Failed to create field {$field_metadata['name']}: " . $e->getMessage());
+					if (!isset($field_metadata['name']) || trim((string) $field_metadata['name']) === '') {
+						continue;
+					}
+					$field_result = $this->Data_table_mongo_model->create_field_metadata($db_id, $table_id, $field_metadata);
+					if ($field_result > 0) {
+						$fields_created++;
 					}
 				}
 			}
@@ -1051,8 +1213,19 @@ class Tables extends MY_REST_Controller
 			// Get all field definitions
 			$fields = $this->Data_table_mongo_model->get_table_fields($db_id, $table_id);
 			
-			// Get indexes
-			$indexes = $this->Data_table_mongo_model->get_collection_indexes($db_id, $table_id);
+			// Saved index definitions (survive data drop); fall back to live collection indexes
+			$index_definitions = $this->Data_table_mongo_model->get_table_index_definitions($db_id, $table_id);
+			$indexes = array();
+			if (!empty($index_definitions)) {
+				foreach ($index_definitions as $entry) {
+					if (empty($entry['name'])) {
+						continue;
+					}
+					$indexes[$entry['name']] = $this->Data_table_mongo_model->definition_entry_to_mongo_index_keys($entry);
+				}
+			} else {
+				$indexes = $this->Data_table_mongo_model->get_collection_indexes($db_id, $table_id);
+			}
 			
 			// Build export structure
 			$export = array(
@@ -1759,9 +1932,14 @@ class Tables extends MY_REST_Controller
 			// Set defaults for new fields only
 			if (!$is_update) {
 				$field_data['label'] = $field_data['label'] ?? $field_data['name'];
-				$field_data['data_type'] = $field_data['data_type'] ?? 'string';
 				$field_data['column_type'] = $field_data['column_type'] ?? null;
 			}
+			if (array_key_exists('data_type', $field_data) || !$is_update) {
+				$field_data['data_type'] = $this->Data_table_mongo_model->normalize_field_data_type(
+					array_key_exists('data_type', $field_data) ? $field_data['data_type'] : null
+				);
+			}
+			unset($field_data['format']);
 			
 			// Use create_field_metadata which does upsert
 			$result = $this->Data_table_mongo_model->create_field_metadata($db_id, $table_id, $field_data);

@@ -553,6 +553,9 @@ class Catalog extends MY_Controller {
 	function export($format='print')
 	{
 		$output= $this->_search();
+		$this->active_tab = $this->validate_tab_type((string) $this->input->get('tab_type'));
+		$output['tab_type'] = $this->active_tab;
+		$output['facets'] = $this->facets;
 
 		switch($format){
 			case 'print':

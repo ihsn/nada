@@ -17,8 +17,6 @@ class Resources extends MY_Controller {
 		$this->lang->load('general');
     	$this->lang->load('catalog_admin');
 		$this->lang->load('resource_manager');
-		$this->lang->load('plupload');
-
 		//$this->output->enable_profiler(TRUE);
 	}
  
@@ -74,14 +72,7 @@ class Resources extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/catalog');
-			}	
+			nada_redirect($destination, 'admin/catalog');
 		}
 		else if ($this->input->post('submit')!='')
 		{
@@ -101,14 +92,7 @@ class Resources extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/catalog');
-			}	
+			nada_redirect($destination, 'admin/catalog');
 		}
 		else
 		{
@@ -180,10 +164,24 @@ class Resources extends MY_Controller {
 			redirect("admin/catalog/edit/$survey_id/resources");
 		}
 	
+		$linked_file = '';
+		$token = $this->input->get_post('t');
+		if ($id === 'add' && is_string($token) && $token !== '') {
+			$linked_file = $this->_study_file_from_token($survey_id, $token);
+			if ($linked_file === '') {
+				show_error('INVALID_PATH', 400);
+			}
+			$existing = $this->managefiles_model->get_resources_by_filepath($survey_id, $linked_file);
+			if (is_array($existing) && isset($existing[0]['resource_id'])) {
+				redirect('admin/resources/edit/'.$existing[0]['resource_id'].'/'.$survey_id);
+			}
+		}
+
 		//redirect on Cancel
 		if ( $this->input->post("cancel")!="" )
 		{
-			redirect("admin/catalog/edit/$survey_id/resources");
+			$cancel_to = ($linked_file !== '') ? 'files' : 'resources';
+			redirect("admin/catalog/edit/$survey_id/".$cancel_to);
 		}	
 		
 		$this->load->library('form_validation');
@@ -218,8 +216,13 @@ class Resources extends MY_Controller {
 				$options['resource_id']=$id;
 			}
 							
-			//map form names with db names
-			$options['filename']=$options['url'];
+			//map form names with db names; a study-file token wins over a typed path
+			if ($linked_file !== '') {
+				$options['filename'] = $linked_file;
+				$options['survey_id'] = $survey_id;
+			} elseif (isset($options['url'])) {
+				$options['filename'] = $options['url'];
+			}
 			
 			// Set user information for audit trail
 			$user_id = $this->session->userdata('user_id');
@@ -263,7 +266,8 @@ class Resources extends MY_Controller {
 				$this->session->set_flashdata('message', t('form_update_success') );
 				
 				//redirect back to the list
-				redirect("admin/catalog/edit/$survey_id/resources");
+				$done_to = ($linked_file !== '') ? 'files' : 'resources';
+				redirect("admin/catalog/edit/$survey_id/".$done_to);
 			}
 		}
 		else
@@ -303,6 +307,15 @@ class Resources extends MY_Controller {
 		}
 		*/
 		
+		if ($linked_file !== '') {
+			$data['filename'] = $linked_file;
+			$data['simple_mode'] = true;
+			$data['path_token'] = is_string($token) ? $token : '';
+			$data['back_link'] = 'admin/catalog/edit/'.$survey_id.'/files';
+			$data['back_text'] = t('link_resource_home');
+			$data['survey_id'] = $survey_id;
+		}
+
 		//load form
 		$content=$this->load->view('resources/edit', $data,true);
 		
@@ -726,303 +739,63 @@ class Resources extends MY_Controller {
 		}		
 		return $files;
 	}
-	
+
 	/**
-	*
-	* Upload external resource files for survey
-	**/
-	function upload($sid=NULL)
-	{
-		if (!is_numeric($sid))
-		{
-			show_error("INVALID");
-		}
-		
-		$this->_require_study_edit($sid);
-		
-		if($_FILES)
-		{
-			$this->_process_upload($sid);
-		}		
-		
-		$data['breadcrumbs']=array(
-			'admin/catalog'					=> 	'Catalog',
-			'admin/catalog/edit/'.$sid		=>	'Edit Survey',
-			''								=>	'Upload Resources'
-		);
-		
-		$data['survey']=$this->Catalog_model->select_single($sid);
-		$content=$this->load->view('resources/plupload',$data,TRUE);
-		
-		$survey_folder=$this->Catalog_model->get_survey_path_full($sid);		
-		$this->template->write('content', $content,true);
-		$this->template->render();
-	}
-	
-	
-	private function _process_upload($sid)
-	{
-		$this->load->helper('text');
-		$files=$_FILES;
-		
-		if (!$files)
-		{
-			return;
-		}
-		
-		$survey_folder=$this->Catalog_model->get_survey_path_full($sid);
-		
-		foreach ($files["file"]["error"] as $key => $error) 
-		{
-		    if ($error == UPLOAD_ERR_OK) 
-			{
-		        $tmp_name = $_FILES["file"]["tmp_name"][$key];
-        		$name = $_FILES["file"]["name"][$key];
-								
-				$name=convert_accented_characters($name);
-		
-				//log
-				$this->db_logger->write_log('resource-upload',$name,'resources',$sid);
-		
-				//check if allowed file type
-				$file_info=pathinfo($name);
-				$allowed_types=explode(",",$this->config->item("allowed_resource_types"));
-				
-				if (!in_array($file_info['extension'],$allowed_types))
-				{	
-					$this->db_logger->write_log('resource-upload-failed','blocked - '.$name,'resources',$sid);
-				}
-				else
-				{				
-		        	move_uploaded_file($tmp_name, "$survey_folder/$name");
-				}	
-    		}
-		}
-		
-		// Sync resources for uploaded files only
-		$this->_sync_uploaded_files($sid, $files);
-		
-		redirect('admin/catalog/edit/'.$sid);
-	}
-	
-	
-	/**
-	 * Upload multiple files using plupload
+	 * Relative path for a study file named by the files-screen token.
+	 * Empty when the token is missing, the file is not in the study folder, or it is not a file.
 	 *
-	 * Based on the code by Moxiecode Systems AB
-	 * Released under GPL License.
-	 *
-	 * License: http://www.plupload.com/license
-	 * Contributing: http://www.plupload.com/contributing
+	 * @param int    $survey_id
+	 * @param string $token
+	 * @return string
 	 */
-	function pl_uploads($surveyid,$overwrite=1)
+	private function _study_file_from_token($survey_id, $token)
 	{
-		if ($overwrite!=1)
-		{
-			$overwrite=0;
+		$rel = $this->_decode_study_file_token($token);
+		$rel = ltrim(unix_path($rel), '/');
+		if ($rel === '' || strpos($rel, '..') !== false) {
+			return '';
 		}
-		
-		if (!is_numeric($surveyid))
-		{
-			return FALSE;
-		}
-				
-		$survey_path=$this->managefiles_model->get_survey_path($surveyid);
-		
-		if ($survey_path=='' || !file_exists($survey_path))
-		{
-			show_404();
-		}
-		
-		$this->_require_study_edit($surveyid);
-		
-		$resource_folder=unix_path($survey_path);
-		
-		if (!file_exists($resource_folder))
-		{
-			die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Resource folder does not exist"}, "id" : "'.$resource_folder.'"}');
-		}
-				
-		// HTTP headers for no cache etc
-		header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-		header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
-		header("Cache-Control: no-store, no-cache, must-revalidate");
-		header("Cache-Control: post-check=0, pre-check=0", false);
-		header("Pragma: no-cache");
-		
-		// Settings
-		//$targetDir = ini_get("upload_tmp_dir") . DIRECTORY_SEPARATOR . "plupload";
-		$targetDir = $resource_folder;
-		
-		//$targetDir=APPPATH.'../plupload/'.$this->input->post("upload_folder");
-		
-		//$cleanupTargetDir = false; // Remove old files
-		//$maxFileAge = 60 * 60; // Temp file age in seconds
-		
-		// 5 minutes execution time
-		@set_time_limit(15 * 60);
-		
-		// Uncomment this one to fake upload time
-		// usleep(5000);
-		
-		// Get parameters
-		$chunk = isset($_REQUEST["chunk"]) ? $_REQUEST["chunk"] : 0;
-		$chunks = isset($_REQUEST["chunks"]) ? $_REQUEST["chunks"] : 0;
-		$fileName = isset($_REQUEST["name"]) ? $_REQUEST["name"] : '';
 
-		if (!$fileName)
-		{
-			return;
+		$survey_real = unix_realpath($this->managefiles_model->get_survey_path($survey_id));
+		if ($survey_real === false || $survey_real === '') {
+			return '';
 		}
-		
-		$this->load->helper('text');
-		$fileName=convert_accented_characters($fileName);
 
-		//log
-		$this->db_logger->write_log('resource-upload',$fileName,'resources',$surveyid);
+		$full = unix_realpath(unix_path($survey_real.'/'.$rel));
+		if ($full === false || ! is_file($full)) {
+			return '';
+		}
 
-		//check if allowed file type
-		$file_info=pathinfo($fileName);
-		$allowed_types=explode(",",$this->config->item("allowed_resource_types"));
-		
-		if (!in_array(strtolower($file_info['extension']),$allowed_types))
-		{	
-			$this->db_logger->write_log('resource-upload-failed','blocked - '.$fileName,'resources',$surveyid);
-			die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "invalid-file-type"}, "type" : "{$file_info["extension"]}"}');				
+		$prefix = rtrim(unix_path($survey_real), '/').'/';
+		if (strpos(unix_path($full), $prefix) !== 0) {
+			return '';
 		}
-				
-		// Clean the fileName for security reasons
-		//$fileName = preg_replace('/[^\w\._]+/', '', $fileName);
-		
-		// Make sure the fileName is unique but only if chunking is disabled
-		if ($chunks < 2 && file_exists($targetDir . DIRECTORY_SEPARATOR . $fileName)) {
-			$ext = strrpos($fileName, '.');
-			$fileName_a = substr($fileName, 0, $ext);
-			$fileName_b = substr($fileName, $ext);
-		
-			$count = 1;
-			while (file_exists($targetDir . DIRECTORY_SEPARATOR . $fileName_a . '_' . $count . $fileName_b))
-				$count++;
-		
-			$fileName = $fileName_a . '_' . $count . $fileName_b;
-		}
-		
-		// Create target dir
-		if (!file_exists($targetDir))
-		{
-			@mkdir($targetDir);
-			log_message('info', 'create folder: '.$targetDir);
-		}
-		
-		// Look for the content type header
-		if (isset($_SERVER["HTTP_CONTENT_TYPE"]))
-			$contentType = $_SERVER["HTTP_CONTENT_TYPE"];
-		
-		if (isset($_SERVER["CONTENT_TYPE"]))
-			$contentType = $_SERVER["CONTENT_TYPE"];
-		
-		// Handle non multipart uploads older WebKit versions didn't support multipart in HTML5
-		if (strpos($contentType, "multipart") !== false) {
-			if (isset($_FILES['file']['tmp_name']) && is_uploaded_file($_FILES['file']['tmp_name'])) {
-				// Open temp file
-				$out = fopen($targetDir . DIRECTORY_SEPARATOR . $fileName, $chunk == 0 ? "wb" : "ab");
-				if ($out) {
-					// Read binary input stream and append it to temp file
-					$in = fopen($_FILES['file']['tmp_name'], "rb");
-		
-					if ($in) {
-						while ($buff = fread($in, 4096))
-							fwrite($out, $buff);
-					} else
-						die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "id"}');
-					fclose($in);
-					fclose($out);
-					@unlink($_FILES['file']['tmp_name']);
-				} else
-					die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "id"}');
-			} else
-				die('{"jsonrpc" : "2.0", "error" : {"code": 103, "message": "Failed to move uploaded file."}, "id" : "id"}');
-		} else {
-			// Open temp file
-			$out = fopen($targetDir . DIRECTORY_SEPARATOR . $fileName, $chunk == 0 ? "wb" : "ab");
-			if ($out) {
-				// Read binary input stream and append it to temp file
-				$in = fopen("php://input", "rb");
-		
-				if ($in) {
-					while ($buff = fread($in, 4096))
-						fwrite($out, $buff);
-				} else
-					die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "id"}');
-		
-				fclose($in);
-				fclose($out);
-			} else
-				die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "id"}');
-		}
-		
-		// Sync resources for uploaded file only (only on final chunk)
-		if ($chunk == $chunks - 1) {
-			$this->_sync_uploaded_file($surveyid, $fileName);
-		}
-		
-		// Return JSON-RPC response
-		die('{"jsonrpc" : "2.0", "result" : null, "id" : "id"}');	
-	}
-	/**
-	 * Sync resources for uploaded files (standard upload)
-	 */
-	private function _sync_uploaded_files($survey_id, $files)
-	{
-		if (!$files || !isset($files["file"]["name"])) {
-			return;
-		}
-		
-		foreach ($files["file"]["name"] as $key => $filename) {
-			if ($files["file"]["error"][$key] == UPLOAD_ERR_OK) {
-				$this->_sync_uploaded_file($survey_id, $filename);
-			}
-		}
-	}
-	
-	/**
-	 * Sync resources for a single uploaded file
-	 */
-	private function _sync_uploaded_file($survey_id, $filename)
-	{
-		try {
-			// Find all resources matching this filename
-			$resources = $this->Survey_resource_model->get_survey_resources_by_filepath($survey_id, $filename);
-			
-			if (empty($resources)) {
-				log_message('debug', "No resources found for uploaded file: {$filename}");
-				return;
-			}
-			
-			$synced_count = 0;
-			
-			// Sync each matching resource
-			foreach ($resources as $resource) {
-				$result = $this->Survey_resource_model->sync_resource($resource['resource_id']);
-				
-				if ($result['status'] == 'synced') {
-					$synced_count++;
-					log_message('info', "Synced resource #{$resource['resource_id']} for file: {$filename}");
-				} else {
-					log_message('debug', "Resource #{$resource['resource_id']} unchanged for file: {$filename}");
-				}
-			}
-			
-			log_message('info', "Synced {$synced_count} resource(s) for uploaded file: {$filename}");
-			
-		} catch (Exception $e) {
-			log_message('error', "Failed to sync resources for file {$filename}: " . $e->getMessage());
-		}
+
+		return $rel;
 	}
 
 	/**
-	 * @param int|string|null $sid
+	 * @param string $token base64(urlencode(relative/path))
+	 * @return string
 	 */
+	private function _decode_study_file_token($token)
+	{
+		$token = trim((string) $token);
+		$token = str_replace(' ', '+', $token);
+		$bin = base64_decode($token, true);
+		if ($bin === false || $bin === '') {
+			return '';
+		}
+
+		$path = urldecode($bin);
+		if (! is_string($path) || $path === '') {
+			return '';
+		}
+
+		$path = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $path);
+		return is_string($path) ? $path : '';
+	}
+
 	private function _require_study_edit($sid)
 	{
 		if (! is_numeric($sid) || (int) $sid < 1) {

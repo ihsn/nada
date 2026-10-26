@@ -19,6 +19,9 @@ $lang['data_access']="Acceso a los datos
 ";
 $lang['disclaimer_copyright']="Descargo de responsabilidad y Derechos de autor
 ";
+$lang['tags']="Etiquetas";
+$lang['errata']="Fe de erratas";
+$lang['reviews_comments']="Comentarios de revisión";
 $lang['metadata.doc_desc']="Descripción del documento
 ";
 $lang['metadata.doc_desc.title']="Titulo del documento
@@ -121,6 +124,8 @@ $lang['metadata.project_desc.themes.vocabulary']="Nombre del vocabulario
 ";
 $lang['metadata.project_desc.themes.uri']="URI de vocabulario
 ";
+$lang['metadata.project_desc.themes.id']="ID";
+$lang['metadata.project_desc.themes.parent_id']="ID del tema principal";
 $lang['metadata.project_desc.topics']="Temas
 ";
 $lang['metadata.project_desc.topics.id']="ID
@@ -141,6 +146,8 @@ $lang['metadata.project_desc.disciplines.vocabulary']="Vocabulario
 ";
 $lang['metadata.project_desc.disciplines.uri']="URI
 ";
+$lang['metadata.project_desc.disciplines.id']="ID";
+$lang['metadata.project_desc.disciplines.parent_id']="ID de la disciplina principal";
 $lang['metadata.project_desc.output']="Producto
 ";
 $lang['metadata.project_desc.output.type']="Tipo
@@ -253,6 +260,11 @@ $lang['metadata.project_desc.acknowledgements.affiliation']="Afiliación
 ";
 $lang['metadata.project_desc.acknowledgements.role']="Rol
 ";
+$lang['metadata.project_desc.acknowledgment_statement']="Declaración de agradecimientos";
+$lang['metadata.project_desc.acknowledgments']="Otras identificaciones / Reconocimientos";
+$lang['metadata.project_desc.acknowledgments.name']="Nombre";
+$lang['metadata.project_desc.acknowledgments.affiliation']="Afiliación";
+$lang['metadata.project_desc.acknowledgments.role']="Rol";
 $lang['metadata.project_desc.related_projects']="Proyectos relacionados
 ";
 $lang['metadata.project_desc.related_projects.name']="Nombre
@@ -271,6 +283,8 @@ $lang['metadata.project_desc.contacts.uri']="URI
 ";
 $lang['metadata.project_desc.contacts.phone']="Número de teléfono
 ";
+$lang['metadata.project_desc.contacts.role']="Rol";
+$lang['metadata.project_desc.contacts.email']="Correo electrónico";
 $lang['metadata.project_desc.scripts']="Scripts/Programas
 ";
 $lang['metadata.project_desc.scripts.file_name']="Nombre del archivo
@@ -337,6 +351,7 @@ $lang['contacts']="Contactos
 ";
 $lang['process']="Proceso
 ";
+$lang['metadata.project_desc.process']="Proceso";
 $lang['metadata.project_desc.process.name']="Nombre
 ";
 $lang['metadata.project_desc.process.date_start']="Fecha de inicio
@@ -348,6 +363,27 @@ $lang['metadata.project_desc.process.description']="Descripción
 $lang['metadata.project_desc.tags']="Etiquetas
 ";
 
+
+$lang['metadata.tags']="Etiquetas";
+$lang['metadata.tags.tag']="Etiqueta";
+$lang['metadata.tags.tag_group']="Grupo de etiquetas";
+$lang['metadata.project_desc.review_board']="Comité de revisión";
+$lang['metadata.project_desc.approval_process']="Proceso de aprobación";
+$lang['metadata.project_desc.approval_process.approval_phase']="Fase de aprobación";
+$lang['metadata.project_desc.approval_process.approval_authority']="Autoridad de aprobación";
+$lang['metadata.project_desc.approval_process.submission_date']="Fecha de envío";
+$lang['metadata.project_desc.approval_process.reviewer']="Revisor";
+$lang['metadata.project_desc.approval_process.review_status']="Estado de la revisión";
+$lang['metadata.project_desc.approval_process.approval_date']="Fecha de aprobación";
+$lang['metadata.project_desc.copyright']="Derechos de autor";
+$lang['metadata.project_desc.errata']="Fe de erratas";
+$lang['metadata.project_desc.errata.date']="Fecha";
+$lang['metadata.project_desc.errata.description']="Descripción";
+$lang['metadata.project_desc.reviews_comments']="Revisiones y comentarios";
+$lang['metadata.project_desc.reviews_comments.comment_date']="Fecha";
+$lang['metadata.project_desc.reviews_comments.comment_by']="Comentario de";
+$lang['metadata.project_desc.reviews_comments.comment_description']="Descripción";
+$lang['metadata.project_desc.reviews_comments.comment_response']="Respuesta";
 
 /* End of file fields_scripts */
 /* Location: ./application/language/spanish/fields_scripts */

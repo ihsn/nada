@@ -4,7 +4,7 @@
  * Search index change tracking.
  *
  * One configured provider. Database search does not write rows.
- * Solr/OpenSearch process queue rows inline so live sync is unchanged.
+ * Solr processes queue rows inline so live sync is unchanged.
  * Semantic leaves rows pending for the pull API.
  */
 class Search_index_manager
@@ -36,7 +36,7 @@ class Search_index_manager
 		$provider = $this->current_provider();
 		$allowed  = $this->ci->config->item('search_index_tracking_providers');
 		if (!is_array($allowed)) {
-			$allowed = array('solr', 'opensearch', 'semantic');
+			$allowed = array('solr', 'semantic');
 		}
 		return in_array($provider, $allowed, true);
 	}
@@ -349,7 +349,7 @@ class Search_index_manager
 		$provider = $this->current_provider();
 		$inline   = $this->ci->config->item('search_index_inline_providers');
 		if (!is_array($inline)) {
-			$inline = array('solr', 'opensearch');
+			$inline = array('solr');
 		}
 		if (!in_array($provider, $inline, true)) {
 			return;
@@ -383,20 +383,6 @@ class Search_index_manager
 				return;
 			}
 			$this->ci->solr_manager->process_delta_update(
-				$table,
-				$this->engine_action($row['change_class']),
-				$id
-			);
-			return;
-		}
-
-		if ($provider === 'opensearch') {
-			$this->ci->load->library('OpenSearch/OpenSearch_manager');
-			if ($row['object_type'] === self::OBJECT_SURVEY && $row['change_class'] === self::CLASS_VARIABLES) {
-				$this->ci->opensearch_manager->index_survey_variables($id);
-				return;
-			}
-			$this->ci->opensearch_manager->process_delta_update(
 				$table,
 				$this->engine_action($row['change_class']),
 				$id

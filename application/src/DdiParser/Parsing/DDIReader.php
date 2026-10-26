@@ -583,7 +583,7 @@ class DDIReader implements ReaderInterface
     {
         $reader = new \XMLReader();
 
-        if (!$reader->open($this->file, null, LIBXML_NOERROR | LIBXML_NOWARNING)) {
+        if (!$reader->open($this->file, null, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING)) {
             return [];
         }
 
@@ -653,7 +653,7 @@ class DDIReader implements ReaderInterface
     {
         $xml_reader = new \XMLReader();
 
-        if (!$xml_reader->open($this->file, null, LIBXML_NOERROR | LIBXML_NOWARNING)) {
+        if (!$xml_reader->open($this->file, null, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING)) {
             return [];
         }
 
@@ -707,7 +707,7 @@ class DDIReader implements ReaderInterface
     private function simplexml_from_outer_xml(string $xml): \SimpleXMLElement
     {
         $previous = libxml_use_internal_errors(true);
-        $xml_obj = simplexml_load_string($xml);
+        $xml_obj = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NONET);
         $error = libxml_get_last_error();
         libxml_clear_errors();
         libxml_use_internal_errors($previous);

@@ -1008,7 +1008,7 @@ class DD_project_model extends CI_Model {
 			.' OR EXISTS (SELECT 1 FROM dd_collaborators dc WHERE dc.pid = dd_projects.id AND dc.email like %1$s)'
 			.' OR EXISTS (SELECT 1 FROM users u'
 			.' LEFT JOIN meta m ON m.user_id = u.id'
-			.' WHERE (u.email = dd_projects.created_by OR (dd_projects.uid IS NOT NULL AND dd_projects.uid > 0 AND u.id = dd_projects.uid))'
+			.' WHERE (u.email = dd_projects.created_by OR u.username = dd_projects.created_by)'
 			.' AND (u.email like %1$s OR u.username like %1$s OR m.first_name like %1$s OR m.last_name like %1$s))'
 			.' OR EXISTS (SELECT 1 FROM dd_collaborators dc'
 			.' INNER JOIN users u ON u.email = dc.email'

@@ -42,9 +42,6 @@ function catalog_search_debug_enabled()
 	if (filter_var($CI->config->item('semantic_search_debug'), FILTER_VALIDATE_BOOLEAN)) {
 		return true;
 	}
-	if (filter_var($CI->config->item('opensearch_debug'), FILTER_VALIDATE_BOOLEAN)) {
-		return true;
-	}
 	return false;
 }
 

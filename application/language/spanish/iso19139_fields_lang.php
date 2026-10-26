@@ -13,6 +13,7 @@ $lang['distribution']="Distribución
 ";
 $lang['citation.title']="Título
 ";
+$lang['citation.alternateTitle']="Título alternativo";
 $lang['citation.date']="Fecha
 ";
 $lang['citation.date.date']="Fecha
@@ -146,6 +147,10 @@ $lang['lineage.processStep.processor']="Procesador
 $lang['resourceMaintenance.maintenanceAndUpdateFrequency']="Frecuencia de actualización
 ";
 
+
+$lang['spatialResolution']="Resolución espacial";
+$lang['spatialResolution.uom']="Unidad de medida";
+$lang['spatialResolution.value']="Valor";
 
 /* End of file iso19139_fields */
 /* Location: ./application/language/spanish/iso19139_fields */

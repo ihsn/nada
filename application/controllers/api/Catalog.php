@@ -39,6 +39,39 @@ class Catalog extends MY_REST_Controller
 	}
 
 	/**
+	 * Unpublished studies are returned only to a caller with study view.
+	 * Everyone else gets the same not-found error as a missing id.
+	 *
+	 * @param int $sid
+	 * @return void
+	 */
+	private function _require_public_dataset($sid)
+	{
+		$uid = $this->get_api_user_id();
+		if ($this->acl_manager->dataset_is_publicly_readable($sid, $uid ? (int) $uid : null)) {
+			return;
+		}
+
+		throw new Exception('DATASET_NOT_FOUND');
+	}
+
+	/**
+	 * Page size for per-study variable listing (no keyword).
+	 */
+	private function get_variables_list_page_size()
+	{
+		$page_size_min = 1;
+		$page_size_max = 1000;
+		$page_size = (int) $this->input->get('ps');
+
+		if ($page_size >= $page_size_min && $page_size <= $page_size_max) {
+			return $page_size;
+		}
+
+		return 100;
+	}
+
+	/**
 	 * Same rules as web Catalog: keyword listing → relevance desc; browse → site default / title.
 	 *
 	 * @return array{0:string,1:string}
@@ -82,6 +115,7 @@ class Catalog extends MY_REST_Controller
 			}
 
 			$sid=$this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 
 			$result=$this->Dataset_model->get_row($sid);
 			array_walk($result, 'unix_date_to_gmt_row',array('created','changed'));
@@ -136,6 +170,7 @@ class Catalog extends MY_REST_Controller
 			}
 
 			$sid = $this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 
 			$this->load->library('catalog_admin');
 			$info = $this->catalog_admin->get_study_pdf($sid);
@@ -751,6 +786,7 @@ class Catalog extends MY_REST_Controller
 
 		try{			
 			$sid=$this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 
 			$user_id=$this->get_api_user_id();        
 			$survey=$this->Dataset_model->get_row($sid);
@@ -790,6 +826,7 @@ class Catalog extends MY_REST_Controller
 
 		try{			
 			$sid=$this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 
 			$user_id=$this->get_api_user_id();        
 			$survey=$this->Dataset_model->get_row($sid);
@@ -829,6 +866,7 @@ class Catalog extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 			$user_id=$this->get_api_user_id();        
 			$survey=$this->Dataset_model->get_row($sid);
 
@@ -870,7 +908,7 @@ class Catalog extends MY_REST_Controller
 	 * Behaviour:
 	 *   idno + var_id  → single variable
 	 *   idno + ?sk=    → per-study keyword search (v_quick_search)
-	 *   idno           → list all variables for study
+	 *   idno           → paginated variable list (?page=, ?ps= default 100, max 1000)
 	 *   (no idno)      → catalog-wide variable search (vsearch)
 	 *
 	 */
@@ -897,6 +935,7 @@ class Catalog extends MY_REST_Controller
 		// Per-study: list or keyword search
 		try{
 			$sid    = $this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 			$survey = $this->Dataset_model->get_row($sid);
 
 			if(!$survey){
@@ -934,10 +973,18 @@ class Catalog extends MY_REST_Controller
 					'variables' => $variables['rows']   ?? array(),
 				);
 			} else {
-				$variables = $this->Variable_model->list_by_dataset($sid);
-				$response  = array(
-					'found'     => count($variables),
-					'total'     => count($variables),
+				$limit  = $this->get_variables_list_page_size();
+				$page   = max(1, (int) $this->input->get('page'));
+				$offset = ($page - 1) * $limit;
+				$total  = $this->Variable_model->get_variables_count($sid);
+				$variables = $this->Variable_model->list_by_dataset($sid, null, false, $limit, $offset);
+
+				$response = array(
+					'found'     => $total,
+					'total'     => $total,
+					'limit'     => $limit,
+					'offset'    => $offset,
+					'page'      => $page,
 					'variables' => $variables,
 				);
 			}
@@ -1052,6 +1099,7 @@ class Catalog extends MY_REST_Controller
 			}
 
 			$sid=$this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 			$user_id=$this->get_api_user_id();        
 			$variable=$this->Variable_model->get_var_by_vid($sid,$var_id);
 
@@ -1183,6 +1231,7 @@ class Catalog extends MY_REST_Controller
 	{
 		try{			
 			$sid=$this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 			$dataset=$this->Dataset_model->get_row($sid);
 
 			if (!$dataset){
@@ -1222,6 +1271,7 @@ class Catalog extends MY_REST_Controller
 	{
 		try{			
 			$sid=$this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 			
 			if (!$sid){
 				throw new Exception("IDNO_NOT_FOUND");
@@ -1265,13 +1315,14 @@ class Catalog extends MY_REST_Controller
 	{
 		try{			
 			$sid=$this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 			$this->load->model('Catalog_model');
 
 			header("Content-Type: application/xml");
 			header('Content-Encoding: UTF-8');
 			header( "Content-Disposition: attachment;filename=study-$idno.rdf");
 
-			echo $this->Catalog_model->get_survey_rdf($sid);
+			echo $this->Catalog_model->get_survey_rdf($sid, true);
 			die();
         }		
 		catch(Exception $e){
@@ -1293,8 +1344,22 @@ class Catalog extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 			$this->load->model("Survey_resource_model");
 			$resources=$this->Survey_resource_model->get_survey_resources($sid);
+			$access=$this->Form_model->get_form_by_survey($sid);
+			if (isset($access['model']) && $access['model']==='licensed'){
+				$kept=array();
+				foreach($resources as $resource){
+					$type=isset($resource['resource_type']) ? $resource['resource_type'] : null;
+					$dctype=isset($resource['dctype']) ? $resource['dctype'] : '';
+					if ($this->Survey_resource_model->is_microdata_resource_type($type) || $this->Survey_resource_model->is_microdata_resource($dctype)){
+						continue;
+					}
+					$kept[]=$resource;
+				}
+				$resources=$kept;
+			}
 			array_walk($resources, 'unix_date_to_gmt',array('created','changed'));
 			
 			foreach($resources as $idx=>$resource){				
@@ -1338,6 +1403,7 @@ class Catalog extends MY_REST_Controller
 			}
 
 			$sid = $this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 			$this->load->model('Survey_resource_model');
 			$this->load->library('Downloads_service');
 
@@ -1380,6 +1446,7 @@ class Catalog extends MY_REST_Controller
 	{
 		try{			
 			$sid=$this->get_sid_from_idno($idno);
+			$this->_require_public_dataset($sid);
 			$thumbnail=$this->Dataset_model->get_thumbnail($sid);
 
 			if (!$thumbnail){

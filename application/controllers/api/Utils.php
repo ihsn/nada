@@ -169,7 +169,7 @@ class Utils extends MY_REST_Controller
 	
 	
 
-	public function datasets_publish_by_type_get($type=NULL)
+	public function datasets_publish_by_type_post($type=NULL)
 	{
 		try{
             $options=array(
@@ -194,7 +194,7 @@ class Utils extends MY_REST_Controller
 		}	
 	}	
 
-	public function datasets_unpublish_by_type_get($type=NULL)
+	public function datasets_unpublish_by_type_post($type=NULL)
 	{
 		try{
             $options=array(

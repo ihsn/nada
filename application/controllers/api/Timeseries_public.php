@@ -155,18 +155,28 @@ class Timeseries_public extends MY_REST_Controller {
 				$strip = $this->Timeseries_mongo_model->strip_public_observation_fields($arr);
 				$obs[] = $this->Timeseries_mongo_model->append_public_observation_timeseries_fields($arr, $strip);
 			}
-			$built       = $this->Timeseries_mongo_model->build_catalog_chart_records($obs, $ctx['components']);
+			$this->load->library('Indicator_data_notes');
+			$footnote_cols = Indicator_data_notes::footnote_column_names($ctx['components']);
+			$built       = $this->Timeseries_mongo_model->build_catalog_chart_records($obs, $ctx['components'], $footnote_cols);
 			$records     = isset($built['records']) && is_array($built['records']) ? $built['records'] : array();
 			$time_bounds = isset($built['time_bounds']) && is_array($built['time_bounds']) ? $built['time_bounds'] : array();
 			$tb_min      = array_key_exists('min', $time_bounds) ? $time_bounds['min'] : null;
 			$tb_max      = array_key_exists('max', $time_bounds) ? $time_bounds['max'] : null;
 			$scanned     = count($obs);
 			$truncated   = $scanned > $maxRaw;
+
+			// Note text for the notes used by these records, and table notes (shown under every view).
+			$study_notes   = Indicator_data_notes::notes_from_metadata($this->Dataset_model->get_metadata((int) $ctx['sid']));
+			$notes_missing = array();
+			$notes         = Indicator_data_notes::dictionary_for_records($records, $study_notes, $notes_missing);
+
 			$this->set_response([
 				'status' => 'success',
 				'result' => [
-					'records'  => $records,
-					'metadata' => [
+					'records'     => $records,
+					'notes'       => (object) $notes,
+					'table_notes' => Indicator_data_notes::table_notes($study_notes),
+					'metadata'    => [
 						'source_rows_scanned' => $scanned,
 						'chart_points'        => count($records),
 						'raw_row_limit'       => $maxRaw,
@@ -175,7 +185,46 @@ class Timeseries_public extends MY_REST_Controller {
 							'min' => $tb_min,
 							'max' => $tb_max,
 						),
+						'footnote_columns'    => $footnote_cols,
+						'notes_missing'       => $notes_missing,
 					],
+				],
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->_error_response($e);
+		}
+	}
+
+	/**
+	 * Data notes of an indicator study: footnote columns and note text.
+	 *
+	 * GET .../data/{idno}/notes
+	 * Cells reference notes by ID in the footnote columns (several separated by ';').
+	 * Result: footnote_columns[], notes[{ id, note, column? }] (cell notes), table_notes[{ id, note }].
+	 */
+	public function data_notes_get($idno = null)
+	{
+		try {
+			$ctx = $this->_context_from_idno_public($idno);
+			$this->load->library('Indicator_data_notes');
+			$study_notes = Indicator_data_notes::notes_from_metadata($this->Dataset_model->get_metadata((int) $ctx['sid']));
+			$cell_notes = array();
+			foreach ($study_notes as $n) {
+				if (Indicator_data_notes::scope_of($n) !== 'cell' || empty($n['id'])) {
+					continue;
+				}
+				$entry = array('id' => (string) $n['id'], 'note' => isset($n['note']) ? (string) $n['note'] : '');
+				if (!empty($n['column'])) {
+					$entry['column'] = (string) $n['column'];
+				}
+				$cell_notes[] = $entry;
+			}
+			$this->set_response([
+				'status' => 'success',
+				'result' => [
+					'footnote_columns' => Indicator_data_notes::footnote_column_names($ctx['components']),
+					'notes'            => $cell_notes,
+					'table_notes'      => Indicator_data_notes::table_notes($study_notes),
 				],
 			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {

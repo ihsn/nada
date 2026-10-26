@@ -1,34 +1,40 @@
 <template>
-  <v-card flat rounded="0">
-    <v-card-title class="d-flex align-center">
-      <span>Table information</span>
+  <div class="tables-tab-panel pa-4">
+    <div class="d-flex align-center mb-4">
       <v-spacer />
       <v-btn color="primary" size="small" prepend-icon="mdi-content-save" :loading="saving" @click="save">
         Save changes
       </v-btn>
-    </v-card-title>
-    <v-card-text>
-      <v-row>
-        <v-col cols="12" md="6">
-          <v-text-field v-model="info.db_id" label="Database ID" readonly variant="outlined" density="compact" />
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-text-field v-model="info.table_id" label="Table ID" readonly variant="outlined" density="compact" />
-        </v-col>
-        <v-col cols="12">
-          <v-text-field v-model="info.title" label="Title" variant="outlined" density="compact" />
-        </v-col>
-        <v-col cols="12">
-          <v-textarea v-model="info.description" label="Description" variant="outlined" rows="3" />
-        </v-col>
-      </v-row>
-    </v-card-text>
-  </v-card>
+    </div>
+    <v-row>
+      <v-col cols="12" md="6">
+        <TablesFormField label="Database ID">
+          <v-text-field v-model="info.db_id" readonly variant="outlined" density="compact" hide-details />
+        </TablesFormField>
+      </v-col>
+      <v-col cols="12" md="6">
+        <TablesFormField label="Table ID">
+          <v-text-field v-model="info.table_id" readonly variant="outlined" density="compact" hide-details />
+        </TablesFormField>
+      </v-col>
+      <v-col cols="12">
+        <TablesFormField label="Title">
+          <v-text-field v-model="info.title" variant="outlined" density="compact" hide-details />
+        </TablesFormField>
+      </v-col>
+      <v-col cols="12">
+        <TablesFormField label="Description">
+          <v-textarea v-model="info.description" variant="outlined" rows="3" hide-details />
+        </TablesFormField>
+      </v-col>
+    </v-row>
+  </div>
 </template>
 
 <script setup>
 import { reactive, ref, watch } from 'vue';
 import { useTablesApi } from '../../composables/useTablesApi';
+import TablesFormField from '../TablesFormField.vue';
 
 const props = defineProps({
   dbId: { type: String, required: true },

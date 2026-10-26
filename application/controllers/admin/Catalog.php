@@ -708,14 +708,7 @@ class Catalog extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/catalog');
-			}
+			nada_redirect($destination, 'admin/catalog');
 		}
 		else if ($this->input->post('submit')!='')
 		{
@@ -748,7 +741,7 @@ class Catalog extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 
-			if ($destination!="")
+			if (is_local_redirect($destination))
 			{
 				//redirect($destination);
 			}
@@ -1112,14 +1105,7 @@ class Catalog extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/catalog');
-			}
+			nada_redirect($destination, 'admin/catalog');
 		}
 		else if ($this->input->post('submit')!='')
 		{
@@ -1611,7 +1597,8 @@ class Catalog extends MY_Controller {
 				'apiBaseUrl'          => site_url('api/admin/catalog/'),
 				'uploadsApiUrl'       => rtrim(site_url('api/uploads'), '/') . '/',
 				'resourcesEditBase'   => rtrim(site_url('admin/resources/edit'), '/'),
-				'managefilesEditBase' => rtrim(site_url('admin/managefiles/' . (int) $id . '/edit'), '/'),
+				// Read by the built files screen. Creates a resource for a file that has none yet.
+				'managefilesEditBase' => rtrim(site_url('admin/resources/edit/add/' . (int) $id), '/'),
 				'labels'              => array(
 					'name'                 => t('name'),
 					'size'                 => t('size'),
@@ -2128,9 +2115,7 @@ class Catalog extends MY_Controller {
 	{
 		$result=$this->Repository_model->set_featured_study($repositoryid,$sid,$status);
 
-		if ($this->input->get('destination')){
-			redirect($this->input->get('destination'));
-		}
+		nada_redirect($this->input->get('destination'));
 
 		if ($this->input->get("ajax")){
 			echo json_encode(array('status'=>$result));

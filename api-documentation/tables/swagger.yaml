@@ -169,7 +169,22 @@ paths:
         tags:
           - Data Operations
         summary: Get table data
-        description: Get table data
+        description: |
+          Returns table rows with optional pagination and filters.
+
+          **Filters** must use field names from the table data dictionary. Parameter names are matched
+          case-insensitively to dictionary fields. Unknown query parameters (other than reserved API params)
+          return HTTP 400 with `UNKNOWN_FILTER_FIELD`.
+
+          **Reserved query parameters** (not treated as filters): `limit`, `offset`, `fields`, `ft_query`,
+          `debug`, `format`, `disposition`, `indicator`, `c`. Reserved names are matched case-insensitively
+          (e.g. `LIMIT` and `limit` both control pagination).
+
+          Filter values are coerced using each field's dictionary `data_type` (e.g. integer fields expect
+          numeric filters). After changing types in the dictionary, re-import stored CSV data so MongoDB
+          values match.
+
+          Use `c[field_name]=value` for filters when a column name conflicts with a reserved parameter.
         operationId: getTableData
         consumes:
           - application/json
@@ -238,6 +253,17 @@ paths:
         responses:
           '200':
             description: successful operation
+          '400':
+            description: Validation error (e.g. unknown filter field)
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: failed
+                message:
+                  type: string
+                  example: "UNKNOWN_FILTER_FIELD: typo_field"
         security:
           - ApiKeyAuth: []       
   
@@ -294,7 +320,7 @@ paths:
                         description: Field description
                       data_type:
                         type: string
-                        description: Data type (string, integer, float, double, date, boolean, datetime, array, object, null)
+                        description: Data type (string, integer, float, date, boolean, datetime, array, object)
                       column_type:
                         type: string
                         description: Column type (dimension, time_period, measure, attribute, indicator_id, indicator_name, geography, observation_value, periodicity)
@@ -528,6 +554,120 @@ paths:
                   type: string
                   enum: ["delete_data_first", "reset_import"]
                   description: "Action to take to resolve the error"
+        security:
+          - ApiKeyAuth: []
+
+  /tables/validate/{dbId}/{tableId}:
+      get:
+        tags:
+          - Table Management
+        summary: Validate table
+        description: |
+          Checks table definition, data dictionary, stored CSV on disk, imported data columns, saved indexes, and import progress.
+          Returns `valid: true` when there are no errors (warnings may still be present).
+
+          CSV header checks assume comma delimiter (same default as import). Data checks include case-insensitive
+          duplicate column names and a sample-row comparison of BSON types vs dictionary `data_type`.
+        operationId: validateTable
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+        responses:
+          '200':
+            description: Validation report
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                valid:
+                  type: boolean
+                summary:
+                  type: object
+                  properties:
+                    errors:
+                      type: integer
+                    warnings:
+                      type: integer
+                    issues:
+                      type: integer
+                issues:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      section:
+                        type: string
+                      severity:
+                        type: string
+                        enum: [error, warning]
+                      code:
+                        type: string
+                      message:
+                        type: string
+                context:
+                  type: object
+          '400':
+            description: Request failed
+        security:
+          - ApiKeyAuth: []
+
+  /tables/import/reload/{dbId}/{tableId}:
+      post:
+        tags:
+          - Data Import
+        summary: Re-import from stored CSV
+        description: |
+          Drops existing table data, resets import progress, and runs a fresh import from the CSV path saved on the table definition (`csv_file_path`).
+          Accepts the same body parameters as `/tables/import/{dbId}/{tableId}` (delimiter, max_time, status).
+        operationId: importCsvReload
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "path"
+            name: "dbId"
+            type: string
+            required: true
+          - in: "path"
+            name: "tableId"
+            type: string
+            required: true
+          - in: "body"
+            name: "body"
+            required: false
+            schema:
+              type: object
+              properties:
+                status:
+                  type: boolean
+                  default: false
+                max_time:
+                  type: integer
+                  minimum: 10
+                  maximum: 120
+                  default: 30
+                delimiter:
+                  type: string
+                  enum: ["comma", "tab", "semicolon", ",", ";"]
+                  default: "comma"
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: "#/definitions/ImportResponse"
+          '400':
+            description: Validation error (no stored CSV, import failure, etc.)
         security:
           - ApiKeyAuth: []
 
@@ -1780,8 +1920,8 @@ definitions:
         description: "Field description"
       data_type:
         type: string
-        description: "Data type (string, integer, float, double, date, boolean, datetime, array, object, null)"
-        enum: ["string", "integer", "float", "double", "date", "boolean", "datetime", "array", "object", "null"]
+        description: "Data type (string, integer, float, date, boolean, datetime, array, object). Legacy values double and null are normalized to float and string."
+        enum: ["string", "integer", "float", "date", "boolean", "datetime", "array", "object"]
       column_type:
         type: string
         description: "Semantic column type"
@@ -1792,9 +1932,6 @@ definitions:
       unit_of_measurement:
         type: string
         description: "Unit of measurement"
-      format:
-        type: string
-        description: "Format specification"
       time_period_format:
         type: string
         description: "Time period format (e.g., YYYY, YYYY-MM)"

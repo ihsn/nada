@@ -61,7 +61,6 @@ ALTER TABLE `survey_years` ENGINE = Innodb;
 ALTER TABLE `surveys` ENGINE = Innodb;
 ALTER TABLE `tags` ENGINE = Innodb;
 ALTER TABLE `terms` ENGINE = Innodb;
-ALTER TABLE `url_mappings` ENGINE = Innodb;
 ALTER TABLE `user_repo_permissions` ENGINE = Innodb;
 ALTER TABLE `users` ENGINE = Innodb;
 ALTER TABLE `users_groups` ENGINE = Innodb;

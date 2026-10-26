@@ -35,7 +35,7 @@ class Resources extends MY_REST_Controller
 			}
 			
 			$sid=$this->get_sid_from_idno($idno);
-			//$this->has_dataset_access('view',$sid);
+			$this->has_dataset_access('view',$sid);
 
 			$dctype_raw = $this->input->get('dctype');
 			$dctype = is_string($dctype_raw) ? trim($dctype_raw) : $dctype_raw;

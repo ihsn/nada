@@ -27,6 +27,10 @@ $lang['Translate']="Traducir";
 $lang['Data deposit']="Depositar datos";
 $lang['Data tables']="Tablas de datos";
 $lang['Display manager']="Administrador de visualización";
+$lang['Analytics']="Analítica";
+$lang['API Logs']="Registros de API";
+$lang['Site Logs']="Registros del sitio";
+$lang['Database migration']="Actualizaciones de la base de datos";
 
 
 /* End of file site_menu */

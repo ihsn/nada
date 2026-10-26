@@ -47,7 +47,7 @@ class Datadeposit extends MY_Controller
 			show_error('INVALID ID');
 		}
 		if (!$this->DD_project_model->has_access($id, $this->session->userdata('email'))) {
-			$this->session->set_flashdata('error', t('Access Denied: You don\'t have access to the project'));
+			$this->session->set_flashdata('error', t('dd_access_denied_project'));
 			redirect('datadeposit/projects');
 			return;
 		}
@@ -92,7 +92,7 @@ class Datadeposit extends MY_Controller
 
 		$config = $this->_deposit_spa_config($id);
 		$content = $this->load->view('datadeposit/vue_app', array('config' => $config), true);
-		$this->template->write('title', t('Data Deposit - ').$this->_deposit_spa_title($config), true);
+		$this->template->write('title', t('datadeposit').' - '.$this->_deposit_spa_title($config), true);
 		$this->template->write('content', $content, true);
 		$this->template->render();
 	}
@@ -161,6 +161,7 @@ class Datadeposit extends MY_Controller
 			'uploadsApiUrl'        => rtrim(site_url('api/uploads'), '/').'/',
 			'allowedResourceTypes' => $this->config->item('allowed_resource_types'),
 			'depositMaxUploadMb'   => datadeposit_max_upload_mb(),
+			'fieldLimits'          => datadeposit_field_limits_for_vue(),
 			'projectTypes'         => $this->_deposit_creatable_project_types(),
 			'flashMessage'         => (string) $this->session->flashdata('message'),
 			'flashError'           => (string) $this->session->flashdata('error'),
@@ -268,8 +269,8 @@ class Datadeposit extends MY_Controller
 			'showAllHelp'               => t('metadata_show_help'),
 			'hideAllHelp'               => t('metadata_hide_help'),
 			'filterAll'                 => t('all'),
-			'filterRequired'            => t('required'),
-			'filterRecommended'         => t('recommended'),
+			'filterRequired'            => t('dd_filter_required'),
+			'filterRecommended'         => t('dd_filter_recommended'),
 			'searchFields'              => t('search'),
 			'noMatchingFields'          => t('no_records_found'),
 			'containerOverview'         => t('metadata_container_overview'),
@@ -296,7 +297,7 @@ class Datadeposit extends MY_Controller
 			'title'                     => t('title'),
 			'shortname'                 => t('shortname'),
 			'description'               => t('description'),
-			'collaborators'             => t('collaborator'),
+			'collaborators'             => t('dd_collaborators'),
 			'collaboratorHelp'          => t('create_collab'),
 			'filesHelp'                 => t('dd_files_help'),
 			'dropZoneHint'              => t('dd_drop_zone'),

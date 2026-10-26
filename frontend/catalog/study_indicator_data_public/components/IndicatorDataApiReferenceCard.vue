@@ -24,6 +24,28 @@
           </v-btn>
         </div>
 
+        <div class="text-body-2 font-weight-medium mb-1">{{ ui.notesLabel || 'Data notes' }}</div>
+        <div class="text-caption text-medium-emphasis mb-1">
+          {{ ui.notesDesc || 'Footnote columns hold note IDs (several separated by ;). This returns the footnote columns, the text of each note, and notes for the whole table.' }}
+        </div>
+        <div class="api-line mb-4">
+          <code class="api-ref-url">{{ notesUrl }}</code>
+          <v-btn icon size="x-small" variant="text" :aria-label="ui.copyUrl" @click="copyUrl(notesUrl)">
+            <v-icon size="18">mdi-content-copy</v-icon>
+          </v-btn>
+          <v-btn
+            icon
+            size="x-small"
+            variant="text"
+            :aria-label="ui.openUrl"
+            :href="notesUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <v-icon size="18">mdi-open-in-new</v-icon>
+          </v-btn>
+        </div>
+
         <div class="text-body-2 font-weight-medium mb-1">{{ ui.dataLabel }}</div>
         <div class="api-line mb-4">
           <code class="api-ref-url">{{ dataUrl }}</code>
@@ -111,6 +133,7 @@ const base = computed(() => String(props.dataBaseUrl || '').replace(/\/$/, ''));
 
 const schemaUrl = computed(() => (base.value ? `${base.value}/schema` : ''));
 const dataUrl = computed(() => (base.value ? `${base.value}` : ''));
+const notesUrl = computed(() => (base.value ? `${base.value}/notes` : ''));
 
 const paramRows = computed(() => {
   const u = props.ui || {};

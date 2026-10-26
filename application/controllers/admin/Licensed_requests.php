@@ -304,23 +304,29 @@ class Licensed_requests extends MY_Controller {
 			
 			$this->Licensed_model->add_request_history($requestid,$options);
 			
-			if ($file_options!=NULL)
-			{
-				//update file options (if set)
-				$this->Licensed_model->update_request_files($requestid,$file_options);
-			}	
-			
-			//delete files that were unchecked
-			$excluded=NULL;
-			
-			if ( is_array($file_options))
-			{
-				$excluded=array_keys($file_options);				
+			try {
+				if ($file_options!=NULL)
+				{
+					//update file options (if set)
+					$this->Licensed_model->update_request_files($requestid,$file_options);
+				}
+
+				//delete files that were unchecked
+				$excluded=NULL;
+
+				if ( is_array($file_options))
+				{
+					$excluded=array_keys($file_options);
+				}
+
+				$this->Licensed_model->delete_request_files($requestid,$excluded);
+
+				echo '<div class="success">'.t('form_update_success').'</div>';
 			}
-				
-			$this->Licensed_model->delete_request_files($requestid,$excluded);			
-			
-			echo '<div class="success">'.t('form_update_success').'</div>';
+			catch (Exception $e) {
+				echo '<div class="error">'.htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8').'</div>';
+				return;
+			}
 		}
 		
 		//notify user
@@ -651,14 +657,7 @@ class Licensed_requests extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/licensed_requests');
-			}	
+			nada_redirect($destination, 'admin/licensed_requests');
 		}
 		else if ($this->input->post('submit')!='')
 		{
@@ -682,14 +681,7 @@ class Licensed_requests extends MY_Controller {
 			//redirect page url
 			$destination=$this->input->get_post('destination');
 			
-			if ($destination!="")
-			{
-				redirect($destination);
-			}
-			else
-			{
-				redirect('admin/licensed_requests');
-			}	
+			nada_redirect($destination, 'admin/licensed_requests');
 		}
 		else
 		{

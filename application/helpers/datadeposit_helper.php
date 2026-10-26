@@ -42,6 +42,46 @@ function datadeposit_max_upload_bytes()
 /**
  * Allowed extensions for deposit files (from config.php; not editable in Site settings).
  */
+/**
+ * Character limits for data-deposit forms (must match dd_projects column capacity).
+ *
+ * @return array{title: int, shortname: int, description: int, submission_text: int, submission_disclosure_text: int, submission_cc: int}
+ */
+function datadeposit_field_limits()
+{
+	$ci =& get_instance();
+	$ci->config->load('datadeposit');
+	$limits = $ci->config->item('field_limits', 'datadeposit');
+	if (!is_array($limits)) {
+		$limits = array();
+	}
+	$defaults = array(
+		'title'           => 500,
+		'shortname'       => 255,
+		'description'                => 5000,
+		'submission_text'            => 2000,
+		'submission_disclosure_text' => 2000,
+		'submission_cc'              => 500,
+	);
+	return array_merge($defaults, $limits);
+}
+
+/**
+ * Limits for the Vue SPA (camelCase keys).
+ */
+function datadeposit_field_limits_for_vue()
+{
+	$limits = datadeposit_field_limits();
+	return array(
+		'title'          => (int) $limits['title'],
+		'shortname'      => (int) $limits['shortname'],
+		'description'    => (int) $limits['description'],
+		'submissionText'           => (int) $limits['submission_text'],
+		'submissionDisclosureText' => (int) $limits['submission_disclosure_text'],
+		'submissionCc'             => (int) $limits['submission_cc'],
+	);
+}
+
 function datadeposit_allowed_resource_types()
 {
 	$ci =& get_instance();

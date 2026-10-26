@@ -1,18 +1,23 @@
 <template>
   <div class="edit-table-page">
-    <v-breadcrumbs :items="breadcrumbItems" class="tables-breadcrumbs px-0 pt-0">
-      <template #divider>
-        <v-icon icon="mdi-chevron-right" size="16" />
+    <TablesBreadcrumbs :items="breadcrumbItems" />
+
+    <TablesPageHeader :title="pageTitle" icon="mdi-database">
+      <template #meta>
+        <v-chip v-if="rowCount !== null" size="small" variant="tonal" color="primary" prepend-icon="mdi-database">
+          {{ rowCount.toLocaleString() }} rows
+        </v-chip>
       </template>
-    </v-breadcrumbs>
+      <template #subtitle>
+        <span class="text-body-2 text-medium-emphasis">
+          <code class="text-caption">{{ dbId }}</code>
+          <span class="mx-1">/</span>
+          <code class="text-caption">{{ tableId }}</code>
+        </span>
+      </template>
+    </TablesPageHeader>
 
-    <v-row align="center" class="mb-4">
-      <v-col cols="12" md="8">
-        <h1 class="text-h5 font-weight-semibold text-high-emphasis mb-0">Edit table</h1>
-      </v-col>
-    </v-row>
-
-    <v-card v-if="loading" elevation="1" class="mb-4">
+    <v-card v-if="loading" class="admin-tables-surface mb-4" rounded="lg" elevation="1">
       <v-card-text class="text-center py-12">
         <v-progress-circular indeterminate color="primary" size="64" />
         <p class="text-medium-emphasis mt-4">Loading table information…</p>
@@ -20,10 +25,11 @@
     </v-card>
 
     <template v-else>
-      <v-alert v-if="error" type="error" closable class="mb-4" @click:close="error = ''">{{ error }}</v-alert>
-      <v-alert v-if="success" type="success" closable class="mb-4" @click:close="success = ''">{{ success }}</v-alert>
+      <v-alert v-if="error" type="error" closable variant="tonal" density="compact" class="mb-4" @click:close="error = ''">
+        {{ error }}
+      </v-alert>
 
-      <v-card elevation="1">
+      <v-card class="tables-edit-shell admin-tables-surface" rounded="lg" elevation="1">
         <v-tabs v-model="activeTab" color="primary">
           <v-tab value="info">Table information</v-tab>
           <v-tab value="data">Data management</v-tab>
@@ -49,15 +55,11 @@
               :db-id="dbId"
               :table-id="tableId"
               @fields-changed="onFieldsChanged"
+              @stats-updated="onStatsUpdated"
             />
           </v-window-item>
           <v-window-item value="dictionary">
-            <TableDictionaryTab
-              ref="dictionaryRef"
-              :db-id="dbId"
-              :table-id="tableId"
-              @toast="showToast"
-            />
+            <TableDictionaryTab ref="dictionaryRef" :db-id="dbId" :table-id="tableId" />
           </v-window-item>
           <v-window-item value="indexes">
             <TableIndexesTab ref="indexesRef" :db-id="dbId" :table-id="tableId" />
@@ -68,18 +70,16 @@
         </v-window>
       </v-card>
     </template>
-
-    <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="2500" location="top">
-      {{ snackbarText }}
-    </v-snackbar>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, inject } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useTablesApi } from '../composables/useTablesApi';
+import TablesBreadcrumbs from '../components/TablesBreadcrumbs.vue';
+import TablesPageHeader from '../components/TablesPageHeader.vue';
 import TableInfoTab from '../components/edit/TableInfoTab.vue';
 import TableDataExplorer from '../components/TableDataExplorer.vue';
 import TableDictionaryTab from '../components/edit/TableDictionaryTab.vue';
@@ -96,6 +96,7 @@ defineOptions({ name: 'EditTablePage' });
 const route = useRoute();
 const { siteUrl } = useAppConfig();
 const api = useTablesApi();
+const setMessage = inject('setMessage', () => {});
 
 const siteBaseUrl = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));
 const breadcrumbItems = computed(() => [
@@ -108,36 +109,35 @@ const dbId = ref(props.db_id);
 const tableId = ref(props.table_id);
 const loading = ref(true);
 const error = ref('');
-const success = ref('');
 const activeTab = ref('info');
 const tableTitle = ref('');
 const tableDescription = ref('');
-const snackbar = ref(false);
-const snackbarText = ref('');
-const snackbarColor = ref('success');
+const rowCount = ref(null);
+
+const pageTitle = computed(() => tableTitle.value?.trim() || 'Edit table');
 
 const dataExplorerRef = ref(null);
 const dictionaryRef = ref(null);
 const indexesRef = ref(null);
 const studiesRef = ref(null);
 
-function showToast(text, color = 'success') {
-  snackbarText.value = text;
-  snackbarColor.value = color;
-  snackbar.value = true;
-}
-
 function onInfoSaved(msg) {
-  success.value = msg;
+  setMessage(msg, 'success');
   loadTableMeta();
 }
 
 function onError(msg) {
-  error.value = msg;
+  setMessage(msg, 'error');
 }
 
 function onFieldsChanged() {
   dictionaryRef.value?.loadSchema?.();
+}
+
+function onStatsUpdated(count) {
+  if (typeof count === 'number') {
+    rowCount.value = count;
+  }
 }
 
 async function loadTableMeta() {
@@ -147,6 +147,7 @@ async function loadTableMeta() {
     const result = await api.fetchTableInfo(dbId.value, tableId.value);
     tableTitle.value = result.metadata?.title || '';
     tableDescription.value = result.metadata?.description || '';
+    rowCount.value = typeof result.count === 'number' ? result.count : null;
   } catch (e) {
     error.value = 'Error loading table: ' + (e.response?.data?.message || e.message);
   } finally {
@@ -167,20 +168,12 @@ watch(
 );
 
 watch(activeTab, (tab) => {
+  if (tab === 'data') {
+    dataExplorerRef.value?.refreshFieldMetaMap?.().then(() => dataExplorerRef.value?.loadPreviewData?.());
+  }
   if (tab === 'indexes') indexesRef.value?.loadIndexes?.();
   if (tab === 'studies') studiesRef.value?.loadStudies?.();
 });
 
 onMounted(() => loadTableMeta());
 </script>
-
-<style scoped>
-.tables-breadcrumbs {
-  font-size: 0.8125rem;
-  margin-bottom: 0.5rem;
-}
-.tables-breadcrumbs :deep(.v-breadcrumbs-item),
-.tables-breadcrumbs :deep(.v-breadcrumbs-divider) {
-  font-size: 0.8125rem;
-}
-</style>

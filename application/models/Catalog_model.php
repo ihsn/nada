@@ -487,11 +487,29 @@ class Catalog_model extends CI_Model {
 	* Get survey external resources as RDF
 	*
 	*/
-	function get_survey_rdf($id)
+	function get_survey_rdf($id, $omit_licensed_microdata = false)
 	{
 		$this->db->select('*');
-		$this->db->where('survey_id', $id); 
+		$this->db->where('survey_id', $id);
 		$rows=$this->db->get('resources')->result_array();
+
+		if ($omit_licensed_microdata) {
+			$this->load->model('Form_model');
+			$this->load->model('Survey_resource_model');
+			$access = $this->Form_model->get_form_by_survey($id);
+			if (isset($access['model']) && $access['model'] === 'licensed') {
+				$kept = array();
+				foreach ($rows as $row) {
+					$type = isset($row['resource_type']) ? $row['resource_type'] : null;
+					$dctype = isset($row['dctype']) ? $row['dctype'] : '';
+					if ($this->Survey_resource_model->is_microdata_resource_type($type) || $this->Survey_resource_model->is_microdata_resource($dctype)) {
+						continue;
+					}
+					$kept[] = $row;
+				}
+				$rows = $kept;
+			}
+		}
 
 		foreach ($rows as $i => $row) {
 			$filename = isset($row['filename']) ? $row['filename'] : '';

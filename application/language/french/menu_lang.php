@@ -63,6 +63,9 @@ $lang['upload_failed']="Échec du téléversement";
 $lang['upload_failed_prefix']="Échec du téléversement : ";
 $lang['network_error_upload']="Erreur réseau lors du téléversement.";
 $lang['close']="Fermer";
+$lang['showing %d-%d of %d']="Affichage de %d-%d sur %d";
+$lang['parent_page']="Page parente";
+$lang['none_top_level']="Aucune (niveau supérieur)";
 
 /* End of file menu_lang.php */
 /* Location: ./application/language/french/menu_lang.php */

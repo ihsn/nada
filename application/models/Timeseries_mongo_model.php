@@ -1855,7 +1855,7 @@ class Timeseries_mongo_model extends CI_Model {
 	 * @param array $components          data_structure_components rows
 	 * @return array{records: array<int, array<string, mixed>>, time_bounds: array{min: ?string, max: ?string}}
 	 */
-	public function build_catalog_chart_records(array $public_observations, array $components)
+	public function build_catalog_chart_records(array $public_observations, array $components, array $footnote_columns = array())
 	{
 		$geoName = $this->get_component_name_for_column_type($components, 'geography');
 		$freqName = $this->get_component_name_for_column_type($components, 'periodicity');
@@ -1917,14 +1917,17 @@ class Timeseries_mongo_model extends CI_Model {
 			if ($ovName === null || !array_key_exists($ovName, $row)) {
 				continue;
 			}
+			// Notes from footnote columns; an observation without a numeric value is kept only when it has notes.
+			$row_notes = !empty($footnote_columns) ? Indicator_data_notes::row_notes($row, $footnote_columns) : array();
 			$ov = $row[$ovName];
-			if ($ov === null || $ov === '') {
-				continue;
+			if ($ov === null || $ov === '' || !is_numeric($ov)) {
+				if (empty($row_notes)) {
+					continue;
+				}
+				$val = null;
+			} else {
+				$val = (float) $ov;
 			}
-			if (!is_numeric($ov)) {
-				continue;
-			}
-			$val = (float) $ov;
 
 			$k                    = $series_key . "\x00" . $time_period;
 			$dedupe[$k]           = array(
@@ -1934,6 +1937,9 @@ class Timeseries_mongo_model extends CI_Model {
 			);
 			foreach ($series_fields as $fieldName => $fieldValue) {
 				$dedupe[$k][$fieldName] = $fieldValue;
+			}
+			if (!empty($row_notes)) {
+				$dedupe[$k]['notes'] = $row_notes;
 			}
 		}
 

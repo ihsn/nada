@@ -624,6 +624,7 @@ class Study extends MY_Controller {
 	 */
 	public function indicator_table_export($sid)
 	{
+		$this->_require_public_study_view($sid);
 		$this->load->model('Timeseries_dsd_model');
 
 		$survey = $this->Dataset_model->get_row((int) $sid);
@@ -785,6 +786,8 @@ class Study extends MY_Controller {
 	
 	private function render_page($sid, $content, $active_tab='description', $survey_info=null)
 	{
+		$this->_require_public_study_view($sid);
+
         if($this->input->get("print")){
             $this->template->set_template('blank');
         }
@@ -856,6 +859,22 @@ class Study extends MY_Controller {
 		$this->template->write('survey_title', "survey title",true);
 		$this->template->write('content', $html,true);
 		$this->template->render();
+	}
+
+	/**
+	 * Unpublished studies are shown only to an account with study view.
+	 *
+	 * @param int $sid
+	 * @return void
+	 */
+	private function _require_public_study_view($sid)
+	{
+		$uid = $this->session->userdata('user_id');
+		if ($this->acl_manager->dataset_is_publicly_readable($sid, $uid ? (int) $uid : null)) {
+			return;
+		}
+
+		show_404();
 	}
 
 
@@ -1162,6 +1181,7 @@ class Study extends MY_Controller {
 	**/
 	public function search($id)
 	{
+		$this->_require_public_study_view($id);
 		$survey=$this->get_survey_info($id);
 		$this->load->helper('form');
 		$this->load->model("Data_file_model");
@@ -1221,6 +1241,7 @@ class Study extends MY_Controller {
 			show_404();
 		}
 
+		$this->_require_public_study_view($sid);
 		$survey=$this->get_survey_info($sid);
 		$report_file=unix_path($survey['storage_path'].'/ddi-documentation-'.$this->config->item("language").'-'.$survey['id'].'.pdf');
 
@@ -1308,6 +1329,7 @@ class Study extends MY_Controller {
 
 	function export_citation($sid=null,$format='ris')
 	{
+		$this->_require_public_study_view($sid);
 		$this->load->library("Datacite_citation");
 		return $this->datacite_citation->export($sid,$format);
 	}

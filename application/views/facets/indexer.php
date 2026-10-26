@@ -81,7 +81,7 @@ $( ".btn-clear" ).on( "click", function() {
 
 function reindex(start_row=0, limit=5, processed=0)
 {
-    var jqxhr = $.get( "<?php echo site_url('api/facets/reindex/');?>"+start_row + '/'+limit, function(data) {
+    var jqxhr = $.post( "<?php echo site_url('api/facets/reindex/');?>"+start_row + '/'+limit, function(data) {
         console.log(data);
         last_row_id=data.result.last_row_id;
         rows_processed=data.result.rows_processed;
@@ -107,7 +107,7 @@ function reindex(start_row=0, limit=5, processed=0)
 
 function clear_index()
 {
-    var jqxhr = $.get( "<?php echo site_url('api/facets/clear_index/');?>", function(data) {
+    var jqxhr = $.post( "<?php echo site_url('api/facets/clear_index/');?>", function(data) {
         console.log(data);
         
 		$(".index-status").html("Index is cleared" );

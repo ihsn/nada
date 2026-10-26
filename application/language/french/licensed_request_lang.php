@@ -62,7 +62,7 @@ $lang['subject']="Objet";
 $lang['body']="Message";
 $lang['send']="Envoyer";
 $lang['title_download_expired']="Le lien a expiré!";
-$lang['msg_download_limit_reached']="Vous avez atteint votre limite de téléchargement pour ce fichier. Vous êtes limité à%s téléchargements pour ce fichier. Si vous souhaitez augmenter votre nombre de téléchargements autorisés, veuillez demander à %s.";
+$lang['msg_download_limit_reached']="Vous avez atteint votre limite de téléchargement pour ce fichier. Vous êtes limité à %d téléchargements pour ce fichier. Si vous souhaitez augmenter votre nombre de téléchargements autorisés, veuillez demander à %s.";
 $lang['apply']="Appliquer";
 $lang['not_attached_any_licensed_files']="Vous n'avez pas joint de fichiers sous licence à l'enquête, consultez la page &quot;fichiers d'une enquête sous licence» pour configurer les fichiers.";
 $lang['restrict_data_access_by_id']="Restreindre l'accès aux données par adresse IP";
@@ -76,7 +76,7 @@ $lang['dataset_access']="Accès aux données";
 $lang['notification_licensed_survey_request_received']="[Notification] - Réception d'une demande d'un fichier sous license";
 $lang['survey_data_files']="Fichiers de données";
 $lang['dear']="Cher";
-$lang['request_licensed_reviewed']="Votre demande d'accès au fichier sous licence [<b>% s </ b>] a été examinée. Pour voir le résultat, veuillez visiter :";
+$lang['request_licensed_reviewed']="Votre demande d'accès au fichier sous licence [<b>%s</b>] a été examinée. Pour voir le résultat, veuillez visiter :";
 $lang['user_has_requested_licensed']="L'utilisateur <b>%s</b> a demandé l'accès à l'enquête sous licence <b>%s</b>. 
 ";
 $lang['to_view_request_instructions']="Pour afficher la demande, connectez vous à l'administration du site NADA et affichez la page &quot;demandes d'enquête sous license&quot;.";
@@ -123,6 +123,7 @@ $lang['other_materials']="Autres matériels";
 $lang['datasets_requested']="Ensemble(s) de données demandé(s)";
 $lang['request_title']="Titre de la demande";
 $lang['download_microdata_and_resources']="Télécharger les microdonnées et autres documents connexes";
+$lang['msg_date_limit_reached']="Vous avez atteint la date limite de téléchargement pour ce fichier. La date limite était le %s. Si vous souhaitez prolonger le délai d'accès au document, veuillez écrire à %s pour faire modifier la date d'expiration.";
 
 
 /* End of file licensed_request */

@@ -444,7 +444,7 @@ class Resumable_upload {
 		}
 		
 		foreach ($dirs as $dir) {
-			if ($dir == '.' || $dir == '..') {
+			if (!$this->is_valid_upload_id($dir)) { // also skips . and .. and anything not created by init_upload
 				continue;
 			}
 			
@@ -518,7 +518,7 @@ class Resumable_upload {
 				break;
 			}
 			
-			if ($dir == '.' || $dir == '..') {
+			if (!$this->is_valid_upload_id($dir)) { // also skips . and .. and anything not created by init_upload
 				continue;
 			}
 			
@@ -569,11 +569,12 @@ class Resumable_upload {
 	}
 	
 	/**
-	 * Cleanup expired uploads
-	 * 
+	 * Cleanup expired uploads.
+	 *
+	 * @param int|null $owner_user_id When set, only that user's uploads are removed
 	 * @return array Statistics
 	 */
-	public function cleanup_expired_uploads()
+	public function cleanup_expired_uploads($owner_user_id = null)
 	{
 		$stats = array(
 			'checked' => 0,
@@ -593,7 +594,7 @@ class Resumable_upload {
 		}
 		
 		foreach ($dirs as $dir) {
-			if ($dir == '.' || $dir == '..') {
+			if (!$this->is_valid_upload_id($dir)) { // also skips . and .. and anything not created by init_upload
 				continue;
 			}
 			
@@ -603,11 +604,14 @@ class Resumable_upload {
 				continue;
 			}
 			
-			$stats['checked']++;
-			
 			// Check metadata
 			$metadata_path = unix_path($upload_path . '/metadata.json');
 			if (!file_exists($metadata_path)) {
+				// No owner recorded; a scoped cleanup leaves these for the full cleanup
+				if ($owner_user_id !== null) {
+					continue;
+				}
+				$stats['checked']++;
 				// No metadata, delete if old enough
 				if (@filemtime($upload_path) < $expiry_time) {
 					if ($this->delete_directory($upload_path)) {
@@ -623,6 +627,15 @@ class Resumable_upload {
 			if (!$metadata) {
 				continue;
 			}
+
+			if ($owner_user_id !== null) {
+				$owner = isset($metadata['_upload_owner_user_id']) ? (int) $metadata['_upload_owner_user_id'] : 0;
+				if ($owner !== (int) $owner_user_id) {
+					continue;
+				}
+			}
+
+			$stats['checked']++;
 			
 			// Delete expired uploads (complete or incomplete)
 			// For completed uploads, use completed_at if available, otherwise updated_at
@@ -1149,7 +1162,21 @@ class Resumable_upload {
 	 */
 	private function get_upload_path($upload_id)
 	{
+		// upload_id comes from the request; only accept the UUID form generate_upload_id() makes,
+		// so it cannot point outside temp_path.
+		if (!$this->is_valid_upload_id($upload_id)) {
+			throw new Exception("INVALID_INPUT: upload_id is not valid");
+		}
 		return unix_path($this->temp_path . '/' . $upload_id);
+	}
+
+	/**
+	 * TRUE for a lowercase UUID v4 string, the form generate_upload_id() returns.
+	 */
+	private function is_valid_upload_id($upload_id)
+	{
+		return is_string($upload_id)
+			&& preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/D', $upload_id) === 1;
 	}
 	
 	/**
