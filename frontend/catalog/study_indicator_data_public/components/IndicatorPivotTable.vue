@@ -60,7 +60,13 @@
               class="indicator-pivot-table__cell"
               :class="{ 'indicator-pivot-table__cell--group-start': col.groupStart }"
             >
-              {{ row.cells[col.key] }}
+              <span v-if="cellMarkers(row, col.key).length" class="indicator-pivot-table__noted">
+                {{ row.cells[col.key] }}<sup class="indicator-pivot-table__marker">{{ cellMarkers(row, col.key).join(',') }}</sup>
+                <v-tooltip activator="parent" location="bottom" max-width="420">
+                  <div v-for="line in noteLines(cellMarkers(row, col.key), notes, missingNoteText)" :key="line">{{ line }}</div>
+                </v-tooltip>
+              </span>
+              <template v-else>{{ row.cells[col.key] }}</template>
             </td>
           </tr>
         </template>
@@ -76,6 +82,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { noteLines } from '@/shared/timeseries/indicatorNotes.js';
 
 defineOptions({ name: 'IndicatorPivotTable' });
 
@@ -94,7 +101,18 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  /** Notes list of the view (applyPivotNotes); rows carry `noteMarkers: { colKey: number[] }`. */
+  notes: {
+    type: Array,
+    default: () => [],
+  },
 });
+
+const missingNoteText = 'No text available for this note.';
+
+function cellMarkers(row, colKey) {
+  return (row.noteMarkers && row.noteMarkers[colKey]) || [];
+}
 
 const cornerIsEmpty = computed(() => !String(props.cornerHeaderTitle ?? '').trim());
 
@@ -186,6 +204,17 @@ function sectionIndent(depth) {
 
 .indicator-pivot-table__cell {
   text-align: right;
+}
+
+.indicator-pivot-table__noted {
+  cursor: help;
+  border-bottom: 1px dotted rgba(var(--v-theme-on-surface), 0.4);
+}
+
+.indicator-pivot-table__marker {
+  font-size: 0.7em;
+  margin-left: 2px;
+  color: rgb(var(--v-theme-primary));
 }
 
 .indicator-pivot-table__row-header {

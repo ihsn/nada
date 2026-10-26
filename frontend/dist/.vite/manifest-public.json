@@ -1,6 +1,6 @@
 {
-  "_IndicatorEmbedDialog-CyShguEY.js": {
-    "file": "assets/public/IndicatorEmbedDialog-CyShguEY.js",
+  "_IndicatorEmbedDialog-BLaUXd83.js": {
+    "file": "assets/public/IndicatorEmbedDialog-BLaUXd83.js",
     "name": "IndicatorEmbedDialog",
     "imports": [
       "_VCombobox-CS3ANgok.js",
@@ -228,6 +228,21 @@
     "file": "assets/public/VSwitch-CaOOdN36.css",
     "src": "_VSwitch-CaOOdN36.css"
   },
+  "_VTooltip-CuqY8xvv.js": {
+    "file": "assets/public/VTooltip-CuqY8xvv.js",
+    "name": "VTooltip",
+    "imports": [
+      "_VSelect-BAIRfDFh.js",
+      "_VApp-BipbZKIw.js"
+    ],
+    "css": [
+      "assets/public/VTooltip-DQf8u3X6.css"
+    ]
+  },
+  "_VTooltip-DQf8u3X6.css": {
+    "file": "assets/public/VTooltip-DQf8u3X6.css",
+    "src": "_VTooltip-DQf8u3X6.css"
+  },
   "_index-DhXgJQ-f.js": {
     "file": "assets/public/index-DhXgJQ-f.js",
     "name": "index"
@@ -247,8 +262,8 @@
       "_VApp-BipbZKIw.js"
     ]
   },
-  "_usePublicTimeseriesApi-C7LzZT-q.js": {
-    "file": "assets/public/usePublicTimeseriesApi-C7LzZT-q.js",
+  "_usePublicTimeseriesApi-DuJaQL-u.js": {
+    "file": "assets/public/usePublicTimeseriesApi-DuJaQL-u.js",
     "name": "usePublicTimeseriesApi",
     "imports": [
       "_index-DhXgJQ-f.js",
@@ -256,7 +271,7 @@
     ]
   },
   "catalog-search/components/CatalogDocumentPdfDialog.vue": {
-    "file": "assets/public/CatalogDocumentPdfDialog-DtklwjXI.js",
+    "file": "assets/public/CatalogDocumentPdfDialog-DHrL6Aql.js",
     "name": "CatalogDocumentPdfDialog",
     "src": "catalog-search/components/CatalogDocumentPdfDialog.vue",
     "isDynamicEntry": true,
@@ -280,7 +295,7 @@
     ]
   },
   "catalog-search/components/CatalogImageGallery.vue": {
-    "file": "assets/public/CatalogImageGallery-BKANSogE.js",
+    "file": "assets/public/CatalogImageGallery-iV5_wt1i.js",
     "name": "CatalogImageGallery",
     "src": "catalog-search/components/CatalogImageGallery.vue",
     "isDynamicEntry": true,
@@ -288,21 +303,22 @@
       "_VApp-BipbZKIw.js",
       "catalog-search/main.js",
       "_VChip-BY-Zsb2-.js",
-      "_VSelect-BAIRfDFh.js",
+      "_VTooltip-CuqY8xvv.js",
       "_VMain-BeLT2AuK.js",
       "_VContainer-BQsYBVoP.js",
       "_useI18n-wdqM6LTZ.js",
+      "_VSelect-BAIRfDFh.js",
       "_VRow-D76IKcIF.js",
       "_VCard-DBKiEN8b.js",
       "_VPagination-Cchc6DPE.js",
       "_VSwitch-CMgciDlB.js"
     ],
     "css": [
-      "assets/public/CatalogImageGallery-Bm1BGh01.css"
+      "assets/public/CatalogImageGallery-DbPXi4E8.css"
     ]
   },
   "catalog-search/components/CatalogStudySemanticPages.vue": {
-    "file": "assets/public/CatalogStudySemanticPages-Euhfrtws.js",
+    "file": "assets/public/CatalogStudySemanticPages-rMoHPzgv.js",
     "name": "CatalogStudySemanticPages",
     "src": "catalog-search/components/CatalogStudySemanticPages.vue",
     "isDynamicEntry": true,
@@ -320,7 +336,7 @@
     ]
   },
   "catalog-search/components/CatalogStudyVariableMatches.vue": {
-    "file": "assets/public/CatalogStudyVariableMatches-DvIqZ3fP.js",
+    "file": "assets/public/CatalogStudyVariableMatches-Dn2I4vHs.js",
     "name": "CatalogStudyVariableMatches",
     "src": "catalog-search/components/CatalogStudyVariableMatches.vue",
     "isDynamicEntry": true,
@@ -346,7 +362,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableCompareCart.vue": {
-    "file": "assets/public/CatalogVariableCompareCart-D0XDAqUc.js",
+    "file": "assets/public/CatalogVariableCompareCart-DtDhAHH9.js",
     "name": "CatalogVariableCompareCart",
     "src": "catalog-search/components/CatalogVariableCompareCart.vue",
     "isDynamicEntry": true,
@@ -371,7 +387,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableDetailDialog.vue": {
-    "file": "assets/public/CatalogVariableDetailDialog-ofImUV73.js",
+    "file": "assets/public/CatalogVariableDetailDialog-CZi4isQo.js",
     "name": "CatalogVariableDetailDialog",
     "src": "catalog-search/components/CatalogVariableDetailDialog.vue",
     "isDynamicEntry": true,
@@ -394,7 +410,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableResultsList.vue": {
-    "file": "assets/public/CatalogVariableResultsList-YyqWSA15.js",
+    "file": "assets/public/CatalogVariableResultsList-BJ-CQ1sO.js",
     "name": "CatalogVariableResultsList",
     "src": "catalog-search/components/CatalogVariableResultsList.vue",
     "isDynamicEntry": true,
@@ -446,7 +462,7 @@
     ]
   },
   "catalog-search/main.js": {
-    "file": "assets/public/catalog_search-D5x_GXcl.js",
+    "file": "assets/public/catalog_search-3QS8xGMm.js",
     "name": "catalog_search",
     "src": "catalog-search/main.js",
     "isEntry": true,
@@ -476,7 +492,7 @@
     ]
   },
   "catalog/study_indicator_data_public/main.js": {
-    "file": "assets/public/catalog_study_indicator_data-BFKOm-G1.js",
+    "file": "assets/public/catalog_study_indicator_data-sJBuxhAd.js",
     "name": "catalog_study_indicator_data",
     "src": "catalog/study_indicator_data_public/main.js",
     "isEntry": true,
@@ -502,14 +518,14 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorChartTab.vue": {
-    "file": "assets/public/IndicatorChartTab-BiPdcCBQ.js",
+    "file": "assets/public/IndicatorChartTab-BTjC1NPk.js",
     "name": "IndicatorChartTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorChartTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-BipbZKIw.js",
-      "_IndicatorEmbedDialog-CyShguEY.js",
-      "_usePublicTimeseriesApi-C7LzZT-q.js",
+      "_IndicatorEmbedDialog-BLaUXd83.js",
+      "_usePublicTimeseriesApi-DuJaQL-u.js",
       "_VChip-BY-Zsb2-.js",
       "_VRow-D76IKcIF.js",
       "_VCard-DBKiEN8b.js",
@@ -525,18 +541,18 @@
       "_VPagination-Cchc6DPE.js"
     ],
     "css": [
-      "assets/public/IndicatorChartTab-BdtkJeVY.css"
+      "assets/public/IndicatorChartTab-BkXnxaP3.css"
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorDataApiTab.vue": {
-    "file": "assets/public/IndicatorDataApiTab-BnZoQfvN.js",
+    "file": "assets/public/IndicatorDataApiTab-DQYs2e1U.js",
     "name": "IndicatorDataApiTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorDataApiTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-BipbZKIw.js",
       "_index-DhXgJQ-f.js",
-      "_usePublicTimeseriesApi-C7LzZT-q.js",
+      "_usePublicTimeseriesApi-DuJaQL-u.js",
       "_VChip-BY-Zsb2-.js",
       "_VExpansionPanels-CDUzSxMY.js",
       "_VDataTable-DCv_Odlf.js",
@@ -546,17 +562,17 @@
       "_VMain-BeLT2AuK.js"
     ],
     "css": [
-      "assets/public/IndicatorDataApiTab-BdZcr3i8.css"
+      "assets/public/IndicatorDataApiTab-QY0zer_t.css"
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorStructureTab.vue": {
-    "file": "assets/public/IndicatorStructureTab-CtnglPVC.js",
+    "file": "assets/public/IndicatorStructureTab-c-tXnDOY.js",
     "name": "IndicatorStructureTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorStructureTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-BipbZKIw.js",
-      "_usePublicTimeseriesApi-C7LzZT-q.js",
+      "_usePublicTimeseriesApi-DuJaQL-u.js",
       "_VChip-BY-Zsb2-.js",
       "_VRow-D76IKcIF.js",
       "_VCard-DBKiEN8b.js",
@@ -571,18 +587,19 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue": {
-    "file": "assets/public/IndicatorTableTab-Bo03EDNN.js",
+    "file": "assets/public/IndicatorTableTab-BrfZ8ghf.js",
     "name": "IndicatorTableTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-BipbZKIw.js",
-      "_IndicatorEmbedDialog-CyShguEY.js",
-      "_usePublicTimeseriesApi-C7LzZT-q.js",
+      "_IndicatorEmbedDialog-BLaUXd83.js",
+      "_usePublicTimeseriesApi-DuJaQL-u.js",
       "_VChip-BY-Zsb2-.js",
       "_VExpansionPanels-CDUzSxMY.js",
       "_VCheckbox-Ba_GbTH8.js",
       "_VSelect-BAIRfDFh.js",
+      "_VTooltip-CuqY8xvv.js",
       "_VRow-D76IKcIF.js",
       "_VCard-DBKiEN8b.js",
       "_VCombobox-CS3ANgok.js",
@@ -591,7 +608,7 @@
       "_VMain-BeLT2AuK.js"
     ],
     "css": [
-      "assets/public/IndicatorTableTab-CmTD4ENE.css"
+      "assets/public/IndicatorTableTab-DEOSpm_F.css"
     ]
   },
   "datadeposit/main.js": {

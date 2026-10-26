@@ -47,6 +47,8 @@ class Indicator_table_export {
 
 		$pivot = $this->_build_pivot($records, $row_dims, $col_dims, $tp_comp, $time_order, $label_map, $sort_map);
 
+		$notes = $this->_apply_notes($pivot, isset($options['study_notes']) ? (array) $options['study_notes'] : []);
+
 		$title         = isset($options['title'])         ? (string) $options['title']         : '';
 		$dataset_title = isset($options['dataset_title']) ? (string) $options['dataset_title'] : '';
 		return $this->_render_html(
@@ -55,7 +57,8 @@ class Indicator_table_export {
 			$pivot['body_sections'],
 			$pivot['show_row_labels'],
 			$title,
-			$dataset_title
+			$dataset_title,
+			$notes
 		);
 	}
 
@@ -86,13 +89,16 @@ class Indicator_table_export {
 
 		$pivot = $this->_build_pivot($records, $row_dims, $col_dims, $tp_comp, $time_order, $label_map, $sort_map);
 
+		$notes = $this->_apply_notes($pivot, isset($options['study_notes']) ? (array) $options['study_notes'] : []);
+
 		$dataset_title = isset($options['dataset_title']) ? (string) $options['dataset_title'] : '';
 		return $this->_render_xlsx(
 			$pivot['header_rows'],
 			$pivot['leaf_columns'],
 			$pivot['body_sections'],
 			$pivot['show_row_labels'],
-			$dataset_title
+			$dataset_title,
+			$notes
 		);
 	}
 
@@ -144,7 +150,9 @@ class Indicator_table_export {
 			$strip = $CI->Timeseries_mongo_model->strip_public_observation_fields($arr);
 			$obs[] = $CI->Timeseries_mongo_model->append_public_observation_timeseries_fields($arr, $strip);
 		}
-		$built = $CI->Timeseries_mongo_model->build_catalog_chart_records($obs, $components);
+		$CI->load->library('Indicator_data_notes');
+		$footnote_cols = Indicator_data_notes::footnote_column_names($components);
+		$built = $CI->Timeseries_mongo_model->build_catalog_chart_records($obs, $components, $footnote_cols);
 		$records = isset($built['records']) && is_array($built['records']) ? $built['records'] : [];
 
 		$row_dims = $this->_decode_dim_list(isset($query['table_rows']) ? $query['table_rows'] : '');
@@ -157,7 +165,11 @@ class Indicator_table_export {
 		}
 
 		$maps = $this->_codelist_maps($CI, $components, $tp_comp);
-		$options = ['dataset_title' => (string) $dataset_title];
+		$CI->load->model('Dataset_model');
+		$options = [
+			'dataset_title' => (string) $dataset_title,
+			'study_notes'   => Indicator_data_notes::notes_from_metadata($CI->Dataset_model->get_metadata((int) $sid)),
+		];
 		$safe_idno = preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $idno);
 		$format = strtolower(trim(isset($query['format']) ? (string) $query['format'] : ''));
 
@@ -256,13 +268,16 @@ class Indicator_table_export {
 	{
 		// 1. Collect cells and unique paths
 		$cells        = [];
+		$cell_notes   = [];
 		$col_path_map = [];
 		$row_path_map = [];
 
 		foreach ($records as $rec) {
 			if (!is_array($rec)) continue;
 			$val = isset($rec['observation_value']) ? $rec['observation_value'] : null;
-			if ($val === null || $val === '' || !is_numeric($val)) continue;
+			$has_value = !($val === null || $val === '' || !is_numeric($val));
+			$ids = $this->_record_note_ids($rec);
+			if (!$has_value && !$ids) continue;
 
 			$col_path = $col_dims ? $this->_build_path($col_dims, $rec, $tp_comp) : [];
 			$row_path = $row_dims ? $this->_build_path($row_dims, $rec, $tp_comp) : [];
@@ -276,7 +291,14 @@ class Indicator_table_export {
 			if ($col_dims) $col_path_map[$col_key] = $col_path;
 			if ($row_dims) $row_path_map[$row_key] = $row_path;
 
-			$cells[$row_key . "\x01" . $col_key] = (float) $val;
+			$ck = $row_key . "\x01" . $col_key;
+			// A noted observation without a value is kept as null and shown as '..'.
+			$cells[$ck] = $has_value ? (float) $val : null;
+			if ($ids) {
+				$cell_notes[$ck] = $ids;
+			} else {
+				unset($cell_notes[$ck]);
+			}
 		}
 
 		// 2. Sort paths
@@ -312,7 +334,113 @@ class Indicator_table_export {
 			'leaf_columns'    => $leaf_columns,
 			'body_sections'   => $body_sections,
 			'show_row_labels' => $show_row_labels,
+			'cell_notes'      => $cell_notes,
 		];
+	}
+
+	// ── Private: notes ────────────────────────────────────────────────────────
+
+	/**
+	 * Unique note IDs of a chart record (`notes` = { footnote column => ids[] }).
+	 *
+	 * @param array $rec
+	 * @return string[]
+	 */
+	private function _record_note_ids(array $rec)
+	{
+		$out = [];
+		if (empty($rec['notes']) || !is_array($rec['notes'])) {
+			return $out;
+		}
+		foreach ($rec['notes'] as $ids) {
+			foreach ((array) $ids as $id) {
+				$id = trim((string) $id);
+				if ($id !== '' && !in_array($id, $out, true)) {
+					$out[] = $id;
+				}
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Number cell notes in reading order (rows, then columns) and mark rows in place:
+	 * row['markers'][col_key] = number[], row['noted_missing'][col_key] = true.
+	 *
+	 * @param array $pivot       from _build_pivot (body_sections modified in place)
+	 * @param array $study_notes study data_notes
+	 * @return array { table_notes: string[], notes: [ { number, text } ] }
+	 */
+	private function _apply_notes(array &$pivot, array $study_notes)
+	{
+		$text_by_id = [];
+		$table_notes = [];
+		foreach ($study_notes as $n) {
+			if (!is_array($n)) continue;
+			$id = isset($n['id']) ? trim((string) $n['id']) : '';
+			$note = isset($n['note']) ? trim((string) $n['note']) : '';
+			if (isset($n['scope']) && strtolower(trim((string) $n['scope'])) === 'table') {
+				if ($note !== '') $table_notes[] = $note;
+				continue;
+			}
+			if ($id !== '') $text_by_id[$id] = $note;
+		}
+
+		$number_by_id = [];
+		$order = [];
+		$cell_notes = isset($pivot['cell_notes']) ? $pivot['cell_notes'] : [];
+		foreach ($pivot['body_sections'] as &$section) {
+			if (empty($section['rows'])) continue;
+			foreach ($section['rows'] as &$row) {
+				foreach ($pivot['leaf_columns'] as $col) {
+					$ck = $row['row_key'] . "\x01" . $col['key'];
+					if (empty($cell_notes[$ck])) continue;
+					$nums = [];
+					foreach ($cell_notes[$ck] as $id) {
+						if (!isset($number_by_id[$id])) {
+							$order[] = $id;
+							$number_by_id[$id] = count($order);
+						}
+						$nums[] = $number_by_id[$id];
+					}
+					$nums = array_values(array_unique($nums));
+					sort($nums);
+					$row['markers'][$col['key']] = $nums;
+					if (!isset($row['cells'][$col['key']]) || $row['cells'][$col['key']] === null) {
+						$row['noted_missing'][$col['key']] = true;
+					}
+				}
+			}
+			unset($row);
+		}
+		unset($section);
+
+		$notes = [];
+		foreach ($order as $i => $id) {
+			$text = isset($text_by_id[$id]) && $text_by_id[$id] !== '' ? $text_by_id[$id] : 'No text available for this note.';
+			$notes[] = ['number' => $i + 1, 'text' => $text];
+		}
+		return ['table_notes' => $table_notes, 'notes' => $notes];
+	}
+
+	/**
+	 * "1. text" lines for marker numbers.
+	 *
+	 * @param int[] $numbers
+	 * @param array $notes [ { number, text } ]
+	 * @return string[]
+	 */
+	private function _note_lines(array $numbers, array $notes)
+	{
+		$by_number = [];
+		foreach ($notes as $n) {
+			$by_number[$n['number']] = $n['text'];
+		}
+		$out = [];
+		foreach ($numbers as $num) {
+			$out[] = $num . '. ' . (isset($by_number[$num]) ? $by_number[$num] : '');
+		}
+		return $out;
 	}
 
 	// ── Private: path helpers ─────────────────────────────────────────────────
@@ -605,7 +733,7 @@ class Indicator_table_export {
 		return htmlspecialchars((string) $str, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 	}
 
-	private function _render_html(array $header_rows, array $leaf_columns, array $body_sections, $show_row_labels, $title, $dataset_title)
+	private function _render_html(array $header_rows, array $leaf_columns, array $body_sections, $show_row_labels, $title, $dataset_title, array $notes = [])
 	{
 		$corner_rowspan = count($header_rows);
 		$col_count      = count($leaf_columns);
@@ -673,7 +801,17 @@ class Indicator_table_export {
 					$cls = 'export-table__cell';
 					if (!empty($col['group_start'])) $cls .= ' export-table__cell--group-start';
 					$val = isset($row['cells'][$col['key']]) ? $this->_format_value($row['cells'][$col['key']]) : '';
-					echo '<td class="' . $this->_h($cls) . '">' . $this->_h($val) . '</td>' . "\n";
+					if (!empty($row['noted_missing'][$col['key']])) {
+						$val = '..';
+					}
+					$sup = '';
+					$tip = '';
+					if (!empty($row['markers'][$col['key']])) {
+						$nums = $row['markers'][$col['key']];
+						$sup = '<sup class="export-table__marker">' . $this->_h(implode(',', $nums)) . '</sup>';
+						$tip = ' title="' . $this->_h(implode("\n", $this->_note_lines($nums, isset($notes['notes']) ? $notes['notes'] : []))) . '"';
+					}
+					echo '<td class="' . $this->_h($cls) . '"' . $tip . '>' . $this->_h($val) . $sup . '</td>' . "\n";
 				}
 				echo '</tr>' . "\n";
 			}
@@ -682,6 +820,21 @@ class Indicator_table_export {
 		echo '</tbody>' . "\n";
 		echo '</table>' . "\n";
 		echo '</div>' . "\n";
+		if (!empty($notes['table_notes']) || !empty($notes['notes'])) {
+			echo '<div class="export-notes">' . "\n";
+			echo '<h3 class="export-notes__title">Notes</h3>' . "\n";
+			foreach ($notes['table_notes'] as $tn) {
+				echo '<p class="export-notes__table-note">' . $this->_h($tn) . '</p>' . "\n";
+			}
+			if (!empty($notes['notes'])) {
+				echo '<ol class="export-notes__items">' . "\n";
+				foreach ($notes['notes'] as $n) {
+					echo '<li value="' . (int) $n['number'] . '">' . $this->_h($n['text']) . '</li>' . "\n";
+				}
+				echo '</ol>' . "\n";
+			}
+			echo '</div>' . "\n";
+		}
 		echo '</body>' . "\n";
 		echo '</html>' . "\n";
 
@@ -695,6 +848,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;f
 .export-title{font-size:18px;font-weight:600;margin:0 0 4px}
 .export-subtitle{font-size:14px;font-weight:400;color:#555;margin:0 0 16px}
 .export-table-wrap{overflow-x:auto}
+.export-table__marker{font-size:0.7em;margin-left:2px;color:#1565c0}
+.export-notes{margin-top:16px;max-width:960px}
+.export-notes__title{font-size:14px;font-weight:600;margin:0 0 6px}
+.export-notes__table-note{margin:0 0 6px}
+.export-notes__items{margin:0;padding-left:24px}
 .export-table{border-collapse:collapse;width:100%;font-size:13px}
 .export-table th,.export-table td{padding:6px 10px;border:1px solid #e0e0e0;white-space:nowrap}
 .export-table__corner{background:#f5f5f5}
@@ -715,7 +873,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;f
 
 	// ── Private: XLSX renderer ────────────────────────────────────────────────
 
-	private function _render_xlsx(array $header_rows, array $leaf_columns, array $body_sections, $show_row_labels, $dataset_title)
+	private function _render_xlsx(array $header_rows, array $leaf_columns, array $body_sections, $show_row_labels, $dataset_title, array $notes = [])
 	{
 		require_once APPPATH . '../modules/fast-excel-writer/vendor/autoload.php';
 
@@ -826,13 +984,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;f
 					$cell_styles[] = $lbl_style;
 				}
 
-				foreach ($leaf_columns as $col) {
+				$cell_notes = [];
+				foreach ($leaf_columns as $ci => $col) {
 					$raw          = isset($row['cells'][$col['key']]) ? $row['cells'][$col['key']] : null;
-					$values[]     = ($raw !== null) ? (float) $raw : '';
+					$values[]     = ($raw !== null) ? (float) $raw : (!empty($row['noted_missing'][$col['key']]) ? '..' : '');
 					$cell_styles[] = !empty($col['group_start']) ? $num_group_style : $num_style;
+					if (!empty($row['markers'][$col['key']])) {
+						// Values stay numeric; the note text goes into an Excel cell note.
+						$addr = \avadim\FastExcelWriter\Excel::colLetter($data_col_start + $ci) . $body_row;
+						$cell_notes[$addr] = implode("\n", $this->_note_lines($row['markers'][$col['key']], isset($notes['notes']) ? $notes['notes'] : []));
+					}
 				}
 
 				$sheet->writeRow($values, null, $cell_styles);
+				foreach ($cell_notes as $addr => $text) {
+					$sheet->addNote($addr, $text);
+				}
 				$body_row++;
 			}
 		}
@@ -843,6 +1010,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;f
 		}
 		for ($i = 0; $i < $col_count; $i++) {
 			$sheet->setColWidth(\avadim\FastExcelWriter\Excel::colLetter($data_col_start + $i), 12);
+		}
+
+		// ── Notes sheet: table notes, then numbered cell notes ────────────────
+		if (!empty($notes['table_notes']) || !empty($notes['notes'])) {
+			$notes_sheet = $excel->makeSheet('Notes');
+			$notes_sheet->writeRow(['Notes'], ['font' => ['style' => 'bold']]);
+			foreach ($notes['table_notes'] as $tn) {
+				$notes_sheet->writeRow(['', $tn]);
+			}
+			if (!empty($notes['notes'])) {
+				$notes_sheet->writeRow(['#', 'Note'], ['font' => ['style' => 'bold']]);
+				foreach ($notes['notes'] as $n) {
+					$notes_sheet->writeRow([(int) $n['number'], $n['text']]);
+				}
+			}
+			$notes_sheet->setColWidth('A', 6);
+			$notes_sheet->setColWidth('B', 100);
 		}
 
 		// ── Save to temp file and return raw bytes ────────────────────────────

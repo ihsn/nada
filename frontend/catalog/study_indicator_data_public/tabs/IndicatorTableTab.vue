@@ -208,6 +208,7 @@
                       <IndicatorPivotTable
                         :model="pivotedModel"
                         :corner-header-title="cornerHeaderTitle"
+                        :notes="tableNotesView.notes"
                         sticky
                       />
                     </div>
@@ -224,6 +225,21 @@
                       {{ filteredObservationCount.toLocaleString() }} observation(s) match.
                     </p>
                   </div>
+
+                  <section
+                    v-if="!tableLoading && pivotedModel && (tableNotes.length || tableNotesView.notes.length)"
+                    class="indicator-notes"
+                    aria-label="Notes"
+                  >
+                    <h3 class="indicator-notes__title">Notes</h3>
+                    <p v-for="(tn, i) in tableNotes" :key="'tn-' + i" class="indicator-notes__table-note">{{ tn.note }}</p>
+                    <ol v-if="tableNotesView.notes.length" class="indicator-notes__items">
+                      <li v-for="n in tableNotesView.notes" :key="n.number" :value="n.number">
+                        <span v-if="!n.missing">{{ n.text }}</span>
+                        <span v-else class="text-medium-emphasis">No text available for this note.</span>
+                      </li>
+                    </ol>
+                  </section>
                 </template>
               </div>
                 </v-col>
@@ -263,6 +279,7 @@ import {
 import { getStudySingletonDimensionKeys, facetShowsFilter } from '@/shared/timeseries/tableLayoutMatrix.js';
 import { buildIndicatorFilterContextLine } from '@/shared/timeseries/indicatorFilterContext.js';
 import { pivotIndicatorTable } from '@/shared/timeseries/pivotIndicatorTable.js';
+import { applyPivotNotes } from '@/shared/timeseries/indicatorNotes.js';
 import {
   buildIndicatorFilterQueryParams,
   readIndicatorFiltersFromQuery,
@@ -304,6 +321,10 @@ const fatalError = ref('');
 const schema = ref(null);
 const filteredObservationCount = ref(0);
 const chartRecords = ref([]);
+/** Note text of the notes used by chartRecords: { id: { note } } */
+const chartNotesDictionary = ref({});
+/** Table notes (scope = table): shown under the table, without markers */
+const tableNotes = ref([]);
 const chartMetadata = ref({});
 const activeFilters = ref(null);
 const appliedLayout = ref(null);
@@ -470,7 +491,11 @@ function resolvePivotLabel(dimKey, code) {
   return resolveCodeLabel(componentName, code);
 }
 
-const pivotedModel = computed(() => {
+/** Pivot with note markers numbered in reading order, and the notes list of the view. */
+const tableNotesView = computed(() => applyPivotNotes(rawPivotedModel.value, chartNotesDictionary.value));
+const pivotedModel = computed(() => tableNotesView.value.model);
+
+const rawPivotedModel = computed(() => {
   if (!layoutApplied.value || !appliedLayout.value) return null;
   return pivotIndicatorTable(chartRecords.value, appliedLayout.value, {
     timePeriodComponentName: timePeriodKey.value,
@@ -718,6 +743,8 @@ async function commitFiltersAndMaybeLoadTable({ loadTable = false } = {}) {
     activeFilters.value = null;
     filteredObservationCount.value = 0;
     chartRecords.value = [];
+    chartNotesDictionary.value = {};
+    tableNotes.value = [];
     if (loadTable) layoutApplied.value = false;
     return false;
   }
@@ -732,6 +759,8 @@ async function commitFiltersAndMaybeLoadTable({ loadTable = false } = {}) {
 async function reloadTableData() {
   if (!activeFilters.value) {
     chartRecords.value = [];
+    chartNotesDictionary.value = {};
+    tableNotes.value = [];
     chartMetadata.value = {};
     return;
   }
@@ -743,9 +772,13 @@ async function reloadTableData() {
     });
     chartRecords.value = res.records || [];
     chartMetadata.value = res.metadata || {};
+    chartNotesDictionary.value = res.notes || {};
+    tableNotes.value = Array.isArray(res.table_notes) ? res.table_notes : [];
   } catch (e) {
     setMessage(e?.response?.data?.message || e?.message || 'Could not load table data.', 'warning');
     chartRecords.value = [];
+    chartNotesDictionary.value = {};
+    tableNotes.value = [];
     chartMetadata.value = {};
   } finally {
     tableLoading.value = false;
@@ -873,6 +906,34 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.indicator-notes {
+  margin-top: 1rem;
+  padding: 0.875rem 1rem 1rem;
+  border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  font-size: 0.875rem;
+  line-height: 1.55;
+  max-width: 960px;
+}
+
+.indicator-notes__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.indicator-notes__table-note {
+  margin: 0 0 0.625rem;
+}
+
+.indicator-notes__items {
+  margin: 0;
+  padding-left: 1.75rem;
+}
+
+.indicator-notes__items li + li {
+  margin-top: 0.25rem;
+}
+
 .catalog-indicator-page {
   max-width: 1320px;
   margin-inline: auto;

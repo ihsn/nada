@@ -120,7 +120,18 @@ export function usePublicTimeseriesApi(studyIdno) {
     return {
       records: r.records ?? [],
       metadata: r.metadata ?? {},
+      /** { id: { note, column? } } for the notes used by `records` */
+      notes: r.notes ?? {},
+      /** [{ id, note }] notes for the whole indicator */
+      table_notes: r.table_notes ?? [],
     };
+  }
+
+  /** Footnote columns and note text: { footnote_columns, notes: [{ id, note }], table_notes } */
+  async function fetchNotes() {
+    const { data } = await axios.get(`${dataPath()}/notes`, { params: noCacheParams({}) });
+    if (data.status !== 'success') throw new Error(data.message || 'Notes request failed');
+    return data.result ?? { footnote_columns: [], notes: [], table_notes: [] };
   }
 
   async function fetchObservations(opts = {}) {
@@ -217,6 +228,7 @@ export function usePublicTimeseriesApi(studyIdno) {
     /** Does not toggle global `loading` (catalog page uses local chartLoading). */
     fetchChartData,
     fetchObservations: (opts) => wrap(fetchObservations(opts)),
+    fetchNotes,
     /** Does not toggle global `loading` (safe for parallel batch fetches). */
     fetchCodelistById,
     /** Server-paginated codelist items (use for large codelists). */

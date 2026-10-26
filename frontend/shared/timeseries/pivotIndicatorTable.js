@@ -4,6 +4,10 @@ import {
   TIME_PERIOD_KEY,
   normalizeTableLayout,
 } from './indicatorSchemaUtils.js';
+import { cellNoteIds } from './indicatorNotes.js';
+
+/** Shown for an observation without a value that carries notes. */
+const NOTED_MISSING_TEXT = '..';
 
 /** Parse "A=x | B=y" series key into { A: "x", B: "y" }. */
 export function seriesColumnsFromKey(seriesKey) {
@@ -199,6 +203,26 @@ function buildFlatColumnHeaders(sortedPaths, dimKeys, resolveLabel) {
 /**
  * Row body with optional nested section banners (outer dims) and leaf row labels (innermost dim).
  */
+/** Cell text: formatted value, '..' for a noted observation without a value, '' for no observation. */
+function cellText(cells, cellNotes, key, formatValue) {
+  const raw = cells.get(key);
+  if (raw != null) return formatValue(raw);
+  return cells.has(key) && cellNotes.has(key) ? NOTED_MISSING_TEXT : '';
+}
+
+/** `{ colKey: ids[] }` for a row, or undefined when no cell has notes. */
+function noteIdsForRow(cellNotes, rowKey, leafColumns) {
+  let out;
+  for (const col of leafColumns) {
+    const ids = cellNotes.get(`${rowKey}\x01${col.key}`);
+    if (ids && ids.length) {
+      out = out || {};
+      out[col.key] = ids;
+    }
+  }
+  return out;
+}
+
 function buildGroupedRowBody(
   sortedRowPaths,
   rowDimKeys,
@@ -206,15 +230,22 @@ function buildGroupedRowBody(
   cells,
   resolveLabel,
   formatValue,
-  useGroupedRows
+  useGroupedRows,
+  cellNotes = new Map()
 ) {
   function cellsForRow(rowKey) {
     const cellMap = {};
     for (const col of leafColumns) {
-      const raw = cells.get(`${rowKey}\x01${col.key}`);
-      cellMap[col.key] = raw != null ? formatValue(raw) : '';
+      cellMap[col.key] = cellText(cells, cellNotes, `${rowKey}\x01${col.key}`, formatValue);
     }
     return cellMap;
+  }
+
+  function rowEntry(rowKey, label) {
+    const row = { rowKey, label, cells: cellsForRow(rowKey) };
+    const noteIds = noteIdsForRow(cellNotes, rowKey, leafColumns);
+    if (noteIds) row.noteIds = noteIds;
+    return row;
   }
 
   function buildSections(paths, dimKeys, level) {
@@ -234,7 +265,7 @@ function buildGroupedRowBody(
             } else if (dimKeys.length > 1) {
               label = buildFlatLabel(parts, dimKeys, resolveLabel);
             }
-            return { rowKey, label, cells: cellsForRow(rowKey) };
+            return rowEntry(rowKey, label);
           }),
         },
       ];
@@ -249,11 +280,7 @@ function buildGroupedRowBody(
           depth: level,
           rows: paths.map((parts) => {
             const rowKey = pathToKey(parts);
-            return {
-              rowKey,
-              label: labelForPathPart(leafDim, parts[parts.length - 1], resolveLabel),
-              cells: cellsForRow(rowKey),
-            };
+            return rowEntry(rowKey, labelForPathPart(leafDim, parts[parts.length - 1], resolveLabel));
           }),
         },
       ];
@@ -308,13 +335,17 @@ export function pivotIndicatorTable(records, layout, options = {}) {
   const useGroupedHeaders = layoutUsesGrouped(norm);
 
   const cells = new Map();
+  /** key => note IDs (cells with notes; a noted observation without a value is stored as null in `cells`) */
+  const cellNotes = new Map();
   const colPathSet = new Map();
   const rowPathSet = new Map();
 
   for (const record of records || []) {
     if (!record || typeof record !== 'object') continue;
     const val = record.observation_value;
-    if (val == null || val === '' || !Number.isFinite(Number(val))) continue;
+    const hasValue = !(val == null || val === '' || !Number.isFinite(Number(val)));
+    const noteIds = cellNoteIds(record);
+    if (!hasValue && !noteIds.length) continue;
 
     const colPath = colDims.length ? buildPath(colDims, record, timePeriodComponentName) : [];
     const rowPath = rowDims.length ? buildPath(rowDims, record, timePeriodComponentName) : [];
@@ -328,7 +359,10 @@ export function pivotIndicatorTable(records, layout, options = {}) {
     if (colDims.length) colPathSet.set(colKey, colPath);
     if (rowDims.length) rowPathSet.set(rowKey, rowPath);
 
-    cells.set(`${rowKey}\x01${colKey}`, Number(val));
+    const cellKey = `${rowKey}\x01${colKey}`;
+    cells.set(cellKey, hasValue ? Number(val) : null);
+    if (noteIds.length) cellNotes.set(cellKey, noteIds);
+    else cellNotes.delete(cellKey);
   }
 
   let sortedColPaths = colDims.length
@@ -371,7 +405,8 @@ export function pivotIndicatorTable(records, layout, options = {}) {
     cells,
     resolveLabel,
     formatValue,
-    useGroupedRows
+    useGroupedRows,
+    cellNotes
   );
 
   const cornerRowspan = colHeaders.headerRows.length;
@@ -383,13 +418,12 @@ export function pivotIndicatorTable(records, layout, options = {}) {
         rowKey: SINGLE_ROW_KEY,
         label: singleRowLabel,
         cells: Object.fromEntries(
-          colHeaders.leafColumns.map((c) => {
-            const raw = cells.get(`${SINGLE_ROW_KEY}\x01${c.key}`);
-            return [c.key, raw != null ? formatValue(raw) : ''];
-          })
+          colHeaders.leafColumns.map((c) => [c.key, cellText(cells, cellNotes, `${SINGLE_ROW_KEY}\x01${c.key}`, formatValue)])
         ),
       },
     ];
+    const singleNoteIds = noteIdsForRow(cellNotes, SINGLE_ROW_KEY, colHeaders.leafColumns);
+    if (singleNoteIds) rows[0].noteIds = singleNoteIds;
     return {
       headerRows: colHeaders.headerRows,
       leafColumns: colHeaders.leafColumns,

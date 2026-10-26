@@ -489,6 +489,7 @@ $route['api/timeseries/data/(:any)/filter-options']             = 'api/timeserie
 $route['api/timeseries/data/(:any)/chart']                      = 'api/timeseries_public/data_chart/$1';
 $route['api/timeseries/data/(:any)/table-export']               = 'api/timeseries_public/data_table_export/$1';
 $route['api/timeseries/data/(:any)/schema']                     = 'api/timeseries_public/data_schema/$1';
+$route['api/timeseries/data/(:any)/notes']                      = 'api/timeseries_public/data_notes/$1';
 $route['api/timeseries/data-structures/by_idno/(:any)']        = 'api/timeseries_public/structure_by_idno/$1';
 $route['api/timeseries/data-structures/by_identity/(:any)']    = 'api/timeseries_public/structure_by_identity/$1';
 $route['api/timeseries/data-structures/versions/(:any)']       = 'api/timeseries_public/structure_versions/$1';
