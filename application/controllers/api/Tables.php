@@ -9,7 +9,19 @@ class Tables extends MY_REST_Controller
 		parent::__construct(); 
 		$this->load->helper("date");
 		$this->load->helper("file_helper");
-		$this->load->model("Data_table_mongo_model");
+
+		// the model connects on load; log the reason and return a generic JSON error
+		try{
+			$this->load->model("Data_table_mongo_model");
+		}
+		catch(Exception $e){
+			log_message('error', 'api/tables: '.$e->getMessage());
+			$this->response(array(
+				'status'=>'failed',
+				'message'=>'The API is not available.'
+			), REST_Controller::HTTP_SERVICE_UNAVAILABLE);
+		}
+
 		$this->load->model("Survey_data_api_model");
 	}
 

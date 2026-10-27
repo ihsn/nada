@@ -20,7 +20,8 @@ class Data_table_mongo_model extends CI_Model {
     public function __construct() 
     {
         parent::__construct();
-        $this->config->load('mongo');        
+        // mongo.php is optional (copied from mongo.sample.php)
+        $this->config->load('mongo', FALSE, TRUE);
         $this->db_name=$this->config->item("mongodb_database");
         $this->mongo_client=$this->get_db_connection();
     }
@@ -33,10 +34,14 @@ class Data_table_mongo_model extends CI_Model {
         $host=$this->config->item("mongodb_host");
         $port=$this->config->item("mongodb_port");
 
+        if (empty($this->db_name) || empty($host)){
+            throw new Exception('MongoDB is not configured. Copy application/config/mongo.sample.php to mongo.php.');
+        }
+
 
 	    if (!empty($username) && !empty($password)){
             return new MongoDB\Client(
-                "mongodb://${host}:${port}",
+                "mongodb://{$host}:{$port}",
                     array(
                         "username" => $username, 
                         "password" => $password, 
@@ -46,7 +51,7 @@ class Data_table_mongo_model extends CI_Model {
         }
         
         return new MongoDB\Client(
-            "mongodb://${host}:${port}",
+            "mongodb://{$host}:{$port}",
                 array(
                     "db"=> $this->get_db_name(), 
                 )
@@ -1146,7 +1151,7 @@ class Data_table_mongo_model extends CI_Model {
 	 * 
 	 * 
 	 */
-   function get_table_data($db_id,$table_id,$limit=100,$offset=0,$options)
+   function get_table_data($db_id,$table_id,$limit=100,$offset=0,$options=array())
    {    
         $limit=intval($limit);
         $offset=intval($offset);
@@ -2509,7 +2514,7 @@ function format_execution_time($seconds)
 
 
 
-   function get_table_aggregate($db_id,$table_id,$limit=100,$offset=0,$options)
+   function get_table_aggregate($db_id,$table_id,$limit=100,$offset=0,$options=array())
    {    
         $limit=intval($limit);
         $offset=intval($offset);

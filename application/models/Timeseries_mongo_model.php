@@ -17,6 +17,9 @@ require_once APPPATH . '../modules/mongodb/vendor/autoload.php';
  */
 class Timeseries_mongo_model extends CI_Model {
 
+	/** Exception code when mongo.php is missing or incomplete. */
+	const ERR_NOT_CONFIGURED = 9001;
+
 	/** @var Timeseries_dsd_model|null */
 	private $timeseries_dsd_model;
 
@@ -61,7 +64,7 @@ class Timeseries_mongo_model extends CI_Model {
 	public function __construct()
 	{
 		parent::__construct();
-		$this->config->load('mongo');
+		$this->config->load('mongo', FALSE, TRUE);
 		$this->config->load('indicator_timeseries');
 		$this->db_name = (string) $this->config->item('mongodb_database');
 		$this->collection_prefix = (string) $this->config->item('indicator_timeseries_collection_prefix');
@@ -109,7 +112,7 @@ class Timeseries_mongo_model extends CI_Model {
 	public function get_mongo_db_name()
 	{
 		if ($this->db_name === '') {
-			throw new RuntimeException('MongoDB database name is not configured (mongodb_database).');
+			throw new RuntimeException('MongoDB database name is not configured (mongodb_database). Copy application/config/mongo.sample.php to mongo.php.', self::ERR_NOT_CONFIGURED);
 		}
 		return $this->db_name;
 	}

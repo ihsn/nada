@@ -10,6 +10,7 @@ application/cache/*
 application/config/database.php
 application/config/email.php
 application/config/auth.local.php
+application/config/mongo.php
 *.bak
 logs/*.php
 cache
