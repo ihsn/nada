@@ -642,13 +642,17 @@ class Study extends MY_Controller {
 		}
 
 		$this->load->library('Indicator_table_export');
-		$this->indicator_table_export->export_and_stream(
-			(int) $sid,
-			$ctx,
-			(array) $this->input->get(),
-			isset($survey['idno']) ? $survey['idno'] : (string) $sid,
-			isset($survey['title']) ? $survey['title'] : ''
-		);
+		try {
+			$this->indicator_table_export->export_and_stream(
+				(int) $sid,
+				$ctx,
+				(array) $this->input->get(),
+				isset($survey['idno']) ? $survey['idno'] : (string) $sid,
+				isset($survey['title']) ? $survey['title'] : ''
+			);
+		} catch (InvalidArgumentException $e) {
+			show_error(html_escape($e->getMessage()), 400);
+		}
 	}
 
 	/**

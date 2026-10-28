@@ -5,6 +5,7 @@ import { createApp } from 'vue';
 import { createVuetify } from 'vuetify';
 import { appTheme } from '@/theme';
 import { APP_CONFIG_KEY } from '@/shared/composables/useAppConfig';
+import { installIndicatorTabLinkFilters } from '@/shared/timeseries/indicatorTabLinkFilters.js';
 import App from './App.vue';
 
 const vuetify = createVuetify({
@@ -14,3 +15,4 @@ const app = createApp(App);
 app.use(vuetify);
 app.provide(APP_CONFIG_KEY, window.APP_CONFIG || {});
 app.mount('#catalog-study-indicator-data-app');
+installIndicatorTabLinkFilters();
