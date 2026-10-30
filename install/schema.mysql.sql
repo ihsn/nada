@@ -1671,8 +1671,7 @@ CREATE TABLE `roles` (
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
 insert into roles(id,name,description, weight, is_admin, is_locked) values 
-(1,'admin','It is the site administrator and has access to all site content', 0,1,1),
-(2,'user','General user account with no access to site administration', 0,1,1);
+(1,'admin','It is the site administrator and has access to all site content', 0,1,1);
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1699,7 +1698,7 @@ CREATE TABLE `user_roles` (
 --
 
 insert into user_roles (user_id, role_id) 
-	select user_id, group_id from users_groups;
+	select user_id, group_id from users_groups where group_id = 1;
 
 
 

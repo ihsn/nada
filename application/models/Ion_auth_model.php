@@ -704,19 +704,7 @@ class Ion_auth_model extends CI_Model
 		    	}
 		    }
 	    }
-		/*
-        // Group ID
-        if(empty($group_name))
-        {
-        	$group_name = $this->config->item('default_group');
-        }
-        
-	    $group_id = $this->db->select('id')
-				    	 ->where('name', $group_name)
-				    	 ->get($this->tables['groups'])
-				    	 ->row()->id;
-		*/
-		
+
 	    // IP Address
         $ip_address = $this->input->ip_address();
 	    
