@@ -110,11 +110,20 @@ class Migration_Analytics_pageview_tracking extends MY_Migration {
 		}
 
 		if ($db_driver === 'mysqli') {
-			$this->db->query("DROP INDEX IF EXISTS `idx_dedup` ON `analytics_pageview_events`");
-			$this->db->query("
-				CREATE INDEX `idx_dedup` ON `analytics_pageview_events`
-				(`study_id`, `session_id`, `section`, `page_url`(191), `ts`)
-			");
+			// MySQL has no DROP INDEX IF EXISTS (MariaDB only), so check first.
+			if ($this->index_exists('analytics_pageview_events', 'idx_dedup')) {
+				$this->assert_db_query(
+					$this->db->query("DROP INDEX `idx_dedup` ON `analytics_pageview_events`"),
+					'DROP INDEX idx_dedup ON analytics_pageview_events'
+				);
+			}
+			$this->assert_db_query(
+				$this->db->query("
+					CREATE INDEX `idx_dedup` ON `analytics_pageview_events`
+					(`study_id`, `session_id`, `section`, `page_url`(191), `ts`)
+				"),
+				'CREATE idx_dedup on analytics_pageview_events'
+			);
 			return;
 		}
 
