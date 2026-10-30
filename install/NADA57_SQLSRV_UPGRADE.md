@@ -6,7 +6,7 @@ Schema changes are applied by PHP migrations. When the web UI times out or ODBC 
 
 Related guides:
 
-- Platform migrations (all databases): [NADA56_UPGRADE_README.md](NADA56_UPGRADE_README.md)
+- Platform migrations (all databases): [UPGRADING.md](UPGRADING.md)
 - Manual SQL (SQL Server, web-only): [NADA57_SQLSRV_MANUAL_RUNBOOK.md](NADA57_SQLSRV_MANUAL_RUNBOOK.md)
 - Legacy data deposit projects: [DATADEPOSIT_MIGRATION.md](DATADEPOSIT_MIGRATION.md)
 

@@ -2,63 +2,46 @@
 
 NADA is an open source microdata cataloging system, compliant with the Data Documentation Initiative (DDI) and Dublin Core’s RDF metadata standards. It serves as a portal for researchers to browse, search, compare, apply for access, and download relevant census or survey datasets, questionnaires, reports and other information.
 
-## Getting Started
+## Documentation
 
-- [NADA documentation ](https://ihsn.github.io/nada-documentation)
-- [API/Schemas documentation](https://ihsn.github.io/nada-api-redoc/catalog-admin/)
+- [NADA documentation](https://ihsn.github.io/nada-documentation/) - user and administrator guide, installation and upgrading
+- [Metadata schemas](https://worldbank.github.io/metadata-schemas/) - schema and API reference
+- [Guide to development data metadata standards](https://worldbank.github.io/guide-metadata-standards/)
+- [Demo catalog](https://nada-demo.ihsn.org/index.php/catalog/) - showcases the supported data types
 
-### Server Requirements
+## Supported data types
 
-* PHP version 7.3 or later
-* MySQL or Microsoft SQL Server database
+`Microdata` (DDI Codebook 2.5), `Document`, `Table`, `Geospatial`, `Timeseries`, `Image`, `Video` and `Script`. See the documentation above for details on each type.
+
+## Requirements
+
+* PHP 7.4 or later
+* MySQL 8 or MariaDB, or Microsoft SQL Server (with Full-Text Search installed)
 * Apache, IIS or NGINX
 
-### Documentation
+## Installation and upgrading
 
-User and admin guide - https://ihsn.github.io/nada-documentation/
+* New installation: [installation guide](https://ihsn.github.io/nada-documentation/installation-guide/)
+* Upgrading: [upgrade guide](install/UPGRADING.md) ([all versions](https://ihsn.github.io/nada-documentation/installation-guide/upgrade/)). Back up the database first, then run `php index.php cli/migrate latest`.
 
-
-### Installation
-
-System requirements and steps for installation - [NADA installation guide](https://ihsn.github.io/nada-documentation/installation-guide/).
-
-
-### Upgrading from older versions of NADA
-
-Documentation for upgrading from various versions - [NADA upgrade guide](install/NADA56_UPGRADE_README.md). Data deposit tables are installed with NADA (or via `migrate latest`); enable the feature in `application/config/datadeposit.php`. Existing v1 projects: [legacy project migration](install/DATADEPOSIT_MIGRATION.md).
-
-### Schema guide
-
-NADA supports multiple data types that include `Microdata` (DDI CodeBook 2.5), `Document`, `Table`, `Geospatial`, `Timeseries`, `Visualization` and `Image`. For all data types, documentation is available in the draft guide (https://mah0001.github.io/schema-guide/). See our demo catalog show casing all support data types - https://nada-demo.ihsn.org/index.php/catalog/
-
-### API documentation
-
-The API documentation is available in OpenAPI/Swagger format here -  https://ihsn.github.io/nada-api-redoc/catalog-admin/
-
-For Getting started with the API, read the `Administrator Guide` section which covers both using the web interface and the API - https://ihsn.github.io/nada-documentation/getting-started/#publishing-a-document
-
-### API Client tools
+## API client tools
 
 * R package - https://github.com/mah0001/nadar
 * Python package - https://pypi.org/project/pynada/
 
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). To report a security vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Versioning
 
-For the versions available, see the [tags on this repository](https://github.com/ihsn/nada/tags). 
-
-
-## Authors
-
-* **IHSN** - [International Household Survey Network](http://ihsn.org)
+For the versions available, see the [tags on this repository](https://github.com/ihsn/nada/tags).
 
 
 ## License
 
-This project is licensed under the MIT License - see the [license.txt](license.txt) file for details
+This project is licensed under the MIT License - see the [license.txt](license.txt) file for details.
 
-## Acknowledgments
+## AI Use
 
-* CodeIgniter
-* Bootstrap
-* todo - other libraries used
+This project uses AI coding assistants to accelerate development, support code generation, and improve documentation. All AI-generated code and documentation is reviewed and tested by the project maintainers, who remain responsible for its quality, security, and reliability.

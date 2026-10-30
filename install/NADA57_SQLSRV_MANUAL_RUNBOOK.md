@@ -30,7 +30,7 @@ Use this when **PHP CLI is unavailable** and the web migration UI times out or h
 | `20260909120003` | `schema.dd.sqlsrv.sql` (if `dd_*` missing), `nada56-datadeposit-alter-sqlsrv.sql` | `dd_projects.data_type` backfill |
 | `20260909120004` | — | `site_user_register` configuration row |
 
-**Target watermark:** `20261030120007`. The migration list below is the pre-consolidation numbering; the work is now grouped into `20261030120001`–`…07` (see NADA56_UPGRADE_README.md), the SQL files and manual steps are unchanged.
+**Target watermark:** `20261030120007`. The migration list below is the pre-consolidation numbering; the work is now grouped into `20261030120001`–`…07` (see UPGRADING.md), the SQL files and manual steps are unchanged.
 
 ---
 
@@ -144,4 +144,4 @@ WHERE t.name = 'variables' AND c.name IN ('fid','vid','labl');
 -- type_name should be nvarchar for all
 ```
 
-See also [NADA57_SQLSRV_UPGRADE.md](NADA57_SQLSRV_UPGRADE.md) and [NADA56_UPGRADE_README.md](NADA56_UPGRADE_README.md).
+See also [NADA57_SQLSRV_UPGRADE.md](NADA57_SQLSRV_UPGRADE.md) and [UPGRADING.md](UPGRADING.md).
