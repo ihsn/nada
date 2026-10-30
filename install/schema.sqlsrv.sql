@@ -1857,12 +1857,6 @@ CREATE TABLE user_roles (
 );
 
 
---
--- migrate admins from previous version
---
-
-insert into user_roles (user_id, role_id) 
-	select user_id, group_id from users_groups where group_id = 1;
 
 
 
