@@ -67,8 +67,48 @@ class Migration_Analytics_pageview_tracking extends MY_Migration {
 		}
 	}
 
+	/**
+	 * Key columns of idx_dedup in order, or an empty array when the index does not exist.
+	 */
+	private function dedup_index_columns($db_driver)
+	{
+		if ($db_driver === 'mysqli') {
+			$result = $this->db->query("
+				SELECT COLUMN_NAME AS col FROM INFORMATION_SCHEMA.STATISTICS
+				WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'analytics_pageview_events' AND INDEX_NAME = 'idx_dedup'
+				ORDER BY SEQ_IN_INDEX
+			");
+		} else {
+			$result = $this->db->query("
+				SELECT c.name AS col FROM sys.indexes i
+				INNER JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id AND ic.is_included_column = 0
+				INNER JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+				WHERE i.object_id = OBJECT_ID(N'analytics_pageview_events') AND i.name = 'idx_dedup'
+				ORDER BY ic.key_ordinal
+			");
+		}
+
+		$cols = array();
+		if ($result) {
+			foreach ($result->result_array() as $row) {
+				$cols[] = $row['col'];
+			}
+		}
+
+		return $cols;
+	}
+
 	private function replace_pageview_dedup_index($db_driver)
 	{
+		$target = ($db_driver === 'mysqli')
+			? array('study_id', 'session_id', 'section', 'page_url', 'ts')
+			: array('study_id', 'session_id', 'section', 'ts');
+
+		if ($this->dedup_index_columns($db_driver) === $target) {
+			echo "idx_dedup already has the target columns; skipping rebuild.\n";
+			return;
+		}
+
 		if ($db_driver === 'mysqli') {
 			$this->db->query("DROP INDEX IF EXISTS `idx_dedup` ON `analytics_pageview_events`");
 			$this->db->query("

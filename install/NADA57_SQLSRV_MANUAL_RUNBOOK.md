@@ -30,7 +30,7 @@ Use this when **PHP CLI is unavailable** and the web migration UI times out or h
 | `20260909120003` | `schema.dd.sqlsrv.sql` (if `dd_*` missing), `nada56-datadeposit-alter-sqlsrv.sql` | `dd_projects.data_type` backfill |
 | `20260909120004` | — | `site_user_register` configuration row |
 
-**Target watermark:** `20260909120004`
+**Target watermark:** `20261030120007`. The migration list below is the pre-consolidation numbering; the work is now grouped into `20261030120001`–`…07` (see NADA56_UPGRADE_README.md), the SQL files and manual steps are unchanged.
 
 ---
 
@@ -134,7 +134,7 @@ Run `nada55-add-authtype-users-sqlsrv.sql` so 5.7 can query `users.authtype`.
 ## Verify completion
 
 ```sql
-SELECT version FROM migrations;  -- expect 20260909120004
+SELECT version FROM migrations;  -- expect 20261030120007
 
 SELECT c.name, ty.name
 FROM sys.columns c

@@ -11,8 +11,6 @@ class Migration_Datadeposit_platform extends MY_Migration {
 
 	public function up()
 	{
-		$this->execute_install_sql('nada56-filestore');
-		$this->execute_install_sql('nada56-codelists-dsd');
 		$this->install_tables_if_missing();
 		$this->execute_install_sql('nada56-datadeposit-alter');
 		$this->backfill_dd_projects_data_type();

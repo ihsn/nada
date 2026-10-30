@@ -708,7 +708,7 @@ INSERT INTO `codelist_item_translation` (`codelist_item_id`,`lang`,`title`) VALU
 INSERT INTO `codelist_group` (`id`,`codelist_id`,`name`,`sort_order`) VALUES
 (1,1,'questionnaires',10),
 (2,1,'reports',20),
-(3,1,'technical',30)
+(3,1,'technical',30);
 
 INSERT INTO `codelist_group_item` (`codelist_group_id`,`codelist_item_id`,`sort_order`) VALUES
 (1,4,0),
@@ -1377,7 +1377,7 @@ CREATE TABLE `sitelogs` (
   `logtype` varchar(45) NOT NULL,
   `surveyid` int(11) DEFAULT '0',
   `section` varchar(255) DEFAULT NULL,
-  `keyword` text,
+  `keyword` varchar(300) DEFAULT NULL,
   `username` varchar(100) DEFAULT NULL,
   `useragent` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -1992,3 +1992,60 @@ CREATE TABLE `search_index_state` (
   KEY `idx_search_index_state_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Tables and indexes that upgrades add through migrations; included here so a fresh
+-- install matches an upgraded database.
+--
+
+CREATE TABLE `study_admin_metadata` (
+  `sid` int NOT NULL,
+  `metadata` json NOT NULL,
+  `created_by` int unsigned DEFAULT NULL,
+  `changed_by` int unsigned DEFAULT NULL,
+  `created` int unsigned DEFAULT NULL,
+  `changed` int unsigned DEFAULT NULL,
+  PRIMARY KEY (`sid`),
+  KEY `idx_study_admin_metadata_changed` (`changed`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `analytics_legacy_counts` (
+  `survey_id` int NOT NULL,
+  `total_views` int unsigned NOT NULL DEFAULT 0,
+  `total_downloads` int unsigned NOT NULL DEFAULT 0,
+  `backup_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`survey_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `analytics_aggregation_status` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `status` varchar(20) NOT NULL DEFAULT 'idle',
+  `current_step` varchar(50) DEFAULT NULL,
+  `current_item` varchar(100) DEFAULT NULL,
+  `total_items` int DEFAULT '0',
+  `processed_items` int DEFAULT '0',
+  `progress_percent` int DEFAULT '0',
+  `message` text,
+  `started_at` datetime DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `last_updated_at` datetime DEFAULT NULL,
+  `error_message` text,
+  `context` varchar(20) NOT NULL DEFAULT 'cli' COMMENT 'cli or web',
+  `user_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `status` (`status`),
+  KEY `last_updated_at` (`last_updated_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `surveys` ADD UNIQUE KEY `idx_surveys_idno` (`idno`);
+ALTER TABLE `resources` ADD UNIQUE KEY `uk_survey_resource_idno` (`survey_id`,`resource_idno`);
+ALTER TABLE `resources` ADD KEY `idx_filename` (`survey_id`,`filename`(191));
+ALTER TABLE `resources` ADD KEY `idx_status` (`status`);
+ALTER TABLE `resources` ADD KEY `idx_is_url` (`is_url`);
+ALTER TABLE `resources` ADD KEY `idx_sort_order` (`survey_id`,`sort_order`);
+ALTER TABLE `resources` ADD KEY `idx_created` (`created`);
+ALTER TABLE `resources` ADD KEY `idx_changed` (`changed`);
+ALTER TABLE `resources` ADD KEY `idx_data_file_id` (`data_file_id`);
+ALTER TABLE `sitelogs` ADD KEY `idx_logtime_ip` (`logtime`,`ip`);
+ALTER TABLE `sitelogs` ADD KEY `idx_logtime_username` (`logtime`,`username`);
+ALTER TABLE `users` ADD KEY `idx_authtype` (`authtype`);
+ALTER TABLE `users` ADD KEY `idx_authtype_id` (`authtype`,`authtype_id`(191));

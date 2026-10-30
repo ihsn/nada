@@ -4,16 +4,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 require_once(APPPATH . 'core/MY_Migration.php');
 
 /**
- * Analytics schema, legacy totals backfill, and pageview dedup index.
+ * Small data fixes: raise the default minimum password length and remove the legacy
+ * 'user' role. Both only act on data that still has the old value.
  */
-class Migration_Analytics extends MY_Migration {
+class Migration_Post_upgrade_data_fixes extends MY_Migration {
 
 	public function up()
 	{
 		$this->run_archived_steps(array(
-			'20260326000001_create_analytics_schema.php',
-			'20260326000002_migrate_analytics_legacy_totals.php',
-			'20260531000001_add_pageview_dedup_index.php',
+			'20261022180001_password_min_length.php',
+			'20260701000011_remove_user_role.php',
 		));
 	}
 

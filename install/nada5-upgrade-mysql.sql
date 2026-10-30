@@ -50,7 +50,7 @@ ALTER TABLE `surveys` ADD FULLTEXT KEY `ft_titl` (`title`);
 ALTER TABLE `surveys` ADD `var_keywords` mediumtext DEFAULT NULL;
 ALTER TABLE `surveys` 
 DROP INDEX `ft_keywords` ,
-ADD FULLTEXT INDEX `ft_keywords` (`keywords` ASC, `var_keywords` ASC);
+ADD FULLTEXT INDEX `ft_keywords` (`keywords`, `var_keywords`);
 
 
 ALTER TABLE `surveys` DROP `refno`;
@@ -261,15 +261,15 @@ UNLOCK TABLES;
 
 
 
---- 
---- For MYSQL 5.6 or later only
---- requires INNODB with fulltext and geometry 
---- 
+-- 
+-- For MYSQL 5.6 or later only
+-- requires INNODB with fulltext and geometry 
+-- 
 
---- ALTER TABLE `sitelogs` ENGINE = InnoDB;
---- ALTER TABLE `surveys` ENGINE = InnoDB;
---- ALTER TABLE `tokens` ENGINE = InnoDB;
---- ALTER TABLE `variables` ENGINE = InnoDB;
---- ALTER TABLE `citations` ENGINE = InnoDB;
---- ALTER TABLE `forms` ENGINE = InnoDB;
+-- ALTER TABLE `sitelogs` ENGINE = InnoDB;
+-- ALTER TABLE `surveys` ENGINE = InnoDB;
+-- ALTER TABLE `tokens` ENGINE = InnoDB;
+-- ALTER TABLE `variables` ENGINE = InnoDB;
+-- ALTER TABLE `citations` ENGINE = InnoDB;
+-- ALTER TABLE `forms` ENGINE = InnoDB;
 

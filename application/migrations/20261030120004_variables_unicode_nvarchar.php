@@ -5,8 +5,8 @@ require_once(APPPATH . 'core/MY_Migration.php');
 
 /**
  * SQL Server: convert variables text columns to NVARCHAR and recreate full-text.
- * No-op on MySQL. Safe to re-run: each column is altered only while it is still
- * varchar, and an existing full-text index is left in place once columns are done.
+ * No-op on MySQL. Kept separate because it can take long on large variable tables.
+ * Safe to re-run: each column is altered only while it is still varchar.
  */
 class Migration_Variables_unicode_nvarchar extends MY_Migration {
 

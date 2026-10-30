@@ -27,6 +27,10 @@ class Migration_Activation_code_hash extends MY_Migration {
 
 	private function widen_activation_code()
 	{
+		if ($this->activation_code_length() >= 64) {
+			return;
+		}
+
 		if ($this->db->dbdriver === 'sqlsrv') {
 			$sql = 'ALTER TABLE users ALTER COLUMN activation_code varchar(64) NULL';
 		} else {
@@ -34,6 +38,30 @@ class Migration_Activation_code_hash extends MY_Migration {
 		}
 
 		$this->assert_db_query($this->db->query($sql), 'widen users.activation_code');
+	}
+
+	/**
+	 * Current length of users.activation_code (0 when unknown).
+	 *
+	 * @return int
+	 */
+	private function activation_code_length()
+	{
+		if ($this->db->dbdriver === 'sqlsrv') {
+			$result = $this->db->query(
+				"SELECT c.max_length AS len FROM sys.columns c
+				 WHERE c.object_id = OBJECT_ID(N'dbo.users') AND c.name = 'activation_code'"
+			);
+		} else {
+			$result = $this->db->query(
+				"SELECT CHARACTER_MAXIMUM_LENGTH AS len FROM INFORMATION_SCHEMA.COLUMNS
+				 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'activation_code'"
+			);
+		}
+
+		$row = $result ? $result->row_array() : null;
+
+		return $row ? (int) $row['len'] : 0;
 	}
 
 	/**
