@@ -1,6 +1,7 @@
-# Deny direct access to CSV files
-<FilesMatch "\.csv$">
-    Order Allow,Deny
+<IfModule authz_core_module>
+    Require all denied
+</IfModule>
+<IfModule !authz_core_module>
+    Order allow,deny
     Deny from all
-</FilesMatch>
-
+</IfModule>

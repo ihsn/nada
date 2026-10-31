@@ -1,5 +1,5 @@
 ALTER TABLE users
-ADD authtype VARCHAR(100) NULL;
+ADD authtype VARCHAR(40) NULL;
 
 ALTER TABLE users
 ADD authtype_id VARCHAR(300) NULL;

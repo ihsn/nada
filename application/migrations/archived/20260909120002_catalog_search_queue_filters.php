@@ -10,16 +10,12 @@ require_once(APPPATH . 'core/MY_Migration.php');
 class Migration_Catalog_search_queue_filters extends MY_Migration {
 
 	/**
+	 * Filter indexes not already created by install/nada56-search-indexes-*.sql
+	 * (migration search_and_citation_indexes runs that file first).
+	 *
 	 * @var array<int, array{table: string, name: string, cols: string[]}>
 	 */
 	private $filter_indexes = array(
-		array('table' => 'survey_countries', 'name' => 'idx_survey_countries_cid',      'cols' => array('cid', 'sid')),
-		array('table' => 'survey_repos',     'name' => 'idx_survey_repos_repositoryid', 'cols' => array('repositoryid', 'sid')),
-		array('table' => 'survey_repos',     'name' => 'idx_survey_repos_sid',          'cols' => array('sid')),
-		array('table' => 'survey_facets',    'name' => 'idx_survey_facets_term_id',     'cols' => array('term_id', 'sid')),
-		array('table' => 'survey_facets',    'name' => 'idx_survey_facets_sid',         'cols' => array('sid')),
-		array('table' => 'survey_years',     'name' => 'idx_survey_years_year_sid',     'cols' => array('data_coll_year', 'sid')),
-		array('table' => 'survey_tags',      'name' => 'idx_survey_tags_tag',           'cols' => array('tag', 'sid')),
 		array('table' => 'region_countries', 'name' => 'idx_region_countries_region',   'cols' => array('region_id', 'country_id')),
 	);
 
@@ -39,7 +35,7 @@ class Migration_Catalog_search_queue_filters extends MY_Migration {
 		$driver = $this->db->dbdriver;
 		if (in_array($driver, array('mysql', 'mysqli'))) {
 			if (!$this->db->table_exists('search_index_queue')) {
-				$this->db->query("
+				$this->assert_db_query($this->db->query("
 					CREATE TABLE `search_index_queue` (
 						`id` INT(11) NOT NULL AUTO_INCREMENT,
 						`object_type` VARCHAR(32) NOT NULL,
@@ -54,11 +50,11 @@ class Migration_Catalog_search_queue_filters extends MY_Migration {
 						UNIQUE KEY `uk_search_index_queue_object` (`object_type`, `object_id`),
 						KEY `idx_search_index_queue_status_changed` (`status`, `changed`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-				");
+				"), 'create search_index_queue');
 			}
 
 			if (!$this->db->table_exists('search_index_state')) {
-				$this->db->query("
+				$this->assert_db_query($this->db->query("
 					CREATE TABLE `search_index_state` (
 						`object_type` VARCHAR(32) NOT NULL,
 						`object_id` INT(11) NOT NULL,
@@ -68,7 +64,7 @@ class Migration_Catalog_search_queue_filters extends MY_Migration {
 						PRIMARY KEY (`object_type`, `object_id`),
 						KEY `idx_search_index_state_status` (`status`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-				");
+				"), 'create search_index_state');
 			}
 			return;
 		}
@@ -149,8 +145,9 @@ class Migration_Catalog_search_queue_filters extends MY_Migration {
 		}
 
 		$cols = '`' . implode('`,`', $index['cols']) . '`';
-		$this->db->query(
-			'ALTER TABLE `' . $index['table'] . '` ADD INDEX `' . $index['name'] . '` (' . $cols . ')'
+		$this->assert_db_query(
+			$this->db->query('ALTER TABLE `' . $index['table'] . '` ADD INDEX `' . $index['name'] . '` (' . $cols . ')'),
+			$index['name']
 		);
 	}
 

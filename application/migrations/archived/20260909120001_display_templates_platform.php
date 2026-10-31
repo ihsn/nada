@@ -94,9 +94,9 @@ BEGIN
 		id BIGINT NOT NULL IDENTITY(1,1),
 		uid VARCHAR(191) NOT NULL,
 		template_type VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_template_type DEFAULT 'custom',
-		source VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline',
+		source NVARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline',
 		data_type VARCHAR(64) NOT NULL,
-		lang VARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en',
+		lang NVARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en',
 		name VARCHAR(255) NOT NULL,
 		version VARCHAR(50) NULL,
 		organization VARCHAR(255) NULL,
@@ -104,7 +104,7 @@ BEGIN
 		description NVARCHAR(MAX) NULL,
 		status VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_status DEFAULT 'draft',
 		template_json NVARCHAR(MAX) NULL,
-		file_path VARCHAR(255) NULL,
+		file_path NVARCHAR(255) NULL,
 		is_deleted BIT NOT NULL CONSTRAINT df_display_templates_is_deleted DEFAULT 0,
 		created_by INT NULL,
 		changed_by INT NULL,
@@ -178,7 +178,15 @@ END
 		if ($this->db->table_exists('survey_types')
 			&& $this->db->field_exists('code', 'survey_types')
 		) {
-			$this->db->where('code', 'visualization')->delete('survey_types');
+			// Keep the type while any study still uses it, so surveys.type never points at a missing type.
+			$in_use = $this->db->table_exists('surveys')
+				&& $this->db->where('type', 'visualization')->count_all_results('surveys') > 0;
+
+			if ($in_use) {
+				echo "Survey type 'visualization' is still used by existing studies; leaving it in survey_types.\n";
+			} else {
+				$this->db->where('code', 'visualization')->delete('survey_types');
+			}
 		}
 	}
 
@@ -205,16 +213,18 @@ END
 					ADD COLUMN `file_path` VARCHAR(255) DEFAULT NULL AFTER `template_json`"),
 					'add display_templates.file_path');
 			}
-			$this->assert_db_query(
-				$this->db->query("ALTER TABLE `display_templates` MODIFY `template_json` JSON NULL"),
-				'make display_templates.template_json nullable'
-			);
+			if (!$this->template_json_nullable()) {
+				$this->assert_db_query(
+					$this->db->query("ALTER TABLE `display_templates` MODIFY `template_json` JSON NULL"),
+					'make display_templates.template_json nullable'
+				);
+			}
 		} elseif ($driver === 'sqlsrv') {
 			$this->assert_db_query($this->db->query("
 IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
 AND COL_LENGTH(N'dbo.display_templates', N'source') IS NULL
 BEGIN
-	ALTER TABLE dbo.display_templates ADD source VARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline'
+	ALTER TABLE dbo.display_templates ADD source NVARCHAR(20) NOT NULL CONSTRAINT df_display_templates_source DEFAULT 'inline'
 END
 			"), 'add display_templates.source');
 			$this->assert_db_query($this->db->query("
@@ -229,24 +239,26 @@ END
 IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
 AND COL_LENGTH(N'dbo.display_templates', N'lang') IS NULL
 BEGIN
-	ALTER TABLE dbo.display_templates ADD lang VARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en'
+	ALTER TABLE dbo.display_templates ADD lang NVARCHAR(16) NOT NULL CONSTRAINT df_display_templates_lang DEFAULT 'en'
 END
 			"), 'add display_templates.lang');
 			$this->assert_db_query($this->db->query("
 IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
 AND COL_LENGTH(N'dbo.display_templates', N'file_path') IS NULL
 BEGIN
-	ALTER TABLE dbo.display_templates ADD file_path VARCHAR(255) NULL
+	ALTER TABLE dbo.display_templates ADD file_path NVARCHAR(255) NULL
 END
 			"), 'add display_templates.file_path');
-			$this->assert_db_query($this->db->query("
-IF OBJECT_ID(N'dbo.ck_display_templates_template_json_isjson', N'C') IS NOT NULL
-	ALTER TABLE dbo.display_templates DROP CONSTRAINT ck_display_templates_template_json_isjson
-			"), 'drop display_templates.template_json check');
-			$this->assert_db_query($this->db->query("
-IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
-	ALTER TABLE dbo.display_templates ALTER COLUMN template_json NVARCHAR(MAX) NULL
-			"), 'make display_templates.template_json nullable');
+			if (!$this->template_json_nullable()) {
+				$this->assert_db_query($this->db->query("
+	IF OBJECT_ID(N'dbo.ck_display_templates_template_json_isjson', N'C') IS NOT NULL
+		ALTER TABLE dbo.display_templates DROP CONSTRAINT ck_display_templates_template_json_isjson
+				"), 'drop display_templates.template_json check');
+				$this->assert_db_query($this->db->query("
+	IF OBJECT_ID(N'dbo.display_templates', N'U') IS NOT NULL
+		ALTER TABLE dbo.display_templates ALTER COLUMN template_json NVARCHAR(MAX) NULL
+				"), 'make display_templates.template_json nullable');
+			}
 			$this->assert_db_query($this->db->query("
 IF OBJECT_ID(N'dbo.ck_display_templates_template_json_isjson', N'C') IS NULL
 BEGIN
@@ -256,6 +268,33 @@ END
 		}
 
 		$this->sync_shipped_cores();
+	}
+
+	/**
+	 * Whether display_templates.template_json already allows NULL (the target state).
+	 *
+	 * @return bool
+	 */
+	private function template_json_nullable()
+	{
+		if ($this->db->dbdriver === 'sqlsrv') {
+			$result = $this->db->query(
+				"SELECT c.is_nullable AS nullable FROM sys.columns c
+				 WHERE c.object_id = OBJECT_ID(N'dbo.display_templates') AND c.name = 'template_json'"
+			);
+		} else {
+			$result = $this->db->query(
+				"SELECT IS_NULLABLE AS nullable FROM INFORMATION_SCHEMA.COLUMNS
+				 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'display_templates' AND COLUMN_NAME = 'template_json'"
+			);
+		}
+
+		$row = $result ? $result->row_array() : null;
+		if (!$row) {
+			return FALSE;
+		}
+
+		return $row['nullable'] === 'YES' || (string) $row['nullable'] === '1';
 	}
 
 	private function create_translations_table()
@@ -296,7 +335,7 @@ BEGIN
 	CREATE TABLE dbo.display_template_translations (
 		id BIGINT NOT NULL IDENTITY(1,1),
 		template_id BIGINT NOT NULL,
-		lang VARCHAR(16) NOT NULL,
+		lang NVARCHAR(16) NOT NULL,
 		translations NVARCHAR(MAX) NOT NULL,
 		created_at DATETIME2 NOT NULL CONSTRAINT df_display_template_translations_created_at DEFAULT SYSDATETIME(),
 		updated_at DATETIME2 NOT NULL CONSTRAINT df_display_template_translations_updated_at DEFAULT SYSDATETIME(),

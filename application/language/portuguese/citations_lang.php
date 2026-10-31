@@ -93,6 +93,28 @@ $lang['icon_user']="Nome do propietário";
 $lang['citation_owner']="Propietário";
 $lang['created']="Criado";
 
+//added to match the English language file
+$lang["citation_string_invalid"]="Formato de citação inesperado ou incorrecto";
+$lang["attach_to_survey"]="Anexar citação(ões) aos seguintes estudos (utilize CTRL/SHIFT para seleccionar vários estudos)";
+$lang["attach_studies"]="Anexar conjuntos de dados";
+$lang["find_studies"]="Procurar conjuntos de dados";
+$lang["citations_text"]="Uma bibliografia de publicações que citaram a utilização de um conjunto de dados listado neste catálogo. Ao seleccionar uma publicação da lista, será mostrado o conjunto de dados do estudo utilizado e uma ligação para o estudo no catálogo.";
+$lang["allowed_file_types"]="Tipos de ficheiro permitidos";
+$lang["attach_file"]="Anexar ficheiro";
+$lang["max_upload_limit"]="Limite máximo de carregamento";
+$lang["export_citations"]="Exportar citações";
+$lang["export_to_csv"]="Exportar para CSV";
+$lang["sort"]="Ordenar";
+$lang["published-status-1"]="Publicado";
+$lang["published-status-0"]="Rascunho";
+$lang["Refine by"]="Refinar por";
+$lang["Flags"]="Marcadores";
+$lang["By user"]="Por utilizador";
+$lang["Other options"]="Outras opções";
+$lang["Has notes"]="Tem notas";
+$lang["status"]="Estado";
+$lang["Search by title, country and year"]="Pesquisar por título, país e ano";
+
 
 /* End of file citations_lang.php */
 /* Location: ./application/language/Portuguese/citations_lang.php */

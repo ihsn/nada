@@ -33,6 +33,17 @@
             </a>
             <?php endif; ?>
         </div>
+        <div class="list-group-item" style="background:#f8f9fa;">
+            <form method="get" action="<?php echo site_url('admin/translate/search/'.$language); ?>">
+                <label for="search-all" class="mb-1" style="font-size:0.85rem;"><?php echo t('search_all_files'); ?></label>
+                <div class="input-group input-group-sm">
+                    <input type="text" id="search-all" name="q" class="form-control" maxlength="100" placeholder="<?php echo t('translate_search_placeholder'); ?>">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary" type="submit"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
             <div class="list-group-item list-group-item-action  edit-lang">
             <form class="choose-lang" method="post" action="<?php echo site_url("admin/translate/change_lang"); ?>" name="change-lang" id="form-change-lang">
             <input type="hidden" name="<?php echo $this->security->get_csrf_token_name(); ?>" value="<?php echo $this->security->get_csrf_hash(); ?>" />

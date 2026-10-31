@@ -531,7 +531,7 @@ CREATE TABLE codelist_item (
   PRIMARY KEY (id),
   CONSTRAINT unq_codelist_item_code UNIQUE (codelist_id, code),
   CONSTRAINT fk_codelist_item_codelist FOREIGN KEY (codelist_id) REFERENCES codelists (id) ON DELETE CASCADE,
-  CONSTRAINT fk_codelist_item_parent FOREIGN KEY (parent_id) REFERENCES codelist_item (id) ON DELETE SET NULL
+  CONSTRAINT fk_codelist_item_parent FOREIGN KEY (parent_id) REFERENCES codelist_item (id) ON DELETE NO ACTION
 );
 CREATE INDEX idx_codelist_item_parent ON codelist_item (parent_id);
 CREATE INDEX idx_codelist_item_sort ON codelist_item (codelist_id, sort_order);
@@ -566,7 +566,7 @@ CREATE TABLE codelist_group_item (
   PRIMARY KEY (id),
   CONSTRAINT unq_codelist_group_item UNIQUE (codelist_group_id, codelist_item_id),
   CONSTRAINT fk_codelist_grp_item_grp FOREIGN KEY (codelist_group_id) REFERENCES codelist_group (id) ON DELETE CASCADE,
-  CONSTRAINT fk_codelist_grp_item_item FOREIGN KEY (codelist_item_id) REFERENCES codelist_item (id) ON DELETE CASCADE
+  CONSTRAINT fk_codelist_grp_item_item FOREIGN KEY (codelist_item_id) REFERENCES codelist_item (id) ON DELETE NO ACTION
 );
 
 CREATE TABLE codelist_group_translation (
@@ -984,7 +984,6 @@ CREATE TABLE users (
   otp_expiry int DEFAULT NULL,
   forgot_request_ts INT NULL, 
   forgot_request_count INT DEFAULT 0,
-  authtype varchar(40) DEFAULT NULL,
   authtype_id varchar(300) DEFAULT NULL,
   PRIMARY KEY (id)
 );
@@ -1436,7 +1435,7 @@ CREATE TABLE ci_sessions (
   id varchar(128) NOT NULL,
   ip_address varchar(45) NOT NULL,
   timestamp int DEFAULT '0',
-  data blob,
+  data varbinary(max) NULL,
   PRIMARY KEY (id)
 );
 
@@ -1474,7 +1473,7 @@ CREATE TABLE sitelogs (
   logtype varchar(45) NOT NULL,
   surveyid int DEFAULT '0',
   section varchar(255) DEFAULT NULL,
-  keyword varchar(max),
+  keyword varchar(300) DEFAULT NULL,
   username varchar(100) DEFAULT NULL,
   useragent varchar(300) DEFAULT NULL,
   PRIMARY KEY (id)
@@ -1570,10 +1569,6 @@ CREATE UNIQUE INDEX pk_idx_surveys ON dbo.surveys(id);
 CREATE FULLTEXT CATALOG ft AS DEFAULT;
 
 
---drop existing fulltext index
-DROP FULLTEXT INDEX ON surveys;
-
-
 --add table columns to index
 CREATE FULLTEXT INDEX ON surveys
 (
@@ -1590,7 +1585,6 @@ KEY INDEX pk_idx_surveys ;
 
 -- create a unique index or use the PK
 CREATE UNIQUE INDEX pk_idx_variables ON dbo.variables(uid);
-go
 
 --add table columns to index
 CREATE FULLTEXT INDEX ON variables
@@ -1835,8 +1829,7 @@ CREATE TABLE roles (
 
 set IDENTITY_INSERT roles ON;
 insert into roles(id,name,description, weight, is_admin, is_locked) values 
-(1,'admin','It is the site administrator and has access to all site content', 0,1,1),
-(2,'user','General user account with no access to site administration', 0,1,1);
+(1,'admin','It is the site administrator and has access to all site content', 0,1,1);
 set IDENTITY_INSERT roles OFF;
 
 
@@ -1858,12 +1851,6 @@ CREATE TABLE user_roles (
 );
 
 
---
--- migrate admins from previous version
---
-
-insert into user_roles (user_id, role_id) 
-	select user_id, group_id from users_groups;
 
 
 
@@ -1929,23 +1916,6 @@ CREATE TABLE survey_widgets (
 );
 
 
-CREATE TABLE ts_databases (
-  id int NOT NULL identity(1,1),
-  idno varchar(150) DEFAULT NULL,
-  title varchar(300) DEFAULT NULL,
-  abstract varchar(max),
-  published int DEFAULT NULL,
-  created varchar(45) DEFAULT NULL,
-  changed varchar(45) DEFAULT NULL,
-  created_by int DEFAULT NULL,
-  changed_by int DEFAULT NULL,
-  metadata varchar(max),
-  PRIMARY KEY (id)
-);
-
-CREATE UNIQUE NONCLUSTERED INDEX IX_ts_db on [dbo].[ts_databases](
-    [idno] ASC
-);
 
  
 
@@ -2203,3 +2173,51 @@ CREATE TABLE search_index_state (
 );
 CREATE NONCLUSTERED INDEX idx_search_index_state_status ON search_index_state (status);
 
+--
+-- Tables and indexes that upgrades add through migrations; included here so a fresh
+-- install matches an upgraded database.
+--
+
+CREATE TABLE study_admin_metadata (
+  sid int NOT NULL,
+  metadata nvarchar(max) NOT NULL,
+  created_by int NULL,
+  changed_by int NULL,
+  created int NULL,
+  changed int NULL,
+  PRIMARY KEY (sid),
+  CONSTRAINT ck_study_admin_metadata_metadata_isjson CHECK (ISJSON(metadata)=1)
+);
+CREATE INDEX idx_study_admin_metadata_changed ON study_admin_metadata (changed);
+
+CREATE TABLE analytics_legacy_counts (
+  survey_id int NOT NULL PRIMARY KEY,
+  total_views int NOT NULL DEFAULT 0,
+  total_downloads int NOT NULL DEFAULT 0,
+  backup_at datetime NOT NULL DEFAULT GETDATE()
+);
+
+CREATE TABLE analytics_aggregation_status (
+  id int NOT NULL IDENTITY(1,1),
+  status nvarchar(20) NOT NULL DEFAULT 'idle',
+  current_step nvarchar(50) NULL,
+  current_item nvarchar(100) NULL,
+  total_items int NULL DEFAULT 0,
+  processed_items int NULL DEFAULT 0,
+  progress_percent int NULL DEFAULT 0,
+  message nvarchar(max) NULL,
+  started_at datetime NULL,
+  completed_at datetime NULL,
+  last_updated_at datetime NULL,
+  error_message nvarchar(max) NULL,
+  context nvarchar(20) NOT NULL DEFAULT 'cli',
+  user_id int NULL,
+  PRIMARY KEY (id)
+);
+CREATE NONCLUSTERED INDEX idx_status ON analytics_aggregation_status (status ASC);
+CREATE NONCLUSTERED INDEX idx_last_updated_at ON analytics_aggregation_status (last_updated_at ASC);
+
+CREATE NONCLUSTERED INDEX idx_logtime_ip ON sitelogs (logtime, ip);
+CREATE NONCLUSTERED INDEX idx_logtime_username ON sitelogs (logtime, username);
+CREATE NONCLUSTERED INDEX idx_authtype ON users (authtype ASC);
+CREATE NONCLUSTERED INDEX idx_authtype_id ON users (authtype ASC, authtype_id ASC);

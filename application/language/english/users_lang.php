@@ -215,5 +215,14 @@ $lang['export_to_json']="Export to JSON";
 
 
 
+//one-time verification code (OTP)
+$lang['verification_code']="Verification code";
+$lang['verify_otp']="Verification code";
+$lang['otp_email_body']="Your verification code is: %s";
+$lang['otp_email_expiry_notice']="This code expires in %s minutes. If you did not request it, you can ignore this email.";
+$lang['otp_check_email']="Check your email for the verification code";
+$lang['otp_code_expired']="The verification code has expired. Please request a new code.";
+$lang['otp_code_failed']="The verification code is incorrect.";
+
 /* End of file users_lang.php */
 /* Location: ./application/language/english/users_lang.php */

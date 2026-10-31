@@ -17,6 +17,9 @@ require_once APPPATH . '../modules/mongodb/vendor/autoload.php';
  */
 class Timeseries_mongo_model extends CI_Model {
 
+	/** Exception code when mongo.php is missing or incomplete. */
+	const ERR_NOT_CONFIGURED = 9001;
+
 	/** @var Timeseries_dsd_model|null */
 	private $timeseries_dsd_model;
 
@@ -61,7 +64,7 @@ class Timeseries_mongo_model extends CI_Model {
 	public function __construct()
 	{
 		parent::__construct();
-		$this->config->load('mongo');
+		$this->config->load('mongo', FALSE, TRUE);
 		$this->config->load('indicator_timeseries');
 		$this->db_name = (string) $this->config->item('mongodb_database');
 		$this->collection_prefix = (string) $this->config->item('indicator_timeseries_collection_prefix');
@@ -109,7 +112,7 @@ class Timeseries_mongo_model extends CI_Model {
 	public function get_mongo_db_name()
 	{
 		if ($this->db_name === '') {
-			throw new RuntimeException('MongoDB database name is not configured (mongodb_database).');
+			throw new RuntimeException('MongoDB database name is not configured (mongodb_database). Copy application/config/mongo.sample.php to mongo.php.', self::ERR_NOT_CONFIGURED);
 		}
 		return $this->db_name;
 	}
@@ -451,11 +454,14 @@ class Timeseries_mongo_model extends CI_Model {
 	 *   (Tables / SDMX-style). Comma-separated values → $in (OR). Otherwise legacy: any top-level key
 	 *   that resolves to a DSD component (excluding reserved names).
 	 * - Order: d filters applied, then c or legacy (same field: later wins).
+	 * - Unknown d[…] roles and c[…] columns throw instead of being ignored, so a mistyped filter
+	 *   never returns unfiltered data. Other unknown top-level params (e.g. utm_source) are ignored.
 	 *
 	 * @param int   $sid
 	 * @param array $components DSD components list
 	 * @param array $query      Associative query parameters
 	 * @return array Mongo filter
+	 * @throws InvalidArgumentException on an unknown d[…] role or c[…] column
 	 */
 	public function build_observation_query_filter($sid, array $components, array $query)
 	{
@@ -547,6 +553,21 @@ class Timeseries_mongo_model extends CI_Model {
 		}
 
 		return $filter;
+	}
+
+	/**
+	 * @param array $components
+	 * @return string comma-separated component names, for error messages
+	 */
+	private function _observation_component_names_csv(array $components)
+	{
+		$names = [];
+		foreach ($components as $c) {
+			if (is_array($c) && !empty($c['name'])) {
+				$names[] = (string) $c['name'];
+			}
+		}
+		return implode(', ', $names);
 	}
 
 	/**
@@ -694,15 +715,17 @@ class Timeseries_mongo_model extends CI_Model {
 		foreach ($dMap as $rawKey => $rawVal) {
 			$role = strtolower(trim((string) $rawKey));
 			if (!isset($roles[$role])) {
-				continue;
-			}
-			$canonical = $this->get_component_name_for_column_type($components, $roles[$role]);
-			if ($canonical === null) {
-				continue;
+				throw new InvalidArgumentException(
+					"Unknown filter role d[{$rawKey}]. Use d[" . implode('], d[', array_keys($roles)) . '], or filter a column with c[COLUMN].'
+				);
 			}
 			$parts = $this->_normalize_c_query_values($rawVal);
 			if ($parts === []) {
 				continue;
+			}
+			$canonical = $this->get_component_name_for_column_type($components, $roles[$role]);
+			if ($canonical === null) {
+				throw new InvalidArgumentException("Filter d[{$role}]: this data structure has no {$role} column.");
 			}
 			if (count($parts) === 1) {
 				$filter[$canonical] = $parts[0];
@@ -717,7 +740,9 @@ class Timeseries_mongo_model extends CI_Model {
 		foreach ($cMap as $rawKey => $rawVal) {
 			$canonical = $this->resolve_dsd_component_name((string) $rawKey, $components);
 			if ($canonical === null) {
-				continue;
+				throw new InvalidArgumentException(
+					"Unknown column c[{$rawKey}]. Columns of this data structure: " . $this->_observation_component_names_csv($components) . '.'
+				);
 			}
 			$parts = $this->_normalize_c_query_values($rawVal);
 			if ($parts === []) {

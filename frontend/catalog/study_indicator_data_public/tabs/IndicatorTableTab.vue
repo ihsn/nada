@@ -36,6 +36,7 @@
                     :facet-components-for-c-visible="facetComponentsForCVisible"
                     :geography-filter-visible="geographyFilterVisible"
                     :periodicity-filter-visible="periodicityFilterVisible"
+                    :show-apply="false"
                     :apply-loading="applyLoading"
                     :apply-disabled="applyLoading || !tableSliceSelectionComplete"
                     :dimension-label-fn="facetLabel"
@@ -878,11 +879,43 @@ async function loadAll() {
   }
 }
 
+/** Stable string of the filter draft, so watchers fire on any filter change (same as the chart tab). */
+function filterDraftSnapshot() {
+  const cKeys = Object.keys(filterDraft.c || {}).sort();
+  const c = {};
+  for (const k of cKeys) {
+    const arr = filterDraft.c[k];
+    c[k] = Array.isArray(arr) ? [...arr].map(String).sort() : [];
+  }
+  return JSON.stringify({
+    from: String(filterDraft.from ?? '').trim(),
+    to: String(filterDraft.to ?? '').trim(),
+    dGeography: [...filterDraft.dGeography].map(String).sort(),
+    dPeriodicity: [...filterDraft.dPeriodicity].map(String).sort(),
+    c,
+  });
+}
+
+/** Same as the chart tab: filters apply as soon as they change. An empty selection clears the table but keeps its layout. */
+const debouncedAutoApply = debounce(async () => {
+  if (!schema.value) return;
+  try {
+    if (!tableSliceSelectionComplete.value) {
+      await commitFiltersAndMaybeLoadTable();
+    } else {
+      await commitFiltersAndMaybeLoadTable({ loadTable: true });
+    }
+  } catch (e) {
+    setMessage(e?.response?.data?.message || e?.message || 'Could not apply filters.', 'warning');
+  }
+}, 320);
+
 watch(
   () => filterDraftSnapshot(),
   () => {
     if (urlSyncSuspended.value || pageLoading.value || !schema.value) return;
     debouncedWriteTableQueryToUrl();
+    debouncedAutoApply();
   }
 );
 

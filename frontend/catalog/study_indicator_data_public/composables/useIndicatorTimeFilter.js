@@ -221,6 +221,10 @@ export function useIndicatorTimeFilter({ filterDraft, schema, timeBounds }) {
     }
   });
 
+  // The watchers above only fire on change; a panel mounted after filters and bounds are already
+  // set (e.g. the table's collapsible Filters sidebar) must sync once now, or it shows the defaults.
+  syncTimeFilterUi();
+
   return {
     yearSliderLocal,
     subPeriodDraft,

@@ -42,6 +42,7 @@
                         :facet-components-for-c-visible="facetComponentsForCVisible"
                         :geography-filter-visible="geographyFilterVisible"
                         :periodicity-filter-visible="periodicityFilterVisible"
+                        :show-apply="false"
                         :apply-loading="applyLoading"
                         :apply-disabled="applyLoading || (catalogSliceRequired && !catalogSliceSelectionComplete)"
                         :dimension-label-fn="facetLabel"

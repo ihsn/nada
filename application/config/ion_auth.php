@@ -63,11 +63,6 @@
 	$config['admin_email']		   = "noreply@example.org";
 	
 	/**
-	 * Default group, use name
-	 */
-	$config['default_group']       = 'user';
-	
-	/**
 	 * Default administrators group, use name
 	 */
 	$config['admin_group']         = 'admin';

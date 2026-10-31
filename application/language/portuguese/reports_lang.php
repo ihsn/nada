@@ -44,6 +44,12 @@ $lang['dated']="Data";
 $lang['intended_use']="Intenção de uso";
 $lang['details']="Detalhes";
 
+//added to match the English language file
+$lang["missing_data"]="Estudos sem ficheiros de dados";
+$lang["studies_data_access"]="Estudos sem ficheiros de dados";
+$lang["repositoryid"]="Repositório";
+$lang["titl"]="Título do estudo";
+
 
 /* End of file reports_lang.php */
 /* Location: ./application/language/Portuguese/reports_lang.php */

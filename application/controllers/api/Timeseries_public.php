@@ -792,6 +792,16 @@ class Timeseries_public extends MY_REST_Controller {
 
 	private function _error_response(Exception $e)
 	{
+		// connection/config details stay in the log, not in the public response
+		if ($e instanceof MongoDB\Driver\Exception\Exception || $e->getCode() === Timeseries_mongo_model::ERR_NOT_CONFIGURED) {
+			log_message('error', 'Timeseries_public MongoDB error: ' . $e->getMessage());
+			$this->set_response([
+				'status'  => 'error',
+				'message' => 'The API is not available.',
+			], REST_Controller::HTTP_SERVICE_UNAVAILABLE);
+			return;
+		}
+
 		$msg = $e->getMessage();
 		$code = REST_Controller::HTTP_BAD_REQUEST;
 		if ($msg === 'IDNO-NOT-FOUND' || stripos($msg, 'not found') !== false) {
