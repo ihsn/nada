@@ -30,6 +30,17 @@ $lang['lang_custom']="Personnalisée";
 $lang['lang_custom']="Personnalisée";
 $lang['lang_custom']="Personnalisée";
 
+//translation search
+$lang['search_all_files']="Rechercher dans tous les fichiers";
+$lang['translate_search_placeholder']="Rechercher dans la clé, le texte anglais ou la traduction";
+$lang['show_only_missing']="Afficher uniquement les traductions manquantes";
+$lang['filter_this_file']="Filtrer ce fichier par clé, texte anglais ou traduction";
+$lang['search_all_files_help']="Saisissez un texte à rechercher dans la clé, le texte anglais et la traduction de tous les fichiers de cette langue, ou cochez « Afficher uniquement les traductions manquantes » pour lister ce qui reste à traduire.";
+$lang['search_results_limited']="Affichage des %d premiers résultats. Affinez votre recherche pour les réduire.";
+$lang['search_col_file_key']="Fichier / Clé";
+$lang['search_results_count']="résultats";
+$lang['search_no_results']="Aucune traduction correspondante trouvée.";
+$lang['search_not_translated']="Non traduit";
 
 
 /* End of file translate_lang.php */

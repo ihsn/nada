@@ -6,7 +6,7 @@ Schema changes are applied by PHP migrations. When the web UI times out or ODBC 
 
 Related guides:
 
-- Platform migrations (all databases): [NADA56_UPGRADE_README.md](NADA56_UPGRADE_README.md)
+- Platform migrations (all databases): [UPGRADING.md](UPGRADING.md)
 - Manual SQL (SQL Server, web-only): [NADA57_SQLSRV_MANUAL_RUNBOOK.md](NADA57_SQLSRV_MANUAL_RUNBOOK.md)
 - Legacy data deposit projects: [DATADEPOSIT_MIGRATION.md](DATADEPOSIT_MIGRATION.md)
 
@@ -60,18 +60,18 @@ php index.php cli migrate latest
 On SQL Server this also:
 
 - Adds catalog, analytics, timeseries, ACL, and site-config tables/columns
-- `20260701000009` adds search/citation indexes (same content as `install/nada56-search-indexes-sqlsrv.sql`)
-- `20260701000010` converts `variables` text columns to **NVARCHAR** (preserves Arabic and other Unicode; can take a while on large catalogs) and recreates the **full-text index** on `variables`
+- `20261030120003` adds search/citation indexes (same content as `install/nada56-search-indexes-sqlsrv.sql`)
+- `20261030120004` converts `variables` text columns to **NVARCHAR** (preserves Arabic and other Unicode; can take a while on large catalogs) and recreates the **full-text index** on `variables`
 - Installs `dd_*` tables from `install/schema.dd.sqlsrv.sql` if they are missing
 
 Re-run `migrate latest` if a step fails. Bundled steps are idempotent. A re-run skips indexes that already exist, skips `variables` columns that are already NVARCHAR, and does not drop a full-text index that already covers the right columns.
 
 ### Web UI (when CLI is not available)
 
-`set_time_limit(0)` does not raise the IIS / FastCGI request limit. Use **Site administration → Database migrations** and click **Run** on the first pending version only. Repeat until the watermark is `20260909120004`.
+`set_time_limit(0)` does not raise the IIS / FastCGI request limit. Use **Site administration → Database migrations** and click **Run** on the first pending version only. Repeat until the watermark is `20261030120007`.
 
 - Do not use **Migrate to Latest**. That runs every pending migration in one request.
-- `20260701000009` (indexes) and `20260701000010` (`variables` NVARCHAR) are separate because they are the long steps.
+- `20261030120003` (indexes) and `20261030120004` (`variables` NVARCHAR) are separate because they are the long steps.
 - If a request times out, run that same version again. Finished statements are skipped. The version is recorded only after the whole step succeeds.
 - If ODBC reports errors on `sp_rename`, `idx_dedup`, or `IX_variables`, see [NADA57_SQLSRV_MANUAL_RUNBOOK.md](NADA57_SQLSRV_MANUAL_RUNBOOK.md).
 
@@ -80,7 +80,7 @@ Prefer migrations over hand-running SQL. For SSMS, use **`install/nada56-upgrade
 ### After migrations
 
 - [ ] Log in as site administrator.
-- [ ] **Site administration → Database migrations** should show version `20260909120004`.
+- [ ] **Site administration → Database migrations** should show version `20261030120007`.
 - [ ] If catalog search looks empty or errors, confirm Full-Text Search is running and the `variables` / `surveys` full-text indexes exist.
 
 ---

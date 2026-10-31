@@ -24,6 +24,9 @@
         density="compact"
         variant="outlined"
       />
+      <div v-if="componentDisplayRole === 'footnote'" style="margin-top: 8px" class="text-caption text-medium-emphasis">
+        Display as: <strong>Footnote</strong>. Cells hold note IDs (several separated by ';'); the note text is in the study's data notes. Set in the Metadata Editor.
+      </div>
       <div style="margin-top: 16px" class="text-caption text-medium-emphasis mb-1">Data type</div>
       <v-select
         v-model="form.data_type"
@@ -370,6 +373,19 @@ function onEntryPerPageChange() {
   entryPage.value = 1;
   loadEntryPage();
 }
+
+/** metadata.display_role of the component (read-only here; set in the Metadata Editor). */
+const componentDisplayRole = computed(() => {
+  let meta = props.component?.metadata;
+  if (typeof meta === 'string' && meta !== '') {
+    try {
+      meta = JSON.parse(meta);
+    } catch {
+      meta = null;
+    }
+  }
+  return meta && typeof meta === 'object' && meta.display_role ? String(meta.display_role).toLowerCase() : '';
+});
 
 async function resetFromProps() {
   const c = props.component;

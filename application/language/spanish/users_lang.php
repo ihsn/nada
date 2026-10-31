@@ -206,6 +206,15 @@ $lang['confirm_bulk_deactivate_users']="¿Desea desactivar el/los usuario(s) sel
 $lang['export_to_csv']="Exportar a CSV";
 $lang['export_to_json']="Exportar a JSON";
 
+//one-time verification code (OTP)
+$lang['verification_code']="Código de verificación";
+$lang['verify_otp']="Código de verificación";
+$lang['otp_email_body']="Su código de verificación es: %s";
+$lang['otp_email_expiry_notice']="Este código caduca en %s minutos. Si no lo solicitó, puede ignorar este correo.";
+$lang['otp_check_email']="Revise su correo electrónico para obtener el código de verificación";
+$lang['otp_code_expired']="El código de verificación ha caducado. Solicite un código nuevo.";
+$lang['otp_code_failed']="El código de verificación es incorrecto.";
+
 
 /* End of file users */
 /* Location: ./application/language/spanish/users */

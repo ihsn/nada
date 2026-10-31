@@ -984,7 +984,7 @@ CREATE TABLE users (
   otp_expiry int DEFAULT NULL,
   forgot_request_ts INT NULL, 
   forgot_request_count INT DEFAULT 0,
-  authtype_id nvarchar(300) DEFAULT NULL,
+  authtype_id varchar(300) DEFAULT NULL,
   PRIMARY KEY (id)
 );
 CREATE NONCLUSTERED INDEX idx_authtype ON users (authtype);
@@ -1437,7 +1437,7 @@ CREATE TABLE ci_sessions (
   id varchar(128) NOT NULL,
   ip_address varchar(45) NOT NULL,
   timestamp int DEFAULT '0',
-  data varbinary(max),
+  data varbinary(max) NULL,
   PRIMARY KEY (id)
 );
 
@@ -1847,8 +1847,7 @@ CREATE TABLE roles (
 
 set IDENTITY_INSERT roles ON;
 insert into roles(id,name,description, weight, is_admin, is_locked) values 
-(1,'admin','It is the site administrator and has access to all site content', 0,1,1),
-(2,'user','General user account with no access to site administration', 0,1,1);
+(1,'admin','It is the site administrator and has access to all site content', 0,1,1);
 set IDENTITY_INSERT roles OFF;
 
 
@@ -1870,12 +1869,6 @@ CREATE TABLE user_roles (
 );
 
 
---
--- migrate admins from previous version
---
-
-insert into user_roles (user_id, role_id) 
-	select user_id, group_id from users_groups;
 
 
 
@@ -2216,6 +2209,30 @@ CREATE TABLE search_index_meta (
 
 INSERT INTO search_index_meta (id, engine, tracked_since) VALUES (1, 'none', DATEDIFF(SECOND, '1970-01-01', GETUTCDATE()));
 
+--
+-- Tables and indexes that upgrades add through migrations; included here so a fresh
+-- install matches an upgraded database.
+--
+
+CREATE TABLE study_admin_metadata (
+  sid int NOT NULL,
+  metadata nvarchar(max) NOT NULL,
+  created_by int NULL,
+  changed_by int NULL,
+  created int NULL,
+  changed int NULL,
+  PRIMARY KEY (sid),
+  CONSTRAINT ck_study_admin_metadata_metadata_isjson CHECK (ISJSON(metadata)=1)
+);
+CREATE INDEX idx_study_admin_metadata_changed ON study_admin_metadata (changed);
+
+CREATE TABLE analytics_legacy_counts (
+  survey_id int NOT NULL PRIMARY KEY,
+  total_views int NOT NULL DEFAULT 0,
+  total_downloads int NOT NULL DEFAULT 0,
+  backup_at datetime NOT NULL DEFAULT GETDATE()
+);
+
 
 --
 -- Analytics aggregation progress (as install/analytics-schema-sqlsrv.sql)
@@ -2237,21 +2254,5 @@ CREATE TABLE analytics_aggregation_status (
   user_id int NULL,
   PRIMARY KEY (id)
 );
-CREATE NONCLUSTERED INDEX idx_status ON analytics_aggregation_status (status);
-CREATE NONCLUSTERED INDEX idx_last_updated_at ON analytics_aggregation_status (last_updated_at);
-
-
---
--- Study admin metadata (as migration 20260608120001_create_study_admin_metadata_schema)
---
-CREATE TABLE study_admin_metadata (
-  sid INT NOT NULL,
-  metadata NVARCHAR(MAX) NOT NULL,
-  created_by INT NULL,
-  changed_by INT NULL,
-  created INT NULL,
-  changed INT NULL,
-  PRIMARY KEY (sid),
-  CONSTRAINT ck_study_admin_metadata_metadata_isjson CHECK (ISJSON(metadata)=1)
-);
-CREATE INDEX idx_study_admin_metadata_changed ON study_admin_metadata (changed);
+CREATE NONCLUSTERED INDEX idx_status ON analytics_aggregation_status (status ASC);
+CREATE NONCLUSTERED INDEX idx_last_updated_at ON analytics_aggregation_status (last_updated_at ASC);

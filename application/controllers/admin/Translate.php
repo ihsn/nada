@@ -189,6 +189,104 @@ class Translate extends MY_Controller {
 	
 	}
 	
+	/**
+	 * Search all translation files of a language
+	 *
+	 * Matches the key, the English text and the translation (case-insensitive).
+	 * GET params: q = search text, missing = 1 to list only untranslated keys
+	 */
+	function search($language=NULL)
+	{
+		if (!$language || !$this->translator->language_exists($language))
+		{
+			show_error('INVALID_LANGUAGE');
+		}
+
+		$q=mb_substr(trim((string)$this->input->get('q')),0,100);
+		$only_missing=($this->input->get('missing')==='1');
+		$limit=500;
+
+		$results=array();
+		$truncated=false;
+		$searched=($q!=='' || $only_missing);
+
+		if ($searched)
+		{
+			$files=$this->translator->get_language_files_array(APPPATH.'/language/'.$this->base_lang);
+			$files=is_array($files) ? $files : array();
+			$user_data=$this->config->item('userdata_path');
+
+			foreach($files as $file)
+			{
+				if (substr($file,-9)!=='_lang.php'){
+					continue;
+				}
+
+				$en=$this->translator->get_translations_array(APPPATH.'language/'.$this->base_lang.'/'.$file);
+				if (!is_array($en)){
+					continue;
+				}
+
+				//userdata copy takes precedence, as on the edit page
+				$tr=NULL;
+				if (!empty($user_data)){
+					$tr=$this->translator->get_translations_array($user_data.'/language/'.$language.'/'.$file);
+				}
+				if (!is_array($tr)){
+					$tr=$this->translator->get_translations_array(APPPATH.'language/'.$language.'/'.$file);
+				}
+				$tr=is_array($tr) ? $tr : array();
+
+				foreach($en as $key=>$en_value)
+				{
+					$tr_value=isset($tr[$key]) ? (string)$tr[$key] : '';
+					$en_value=(string)$en_value;
+					$is_missing=($tr_value==='');
+
+					if ($only_missing && !$is_missing){
+						continue;
+					}
+
+					if ($q!=='' &&
+						mb_stripos((string)$key,$q)===false &&
+						mb_stripos($en_value,$q)===false &&
+						mb_stripos($tr_value,$q)===false){
+						continue;
+					}
+
+					if (count($results)>=$limit){
+						$truncated=true;
+						break 2;
+					}
+
+					$results[]=array(
+						'file'=>str_replace('_lang.php','',$file),
+						'key'=>$key,
+						'english'=>$en_value,
+						'translation'=>$tr_value,
+						'missing'=>$is_missing
+					);
+				}
+			}
+		}
+
+		$data['title']=t('translate');
+		$data['language']=$language;
+		$data['languages']=$this->translator->get_languages_array();
+		$data['q']=$q;
+		$data['only_missing']=$only_missing;
+		$data['searched']=$searched;
+		$data['results']=$results;
+		$data['truncated']=$truncated;
+		$data['limit']=$limit;
+
+		$content=$this->load->view("translator/search",$data,true);
+
+		$this->template->write('title', $data['title'],true);
+		$this->template->write('content', $content,true);
+		$this->template->render();
+	}
+
 	function change_lang()
 	{
 		$lang=$this->input->get_post("lang");

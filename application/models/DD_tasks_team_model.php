@@ -16,7 +16,7 @@ class dd_tasks_team_model extends CI_Model {
     {
 		$this->db->select('users.id,first_name,last_name,users.email');
         $this->db->join('meta', 'users.id=meta.user_id','inner');
-        $this->db->where('users.id in(select user_id from user_roles where role_id!=2)');
+        $this->db->where('users.id in(select user_id from user_roles)');
         $this->db->where('users.active',1);
         $this->db->order_by('meta.first_name');
         return $this->db->get('users')->result_array();

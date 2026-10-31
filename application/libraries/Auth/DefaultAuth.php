@@ -819,7 +819,7 @@ class DefaultAuth implements AuthInterface
 			try{
 					//otp expired or not set?
 					if (date("U")>$user->otp_expiry || !$user->otp_code){
-						throw new Exception("Code has expired");
+						throw new Exception(t('otp_code_expired'));
 					}
 
 				if($this->ci->ion_auth_model->verify_otp_code($user->id, $code)){
@@ -831,7 +831,7 @@ class DefaultAuth implements AuthInterface
 					redirect("admin", 'refresh');
 				}
 
-				throw new exception("Code verification failed");
+				throw new Exception(t('otp_code_failed'));
 			}
 			catch(Exception $e){
 				$this->ci->db_logger->write_log('otp-error',$e->getMessage(). ' user: '.$user->email);
@@ -872,14 +872,14 @@ class DefaultAuth implements AuthInterface
 		// At most one new code per minute. Codes last 15 minutes, so issue time = expiry - 900.
 		$user=$this->ci->ion_auth->current_user();
 		if ($user && !empty($user->otp_code) && (int) $user->otp_expiry - 900 > time() - 60) {
-			$this->ci->session->set_flashdata('message', t('Check your email for verification code'));
+			$this->ci->session->set_flashdata('message', t('otp_check_email'));
 			redirect("auth/verify_code", 'refresh');
 		}
 
 		$this->ci->ion_auth->send_otp_code($user_id);
 		//write_log($type, $message=NULL, $section=NULL,$surveyid=0)
 		$this->ci->db_logger->write_log('otp','code sent for user:'.$user_id);
-		$this->ci->session->set_flashdata('message', t('Check your email for verification code'));
+		$this->ci->session->set_flashdata('message', t('otp_check_email'));
 		redirect("auth/verify_code", 'refresh');
 	}
 

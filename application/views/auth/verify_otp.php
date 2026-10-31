@@ -34,7 +34,7 @@
 	<div><?php echo $message.$error;?></div>
 <?php endif;?>
 
-<h1><?php echo t('Verification code');?></h1>
+<h1><?php echo t('verification_code');?></h1>
 <form method="post" class="form" autocomplete="off">
 
 <div style="padding:5px;">
@@ -44,7 +44,7 @@
     </div>    
         
     <div class="login-footer">
-        <input type="submit" name="submit" value="<?php echo t('Submit');?>" class="btn btn-primary btn-block"/>                
+        <input type="submit" name="submit" value="<?php echo t('submit');?>" class="btn btn-primary btn-block"/>                
     </div>
 </form>
         

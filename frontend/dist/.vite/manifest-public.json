@@ -1,6 +1,6 @@
 {
-  "_IndicatorEmbedDialog-Cq9THAlT.js": {
-    "file": "assets/public/IndicatorEmbedDialog-Cq9THAlT.js",
+  "_IndicatorEmbedDialog-DBdoPJ7m.js": {
+    "file": "assets/public/IndicatorEmbedDialog-DBdoPJ7m.js",
     "name": "IndicatorEmbedDialog",
     "imports": [
       "_VCombobox-DWEx92mC.js",
@@ -14,12 +14,12 @@
       "_VDialog-B3qNh0xF.js"
     ],
     "css": [
-      "assets/public/IndicatorEmbedDialog-gYQB6_FO.css"
+      "assets/public/IndicatorEmbedDialog-DZRD_ERG.css"
     ]
   },
-  "_IndicatorEmbedDialog-gYQB6_FO.css": {
-    "file": "assets/public/IndicatorEmbedDialog-gYQB6_FO.css",
-    "src": "_IndicatorEmbedDialog-gYQB6_FO.css"
+  "_IndicatorEmbedDialog-DZRD_ERG.css": {
+    "file": "assets/public/IndicatorEmbedDialog-DZRD_ERG.css",
+    "src": "_IndicatorEmbedDialog-DZRD_ERG.css"
   },
   "_VApp-_wa0_7nk.css": {
     "file": "assets/public/VApp-_wa0_7nk.css",
@@ -213,6 +213,21 @@
     "file": "assets/public/VSwitch-CaOOdN36.css",
     "src": "_VSwitch-CaOOdN36.css"
   },
+  "_VTooltip-DQf8u3X6.css": {
+    "file": "assets/public/VTooltip-DQf8u3X6.css",
+    "src": "_VTooltip-DQf8u3X6.css"
+  },
+  "_VTooltip-QO8byAeQ.js": {
+    "file": "assets/public/VTooltip-QO8byAeQ.js",
+    "name": "VTooltip",
+    "imports": [
+      "_VSelect-B0vLzz42.js",
+      "_VApp-gVd-tMvB.js"
+    ],
+    "css": [
+      "assets/public/VTooltip-DQf8u3X6.css"
+    ]
+  },
   "_index-DhXgJQ-f.js": {
     "file": "assets/public/index-DhXgJQ-f.js",
     "name": "index"
@@ -232,8 +247,8 @@
       "_VApp-gVd-tMvB.js"
     ]
   },
-  "_usePublicTimeseriesApi-C__NC_ag.js": {
-    "file": "assets/public/usePublicTimeseriesApi-C__NC_ag.js",
+  "_usePublicTimeseriesApi-DsFAJVpn.js": {
+    "file": "assets/public/usePublicTimeseriesApi-DsFAJVpn.js",
     "name": "usePublicTimeseriesApi",
     "imports": [
       "_index-DhXgJQ-f.js",
@@ -241,7 +256,7 @@
     ]
   },
   "catalog-search/components/CatalogDocumentPdfDialog.vue": {
-    "file": "assets/public/CatalogDocumentPdfDialog-C65gLybu.js",
+    "file": "assets/public/CatalogDocumentPdfDialog-I61hsnze.js",
     "name": "CatalogDocumentPdfDialog",
     "src": "catalog-search/components/CatalogDocumentPdfDialog.vue",
     "isDynamicEntry": true,
@@ -264,7 +279,7 @@
     ]
   },
   "catalog-search/components/CatalogImageGallery.vue": {
-    "file": "assets/public/CatalogImageGallery-BuhyPwZ0.js",
+    "file": "assets/public/CatalogImageGallery-BdL64TLl.js",
     "name": "CatalogImageGallery",
     "src": "catalog-search/components/CatalogImageGallery.vue",
     "isDynamicEntry": true,
@@ -272,20 +287,21 @@
       "_VApp-gVd-tMvB.js",
       "catalog-search/main.js",
       "_VChip-JmtrsX7i.js",
-      "_VSelect-B0vLzz42.js",
+      "_VTooltip-QO8byAeQ.js",
       "_VMain-ClvljpOP.js",
       "_VContainer-CMu2pdry.js",
       "_useI18n-CnDP7xla.js",
+      "_VSelect-B0vLzz42.js",
       "_VRow-Bp06l6Iq.js",
       "_VCard-B_P18o5F.js",
       "_VSwitch-BHkykTFV.js"
     ],
     "css": [
-      "assets/public/CatalogImageGallery-Bm1BGh01.css"
+      "assets/public/CatalogImageGallery-DbPXi4E8.css"
     ]
   },
   "catalog-search/components/CatalogStudySemanticPages.vue": {
-    "file": "assets/public/CatalogStudySemanticPages-195wSpHn.js",
+    "file": "assets/public/CatalogStudySemanticPages-DDemj0Yp.js",
     "name": "CatalogStudySemanticPages",
     "src": "catalog-search/components/CatalogStudySemanticPages.vue",
     "isDynamicEntry": true,
@@ -303,7 +319,7 @@
     ]
   },
   "catalog-search/components/CatalogStudyVariableMatches.vue": {
-    "file": "assets/public/CatalogStudyVariableMatches-B3a7Uyn1.js",
+    "file": "assets/public/CatalogStudyVariableMatches-BhSaBNwy.js",
     "name": "CatalogStudyVariableMatches",
     "src": "catalog-search/components/CatalogStudyVariableMatches.vue",
     "isDynamicEntry": true,
@@ -328,7 +344,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableCompareCart.vue": {
-    "file": "assets/public/CatalogVariableCompareCart-C6dHWBI3.js",
+    "file": "assets/public/CatalogVariableCompareCart-DJPwDLwE.js",
     "name": "CatalogVariableCompareCart",
     "src": "catalog-search/components/CatalogVariableCompareCart.vue",
     "isDynamicEntry": true,
@@ -352,7 +368,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableDetailDialog.vue": {
-    "file": "assets/public/CatalogVariableDetailDialog-CIt9Nv7O.js",
+    "file": "assets/public/CatalogVariableDetailDialog-Bgehu_2s.js",
     "name": "CatalogVariableDetailDialog",
     "src": "catalog-search/components/CatalogVariableDetailDialog.vue",
     "isDynamicEntry": true,
@@ -374,7 +390,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableResultsList.vue": {
-    "file": "assets/public/CatalogVariableResultsList-DBkTRIuf.js",
+    "file": "assets/public/CatalogVariableResultsList-BXbIZRze.js",
     "name": "CatalogVariableResultsList",
     "src": "catalog-search/components/CatalogVariableResultsList.vue",
     "isDynamicEntry": true,
@@ -425,7 +441,7 @@
     ]
   },
   "catalog-search/main.js": {
-    "file": "assets/public/catalog_search-5E1B094H.js",
+    "file": "assets/public/catalog_search-DDbnVrAe.js",
     "name": "catalog_search",
     "src": "catalog-search/main.js",
     "isEntry": true,
@@ -454,7 +470,7 @@
     ]
   },
   "catalog/study_indicator_data_public/main.js": {
-    "file": "assets/public/catalog_study_indicator_data-BfCGOHeU.js",
+    "file": "assets/public/catalog_study_indicator_data-C-Hs1l3Z.js",
     "name": "catalog_study_indicator_data",
     "src": "catalog/study_indicator_data_public/main.js",
     "isEntry": true,
@@ -480,14 +496,14 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorChartTab.vue": {
-    "file": "assets/public/IndicatorChartTab--crnc7Qz.js",
+    "file": "assets/public/IndicatorChartTab-BMfngrn6.js",
     "name": "IndicatorChartTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorChartTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-gVd-tMvB.js",
-      "_IndicatorEmbedDialog-Cq9THAlT.js",
-      "_usePublicTimeseriesApi-C__NC_ag.js",
+      "_IndicatorEmbedDialog-DBdoPJ7m.js",
+      "_usePublicTimeseriesApi-DsFAJVpn.js",
       "_VChip-JmtrsX7i.js",
       "_VRow-Bp06l6Iq.js",
       "_VCard-B_P18o5F.js",
@@ -502,18 +518,18 @@
       "_VMain-ClvljpOP.js"
     ],
     "css": [
-      "assets/public/IndicatorChartTab-BdtkJeVY.css"
+      "assets/public/IndicatorChartTab-DUAJJxem.css"
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorDataApiTab.vue": {
-    "file": "assets/public/IndicatorDataApiTab-zZIU8wEZ.js",
+    "file": "assets/public/IndicatorDataApiTab-gnRz__Cj.js",
     "name": "IndicatorDataApiTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorDataApiTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-gVd-tMvB.js",
       "_index-DhXgJQ-f.js",
-      "_usePublicTimeseriesApi-C__NC_ag.js",
+      "_usePublicTimeseriesApi-DsFAJVpn.js",
       "_VChip-JmtrsX7i.js",
       "_VExpansionPanels-DjQH2cA-.js",
       "_VDataTable-CMVhwCNv.js",
@@ -522,17 +538,17 @@
       "_VMain-ClvljpOP.js"
     ],
     "css": [
-      "assets/public/IndicatorDataApiTab-BdZcr3i8.css"
+      "assets/public/IndicatorDataApiTab-QY0zer_t.css"
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorStructureTab.vue": {
-    "file": "assets/public/IndicatorStructureTab-FyRuS0L0.js",
+    "file": "assets/public/IndicatorStructureTab-C3J4Lvow.js",
     "name": "IndicatorStructureTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorStructureTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-gVd-tMvB.js",
-      "_usePublicTimeseriesApi-C__NC_ag.js",
+      "_usePublicTimeseriesApi-DsFAJVpn.js",
       "_VChip-JmtrsX7i.js",
       "_VRow-Bp06l6Iq.js",
       "_VCard-B_P18o5F.js",
@@ -546,27 +562,37 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue": {
-    "file": "assets/public/IndicatorTableTab-CH1xygc7.js",
+    "file": "assets/public/IndicatorTableTab-C_xnfcCe.js",
     "name": "IndicatorTableTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-gVd-tMvB.js",
-      "_IndicatorEmbedDialog-Cq9THAlT.js",
-      "_usePublicTimeseriesApi-C__NC_ag.js",
+      "_IndicatorEmbedDialog-DBdoPJ7m.js",
+      "_usePublicTimeseriesApi-DsFAJVpn.js",
+      "catalog/study_indicator_data_public/main.js",
       "_VChip-JmtrsX7i.js",
       "_VExpansionPanels-DjQH2cA-.js",
       "_VCheckbox-DjVSzouX.js",
       "_VSelect-B0vLzz42.js",
+      "_VTooltip-QO8byAeQ.js",
       "_VRow-Bp06l6Iq.js",
       "_VCard-B_P18o5F.js",
       "_VCombobox-DWEx92mC.js",
       "_VDialog-B3qNh0xF.js",
       "_index-DhXgJQ-f.js",
-      "_VMain-ClvljpOP.js"
+      "_VMain-ClvljpOP.js",
+      "_VContainer-CMu2pdry.js"
     ],
     "css": [
-      "assets/public/IndicatorTableTab-CmTD4ENE.css"
+      "assets/public/IndicatorTableTab-B9bfVP3S.css",
+      "assets/public/materialdesignicons-f3sFGprf.css"
+    ],
+    "assets": [
+      "assets/public/materialdesignicons-webfont-CSr8KVlo.eot",
+      "assets/public/materialdesignicons-webfont-Dp5v-WZN.woff2",
+      "assets/public/materialdesignicons-webfont-PXm3-2wK.woff",
+      "assets/public/materialdesignicons-webfont-B7mPwVP_.ttf"
     ]
   },
   "datadeposit/main.js": {

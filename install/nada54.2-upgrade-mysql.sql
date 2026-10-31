@@ -1,5 +1,5 @@
 ALTER TABLE `users`
-ADD COLUMN `authtype` VARCHAR(100) NULL;
+ADD COLUMN `authtype` VARCHAR(40) NULL;
 
 ALTER TABLE `users`
 ADD COLUMN `authtype_id` VARCHAR(300) NULL;

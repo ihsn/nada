@@ -2,10 +2,10 @@
 # First run nada5-upgrade-mysql.sql
 ###################################################################################
 
---- 
---- For MYSQL 5.6 or later only
---- requires INNODB support for fulltext and geometry 
---- 
+-- 
+-- For MYSQL 5.6 or later only
+-- requires INNODB support for fulltext and geometry 
+-- 
 
 --
 -- change tables to INNODB

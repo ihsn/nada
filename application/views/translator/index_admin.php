@@ -19,7 +19,7 @@
         <th><?php echo t('Language');?></th>
         <th><?php echo t('source');?></th>
         <th><?php echo t('completion');?></th>
-        <th><?php echo t('actions');?></th>
+        <th style="width:1%;white-space:nowrap;"><?php echo t('actions');?></th>
     </tr>
 	<?php foreach($languages as $lang):?>
         <?php
@@ -27,7 +27,7 @@
             $info = isset($lang_info[$lang]) ? $lang_info[$lang] : array('has_official'=>false,'has_userdata'=>false);
         ?>
         <tr valign="top">
-            <td><strong><?php echo ucfirst($lang);?></strong></td>
+            <td><strong><?php echo anchor('admin/translate/edit/'.$lang, htmlspecialchars(ucfirst($lang)));?></strong></td>
             <td>
                 <?php if ($lang === 'english'): ?>
                     <span class="badge badge-dark"><?php echo t('base_language');?></span>
@@ -58,8 +58,10 @@
                     <?php endif;?>
                 <?php endif;?>
             </td>
-            <td>
-                <?php echo anchor('admin/translate/edit/'.$lang, t('edit'));?> | <?php echo anchor('admin/translate/download/'.$lang, t('download'));?>
+            <td class="text-nowrap">
+                <a href="<?php echo site_url('admin/translate/edit/'.$lang);?>" class="btn btn-sm btn-link" title="<?php echo t('edit');?>" aria-label="<?php echo t('edit');?>"><i class="fas fa-edit"></i></a>
+                <a href="<?php echo site_url('admin/translate/search/'.$lang);?>" class="btn btn-sm btn-link" title="<?php echo t('search_all_files');?>" aria-label="<?php echo t('search_all_files');?>"><i class="fas fa-search"></i></a>
+                <a href="<?php echo site_url('admin/translate/download/'.$lang);?>" class="btn btn-sm btn-link" title="<?php echo t('download');?>" aria-label="<?php echo t('download');?>"><i class="fas fa-download"></i></a>
             </td>
         </tr>
     <?php endforeach;?>

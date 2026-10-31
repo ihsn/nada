@@ -1,13 +1,55 @@
+# NADA web server hardening (Apache 2.4; Apache 2.2 syntax is included where it differs).
+#
+# If the server ignores .htaccess (AllowOverride None), none of this applies: copy these rules
+# into the virtual host configuration instead.
+
 Options -Indexes
 
 AddType application/javascript .mjs
 
-<ifModule mod_headers.c>
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
-    Header set X-Content-Type-Options "nosniff"
-    Header set Referrer-Policy "same-origin"
+# 1. Private folders and hidden files (needs mod_rewrite; each private folder also has its own .htaccess).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(application|system|modules|vendor|install|logs|datafiles|imports|cache|_trash|files/sessions)(/|$) - [F,L,NC]
+    RewriteRule ^frontend/(?!dist(/|$)) - [F,L,NC]
+    # Hidden version-control, environment and server files and folders (named, so a study file called .Rprofile still downloads).
+    RewriteRule (^|/)\.(git[^/]*|svn|hg|idea|vscode|claude|env[^/]*|ht[^/]*|DS_Store|npmrc)(/|$) - [F,L,NC]
+</IfModule>
 
-    #always connect via https
-    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+# 2. Source, notes and package files that must never be downloaded.
+<FilesMatch "(?i)(\.(sql|md|log|bak|old|orig|swp|sh|ps1|ini|env|dist|inc|lock)|^\.[^/]+|^(composer\.json|package(-lock)?\.json|vite\.config\.js|eslint\.config\.js|jsconfig\.json|web\.config|phpunit\.xml(\.dist)?))$">
+    <IfModule authz_core_module>
+        Require all denied
+    </IfModule>
+    <IfModule !authz_core_module>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 3. Only the front controller and the OpenAPI redirect scripts may run PHP.
+#    Theme layouts and other .php files are loaded by NADA itself, never requested directly.
+#    (No separate "allow" section: a later grant would override the deny files in the private folders.)
+<FilesMatch "(?i)^(?!(index|openapi|swagger)\.php$).+\.(php[0-9]?|phtml|pht|phps|phar)$">
+    <IfModule authz_core_module>
+        Require all denied
+    </IfModule>
+    <IfModule !authz_core_module>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 4. Response headers.
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "same-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    # PHP adds X-Powered-By to normal responses, so unset it in both header tables.
+    Header unset X-Powered-By
+    Header always unset X-Powered-By
+
+    # Only over HTTPS (also when TLS ends at a proxy). Add "; includeSubDomains" only if every subdomain uses HTTPS.
+    Header always set Strict-Transport-Security "max-age=31536000" "expr=%{HTTPS} == 'on' || %{HTTP:X-Forwarded-Proto} == 'https'"
 </IfModule>

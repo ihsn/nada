@@ -1,7 +1,7 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 
-$config['acl_system_roles'] = ['user','admin'];
+$config['acl_system_roles'] = ['admin'];
 
 
 
@@ -10,11 +10,6 @@ $config['acl_system_roles'] = ['user','admin'];
 
 //give full access to admin to everything
 $config['acl_system_role_permissions'] = [
-    'user'=>[
-        'role'=>'user',
-        'resource'=>'', //no access to any resource
-        'permissions'=>'' //no permissions
-    ],
     'admin'=>[
         'role'=>'admin',
         'resource'=>null, //full access to all resources

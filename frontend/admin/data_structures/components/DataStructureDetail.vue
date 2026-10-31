@@ -126,7 +126,7 @@
               <v-icon icon="mdi-table-column" size="small" class="mr-2" />
             </template>
             <v-list-item-title class="font-weight-medium">{{ comp.name }}</v-list-item-title>
-            <v-list-item-subtitle>{{ comp.column_type }}{{ comp.label ? ' · ' + comp.label : '' }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ comp.column_type }}{{ componentDisplayRole(comp) === 'footnote' ? ' · Footnote' : '' }}{{ comp.label ? ' · ' + comp.label : '' }}</v-list-item-subtitle>
             <template #append>
               <v-btn
                 icon
@@ -457,6 +457,19 @@ const versionPickerItems = computed(() => {
     title: `${v.version ?? '—'} · ${statusShort(v.status)}`,
   }));
 });
+
+/** metadata.display_role of a component ('footnote' = cells hold note IDs), or ''. */
+function componentDisplayRole(comp) {
+  let meta = comp?.metadata;
+  if (typeof meta === 'string' && meta !== '') {
+    try {
+      meta = JSON.parse(meta);
+    } catch {
+      meta = null;
+    }
+  }
+  return meta && typeof meta === 'object' && meta.display_role ? String(meta.display_role).toLowerCase() : '';
+}
 
 function statusShort(code) {
   const n = Number(code);

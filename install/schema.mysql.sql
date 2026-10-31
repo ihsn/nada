@@ -1683,8 +1683,7 @@ CREATE TABLE `roles` (
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
 insert into roles(id,name,description, weight, is_admin, is_locked) values 
-(1,'admin','It is the site administrator and has access to all site content', 0,1,1),
-(2,'user','General user account with no access to site administration', 0,1,1);
+(1,'admin','It is the site administrator and has access to all site content', 0,1,1);
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2023,6 +2022,30 @@ CREATE TABLE `search_index_meta` (
 
 INSERT INTO `search_index_meta` (`id`, `engine`, `tracked_since`) VALUES (1, 'none', UNIX_TIMESTAMP());
 
+--
+-- Tables and indexes that upgrades add through migrations; included here so a fresh
+-- install matches an upgraded database.
+--
+
+CREATE TABLE `study_admin_metadata` (
+  `sid` int NOT NULL,
+  `metadata` json NOT NULL,
+  `created_by` int unsigned DEFAULT NULL,
+  `changed_by` int unsigned DEFAULT NULL,
+  `created` int unsigned DEFAULT NULL,
+  `changed` int unsigned DEFAULT NULL,
+  PRIMARY KEY (`sid`),
+  KEY `idx_study_admin_metadata_changed` (`changed`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `analytics_legacy_counts` (
+  `survey_id` int NOT NULL,
+  `total_views` int unsigned NOT NULL DEFAULT 0,
+  `total_downloads` int unsigned NOT NULL DEFAULT 0,
+  `backup_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`survey_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 --
 -- Analytics aggregation progress (as install/analytics-schema-mysql.sql)
@@ -2045,19 +2068,6 @@ CREATE TABLE `analytics_aggregation_status` (
   PRIMARY KEY (`id`),
   KEY `status` (`status`),
   KEY `last_updated_at` (`last_updated_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
-
-
---
--- Study admin metadata (as migration 20260608120001_create_study_admin_metadata_schema)
---
-CREATE TABLE `study_admin_metadata` (
-  `sid` INT NOT NULL,
-  `metadata` JSON NOT NULL,
-  `created_by` INT UNSIGNED DEFAULT NULL,
-  `changed_by` INT UNSIGNED DEFAULT NULL,
-  `created` INT UNSIGNED DEFAULT NULL,
-  `changed` INT UNSIGNED DEFAULT NULL,
-  PRIMARY KEY (`sid`),
-  KEY `idx_study_admin_metadata_changed` (`changed`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `surveys` ADD UNIQUE KEY `idx_surveys_idno` (`idno`);

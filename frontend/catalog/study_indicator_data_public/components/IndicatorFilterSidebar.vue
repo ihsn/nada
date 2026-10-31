@@ -136,7 +136,7 @@
         </v-expansion-panel>
       </v-expansion-panels>
 
-      <div class="filter-sidebar-apply pt-2 pb-2">
+      <div v-if="showApply" class="filter-sidebar-apply pt-2 pb-2">
         <v-btn
           :variant="applyVariant"
           :color="applyColor"
@@ -198,6 +198,11 @@ const props = defineProps({
   periodicityFilterVisible: {
     type: Boolean,
     default: false,
+  },
+  /** Off when the parent applies filters as soon as they change. */
+  showApply: {
+    type: Boolean,
+    default: true,
   },
   applyLoading: {
     type: Boolean,

@@ -246,7 +246,12 @@
               must-sort
             >
               <template v-for="col in tableHeaders" :key="'cell-' + col.key" #[`item.${col.key}`]="{ value }">
-                <span class="obs-cell-clamp" :title="cellTooltipTitle(value)">{{ value }}</span>
+                <span
+                  v-if="noteTextForCell(col.key, value)"
+                  class="obs-cell-clamp obs-cell-noted"
+                  :title="noteTextForCell(col.key, value)"
+                ><v-icon size="x-small" color="primary" class="mr-1" icon="mdi-note-text-outline" />{{ value }}</span>
+                <span v-else class="obs-cell-clamp" :title="cellTooltipTitle(value)">{{ value }}</span>
               </template>
             </v-data-table>
           </v-sheet>
@@ -298,7 +303,7 @@ const ui = computed(() => {
   return raw && typeof raw === 'object' ? raw : {};
 });
 
-const { fetchSchema, fetchObservations, fetchFilterOptions, dataPath } = usePublicTimeseriesApi(studyIdno);
+const { fetchSchema, fetchObservations, fetchFilterOptions, fetchNotes, dataPath } = usePublicTimeseriesApi(studyIdno);
 
 const publicTimeseriesDataBaseUrl = computed(() => dataPath());
 
@@ -581,6 +586,34 @@ function formatCell(val) {
   return String(val);
 }
 
+/** Footnote columns (upper case) and note text by ID, for note tooltips on footnote cells. */
+const footnoteColumns = ref([]);
+const noteTextById = ref({});
+
+async function loadNotes() {
+  try {
+    const res = await fetchNotes();
+    footnoteColumns.value = (res.footnote_columns || []).map((c) => String(c).toUpperCase());
+    const byId = {};
+    for (const n of res.notes || []) byId[String(n.id)] = String(n.note || '');
+    noteTextById.value = byId;
+  } catch {
+    footnoteColumns.value = [];
+    noteTextById.value = {};
+  }
+}
+
+/** Note text for a footnote cell (one line per note; IDs are not shown), or '' for other cells. */
+function noteTextForCell(colKey, value) {
+  if (!footnoteColumns.value.includes(String(colKey).toUpperCase())) return '';
+  const ids = String(value ?? '')
+    .split(';')
+    .map((x) => x.trim())
+    .filter((x, i, a) => x !== '' && a.indexOf(x) === i);
+  if (!ids.length) return '';
+  return ids.map((id) => noteTextById.value[id] || 'No text available for this note.').join('\n');
+}
+
 function cellTooltipTitle(value) {
   const s = value == null ? '' : String(value);
   if (s.length < 120) return undefined;
@@ -771,7 +804,7 @@ async function loadAll() {
     syncFilterDraftCShape();
     await loadCodelistsForSchema();
     offset.value = 0;
-    await Promise.all([reloadObservations(), loadRegistryDownloads()]);
+    await Promise.all([reloadObservations(), loadRegistryDownloads(), loadNotes()]);
   } catch (e) {
     fatalError.value = e?.response?.data?.message || e?.message || 'Could not load indicator data.';
     schema.value = null;
@@ -893,6 +926,10 @@ onMounted(() => {
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.015em;
+}
+
+.obs-cell-noted {
+  cursor: help;
 }
 
 .obs-cell-clamp {

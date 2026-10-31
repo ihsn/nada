@@ -264,13 +264,13 @@ class Acl_manager
 	 * Whether the user may enter the site admin area (/admin).
 	 *
 	 * Coarse gate only — feature access is enforced per controller via has_access().
-	 * Deny by default: plain site accounts (no roles, or only the system "user" role
-	 * with no collection grants) are blocked. Does not inspect role_permissions content.
+	 * Deny by default: plain site accounts (no roles and no collection grants) are
+	 * blocked. Does not inspect role_permissions content.
 	 *
 	 * Allow when:
 	 * - full admin (is_admin role), or
-	 * - at least one global role other than "user", or
-	 * - any repositories_acl grant (collection-only admins may keep the user role)
+	 * - at least one global role, or
+	 * - any repositories_acl grant (collection-only admins may have no global roles)
 	 *
 	 * @param object|null $user
 	 * @return bool
@@ -289,51 +289,17 @@ class Acl_manager
 			return true;
 		}
 
-		// Collection-only admins may have no global roles (or only "user"); check grants before role list.
+		// Collection-only admins may have no global roles; check grants before role list.
 		if ($this->user_has_any_collection_grant((int) $user->id)) {
 			return true;
 		}
 
 		$user_roles = $this->get_user_roles((int) $user->id);
-		if (empty($user_roles)) {
-			return false;
-		}
-
-		if ($this->user_has_non_site_user_role($user_roles)) {
+		if ( ! empty($user_roles)) {
 			return true;
 		}
 
 		return false;
-	}
-
-	/**
-	 * True if the user has a global role other than the system site-user role (name "user").
-	 *
-	 * @param array $user_roles from get_user_roles()
-	 * @return bool
-	 */
-	protected function user_has_non_site_user_role(array $user_roles)
-	{
-		$site_user_role = $this->site_user_role_name();
-
-		foreach ($user_roles as $role) {
-			$name = isset($role['name']) ? strtolower(trim((string) $role['name'])) : '';
-			if ($name !== '' && $name !== $site_user_role) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * System role name for plain site users (acl_permissions acl_system_roles).
-	 *
-	 * @return string lowercase
-	 */
-	protected function site_user_role_name()
-	{
-		return 'user';
 	}
 
 	/**

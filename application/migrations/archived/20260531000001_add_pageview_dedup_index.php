@@ -48,7 +48,9 @@ class Migration_Add_pageview_dedup_index extends MY_Migration {
         $db_driver = $this->db->dbdriver;
 
         if ($db_driver === 'mysqli') {
-            $this->db->query("ALTER TABLE `analytics_pageview_events` DROP INDEX IF EXISTS `idx_dedup`");
+            if ($this->index_exists('analytics_pageview_events', 'idx_dedup')) {
+                $this->db->query("ALTER TABLE `analytics_pageview_events` DROP INDEX `idx_dedup`");
+            }
         } elseif ($db_driver === 'sqlsrv') {
             $this->db->query("DROP INDEX IF EXISTS [idx_dedup] ON [analytics_pageview_events]");
         }

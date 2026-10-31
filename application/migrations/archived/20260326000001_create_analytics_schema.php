@@ -79,8 +79,15 @@ class Migration_Create_analytics_schema extends MY_Migration {
             $this->db->query("ALTER TABLE `analytics_daily_files` CHANGE COLUMN `file_id` `file_name` VARCHAR(255) NOT NULL");
             $this->db->query("ALTER TABLE `analytics_monthly_files` CHANGE COLUMN `file_id` `file_name` VARCHAR(255) NOT NULL");
 
-            $this->db->query("DROP INDEX IF EXISTS `idx_study_file` ON `analytics_download_events`");
-            $this->db->query("DROP INDEX IF EXISTS `idx_ts_study_file` ON `analytics_download_events`");
+            // MySQL has no DROP INDEX IF EXISTS (MariaDB only), so check first.
+            foreach (array('idx_study_file', 'idx_ts_study_file') as $legacy_index) {
+                if ($this->index_exists('analytics_download_events', $legacy_index)) {
+                    $this->assert_db_query(
+                        $this->db->query("DROP INDEX `" . $legacy_index . "` ON `analytics_download_events`"),
+                        'DROP INDEX ' . $legacy_index
+                    );
+                }
+            }
             $this->db->query("CREATE INDEX `idx_study_file` ON `analytics_download_events` (`study_id`, `file_name`)");
             $this->db->query("CREATE INDEX `idx_ts_study_file` ON `analytics_download_events` (`ts`, `study_id`, `file_name`)");
 
