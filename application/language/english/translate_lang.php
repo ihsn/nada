@@ -30,6 +30,17 @@ $lang['lang_custom']="Custom";
 $lang['lang_custom']="Custom";
 $lang['lang_custom']="Custom";
 
+//translation search
+$lang['search_all_files']="Search all files";
+$lang['translate_search_placeholder']="Search key, English text or translation";
+$lang['show_only_missing']="Show only missing translations";
+$lang['filter_this_file']="Filter this file by key, English text or translation";
+$lang['search_all_files_help']="Enter text to search the key, English text and translation in all files of this language, or tick \"Show only missing translations\" to list what still needs translating.";
+$lang['search_results_limited']="Showing the first %d results. Refine your search to narrow them down.";
+$lang['search_col_file_key']="File / Key";
+$lang['search_results_count']="results";
+$lang['search_no_results']="No matching translations found.";
+$lang['search_not_translated']="Not translated";
 
 
 /* End of file general_lang.php */

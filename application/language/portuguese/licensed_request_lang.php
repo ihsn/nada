@@ -91,6 +91,41 @@ $lang['MOREINFO']="É necessário informação adicional";
 $lang['CANCELLED']="Cancelado";
 $lang['reason_login_licensed_access']="Para aceder a  base de dados com licença, favor inicie sessão no website para continuar.";
 
+//added to match the English language file
+$lang["msg_date_limit_reached"]="Atingiu o prazo limite de descarregamento deste ficheiro. O prazo terminou em %s. Se pretende prolongar o prazo de acesso ao documento, escreva para %s para alterar a data de expiração.";
+$lang["forward_lic_request"]="Reencaminhar solicitação";
+$lang["comments_history"]="Histórico de comentários";
+$lang["view_comments_history"]="Ver histórico";
+$lang["comment_by"]="Por";
+$lang["show_hide"]="Mostrar/Ocultar";
+$lang["comment"]="Comentário";
+$lang["communicate_history"]="Histórico";
+$lang["sent_by"]="Enviado por";
+$lang["forward_history"]="Histórico";
+$lang["data_restricted_use"]="Os dados são fornecidos apenas para a finalidade descrita no formulário de solicitação. Para utilizar os dados para qualquer outra finalidade, faça uma nova solicitação de acesso.";
+$lang["data_request_for"]="Solicitação de dados";
+$lang["request_history"]="Ver histórico da solicitação";
+$lang["study_notes"]="Ver notas do estudo";
+$lang["note_type"]="Tipo";
+$lang["note"]="Nota";
+$lang["additional_info"]="Informação adicional solicitada";
+$lang["request_additional_info_submitted"]="Obrigado por actualizar a solicitação. Será notificado por e-mail assim que o seu pedido tiver sido analisado.";
+$lang["email_sent"]="A sua mensagem foi enviada!";
+$lang["provide_additonal_info_for_your_request"]="Utilize esta caixa para fornecer a informação adicional necessária para processar a sua solicitação de dados.";
+$lang["click_on_a_lic_request_to_see_status_or_download_data"]="Clique numa solicitação para ver o estado ou descarregar os dados das solicitações aprovadas.";
+$lang["make_new_lic_request"]="Fazer nova solicitação";
+$lang["no_microdata_files_found"]="Não foram encontrados ficheiros de microdados!";
+$lang["all_requests"]="Todas as solicitações";
+$lang["pending"]="Pendente";
+$lang["denied"]="Recusado";
+$lang["cancelled"]="Cancelado";
+$lang["study_data_files"]="Ficheiros de microdados";
+$lang["study_resources"]="Recursos do estudo";
+$lang["other_materials"]="Outros materiais";
+$lang["datasets_requested"]="Conjunto(s) de dados solicitado(s)";
+$lang["request_title"]="Título da solicitação";
+$lang["download_microdata_and_resources"]="Descarregar microdados e outros materiais relacionados";
+
 
 /* End of file licensed_request_lang.php */
 /* Location: ./application/language/Portuguese/licensed_request_lang.php */

@@ -971,7 +971,7 @@ class Ion_auth
 			throw new Exception("User not found");
 		}
 
-		$message='Your verification code is: <b>'.$otp_code.'</b>';
+		$message=sprintf(t('otp_email_body'), '<b>'.$otp_code.'</b>').'<br/><br/>'.sprintf(t('otp_email_expiry_notice'), 15);
 		$this->ci->email->clear();
 		$this->ci->email->initialize();
 		$this->ci->email->to($user->email);

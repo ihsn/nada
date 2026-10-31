@@ -87,6 +87,63 @@ $lang['share_with_stumpleupon']="Partilhar com Stumbleupon";
 $lang['study_home']="Inicio";
 $lang['captcha_answer_not_matched']="A resposta %s não foi encontrada";
 
+//added to match the English language file
+$lang["last"]="Último";
+$lang["save"]="Guardar";
+$lang["repositories"]="Colecções";
+$lang["contributing_repositories"]="Colecções contribuintes";
+$lang["home"]="Início";
+$lang["regional_catalogs"]="Catálogos regionais";
+$lang["specialized_catalogs"]="Catálogos especializados";
+$lang["central_data_catalog"]="Catálogo Central de Dados";
+$lang["created"]="Criado";
+$lang["visit_catalog"]="Visitar o catálogo";
+$lang["reason_login_data_access"]="Inicie sessão para descarregar os dados";
+$lang["public_title"]="Ficheiros de utilização pública";
+$lang["licensed_title"]="Ficheiros de dados sob licença";
+$lang["direct_title"]="Ficheiros de acesso directo";
+$lang["data_na_title"]="Estudos sem dados disponíveis";
+$lang["remote_title"]="Dados disponíveis num repositório externo";
+$lang["data_is_available_from_external_repository"]="Os dados deste estudo estão disponíveis num website externo, utilize a ligação abaixo:";
+$lang["exit_impersonate"]="Sair do modo de personificação";
+$lang["content_is_not_published"]="O conteúdo desta página ainda não foi publicado e está disponível apenas para revisão.";
+$lang["licensed_requests"]="Solicitações sob licença";
+$lang["create_region"]="Criar região";
+$lang["tab_about"]="Acerca de";
+$lang["tab_datasets"]="Conjuntos de dados";
+$lang["tab_citations"]="Citações";
+$lang["tab_collections"]="Colecções";
+$lang["collection"]="Colecção";
+$lang["add_country"]="Adicionar novo país";
+$lang["countries"]="Países";
+$lang["iso"]="ISO";
+$lang["edit_country"]="Editar país";
+$lang["country_mappings"]="Correspondências de países";
+$lang["latest_additions"]="Últimas adições";
+$lang["idno"]="IDNO";
+$lang["related_datasets"]="Conjuntos de dados relacionados";
+$lang["JSON"]="JSON";
+$lang["DDI/XML"]="DDI/XML";
+$lang["page not found"]="Página não encontrada";
+$lang["export_to_csv"]="Exportar para CSV";
+$lang["export_to_json"]="Exportar para JSON";
+$lang["translate"]="Traduzir";
+$lang["get_reproducibility_package"]="Obter pacote de reprodutibilidade";
+$lang["enter_email_to_continue"]="Introduza o seu endereço de e-mail para continuar";
+$lang["enter_your_email"]="Introduza o seu endereço de e-mail";
+$lang["continue"]="Continuar";
+$lang["login_with_social"]="Iniciar sessão com conta de rede social";
+$lang["login_with"]="Iniciar sessão com";
+$lang["login_with_email"]="Iniciar sessão com e-mail";
+$lang["login_with_password"]="Iniciar sessão com palavra-passe";
+$lang["create_account_with_email"]="Criar conta com e-mail";
+$lang["account_exists_with"]="Existe uma conta com %s";
+$lang["new_account_will_be_created"]="Será criada uma nova conta para si";
+$lang["message_sent_to_your_email"]="Foi enviada uma mensagem para o seu endereço de e-mail com instruções para redefinir a sua palavra-passe.";
+$lang["file_manager"]="Gestor de ficheiros";
+$lang["access_denied_title"]="Acesso negado";
+$lang["access_denied_message"]="Não tem permissão para aceder a esta página ou recurso. Se considera que deveria ter acesso, contacte o administrador do sistema.";
+
 
 /* End of file general_lang.php */
 /* Location: ./application/language/Portuguese/general_lang.php */
