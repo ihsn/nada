@@ -15,6 +15,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/shared/composables/useI18n';
 import { timeAgo } from '../utils/formatters';
 
 const props = defineProps({
@@ -23,18 +24,19 @@ const props = defineProps({
 
 defineOptions({ name: 'AggregationHealthAlert' });
 
+const { t } = useI18n();
 const health = computed(() => {
   if (!props.lastCompletedAt) {
-    return { type: 'warning', text: 'Aggregation has never been run. Visit Aggregations to run it.' };
+    return { type: 'warning', text: t('analytics_health_never', 'Aggregation has never been run. Visit Aggregations to run it.') };
   }
   const hours = (Date.now() - new Date(props.lastCompletedAt).getTime()) / 3600000;
   const ago = timeAgo(props.lastCompletedAt);
   if (hours < 24) {
-    return { type: 'success', text: `Last aggregated ${ago}. Data is up to date.` };
+    return { type: 'success', text: t('analytics_health_fresh', 'Last aggregated %s. Data is up to date.', ago) };
   }
   if (hours < 168) {
-    return { type: 'warning', text: `Last aggregated ${ago}. Consider running aggregation soon.` };
+    return { type: 'warning', text: t('analytics_health_stale', 'Last aggregated %s. Consider running aggregation soon.', ago) };
   }
-  return { type: 'error', text: `Last aggregated ${ago}. Data may be significantly out of date.` };
+  return { type: 'error', text: t('analytics_health_old', 'Last aggregated %s. Data may be significantly out of date.', ago) };
 });
 </script>

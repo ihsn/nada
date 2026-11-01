@@ -2,7 +2,7 @@
   <v-menu>
     <template #activator="{ props: menuProps }">
       <v-btn v-bind="menuProps" variant="outlined" prepend-icon="mdi-download" :disabled="disabled">
-        Export
+        {{ t('analytics_export', 'Export') }}
       </v-btn>
     </template>
     <v-list density="compact">
@@ -11,7 +11,7 @@
       <v-divider v-if="exportMaxRows" class="my-1" />
       <v-list-item v-if="exportMaxRows" disabled class="text-caption text-medium-emphasis" style="min-height: auto">
         <v-list-item-title class="text-caption font-weight-regular">
-          Limited to {{ exportMaxRows.toLocaleString() }} rows per file.
+          {{ t('analytics_export_limit', 'Limited to %s rows per file.', fmtNum(exportMaxRows)) }}
         </v-list-item-title>
       </v-list-item>
     </v-list>
@@ -19,6 +19,9 @@
 </template>
 
 <script setup>
+import { useI18n } from '@/shared/composables/useI18n';
+import { fmtNum } from '../../utils/formatters';
+
 defineProps({
   disabled: { type: Boolean, default: false },
   exportMaxRows: { type: Number, default: 0 },
@@ -27,4 +30,6 @@ defineProps({
 const emit = defineEmits(['export']);
 
 defineOptions({ name: 'ExportFormatMenu' });
+
+const { t } = useI18n();
 </script>

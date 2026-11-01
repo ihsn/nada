@@ -2,10 +2,10 @@
   <v-card class="admin-analytics-card" rounded="lg" elevation="1">
     <v-card-title class="d-flex flex-wrap align-center gap-2">
       <v-icon start color="primary">mdi-chart-line</v-icon>
-      Monthly traffic
+      {{ t('analytics_monthly_traffic', 'Monthly traffic') }}
       <v-spacer />
       <div class="d-flex flex-wrap align-end ga-2">
-        <FormField label="Range" class="monthly-chart-range-field">
+        <FormField :label="t('analytics_range', 'Range')" class="monthly-chart-range-field">
           <v-select
             v-model="months"
             :items="rangeOptions"
@@ -16,7 +16,7 @@
             hide-details
           />
         </FormField>
-        <v-btn color="primary" :loading="loading" @click="load">Refresh</v-btn>
+        <v-btn color="primary" :loading="loading" @click="load">{{ t('analytics_refresh', 'Refresh') }}</v-btn>
       </div>
     </v-card-title>
     <v-card-text>
@@ -29,15 +29,18 @@
 
 <script setup>
 import { nextTick, onMounted, ref, watch } from 'vue';
+import { useI18n } from '@/shared/composables/useI18n';
 import { useAnalyticsApi } from '../../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../../composables/useAnalyticsMessages';
 import { useLineChart } from '../../composables/useLineChart';
 import { MONTHLY_CHART_RANGE_OPTIONS } from '../../utils/constants';
+import { formatMonthLabel } from '../../utils/formatters';
 import FormField from '../shared/FormField.vue';
 
 defineOptions({ name: 'MonthlyTrafficChartCard' });
 
 const api = useAnalyticsApi();
+const { t } = useI18n();
 const { notifyError } = useAnalyticsMessages();
 const { canvasRef, render } = useLineChart();
 
@@ -46,14 +49,14 @@ const months = ref(3);
 const loading = ref(false);
 
 function draw(rows) {
-  const labels = rows.map((m) => m.label);
+  const labels = rows.map((m) => formatMonthLabel(m));
   render({
     type: 'line',
     data: {
       labels,
       datasets: [
         {
-          label: 'Pageviews',
+          label: t('analytics_pageviews', 'Pageviews'),
           data: rows.map((m) => m.pageviews || 0),
           borderColor: '#1976D2',
           backgroundColor: 'rgba(25,118,210,0.12)',
@@ -62,7 +65,7 @@ function draw(rows) {
           pointRadius: 2,
         },
         {
-          label: 'Unique Visitors',
+          label: t('analytics_unique_visitors_chart', 'Unique Visitors'),
           data: rows.map((m) => m.unique_visitors || 0),
           borderColor: '#43A047',
           backgroundColor: 'rgba(67,160,71,0.12)',
@@ -71,7 +74,7 @@ function draw(rows) {
           pointRadius: 2,
         },
         {
-          label: 'Downloads',
+          label: t('analytics_downloads', 'Downloads'),
           data: rows.map((m) => m.downloads || 0),
           borderColor: '#FF7043',
           backgroundColor: 'rgba(255,112,67,0.12)',
@@ -102,7 +105,7 @@ async function load() {
     await nextTick();
     draw(rows);
   } catch (e) {
-    notifyError(e.message || 'Failed to load monthly chart');
+    notifyError(e.message || t('analytics_load_chart_error', 'Failed to load monthly chart'));
   } finally {
     loading.value = false;
   }

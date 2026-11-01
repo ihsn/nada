@@ -13,7 +13,9 @@ window.APP_CONFIG = {
     csrfTokenName: "<?php echo addslashes(isset($csrf_token_name) ? $csrf_token_name : 'ncsrf'); ?>",
     serverTimezone: "<?php echo addslashes(isset($server_timezone) ? $server_timezone : date_default_timezone_get()); ?>",
     serverDate: "<?php echo addslashes(isset($server_date) ? $server_date : date('Y-m-d')); ?>",
-    nadaBasePath: "<?php echo addslashes(isset($nada_base_path) ? $nada_base_path : rtrim(FCPATH, '/')); ?>"
+    nadaBasePath: "<?php echo addslashes(isset($nada_base_path) ? $nada_base_path : rtrim(FCPATH, '/')); ?>",
+    analyticsLocale: <?php echo json_encode($analytics_locale); ?>,
+    translations: <?php echo json_encode($translations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>
 };
 </script>
 <?php if ($use_vite_dev): ?>

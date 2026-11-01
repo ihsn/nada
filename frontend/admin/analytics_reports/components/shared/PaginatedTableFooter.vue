@@ -7,6 +7,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '@/shared/composables/useI18n';
 
 const props = defineProps({
   page: { type: Number, required: true },
@@ -18,6 +19,7 @@ const emit = defineEmits(['update:page']);
 
 defineOptions({ name: 'PaginatedTableFooter' });
 
+const { t } = useI18n();
 const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.limit)));
 
 const pageModel = computed({
@@ -26,9 +28,9 @@ const pageModel = computed({
 });
 
 const rangeLabel = computed(() => {
-  if (props.total === 0) return 'No items';
+  if (props.total === 0) return t('analytics_no_items', 'No items');
   const start = (props.page - 1) * props.limit + 1;
   const end = Math.min(props.page * props.limit, props.total);
-  return `Showing ${start}–${end} of ${props.total}`;
+  return t('analytics_showing_items', 'Showing %s–%s of %s', start, end, props.total);
 });
 </script>

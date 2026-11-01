@@ -2,15 +2,15 @@
   <v-card class="admin-analytics-card" rounded="lg" elevation="1">
     <v-card-title>
       <v-icon start color="primary">mdi-cog</v-icon>
-      Data aggregations
+      {{ t('analytics_data_aggregations', 'Data aggregations') }}
     </v-card-title>
     <v-card-text class="admin-analytics-card-sections">
       <AggregationHowItWorksAlert />
       <div class="text-body-2">
         <v-icon size="small" class="mr-1">mdi-clock-outline</v-icon>
-        <strong>Last successful run:</strong>
+        <strong>{{ t('analytics_last_successful_run', 'Last successful run:') }}</strong>
         <span v-if="lastCompletedAt">{{ formatDateTime(lastCompletedAt, timezone) }}</span>
-        <span v-else class="text-medium-emphasis">Never</span>
+        <span v-else class="text-medium-emphasis">{{ t('analytics_never', 'Never') }}</span>
       </div>
       <AggregationControlsCard :running="running" @run="runFull" @stop="stop" />
       <AggregationStatusCard :status="status" />
@@ -22,6 +22,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useI18n } from '@/shared/composables/useI18n';
 import { useAggregationRunner } from '../composables/useAggregationRunner';
 import { formatDateTime } from '../utils/formatters';
 import AggregationHowItWorksAlert from '../components/aggregations/AggregationHowItWorksAlert.vue';
@@ -32,6 +33,7 @@ import CronInstructionsCard from '../components/aggregations/CronInstructionsCar
 defineOptions({ name: 'AggregationsPage' });
 
 const { config } = useAppConfig();
+const { t } = useI18n();
 const timezone = computed(() => config.value?.serverTimezone || 'UTC');
 
 const { running, status, lastCompletedAt, runFull, stop } = useAggregationRunner();

@@ -160,5 +160,55 @@ $lang['request_microdata']="Solicitação de microdados";
 $lang['download_metadata']="Metadados em formato XML";
 
 
+$lang['website_title']="Título do site";
+$lang['study_title']="Título do estudo";
+$lang['publisher']="Editor";
+$lang['website_url']="URL do site";
+$lang['study_contains_too_many_variables']="O estudo contém mais de <strong>%s</strong> variáveis. Se o sistema não conseguir gerar o PDF, tente excluir a opção «Descrição do dicionário de dados».";
+$lang['include_variable_toc']="Lista de variáveis";
+$lang['include_variable_desc']="Descrição das variáveis";
+$lang['include_external_resources']="Recurso externo";
+$lang['Report options']="Opções do relatório:";
+$lang['processing_pdf_report']="A gerar o relatório PDF. Esta operação pode demorar vários minutos ou mais...";
+$lang['citations']="Citações";
+$lang['review_study']="Rever";
+$lang['add_note']="Adicionar nota";
+$lang['no_reviewer_notes_found']="O estudo não tem notas do revisor. Para adicionar uma nota, utilize a ligação «Adicionar nota».";
+$lang['no_resources_attached']="O estudo não tem recursos externos.";
+$lang['no_microdata_attached']="O estudo não tem microdados disponíveis.";
+$lang['created_on']="Criado em";
+$lang['last_modified']="Última alteração";
+$lang['page_views']="Visualizações da página";
+$lang['downloads']="Descarregamentos";
+$lang['documentation_in_pdf']="Documentação em PDF";
+$lang['download_rdf']="Descarregar RDF";
+$lang['reviewer_notes']="Notas do revisor";
+$lang['js_refreshing_page']="A voltar a carregar a página, aguarde...";
+$lang['visit_data_catalog_at']="Visite o nosso catálogo de dados em";
+$lang['report_generated_on']="Relatório gerado em";
+$lang['cover']="Capa";
+$lang['file_description']="Descrição do ficheiro";
+$lang['variable_list']="Lista de variáveis";
+$lang['variable_description']="Descrição das variáveis";
+$lang['external_resources']="Recursos externos";
+$lang['report_lang']="Idioma do relatório";
+$lang['generate_pdf']="Gerar PDF";
+$lang['Mean']="Média";
+$lang['Standard deviation']="Desvio-padrão";
+$lang['search_data_dictionary']="Pesquisar no dicionário de dados";
+$lang['Total variables(s)']="Total de variáveis";
+$lang['download_study_rdf']="Descarregar as descrições dos recursos do estudo (por exemplo, relatórios, questionários e documentos técnicos) em formato Dublin Core RDF";
+$lang['download_study_ddi']="Descarregar os metadados do estudo em formato DDI (XML)";
+$lang['study_documentation_text']="Descarregue os questionários, documentos técnicos e relatórios que descrevem o processo do inquérito e os principais resultados deste estudo.";
+$lang['study_description_text']="Esta secção apresenta uma descrição detalhada do estudo (os metadados), incluindo a metodologia, os métodos de amostragem, a recolha de dados, o financiamento, as datas de recolha, a cobertura geográfica e a política de acesso aos dados. Descarregue os metadados em vários formatos através da ligação Exportar metadados.";
+$lang['data_description_text']="Esta secção apresenta informação detalhada sobre os dados ao nível dos registos produzidos pelo estudo, incluindo o conteúdo de cada ficheiro de dados e as respectivas variáveis. As variáveis podem conter respostas registadas a perguntas directas ou ser derivadas. O número de variáveis e de pontos de dados (casos) é resumido para cada variável.";
+$lang['related_publications_text']="Os dados deste estudo são utilizados nas seguintes publicações:";
+$lang['related_studies']="Estudos relacionados";
+$lang['variable_group']="Grupo de variáveis";
+$lang['universe']="Universo";
+$lang['notes']="Notas";
+$lang['text']="Nota";
+$lang['definition']="Definição";
+
 /* End of file ddibrowser_lang.php */
 /* Location: ./application/language/Portuguese/ddibrowser_lang.php */

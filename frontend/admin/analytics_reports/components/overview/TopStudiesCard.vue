@@ -2,14 +2,14 @@
   <v-card class="admin-analytics-card" rounded="lg" elevation="1">
     <v-card-title>
       <v-icon start color="primary" size="small">mdi-podium</v-icon>
-      Top studies
+      {{ t('analytics_top_studies', 'Top studies') }}
       <v-spacer />
       <v-progress-circular v-if="loading" indeterminate size="18" width="2" />
     </v-card-title>
     <div class="text-caption text-medium-emphasis px-4 pb-1">{{ periodLabel }}</div>
     <v-card-text class="pt-0">
       <div v-if="!loading && items.length === 0" class="text-center text-medium-emphasis py-4">
-        No data for this month yet
+        {{ t('analytics_no_data_month', 'No data for this month yet') }}
       </div>
       <v-list v-else density="compact" class="admin-analytics-overview-list">
         <v-list-item v-for="(item, index) in items" :key="item.study_id">
@@ -21,11 +21,11 @@
               :href="adminStudyEditUrl(siteUrl, item)"
               class="admin-analytics-overview-list-link"
             >
-              {{ item.title || `Study ${item.study_id}` }}
+              {{ item.title || t('analytics_study_number', 'Study %s', item.study_id) }}
             </a>
           </v-list-item-title>
           <v-list-item-subtitle class="admin-analytics-overview-list-meta">
-            {{ item.pageviews }} views · {{ item.downloads }} downloads
+            {{ t('analytics_views_downloads', '%s views · %s downloads', item.pageviews, item.downloads) }}
           </v-list-item-subtitle>
         </v-list-item>
       </v-list>
@@ -35,6 +35,7 @@
 
 <script setup>
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useI18n } from '@/shared/composables/useI18n';
 import { adminStudyEditUrl } from '../../utils/formatters';
 
 defineProps({
@@ -46,4 +47,5 @@ defineProps({
 defineOptions({ name: 'TopStudiesCard' });
 
 const { siteUrl } = useAppConfig();
+const { t } = useI18n();
 </script>

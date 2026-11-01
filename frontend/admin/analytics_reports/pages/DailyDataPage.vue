@@ -2,7 +2,7 @@
   <v-card class="admin-analytics-card" rounded="lg" elevation="1">
     <v-card-title class="d-flex flex-wrap align-center gap-2">
       <v-icon start>mdi-calendar-today</v-icon>
-      Daily aggregates
+      {{ t('analytics_daily_aggregates', 'Daily aggregates') }}
       <v-spacer />
       <StudiesFilesToggle v-model="dataView" />
       <ExportFormatMenu
@@ -38,6 +38,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useI18n } from '@/shared/composables/useI18n';
 import { useAnalyticsApi } from '../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../composables/useAnalyticsMessages';
 import { defaultDailyDateRange } from '../utils/dateDefaults';
@@ -49,6 +50,7 @@ import ExportFormatMenu from '../components/shared/ExportFormatMenu.vue';
 defineOptions({ name: 'DailyDataPage' });
 
 const { config } = useAppConfig();
+const { t } = useI18n();
 const api = useAnalyticsApi();
 const { notifyError } = useAnalyticsMessages();
 
@@ -65,20 +67,20 @@ const page = ref(1);
 const limit = 50;
 
 const studyHeaders = [
-  { title: 'Date', key: 'date' },
-  { title: 'ID', key: 'study_id' },
-  { title: 'Title', key: 'title' },
-  { title: 'Pageviews', key: 'pageviews' },
-  { title: 'Unique visitors', key: 'unique_visitors' },
-  { title: 'Downloads', key: 'downloads' },
+  { title: t('analytics_date', 'Date'), key: 'date' },
+  { title: t('analytics_id', 'ID'), key: 'study_id' },
+  { title: t('analytics_title_column', 'Title'), key: 'title' },
+  { title: t('analytics_pageviews', 'Pageviews'), key: 'pageviews' },
+  { title: t('analytics_unique_visitors', 'Unique visitors'), key: 'unique_visitors' },
+  { title: t('analytics_downloads', 'Downloads'), key: 'downloads' },
 ];
 
 const fileHeaders = [
-  { title: 'Date', key: 'date' },
-  { title: 'Study ID', key: 'study_id' },
-  { title: 'Title', key: 'title' },
-  { title: 'File name', key: 'file_name' },
-  { title: 'Downloads', key: 'downloads' },
+  { title: t('analytics_date', 'Date'), key: 'date' },
+  { title: t('analytics_study_id', 'Study ID'), key: 'study_id' },
+  { title: t('analytics_title_column', 'Title'), key: 'title' },
+  { title: t('analytics_file_name', 'File name'), key: 'file_name' },
+  { title: t('analytics_downloads', 'Downloads'), key: 'downloads' },
 ];
 
 const headers = computed(() => (dataView.value === 'studies' ? studyHeaders : fileHeaders));
@@ -99,7 +101,7 @@ async function load() {
     rows.value = res.data || [];
     total.value = res.total || 0;
   } catch (e) {
-    notifyError(e.message || 'Failed to load daily data');
+    notifyError(e.message || t('analytics_load_daily_error', 'Failed to load daily data'));
   } finally {
     loading.value = false;
   }

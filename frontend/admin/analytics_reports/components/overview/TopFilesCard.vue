@@ -2,14 +2,14 @@
   <v-card class="admin-analytics-card" rounded="lg" elevation="1">
     <v-card-title>
       <v-icon start color="deep-orange" size="small">mdi-file-download</v-icon>
-      Top downloaded files
+      {{ t('analytics_top_files', 'Top downloaded files') }}
       <v-spacer />
       <v-progress-circular v-if="loading" indeterminate size="18" width="2" color="deep-orange" />
     </v-card-title>
     <div class="text-caption text-medium-emphasis px-4 pb-1">{{ periodLabel }}</div>
     <v-card-text class="pt-0">
       <div v-if="!loading && items.length === 0" class="text-center text-medium-emphasis py-4">
-        No file downloads this month yet
+        {{ t('analytics_no_downloads_month', 'No file downloads this month yet') }}
       </div>
       <v-list v-else density="compact">
         <v-list-item v-for="(item, index) in items" :key="`${item.study_id}-${item.file_name}`">
@@ -20,9 +20,9 @@
             {{ item.file_name }}
           </v-list-item-title>
           <v-list-item-subtitle>
-            {{ item.downloads }} downloads ·
+            {{ t('analytics_downloads_count', '%s downloads', item.downloads) }} ·
             <a :href="adminStudyEditUrl(siteUrl, item)">
-              {{ item.title || `Study ${item.study_id}` }}
+              {{ item.title || t('analytics_study_number', 'Study %s', item.study_id) }}
             </a>
           </v-list-item-subtitle>
         </v-list-item>
@@ -33,6 +33,7 @@
 
 <script setup>
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useI18n } from '@/shared/composables/useI18n';
 import { adminStudyEditUrl } from '../../utils/formatters';
 
 defineProps({
@@ -44,4 +45,5 @@ defineProps({
 defineOptions({ name: 'TopFilesCard' });
 
 const { siteUrl } = useAppConfig();
+const { t } = useI18n();
 </script>

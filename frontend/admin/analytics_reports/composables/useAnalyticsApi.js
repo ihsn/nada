@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useI18n } from '@/shared/composables/useI18n';
 
-export function apiErrorMessage(err, fallback = 'REQUEST_FAILED') {
+const { t } = useI18n();
+
+export function apiErrorMessage(err, fallback = t('analytics_request_failed', 'REQUEST_FAILED')) {
   const body = err?.response?.data;
   if (body?.message) return String(body.message);
   if (err?.message) return String(err.message);
@@ -42,7 +45,7 @@ export function useAnalyticsApi() {
         withCredentials: true,
       });
       if (data?.status !== 'success') {
-        throw new Error(data?.message || 'REQUEST_FAILED');
+        throw new Error(data?.message || t('analytics_request_failed', 'REQUEST_FAILED'));
       }
       return data;
     } catch (err) {
@@ -57,7 +60,7 @@ export function useAnalyticsApi() {
         headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
       });
       if (data?.status === 'error' || data?.error) {
-        throw new Error(data?.message || 'REQUEST_FAILED');
+        throw new Error(data?.message || t('analytics_request_failed', 'REQUEST_FAILED'));
       }
       return data;
     } catch (err) {

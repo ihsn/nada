@@ -1,0 +1,30 @@
+<?php
+
+$lang['permission'] = 'Permissão';
+$lang['permissions'] = 'Permissões';
+$lang['administrator'] = 'Administrador';
+$lang['permissions_list'] = 'Lista de permissões';
+$lang['edit_permission'] = 'Editar permissão';
+$lang['add_permission'] = 'Adicionar permissão';
+$lang['urls'] = 'URLs';
+$lang['catalog'] = 'Catálogo';
+$lang['site_admin'] = 'Administração';
+$lang['vocab'] = 'Vocabulário';
+$lang['user_admin'] = 'Utilizador';
+$lang['ddibrowser'] = 'Visualizador DDI';
+$lang['menu_admin'] = 'Menu';
+$lang['general_site'] = 'Site geral';
+$lang['manage_repo_permissions'] = 'Gerir acesso à colecção';
+$lang['manage_group_permissions_for'] = 'Gerir permissões do grupo para';
+$lang['apply_changes'] = 'Aplicar alterações';
+$lang['study_access_denied'] = 'Acesso negado. Não tem permissões para aceder a esta página.';
+$lang['Site-wide permissions'] = 'Permissões para todo o site';
+$lang['permissions_global_permissions_title'] = 'Permissões globais – %s';
+$lang['permissions_site_wide_collection_note'] = 'Para gerir o acesso por colecção a estudos e pedidos sob licença, visite a %s.';
+$lang['permissions_collections_page_link'] = 'página de colecções';
+$lang['permissions_user_collection_access'] = 'Acesso às colecções por utilizador';
+$lang['permissions_user_collection_access_intro'] = 'Conceda ao utilizador seleccionado permissões para estudos e pedidos sob licença por colecção. As funções do site e as permissões globais continuam na página de funções.';
+$lang['user_collection_acl_saved'] = 'Acesso às colecções guardado.';
+$lang['user_collection_acl_invalid_user'] = 'Seleccione um utilizador válido.';
+$lang['user_collection_acl_table_missing'] = 'A tabela de permissões das colecções não existe. Execute as migrações da base de dados.';
+$lang['select_user'] = 'Seleccionar utilizador';

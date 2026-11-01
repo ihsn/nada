@@ -622,13 +622,14 @@
     ]
   },
   "admin/analytics_reports/main.js": {
-    "file": "assets/admin/admin_analytics_reports-LXH9NLnQ.js",
+    "file": "assets/admin/admin_analytics_reports-Beqcf-xe.js",
     "name": "admin_analytics_reports",
     "src": "admin/analytics_reports/main.js",
     "isEntry": true,
     "imports": [
       "_router-0CTTl0a0.js",
       "_useAppConfig-Dx4BRC46.js",
+      "_useI18n-DIQ31Oo2.js",
       "_vue-router-KIF1YYRH.js",
       "_VAlert-CmKx1sZK.js",
       "_chart-Cp3CTSOc.js",
@@ -655,7 +656,7 @@
       "_VDataTable-5xIzrxHG.js"
     ],
     "css": [
-      "assets/admin/admin_analytics_reports-Cl4Iaaci.css"
+      "assets/admin/admin_analytics_reports-9MhmhRGb.css"
     ]
   },
   "admin/bulk_data_access/main.js": {
