@@ -26,7 +26,8 @@ require_once(APPPATH . 'core/MY_Migration.php');
  *                                  search_engine, so that is the engine the tracking rows were written for. A stored
  *                                  opensearch becomes none.
  *   search_index_meta              its row is added, saying the tracking rows describe that engine (the table is
- *                                  created by 20261030120003_search_and_citation_indexes).
+ *                                  created by the archived 20260909120002_catalog_search_queue_filters step, which
+ *                                  runs again here when the table is missing, as on sites upgraded from v5.7.2).
  *
  * A value already stored under a new name is kept (the old row is dropped). Every step is idempotent, so running
  * `migrate latest` twice changes nothing the second time. Works on both MySQL and SQL Server.
@@ -165,7 +166,9 @@ class Migration_Rename_search_engine_settings extends MY_Migration {
     private function add_index_meta_row($engine)
     {
         if (!$this->db->table_exists('search_index_meta')) {
-            throw new Exception('search_index_meta does not exist: run 20260909120002_catalog_search_queue_filters first');
+            // sites upgraded from v5.7.2 ran this step before it created search_index_meta: run it again (idempotent)
+            $this->run_archived_step('20260909120002_catalog_search_queue_filters.php');
+            $this->forget_table_cache();
         }
         if ($this->db->where('id', 1)->count_all_results('search_index_meta') > 0) {
             return;
