@@ -414,9 +414,18 @@ if ( ! function_exists('_parse_attributes'))
 			$mail_pattern = "/([A-z0-9\._-]+\@[A-z0-9_-]+\.)([A-z0-9\_\-\.]{1,}[A-z])/";
 			$str = preg_replace($mail_pattern, '<a href="mailto:$1$2">$1$2</a>', $str);
 			
-			//urls
-			$url_pattern = '/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/[^\s<]*)?/';   
-			return preg_replace($url_pattern, '<a href="$0" target="_blank" title="$0">$0</a>', $str);
+			//urls - any host (localhost, ports, long TLDs); input is already html-escaped
+			$url_pattern = '~\b(?:https?|ftps?)://[^\s<>"\']+~i';
+			return preg_replace_callback($url_pattern, function ($m) {
+				$url = $m[0];
+				$trail = '';
+				// keep trailing punctuation / escaped quotes outside the link
+				if (preg_match('~(?:[.,;:!?)\]]|&quot;|&#0?39;)+$~', $url, $t)) {
+					$trail = $t[0];
+					$url = substr($url, 0, -strlen($trail));
+				}
+				return '<a href="' . $url . '" target="_blank" title="' . $url . '">' . $url . '</a>' . $trail;
+			}, $str);
 
 			/*
 			//urls starting with www

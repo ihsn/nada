@@ -158,7 +158,8 @@ class Display_template_model extends CI_Model {
 
 	public function set_default_template($data_type, $template_uid, $user_id = null)
 	{
-		$this->db->where('data_type', $data_type)->delete($this->table_defaults);
+		// Clear alias rows too (timeseries-db / timeseriesdb), or a stale one wins at lookup.
+		$this->db->where_in('data_type', $this->expand_data_type_aliases($data_type))->delete($this->table_defaults);
 		$data = array(
 			'data_type' => $data_type,
 			'template_uid' => $template_uid,

@@ -9,6 +9,9 @@ class Data_structure_json_import {
 	/** @var CI_Controller */
 	protected $CI;
 
+	/** Column types that may be bound to a codelist (codelist / codelist_reference). */
+	protected static $codelist_column_types = ['dimension', 'geography', 'periodicity', 'attribute'];
+
 	public function __construct()
 	{
 		$this->CI =& get_instance();
@@ -196,7 +199,7 @@ class Data_structure_json_import {
 			$clName = $cl !== null && isset($cl['name']) ? trim((string) $cl['name']) : '';
 			$clItems = $cl !== null && isset($cl['items']) && is_array($cl['items']) ? $cl['items'] : [];
 
-			$supportsCodelist = in_array($ct, ['dimension', 'geography'], true);
+			$supportsCodelist = in_array($ct, self::$codelist_column_types, true);
 			if ($supportsCodelist && ($hasRef || $cl !== null)) {
 				if ($hasRef) {
 					if ($refIdno === '') {
@@ -300,7 +303,7 @@ class Data_structure_json_import {
 	protected function _append_codelist_reuse_warnings(array $comp, $overwrite, array &$summary)
 	{
 		$ct = isset($comp['column_type']) ? trim((string) $comp['column_type']) : '';
-		if (!in_array($ct, ['dimension', 'geography'], true)) {
+		if (!in_array($ct, self::$codelist_column_types, true)) {
 			return;
 		}
 
@@ -355,7 +358,7 @@ class Data_structure_json_import {
 	{
 		$ct = isset($comp['column_type']) ? trim((string) $comp['column_type']) : '';
 		// Codelists are optional (SDMX allows non-enumerated representation)
-		$supported = in_array($ct, ['dimension', 'geography', 'periodicity'], true);
+		$supported = in_array($ct, self::$codelist_column_types, true);
 		if (!$supported) {
 			return null;
 		}
