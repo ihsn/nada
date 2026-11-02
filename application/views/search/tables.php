@@ -141,6 +141,7 @@ else{
         'microdata'=>'fa-database',
         'geospatial'=>'fa-globe-americas',
         'timeseries'=>'fa-clock-o',
+        'timeseriesdb'=>'fa-database',
         'document'=>'fa-file-text-o',
         'table'=>'fa-table',
         'script'=>'fa-file-code-o',
@@ -165,7 +166,7 @@ else{
             <?php /* <i class="icon-da icon-da-<?php echo $row['form_model'];?>" title="<?php echo t("legend_data_".$row['form_model']);?>"></i> */?>
             <span class="fa-stack fa-lg fa-nada-<?php echo $row['type'];?>">
             <i class="fa fa-circle fa-stack-2x"></i>
-            <i class="fa <?php echo $type_icons[$row['type']];?> fa-stack-1x fa-inverse fa-nada-icon"></i>
+            <i class="fa <?php echo isset($type_icons[$row['type']]) ? $type_icons[$row['type']] : 'fa-database';?> fa-stack-1x fa-inverse fa-nada-icon"></i>
             </span> 
         </div>        
         
