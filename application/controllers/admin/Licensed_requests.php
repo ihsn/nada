@@ -2,8 +2,8 @@
 /**
  * Admin licensed survey requests — Vue 3 SPA shell.
  *
- * List/edit/monitor UI: frontend/admin/licensed_requests
- * JSON: api/admin/licensed_requests
+ * List/edit UI: frontend/admin/licensed_requests
+ * JSON / CSV: api/admin/licensed_requests
  */
 class Licensed_requests extends MY_Controller {
 
@@ -12,7 +12,6 @@ class Licensed_requests extends MY_Controller {
 		parent::__construct();
 		$this->load->helper(array('url'));
 		$this->load->model('Licensed_model');
-		$this->load->model('Repository_model');
 		$this->template->set_template('admin');
 		$this->lang->load('general');
 		$this->lang->load('licensed_request');
@@ -63,29 +62,6 @@ class Licensed_requests extends MY_Controller {
 	}
 
 	/**
-	 * CSV export (same data as GET api/admin/licensed_requests/export).
-	 */
-	function export()
-	{
-		$this->acl_manager->require_licensed_requests_access();
-
-		$user  = $this->ion_auth->current_user();
-		$scope = $this->acl_manager->get_licensed_request_repository_scope($user);
-		if ($scope === false) {
-			$this->acl_manager->show_access_denied('feature');
-		}
-
-		if ($scope === null) {
-			$rows = $this->Licensed_model->select_all();
-		}
-		else {
-			$rows = $this->Licensed_model->admin_search_requests(50000, 0, array(), 'created', 'desc', $scope, null);
-		}
-
-		return $this->Licensed_model->export_to_csv($rows);
-	}
-
-	/**
 	 * Edit SPA — also serves /edit/{id}/{tab} for history-mode Vue routes.
 	 *
 	 * @param int         $id
@@ -102,20 +78,6 @@ class Licensed_requests extends MY_Controller {
 		}
 
 		$this->_render_licensed_requests_vue_shell();
-	}
-
-	/**
-	 * Legacy monitor URL → Vue edit Monitor tab.
-	 *
-	 * @param int $requestid
-	 */
-	function monitor($requestid)
-	{
-		if (! is_numeric($requestid) || ! $this->_admin_user_can_licensed_request((int) $requestid, 'view')) {
-			$this->acl_manager->show_access_denied('feature');
-		}
-
-		redirect(site_url('admin/licensed_requests/edit/' . (int) $requestid . '/mon'));
 	}
 
 	/**

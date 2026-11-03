@@ -598,7 +598,6 @@ $route['api/admin/licensed_requests/batch_delete'] = 'api/admin/licensed_request
 $route['api/admin/licensed_requests/send_mail/(:num)'] = 'api/admin/licensed_requests/send_mail/$1';
 $route['api/admin/licensed_requests/forward/(:num)'] = 'api/admin/licensed_requests/forward/$1';
 $route['admin/licensed_requests/edit/(:num)/(:any)'] = 'admin/licensed_requests/edit/$1/$2';
-$route['admin/licensed_requests/monitor/(:num)'] = 'admin/licensed_requests/monitor/$1';
 
 
 /* End of file routes.php */

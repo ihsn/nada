@@ -112,8 +112,7 @@ class Licensed_requests extends MY_REST_Controller
 	/**
 	 * GET /api/admin/licensed_requests/export
 	 *
-	 * CSV download of licensed requests in the caller's repository scope
-	 * (same rows as admin/licensed_requests/export).
+	 * CSV download of licensed requests in the caller's repository scope.
 	 */
 	public function export_get()
 	{
