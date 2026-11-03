@@ -89,6 +89,10 @@ class Timeseries_mongo_model extends CI_Model {
 		$host     = $this->config->item('mongodb_host');
 		$port     = $this->config->item('mongodb_port');
 
+		if (!extension_loaded('mongodb')) {
+			throw new RuntimeException('The PHP mongodb extension is not installed or not enabled.', self::ERR_NOT_CONFIGURED);
+		}
+
 		if (!empty($username) && !empty($password)) {
 			$this->mongo_client = new MongoDB\Client(
 				"mongodb://{$host}:{$port}",
