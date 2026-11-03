@@ -110,6 +110,43 @@ class Licensed_requests extends MY_REST_Controller
 	}
 
 	/**
+	 * GET /api/admin/licensed_requests/export
+	 *
+	 * CSV download of licensed requests in the caller's repository scope
+	 * (same rows as admin/licensed_requests/export).
+	 */
+	public function export_get()
+	{
+		try {
+			$user = $this->api_user();
+			if (!$user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			$scope = $this->acl_manager->get_licensed_request_repository_scope($user);
+			if ($scope === false) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			if ($scope === null) {
+				$rows = $this->Licensed_model->select_all();
+			}
+			else {
+				$rows = $this->Licensed_model->admin_search_requests(50000, 0, array(), 'created', 'desc', $scope, null);
+			}
+
+			$this->Licensed_model->export_to_csv($rows);
+			exit;
+		}
+		catch (AclAccessDeniedException $e) {
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
 	 * GET /api/admin/licensed_requests/bootstrap
 	 */
 	public function bootstrap_get()

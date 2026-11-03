@@ -591,11 +591,14 @@ $route['api/admin/bulk-data-access/(.*)'] = 'api/admin/bulk_da/$1';
 
 $route['api/admin/licensed-requests'] = 'api/admin/licensed_requests';
 $route['api/admin/licensed-requests/(.*)'] = 'api/admin/licensed_requests/$1';
+$route['api/admin/licensed_requests/export'] = 'api/admin/licensed_requests/export';
 $route['api/admin/licensed_requests/item/(:num)'] = 'api/admin/licensed_requests/item/$1';
 $route['api/admin/licensed_requests/item_delete/(:num)'] = 'api/admin/licensed_requests/item_delete/$1';
 $route['api/admin/licensed_requests/batch_delete'] = 'api/admin/licensed_requests/batch_delete';
 $route['api/admin/licensed_requests/send_mail/(:num)'] = 'api/admin/licensed_requests/send_mail/$1';
 $route['api/admin/licensed_requests/forward/(:num)'] = 'api/admin/licensed_requests/forward/$1';
+$route['admin/licensed_requests/edit/(:num)/(:any)'] = 'admin/licensed_requests/edit/$1/$2';
+$route['admin/licensed_requests/monitor/(:num)'] = 'admin/licensed_requests/monitor/$1';
 
 
 /* End of file routes.php */

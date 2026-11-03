@@ -18,7 +18,7 @@
           variant="text"
           color="primary"
           size="small"
-          :href="`${siteUrl}/admin/licensed_requests/export`"
+          :href="exportUrl"
           prepend-icon="mdi-download"
         >
           {{ t('export_to_csv', 'Export to CSV') }}
@@ -189,10 +189,14 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
 defineOptions({ name: 'LicensedRequestsListPage' });
 
 const { t } = useI18n();
-const { siteUrl } = useAppConfig();
+const { siteUrl, apiBaseUrl } = useAppConfig();
 const { loading, search, fetchBootstrap, deleteRequests } = useLicensedRequestsApi();
 
 const siteBaseUrl = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));
+const exportUrl = computed(() => {
+  const base = String(apiBaseUrl.value || '').replace(/\/?$/, '/');
+  return `${base}export`;
+});
 
 const breadcrumbItems = computed(() => [
   {

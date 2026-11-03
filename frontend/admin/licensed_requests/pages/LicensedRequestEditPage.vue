@@ -35,7 +35,7 @@
     <v-alert v-if="loadError" type="error" class="mb-4">{{ loadError }}</v-alert>
     <v-progress-linear v-if="pageLoading" indeterminate color="primary" class="mb-4" />
 
-    <template v-else-if="detail">
+    <template v-if="detail">
       <v-tabs v-model="tab" color="primary" class="mb-4">
         <v-tab value="info">{{ t('request_information', 'Request information') }}</v-tab>
         <v-tab value="process">{{ t('tab_process', 'Process') }}</v-tab>
@@ -96,20 +96,7 @@
                               icon="mdi-folder-table-outline"
                             />
                             <div class="flex-grow-1 min-w-0">
-                              <a
-                                :href="catalogStudyUrl(s.id)"
-                                class="lr-info-survey-title-link text-body-2"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <span class="lr-info-survey-title-text">{{ s.title }}</span>
-                                <v-icon
-                                  size="14"
-                                  class="lr-info-survey-ext-icon ms-1"
-                                  color="primary"
-                                  icon="mdi-open-in-new"
-                                />
-                              </a>
+                              <div class="lr-info-survey-title-text text-body-2">{{ s.title }}</div>
                               <div class="lr-info-survey-meta text-caption text-medium-emphasis mt-1">
                                 <template v-if="s.nation">
                                   <span>{{ s.nation }}</span>
@@ -126,6 +113,26 @@
                                   >
                                   <span class="lr-info-survey-idno">{{ s.idno }}</span>
                                 </template>
+                              </div>
+                              <div class="lr-info-survey-links text-caption mt-2 d-flex flex-wrap ga-3">
+                                <a
+                                  :href="adminStudyUrl(s.id)"
+                                  class="lr-info-survey-link"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <v-icon size="14" icon="mdi-pencil-outline" class="me-1" />
+                                  {{ t('edit', 'Edit') }}
+                                </a>
+                                <a
+                                  :href="publicStudyUrl(s.id)"
+                                  class="lr-info-survey-link"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <v-icon size="14" icon="mdi-open-in-new" class="me-1" />
+                                  {{ t('preview', 'Preview') }}
+                                </a>
                               </div>
                             </div>
                           </div>
@@ -549,7 +556,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, reactive, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLicensedRequestsApi } from '../composables/useLicensedRequestsApi';
 import { useI18n } from '@/shared/composables/useI18n';
@@ -703,9 +710,14 @@ const processStatusItems = computed(() => [
   { title: t('cancel_authorization', 'Cancel'), value: 'CANCELLED' },
 ]);
 
-function catalogStudyUrl(sid) {
+function adminStudyUrl(sid) {
   const base = siteUrl.value?.replace(/\/$/, '') || '';
   return `${base}/admin/catalog/edit/${sid}`;
+}
+
+function publicStudyUrl(sid) {
+  const base = siteUrl.value?.replace(/\/$/, '') || '';
+  return `${base}/catalog/${sid}`;
 }
 
 /** Display year or start–end range for request info datasets. */
@@ -891,6 +903,21 @@ async function load() {
   }
 }
 
+/** Refetch whenever request id or tab changes (including first paint). */
+watch(
+  () => [
+    String(props.id ?? route.params.id ?? ''),
+    normalizeEditTab(route.params.tab),
+  ],
+  (next, prev) => {
+    if (!next[0]) return;
+    // Skip duplicate fires when only reference identity changed with same id+tab
+    if (prev && next[0] === prev[0] && next[1] === prev[1]) return;
+    load();
+  },
+  { immediate: true }
+);
+
 function openDelete() {
   const title = requestRow.value?.request_title
     ? `“${requestRow.value.request_title}”`
@@ -978,13 +1005,6 @@ async function submitForward() {
   }
 }
 
-watch(
-  () => route.params.id,
-  () => load(),
-  { immediate: false }
-);
-
-onMounted(() => load());
 </script>
 
 <style scoped>
@@ -1061,24 +1081,26 @@ onMounted(() => load());
   background: transparent;
 }
 
-.lr-info-survey-title-link {
+.lr-info-survey-title-text {
   font-weight: 600;
-  color: rgb(var(--v-theme-primary));
-  text-decoration: none;
-  display: inline-flex;
-  align-items: flex-start;
-  gap: 2px;
+  color: rgba(var(--v-theme-on-surface), 0.9);
   line-height: 1.35;
 }
 
-.lr-info-survey-title-link:hover .lr-info-survey-title-text {
-  text-decoration: underline;
+.lr-info-survey-links {
+  align-items: center;
 }
 
-.lr-info-survey-ext-icon {
-  flex-shrink: 0;
-  margin-top: 2px;
-  opacity: 0.88;
+.lr-info-survey-link {
+  display: inline-flex;
+  align-items: center;
+  color: rgb(var(--v-theme-primary));
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.lr-info-survey-link:hover {
+  text-decoration: underline;
 }
 
 .lr-info-survey-meta {
