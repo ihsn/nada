@@ -73,6 +73,7 @@ export const adminEntries = {
   admin_analytics_reports: path.resolve(__dirname, 'admin/analytics_reports/main.js'),
   admin_facets: path.resolve(__dirname, 'admin/facets/main.js'),
   admin_menu: path.resolve(__dirname, 'admin/menu/main.js'),
+  admin_permissions: path.resolve(__dirname, 'admin/permissions/main.js'),
   admin_datadeposit: path.resolve(__dirname, 'admin/datadeposit/main.js'),
 };
 

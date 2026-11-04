@@ -549,8 +549,6 @@ $route['access_direct/(:num)/download/(:any)'] = "access_direct/download/$1/$2";
 $route['access_enclave/(:num)'] = "access_enclave/index/$1";
 $route['access_enclave/(:num)/download/(:any)'] = "access_enclave/download/$1/$2";
 
-$route['admin/permissions/(:num)'] = "admin/permissions/index/$1";
-
 //Downloads API
 $route['api/downloads/(:any)/files'] = "api/downloads/files/$1";
 $route['api/downloads/(:any)/info/(:any)'] = "api/downloads/info/$1/$2";
@@ -598,6 +596,13 @@ $route['api/admin/licensed_requests/batch_delete'] = 'api/admin/licensed_request
 $route['api/admin/licensed_requests/send_mail/(:num)'] = 'api/admin/licensed_requests/send_mail/$1';
 $route['api/admin/licensed_requests/forward/(:num)'] = 'api/admin/licensed_requests/forward/$1';
 $route['admin/licensed_requests/edit/(:num)/(:any)'] = 'admin/licensed_requests/edit/$1/$2';
+
+// Admin permissions / roles API (site admin only)
+$route['api/admin/permissions/resources'] = 'api/admin/permissions/resources';
+$route['api/admin/permissions/roles/(:num)/permissions'] = 'api/admin/permissions/role_permissions/$1';
+$route['api/admin/permissions/roles/(:num)/delete'] = 'api/admin/permissions/role_delete/$1';
+$route['api/admin/permissions/roles/(:num)'] = 'api/admin/permissions/role/$1';
+$route['api/admin/permissions/roles'] = 'api/admin/permissions/roles';
 
 
 /* End of file routes.php */
