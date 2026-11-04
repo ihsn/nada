@@ -1488,11 +1488,16 @@ function seriesDimensionInfo(seriesIds) {
   return { partsById, keys, varying };
 }
 
-/** Series label using only the columns that vary (constant ones are already in the chart subtitle). */
+/**
+ * Series label using only the columns that vary (constant ones are already in the chart subtitle).
+ * A lone series keeps every column except frequency, which the x axis already shows.
+ */
 function shortSeriesLabel(id, dims) {
   const parts = dims?.partsById?.[id];
-  if (!parts || !dims.varying.length) return seriesLabelForId(id);
-  return dims.varying.map((k) => codeLabelForColumn(k, parts[k] ?? '')).join(' · ');
+  if (!parts) return seriesLabelForId(id);
+  const freqName = periodicityComponent.value?.name;
+  const keys = dims.varying.length ? dims.varying : Object.keys(parts).filter((k) => k !== freqName);
+  return keys.map((k) => codeLabelForColumn(k, parts[k] ?? '')).join(' · ');
 }
 
 /**
@@ -1897,7 +1902,8 @@ async function renderOrUpdateChart() {
   const isBar = model.type === 'column' || model.type === 'hbar';
   const isHorizontal = model.type === 'hbar';
   const numericX = model.useNumericTimeX === true;
-  const legendVisible = model.datasets.length > 0 && !(model.singlePeriod && model.datasets.length === 1);
+  // A single series is described by the subtitle; the legend only tells several apart.
+  const legendVisible = model.datasets.length > 1;
   const chartTitleText = studyTitle.value || 'Chart';
   let chartSubtitleText = String(chartFilterSubtitle.value ?? '');
   if (model.singlePeriod && !chartSubtitleText.includes(String(model.period))) {
@@ -2063,7 +2069,7 @@ async function renderOrUpdateChart() {
               return i >= 0 ? String(model.labels[i] ?? '') : '';
             },
             label(item) {
-              let line = `${item.dataset.label || ''}: ${item.formattedValue}`;
+              let line = item.dataset.label ? `${item.dataset.label}: ${item.formattedValue}` : item.formattedValue;
               const nums = item.dataset.noteMarkers && item.dataset.noteMarkers[item.dataIndex];
               if (nums && nums.length) line += `  [${formatMarkers(nums)}]`;
               return line;
