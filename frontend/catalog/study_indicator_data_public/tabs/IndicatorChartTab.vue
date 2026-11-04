@@ -372,7 +372,7 @@ import {
 import debounce from 'lodash/debounce';
 import Chart from 'chart.js/auto';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
-import { buildIndicatorFilterContextLine } from '@/shared/timeseries/indicatorFilterContext.js';
+import { buildIndicatorChartSubtitle } from '@/shared/timeseries/indicatorFilterContext.js';
 import { cellNoteIds, createNoteNumbering, formatMarkers, noteLines } from '@/shared/timeseries/indicatorNotes.js';
 import { usePublicTimeseriesApi } from '../composables/usePublicTimeseriesApi';
 import IndicatorFilterSidebar from '../components/IndicatorFilterSidebar.vue';
@@ -1139,19 +1139,22 @@ const valueAxisLabel = computed(() => {
 
 const xAxisLabel = computed(() => timePeriodFilterSectionLabel.value);
 
-/** Second line under chart title: applied reporting-year range, geography, periodicity, and dimension slices. */
-const chartFilterSubtitle = computed(() =>
-  buildIndicatorFilterContextLine({
+/** Second line under chart title: geography, single-value slices, and the period range actually plotted (not the filter range). */
+const chartFilterSubtitle = computed(() => {
+  const model = chartModel.value;
+  const times = model?.sortedTimes || [];
+  const fallbackFrom = String(activeFilters.value?.from ?? '').trim();
+  const fallbackTo = String(activeFilters.value?.to ?? '').trim();
+  return buildIndicatorChartSubtitle({
     activeFilters: activeFilters.value,
     geographyComponent: geographyComponent.value,
-    periodicityComponent: periodicityComponent.value,
     facetComponentsForC: facetComponentsForC.value,
     codelistSelectItems: codelistSelectItems.value,
-    facetLabel,
-    facetShowsFilter: () => true,
-    timeBoundsFallback: chartMetadata.value?.time_bounds,
-  })
-);
+    facetShowsFilter,
+    periodFrom: model ? String(times[0] ?? '') : fallbackFrom,
+    periodTo: model ? String(times[times.length - 1] ?? '') : fallbackTo,
+  });
+});
 
 const chartDataTableHeaders = computed(() => {
   const base = [

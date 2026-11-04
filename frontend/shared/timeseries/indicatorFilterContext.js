@@ -85,6 +85,55 @@ export function resolveActiveGeographyCodes(activeFilters, geographyComponent) {
 }
 
 /**
+ * Chart subtitle: plain values, no column headers, e.g. "Afghanistan, 1974–2024".
+ * Geography first, then single-value dimension slices (multi-value ones are in the legend),
+ * then the period range actually plotted. Frequency is left out (the x axis shows it).
+ *
+ * @param {{
+ *   activeFilters: object | null;
+ *   geographyComponent?: { name?: string; column_type?: string } | null;
+ *   facetComponentsForC?: Array<{ name?: string; column_type?: string }>;
+ *   codelistSelectItems?: Record<string, Array<{ value?: string; title?: string }>>;
+ *   facetShowsFilter?: (componentName: string) => boolean;
+ *   periodFrom?: string;
+ *   periodTo?: string;
+ * }} ctx
+ */
+export function buildIndicatorChartSubtitle(ctx) {
+  const f = ctx.activeFilters;
+  if (!f) return '';
+
+  const parts = [];
+  const itemsByName = ctx.codelistSelectItems || {};
+  const facetShowsFilter = ctx.facetShowsFilter || (() => true);
+
+  const geo = ctx.geographyComponent;
+  const geoName = String(geo?.name ?? '').trim();
+  const { codes: geoCodes, componentName: geoComponentName } = resolveActiveGeographyCodes(f, geo);
+  const geoFilterName = geoComponentName || geoName;
+  if (geoFilterName && geoCodes.length) {
+    parts.push(formatGeographyContextValue(itemsByName, geoFilterName, geoCodes));
+  }
+
+  const c = f.c && typeof f.c === 'object' ? f.c : {};
+  for (const col of ctx.facetComponentsForC || []) {
+    if (!col?.name || col.name === geoName || col.name === geoFilterName) continue;
+    // Study-wide singletons add nothing; several values per column are told apart by the legend.
+    if (!facetShowsFilter(col.name)) continue;
+    const arr = c[col.name];
+    if (!Array.isArray(arr) || arr.length !== 1) continue;
+    parts.push(facetCodesDisplayLabels(itemsByName, col.name, arr)[0]);
+  }
+
+  const from = String(ctx.periodFrom ?? '').trim();
+  const to = String(ctx.periodTo ?? '').trim();
+  if (from && to) parts.push(from === to ? from : `${from}–${to}`);
+  else if (from || to) parts.push(from || to);
+
+  return parts.filter(Boolean).join(', ');
+}
+
+/**
  * One-line summary of applied indicator filters (chart subtitle / table context).
  * Pass facetShowsFilter to omit study singletons; default includes all applied facets.
  *
