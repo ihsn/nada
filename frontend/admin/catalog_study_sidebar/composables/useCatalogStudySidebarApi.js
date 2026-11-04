@@ -114,6 +114,49 @@ export function useCatalogStudySidebarApi() {
     return data;
   }
 
+  async function listCollections() {
+    const { data } = await axios.get(`${catalogBase()}list_collections`, {
+      withCredentials: true,
+    });
+    if (data.status !== 'success') throw new Error(data.message || 'LIST_COLLECTIONS_FAILED');
+    return data.collections || [];
+  }
+
+  /**
+   * @param {string} repositoryid
+   */
+  async function transferOwnership(repositoryid) {
+    if (!repositoryid) throw new Error('repositoryid required');
+    const { data } = await axios.post(
+      `${catalogBase()}${studyRef()}/transfer_ownership`,
+      { repositoryid },
+      {
+        params: studyParams(),
+        withCredentials: true,
+        headers: { ...csrfHeaders(), 'Content-Type': 'application/json' },
+      }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'TRANSFER_FAILED');
+    return data;
+  }
+
+  /**
+   * Multipart POST …/{id}/replace_ddi — field name must be `file`.
+   * @param {File} file
+   */
+  async function replaceDdi(file) {
+    if (!(file instanceof File)) throw new Error('file required');
+    const fd = new FormData();
+    fd.append('file', file);
+    const { data } = await axios.post(`${catalogBase()}${studyRef()}/replace_ddi`, fd, {
+      params: studyParams(),
+      withCredentials: true,
+      headers: csrfHeaders(),
+    });
+    if (data.status !== 'success') throw new Error(data.message || 'REPLACE_DDI_FAILED');
+    return data;
+  }
+
   return {
     fetchWarnings,
     setPublished,
@@ -121,5 +164,8 @@ export function useCatalogStudySidebarApi() {
     uploadThumbnail,
     removeThumbnail,
     generateDdi,
+    listCollections,
+    transferOwnership,
+    replaceDdi,
   };
 }

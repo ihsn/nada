@@ -498,10 +498,6 @@ class Breadcrumb
 					$breadcrumbs['admin/catalog/batch-generate'] = t('batch_generate_ddi_title');
 				break;
 				
-				case 'transfer':
-					$breadcrumbs['admin/catalog/transfer']=t('transfer_study_ownership');
-				break;
-				
 				case 'delete':
 					$breadcrumbs['admin/catalog/delete']=t('delete');
 				break;				

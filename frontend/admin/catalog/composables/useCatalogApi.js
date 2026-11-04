@@ -7,9 +7,21 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
  * Uses apiBaseUrl from app config; returns reactive state and fetch helpers.
  */
 export function useCatalogApi() {
-  const { apiBaseUrl } = useAppConfig();
+  const { apiBaseUrl, csrfToken, csrfTokenName } = useAppConfig();
   const loading = ref(false);
   const error = ref(null);
+
+  function csrfHeaders(extra = {}) {
+    const name = csrfTokenName.value || 'ncsrf';
+    const tok = csrfToken.value || '';
+    const headers = { ...extra };
+    if (tok) {
+      headers[name] = tok;
+      headers['X-CSRF-TOKEN'] = tok;
+      headers['X-Requested-With'] = 'XMLHttpRequest';
+    }
+    return headers;
+  }
 
   async function search(params) {
     loading.value = true;
@@ -184,6 +196,40 @@ export function useCatalogApi() {
     return data;
   }
 
+  /**
+   * GET api/admin/catalog/list_collections
+   * @returns {Promise<Array<{id:number|null, repositoryid:string, title:string}>>}
+   */
+  async function listCollections() {
+    const base = apiBaseUrl.value || '';
+    const { data } = await axios.get(`${base}list_collections`, { withCredentials: true });
+    if (data.status !== 'success') throw new Error(data.message || 'list_collections failed');
+    return data.collections || [];
+  }
+
+  /**
+   * POST api/admin/catalog/{id}/transfer_ownership?id_format=id
+   * @param {number|string} id - surveys.id
+   * @param {string} repositoryid - target collection idno
+   */
+  async function transferOwnership(id, repositoryid) {
+    if (id == null || id === '') throw new Error('id required');
+    if (!repositoryid) throw new Error('repositoryid required');
+    const base = apiBaseUrl.value || '';
+    const url = `${base}${encodeURIComponent(String(id))}/transfer_ownership`;
+    const { data } = await axios.post(
+      url,
+      { repositoryid },
+      {
+        params: { id_format: 'id' },
+        withCredentials: true,
+        headers: csrfHeaders({ 'Content-Type': 'application/json' }),
+      }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Transfer failed');
+    return data;
+  }
+
   return {
     loading,
     error,
@@ -197,5 +243,7 @@ export function useCatalogApi() {
     postBatchImportFile,
     postRefreshStudy,
     fetchGenerateDdi,
+    listCollections,
+    transferOwnership,
   };
 }

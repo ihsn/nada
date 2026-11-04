@@ -167,21 +167,6 @@ function batch_delete(){
 	});	
 }
 
-function batch_transfer_ownership()
-{
-	if ($('.chk:checked').length==0){
-		alert(i18n.no_item_selected);
-		return false;
-	}
-	selected='';
-	$('.chk:checked').each(function(){ 
-		if (selected!=''){selected+=',';}
-        selected+= this.value; 
-     });
-	
-	window.location= CI.base_url+'/admin/catalog/transfer/'+selected;	
-}
-
 function batch_publish(publish)
 {
 	if ($('.chk:checked').length==0){

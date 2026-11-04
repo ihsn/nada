@@ -147,9 +147,9 @@
               />
               <v-list-item
                 class="csb-option-item rounded-lg mb-1"
-                :href="legacy.replaceDdi"
                 prepend-icon="mdi-file-replace-outline"
                 :title="lbl.replace_ddi || ''"
+                @click="replaceDdiDialog = true"
               />
               <v-list-item
                 class="csb-option-item rounded-lg mb-1"
@@ -173,9 +173,9 @@
             </template>
             <v-list-item
               class="csb-option-item rounded-lg mb-1"
-              :href="legacy.transfer"
               prepend-icon="mdi-account-switch-outline"
               :title="lbl.transfer_study || ''"
+              @click="transferDialog = true"
             />
             <v-list-item
               class="csb-option-item rounded-lg mb-1"
@@ -216,6 +216,16 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <ReplaceDdiDialog
+        v-model="replaceDdiDialog"
+        :study-title="studyTitle"
+        @replaced="onDdiReplaced"
+      />
+      <TransferOwnershipDialog
+        v-model="transferDialog"
+        @transferred="onOwnershipTransferred"
+      />
     </v-main>
   </v-app>
 </template>
@@ -224,6 +234,8 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useCatalogStudySidebarApi } from './composables/useCatalogStudySidebarApi';
+import ReplaceDdiDialog from './components/ReplaceDdiDialog.vue';
+import TransferOwnershipDialog from './components/TransferOwnershipDialog.vue';
 
 const { config } = useAppConfig();
 const { fetchWarnings, setPublished, deleteStudy, uploadThumbnail, removeThumbnail, generateDdi } = useCatalogStudySidebarApi();
@@ -232,6 +244,7 @@ const lbl = computed(() => config.value?.labels || {});
 const legacy = computed(() => config.value?.legacyUrls || {});
 const studyType = computed(() => String(config.value?.studyType || 'survey'));
 const catalogListUrl = computed(() => String(config.value?.catalogListUrl || '/'));
+const studyTitle = computed(() => String(config.value?.studyTitle || config.value?.title || ''));
 
 const publishedLocal = ref(!!config.value?.published);
 const thumbnailFilename = ref(String(config.value?.thumbnailFilename || ''));
@@ -246,6 +259,8 @@ const thumbBusy = ref(false);
 const ddiGenerateBusy = ref(false);
 const thumbDialog = ref(false);
 const thumbFileModel = ref(null);
+const replaceDdiDialog = ref(false);
+const transferDialog = ref(false);
 
 const snackbar = ref({ show: false, text: '', color: 'surface' });
 
@@ -373,6 +388,18 @@ async function onGenerateDdi(ev) {
   } finally {
     ddiGenerateBusy.value = false;
   }
+}
+
+function onDdiReplaced() {
+  showSnack(lbl.value.replace_ddi_success || lbl.value.saved || 'DDI replaced', 'success');
+  loadWarnings();
+}
+
+function onOwnershipTransferred() {
+  showSnack(lbl.value.transfer_success || lbl.value.saved || 'Ownership transferred', 'success');
+  window.setTimeout(() => {
+    window.location.reload();
+  }, 600);
 }
 
 onMounted(() => {

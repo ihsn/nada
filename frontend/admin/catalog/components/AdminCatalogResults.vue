@@ -185,7 +185,7 @@
                   <template #prepend><v-icon size="small" color="primary">mdi-pencil</v-icon></template>
                   <v-list-item-title class="text-caption">{{ t('edit') }}</v-list-item-title>
                 </v-list-item>
-                <v-list-item :href="transferOwnershipUrl(study)">
+                <v-list-item @click="openTransfer([study])">
                   <template #prepend><v-icon size="small" color="primary">mdi-transfer-right</v-icon></template>
                   <v-list-item-title class="text-caption">{{ t('transfer_ownership') }}</v-list-item-title>
                 </v-list-item>
@@ -200,6 +200,12 @@
         </tr>
       </tbody>
     </v-table>
+
+    <TransferOwnershipDialog
+      v-model="transferDialog"
+      :studies="transferStudies"
+      @transferred="onTransferred"
+    />
 
     <div class="admin-catalog-results-footer">
       <v-row class="mt-2 align-center">
@@ -252,6 +258,7 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useCatalogApi } from '../composables/useCatalogApi';
 import { useI18n } from '@/shared/composables/useI18n';
 import $dialog from '@/shared/composables/dialog';
+import TransferOwnershipDialog from './TransferOwnershipDialog.vue';
 
 defineOptions({ name: 'AdminCatalogResults' });
 
@@ -273,6 +280,8 @@ const selected = ref([]);
 const publishLoading = ref(null);
 /** Shown while batch publish / unpublish / delete requests run after confirmation. */
 const batchProcessing = ref(false);
+const transferDialog = ref(false);
+const transferStudies = ref([]);
 
 const sortOptions = [
   { label: t('sort_title_asc'), value: 'title_asc' },
@@ -341,10 +350,6 @@ function editUrl(study) {
 }
 function deleteUrl(study) {
   return `${siteUrl.value}/admin/catalog/delete/${study.id}`;
-}
-
-function transferOwnershipUrl(study) {
-  return `${siteUrl.value}/admin/catalog/transfer/${study.id}`;
 }
 
 function unlinkUrl(study) {
@@ -438,8 +443,7 @@ async function batchAction(action) {
   const ids = studies.map((s) => s.id).filter((id) => id != null && id !== '');
 
   if (action === 'transfer_ownership') {
-    const idsParam = ids.join(',');
-    window.location.href = `${siteUrl.value}/admin/catalog/transfer/${idsParam}`;
+    openTransfer(studies);
     return;
   }
 
@@ -492,6 +496,30 @@ async function batchAction(action) {
     await $dialog.alert({
       title: t('partially_completed'),
       message: t('batch_failed_count', `${failed} of ${n} failed. Check the console for details.`, failed, n),
+    });
+  }
+}
+
+function openTransfer(studies) {
+  transferStudies.value = (studies || [])
+    .filter((s) => s?.id != null && s.id !== '')
+    .map((s) => ({ id: s.id, title: s.title || String(s.id) }));
+  if (!transferStudies.value.length) return;
+  transferDialog.value = true;
+}
+
+async function onTransferred(result) {
+  selected.value = [];
+  emit('refresh');
+  if (result?.failed > 0) {
+    await $dialog.alert({
+      title: t('partially_completed'),
+      message: t(
+        'batch_failed_count',
+        `${result.failed} of ${result.total} failed. Check the console for details.`,
+        result.failed,
+        result.total
+      ),
     });
   }
 }
