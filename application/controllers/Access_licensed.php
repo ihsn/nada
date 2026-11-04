@@ -345,10 +345,9 @@ class Access_licensed extends MY_Controller {
 		$survey_folder=$this->Dataset_model->get_storage_fullpath($fileinfo['survey_id']);
 		
 		
-		//build licensed file path
-		$file_path=unix_path($survey_folder.'/'.$fileinfo['filename']);
-		
-		if (!file_exists($file_path))
+		$this->load->helper('file');
+		$file_path = resolve_under_directory($survey_folder, $fileinfo['filename']);
+		if ($file_path === false || ! is_file($file_path))
 		{
 			show_error('The file was not found.');
 		}

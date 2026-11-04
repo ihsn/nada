@@ -25,11 +25,13 @@
                 || substr($row['filename'], 0, 6) == 'ftp://') {
                 $url = prep_url($row['filename']);
                 $is_url = true;
-            } elseif (trim($row['filename']) !== '' 
-                && check_resource_file($survey_folder . '/' . $row['filename']) !== FALSE) {
-                $url = site_url('access_licensed/download') . '/' . $request_id . '/' . $row['resource_id'];
-                $file_size = format_bytes(filesize($survey_folder . '/' . $row['filename']), 2);
-            }
+            } elseif (trim($row['filename']) !== '') {
+                                $safe_file = check_resource_file_under($survey_folder, $row['filename']);
+                                if ($safe_file !== FALSE) {
+                                    $url = site_url('access_licensed/download') . '/' . $request_id . '/' . $row['resource_id'];
+                                    $file_size = format_bytes(filesize($safe_file), 2);
+                                }
+                            }
             
             // Get file extension
             $ext = get_file_extension($row['filename']);

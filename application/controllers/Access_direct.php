@@ -163,10 +163,9 @@ class Access_direct extends MY_Controller {
 			show_error(t('file_not_found'));
 		}
 		
-		//build complete filepath to be downloaded
-		$file_path=unix_path($survey_folder.'/'.$fileinfo['filename']);
-		
-		if (!file_exists($file_path))
+		$this->load->helper('file');
+		$file_path = resolve_under_directory($survey_folder, $fileinfo['filename']);
+		if ($file_path === false || ! is_file($file_path))
 		{
 			show_error(t('file_not_found'));
 		}

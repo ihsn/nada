@@ -15,7 +15,6 @@ require APPPATH . '/libraries/MY_REST_Controller.php';
  *   POST   …/files/{base64(relative/path)}/delete — same as DELETE when clients cannot send DELETE
  *   POST   …/files — multipart field `file` (single upload; small files)
  *   POST   …/files/commit — JSON `{ "upload_id": "…" }` after `api/uploads` resumable flow completes
- *   POST   …/files/upload — Plupload-style chunked upload (`chunk`, `chunks`, `name`, body stream)
  */
 class Catalog_files extends MY_REST_Controller
 {
@@ -288,9 +287,9 @@ class Catalog_files extends MY_REST_Controller
 				throw new Exception('SURVEY_FOLDER_NOT_FOUND');
 			}
 
-			$dest = unix_path($survey_folder . '/' . $basename);
-			$dest_dir = unix_realpath(dirname($dest));
-			if ($dest_dir === false || ! $this->_path_is_within($dest_dir, $survey_folder)) {
+			$this->load->helper('file');
+			$dest = build_path_under_directory($survey_folder, $basename);
+			if ($dest === false) {
 				throw new Exception('PATH_OUTSIDE_SURVEY_FOLDER');
 			}
 
@@ -374,43 +373,6 @@ class Catalog_files extends MY_REST_Controller
 		catch (Exception $e) {
 			$this->set_response(
 				array('status' => 'failed', 'message' => $e->getMessage()),
-				REST_Controller::HTTP_BAD_REQUEST
-			);
-		}
-	}
-
-	/**
-	 * Plupload-compatible chunked upload (same behaviour as admin/managefiles/{sid}/process_batch_uploads).
-	 */
-	public function process_batch_uploads_post($idno = null)
-	{
-		try {
-			$user = $this->api_user();
-			if (! $user) {
-				throw new AclAccessDeniedException('ACCESS-DENIED');
-			}
-			if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
-				throw new AclAccessDeniedException('ACCESS-DENIED');
-			}
-
-			$sid = $this->get_sid_from_idno($idno);
-			$this->has_dataset_access('edit', $sid);
-
-			$survey_path = $this->Managefiles_model->get_survey_path($sid);
-			if ($survey_path === '' || ! file_exists($survey_path)) {
-				throw new Exception('SURVEY_FOLDER_NOT_FOUND');
-			}
-
-			$this->_run_plupload_chunks($survey_path);
-			die();
-		}
-		catch (AclAccessDeniedException $e) {
-			unset($e);
-			$this->response(array('jsonrpc' => '2.0', 'error' => array('code' => 403, 'message' => 'ACCESS_DENIED'), 'id' => 'id'), REST_Controller::HTTP_FORBIDDEN);
-		}
-		catch (Exception $e) {
-			$this->response(
-				array('jsonrpc' => '2.0', 'error' => array('code' => 400, 'message' => $e->getMessage()), 'id' => 'id'),
 				REST_Controller::HTTP_BAD_REQUEST
 			);
 		}
@@ -511,15 +473,9 @@ class Catalog_files extends MY_REST_Controller
 				'status_url_tpl'=> $uploads_base . 'status/{upload_id}',
 				'limits_url'   => $uploads_base . 'limits',
 			),
-			'chunked_upload'       => array(
-				'supported'  => true,
-				'protocol'   => 'plupload-chunks',
-				'description'=> 'Legacy Plupload: POST …/files/upload with chunk, chunks, name',
-			),
 			'paths' => array(
 				'post_multipart' => 'api/admin/catalog/' . rawurlencode((string) $idno) . '/files' . $qs,
 				'post_commit'    => 'api/admin/catalog/' . rawurlencode((string) $idno) . '/files/commit' . $qs,
-				'post_chunks'    => 'api/admin/catalog/' . rawurlencode((string) $idno) . '/files/upload' . $qs,
 				'alt_catalog_files'=> 'api/admin/catalog-files/' . rawurlencode((string) $idno),
 			),
 		);
@@ -661,87 +617,4 @@ class Catalog_files extends MY_REST_Controller
 		}
 	}
 
-	/**
-	 * @param string $resource_folder absolute survey folder
-	 */
-	private function _run_plupload_chunks($resource_folder)
-	{
-		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-		header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
-		header('Cache-Control: no-store, no-cache, must-revalidate');
-		header('Cache-Control: post-check=0, pre-check=0', false);
-		header('Pragma: no-cache');
-
-		$targetDir = unix_path($resource_folder);
-
-		@set_time_limit(15 * 60);
-
-		$chunk  = isset($_REQUEST['chunk']) ? (int) $_REQUEST['chunk'] : 0;
-		$chunks = isset($_REQUEST['chunks']) ? (int) $_REQUEST['chunks'] : 0;
-		$fileName = isset($_REQUEST['name']) ? $_REQUEST['name'] : '';
-
-		if ($chunks < 2 && $fileName !== '' && file_exists($targetDir . DIRECTORY_SEPARATOR . $fileName)) {
-			$ext      = strrpos($fileName, '.');
-			$fileName_a = $ext ? substr($fileName, 0, $ext) : $fileName;
-			$fileName_b = $ext ? substr($fileName, $ext) : '';
-			$count = 1;
-			while (file_exists($targetDir . DIRECTORY_SEPARATOR . $fileName_a . '_' . $count . $fileName_b)) {
-				$count++;
-			}
-			$fileName = $fileName_a . '_' . $count . $fileName_b;
-		}
-
-		if (! file_exists($targetDir)) {
-			@mkdir($targetDir);
-		}
-
-		$contentType = '';
-		if (isset($_SERVER['HTTP_CONTENT_TYPE'])) {
-			$contentType = $_SERVER['HTTP_CONTENT_TYPE'];
-		}
-		if (isset($_SERVER['CONTENT_TYPE'])) {
-			$contentType = $_SERVER['CONTENT_TYPE'];
-		}
-
-		if (strpos($contentType, 'multipart') !== false) {
-			if (isset($_FILES['file']['tmp_name']) && is_uploaded_file($_FILES['file']['tmp_name'])) {
-				$out = fopen($targetDir . DIRECTORY_SEPARATOR . $fileName, $chunk === 0 ? 'wb' : 'ab');
-				if ($out) {
-					$in = fopen($_FILES['file']['tmp_name'], 'rb');
-					if ($in) {
-						while ($buff = fread($in, 4096)) {
-							fwrite($out, $buff);
-						}
-					} else {
-						die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "id"}');
-					}
-					fclose($in);
-					fclose($out);
-					@unlink($_FILES['file']['tmp_name']);
-				} else {
-					die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "id"}');
-				}
-			} else {
-				die('{"jsonrpc" : "2.0", "error" : {"code": 103, "message": "Failed to move uploaded file."}, "id" : "id"}');
-			}
-		} else {
-			$out = fopen($targetDir . DIRECTORY_SEPARATOR . $fileName, $chunk === 0 ? 'wb' : 'ab');
-			if ($out) {
-				$in = fopen('php://input', 'rb');
-				if ($in) {
-					while ($buff = fread($in, 4096)) {
-						fwrite($out, $buff);
-					}
-				} else {
-					die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "id"}');
-				}
-				fclose($in);
-				fclose($out);
-			} else {
-				die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "id"}');
-			}
-		}
-
-		die('{"jsonrpc" : "2.0", "result" : null, "id" : "id"}');
-	}
 }

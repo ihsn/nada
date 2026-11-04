@@ -202,8 +202,8 @@ const { config } = useAppConfig();
 const { fetchFiles, deleteFile, uploadFile, downloadHref } = useStudyFilesApi();
 
 const lbl = computed(() => config.value?.labels || {});
-const resourcesEditBase = computed(() => config.value?.resourcesEditBase || '');
-const studySid = computed(() => config.value?.studySid ?? null);
+const resourcesTabUrl = computed(() => config.value?.resourcesTabUrl || '');
+const resourcesFileLinkBase = computed(() => config.value?.resourcesFileLinkBase || '');
 
 const loading = ref(true);
 const uploading = ref(false);
@@ -267,21 +267,16 @@ function resourceEditUrl(item) {
     return null;
   }
 
-  const sid = studySid.value;
-  if (sid == null) {
-    return null;
-  }
-
   const rid = item?.resource?.resource_id;
-  const editBase = String(resourcesEditBase.value || '').replace(/\/+$/, '');
-  if (rid != null && editBase) {
-    return `${editBase}/${encodeURIComponent(String(rid))}/${encodeURIComponent(String(sid))}`;
+  if (rid != null && resourcesTabUrl.value) {
+    return `${String(resourcesTabUrl.value).replace(/\/+$/, '')}/edit/${encodeURIComponent(String(rid))}`;
   }
 
   const token = item?.base64;
-  if (token && editBase) {
+  const linkBase = String(resourcesFileLinkBase.value || '').replace(/\/+$/, '');
+  if (token && linkBase) {
     const params = new URLSearchParams({ t: token });
-    return `${editBase}/add/${encodeURIComponent(String(sid))}?${params.toString()}`;
+    return `${linkBase}?${params.toString()}`;
   }
 
   return null;

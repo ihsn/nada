@@ -28,7 +28,6 @@ $lang['invalid_email'] = 'Endereço de correio electrónico inválido!';
 $lang['add_citations'] = 'Nova citação';
 $lang['diagnostic'] = 'Diagnóstico';
 $lang['outstanding_fields'] = '%d campos obrigatórios por preencher';
-$lang['no_plupload_support'] = 'O seu navegador não suporta Flash, Silverlight, Gears, BrowserPlus nem HTML5.';
 $lang['project_locked_message'] = 'Este projecto foi submetido em %s. Já não pode ser editado, mas pode consultar e descarregar o respectivo resumo. Se precisar de rever a submissão ou acrescentar ficheiros, pode solicitar a reabertura do projecto.';
 $lang['submit'] = 'Submeter';
 $lang['request_reopen'] = 'Solicitar reabertura';

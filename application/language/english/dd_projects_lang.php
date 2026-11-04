@@ -29,7 +29,6 @@ $lang['invalid_email'] = "Invalid email address!";
 $lang['add_citations'] = 'New Citation';
 $lang['diagnostic'] = "Diagnostic";
 $lang['outstanding_fields'] = '%d Mandatory Fields outstanding';
-$lang['no_plupload_support'] = 'Your browser doesn\'t have Flash, Silverlight, Gears, BrowserPlus or HTML5 support.';
 $lang['project_locked_message'] = 'This project was submitted on %s. The project can no longer be edited, but you may view and download the project summary information. If you need to revise or add more files to your submission you may request that the  project to be reopened.';
 $lang['submit'] = "Submit";
 $lang['request_reopen'] = 'Request Reopen';

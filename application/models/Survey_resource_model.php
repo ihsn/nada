@@ -382,8 +382,8 @@ class Survey_resource_model extends CI_Model {
 				continue;
 			}
 			if ($root !== '') {
-				$full = unix_path($root . '/' . $fn);
-				$resources[$k]['file_exists'] = is_file($full);
+				$full = resolve_under_directory($root, $fn);
+				$resources[$k]['file_exists'] = ($full !== false && is_file($full));
 			} else {
 				$resources[$k]['file_exists'] = false;
 			}
@@ -1267,14 +1267,26 @@ class Survey_resource_model extends CI_Model {
 		if (!$resource){
 			return FALSE;
 		}
+
+		$filename = isset($resource['filename']) ? trim((string) $resource['filename']) : '';
+		if ($filename === '' || (function_exists('is_url') && is_url($filename))) {
+			return FALSE;
+		}
 		
 		//get survey folder path
 		$survey_folder=$this->Catalog_model->get_survey_path_full($resource['survey_id']);
-						
-		//build complete filepath to be downloaded
-		$file_path=unix_path($survey_folder.'/'.$resource['filename']);
+		if (! $survey_folder) {
+			return FALSE;
+		}
 
-		return $file_path;		
+		$this->load->helper('file');
+		// Do not trust DB filename — must resolve under the study folder.
+		$file_path = resolve_under_directory($survey_folder, $filename);
+		if ($file_path === false || ! is_file($file_path)) {
+			return FALSE;
+		}
+
+		return $file_path;
 	}
 
 
@@ -1374,8 +1386,12 @@ class Survey_resource_model extends CI_Model {
 			//clean file paths
 			$filename=unix_path($filename);
 			
-			//keep only the filename, remove path
-			return basename($filename);
+			// Keep only the filename (no relative/absolute paths on write).
+			$base = basename($filename);
+			if ($base === '' || $base === '.' || $base === '..') {
+				return '';
+			}
+			return $base;
 		}
 
 		return $filename;
@@ -1402,11 +1418,9 @@ class Survey_resource_model extends CI_Model {
 			return false;
 		}
 
-		// Build full file path
-		$file_path = unix_path($survey_folder . '/' . $filename);
-		
-		// Check if file exists
-		if (!file_exists($file_path) || !is_file($file_path)) {
+		$this->load->helper('file');
+		$file_path = resolve_under_directory($survey_folder, $filename);
+		if ($file_path === false || ! is_file($file_path)) {
 			return false;
 		}
 
@@ -1608,22 +1622,20 @@ class Survey_resource_model extends CI_Model {
 		if (!file_exists($survey_folder)){
 			throw new Exception('SURVEY_FOLDER_NOT_FOUND');
 		}
-				
-		$filepath=urldecode(base64_decode($base64_filepath));		
-		$fullpath=unix_path($survey_folder.'/'.$filepath);
+
+		$this->load->helper('file');
+		$filepath = $this->_decode_managefiles_relative_token($base64_filepath);
+		$fullpath = resolve_under_directory($survey_folder, $filepath);
+		if ($fullpath === false || ! is_file($fullpath)) {
+			throw new Exception('FILE_NOT_FOUND: ' . urlencode($filepath));
+		}
 		
 		//log deletion
 		$this->db_logger->write_log('resource-delete',$fullpath,'external-resource',$sid);
-		
-		if(!file_exists($fullpath)){
-			throw new Exception("FILE_NOT_FOUND: ".urlencode($filepath));
-		}
-		elseif (is_file($fullpath) && file_exists($fullpath)){
-			$isdeleted=silent_unlink($fullpath);
-			
-			if($isdeleted===FALSE){
-				throw new Exception("file_delete_failed");
-			}
+
+		$isdeleted = silent_unlink($fullpath);
+		if ($isdeleted === FALSE) {
+			throw new Exception('file_delete_failed');
 		}
 		return true;
 	}
@@ -1642,21 +1654,40 @@ class Survey_resource_model extends CI_Model {
 		if (!file_exists($survey_folder)){
 			throw new Exception('SURVEY_FOLDER_NOT_FOUND');
 		}
-		
-		$filepath=urldecode(base64_decode($base64_filepath));		
-		$fullpath=unix_path($survey_folder.'/'.basename($filepath));
+
+		$this->load->helper('file');
+		$filepath = $this->_decode_managefiles_relative_token($base64_filepath);
+		$fullpath = resolve_under_directory($survey_folder, $filepath);
+		if ($fullpath === false || ! is_file($fullpath)) {
+			throw new Exception('FILE_NOT_FOUND: ' . urlencode($filepath));
+		}
 		
 		//log download
 		$this->db_logger->write_log('download',$fullpath,'external-resource');
-		
-		if (is_file($fullpath) && file_exists($fullpath)){
-			$this->load->helper('download');
-			log_message('info','Downloading file <em>'.$fullpath.'</em>');
-			force_download2($fullpath);
+
+		$this->load->helper('download');
+		log_message('info','Downloading file <em>'.$fullpath.'</em>');
+		force_download2($fullpath);
+	}
+
+	/**
+	 * Decode managefiles-style token: base64(urlencode(relative/path)).
+	 *
+	 * @param string $token
+	 * @return string
+	 */
+	private function _decode_managefiles_relative_token($token)
+	{
+		$token = trim((string) $token);
+		$token = str_replace(' ', '+', $token);
+		$bin = base64_decode($token, true);
+		if ($bin === false || $bin === '') {
+			$bin = base64_decode($token);
 		}
-		else {
-			throw new Exception("FILE_NOT_FOUND: ".urlencode(basename($filepath)));
+		if ($bin === false || $bin === '') {
+			return '';
 		}
+		return urldecode($bin);
 	}
 
 
@@ -1680,10 +1711,12 @@ class Survey_resource_model extends CI_Model {
 		$broken_links=array();
 		
 		//build an array of broken resources, ignore the resources with correct paths
+		$this->load->helper('file');
 		foreach($resources as $resource){
 			//check if the resource file found on disk
 			if(!is_url($resource['filename'])){
-				if(!file_exists( unix_path($survey_folder.'/'.$resource['filename']))){
+				$resolved = resolve_under_directory($survey_folder, $resource['filename']);
+				if ($resolved === false || ! is_file($resolved)) {
 					$broken_links[]=$resource;
 				}
 			}
@@ -2033,9 +2066,12 @@ class Survey_resource_model extends CI_Model {
 
 	function resource_attach_zip_preview($survey_folder,$resources)
 	{	
+		$this->load->helper('file');
 		foreach($resources as $key=>$resource){
-			$filepath=unix_path($survey_folder.'/'.$resource['filename']);
-			$resources[$key]['zip_preview']=$this->get_zip_archive_info($filepath);
+			$filepath = resolve_under_directory($survey_folder, $resource['filename']);
+			$resources[$key]['zip_preview'] = ($filepath !== false)
+				? $this->get_zip_archive_info($filepath)
+				: false;
 		}
 
 		return $resources;
@@ -2079,11 +2115,20 @@ class Survey_resource_model extends CI_Model {
 		if (!$resource){
 			return FALSE;
 		}
-		
-		$survey_folder=$this->Catalog_model->get_survey_path_full($resource['survey_id']);						
-		$file_path=unix_path($survey_folder.'/'.$resource['filename']);
 
-		if (file_exists($file_path)){
+		$filename = isset($resource['filename']) ? trim((string) $resource['filename']) : '';
+		if ($filename === '' || (function_exists('is_url') && is_url($filename))) {
+			return FALSE;
+		}
+		
+		$survey_folder=$this->Catalog_model->get_survey_path_full($resource['survey_id']);
+		if (! $survey_folder) {
+			return FALSE;
+		}
+
+		$this->load->helper('file');
+		$file_path = resolve_under_directory($survey_folder, $filename);
+		if ($file_path !== false && is_file($file_path)) {
 			return filesize($file_path);
 		}
 
@@ -2484,9 +2529,10 @@ class Survey_resource_model extends CI_Model {
 	private function _build_sync_update_for_file_resource($resource, $survey_folder, $calculate_checksum)
 	{
 		$filename = $resource['filename'];
-		$file_path = unix_path($survey_folder . '/' . $filename);
+		$this->load->helper('file');
+		$file_path = resolve_under_directory($survey_folder, $filename);
 
-		if (!file_exists($file_path) || !is_file($file_path)) {
+		if ($file_path === false || ! is_file($file_path)) {
 			return array('not_found' => true);
 		}
 

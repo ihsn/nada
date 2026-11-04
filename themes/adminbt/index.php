@@ -39,7 +39,6 @@ $site_navigation_menu=get_site_menu();
     <!-- Bootstrap -->
     <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/custom.css" rel="stylesheet">
-    <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/plupload.css" rel="stylesheet">
 
     <!--bootstrap toggle button-->
     <link href="<?php echo base_url(); ?>javascript/bootstrap-toggle/css/bootstrap-toggle.min.css" rel="stylesheet">

@@ -44,7 +44,7 @@ $lang['publishers'] = "Publisher(s)";
 $lang['description'] = "Description";
 $lang['abstract'] = "Abstract";
 $lang['table_of_contents'] = "Table of contents";
-$lang['resource_url_filepath'] = "URL or Relative path to the resource";
+$lang['resource_url_filepath'] = "File name or URL";
 
 $lang['resource_type'] = "Resource type";
 $lang['legend_file_exist'] = "File found";

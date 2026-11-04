@@ -38,16 +38,26 @@ function strip_brackets($value)
   
 }
 
-if ( ! function_exists('check_resource_file'))
+/**
+ * Safe existence check for a study resource filename (DB/user-controlled relative name).
+ *
+ * @param string $survey_folder Trusted study folder
+ * @param string $filename      Untrusted relative filename from DB
+ * @return string|false Absolute path if safe and exists
+ */
+if ( ! function_exists('check_resource_file_under'))
 {
-	function check_resource_file($file_path)
+	function check_resource_file_under($survey_folder, $filename)
 	{
-		$file_path=unix_path($file_path);
-		if (file_exists($file_path))
-		{
-			return $file_path;
+		if (! function_exists('resolve_under_directory')) {
+			$CI =& get_instance();
+			$CI->load->helper('file');
 		}
-		return FALSE;
+		$path = resolve_under_directory($survey_folder, $filename);
+		if ($path === false || ! is_file($path)) {
+			return FALSE;
+		}
+		return $path;
 	}
 }
 /* End of file email_helper.php */

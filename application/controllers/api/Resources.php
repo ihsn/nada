@@ -198,7 +198,11 @@ class Resources extends MY_REST_Controller
 					if (!$survey_folder || !file_exists($survey_folder)) {
 						throw new Exception("SURVEY_FOLDER_NOT_FOUND");
 					}
-					$dest_file = unix_path($survey_folder . '/' . basename($final_file));
+					$this->load->helper('file');
+					$dest_file = build_path_under_directory($survey_folder, basename($final_file));
+					if ($dest_file === false) {
+						throw new Exception("INVALID_UPLOAD_FILENAME");
+					}
 					$this->uploader->relocate_file($final_file, $dest_file, false);
 
 					$options['filename'] = basename($final_file);

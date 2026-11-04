@@ -105,10 +105,12 @@ $fields_arr = array(
                             || substr($row['filename'], 0, 6) == 'ftp://') {
                             $url = prep_url($row['filename']);
                             $is_url = true;
-                        } elseif (trim($row['filename']) !== '' 
-                            && check_resource_file($survey_folder . '/' . $row['filename']) !== FALSE) {
-                            $url = site_url() . '/catalog/' . $sid . '/download/' . $row['resource_id'];
-                            $file_size = format_bytes(filesize($survey_folder . '/' . $row['filename']), 2);
+                        } elseif (trim($row['filename']) !== '') {
+                            $safe_file = check_resource_file_under($survey_folder, $row['filename']);
+                            if ($safe_file !== FALSE) {
+                                $url = site_url() . '/catalog/' . $sid . '/download/' . $row['resource_id'];
+                                $file_size = format_bytes(filesize($safe_file), 2);
+                            }
                         }
 
                         // Get file extension
@@ -248,7 +250,10 @@ $fields_arr = array(
                                             $zip_content = false;
                                             $zip_preview_html = '';
                                             try {
-                                                $zip_content = $this->Survey_resource_model->get_zip_archive_info($survey_folder . '/' . $row['filename']);
+                                                $safe_zip = check_resource_file_under($survey_folder, $row['filename']);
+                                                $zip_content = $safe_zip
+                                                    ? $this->Survey_resource_model->get_zip_archive_info($safe_zip)
+                                                    : false;
                                                 if ($zip_content) {
                                                     $zip_preview_html = $this->load->view('survey_info/zip_preview', array('data' => $zip_content, 'resource_id' => $row['resource_id']), true);
                                                 }

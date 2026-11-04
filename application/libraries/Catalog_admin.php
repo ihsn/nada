@@ -367,12 +367,14 @@ class Catalog_Admin
 		$broken_links=array();
 
 		//build an array of broken resources, ignore the resources with correct paths
+		$this->ci->load->helper('file');
 		foreach($resources as $resource)
 		{
 			//check if the resource file found on disk
 			if(!is_url($resource['filename']))
 			{
-				if(!file_exists( unix_path($survey_folder.'/'.$resource['filename'])))
+				$resolved = resolve_under_directory($survey_folder, $resource['filename']);
+				if ($resolved === false || ! is_file($resolved))
 				{
 					$broken_links[]=$resource;
 				}
