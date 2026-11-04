@@ -164,7 +164,7 @@
                     rounded="lg"
                     class="chart-hint pa-3 mb-3 text-body-2 text-medium-emphasis"
                   >
-                    <span>Time axis uses a continuous date scale (missing periods appear as wider gaps).</span>
+                    <span>Time axis uses a continuous date scale (missing periods appear as breaks in the line).</span>
                   </v-sheet>
                   <v-alert
                     v-if="!isIndicatorEmbed && dataLoadCommitted && seriesTruncated"
@@ -1393,6 +1393,64 @@ function classifyTimeKeys(sortedTimes) {
   return { useNumeric: false, kind: null, parse: null };
 }
 
+/** Applied frequency code (A, Q, M, W, D, …) when exactly one is in the loaded filters; '' otherwise. */
+const appliedFrequency = computed(() => {
+  const p = activeFilters.value?.d?.periodicity;
+  return Array.isArray(p) && p.length === 1 ? String(p[0]).trim().toUpperCase() : '';
+});
+
+/** Upper bound on filled category periods (guards against bogus keys spanning millennia). */
+const MAX_FILLED_PERIODS = 5000;
+
+/** Period key <-> sequential index for frequencies on a category axis. */
+const PERIOD_STEPS = {
+  A: {
+    index: (t) => (/^\d{4}$/.test(t) ? Number(t) : null),
+    format: (i) => String(i),
+  },
+  Q: {
+    index: (t) => {
+      const m = /^(\d{4})-Q([1-4])$/i.exec(t);
+      return m ? Number(m[1]) * 4 + Number(m[2]) - 1 : null;
+    },
+    format: (i) => `${Math.floor(i / 4)}-Q${(i % 4) + 1}`,
+  },
+  M: {
+    index: (t) => {
+      const m = /^(\d{4})-(\d{2})$/.exec(t);
+      const mo = m ? Number(m[2]) : 0;
+      return mo >= 1 && mo <= 12 ? Number(m[1]) * 12 + mo - 1 : null;
+    },
+    format: (i) => `${Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, '0')}`,
+  },
+};
+
+/** Day gap above which a line breaks, for frequencies plotted on the numeric date axis. */
+const DATE_STEP_DAYS = { D: 1, W: 7 };
+
+/**
+ * Every period from the first to the last observed one, so years without data show as breaks
+ * in the line instead of being dropped from the axis. Returns `sortedTimes` unchanged when the
+ * a key does not fit the frequency. Unknown or missing frequencies with plain `YYYY` keys are treated as annual.
+ */
+function fillPeriodRange(sortedTimes, freq) {
+  const code = PERIOD_STEPS[freq] ? freq : sortedTimes.every((t) => /^\d{4}$/.test(t)) ? 'A' : '';
+  const step = PERIOD_STEPS[code];
+  if (!step || sortedTimes.length < 2) return sortedTimes;
+  const keyByIndex = new Map();
+  for (const t of sortedTimes) {
+    const i = step.index(String(t).trim());
+    if (i == null) return sortedTimes;
+    keyByIndex.set(i, t);
+  }
+  const lo = Math.min(...keyByIndex.keys());
+  const hi = Math.max(...keyByIndex.keys());
+  if (hi - lo + 1 > MAX_FILLED_PERIODS) return sortedTimes;
+  const out = [];
+  for (let i = lo; i <= hi; i++) out.push(keyByIndex.get(i) ?? step.format(i));
+  return out;
+}
+
 /** Concrete chart type for the toolbar selection; `auto` picks by number of time periods and series (same rules as Metadata Editor). */
 function resolveChartType(selected, periodCount, seriesCount) {
   if (selected === 'line' || selected === 'column' || selected === 'hbar') return selected;
@@ -1596,6 +1654,11 @@ function buildChartModel() {
   }
 
   const scale = isBar ? { useNumeric: false, kind: null, parse: null } : classifyTimeKeys(sortedTimes);
+  // Lines get every period on the axis so gaps break the line; bars keep only observed periods.
+  const axisTimes = isBar || scale.useNumeric ? sortedTimes : fillPeriodRange(sortedTimes, appliedFrequency.value);
+  const breakGapMs = scale.useNumeric && DATE_STEP_DAYS[appliedFrequency.value]
+    ? DATE_STEP_DAYS[appliedFrequency.value] * 86400000 * 1.5
+    : null;
 
   let seriesIds = allSeriesIds;
   let dropped = 0;
@@ -1604,7 +1667,7 @@ function buildChartModel() {
     seriesIds = seriesIds.slice(0, MAX_SERIES);
   }
 
-  const sparsePoints = sortedTimes.length > 150;
+  const sparsePoints = axisTimes.length > 150;
 
   let totalPoints = 0;
   const datasets = seriesIds.map((id, idx) => {
@@ -1622,8 +1685,18 @@ function buildChartModel() {
         data.push({ x, y: v, t });
       }
       data.sort((a, b) => a.x - b.x);
+      if (breakGapMs) {
+        // A null point between observations further apart than the frequency step breaks the line.
+        const withBreaks = [];
+        for (const p of data) {
+          const prev = withBreaks[withBreaks.length - 1];
+          if (prev && p.x - prev.x > breakGapMs) withBreaks.push({ x: (prev.x + p.x) / 2, y: null, t: null });
+          withBreaks.push(p);
+        }
+        data = withBreaks;
+      }
     } else {
-      data = sortedTimes.map((t) => {
+      data = axisTimes.map((t) => {
         const v = m.get(t);
         if (Number.isFinite(v)) {
           totalPoints++;
@@ -1635,8 +1708,8 @@ function buildChartModel() {
 
     const color = wbCategoryColor(idx);
     const noteIds = scale.useNumeric && scale.parse
-      ? data.map((p) => chartNotesByPoint.value.get(chartNoteKey(id, p.t)) || [])
-      : sortedTimes.map((t) => chartNotesByPoint.value.get(chartNoteKey(id, t)) || []);
+      ? data.map((p) => (p.t == null ? [] : chartNotesByPoint.value.get(chartNoteKey(id, p.t)) || []))
+      : axisTimes.map((t) => chartNotesByPoint.value.get(chartNoteKey(id, t)) || []);
     return {
       label: shortSeriesLabel(id, dims),
       data,
@@ -1656,8 +1729,8 @@ function buildChartModel() {
   return {
     type,
     singlePeriod: false,
-    labels: sortedTimes,
-    sortedTimes,
+    labels: axisTimes,
+    sortedTimes: axisTimes,
     useNumericTimeX: scale.useNumeric,
     timeXKind: scale.kind,
     datasets,
