@@ -3155,7 +3155,8 @@ class Dataset_model extends CI_Model {
         $nation_str='';
         if (count($nations)>$max_show){
             $nation_str=implode(", ", array_slice($nations, 0, $max_show));
-            $nation_str.='...and '. (count($nations) - $max_show). ' more';
+            //language-neutral, so the saved text reads the same in every UI language
+            $nation_str.=' +'. (count($nations) - $max_show);
         }else{
             $nation_str=implode(", ", $nations);
         }

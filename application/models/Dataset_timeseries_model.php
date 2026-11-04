@@ -350,7 +350,7 @@ class Dataset_timeseries_model extends Dataset_model {
         $core_fields=$this->get_core_fields($metadata);
 
 		$this->update_years($sid,$core_fields['year_start'],$core_fields['year_end']);
-        $this->Survey_country_model->update_countries($sid,$core_fields['nations']);
+        $this->Survey_country_model->update_countries($sid,$core_fields['nations'],$core_fields['nation_codes']);
         $this->add_tags($sid,$this->get_array_nested_value($metadata,'tags'));
         return true;
     }
@@ -370,24 +370,32 @@ class Dataset_timeseries_model extends Dataset_model {
         $output['title']=$this->get_array_nested_value($options,'series_description/name');
         $output['idno']=$this->get_array_nested_value($options,'series_description/idno');
 
-        $nations=(array)$this->get_array_nested_value($options,'series_description/geographic_units');	
+        //reference countries; fall back to geographic units when not set
+        $nations=(array)$this->get_array_nested_value($options,'series_description/ref_country');
+        if (count($nations)==0){
+            $nations=(array)$this->get_array_nested_value($options,'series_description/geographic_units');
+        }
 
-        if (count($nations)>0 && isset($nations[0]['name'])){
-            //$nation_names=array_column($nations,"name");
-            $nation_names=array();
-            foreach($nations as $nrow){
-                //if(isset($nrow['type']) && strtolower($nrow['type'])=='country'){
-                    $nation_names[]=$nrow['name'];
-                //}
+        $output['nation']='';
+        $output['nations']=array();
+        $output['nation_codes']=array();
+
+        $nation_names=array();
+        foreach($nations as $nrow){
+            if (!is_array($nrow) || !isset($nrow['name']) || trim((string)$nrow['name'])===''){
+                continue;
             }
-            
+            $name=trim((string)$nrow['name']);
+            $nation_names[]=$name;
+            if (isset($nrow['code']) && trim((string)$nrow['code'])!==''){
+                $output['nation_codes'][$name]=trim((string)$nrow['code']);
+            }
+        }
+
+        if (count($nation_names)>0){
             $output['nation']=$this->get_country_names_string($nation_names);
             $output['nations']=$nation_names;
         }
-        else{
-            $output['nation']='';
-            $output['nations']=array();
-        }    
 
         $output['abbreviation']=$this->get_array_nested_value($options,'series_description/abbreviation');
         
