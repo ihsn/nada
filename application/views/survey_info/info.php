@@ -154,19 +154,6 @@
                 </div>
                 <?php endif; ?>
 
-                <?php if ($survey['type']=='document' && isset($survey['metadata']['document_description']['abstract']) ):?>
-                <div class="row mb-2 pb-2  border-bottom">
-                    <div class="col-md-2">
-                        <?php echo t('abstract');?>
-                    </div>
-                    <div class="col">
-                        <div class="abstract" id="study-abstract">
-                            <?php echo ($survey['metadata']['document_description']['abstract']);?>
-                        </div>
-                    </div>
-                </div>
-                <?php endif;?>
-
                 <?php if (isset($survey['repositories']) && is_array($survey['repositories']) && count($survey['repositories'])>0): ?> 
                 <div class="row  border-bottom mb-2 pb-2 mt-2">
                     <div class="col-md-2">
