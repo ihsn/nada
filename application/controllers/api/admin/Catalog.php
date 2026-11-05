@@ -3320,6 +3320,244 @@ class Catalog extends MY_REST_Controller
 
 
 	/**
+	 * List all featured studies across collections.
+	 *
+	 * GET /api/admin/catalog/featured_studies
+	 */
+	function featured_studies_get()
+	{
+		try {
+			$user = $this->api_user();
+			if (! $user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+			if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			$rows = $this->Repository_model->get_all_featured_studies();
+			if ($rows === false) {
+				$rows = array();
+			}
+
+			$studies = array();
+			foreach ($rows as $row) {
+				$studies[] = array(
+					'id'           => isset($row['id']) ? (int) $row['id'] : null,
+					'title'        => isset($row['title']) ? (string) $row['title'] : '',
+					'repositoryid' => isset($row['repositoryid']) ? (string) $row['repositoryid'] : '',
+					'nation'       => isset($row['nation']) ? (string) $row['nation'] : '',
+					'year_start'   => isset($row['year_start']) ? $row['year_start'] : null,
+				);
+			}
+
+			$this->set_response(
+				array(
+					'status'  => 'success',
+					'studies' => $studies,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS-DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array('status' => 'failed', 'message' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
+	 * List DDI data files with attached external resources for a study.
+	 *
+	 * GET /api/admin/catalog/{idno}/data_file_resources
+	 * GET /api/admin/catalog/{idno}/data_file_resources/{file_id} — one file + candidate microdata resources
+	 */
+	function data_file_resources_get($idno = null, $file_id = null)
+	{
+		try {
+			$user = $this->api_user();
+			if (! $user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+			if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			$sid = $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view', $sid);
+
+			$this->load->model('Data_file_resources_model');
+			$this->load->model('Data_file_model');
+			$this->load->model('Survey_resource_model');
+
+			if ($file_id !== null && $file_id !== '') {
+				$file = $this->Data_file_model->get_file_by_id($sid, $file_id);
+				if (! $file) {
+					throw new Exception('DATA_FILE_NOT_FOUND');
+				}
+				$attached = $this->Data_file_resources_model->get_file_resources($sid, $file_id);
+				$resources = $this->Survey_resource_model->get_microdata_resources($sid);
+				if (! is_array($resources)) {
+					$resources = array();
+				}
+
+				$this->set_response(
+					array(
+						'status'              => 'success',
+						'file'                => $file,
+						'attached_resources'  => array_values($attached),
+						'microdata_resources' => $resources,
+					),
+					REST_Controller::HTTP_OK
+				);
+				return;
+			}
+
+			$grouped = $this->Data_file_resources_model->get_all_files_resources($sid);
+			if (! is_array($grouped)) {
+				$grouped = array();
+			}
+
+			$files = array();
+			foreach ($grouped as $fid => $rows) {
+				if (! is_array($rows) || count($rows) === 0) {
+					continue;
+				}
+				$first = $rows[0];
+				$attached = array();
+				foreach ($rows as $row) {
+					if (empty($row['resource_id'])) {
+						continue;
+					}
+					$attached[] = array(
+						'resource_id' => (int) $row['resource_id'],
+						'filename'    => isset($row['filename']) ? (string) $row['filename'] : '',
+						'file_format' => isset($row['file_format']) ? (string) $row['file_format'] : '',
+					);
+				}
+				$files[] = array(
+					'file_id'             => isset($first['file_id']) ? $first['file_id'] : $fid,
+					'file_name'           => isset($first['file_name']) ? (string) $first['file_name'] : '',
+					'description'         => isset($first['description']) ? (string) $first['description'] : '',
+					'attached_resources'  => $attached,
+				);
+			}
+
+			$this->set_response(
+				array(
+					'status' => 'success',
+					'files'  => $files,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS-DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array('status' => 'failed', 'message' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
+	 * Replace attached external resources for a DDI data file.
+	 *
+	 * POST /api/admin/catalog/{idno}/data_file_resources/{file_id}
+	 * JSON body: { "resources": [ { "resource_id": 1, "file_format": "spss" }, ... ] }
+	 */
+	function data_file_resources_post($idno = null, $file_id = null)
+	{
+		try {
+			$user = $this->api_user();
+			if (! $user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+			if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			$sid = $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit', $sid);
+
+			if ($file_id === null || $file_id === '') {
+				throw new Exception('FILE_ID_REQUIRED');
+			}
+
+			$this->load->model('Data_file_resources_model');
+			$this->load->model('Data_file_model');
+
+			$file = $this->Data_file_model->get_file_by_id($sid, $file_id);
+			if (! $file) {
+				throw new Exception('DATA_FILE_NOT_FOUND');
+			}
+
+			$input = $this->raw_json_input();
+			if (! is_array($input)) {
+				$input = array();
+			}
+			$rows = array();
+			if (isset($input['resources']) && is_array($input['resources'])) {
+				$rows = $input['resources'];
+			}
+
+			$allowed_formats = array('', 'spss', 'stata', 'r', 'csv', 'txt');
+			$options = array();
+			foreach ($rows as $row) {
+				if (! is_array($row)) {
+					continue;
+				}
+				$rid = isset($row['resource_id']) ? (int) $row['resource_id'] : 0;
+				if ($rid <= 0) {
+					continue;
+				}
+				$fmt = isset($row['file_format']) ? strtolower(trim((string) $row['file_format'])) : '';
+				if (! in_array($fmt, $allowed_formats, true)) {
+					$fmt = '';
+				}
+				$options[] = array(
+					'resource_id' => $rid,
+					'file_format' => $fmt,
+				);
+			}
+
+			$this->Data_file_resources_model->batch_update($sid, $file_id, $options);
+			$this->events->emit('db.after.update', 'surveys', $sid);
+
+			$attached = $this->Data_file_resources_model->get_file_resources($sid, $file_id);
+
+			$this->set_response(
+				array(
+					'status'             => 'success',
+					'attached_resources' => array_values($attached),
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS-DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array('status' => 'failed', 'message' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
 	 * Return standardized filter option values for the admin catalog sidebar
 	 *
 	 * GET /api/admin/catalog/filter_options

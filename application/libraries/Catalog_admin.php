@@ -89,11 +89,10 @@ class Catalog_Admin
 		//get all data files for a survey
 		$data_files=$this->ci->Data_file_resources_model->get_all_files_resources($sid);
 
-		//total resources
-		$output['total'] = count($data_files);
-
-		//formatted resources list
-		$output['formatted']=$this->ci->load->view('catalog/data_files', array('rows'=>$data_files),TRUE);
+		$output['total'] = is_array($data_files) ? count($data_files) : 0;
+		// HTML view retired — Vue study overview uses api/admin/catalog/…/data_file_resources
+		$output['formatted'] = '';
+		$output['files'] = is_array($data_files) ? $data_files : array();
 
 		return $output;
 	}

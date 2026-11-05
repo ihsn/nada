@@ -216,6 +216,44 @@ export function useStudyOverviewApi() {
     return data.aliases || [];
   }
 
+  /** GET …/{id}/data_file_resources — DDI data files with attached resources */
+  async function fetchDataFilesResources() {
+    const { data } = await axios.get(`${base()}${sidPart()}/data_file_resources`, {
+      params: { id_format: 'id' },
+      withCredentials: true,
+    });
+    if (data.status !== 'success') throw new Error(data.message || 'LOAD_DATA_FILE_RESOURCES_FAILED');
+    return data.files || [];
+  }
+
+  /** GET …/{id}/data_file_resources/{fileId} */
+  async function fetchDataFileResources(fileId) {
+    const { data } = await axios.get(
+      `${base()}${sidPart()}/data_file_resources/${encodeURIComponent(String(fileId))}`,
+      {
+        params: { id_format: 'id' },
+        withCredentials: true,
+      }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'LOAD_DATA_FILE_RESOURCES_FAILED');
+    return data;
+  }
+
+  /** POST …/{id}/data_file_resources/{fileId} */
+  async function saveDataFileResources(fileId, resources) {
+    const { data } = await axios.post(
+      `${base()}${sidPart()}/data_file_resources/${encodeURIComponent(String(fileId))}`,
+      { resources: Array.isArray(resources) ? resources : [] },
+      {
+        params: { id_format: 'id' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
+        withCredentials: true,
+      }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'SAVE_DATA_FILE_RESOURCES_FAILED');
+    return data;
+  }
+
   return {
     fetchStudy,
     fetchFolderStatus,
@@ -232,5 +270,8 @@ export function useStudyOverviewApi() {
     deleteTagRow,
     postAliases,
     deleteAliasRow,
+    fetchDataFilesResources,
+    fetchDataFileResources,
+    saveDataFileResources,
   };
 }

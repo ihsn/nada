@@ -1339,6 +1339,7 @@ class Catalog extends MY_Controller {
 			$this->_study_edit_vue_common($id, $survey_row),
 			array(
 				'apiBaseUrl'                => site_url('api/admin/catalog/'),
+				'studyType'                 => isset($survey_row['type']) ? $survey_row['type'] : 'survey',
 				'dataClassificationsApiUrl' => site_url('api/admin/catalog/data-classifications'),
 				'dataClassificationsEnabled' => (bool) $data_classifications_enabled,
 				'pdfSetupUrl'               => site_url('admin/pdf_generator/setup/' . $id),
@@ -1381,6 +1382,17 @@ class Catalog extends MY_Controller {
 					'cancel'                       => t('cancel'),
 					'study_no_data_files_assigned' => sprintf(t('study_no_data_files_assigned'), ''),
 					'data_selection_apply_to_files' => t('data_selection_apply_to_files'),
+					'data_files'                   => t('data_files'),
+					'data_file'                    => t('data_file'),
+					'external_resources'           => t('external_resources'),
+					'no_ddi_data_files'            => t('no_records_found'),
+					'edit'                         => t('edit'),
+					'link_data_file_resources'     => t('Link external resources for the data file'),
+					'select_resources_for_data_file' => t('Select all the external resources that are used by this data file'),
+					'no_microdata_resources'       => t('no_records_found'),
+					'select'                       => t('select'),
+					'external_resource'            => t('external_resources'),
+					'file_format'                  => t('format'),
 				),
 			)
 		);
@@ -1938,157 +1950,50 @@ class Catalog extends MY_Controller {
 		$this->Related_study_model->delete_relationship($sid_1,$sid_2,$rel_id=null);
 	}
 
-	function set_featured_study($repositoryid,$sid,$status)
+	/** Retired — use api/admin/catalog options featured + featured_studies Vue page */
+	function set_featured_study($repositoryid = null, $sid = null, $status = null)
 	{
-		$result=$this->Repository_model->set_featured_study($repositoryid,$sid,$status);
-
-		nada_redirect($this->input->get('destination'));
-
-		if ($this->input->get("ajax")){
-			echo json_encode(array('status'=>$result));
-		}
-	}
-
-
-	//list all featured studies
-	function featured_studies()
-	{
-		$data['featured_studies']=$this->Repository_model->get_all_featured_studies();
-		$content=$this->load->view('catalog/featured_studies', $data,TRUE);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
+		unset($repositoryid, $sid, $status);
+		show_404();
 	}
 
 
 	/**
-	 * 
-	 * Attach survey data files to external resources
-	 * 
+	 * Featured studies list — Vue catalog SPA route /featured_studies.
 	 */
-	function attach_data_file_resources($sid,$file_id)
+	function featured_studies()
 	{
-		$this->load->model("Dataset_model");
-		$this->load->model("Survey_resource_model");
-		$this->load->model("Data_file_model");
-		$this->load->model("Data_file_resources_model");
-
-		$survey=$this->Dataset_model->get_row($sid);
-
-		if(!$survey){
-			show_error("DATASET-NOT-FOUND");
-		}
-
-		//load data file and resources
-		//TODO
-
-		$data['sid']=$sid;
-		$data['file_id']=$file_id;
-		$data['survey']=$survey;
-
-		//get file info
-		$data['file']=$this->Data_file_model->get_file_by_id($sid,$file_id);
-
-		//get all microdata type external resources
-		$data['resources']=$this->Survey_resource_model->get_microdata_resources($sid);
-
-		//get current data file and attached resources
-		$data['attached_resources']=$this->Data_file_resources_model->get_file_resources($sid,$file_id);
-
-		$content=$this->load->view('catalog/attach_data_file_resources',$data,true);
-		
-		$this->template->set_template('admin_blank');
-		$this->template->write('content', $content,true);
-		$this->template->render();
-	}
-
-	//process posted form
-	function attach_data_file_resources_post($sid,$file_id)
-	{
-		$this->load->model("Data_file_resources_model");
-		$resources=$this->input->post("resource_id");
-		$formats=$this->input->post("format");
-
-		$options=array();
-		foreach($resources as $idx=>$value)
-		{
-			echo $value;
-			echo "-";
-			echo $formats[$idx];
-
-			$options[]=array(
-				'resource_id'=>$value,
-				'sid'=>$sid,
-				'fid'=>$file_id,
-				'file_format'=>$formats[$idx]
-			);
-		}
-
-		//update data file resources links
-		$this->Data_file_resources_model->batch_update($sid, $file_id, $options);
-
-		redirect('admin/catalog/attach_data_file_resources/'.$sid.'/'.$file_id);
+		$this->acl_manager->require_catalog_access();
+		$this->_render_admin_catalog_vue_shell();
 	}
 
 
-	function doi($sid=null) 
+	/** Retired — use Vue overview dialog / api/admin/catalog/…/data_file_resources */
+	function attach_data_file_resources($sid = null, $file_id = null)
 	{
-		$this->template->set_template('admin_blank');
- 
-		$this->load->model("Dataset_model");
-		$dataset=$this->Dataset_model->get_row($sid);
-
-		$this->config->load('doi');
-		$doi_options=$this->config->item("doi");
-		
-		$options=array();
-		$options['dataset']=$dataset;
-		$options['doi_options']=$doi_options;
-		$content=$this->load->view('catalog/doi', $options,true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
+		unset($sid, $file_id);
+		show_404();
 	}
 
-	/*
-	*
-	* Set DOI
-	*
-	*/
+	/** Retired — use POST api/admin/catalog/…/data_file_resources/{file_id} */
+	function attach_data_file_resources_post($sid = null, $file_id = null)
+	{
+		unset($sid, $file_id);
+		show_404();
+	}
+
+
+	/** Retired — assign DOI from study overview / api/admin/catalog/…/doi */
+	function doi($sid = null)
+	{
+		unset($sid);
+		show_404();
+	}
+
+	/** Retired — use POST api/admin/catalog/…/doi */
 	function update_doi()
 	{
-		//study id
-		$id=$this->input->post("sid");
-
-		if (!is_numeric($id)){
-			show_404();
-		}
-		
-		$survey=$this->Catalog_model->get_survey($id);
-
-		if(!$survey){
-			show_404();
-		}
-
-		//test user study permissiosn
-		//$this->acl->user_has_study_access($id);
-		$this->acl_manager->has_access_or_die('study', 'edit', null, $survey['repositoryid']);
-
-		//is ajax call
-		$ajax=$this->input->get_post('ajax');
-		
-		$doi=$this->input->post("doi");
-
-		try{
-			$result=$this->Dataset_model->assign_doi($id,$doi);
-		}
-		catch(Exception $e){
-			$this->session->set_flashdata('error', $e->getMessage());
-			redirect('admin/catalog/edit/'.$id);
-		}
-
-		$this->session->set_flashdata('message', t('form_update_success'));		
-		
-		$this->events->emit('db.after.update', 'surveys', $id,'atomic');
-		redirect('admin/catalog/edit/'.$id);
+		show_404();
 	}
 
 

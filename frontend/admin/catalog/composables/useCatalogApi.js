@@ -208,6 +208,16 @@ export function useCatalogApi() {
   }
 
   /**
+   * GET api/admin/catalog/featured_studies
+   */
+  async function listFeaturedStudies() {
+    const base = apiBaseUrl.value || '';
+    const { data } = await axios.get(`${base}featured_studies`, { withCredentials: true });
+    if (data.status !== 'success') throw new Error(data.message || 'featured_studies failed');
+    return data.studies || [];
+  }
+
+  /**
    * POST api/admin/catalog/{id}/transfer_ownership?id_format=id
    * @param {number|string} id - surveys.id
    * @param {string} repositoryid - target collection idno
@@ -244,6 +254,7 @@ export function useCatalogApi() {
     postRefreshStudy,
     fetchGenerateDdi,
     listCollections,
+    listFeaturedStudies,
     transferOwnership,
   };
 }

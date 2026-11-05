@@ -1325,9 +1325,11 @@ class Repository_model extends CI_Model {
 	
 	function get_all_featured_studies()
 	{
-		$this->db->select('surveys.id,surveys.titl,repositories.id as repo_id,repositories.repositoryid,surveys.nation,surveys.year_start');
+		$this->db->select('surveys.id,surveys.title,repositories.id as repo_id,repositories.repositoryid,surveys.nation,surveys.year_start');
 		$this->db->join('repositories','repositories.id=featured_surveys.repoid','INNER');
 		$this->db->join('surveys','surveys.id=featured_surveys.sid','INNER');
+		$this->db->order_by('repositories.repositoryid','ASC');
+		$this->db->order_by('surveys.title','ASC');
 		$query=$this->db->get('featured_surveys');
 		if (!$query)
 		{
