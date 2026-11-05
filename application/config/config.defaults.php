@@ -29,6 +29,12 @@ $config['semantic_search_url']='';
 $config['semantic_search_api_key']='';
 $config['semantic_search_debug']='false';
 $config['site_user_register']='yes';
+$config['site_notice_enabled']='no';
+$config['site_notice_title']='';
+$config['site_notice_message']='';
+$config['site_notice_remember_minutes']='10';
+$config['site_notice_bar_enabled']='no';
+$config['site_notice_bar_text']='';
 
 //default cache expiration in seconds
 $config['cache_default_expires'] = 60*60*2;//2 hours

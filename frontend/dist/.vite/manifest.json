@@ -1502,7 +1502,7 @@
     ]
   },
   "admin/site_configurations/main.js": {
-    "file": "assets/admin/admin_site_configurations-1aBX7mov.js",
+    "file": "assets/admin/admin_site_configurations-CJss5xeC.js",
     "name": "admin_site_configurations",
     "src": "admin/site_configurations/main.js",
     "isEntry": true,
@@ -1532,7 +1532,7 @@
       "_VMenu-DD92O1dW.js"
     ],
     "css": [
-      "assets/admin/admin_site_configurations-oq7wo0yY.css"
+      "assets/admin/admin_site_configurations-C6EqKJNl.css"
     ]
   },
   "admin/study_timeseries_data/main.js": {

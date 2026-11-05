@@ -216,6 +216,15 @@ async function reloadAll() {
   if (s.site_user_register === undefined || s.site_user_register === '') {
     s.site_user_register = 'yes';
   }
+  if (s.site_notice_enabled === undefined || s.site_notice_enabled === '') {
+    s.site_notice_enabled = 'no';
+  }
+  if (s.site_notice_remember_minutes === undefined || s.site_notice_remember_minutes === '') {
+    s.site_notice_remember_minutes = '10';
+  }
+  if (s.site_notice_bar_enabled === undefined || s.site_notice_bar_enabled === '') {
+    s.site_notice_bar_enabled = 'no';
+  }
   settings.value = { ...s };
   meta.value = { ...m };
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
@@ -998,6 +1007,95 @@ onMounted(async () => {
                 </v-col>
               </v-row>
             </div>
+            </div>
+          </v-card>
+
+          <!-- Site notice -->
+          <v-card v-show="activeSection === 'site_notice'" elevation="1" rounded="lg" class="bg-surface">
+            <div class="pa-4 site-config-card-inner">
+              <div class="site-config-card__header d-flex align-center justify-space-between flex-wrap gap-3">
+                <h2 class="site-config-card__title">
+                  {{ currentTitle }}
+                </h2>
+                <v-btn
+                  v-if="saveVisible"
+                  color="primary"
+                  :loading="saving"
+                  prepend-icon="mdi-content-save"
+                  @click="saveCurrentSection"
+                >
+                  {{ tr('update') }}
+                </v-btn>
+              </div>
+            <section class="site-notice-panel">
+              <div class="site-notice-panel__header">
+                <v-icon icon="mdi-page-layout-header" color="primary" />
+                <div class="flex-grow-1">
+                  <h3 class="site-notice-panel__title">{{ tr('Site header notice bar') }}</h3>
+                  <p class="site-notice-panel__description">{{ tr('An amber bar at the top of every public page.') }}</p>
+                </div>
+              </div>
+            <label class="site-config-field__label">{{ tr('Status') }}</label>
+            <div class="d-flex align-center ga-3 mt-1 flex-wrap">
+              <v-switch
+                v-model="settings.site_notice_bar_enabled"
+                true-value="yes"
+                false-value="no"
+                color="primary"
+                density="comfortable"
+                hide-details
+                inset
+              />
+              <span class="text-body-2 text-medium-emphasis">{{ settings.site_notice_bar_enabled === 'yes' ? tr('Enabled') : tr('Disabled') }}</span>
+            </div>
+            <v-row dense class="mt-4">
+              <v-col cols="12">
+                <label class="site-config-field__label">{{ tr('Text') }}</label>
+                <v-text-field v-model="settings.site_notice_bar_text" bg-color="surface" variant="outlined" density="comfortable" maxlength="255" hide-details />
+                <div class="site-config-field__hint">{{ tr('Plain text. The bar is only shown if text is entered.') }}</div>
+              </v-col>
+            </v-row>
+            </section>
+            <section class="site-notice-panel">
+              <div class="site-notice-panel__header">
+                <v-icon icon="mdi-message-alert-outline" color="primary" />
+                <div class="flex-grow-1">
+                  <h3 class="site-notice-panel__title">{{ tr('Site notice dialog') }}</h3>
+                  <p class="site-notice-panel__description">{{ tr('A pop-up that opens over public pages until the visitor closes it. It is not shown on admin pages or embedded charts and tables.') }}</p>
+                </div>
+              </div>
+            <label class="site-config-field__label">{{ tr('Status') }}</label>
+            <div class="d-flex align-center ga-3 mt-1 flex-wrap">
+              <v-switch
+                v-model="settings.site_notice_enabled"
+                true-value="yes"
+                false-value="no"
+                color="primary"
+                density="comfortable"
+                hide-details
+                inset
+              />
+              <span class="text-body-2 text-medium-emphasis">{{ settings.site_notice_enabled === 'yes' ? tr('Enabled') : tr('Disabled') }}</span>
+            </div>
+            <v-row dense class="mt-4">
+              <v-col cols="12">
+                <label class="site-config-field__label">{{ tr('Title') }}</label>
+                <v-text-field v-model="settings.site_notice_title" bg-color="surface" variant="outlined" density="comfortable" maxlength="255" hide-details />
+              </v-col>
+              <v-col cols="12">
+                <label class="site-config-field__label">{{ tr('Message') }}</label>
+                <v-textarea v-model="settings.site_notice_message" bg-color="surface" variant="outlined" density="comfortable" rows="5" maxlength="4000" hide-details />
+                <div class="site-config-field__hint">{{ tr('Plain text. Line breaks are kept. The notice is only shown if a message is entered.') }}</div>
+              </v-col>
+              <v-col cols="12">
+                <label class="site-config-field__label">{{ tr('Remember dismissal for (minutes)') }}</label>
+                <div class="site-config-field--fixed-width">
+                  <v-text-field v-model="settings.site_notice_remember_minutes" bg-color="surface" variant="outlined" density="comfortable" type="number" min="0" hide-details />
+                </div>
+                <div class="site-config-field__hint">{{ tr('Use 0 to show the notice on every page load. Changing the title or message shows it again to everyone.') }}</div>
+              </v-col>
+            </v-row>
+            </section>
             </div>
           </v-card>
 
