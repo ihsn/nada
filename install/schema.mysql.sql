@@ -369,7 +369,7 @@ CREATE TABLE `surveys` (
   `metadata` mediumtext,
   `var_keywords` mediumtext,
   `keywords` text,
-  `abstract` varchar(500) DEFAULT NULL,
+  `abstract` varchar(2000) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `surveyid_UNIQUE` (`idno`),
   UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`),

@@ -12,6 +12,9 @@ use JsonSchema\Constraints\Constraint;
  * 
  */
 class Dataset_model extends CI_Model {
+
+	// Max characters kept in surveys.abstract (shown on catalog search result cards).
+	const ABSTRACT_MAX_LENGTH = 2000;
  
 	//fields for the study description
 	private $survey_fields=array(
@@ -901,7 +904,7 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	function extract_abstract($metadata, $type = '', $max_len = 500)
+	function extract_abstract($metadata, $type = '', $max_len = self::ABSTRACT_MAX_LENGTH)
 	{
 		$abstract = $this->get_metadata_abstract_text($metadata, $type);
 		if ($abstract === null) {

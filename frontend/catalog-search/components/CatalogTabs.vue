@@ -38,21 +38,9 @@
             v-bind="menuProps"
             type="button"
             class="catalog-tab catalog-tab--more"
-            :class="{ 'catalog-tab--active': activeInOverflow }"
           >
-            <template v-if="activeInOverflow && activeOverflowType">
-              {{ activeOverflowType.label }}
-              <span
-                v-if="activeOverflowType.found != null"
-                class="tab-count"
-              >
-                {{ Number(activeOverflowType.found).toLocaleString() }}
-              </span>
-            </template>
-            <template v-else>
-              {{ t('tab_more_types', 'More') }}
-              <v-icon size="16" class="catalog-tab__chevron">$mdi-chevron-down</v-icon>
-            </template>
+            {{ t('tab_more_types', 'More') }}
+            <v-icon size="16" class="catalog-tab__chevron">$mdi-chevron-down</v-icon>
           </button>
         </template>
         <v-list density="compact" class="catalog-more-list pa-0">
@@ -100,21 +88,6 @@
         {{ t('tab_more_types', 'More') }}
         <v-icon size="16" class="catalog-tab__chevron">$mdi-chevron-down</v-icon>
       </button>
-      <button
-        v-if="widestOverflowType"
-        ref="measureActiveMoreRef"
-        type="button"
-        class="catalog-tab catalog-tab--more"
-        tabindex="-1"
-      >
-        {{ widestOverflowType.label }}
-        <span
-          v-if="widestOverflowType.found != null"
-          class="tab-count"
-        >
-          {{ Number(widestOverflowType.found).toLocaleString() }}
-        </span>
-      </button>
     </div>
   </div>
 </template>
@@ -137,11 +110,14 @@ const { t } = useI18n();
 const outerRef = ref(null);
 const measureAllRef = ref(null);
 const measureMoreRef = ref(null);
-const measureActiveMoreRef = ref(null);
 const measureTypeRefs = ref([]);
 
-/** How many type tabs fit beside "All" and optional "More". Infinity until first layout pass. */
-const visibleTypeCount = ref(Infinity);
+/**
+ * Codes of type tabs shown in the main row (in display order), or null = show all.
+ * When the active type would otherwise fold into "More", it is promoted into this row
+ * so "More" stays available for the remaining types.
+ */
+const visibleCodes = ref(null);
 
 const typeList = computed(() => {
   if (!props.tabs?.types) return [];
@@ -165,34 +141,16 @@ const typeList = computed(() => {
 
 const visibleTypes = computed(() => {
   const list = typeList.value;
-  if (!list.length) return [];
-  if (visibleTypeCount.value >= list.length) return list;
-  return list.slice(0, Math.max(0, visibleTypeCount.value));
+  if (!list.length || visibleCodes.value === null) return list;
+  const set = new Set(visibleCodes.value);
+  return list.filter((x) => set.has(x.code));
 });
 
 const overflowTypes = computed(() => {
   const list = typeList.value;
-  if (visibleTypeCount.value >= list.length) return [];
-  return list.slice(Math.max(0, visibleTypeCount.value));
-});
-
-const activeInOverflow = computed(() =>
-  overflowTypes.value.some((x) => x.code === props.modelValue)
-);
-
-const activeOverflowType = computed(() =>
-  overflowTypes.value.find((x) => x.code === props.modelValue) ?? null
-);
-
-const widestOverflowType = computed(() => {
-  const list = typeList.value;
-  if (!list.length) return null;
-  return list.reduce((widest, type) => {
-    if (!widest) return type;
-    const labelLen = String(type.label ?? '').length;
-    const widestLen = String(widest.label ?? '').length;
-    return labelLen > widestLen ? type : widest;
-  }, null);
+  if (!list.length || visibleCodes.value === null) return [];
+  const set = new Set(visibleCodes.value);
+  return list.filter((x) => !set.has(x.code));
 });
 
 const grandTotal = computed(() => {
@@ -226,12 +184,10 @@ function layoutTabs() {
   if (containerWidth <= 0) return;
 
   const allWidth = allEl.offsetWidth;
-  const moreWidth = Math.max(
-    moreEl.offsetWidth,
-    measureActiveMoreRef.value?.offsetWidth ?? 0
-  );
+  const moreWidth = moreEl.offsetWidth;
 
-  const typeWidths = typeList.value.map((_, index) =>
+  const list = typeList.value;
+  const typeWidths = list.map((_, index) =>
     measureTypeRefs.value[index]?.offsetWidth ?? 0
   );
   const total = typeWidths.length;
@@ -252,7 +208,28 @@ function layoutTabs() {
     }
   }
 
-  visibleTypeCount.value = visible;
+  if (visible >= total) {
+    visibleCodes.value = null;
+    return;
+  }
+
+  const activeIndex = list.findIndex((x) => x.code === props.modelValue);
+  if (activeIndex < visible) {
+    visibleCodes.value = list.slice(0, visible).map((x) => x.code);
+    return;
+  }
+
+  // Active type would be hidden in "More": reserve room for it (and "More"),
+  // then fill the rest of the row in order with the other types.
+  const codes = new Set([list[activeIndex].code]);
+  used = allWidth + typeWidths[activeIndex] + moreWidth;
+  for (let i = 0; i < total; i++) {
+    if (i === activeIndex) continue;
+    if (used + typeWidths[i] > containerWidth) break;
+    used += typeWidths[i];
+    codes.add(list[i].code);
+  }
+  visibleCodes.value = list.filter((x) => codes.has(x.code)).map((x) => x.code);
 }
 
 function scheduleLayout() {
@@ -277,6 +254,7 @@ watch(typeList, () => {
 });
 
 watch(grandTotal, scheduleLayout);
+watch(() => props.modelValue, scheduleLayout);
 
 function onTab(value) {
   emit('update:modelValue', value ?? '');

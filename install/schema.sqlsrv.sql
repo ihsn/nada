@@ -377,7 +377,7 @@ CREATE TABLE surveys (
   metadata varchar(max),
   var_keywords varchar(max),
   keywords varchar(max),
-  abstract nvarchar(500) NULL,  
+  abstract nvarchar(max) NULL,
   PRIMARY KEY (id)
 );
 
