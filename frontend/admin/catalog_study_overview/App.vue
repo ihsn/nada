@@ -112,29 +112,31 @@
           <tr>
             <td class="sov-label-cell text-caption text-medium-emphasis">{{ lbl.metadata_in_pdf }}</td>
             <td>
-              <div class="sov-flex">
+              <div class="sov-pdf-row">
+                <span class="sov-pdf-status" :class="'sov-pdf-status--' + pdfStatus">
+                  <v-icon :icon="pdfStatusMeta.icon" size="18" />
+                  <span>{{ pdfStatusMeta.text }}</span>
+                </span>
                 <v-btn
-                  v-if="pdfStatus === 'na' || pdfStatus === 'outdated'"
-                  color="primary"
                   size="small"
-                  variant="flat"
-                  :href="pdfSetupUrl"
+                  variant="tonal"
+                  color="primary"
+                  class="sov-pdf-generate"
+                  @click="pdfDialog = true"
                 >{{ lbl.generate_pdf }}</v-btn>
                 <v-btn
                   v-if="pdfStatus !== 'na'"
                   size="small"
                   variant="tonal"
-                  :href="pdfDeleteUrl"
-                >{{ lbl.delete }}</v-btn>
-                <span v-if="pdfStatus === 'na'" class="text-error text-body-2 d-inline-flex align-center">
-                  <v-icon size="16" class="mr-1">mdi-alert</v-icon>{{ lbl.pdf_not_generated }}
-                </span>
-                <v-chip v-else-if="pdfStatus === 'uptodate'" size="small" color="success" variant="flat">
-                  <v-icon size="16" start>mdi-check</v-icon>{{ lbl.pdf_uptodate }}
-                </v-chip>
-                <v-chip v-else size="small" color="warning" variant="flat">
-                  <v-icon size="16" start>mdi-alert</v-icon>{{ lbl.pdf_outdated }}
-                </v-chip>
+                  color="error"
+                  class="sov-pdf-delete"
+                  :loading="pdfDeleteBusy"
+                  :title="lbl.delete || 'Delete'"
+                  :aria-label="lbl.delete || 'Delete PDF'"
+                  @click="onDeletePdf"
+                >
+                  <v-icon icon="mdi-delete-outline" size="18" />
+                </v-btn>
               </div>
             </td>
           </tr>
@@ -370,18 +372,22 @@
         </tbody>
       </v-table>
     </v-main>
+    <GeneratePdfDialog v-model="pdfDialog" @generated="onPdfGenerated" />
   </v-app>
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import GeneratePdfDialog from '@/admin/catalog_study_pdf/GeneratePdfDialog.vue';
+import { useStudyPdfApi } from '@/admin/catalog_study_pdf/useStudyPdfApi';
 import { useStudyOverviewApi } from './composables/useStudyOverviewApi';
 
 defineOptions({ name: 'CatalogStudyOverviewApp' });
 
 const { config } = useAppConfig();
 const api = useStudyOverviewApi();
+const pdfApi = useStudyPdfApi();
 
 const loading = ref(true);
 const dataset = ref(null);
@@ -447,6 +453,8 @@ const aliasSaving = ref(false);
 const collectionsSaving = ref(false);
 
 const snackbar = ref({ show: false, text: '', color: 'success' });
+const pdfDialog = ref(false);
+const pdfDeleteBusy = ref(false);
 
 const lbl = computed(() => ({
   ref_no: 'Reference',
@@ -489,8 +497,6 @@ const lbl = computed(() => ({
   ...((config.value && config.value.labels) || {}),
 }));
 
-const pdfSetupUrl = computed(() => config.value?.pdfSetupUrl || '#');
-const pdfDeleteUrl = computed(() => config.value?.pdfDeleteUrl || '#');
 const countriesMappingUrl = computed(() => config.value?.countriesMappingUrl || '#');
 
 const folderPathDisplay = computed(() => {
@@ -511,6 +517,16 @@ const yearsText = computed(() => {
 });
 
 const pdfStatus = computed(() => dataset.value?.pdf_documentation?.status || 'na');
+
+const pdfStatusMeta = computed(() => {
+  if (pdfStatus.value === 'uptodate') {
+    return { icon: 'mdi-check-circle', text: lbl.value.pdf_uptodate || 'Up to date' };
+  }
+  if (pdfStatus.value === 'outdated') {
+    return { icon: 'mdi-alert', text: lbl.value.pdf_outdated || 'Outdated' };
+  }
+  return { icon: 'mdi-alert-circle-outline', text: lbl.value.pdf_not_generated || 'PDF not generated' };
+});
 
 const linkedRepoRows = computed(() => {
   const owner = dataset.value?.repositoryid ? String(dataset.value.repositoryid).toLowerCase() : '';
@@ -900,8 +916,37 @@ async function onFeaturedChange(v) {
   }
 }
 
-onMounted(() => {
+function onPdfGenerated(message) {
+  snackbar.value = { show: true, text: message || lbl.value.pdf_generated || 'PDF report generated', color: 'success' };
   reloadAll();
+}
+
+function onSidebarPdfChanged() {
+  reloadAll();
+}
+
+async function onDeletePdf() {
+  const prompt = lbl.value.confirm_delete || 'Delete the generated PDF?';
+  if (!window.confirm(prompt)) return;
+  pdfDeleteBusy.value = true;
+  try {
+    await pdfApi.deletePdf();
+    snackbar.value = { show: true, text: lbl.value.pdf_deleted || 'PDF deleted', color: 'success' };
+    await reloadAll();
+  } catch (e) {
+    snackbar.value = { show: true, text: e?.response?.data?.message || e?.message || 'Delete failed', color: 'error' };
+  } finally {
+    pdfDeleteBusy.value = false;
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('nada-study-pdf-changed', onSidebarPdfChanged);
+  reloadAll();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('nada-study-pdf-changed', onSidebarPdfChanged);
 });
 </script>
 
@@ -1009,6 +1054,33 @@ onMounted(() => {
 }
 .sov-da-update-btn {
   margin-top: 16px;
+}
+.sov-pdf-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.sov-pdf-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 4px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.sov-pdf-status--uptodate {
+  color: rgb(var(--v-theme-success));
+}
+.sov-pdf-status--outdated {
+  color: rgb(var(--v-theme-warning));
+}
+.sov-pdf-status--na {
+  color: rgb(var(--v-theme-error));
+}
+.sov-pdf-delete {
+  min-width: 32px;
+  padding-inline: 0;
 }
 .sov-flex {
   display: flex;

@@ -442,6 +442,52 @@ class Study extends MY_Controller {
 	}
 
 
+	/**
+	 * Document studies: read a local PDF resource inline.
+	 *
+	 * GET catalog/{sid}/view-document[?resource_id={id}][&theme=light|dark]
+	 * Opens the first PDF when resource_id is omitted; an id that is not one of
+	 * the study's local PDFs returns 404 rather than showing a different document.
+	 * The viewer is light unless theme=dark is passed.
+	 */
+	public function view_document($sid=NULL)
+	{
+		$survey=$this->get_survey_info($sid);
+		if ($survey['type']!=='document'){
+			show_404();
+		}
+
+		$this->load->model('Survey_resource_model');
+		$resources=$this->Survey_resource_model->get_local_pdf_resources($sid);
+		if (empty($resources)){
+			show_404();
+		}
+
+		$selected=$resources[0];
+		$requested_id=$this->input->get('resource_id');
+		if ($requested_id!==NULL && $requested_id!==''){
+			$selected=NULL;
+			foreach($resources as $resource){
+				if ((string)$resource['resource_id']===$requested_id){
+					$selected=$resource;
+					break;
+				}
+			}
+			if ($selected===NULL){
+				show_404();
+			}
+		}
+
+		$content=$this->load->view('survey_info/view_document',array(
+			'sid'=>$sid,
+			'resources'=>$resources,
+			'selected'=>$selected,
+			'theme'=>$this->input->get('theme')==='dark' ? 'dark' : 'light',
+		),TRUE);
+		$this->render_page($sid, $content,'view_document', $survey);
+	}
+
+
 
 	public function related_publications($sid)
 	{
@@ -717,17 +763,12 @@ class Study extends MY_Controller {
 		} elseif ($main_view === 'structure') {
 			$title_key = 'tab_indicator_structure';
 		}
-		$study_abstract = isset($survey['abstract']) ? strip_tags((string) $survey['abstract']) : '';
-		if (strlen($study_abstract) > 4000) {
-			$study_abstract = substr($study_abstract, 0, 4000) . '…';
-		}
 		$content = $this->load->view('catalog/study_indicator_data_public', array(
 			'survey_id' => (int) $sid,
 			'idno'      => isset($survey['idno']) ? (string) $survey['idno'] : '',
 			'indicator_main_view' => $main_view,
 			'catalog_page_title' => function_exists('t') ? t($title_key) : $title_key,
 			'study_title'   => isset($survey['title']) ? (string) $survey['title'] : '',
-			'study_abstract'=> $study_abstract,
 			'indicator_data_api_ui' => $this->indicator_data_api_ui_strings(),
 		), true);
 		$this->render_page($sid, $content, $active_tab, $survey);
@@ -765,8 +806,15 @@ class Study extends MY_Controller {
 			'paramSortDesc'         => $t('indicator_data_api_param_sort_desc'),
 			'paramFrom'             => $t('indicator_data_api_param_fromto'),
 			'paramFromDesc'         => $t('indicator_data_api_param_fromto_desc'),
-			'paramDc'               => $t('indicator_data_api_param_dc'),
-			'paramDcDesc'           => $t('indicator_data_api_param_dc_desc'),
+			'paramDDesc'            => $t('indicator_data_api_param_d_desc'),
+			'paramCDesc'            => $t('indicator_data_api_param_c_desc'),
+			'exampleLabel'          => $t('indicator_data_api_example_label'),
+			'structureNote'         => $t('indicator_data_api_structure_note'),
+			'structureLinkText'     => $t('indicator_data_api_structure_link'),
+			'exampleFilter'         => $t('indicator_data_api_example_filter'),
+			'openapiLabel'          => $t('indicator_data_api_openapi_label'),
+			'tryApiLabel'           => $t('indicator_data_api_try_api'),
+			'tryApiDesc'            => $t('indicator_data_api_try_api_desc'),
 			'dataExplorerHeading'   => $t('indicator_data_api_data_explorer'),
 			'apiOptionsLabel'       => $t('indicator_data_api_api_options'),
 			'totalLabel'            => $t('indicator_data_api_total'),
@@ -943,8 +991,12 @@ class Study extends MY_Controller {
 				$tabs['related_series']=$this->study_page_tab($sid, 'related-series', t('related_series'), $counts['related_series']);
 				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources']);
 				break;
-			case 'table':
 			case 'document':
+				$tabs['view_document']=$this->study_page_tab($sid, 'view-document', t('tab_view_document'), $counts['document_pdfs']);
+				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources']);
+				$tabs['get_microdata']=$this->study_page_tab($sid, 'get-microdata', t('get_microdata'), $counts['microdata']);
+				break;
+			case 'table':
 			case 'script':
 				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources']);
 				$tabs['get_microdata']=$this->study_page_tab($sid, 'get-microdata', t('get_microdata'), $counts['microdata']);
@@ -987,8 +1039,9 @@ class Study extends MY_Controller {
 			case 'timeseriesdb':
 			case 'timeseries-db':
 				return array('resources', 'related_series');
-			case 'table':
 			case 'document':
+				return array('resources', 'microdata', 'document_pdfs');
+			case 'table':
 			case 'script':
 				return array('resources', 'microdata');
 			default:
@@ -1015,6 +1068,7 @@ class Study extends MY_Controller {
 			'indicator_mongo'=>false,
 			'indicator_sync_pending'=>false,
 			'related_series'=>0,
+			'document_pdfs'=>0,
 		);
 		$needed=array_fill_keys($needed, true);
 
@@ -1028,6 +1082,10 @@ class Study extends MY_Controller {
 		if (isset($needed['microdata'])){
 			$this->load->model('Survey_resource_model');
 			$counts['microdata']=(int)$this->Survey_resource_model->get_microdata_resources_count_by_survey($sid);
+		}
+		if (isset($needed['document_pdfs'])){
+			$this->load->model('Survey_resource_model');
+			$counts['document_pdfs']=count($this->Survey_resource_model->get_local_pdf_resources($sid));
 		}
 		if (isset($needed['citations'])){
 			$this->load->model('Citation_model');

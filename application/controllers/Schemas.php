@@ -29,13 +29,17 @@ class Schemas extends CI_Controller {
      * base_url('index.php/schemas/...') so ReDoc loads schemas from
      * application/schemas/ on the same host and protocol as this request.
      *
-     * @param string $doc catalog-admin|catalog
+     * The {{API_BASE_URL}} placeholder is replaced with this site's API URL, so the spec's
+     * server entry works when imported into other tools.
+     *
+     * @param string $doc catalog-admin|catalog|timeseries
      */
     public function openapi($doc = '')
     {
         $allowed = array(
             'catalog-admin' => FCPATH . 'api-documentation/catalog-admin/openapi.yaml',
             'catalog'       => FCPATH . 'api-documentation/catalog/openapi.yaml',
+            'timeseries'    => FCPATH . 'api-documentation/timeseries/openapi.yaml',
         );
 
         if (!isset($allowed[$doc]) || !is_file($allowed[$doc])) {
@@ -54,6 +58,12 @@ class Schemas extends CI_Controller {
         if (is_https()) {
             $schemas_base = preg_replace('#^http://#i', 'https://', $schemas_base);
         }
+
+        $api_base = site_url('api');
+        if (is_https()) {
+            $api_base = preg_replace('#^http://#i', 'https://', $api_base);
+        }
+        $yaml = str_replace('{{API_BASE_URL}}', $api_base, $yaml);
 
         $yaml = preg_replace_callback(
             '/(\$ref:\s*[\'"])(?:[^\'\"]*\/)?([a-zA-Z0-9_-]+\.json)(#[^\'"]*)?([\'"])/',

@@ -1,0 +1,568 @@
+openapi: 3.0.3
+info:
+  title: Indicator Timeseries Data API
+  version: 1.0.0
+  description: |
+    Read-only access to the observations of a published indicator. No API key is needed.
+
+    **Finding what to query.** `{idno}` is the indicator's ID in the catalog. To see which
+    columns an indicator has and which codes they accept, call `/schema` and
+    `/filter-options`, or open the indicator's **Data structure** tab in the catalog.
+
+    **Filtering.** Give one or more codes separated by commas; rows matching any of them are
+    returned. Different filters are combined, so a row must match all of them. Unknown filter
+    names return an error instead of being ignored, so a mistyped filter never returns
+    unfiltered data.
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  - url: '{{API_BASE_URL}}'
+tags:
+  - name: Data
+    description: Query an indicator's observations.
+  - name: Metadata
+    description: Find out what an indicator contains and how to filter it.
+paths:
+  /timeseries/data/{idno}:
+    get:
+      tags: [Data]
+      operationId: getObservations
+      summary: List observations
+      description: Returns one page of observations. Use `limit` and `offset` to page through `total` rows.
+      parameters:
+        - $ref: '#/components/parameters/idno'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/skip'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/sortBy'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/dGeography'
+        - $ref: '#/components/parameters/dPeriodicity'
+        - $ref: '#/components/parameters/dTimePeriod'
+        - $ref: '#/components/parameters/dObservationValue'
+        - $ref: '#/components/parameters/c'
+      responses:
+        '200':
+          description: One page of observations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservationsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /timeseries/data/{idno}/count:
+    get:
+      tags: [Data]
+      operationId: countObservations
+      summary: Count observations
+      description: Returns how many observations match the same filters as the list endpoint.
+      parameters:
+        - $ref: '#/components/parameters/idno'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/dGeography'
+        - $ref: '#/components/parameters/dPeriodicity'
+        - $ref: '#/components/parameters/dTimePeriod'
+        - $ref: '#/components/parameters/dObservationValue'
+        - $ref: '#/components/parameters/c'
+      responses:
+        '200':
+          description: Number of matching observations.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, result]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  result:
+                    type: object
+                    required: [count]
+                    properties:
+                      count:
+                        type: integer
+                        example: 12945
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /timeseries/data/{idno}/schema:
+    get:
+      tags: [Metadata]
+      operationId: getSchema
+      summary: Get the indicator's columns
+      description: Returns the indicator's data structure, its columns and the range of reporting years. Use a column's `name` with `c[…]` and `sort_by`.
+      parameters:
+        - $ref: '#/components/parameters/idno'
+      responses:
+        '200':
+          description: Data structure and columns.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /timeseries/data/{idno}/filter-options:
+    get:
+      tags: [Metadata]
+      operationId: getFilterOptions
+      summary: List the codes you can filter by
+      description: For each column backed by a codelist, returns the codes that occur in this indicator's data, with labels and row counts.
+      parameters:
+        - $ref: '#/components/parameters/idno'
+      responses:
+        '200':
+          description: Codes found in the data, per column.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilterOptionsResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /timeseries/data/{idno}/notes:
+    get:
+      tags: [Metadata]
+      operationId: getNotes
+      summary: Get data notes
+      description: Footnote columns in the data hold note IDs (several separated by `;`). This returns those columns, the text of each note, and notes for the whole table.
+      parameters:
+        - $ref: '#/components/parameters/idno'
+      responses:
+        '200':
+          description: Footnote columns and note text.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotesResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /timeseries/data/{idno}/export:
+    get:
+      tags: [Metadata]
+      operationId: exportStructureJson
+      summary: Export the data structure as JSON
+      description: Returns the indicator's data structure and columns, with a summary of each column's codelist.
+      parameters:
+        - $ref: '#/components/parameters/idno'
+      responses:
+        '200':
+          description: Data structure export.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, result]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  result:
+                    type: object
+                    required: [export]
+                    properties:
+                      export:
+                        type: object
+                        additionalProperties: true
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /timeseries/data/{idno}/export-xml:
+    get:
+      tags: [Metadata]
+      operationId: exportStructureXml
+      summary: Export the data structure as SDMX-ML
+      description: Downloads the indicator's data structure as an SDMX-ML 2.1 Structure message.
+      parameters:
+        - $ref: '#/components/parameters/idno'
+        - name: include_codelists
+          in: query
+          description: Set to `0` to reference codelists instead of including them in full.
+          schema:
+            type: string
+            enum: ['0', '1']
+            default: '1'
+      responses:
+        '200':
+          description: SDMX-ML document.
+          content:
+            application/xml:
+              schema:
+                type: string
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  parameters:
+    idno:
+      name: idno
+      in: path
+      required: true
+      description: The indicator's ID in the catalog, for example `AG.CON.FERT.ZS`.
+      schema:
+        type: string
+    limit:
+      name: limit
+      in: query
+      description: Rows per page. Defaults to 100; values above 500 are reduced to 500.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+    offset:
+      name: offset
+      in: query
+      description: Number of rows to skip, for paging.
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    skip:
+      name: skip
+      in: query
+      deprecated: true
+      description: Older name for `offset`. Ignored when `offset` is given.
+      schema:
+        type: integer
+        minimum: 0
+    sort:
+      name: sort
+      in: query
+      description: Sort direction.
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: asc
+    sortBy:
+      name: sort_by
+      in: query
+      description: |
+        Column to sort by: `sid`, `period_start`, `period_end`, `reporting_year`, `reporting_freq`,
+        or any column name from `/schema`. Rows are sorted by time when this is empty or the
+        column isn't recognised.
+      schema:
+        type: string
+    from:
+      name: from
+      in: query
+      description: |
+        Start of the time range (inclusive). Accepts a year (`2010`), a quarter (`2010-Q1`), a month
+        (`2010-03`) or a date, which is treated as its year.
+      schema:
+        type: string
+    to:
+      name: to
+      in: query
+      description: |
+        End of the time range (inclusive). Accepts the same formats as `from`.
+      schema:
+        type: string
+    dGeography:
+      name: 'd[geography]'
+      in: query
+      description: Country or area codes, separated by commas. Applies to the indicator's geography column.
+      schema:
+        type: string
+    dPeriodicity:
+      name: 'd[periodicity]'
+      in: query
+      description: Frequency codes, separated by commas. Applies to the indicator's periodicity column.
+      schema:
+        type: string
+    dTimePeriod:
+      name: 'd[time_period]'
+      in: query
+      description: Exact time period values, separated by commas. For a range of years, use `from` and `to`.
+      schema:
+        type: string
+    dObservationValue:
+      name: 'd[observation_value]'
+      in: query
+      description: Exact observation values, separated by commas.
+      schema:
+        type: string
+    c:
+      name: c
+      in: query
+      description: |
+        Filter by any column, sent as `c[COLUMN]=CODE,CODE`, for example `c[REF_AREA]=AFG,ALB`.
+        Column names come from `/schema` and differ between indicators.
+      style: deepObject
+      explode: true
+      schema:
+        type: object
+        additionalProperties:
+          type: string
+      example: {}
+  responses:
+    BadRequest:
+      description: The request is invalid, for example an unknown `d[…]` role or `c[…]` column.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: error
+            message: 'Unknown column c[NOPE]. Columns of this data structure: REF_AREA, FREQ, TIME_PERIOD, OBS_VALUE.'
+    Forbidden:
+      description: The indicator is not published and you don't have access to it.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: No indicator has this ID.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: error
+            message: IDNO-NOT-FOUND
+    Unavailable:
+      description: The data is temporarily unavailable, for example while the catalog entry is being synchronised.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+    Observation:
+      type: object
+      description: One row of data. Besides the fields listed here, each row has one field per column of the indicator; see `/schema`.
+      additionalProperties: true
+      properties:
+        sid:
+          type: integer
+          description: Internal ID of the indicator in the catalog.
+        dsd_id:
+          type: integer
+          description: Internal ID of the data structure.
+        idno:
+          type: string
+          description: The indicator's ID in the catalog.
+        period_start:
+          type: string
+          format: date-time
+          nullable: true
+        period_end:
+          type: string
+          format: date-time
+          nullable: true
+          description: Start of the next period, so the period runs up to but not including this time.
+        reporting_year:
+          type: integer
+          nullable: true
+        reporting_freq:
+          type: string
+          nullable: true
+      example:
+        REF_AREA: AFG
+        REF_AREA_NAME: Afghanistan
+        FREQ: A
+        TIME_PERIOD: '1961'
+        OBS_VALUE: '0.143790849673203'
+        sid: 1462
+        dsd_id: 56
+        idno: AG.CON.FERT.ZS
+        period_start: '1961-01-01T00:00:00+00:00'
+        period_end: '1962-01-01T00:00:00+00:00'
+        reporting_year: 1961
+        reporting_freq: A
+    ObservationsResponse:
+      type: object
+      required: [status, result]
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          required: [data, limit, offset, total, found]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Observation'
+            limit:
+              type: integer
+              description: Page size actually applied.
+            offset:
+              type: integer
+            total:
+              type: integer
+              description: Rows matching the filters, across all pages.
+            found:
+              type: integer
+              description: Rows in this page.
+    Column:
+      type: object
+      additionalProperties: true
+      properties:
+        name:
+          type: string
+          description: Column name, for use with `c[…]` and `sort_by`.
+          example: REF_AREA
+        label:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        data_type:
+          type: string
+          nullable: true
+        column_type:
+          type: string
+          description: The column's role, for example `geography`, `periodicity`, `time_period`, `observation_value`, `dimension` or `attribute`.
+          example: geography
+    SchemaResponse:
+      type: object
+      required: [status, result]
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          additionalProperties: true
+          properties:
+            sid:
+              type: integer
+            idno:
+              type: string
+            data_structure:
+              type: object
+              additionalProperties: true
+            components:
+              type: array
+              description: The indicator's columns.
+              items:
+                $ref: '#/components/schemas/Column'
+            time_period_component:
+              type: string
+              nullable: true
+            observation_value_component:
+              type: string
+              nullable: true
+            reporting_year_bounds:
+              type: object
+              properties:
+                min:
+                  type: integer
+                  nullable: true
+                max:
+                  type: integer
+                  nullable: true
+    FilterOptionsResponse:
+      type: object
+      required: [status, result]
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            sid:
+              type: integer
+            idno:
+              type: string
+            dsd_id:
+              type: integer
+            filters:
+              type: array
+              items:
+                type: object
+                properties:
+                  component_name:
+                    type: string
+                    example: REF_AREA
+                  column_type:
+                    type: string
+                    example: geography
+                  codelist_id:
+                    type: integer
+                    nullable: true
+                  options:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          example: AFG
+                        label:
+                          type: string
+                          example: Afghanistan
+                        sort_order:
+                          type: integer
+                          nullable: true
+                        count:
+                          type: integer
+                          description: Rows with this code.
+                          example: 62
+    NotesResponse:
+      type: object
+      required: [status, result]
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            footnote_columns:
+              type: array
+              items:
+                type: string
+            notes:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  note:
+                    type: string
+                  column:
+                    type: string
+            table_notes:
+              type: array
+              items: {}

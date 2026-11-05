@@ -1,5 +1,11 @@
 <template>
-  <v-app class="pdf-viewer-app" :class="{ 'pdf-viewer-app--embedded': embedded }">
+  <v-app
+    class="pdf-viewer-app"
+    :class="{
+      'pdf-viewer-app--embedded': embedded,
+      'pdf-viewer-app--light': viewerParams.theme === 'light',
+    }"
+  >
     <v-alert v-if="configError" type="error" class="ma-4">{{ configError }}</v-alert>
     <PdfViewerCore
       v-else
@@ -9,6 +15,7 @@
       :page-chips="viewerParams.pageChips"
       :title="displayTitle"
       :embedded="embedded"
+      :theme="viewerParams.theme"
     />
   </v-app>
 </template>
@@ -94,6 +101,10 @@ html, body, #pdf-viewer-app {
 
 .pdf-viewer-app {
   background: #525659 !important;
+}
+
+.pdf-viewer-app--light {
+  background: #f1f3f5 !important;
 }
 
 /* Embedded in catalog search iframe: constrain Vuetify shell so inner scroll works */

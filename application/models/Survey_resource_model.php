@@ -1153,6 +1153,44 @@ class Survey_resource_model extends CI_Model {
 
 
 	/**
+	 * Non-microdata PDFs stored in NADA for a study, in Downloads tab order.
+	 * Skips external links and resources whose file is missing from the study folder.
+	 *
+	 * @param int $survey_id
+	 * @return array
+	 */
+	function get_local_pdf_resources($survey_id)
+	{
+		$groups = $this->get_grouped_resources_by_survey($survey_id);
+		if (! is_array($groups)) {
+			return array();
+		}
+
+		$this->load->helper('resource_helper');
+		$this->load->model('Catalog_model');
+		$survey_folder = $this->Catalog_model->get_survey_path_full($survey_id);
+
+		$output = array();
+		foreach ($groups as $rows) {
+			if (! is_array($rows)) {
+				continue;
+			}
+			foreach ($rows as $row) {
+				if (! $this->is_local_pdf_resource($row)
+					|| $this->is_microdata_resource($row['dctype'] ?? '')
+					|| check_resource_file_under($survey_folder, $row['filename']) === false) {
+					continue;
+				}
+				// A resource can be listed under more than one group
+				$output[(int) $row['resource_id']] = $row;
+			}
+		}
+
+		return array_values($output);
+	}
+
+
+	/**
 	 * Stream a local PDF inline (Content-Disposition: inline). Same ACL as download().
 	 */
 	function stream_pdf_inline($user, $survey_id, $resource_id)

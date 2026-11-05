@@ -1204,6 +1204,36 @@ class Catalog extends MY_Controller {
 	 * @param array      $survey_row
 	 * @return array
 	 */
+	/**
+	 * Labels for the Vue study PDF options dialog.
+	 *
+	 * @return array
+	 */
+	private function _pdf_dialog_labels()
+	{
+		$this->lang->load('ddibrowser');
+		$this->lang->load('breadcrumbs');
+		$this->lang->load('configurations');
+
+		return array(
+			'generate_study_pdf'          => t('generate_study_pdf'),
+			'website_title'               => t('website_title'),
+			'study_title'                 => t('study_title'),
+			'publisher'                   => t('publisher'),
+			'website_url'                 => t('website_url'),
+			'report_lang'                 => t('report_lang'),
+			'report_options'              => t('Report options'),
+			'include_variable_toc'        => t('include_variable_toc'),
+			'include_variable_desc'       => t('include_variable_desc'),
+			'include_external_resources'  => t('include_external_resources'),
+			'processing_pdf_report'       => t('processing_pdf_report'),
+			'pdf_generated'               => t('PDF report generated successfully.'),
+			'pdf_required_fields'         => 'Website title, study title, and website URL are required.',
+			'pdf_surveys_only'            => 'PDF can only be generated for surveys.',
+		);
+	}
+
+
 	private function _study_edit_vue_common($id, array $survey_row)
 	{
 		return array(
@@ -1342,8 +1372,6 @@ class Catalog extends MY_Controller {
 				'studyType'                 => isset($survey_row['type']) ? $survey_row['type'] : 'survey',
 				'dataClassificationsApiUrl' => site_url('api/admin/catalog/data-classifications'),
 				'dataClassificationsEnabled' => (bool) $data_classifications_enabled,
-				'pdfSetupUrl'               => site_url('admin/pdf_generator/setup/' . $id),
-				'pdfDeleteUrl'              => site_url('admin/pdf_generator/delete/' . $id),
 				'countriesMappingUrl'       => site_url('admin/countries/mappings'),
 				'labels'                    => array(
 					'ref_no'                       => t('ref_no'),
@@ -1360,6 +1388,8 @@ class Catalog extends MY_Controller {
 					'metadata_in_pdf'              => t('metadata_in_pdf'),
 					'generate_pdf'                 => t('Generate PDF'),
 					'delete'                       => t('delete'),
+					'confirm_delete'               => t('js_confirm_delete'),
+					'pdf_deleted'                  => t('PDF report deleted.'),
 					'pdf_not_generated'            => t('pdf_not_generated'),
 					'pdf_uptodate'                 => t('pdf_uptodate'),
 					'pdf_outdated'                 => t('pdf_outdated'),
@@ -1393,7 +1423,7 @@ class Catalog extends MY_Controller {
 					'select'                       => t('select'),
 					'external_resource'            => t('external_resources'),
 					'file_format'                  => t('format'),
-				),
+				) + $this->_pdf_dialog_labels(),
 			)
 		);
 	}
@@ -1716,7 +1746,6 @@ class Catalog extends MY_Controller {
 					'browsePublic' => site_url('catalog/' . (int) $id),
 					'importRdf'    => site_url('admin/catalog/edit/' . (int) $id . '/resources?import=1'),
 					'fixLinks'     => site_url('admin/catalog/edit/' . (int) $id . '/resources?fix=1'),
-					'pdfSetup'     => site_url('admin/pdf_generator/setup/' . (int) $id),
 					'exportDdi'    => site_url('admin/catalog/ddi/' . (int) $id),
 					'refreshDdi'   => site_url('admin/catalog/refresh/' . (int) $id),
 					'generateDdi'  => site_url('admin/catalog/generate_ddi/' . (int) $id),
@@ -1759,7 +1788,7 @@ class Catalog extends MY_Controller {
 					'loading'                => t('loading'),
 					'confirm_generate_ddi'   => 'This will overwrite the existing DDI file. Are you sure?',
 					'generate_ddi'           => t('Generate DDI'),
-				),
+				) + $this->_pdf_dialog_labels(),
 			)
 		);
 	}

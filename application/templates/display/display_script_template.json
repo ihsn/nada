@@ -1471,6 +1471,42 @@
                 ]
             },
             {
+                "type": "section_container",
+                "key": "provenance_container",
+                "title": "Provenance",
+                "items": [
+                    {
+                        "type": "section",
+                        "key": "provenance",
+                        "title": "Provenance",
+                        "items": [
+                            { "key": "provenance.original_repository.repository_name", "title": "Original repository name", "type": "string" },
+                            { "key": "provenance.original_repository.url", "title": "Original repository URL", "type": "string", "display_options": { "is_uri": true } },
+                            { "key": "provenance.original_repository.dataset_identifier", "title": "Original dataset identifier", "type": "string" },
+                            { "key": "provenance.original_repository.doi", "title": "Original repository DOI", "type": "string" },
+                            { "key": "provenance.original_repository.dataset_title", "title": "Original dataset title", "type": "string" },
+                            { "key": "provenance.original_repository.date_published", "title": "Original dataset published date", "type": "string" },
+                            { "key": "provenance.original_repository.notes", "title": "Original repository notes", "type": "string" },
+                            {
+                                "key": "provenance.source_repository",
+                                "title": "Source repositories",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_array_stacked", "header_fields": ["repository_name"] },
+                                "props": [
+                                    { "key": "repository_name", "title": "Repository name", "type": "string", "prop_key": "provenance.source_repository.repository_name" },
+                                    { "key": "url", "title": "URL", "type": "string", "prop_key": "provenance.source_repository.url", "display_options": { "is_uri": true } },
+                                    { "key": "dataset_identifier", "title": "Dataset identifier", "type": "string", "prop_key": "provenance.source_repository.dataset_identifier" },
+                                    { "key": "dataset_title", "title": "Dataset title", "type": "string", "prop_key": "provenance.source_repository.dataset_title" },
+                                    { "key": "date_acquired", "title": "Date acquired", "type": "string", "prop_key": "provenance.source_repository.date_acquired" },
+                                    { "key": "acquisition_mode", "title": "Acquisition mode", "type": "string", "prop_key": "provenance.source_repository.acquisition_mode" },
+                                    { "key": "notes", "title": "Notes", "type": "string", "prop_key": "provenance.source_repository.notes" }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "type": "section",
                 "key": "additional_section",
                 "title": "Additional metadata",

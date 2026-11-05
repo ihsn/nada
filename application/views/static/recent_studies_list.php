@@ -29,6 +29,11 @@ $type_icons=array(
     'image'=>'fa-image',
     'video'=>'fa-video',
 );
+
+//localized dates, falls back to English if the intl extension is not available
+$date_formatter=class_exists('IntlDateFormatter')
+    ? new IntlDateFormatter(ci_lang_to_iso(),IntlDateFormatter::MEDIUM,IntlDateFormatter::NONE)
+    : null;
 ?>
 
 <h3><?php echo t('latest_additions');?></h3>
@@ -81,7 +86,7 @@ $type_icons=array(
                                 <?php endif;?>
 
                                 <div class="survey-stats">                        
-                                    <span><?php echo date("M d, Y",$row['changed']);?></span>
+                                    <span><?php echo $date_formatter ? $date_formatter->format((int)$row['changed']) : date("M d, Y",$row['changed']);?></span>
                                 </div>
                             </div>
                         </div>
@@ -91,7 +96,7 @@ $type_icons=array(
         </div>
     <?php endforeach;?>
     <p>
-        <a href="<?php echo site_url();?>/catalog/history" class="btn btn-link btn-sm float-left" >View more »</a>
+        <a href="<?php echo site_url();?>/catalog/history" class="btn btn-link btn-sm float-left" ><?php echo t('home_view_more');?> »</a>
     </p>
 <?php else: ?>
     <div>

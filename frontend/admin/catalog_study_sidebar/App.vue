@@ -141,9 +141,9 @@
             <template v-if="studyType === 'survey'">
               <v-list-item
                 class="csb-option-item rounded-lg mb-1"
-                :href="legacy.pdfSetup"
                 prepend-icon="mdi-file-pdf-box"
                 :title="lbl.generate_pdf || ''"
+                @click="pdfDialog = true"
               />
               <v-list-item
                 class="csb-option-item rounded-lg mb-1"
@@ -217,6 +217,7 @@
         </v-card>
       </v-dialog>
 
+      <GeneratePdfDialog v-model="pdfDialog" @generated="onPdfGenerated" />
       <ReplaceDdiDialog
         v-model="replaceDdiDialog"
         :study-title="studyTitle"
@@ -234,6 +235,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useCatalogStudySidebarApi } from './composables/useCatalogStudySidebarApi';
+import GeneratePdfDialog from '@/admin/catalog_study_pdf/GeneratePdfDialog.vue';
 import ReplaceDdiDialog from './components/ReplaceDdiDialog.vue';
 import TransferOwnershipDialog from './components/TransferOwnershipDialog.vue';
 
@@ -261,6 +263,7 @@ const thumbDialog = ref(false);
 const thumbFileModel = ref(null);
 const replaceDdiDialog = ref(false);
 const transferDialog = ref(false);
+const pdfDialog = ref(false);
 
 const snackbar = ref({ show: false, text: '', color: 'surface' });
 
@@ -388,6 +391,11 @@ async function onGenerateDdi(ev) {
   } finally {
     ddiGenerateBusy.value = false;
   }
+}
+
+function onPdfGenerated(message) {
+  showSnack(message || lbl.value.pdf_generated || 'PDF report generated', 'success');
+  window.dispatchEvent(new CustomEvent('nada-study-pdf-changed'));
 }
 
 function onDdiReplaced() {
