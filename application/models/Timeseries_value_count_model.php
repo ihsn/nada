@@ -133,4 +133,94 @@ class Timeseries_value_count_model extends CI_Model {
 			'components' => $components,
 		];
 	}
+
+	/**
+	 * Observed-only code options per codelist-backed component (codes with data, labelled from the codelist).
+	 * Options are ordered by codelist_item.sort_order (missing DB rows last), then label.
+	 *
+	 * @param int   $sid
+	 * @param int   $dsd_id
+	 * @param array $components DSD components
+	 * @return array list of {component_name, column_type, codelist_id, options: [{code, label, sort_order, count}]}
+	 */
+	public function get_filter_options($sid, $dsd_id, array $components)
+	{
+		$this->load->model('Codelist_item_model');
+		$filters = [];
+		foreach ($components as $component) {
+			if (!is_array($component)) {
+				continue;
+			}
+			$componentName = isset($component['name']) ? trim((string) $component['name']) : '';
+			$codelistId = isset($component['codelist_id']) ? (int) $component['codelist_id'] : 0;
+			if ($componentName === '' || $codelistId <= 0) {
+				continue;
+			}
+			$counts = $this->get_counts(
+				(int) $sid,
+				(int) $dsd_id,
+				$componentName
+			);
+			if (empty($counts)) {
+				continue;
+			}
+			$codes = [];
+			foreach ($counts as $row) {
+				if (!is_array($row) || !isset($row['code'])) {
+					continue;
+				}
+				$code = trim((string) $row['code']);
+				if ($code !== '') {
+					$codes[] = $code;
+				}
+			}
+			if (empty($codes)) {
+				continue;
+			}
+			$labels = $this->Codelist_item_model->get_items_map_by_codes($codelistId, $codes);
+			$options = [];
+			foreach ($counts as $row) {
+				if (!is_array($row) || !isset($row['code'])) {
+					continue;
+				}
+				$code = trim((string) $row['code']);
+				if ($code === '') {
+					continue;
+				}
+				$label = isset($labels[$code]) && array_key_exists('title', $labels[$code]) && $labels[$code]['title'] !== null && trim((string) $labels[$code]['title']) !== ''
+					? (string) $labels[$code]['title']
+					: $code;
+				$sortOrder = isset($labels[$code])
+					? (int) $labels[$code]['sort_order']
+					: null;
+				$options[] = [
+					'code' => $code,
+					'label' => $label,
+					'sort_order' => $sortOrder,
+					'count' => isset($row['obs_count']) ? (int) $row['obs_count'] : 0,
+				];
+			}
+			usort($options, function ($a, $b) {
+				$oa = isset($a['sort_order']) && $a['sort_order'] !== null ? (int) $a['sort_order'] : PHP_INT_MAX;
+				$ob = isset($b['sort_order']) && $b['sort_order'] !== null ? (int) $b['sort_order'] : PHP_INT_MAX;
+				if ($oa !== $ob) {
+					return $oa <=> $ob;
+				}
+				$al = isset($a['label']) ? (string) $a['label'] : '';
+				$bl = isset($b['label']) ? (string) $b['label'] : '';
+				return strcmp($al, $bl);
+			});
+			if (empty($options)) {
+				continue;
+			}
+			$filters[] = [
+				'component_name' => $componentName,
+				'column_type' => isset($component['column_type']) ? (string) $component['column_type'] : null,
+				'codelist_id' => $codelistId,
+				'options' => $options,
+			];
+		}
+
+		return $filters;
+	}
 }

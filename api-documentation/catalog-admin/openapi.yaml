@@ -3752,6 +3752,142 @@ paths:
         '200':
           description: Successful operation
 
+  /admin/timeseries/data/{idno}/presentation:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: Get default view settings for an indicator
+      description: >-
+        Returns the indicator's default view settings: what the public chart and table pages show
+        when the page URL has no filters or layout. These are catalog settings stored by NADA, not
+        part of the indicator metadata. `data_presentation` is null when none are set. Also returns
+        the time period column and the codes that have data per column, for building an editor.
+        Requires view access to the dataset.
+      operationId: timeseriesAdminPresentationGet
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeseriesPresentationEditorResponse'
+        '400':
+          $ref: '#/components/responses/TimeseriesPresentationError'
+        '403':
+          $ref: '#/components/responses/TimeseriesPresentationForbidden'
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Replace default view settings for an indicator
+      description: >-
+        Replaces the settings as a whole (no merge). `null` or an empty object removes them.
+        Settings are validated against `timeseries-presentation-schema.json`; codes and columns are
+        not checked against the data, since codes without data are skipped when the pages load.
+        Requires edit access to the dataset.
+      operationId: timeseriesAdminPresentationSave
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeseriesPresentationSaveRequest'
+            example:
+              data_presentation:
+                geography: [WLD]
+                time_period:
+                  from: '1990'
+                chart_type: line
+                table_layout:
+                  rows: [REF_AREA]
+                  columns: [TIME_PERIOD]
+                  time_order: desc
+      responses:
+        '200':
+          description: Saved (or removed when the body had no settings)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeseriesPresentationResponse'
+        '400':
+          $ref: '#/components/responses/TimeseriesPresentationValidationError'
+        '403':
+          $ref: '#/components/responses/TimeseriesPresentationForbidden'
+    delete:
+      tags:
+        - Timeseries Admin
+      summary: Remove default view settings for an indicator
+      description: Requires edit access to the dataset.
+      operationId: timeseriesAdminPresentationDelete
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Removed (`data_presentation` is null in the response)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeseriesPresentationResponse'
+        '400':
+          $ref: '#/components/responses/TimeseriesPresentationError'
+        '403':
+          $ref: '#/components/responses/TimeseriesPresentationForbidden'
+
+  /admin/timeseries/presentation/batch:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Replace default view settings for several indicators
+      description: >-
+        Replaces the settings of up to 2000 indicators in one request. Every item is checked first
+        (indicator exists, edit access, schema). If any item fails, nothing is saved and `errors`
+        lists the failures by `index` and `idno`; otherwise all items are saved in one transaction.
+        `null` or an empty object for `data_presentation` removes that indicator's settings.
+      operationId: timeseriesAdminPresentationBatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeseriesPresentationBatchRequest'
+            example:
+              items:
+                - idno: AG.CON.FERT.PT.ZS
+                  data_presentation:
+                    geography: [WLD]
+                - idno: SP.POP.TOTL
+                  data_presentation: null
+      responses:
+        '200':
+          description: All items saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeseriesPresentationBatchResponse'
+        '400':
+          description: >-
+            Invalid request (e.g. `items` missing or more than 2000), or one or more invalid items;
+            nothing was saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeseriesPresentationBatchErrorResponse'
+
   /admin/timeseries/data-structures/{dsdId}/indexes:
     post:
       tags:
@@ -4957,6 +5093,33 @@ components:
         default: false
 
   responses:
+    TimeseriesPresentationError:
+      description: Bad request (e.g. unknown idno, no data structure linked)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TimeseriesPresentationErrorResponse'
+    TimeseriesPresentationForbidden:
+      description: No access to the dataset
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TimeseriesPresentationErrorResponse'
+          example:
+            status: error
+            message: ACCESS-DENIED
+    TimeseriesPresentationValidationError:
+      description: Settings do not match the presentation schema, or another bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TimeseriesPresentationErrorResponse'
+          example:
+            status: failed
+            message: 'SCHEMA_VALIDATION_FAILED [presentation]: '
+            errors:
+              - property: chart_type
+                message: Does not have a value in the enumeration ["auto","line","column","hbar"]
     AnalyticsBadRequest:
       description: Bad request or server error message
       content:
@@ -6680,3 +6843,226 @@ components:
             pub_year:
               type: integer
               nullable: true
+
+    TimeseriesPresentation:
+      type: object
+      description: >-
+        Default view of an indicator's chart and table pages (see
+        application/schemas/timeseries-presentation-schema.json). Every key is optional.
+      additionalProperties: false
+      properties:
+        geography:
+          type: array
+          description: >-
+            Geography codes, e.g. [WLD] or [WLD, EAS, ECS]. Every listed code that has data is selected;
+            if none has data, the first available value is used.
+          items:
+            type: string
+        time_period:
+          type: object
+          additionalProperties: false
+          description: Period range in the indicator's time format (2000, 2000-Q1, 2000-01). Leave `to` out for "up to the latest data".
+          properties:
+            from:
+              type: string
+            to:
+              type: string
+        dimensions:
+          type: array
+          description: Codes for other columns, including frequency. Same selection rule as `geography`.
+          items:
+            type: object
+            additionalProperties: false
+            required: [column, values]
+            properties:
+              column:
+                type: string
+                description: Data structure column name, e.g. SEX, FREQ.
+              values:
+                type: array
+                minItems: 1
+                items:
+                  type: string
+        chart_type:
+          type: string
+          enum: [auto, line, column, hbar]
+          default: auto
+        table_layout:
+          type: object
+          additionalProperties: false
+          description: >-
+            Data structure column names, including the time period column. Columns left out of both
+            rows and columns are added to the rows.
+          properties:
+            rows:
+              type: array
+              items:
+                type: string
+            columns:
+              type: array
+              items:
+                type: string
+            time_order:
+              type: string
+              enum: [asc, desc]
+              default: asc
+            headers:
+              type: string
+              enum: [grouped, flat]
+              default: grouped
+
+    TimeseriesPresentationSaveRequest:
+      type: object
+      properties:
+        data_presentation:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/TimeseriesPresentation'
+
+    TimeseriesPresentationResult:
+      type: object
+      properties:
+        sid:
+          type: integer
+        idno:
+          type: string
+        data_presentation:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/TimeseriesPresentation'
+        changed:
+          type: integer
+          nullable: true
+          description: Unix time of the last change
+        changed_by:
+          type: string
+          nullable: true
+          description: Username of the last change
+
+    TimeseriesPresentationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          $ref: '#/components/schemas/TimeseriesPresentationResult'
+
+    TimeseriesPresentationEditorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          allOf:
+            - $ref: '#/components/schemas/TimeseriesPresentationResult'
+            - type: object
+              properties:
+                time_period_component:
+                  type: string
+                  nullable: true
+                  description: Name of the data structure's time period column
+                filter_options:
+                  type: array
+                  description: Codes that have data, per codelist-backed column (ordered by codelist order, then label)
+                  items:
+                    type: object
+                    properties:
+                      component_name:
+                        type: string
+                      column_type:
+                        type: string
+                      codelist_id:
+                        type: integer
+                      options:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            label:
+                              type: string
+                            sort_order:
+                              type: integer
+                              nullable: true
+                            count:
+                              type: integer
+
+    TimeseriesPresentationBatchRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 2000
+          items:
+            type: object
+            required: [idno]
+            properties:
+              idno:
+                type: string
+              data_presentation:
+                nullable: true
+                allOf:
+                  - $ref: '#/components/schemas/TimeseriesPresentation'
+
+    TimeseriesPresentationBatchResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        result:
+          type: object
+          properties:
+            saved:
+              type: integer
+            removed:
+              type: integer
+
+    TimeseriesPresentationBatchErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: failed
+        message:
+          type: string
+          example: 'No changes saved: 1 of 2 items are invalid'
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              index:
+                type: integer
+              idno:
+                type: string
+              message:
+                type: string
+              errors:
+                type: array
+                description: Schema errors, when the item failed validation
+                items:
+                  type: object
+
+    TimeseriesPresentationErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              property:
+                type: string
+              message:
+                type: string

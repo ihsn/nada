@@ -53,7 +53,8 @@ export function buildDefaultTableLayout(eligibleDimensions, options = {}) {
 }
 
 /**
- * Table-tab default filters: first geography, all other facet codes, full year range handled separately.
+ * Table-tab default filters: `defaultCodes` (the indicator's default view settings) where set, else first geography
+ * and all other facet codes; full year range handled separately.
  *
  * @param {object} filterDraft
  * @param {{
@@ -61,16 +62,19 @@ export function buildDefaultTableLayout(eligibleDimensions, options = {}) {
  *   periodicityComponent?: { name?: string } | null;
  *   facetComponentsForC?: Array<{ name?: string }>;
  *   codelistSelectItems?: Record<string, Array<{ value?: string }>>;
+ *   defaultCodes?: Record<string, string[]>;
  * }} ctx
  */
 export function applyDefaultTableFilters(filterDraft, ctx) {
   const itemsByName = ctx.codelistSelectItems || {};
+  const defaultCodes = ctx.defaultCodes || {};
 
   const geo = ctx.geographyComponent;
   if (geo?.name) {
     const items = itemsByName[geo.name] || [];
     if (items.length && (!filterDraft.dGeography || filterDraft.dGeography.length === 0)) {
-      filterDraft.dGeography.splice(0, filterDraft.dGeography.length, String(items[0].value));
+      const codes = defaultCodes[geo.name] || [String(items[0].value)];
+      filterDraft.dGeography.splice(0, filterDraft.dGeography.length, ...codes);
     }
   }
 
@@ -78,11 +82,8 @@ export function applyDefaultTableFilters(filterDraft, ctx) {
   if (per?.name) {
     const items = itemsByName[per.name] || [];
     if (items.length && (!filterDraft.dPeriodicity || filterDraft.dPeriodicity.length === 0)) {
-      filterDraft.dPeriodicity.splice(
-        0,
-        filterDraft.dPeriodicity.length,
-        ...items.map((it) => String(it.value))
-      );
+      const codes = defaultCodes[per.name] || items.map((it) => String(it.value));
+      filterDraft.dPeriodicity.splice(0, filterDraft.dPeriodicity.length, ...codes);
     }
   }
 
@@ -91,10 +92,7 @@ export function applyDefaultTableFilters(filterDraft, ctx) {
     const items = itemsByName[col.name] || [];
     if (!items.length) continue;
     if (!(col.name in filterDraft.c)) filterDraft.c[col.name] = [];
-    filterDraft.c[col.name].splice(
-      0,
-      filterDraft.c[col.name].length,
-      ...items.map((it) => String(it.value))
-    );
+    const codes = defaultCodes[col.name] || items.map((it) => String(it.value));
+    filterDraft.c[col.name].splice(0, filterDraft.c[col.name].length, ...codes);
   }
 }

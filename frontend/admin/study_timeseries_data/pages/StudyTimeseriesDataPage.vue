@@ -207,10 +207,18 @@
     <!-- Preview & dimension summaries (only when observations exist) -->
     <v-card v-if="schema && !pageLoading && hasIndicatorObservations" variant="flat" rounded="0" class="section-card pa-0">
       <div class="indicator-data-tab-panels">
-        <v-tabs v-model="mainTab" color="primary" class="px-2" aria-label="Indicator data views">
-          <v-tab value="preview">Data preview</v-tab>
-          <v-tab value="value-counts">Dimension summaries</v-tab>
+        <v-tabs
+          v-model="mainTab"
+          color="primary"
+          density="comfortable"
+          class="data-view-tabs px-2"
+          aria-label="Indicator data views"
+        >
+          <v-tab value="preview" prepend-icon="mdi-table-eye" class="text-none">Data preview</v-tab>
+          <v-tab value="value-counts" prepend-icon="mdi-chart-box-outline" class="text-none">Dimension summaries</v-tab>
+          <v-tab value="default-view" prepend-icon="mdi-cog-outline" class="text-none">Default view</v-tab>
         </v-tabs>
+        <v-divider />
         <v-window v-model="mainTab">
         <v-window-item value="preview" class="pa-4">
           <div class="d-flex flex-wrap align-center justify-end gap-2 mb-3">
@@ -278,6 +286,10 @@
             hide-default-footer
           />
         </v-window-item>
+
+        <v-window-item value="default-view" class="pa-4">
+          <DefaultViewPanel :study-idno="studyIdno" :components="componentsSorted" />
+        </v-window-item>
       </v-window>
       </div>
     </v-card>
@@ -289,6 +301,7 @@ import { ref, computed, inject, onMounted, watch, nextTick } from 'vue';
 import axios from 'axios';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useStudyTimeseriesApi } from '../composables/useStudyTimeseriesApi';
+import DefaultViewPanel from '../components/DefaultViewPanel.vue';
 
 defineOptions({ name: 'StudyTimeseriesDataPage' });
 
@@ -320,7 +333,7 @@ const dsdListLoading = ref(false);
 const linkSaving = ref(false);
 /** Suppress onDsdPick while syncing v-model from schema after load. */
 const dsdPickSyncing = ref(false);
-/** Inner tabs: preview (default) | dimension summaries (tab id: value-counts) */
+/** Inner tabs: preview (default) | dimension summaries (tab id: value-counts) | default view */
 const mainTab = ref('preview');
 
 const schema = ref(null);
@@ -925,22 +938,44 @@ onMounted(() => {
 
 .section-card :deep(.v-card-item),
 .section-card :deep(.v-card-text),
-.section-card :deep(.v-tabs),
 .section-card :deep(.v-window),
 .section-card :deep(.v-window-item) {
   background-color: #fff !important;
 }
 
-/* Strip between tab underline and panel: slide-group + window inner wrappers stay transparent */
+/* Tabs and their panels in one bordered box, so the tab bar is clearly separate from the page. */
 .indicator-data-tab-panels {
   background-color: #fff;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.section-card :deep(.v-slide-group),
-.section-card :deep(.v-slide-group__container),
-.section-card :deep(.v-slide-group__content),
 .section-card :deep(.v-window__container) {
   background-color: #fff !important;
+}
+
+/* Light grey tab bar (white panels below), sentence-case labels, darker inactive tabs. */
+.section-card :deep(.data-view-tabs) {
+  background-color: rgba(var(--v-theme-on-surface), 0.035) !important;
+}
+
+.section-card :deep(.data-view-tabs .v-slide-group__container),
+.section-card :deep(.data-view-tabs .v-slide-group__content) {
+  background-color: transparent !important;
+}
+
+.section-card :deep(.data-view-tabs .v-tab) {
+  letter-spacing: normal;
+  font-size: 0.875rem;
+}
+
+.section-card :deep(.data-view-tabs .v-tab:not(.v-tab--selected)) {
+  color: rgba(var(--v-theme-on-surface), 0.72);
+}
+
+.section-card :deep(.data-view-tabs .v-tab--selected) {
+  font-weight: 600;
 }
 
 .min-width-0 {

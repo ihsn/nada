@@ -780,6 +780,11 @@ class Catalog_model extends CI_Model {
 				$this->db->delete('study_admin_metadata');
 			}
 
+			if ($this->db->table_exists('study_presentation')) {
+				$this->db->where('sid', $id);
+				$this->db->delete('study_presentation');
+			}
+
 		}		
 	}
 

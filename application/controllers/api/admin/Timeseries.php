@@ -37,6 +37,9 @@ require_once APPPATH . '/libraries/MY_REST_Controller.php';
  */
 class Timeseries extends MY_REST_Controller {
 
+	/** Maximum indicators per presentation/batch request. */
+	const PRESENTATION_BATCH_MAX = 2000;
+
 	public function __construct()
 	{
 		parent::__construct();
@@ -45,6 +48,7 @@ class Timeseries extends MY_REST_Controller {
 		$this->load->model('Timeseries_mongo_model');
 		$this->load->model('Timeseries_dsd_model');
 		$this->load->model('Timeseries_value_count_model');
+		$this->load->model('Study_presentation_model');
 		$this->load->model('Survey_resource_model');
 		$this->load->model('Catalog_model');
 		$this->load->model('Dataset_model');
@@ -566,6 +570,171 @@ class Timeseries extends MY_REST_Controller {
 	}
 
 	/**
+	 * GET .../data/{idno}/presentation
+	 *
+	 * Default view settings (study_presentation) plus the observed code options per column,
+	 * for the admin "Default view" editor.
+	 */
+	public function data_presentation_get($idno = null)
+	{
+		try {
+			$ctx = $this->_context_from_idno($idno);
+			$this->has_dataset_access('view', (int) $ctx['sid']);
+			$this->set_response([
+				'status' => 'success',
+				'result' => array_merge(
+					$this->_presentation_result((int) $ctx['sid'], $ctx['idno']),
+					[
+						'time_period_component' => $this->Timeseries_mongo_model->get_component_name_for_column_type($ctx['components'], 'time_period'),
+						'filter_options' => $this->Timeseries_value_count_model->get_filter_options(
+							(int) $ctx['sid'],
+							(int) $ctx['dsd_id'],
+							$ctx['components']
+						),
+					]
+				),
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->_error_response($e);
+		}
+	}
+
+	/**
+	 * POST .../data/{idno}/presentation — body {"data_presentation": {...} | null}
+	 *
+	 * Replaces the default view settings as a whole; an empty or null value removes them.
+	 */
+	public function data_presentation_post($idno = null)
+	{
+		try {
+			$idno = $idno !== null ? rawurldecode((string) $idno) : '';
+			if ($idno === '') {
+				throw new Exception('Dataset idno is required');
+			}
+			$sid = (int) $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit', $sid);
+
+			$input = $this->_optional_json_body();
+			$settings = $this->_presentation_from_input(array_key_exists('data_presentation', $input) ? $input['data_presentation'] : null);
+			if (!empty($settings)) {
+				$this->Study_presentation_model->validate($settings);
+			}
+			$this->Study_presentation_model->replace($sid, $settings, $this->get_api_user_id());
+
+			$this->set_response([
+				'status' => 'success',
+				'result' => $this->_presentation_result($sid, $idno),
+			], REST_Controller::HTTP_OK);
+		} catch (ValidationException $e) {
+			$this->set_response([
+				'status' => 'failed',
+				'message' => $e->getMessage(),
+				'errors' => $e->GetValidationErrors(),
+			], REST_Controller::HTTP_BAD_REQUEST);
+		} catch (Exception $e) {
+			$this->_error_response($e);
+		}
+	}
+
+	/**
+	 * DELETE .../data/{idno}/presentation — remove the default view settings.
+	 */
+	public function data_presentation_delete($idno = null)
+	{
+		try {
+			$idno = $idno !== null ? rawurldecode((string) $idno) : '';
+			if ($idno === '') {
+				throw new Exception('Dataset idno is required');
+			}
+			$sid = (int) $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit', $sid);
+			$this->Study_presentation_model->delete($sid);
+
+			$this->set_response([
+				'status' => 'success',
+				'result' => $this->_presentation_result($sid, $idno),
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->_error_response($e);
+		}
+	}
+
+	/**
+	 * POST .../presentation/batch — body {"items": [{"idno": "…", "data_presentation": {...} | null}, …]}
+	 *
+	 * Replaces the default view settings of several indicators. All items are checked first (indicator
+	 * exists, edit access, schema); if any fails nothing is saved and the errors are listed per item.
+	 */
+	public function presentation_batch_post()
+	{
+		try {
+			$input = $this->_optional_json_body();
+			$items = isset($input['items']) && is_array($input['items']) ? array_values($input['items']) : null;
+			if ($items === null || empty($items)) {
+				throw new Exception('items must be a non-empty array');
+			}
+			if (count($items) > self::PRESENTATION_BATCH_MAX) {
+				throw new Exception('Too many items; the maximum per request is ' . self::PRESENTATION_BATCH_MAX);
+			}
+
+			$planned = [];
+			$errors = [];
+			foreach ($items as $i => $item) {
+				$idno = is_array($item) && isset($item['idno']) ? trim((string) $item['idno']) : '';
+				try {
+					if ($idno === '') {
+						throw new Exception('idno is required');
+					}
+					$sid = (int) $this->get_sid_from_idno($idno);
+					$this->has_dataset_access('edit', $sid);
+					$settings = $this->_presentation_from_input(array_key_exists('data_presentation', $item) ? $item['data_presentation'] : null);
+					if (!empty($settings)) {
+						$this->Study_presentation_model->validate($settings);
+					}
+					$planned[] = ['sid' => $sid, 'settings' => $settings];
+				} catch (ValidationException $e) {
+					$errors[] = ['index' => $i, 'idno' => $idno, 'message' => $e->getMessage(), 'errors' => $e->GetValidationErrors()];
+				} catch (Exception $e) {
+					$errors[] = ['index' => $i, 'idno' => $idno, 'message' => $e->getMessage()];
+				}
+			}
+
+			if (!empty($errors)) {
+				$this->set_response([
+					'status' => 'failed',
+					'message' => 'No changes saved: ' . count($errors) . ' of ' . count($items) . ' items are invalid',
+					'errors' => $errors,
+				], REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
+
+			$user_id = $this->get_api_user_id();
+			$saved = 0;
+			$removed = 0;
+			$this->db->trans_start();
+			foreach ($planned as $p) {
+				$this->Study_presentation_model->replace($p['sid'], $p['settings'], $user_id);
+				if (empty($p['settings'])) {
+					$removed++;
+				} else {
+					$saved++;
+				}
+			}
+			$this->db->trans_complete();
+			if ($this->db->trans_status() === false) {
+				throw new Exception('Saving the default view settings failed; no changes were saved');
+			}
+
+			$this->set_response([
+				'status' => 'success',
+				'result' => ['saved' => $saved, 'removed' => $removed],
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->_error_response($e);
+		}
+	}
+
+	/**
 	 * GET .../data/{idno}/value-counts-summary
 	 */
 	public function data_value_counts_summary_get($idno = null)
@@ -776,6 +945,35 @@ class Timeseries extends MY_REST_Controller {
 	 *
 	 * @return array
 	 */
+	/**
+	 * API result for one study's default view settings.
+	 */
+	private function _presentation_result($sid, $idno)
+	{
+		$row = $this->Study_presentation_model->get_row((int) $sid);
+		return [
+			'sid' => (int) $sid,
+			'idno' => (string) $idno,
+			'data_presentation' => $row && !empty($row['settings']) ? $row['settings'] : null,
+			'changed' => $row && $row['changed'] !== null ? (int) $row['changed'] : null,
+			'changed_by' => $row && !empty($row['changed_by_name']) ? (string) $row['changed_by_name'] : null,
+		];
+	}
+
+	/**
+	 * Settings array from a request value: an object, or null/empty to remove the settings.
+	 */
+	private function _presentation_from_input($value)
+	{
+		if ($value === null) {
+			return [];
+		}
+		if (!is_array($value)) {
+			throw new Exception('data_presentation must be an object or null');
+		}
+		return $value;
+	}
+
 	private function _optional_json_body()
 	{
 		$raw = trim((string) $this->input->raw_input_stream);

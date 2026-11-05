@@ -378,6 +378,12 @@ import { usePublicTimeseriesApi } from '../composables/usePublicTimeseriesApi';
 import IndicatorFilterSidebar from '../components/IndicatorFilterSidebar.vue';
 import IndicatorTimeFilterPanel from '../components/IndicatorTimeFilterPanel.vue';
 import { resolveTimeBoundsYears } from '@/shared/timeseries/indicatorTimeFilterUtils.js';
+import {
+  presentationChartType,
+  presentationDefaultCodes,
+  presentationFromSchema,
+  presentationTimeRange,
+} from '@/shared/timeseries/indicatorPresentation.js';
 import IndicatorEmbedDialog from '../components/IndicatorEmbedDialog.vue';
 
 defineOptions({ name: 'IndicatorChartTab' });
@@ -762,39 +768,56 @@ function draftHasAnyChartFilterSelection() {
 }
 
 /**
- * First visit with no query filters: pick the first codelist code for geography, periodicity,
- * and each dimension facet, and use the full schema reporting-year span when the year slider applies.
+ * First visit with no query filters: use the indicator's default view codes and time period where
+ * they have data, else the first codelist code for geography, periodicity, and each dimension facet, and
+ * the full schema reporting-year span when the year slider applies.
  * Skips when the URL already carried filter params or the draft is non-empty.
  */
 function applyDefaultChartFiltersIfBlank() {
   if (urlHasChartFilterParams() || draftHasAnyChartFilterSelection()) return;
 
+  const presentation = presentationFromSchema(schema.value);
+  const defaults = presentationDefaultCodes(presentation, {
+    geographyName: geographyComponent.value?.name,
+    codelistSelectItems: codelistSelectItems.value,
+  });
+  const defaultCodes = (name) => {
+    if (defaults[name]) return defaults[name];
+    const items = codelistSelectItems.value[name] || [];
+    return items.length ? [String(items[0].value)] : [];
+  };
+
   const geo = geographyComponent.value;
-  if (geo?.name) {
-    const items = codelistSelectItems.value[geo.name] || [];
-    if (items.length && !filterDraft.dGeography.length) {
-      filterDraft.dGeography.push(String(items[0].value));
-    }
+  if (geo?.name && !filterDraft.dGeography.length) {
+    filterDraft.dGeography.push(...defaultCodes(geo.name));
   }
   const per = periodicityComponent.value;
-  if (per?.name) {
-    const items = codelistSelectItems.value[per.name] || [];
-    if (items.length && !filterDraft.dPeriodicity.length) {
-      filterDraft.dPeriodicity.push(String(items[0].value));
-    }
+  if (per?.name && !filterDraft.dPeriodicity.length) {
+    filterDraft.dPeriodicity.push(...defaultCodes(per.name));
   }
   for (const col of facetComponentsForC.value) {
-    const items = codelistSelectItems.value[col.name] || [];
-    if (items.length && !(filterDraft.c[col.name]?.length)) {
-      filterDraft.c[col.name].push(String(items[0].value));
+    if (!(filterDraft.c[col.name]?.length)) {
+      filterDraft.c[col.name].push(...defaultCodes(col.name));
     }
   }
 
   const b = resolveTimeBoundsYears(schema.value, chartMetadata.value?.time_bounds);
-  if (b) {
+  const range = presentationTimeRange(presentation, b);
+  if (range) {
+    filterDraft.from = range.from;
+    filterDraft.to = range.to;
+  } else if (b) {
     filterDraft.from = String(b.min);
     filterDraft.to = String(b.max);
   }
+}
+
+/** No `chart=` in the URL: start with the indicator's `data_presentation.chart_type`. */
+function applyPresentationChartTypeIfBlank() {
+  if (typeof window === 'undefined') return;
+  if (new URLSearchParams(window.location.search || '').has(Q_CHART)) return;
+  const t = presentationChartType(presentationFromSchema(schema.value));
+  if (t) chartType.value = t;
 }
 
 /**
@@ -2328,6 +2351,7 @@ async function loadAll() {
     schema.value = sch;
     syncFilterDraftCShape();
     applyCatalogQueryFromUrl();
+    applyPresentationChartTypeIfBlank();
     await loadCodelistsForSchema();
     await nextTick();
     applyDefaultChartFiltersIfBlank();

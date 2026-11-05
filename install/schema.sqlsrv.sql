@@ -2190,6 +2190,17 @@ CREATE TABLE study_admin_metadata (
 );
 CREATE INDEX idx_study_admin_metadata_changed ON study_admin_metadata (changed);
 
+CREATE TABLE study_presentation (
+  sid int NOT NULL,
+  settings nvarchar(max) NOT NULL,
+  created_by int NULL,
+  changed_by int NULL,
+  created int NULL,
+  changed int NULL,
+  PRIMARY KEY (sid),
+  CONSTRAINT ck_study_presentation_settings_isjson CHECK (ISJSON(settings)=1)
+);
+
 CREATE TABLE analytics_legacy_counts (
   survey_id int NOT NULL PRIMARY KEY,
   total_views int NOT NULL DEFAULT 0,

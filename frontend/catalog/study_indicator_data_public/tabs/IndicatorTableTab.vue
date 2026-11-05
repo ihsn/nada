@@ -164,7 +164,7 @@
                   class="table-layout-panel-slot mb-3"
                   :eligible-dimensions="layoutEligibleDimensions"
                   :study-singleton-keys="layoutPanelSingletonKeys"
-                  :build-default-layout="createDefaultLayout"
+                  :build-default-layout="createInitialLayout"
                   :applied-layout="appliedLayout"
                   :dimension-label-fn="facetLabel"
                   @apply="onApplyLayout"
@@ -278,6 +278,12 @@ import {
   buildDefaultTableLayout,
 } from '@/shared/timeseries/tableDefaultLayout.js';
 import { getStudySingletonDimensionKeys, facetShowsFilter } from '@/shared/timeseries/tableLayoutMatrix.js';
+import {
+  presentationDefaultCodes,
+  presentationFromSchema,
+  presentationTableLayout,
+  presentationTimeRange,
+} from '@/shared/timeseries/indicatorPresentation.js';
 import { buildIndicatorFilterContextLine } from '@/shared/timeseries/indicatorFilterContext.js';
 import { pivotIndicatorTable } from '@/shared/timeseries/pivotIndicatorTable.js';
 import { applyPivotNotes } from '@/shared/timeseries/indicatorNotes.js';
@@ -677,9 +683,12 @@ const debouncedWriteTableQueryToUrl = debounce(writeTableQueryToUrl, 260);
 
 function applyDefaultYearRange() {
   const b = schema.value?.reporting_year_bounds;
-  if (!b || b.min == null || b.max == null) return;
-  if (!String(filterDraft.from ?? '').trim()) filterDraft.from = String(b.min);
-  if (!String(filterDraft.to ?? '').trim()) filterDraft.to = String(b.max);
+  const hasBounds = b && b.min != null && b.max != null;
+  const range = presentationTimeRange(presentationFromSchema(schema.value), hasBounds ? b : null);
+  const from = range?.from || (hasBounds ? String(b.min) : '');
+  const to = range?.to || (hasBounds ? String(b.max) : '');
+  if (from && !String(filterDraft.from ?? '').trim()) filterDraft.from = from;
+  if (to && !String(filterDraft.to ?? '').trim()) filterDraft.to = to;
 }
 
 function ensureSingleOptionFacetDrafts() {
@@ -711,6 +720,14 @@ function createDefaultLayout() {
     geographyKey: geographyLayoutKey.value,
     studyGeographyCount: studyGeographyCount.value,
     studySingletonKeys: new Set(layoutPanelSingletonKeys.value),
+  });
+}
+
+/** Default layout with the indicator's `data_presentation.table_layout` applied on top. */
+function createInitialLayout() {
+  return presentationTableLayout(presentationFromSchema(schema.value), createDefaultLayout(), {
+    eligibleKeys: layoutEligibleDimensions.value.map((d) => d.key).filter(Boolean),
+    timePeriodName: timePeriodKey.value,
   });
 }
 
@@ -829,6 +846,10 @@ async function bootstrapTableOnLoad() {
       periodicityComponent: periodicityComponent.value,
       facetComponentsForC: facetComponentsForC.value,
       codelistSelectItems: codelistSelectItems.value,
+      defaultCodes: presentationDefaultCodes(presentationFromSchema(schema.value), {
+        geographyName: geographyComponent.value?.name,
+        codelistSelectItems: codelistSelectItems.value,
+      }),
     });
   }
   ensureSingleOptionFacetDrafts();
@@ -846,7 +867,7 @@ async function bootstrapTableOnLoad() {
     appliedLayout.value = layoutFromUrl;
     layoutApplied.value = true;
   } else {
-    const defaultLayout = normalizeTableLayout(createDefaultLayout());
+    const defaultLayout = normalizeTableLayout(createInitialLayout());
     appliedLayout.value = defaultLayout;
     layoutApplied.value = true;
   }
