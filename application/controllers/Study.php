@@ -390,7 +390,9 @@ class Study extends MY_Controller {
 		
 		$user=$this->ion_auth->current_user();
 		$options['user_id']=isset($user->id) ? $user->id : false;
-        $options['resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid);
+        //indicators are open access: list microdata resources first on the Downloads tab
+        $include_microdata=isset($survey['type']) && $survey['type']==='timeseries';
+        $options['resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid, $include_microdata);
         $options['group_labels'] = $this->Survey_resource_model->get_group_labels(ci_lang_to_iso());
         $options['sid']=$sid;
         $options['survey_folder']=$this->Catalog_model->get_survey_path_full($sid);
@@ -490,6 +492,12 @@ class Study extends MY_Controller {
 	public function get_microdata($sid)
 	{
 		$survey=$this->get_survey_info($sid);
+
+		//indicators are always open access; data files are listed on the Downloads tab
+		if (isset($survey['type']) && $survey['type'] === 'timeseries'){
+			show_404();
+		}
+
 		$this->load->helper("resource_helper");
 		$this->load->model("Form_model");	
 		$this->load->model("Data_access_whitelist_model");
@@ -927,7 +935,8 @@ class Study extends MY_Controller {
 				$tabs['indicator_table']=$this->study_page_tab($sid, 'indicator-table', t('tab_indicator_table'), $show_indicator);
 				$tabs['indicator_observations']=$this->study_page_tab($sid, 'indicator-data-api', t('tab_indicator_observations'), $show_indicator);
 				$tabs['indicator_structure']=$this->study_page_tab($sid, 'indicator-structure', t('tab_indicator_structure'), $counts['indicator_mongo']);
-				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources']);
+				//Downloads includes microdata resources for indicators (open access)
+				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources'] + $counts['microdata']);
 				break;
 			case 'timeseriesdb':
 			case 'timeseries-db':
@@ -974,7 +983,7 @@ class Study extends MY_Controller {
 			case 'image':
 				return array('resources');
 			case 'timeseries':
-				return array('resources', 'indicator');
+				return array('resources', 'microdata', 'indicator');
 			case 'timeseriesdb':
 			case 'timeseries-db':
 				return array('resources', 'related_series');

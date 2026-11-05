@@ -1853,7 +1853,16 @@ class Catalog extends MY_Controller {
 		}
 		
 		$options['id']=$id;
-		$result=$this->Catalog_model->update_survey_options($options);
+
+		try{
+			$result=$this->Catalog_model->update_survey_options($options);
+		}
+		catch(ValidationException $e){
+			$errors=$e->GetValidationErrors();
+			$this->session->set_flashdata('error', isset($errors['access_policy']) ? $errors['access_policy'] : $e->getMessage());
+			redirect('admin/catalog/edit/'.$id);
+			return;
+		}
 
 		if ($result){
 			$this->session->set_flashdata('message', t('form_update_success'));

@@ -126,9 +126,9 @@
                   variant="tonal"
                   :href="pdfDeleteUrl"
                 >{{ lbl.delete }}</v-btn>
-                <v-chip v-if="pdfStatus === 'na'" size="small" color="warning" variant="flat">
-                  <v-icon size="16" start>mdi-alert</v-icon>{{ lbl.pdf_not_generated }}
-                </v-chip>
+                <span v-if="pdfStatus === 'na'" class="text-error text-body-2 d-inline-flex align-center">
+                  <v-icon size="16" class="mr-1">mdi-alert</v-icon>{{ lbl.pdf_not_generated }}
+                </span>
                 <v-chip v-else-if="pdfStatus === 'uptodate'" size="small" color="success" variant="flat">
                   <v-icon size="16" start>mdi-check</v-icon>{{ lbl.pdf_uptodate }}
                 </v-chip>
@@ -161,18 +161,21 @@
               <div class="text-caption text-medium-emphasis mb-1">{{ lbl.data_access }}</div>
               <v-select
                 v-model="selectedAccessModel"
-                :items="accessSelectItems"
+                :items="isIndicator ? indicatorAccessItems : accessSelectItems"
                 item-title="title"
                 item-value="value"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                clearable
+                :clearable="!isIndicator"
+                :error="indicatorAccessMismatch"
                 class="sov-field-full mb-2"
-                :placeholder="accessSelectItems.length === 0 ? lbl.loading : undefined"
+                :placeholder="!isIndicator && accessSelectItems.length === 0 ? lbl.loading : undefined"
               />
 
-              <div v-if="isRemoteDataAccess" class="sov-remote-da-block">
+              <div v-if="isIndicator" class="sov-indicator-access-help text-caption text-medium-emphasis mb-2">{{ lbl.indicator_open_access_help }}</div>
+
+              <div v-if="!isIndicator && isRemoteDataAccess" class="sov-remote-da-block">
                 <div class="text-caption text-medium-emphasis mb-1">{{ lbl.remote_data_access_url }}</div>
                 <v-text-field
                   id="remote-da"
@@ -185,9 +188,17 @@
                 />
               </div>
 
-              <v-btn class="sov-da-update-btn" size="small" variant="tonal" color="primary" :loading="savingDa" @click="saveDataAccess">{{ lbl.update }}</v-btn>
+              <v-btn
+                class="sov-da-update-btn"
+                size="small"
+                variant="tonal"
+                color="primary"
+                :loading="savingDa"
+                @click="saveDataAccess"
+              >{{ lbl.update }}</v-btn>
 
               <div
+                v-if="!isIndicator"
                 :class="'study-microdata model-' + (dataset.data_access_type || '')"
                 class="sov-microdata-applies"
               >
@@ -399,6 +410,20 @@ const accessSelectItems = computed(() =>
   }))
 );
 
+/** Indicators (timeseries) are always open access — no access type selection */
+const isIndicator = computed(() => dataset.value?.type === 'timeseries');
+
+/** Indicators: highlight the dropdown (red border) until `open` is selected */
+const indicatorAccessMismatch = computed(
+  () => isIndicator.value && String(selectedAccessModel.value || '').toLowerCase() !== 'open'
+);
+
+/** Indicators: empty or `open` (a stored non-open type shows as empty) */
+const indicatorAccessItems = computed(() => [
+  { title: ' ', value: '' },
+  { title: lbl.value.open_access, value: 'open' },
+]);
+
 /** Data access model `remote` — show external repository URL field */
 const isRemoteDataAccess = computed(() => String(selectedAccessModel.value || '').toLowerCase() === 'remote');
 
@@ -457,6 +482,9 @@ const lbl = computed(() => ({
   loading: '…',
   fix_country: 'Fix country',
   data_selection_apply_to_files: 'Applies to files',
+  open_access: 'Open access',
+  indicator_open_access_help: 'For indicators, only open access is supported.',
+
   study_no_data_files_assigned: 'No microdata files',
   ...((config.value && config.value.labels) || {}),
 }));
@@ -708,7 +736,9 @@ async function reloadAll() {
     await loadAccessOptionsForClass(daClass);
 
     const models = new Set((accessOptions.value || []).map((o) => o.model));
-    if (!models.has(selectedAccessModel.value)) {
+    if (isIndicator.value) {
+      selectedAccessModel.value = String(study.data_access_type || '').toLowerCase() === 'open' ? 'open' : '';
+    } else if (!models.has(selectedAccessModel.value)) {
       selectedAccessModel.value = accessOptions.value[0]?.model || '';
     }
   } catch (e) {
@@ -735,6 +765,9 @@ async function loadAccessOptionsForClass(code) {
 
 async function onClassificationChange() {
   await loadAccessOptionsForClass(selectedClassCode.value);
+  if (isIndicator.value) {
+    return;
+  }
   const models = new Set((accessOptions.value || []).map((o) => o.model));
   if (selectedAccessModel.value && !models.has(selectedAccessModel.value)) {
     selectedAccessModel.value = accessOptions.value[0]?.model || '';
@@ -744,15 +777,23 @@ async function onClassificationChange() {
 async function saveDataAccess() {
   savingDa.value = true;
   try {
-    const payload = {
-      access_policy: selectedAccessModel.value ?? '',
-      data_remote_url: remoteDa.value ?? '',
-    };
+    // Indicators: send access_policy only when `open` is selected; empty leaves the stored value unchanged
+    const payload = isIndicator.value
+      ? (selectedAccessModel.value === 'open' ? { access_policy: 'open' } : {})
+      : {
+          access_policy: selectedAccessModel.value ?? '',
+          data_remote_url: remoteDa.value ?? '',
+        };
     if (dcEnabled.value && selectedClassCode.value) {
       payload.data_classification = selectedClassCode.value;
     }
+    if (Object.keys(payload).length === 0) {
+      return;
+    }
     await api.postOptions(payload);
     snackbar.value = { show: true, text: lbl.value.saved, color: 'success' };
+    // sidebar (separate app) reloads its warnings
+    window.dispatchEvent(new CustomEvent('catalogStudyOptionsChanged'));
     await reloadAll();
   } catch (e) {
     snackbar.value = { show: true, text: e.message || String(e), color: 'error' };

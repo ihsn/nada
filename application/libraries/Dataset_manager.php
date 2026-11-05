@@ -209,6 +209,15 @@ class Dataset_manager{
         return $this->ci->Dataset_model->get_data_access_type_id($name);
     }
 
+    /**
+     * Throws ValidationException when the access policy is not allowed for the dataset type
+     * (indicators accept only open; direct/data_na are stored as open).
+     */
+    public function validate_indicator_access_policy($type, $access_policy)
+    {
+        return $this->ci->Dataset_model->validate_indicator_access_policy($type, $access_policy);
+    }
+
     function get_data_classification_id($name)
     {
         return $this->ci->Data_classification_model->get_classification_id($name);

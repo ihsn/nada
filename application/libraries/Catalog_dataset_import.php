@@ -44,6 +44,7 @@ class Catalog_dataset_import
         }
 
         if (! empty($params['formid'])) {
+            $this->ci->dataset_manager->validate_indicator_access_policy($type, (int) $params['formid']);
             $options['formid'] = (int) $params['formid'];
         }
 

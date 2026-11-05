@@ -300,8 +300,9 @@ class Catalog_Admin
 
 		//published
 		//collection dates are missing?
-		$this->ci->db->select('published,year_start,year_end');
-		$this->ci->db->where('id',$sid);
+		$this->ci->db->select('surveys.published,surveys.year_start,surveys.year_end,surveys.type,forms.model as data_access_type');
+		$this->ci->db->join('forms','forms.formid=surveys.formid','left');
+		$this->ci->db->where('surveys.id',$sid);
 		$study_row=$this->ci->db->get('surveys')->row_array();
 
 		if($study_row['published']==0)
@@ -312,6 +313,12 @@ class Catalog_Admin
 		if ((int)$study_row['year_start']===0 && (int)$study_row['year_end']===0)
 		{
 			$warnings[]='warning_study_years_not_set';
+		}
+
+		//indicators are always open access
+		if ($study_row['type']==='timeseries' && strtolower((string)$study_row['data_access_type'])!=='open')
+		{
+			$warnings[]='warning_indicator_data_access_not_open';
 		}
 
 		//study data access model

@@ -651,7 +651,75 @@ class Survey_resource_model extends CI_Model {
 	*
 	*
 	*/
-	function get_grouped_resources_by_survey($surveyid)
+	/**
+	 * Resources grouped for the Downloads tab.
+	 *
+	 * @param int  $surveyid
+	 * @param bool $include_microdata when true (indicators), microdata resources are listed first
+	 *                                under `data_files` and removed from the other groups
+	 * @return array|false
+	 */
+	function get_grouped_resources_by_survey($surveyid, $include_microdata = false)
+	{
+		$output = $this->_get_grouped_resources_by_survey($surveyid);
+
+		if (!$include_microdata) {
+			return $output;
+		}
+
+		$microdata = $this->get_microdata_resources_for_listing($surveyid);
+		if (empty($microdata)) {
+			return $output;
+		}
+
+		$microdata_ids = array();
+		foreach ($microdata as $row) {
+			$microdata_ids[(int) $row['resource_id']] = true;
+		}
+
+		$result = array('data_files' => $microdata);
+		if (is_array($output)) {
+			foreach ($output as $group => $rows) {
+				if (!is_array($rows)) {
+					continue;
+				}
+				$rows = array_values(array_filter($rows, function ($r) use ($microdata_ids) {
+					return !isset($microdata_ids[(int) $r['resource_id']]);
+				}));
+				if (!empty($rows)) {
+					$result[$group] = $rows;
+				}
+			}
+		}
+
+		return $result;
+	}
+
+
+	/**
+	 * Microdata resources (resource_type dat, dat/micro) with the same columns as the grouped listing.
+	 *
+	 * @param int $surveyid
+	 * @return array
+	 */
+	function get_microdata_resources_for_listing($surveyid)
+	{
+		$this->db->select('resources.*, surveys.idno as dataset_idno');
+		$this->db->join('surveys', 'surveys.id = resources.survey_id', 'inner');
+		$this->db->where('survey_id', $surveyid);
+		$this->_where_microdata_resource_type();
+		$this->db->order_by('dcdate', 'desc');
+		$this->db->order_by('title', 'asc');
+
+		$result = $this->db->get('resources')->result_array();
+		foreach ($result as $idx => $row) {
+			$result[$idx]['is_microdata'] = true;
+		}
+		return $result;
+	}
+
+
+	private function _get_grouped_resources_by_survey($surveyid)
 	{
 		$this->_ensure_dctype_group_cache();
 		$output = false;

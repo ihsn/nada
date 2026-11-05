@@ -47,9 +47,9 @@
       >
         <v-expansion-panel value="warnings" elevation="0">
           <v-expansion-panel-title class="csb-card-title py-2">
-            <span class="d-flex align-center flex-wrap gap-2">
+            <span class="d-flex align-center">
               {{ lbl.study_warnings || 'Warnings' }}
-              <v-chip v-if="warnings.length > 0" size="x-small" color="error" variant="flat">{{ warnings.length }}</v-chip>
+              <span v-if="warnings.length > 0" class="csb-warnings-count">{{ warnings.length }}</span>
             </span>
           </v-expansion-panel-title>
           <v-expansion-panel-text class="pt-0 pb-3">
@@ -231,7 +231,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useCatalogStudySidebarApi } from './composables/useCatalogStudySidebarApi';
 import ReplaceDdiDialog from './components/ReplaceDdiDialog.vue';
@@ -402,8 +402,18 @@ function onOwnershipTransferred() {
   }, 600);
 }
 
+/** Overview page saved data access / options — refresh warnings */
+function onStudyOptionsChanged() {
+  loadWarnings();
+}
+
 onMounted(() => {
   loadWarnings();
+  window.addEventListener('catalogStudyOptionsChanged', onStudyOptionsChanged);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('catalogStudyOptionsChanged', onStudyOptionsChanged);
 });
 </script>
 
@@ -467,6 +477,22 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.csb-warnings-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 8px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  color: rgb(var(--v-theme-error));
+  background: rgba(var(--v-theme-error), 0.12);
 }
 
 .csb-warnings li {

@@ -3,8 +3,8 @@
     "file": "assets/public/IndicatorEmbedDialog-DZRD_ERG.css",
     "src": "_IndicatorEmbedDialog-DZRD_ERG.css"
   },
-  "_IndicatorEmbedDialog-Df29guQz.js": {
-    "file": "assets/public/IndicatorEmbedDialog-Df29guQz.js",
+  "_IndicatorEmbedDialog-I-MLzJ-v.js": {
+    "file": "assets/public/IndicatorEmbedDialog-I-MLzJ-v.js",
     "name": "IndicatorEmbedDialog",
     "imports": [
       "_VCombobox-Db3VEV8r.js",
@@ -492,7 +492,7 @@
     ]
   },
   "catalog/study_indicator_data_public/main.js": {
-    "file": "assets/public/catalog_study_indicator_data-D0RKu0T2.js",
+    "file": "assets/public/catalog_study_indicator_data-BksKzomK.js",
     "name": "catalog_study_indicator_data",
     "src": "catalog/study_indicator_data_public/main.js",
     "isEntry": true,
@@ -518,13 +518,13 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorChartTab.vue": {
-    "file": "assets/public/IndicatorChartTab-DzKiypbo.js",
+    "file": "assets/public/IndicatorChartTab-ubqljtQd.js",
     "name": "IndicatorChartTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorChartTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-k6fC9wQ5.js",
-      "_IndicatorEmbedDialog-Df29guQz.js",
+      "_IndicatorEmbedDialog-I-MLzJ-v.js",
       "_usePublicTimeseriesApi-dv2e059d.js",
       "_VChip-Yw3OSdF9.js",
       "_VRow-DE-kuSvt.js",
@@ -541,7 +541,7 @@
       "_VPagination-DsqvSna8.js"
     ],
     "css": [
-      "assets/public/IndicatorChartTab-DUAJJxem.css"
+      "assets/public/IndicatorChartTab-C2D-EcVy.css"
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorDataApiTab.vue": {
@@ -587,13 +587,13 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue": {
-    "file": "assets/public/IndicatorTableTab-BS44LqsG.js",
+    "file": "assets/public/IndicatorTableTab-zC2BBeCR.js",
     "name": "IndicatorTableTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-k6fC9wQ5.js",
-      "_IndicatorEmbedDialog-Df29guQz.js",
+      "_IndicatorEmbedDialog-I-MLzJ-v.js",
       "_usePublicTimeseriesApi-dv2e059d.js",
       "catalog/study_indicator_data_public/main.js",
       "_VChip-Yw3OSdF9.js",
@@ -610,7 +610,7 @@
       "_VContainer-C8wJsCb5.js"
     ],
     "css": [
-      "assets/public/IndicatorTableTab-B9bfVP3S.css",
+      "assets/public/IndicatorTableTab-CBrKZlPs.css",
       "assets/public/materialdesignicons-f3sFGprf.css"
     ],
     "assets": [

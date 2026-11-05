@@ -731,6 +731,7 @@
       "_VTable-BL8FyBRQ.js",
       "_VSwitch-BJHiLcsr.js",
       "_VBreadcrumbs-CDl69Hk8.js",
+      "_VDataTable-CHB8-raC.js",
       "_forwardRefs-jkMSHAWl.js",
       "_dialog-transition-CY-fR-uj.js",
       "_VSheet-CX3JZQCq.js"
@@ -898,7 +899,7 @@
     ]
   },
   "admin/catalog_study_overview/main.js": {
-    "file": "assets/admin/admin_catalog_study_overview-BtTdGQ10.js",
+    "file": "assets/admin/admin_catalog_study_overview-C1sGYBQU.js",
     "name": "admin_catalog_study_overview",
     "src": "admin/catalog_study_overview/main.js",
     "isEntry": true,
@@ -923,7 +924,7 @@
       "_VSheet-CX3JZQCq.js"
     ],
     "css": [
-      "assets/admin/admin_catalog_study_overview-CLVeR9j0.css"
+      "assets/admin/admin_catalog_study_overview-BaAwBhSD.css"
     ]
   },
   "admin/catalog_study_related_data/main.js": {
@@ -993,7 +994,7 @@
     ]
   },
   "admin/catalog_study_sidebar/main.js": {
-    "file": "assets/admin/admin_catalog_study_sidebar-BKtlmoKm.js",
+    "file": "assets/admin/admin_catalog_study_sidebar-Bt1ou9Gz.js",
     "name": "admin_catalog_study_sidebar",
     "src": "admin/catalog_study_sidebar/main.js",
     "isEntry": true,
@@ -1012,15 +1013,15 @@
       "_VMain-B66Ro3gE.js",
       "_VSnackbar-9GztArRF.js",
       "_VExpansionPanels-DXtA6vDy.js",
-      "_VChip-DlSh22xv.js",
       "_VCheckboxBtn-CmjfON8O.js",
       "_forwardRefs-jkMSHAWl.js",
+      "_VChip-DlSh22xv.js",
       "_dialog-transition-CY-fR-uj.js",
       "_VMenu-Dx4Ue5CE.js",
       "_VSheet-CX3JZQCq.js"
     ],
     "css": [
-      "assets/admin/admin_catalog_study_sidebar-691OidnN.css"
+      "assets/admin/admin_catalog_study_sidebar-DEOmWk8e.css"
     ]
   },
   "admin/codelists/main.js": {
@@ -1503,7 +1504,7 @@
     ]
   },
   "admin/study_timeseries_data/main.js": {
-    "file": "assets/admin/admin_study_timeseries_data-DJa9xhY6.js",
+    "file": "assets/admin/admin_study_timeseries_data-B-ztHdAI.js",
     "name": "admin_study_timeseries_data",
     "src": "admin/study_timeseries_data/main.js",
     "isEntry": true,
@@ -1511,29 +1512,30 @@
       "_router-acnSsISW.js",
       "_useAppConfig-DUQl78TA.js",
       "__plugin-vue_export-helper-DlAUqK2U.js",
-      "_VAlert-B1jBxydy.js",
-      "_VCard-BNhEV52u.js",
+      "_VSpacer-D_AU2Eps.js",
       "_VApp-q6CStVWT.js",
+      "_VAlert-B1jBxydy.js",
+      "_VCheckboxBtn-CmjfON8O.js",
       "_VAutocomplete-eXPNFDnP.js",
+      "_VRow-B8e4IlGG.js",
+      "_VSelect-CnLqhfoW.js",
+      "_VCard-BNhEV52u.js",
       "_VFileInput-DjyLwWfa.js",
       "_VChip-DlSh22xv.js",
       "_VTabs-C02yO_i7.js",
+      "_VList-SIrI0GvQ.js",
       "_VDataTable-CHB8-raC.js",
-      "_VSpacer-D_AU2Eps.js",
       "_VMain-B66Ro3gE.js",
       "_VContainer-Bc9Fbstl.js",
-      "_VCheckboxBtn-CmjfON8O.js",
-      "_VList-SIrI0GvQ.js",
       "_forwardRefs-jkMSHAWl.js",
-      "_VSelect-CnLqhfoW.js",
-      "_dialog-transition-CY-fR-uj.js",
       "_VMenu-Dx4Ue5CE.js",
+      "_dialog-transition-CY-fR-uj.js",
       "_VSheet-CX3JZQCq.js",
       "_VPagination-BHlHoKuq.js",
       "_VTable-BL8FyBRQ.js"
     ],
     "css": [
-      "assets/admin/admin_study_timeseries_data-Dgih0lJt.css"
+      "assets/admin/admin_study_timeseries_data-CtMHrBS-.css"
     ]
   },
   "admin/tables/main.js": {
@@ -1634,8 +1636,8 @@
     "file": "assets/public/IndicatorEmbedDialog-DZRD_ERG.css",
     "src": "_IndicatorEmbedDialog-DZRD_ERG.css"
   },
-  "_IndicatorEmbedDialog-Df29guQz.js": {
-    "file": "assets/public/IndicatorEmbedDialog-Df29guQz.js",
+  "_IndicatorEmbedDialog-I-MLzJ-v.js": {
+    "file": "assets/public/IndicatorEmbedDialog-I-MLzJ-v.js",
     "name": "IndicatorEmbedDialog",
     "imports": [
       "_VCombobox-Db3VEV8r.js",
@@ -2087,7 +2089,7 @@
     ]
   },
   "catalog/study_indicator_data_public/main.js": {
-    "file": "assets/public/catalog_study_indicator_data-D0RKu0T2.js",
+    "file": "assets/public/catalog_study_indicator_data-BksKzomK.js",
     "name": "catalog_study_indicator_data",
     "src": "catalog/study_indicator_data_public/main.js",
     "isEntry": true,
@@ -2113,13 +2115,13 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorChartTab.vue": {
-    "file": "assets/public/IndicatorChartTab-DzKiypbo.js",
+    "file": "assets/public/IndicatorChartTab-ubqljtQd.js",
     "name": "IndicatorChartTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorChartTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-k6fC9wQ5.js",
-      "_IndicatorEmbedDialog-Df29guQz.js",
+      "_IndicatorEmbedDialog-I-MLzJ-v.js",
       "_usePublicTimeseriesApi-dv2e059d.js",
       "_VChip-Yw3OSdF9.js",
       "_VRow-DE-kuSvt.js",
@@ -2136,7 +2138,7 @@
       "_VPagination-DsqvSna8.js"
     ],
     "css": [
-      "assets/public/IndicatorChartTab-DUAJJxem.css"
+      "assets/public/IndicatorChartTab-C2D-EcVy.css"
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorDataApiTab.vue": {
@@ -2182,13 +2184,13 @@
     ]
   },
   "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue": {
-    "file": "assets/public/IndicatorTableTab-BS44LqsG.js",
+    "file": "assets/public/IndicatorTableTab-zC2BBeCR.js",
     "name": "IndicatorTableTab",
     "src": "catalog/study_indicator_data_public/tabs/IndicatorTableTab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-k6fC9wQ5.js",
-      "_IndicatorEmbedDialog-Df29guQz.js",
+      "_IndicatorEmbedDialog-I-MLzJ-v.js",
       "_usePublicTimeseriesApi-dv2e059d.js",
       "catalog/study_indicator_data_public/main.js",
       "_VChip-Yw3OSdF9.js",
@@ -2205,7 +2207,7 @@
       "_VContainer-C8wJsCb5.js"
     ],
     "css": [
-      "assets/public/IndicatorTableTab-B9bfVP3S.css",
+      "assets/public/IndicatorTableTab-CBrKZlPs.css",
       "assets/public/materialdesignicons-f3sFGprf.css"
     ],
     "assets": [
