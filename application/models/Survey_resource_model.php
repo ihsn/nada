@@ -599,7 +599,7 @@ class Survey_resource_model extends CI_Model {
 				}
 			}
 		}
-		return $resources;
+		return array_values($resources);
 	}
 
 	/**
