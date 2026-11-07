@@ -221,7 +221,7 @@ $config['acl_permissions'] = [
             ]
         ]
     ],
-    "semantic_search"=>[
+    "search_index"=>[
         "title" => "Search index",
         "description" => "View the search index, run indexing jobs, and rebuild the index",
         "permissions"=>[

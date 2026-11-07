@@ -37,7 +37,7 @@ class Search_index extends MY_REST_Controller
 	public function status_get()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('view');
 			$this->set_response(
 				array('status' => 'success') + $this->search_index_manager->status(),
 				REST_Controller::HTTP_OK
@@ -62,7 +62,7 @@ class Search_index extends MY_REST_Controller
 	public function summary_get()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('view');
 			$object_type = $this->input->get('object_type');
 			$summary = $this->search_index_manager->object_type_summary(
 				($object_type !== false && $object_type !== null && $object_type !== '') ? (string) $object_type : 'survey'
@@ -94,7 +94,7 @@ class Search_index extends MY_REST_Controller
 	public function type_breakdown_get()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('view');
 			$object_type = $this->input->get('object_type');
 			$items = $this->search_index_manager->type_breakdown(
 				($object_type !== false && $object_type !== null && $object_type !== '') ? (string) $object_type : 'survey'
@@ -122,7 +122,7 @@ class Search_index extends MY_REST_Controller
 	public function queue_get()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('view');
 
 			$status      = $this->input->get('status');
 			$object_type = $this->input->get('object_type');
@@ -170,7 +170,7 @@ class Search_index extends MY_REST_Controller
 	public function ack_post($id = null)
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('edit');
 
 			$body    = $this->_json_body();
 			$result  = isset($body['result']) ? (string) $body['result'] : '';
@@ -213,7 +213,7 @@ class Search_index extends MY_REST_Controller
 	public function ack_batch_post()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('edit');
 			$body  = $this->_json_body();
 			$items = isset($body['items']) && is_array($body['items']) ? $body['items'] : array();
 			$result = $this->search_index_manager->ack_batch($items);
@@ -243,7 +243,7 @@ class Search_index extends MY_REST_Controller
 	public function sync_post()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('edit');
 			$object_type = $this->input->get('object_type');
 			$refresh     = $this->input->get('refresh_indexed');
 			$data_type   = $this->input->get('data_type');
@@ -284,7 +284,7 @@ class Search_index extends MY_REST_Controller
 	public function requeue_post()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('edit');
 			$body = $this->_json_body();
 
 			if (isset($body['status']) && $body['status'] === 'failed') {
@@ -337,7 +337,7 @@ class Search_index extends MY_REST_Controller
 	public function state_bulk_post()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('edit');
 
 			$body  = $this->_json_body();
 			$items = isset($body['items']) && is_array($body['items']) ? $body['items'] : array();
@@ -378,7 +378,7 @@ class Search_index extends MY_REST_Controller
 	public function diff_missing_get()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('view');
 
 			$object_type = $this->input->get('object_type');
 			$limit       = $this->input->get('limit');
@@ -419,7 +419,7 @@ class Search_index extends MY_REST_Controller
 	public function diff_stale_get()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('view');
 
 			$object_type = $this->input->get('object_type');
 			$limit       = $this->input->get('limit');
@@ -462,14 +462,8 @@ class Search_index extends MY_REST_Controller
 	/**
 	 * @throws AclAccessDeniedException
 	 */
-	private function _require_admin_catalog_access()
+	private function _require_search_index($privilege)
 	{
-		$user = $this->api_user();
-		if (!$user) {
-			throw new AclAccessDeniedException('ACCESS_DENIED');
-		}
-		if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
-			throw new AclAccessDeniedException('ACCESS_DENIED');
-		}
+		$this->has_access('search_index', $privilege);
 	}
 }

@@ -10,7 +10,7 @@ class Semantic extends MY_Controller
 
 	function index()
 	{
-		$this->acl_manager->has_access_or_die('semantic_search', 'view');
+		$this->acl_manager->has_access_or_die('search_index', 'view');
 		$this->load->helper('vite_helper');
 
 		$view_data = array(
@@ -19,8 +19,8 @@ class Semantic extends MY_Controller
 			'api_base_url' => site_url('api/admin/semantic/'),
 			'assets_base'  => base_url('frontend/dist/'),
 			'csrf_token'   => $this->security->get_csrf_hash(),
-			'can_edit'     => $this->acl_manager->user_has_access('semantic_search', 'edit'),
-			'can_delete'   => $this->acl_manager->user_has_access('semantic_search', 'delete'),
+			'can_edit'     => $this->acl_manager->user_has_access('search_index', 'edit'),
+			'can_delete'   => $this->acl_manager->user_has_access('search_index', 'delete'),
 		);
 
 		$page = array(

@@ -142,7 +142,7 @@ function home_search_phrases()
 }
 
 /**
- * Whether the current user may see search debug payloads: signed in with the semantic search 'view' permission
+ * Whether the current user may see search debug payloads: signed in with the search index 'view' permission
  * (admins have it).
  */
 function catalog_search_debug_viewer()
@@ -152,7 +152,7 @@ function catalog_search_debug_viewer()
 		return false;
 	}
 
-	return $CI->acl_manager->user_has_access('semantic_search', 'view');
+	return $CI->acl_manager->user_has_access('search_index', 'view');
 }
 
 /**

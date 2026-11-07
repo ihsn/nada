@@ -120,7 +120,7 @@ class Semantic extends MY_REST_Controller
 	{
 		// Throws AclAccessDeniedException on denial — caught by each action below,
 		// same convention as api/admin/Configurations.php.
-		$this->has_access('semantic_search', $privilege);
+		$this->has_access('search_index', $privilege);
 	}
 
 	/**

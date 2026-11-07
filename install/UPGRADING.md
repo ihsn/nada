@@ -79,6 +79,12 @@ NADA 5.6 started storing API keys as hashes. Keys from earlier versions that hav
 
 NADA 5.7.2 rejected these keys, so on a site upgrading from 5.7.2 they can start working again. Revoke any old keys that should no longer work. To reject all unconverted keys, set `$config['api_key_enable_legacy_support'] = FALSE;` in `application/config/rest.php`.
 
+## NADA-AI API key
+
+NADA-AI reads the catalog and the change queue with an API key from NADA. The user that owns the key must be a full administrator, or have a role with both the **view** and **edit** privileges of the **Search index** permission. Without them, indexing stops with access denied.
+
+The same permission lets other users manage the **Search index** admin page without being full administrators.
+
 ## Fresh installs
 
 New installations use `install/schema.mysql.sql` (or `schema.sqlsrv.sql`) plus `install/schema.dd.{mysql,sqlsrv}.sql`. The schema files already include all migrations up to the release, and the installer records the latest version. You do not need to run `migrate latest` after a fresh install.

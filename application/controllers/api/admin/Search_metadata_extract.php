@@ -32,7 +32,7 @@ class Search_metadata_extract extends MY_REST_Controller
 	public function status_get()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('view');
 
 			$total = (int) $this->db->count_all('surveys');
 			$published = (int) $this->db->where('published', 1)->count_all_results('surveys');
@@ -110,7 +110,7 @@ class Search_metadata_extract extends MY_REST_Controller
 		}
 
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('edit');
 
 			$citation_id = (int) $id;
 			if ($citation_id <= 0) {
@@ -198,7 +198,7 @@ class Search_metadata_extract extends MY_REST_Controller
 	private function _citations_batch_get()
 	{
 		try {
-			$this->_require_admin_catalog_access();
+			$this->_require_search_index('edit');
 
 			$this->config->load('search_metadata_extract');
 			$max_limit = (int) $this->config->item('search_metadata_extract_citations_max_limit') ?: 500;
@@ -258,7 +258,7 @@ class Search_metadata_extract extends MY_REST_Controller
 	 */
 	private function _variables_batch_get()
 	{
-		$this->_require_admin_catalog_access();
+		$this->_require_search_index('edit');
 
 		list($limit, $offset, $after_uid) = $this->_variables_page_params();
 
@@ -284,7 +284,7 @@ class Search_metadata_extract extends MY_REST_Controller
 
 	private function _studies_batch_get()
 	{
-		$this->_require_admin_catalog_access();
+		$this->_require_search_index('edit');
 
 		// ?sids=1,2,3: these studies, in this order (at most the batch limit)
 		$sids = $this->input->get('sids');
@@ -338,15 +338,9 @@ class Search_metadata_extract extends MY_REST_Controller
 	/**
 	 * @throws AclAccessDeniedException
 	 */
-	private function _require_admin_catalog_access()
+	private function _require_search_index($privilege)
 	{
-		$user = $this->api_user();
-		if (!$user) {
-			throw new AclAccessDeniedException('ACCESS_DENIED');
-		}
-		if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
-			throw new AclAccessDeniedException('ACCESS_DENIED');
-		}
+		$this->has_access('search_index', $privilege);
 	}
 
 	/**
