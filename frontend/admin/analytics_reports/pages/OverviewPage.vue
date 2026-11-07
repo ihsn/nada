@@ -25,8 +25,10 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useI18n } from '@/shared/composables/useI18n';
 import { useAnalyticsApi } from '../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../composables/useAnalyticsMessages';
+import { formatMonthLabel } from '../utils/formatters';
 import AggregationHealthAlert from '../components/AggregationHealthAlert.vue';
 import OverviewKpiRow from '../components/overview/OverviewKpiRow.vue';
 import TopStudiesCard from '../components/overview/TopStudiesCard.vue';
@@ -36,6 +38,7 @@ import RecentActivityCard from '../components/overview/RecentActivityCard.vue';
 defineOptions({ name: 'OverviewPage' });
 
 const { config } = useAppConfig();
+const { t } = useI18n();
 const api = useAnalyticsApi();
 const { notifyError } = useAnalyticsMessages();
 
@@ -45,7 +48,7 @@ const lastCompletedAt = ref(null);
 const today = ref({ pageviews: 0, downloads: 0 });
 const monthStats = ref({ pageviews: 0, downloads: 0 });
 const prevMonth = ref({ pageviews: 0, downloads: 0 });
-const monthLabel = ref('This month');
+const monthLabel = ref(t('analytics_this_month', 'This month'));
 const dailyDays = ref([]);
 const topStudies = ref([]);
 const topFiles = ref([]);
@@ -53,12 +56,12 @@ const recentPageviews = ref([]);
 const recentDownloads = ref([]);
 
 function resolveMonthLabel(kpiMonth, serverDate) {
-  if (!kpiMonth) return 'This month';
+  if (!kpiMonth) return t('analytics_this_month', 'This month');
   const parts = String(serverDate || '').split('-');
   if (parts.length === 3 && Number(kpiMonth.year) === Number(parts[0]) && Number(kpiMonth.month) === Number(parts[1])) {
-    return 'This month';
+    return t('analytics_this_month', 'This month');
   }
-  return kpiMonth.label || 'This month';
+  return formatMonthLabel(kpiMonth) || t('analytics_this_month', 'This month');
 }
 
 async function load() {
@@ -80,7 +83,7 @@ async function load() {
     monthLabel.value = resolveMonthLabel(d.kpi_month, d.server_date || meta.server_date);
     lastCompletedAt.value = d.aggregation?.last_completed_at || meta.last_completed_at || null;
   } catch (e) {
-    notifyError(e.message || 'Failed to load overview');
+    notifyError(e.message || t('analytics_load_overview_error', 'Failed to load overview'));
   } finally {
     loading.value = false;
   }

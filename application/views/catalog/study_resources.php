@@ -11,10 +11,10 @@
 </style>
 <div class="body-container" >
     <div class="page-links pull-right">
-        <a href="<?php echo site_url(); ?>/admin/resources/add/new/<?php echo $survey_id;?>" ><?php echo t('link_add_new_resource'); ?></a>  |
-        <a href="<?php echo site_url(); ?>/admin/resources/import/<?php echo $survey_id;?>" ><?php echo t('link_import_rdf'); ?></a>  |
-        <a href="<?php echo site_url(); ?>/admin/resources/fixlinks/<?php echo $survey_id;?>" ><?php echo t('link_fix_broken'); ?></a>  |
-        <a href="<?php echo site_url(); ?>/admin/catalog/export_rdf/<?php echo $survey_id;?>" ><?php echo t('rdf_export'); ?></a>
+        <a href="<?php echo site_url('admin/catalog/edit/'.$survey_id.'/resources/add'); ?>" ><?php echo t('link_add_new_resource'); ?></a>  |
+        <a href="<?php echo site_url('admin/catalog/edit/'.$survey_id.'/resources?import=1'); ?>" ><?php echo t('link_import_rdf'); ?></a>  |
+        <a href="<?php echo site_url('admin/catalog/edit/'.$survey_id.'/resources?fix=1'); ?>" ><?php echo t('link_fix_broken'); ?></a>  |
+        <a href="<?php echo site_url('admin/catalog/export_rdf/'.$survey_id); ?>" ><?php echo t('rdf_export'); ?></a>
     </div>
 
 <form class="left-pad" style="margin-bottom:10px;" method="GET" id="search-form">
@@ -60,15 +60,15 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
         <?php
 				$resource_exists=FALSE;
-				if( trim($row->filename)=='')
+				if (trim($row->filename) === '')
 				{
 					$resource_exists=FALSE;
 				}
-				else if(file_exists(unix_path($survey_folder.'/'.$row->filename)) )
+				else if (is_url($row->filename))
 				{
 					$resource_exists=TRUE;
 				}
-				else if (is_url($row->filename))
+				else if (check_resource_file_under($survey_folder, $row->filename) !== FALSE)
 				{
 					$resource_exists=TRUE;
 				}
@@ -77,7 +77,7 @@
     	<tr class="<?php echo $tr_class; ?>">
         	<td><input type="checkbox" value="<?php echo $row->resource_id; ?>" class="chk"/></td>
             <td>
-                <a href="<?php echo site_url();?>/admin/resources/edit/<?php echo $row->resource_id;?>/<?php echo $row->survey_id;?>"><?php echo $row->title; ?></a>
+                <a href="<?php echo site_url('admin/catalog/edit/'.$row->survey_id.'/resources/edit/'.$row->resource_id);?>"><?php echo $row->title; ?></a>
                 <?php if (!empty($row->resource_idno)): ?>
                     <br/><small class="text-muted"><?php echo htmlspecialchars($row->resource_idno); ?></small>
                 <?php endif; ?>
@@ -93,7 +93,7 @@
             <td><?php echo $row->dctype; ?>&nbsp;</td>
       			<td nowrap="nowrap"><?php echo date($this->config->item('date_format'), $row->changed); ?></td>
       			<td nowrap="nowrap">
-              <a href="<?php echo site_url();?>/admin/resources/edit/<?php echo $row->resource_id;?>/<?php echo $row->survey_id;?>"><?php echo t('edit'); ?></a> |
+              <a href="<?php echo site_url('admin/catalog/edit/'.$row->survey_id.'/resources/edit/'.$row->resource_id);?>"><?php echo t('edit'); ?></a> |
               <a href="<?php echo site_url('admin/resources/delete/'.$row->survey_id.'/'.$row->resource_id.'?destination='.$this->uri->uri_string());?>"><?php echo t('delete'); ?></a>
               <?php if($row->filename!=''):?>
               | <a href="<?php echo site_url('admin/resources/download/'.$survey_id.'/'.$row->resource_id);?>"><?php echo t('download'); ?></a>

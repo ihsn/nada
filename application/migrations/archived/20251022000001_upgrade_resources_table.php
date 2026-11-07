@@ -74,7 +74,7 @@ class Migration_Upgrade_resources_table extends MY_Migration {
                 
                 log_message('info', "Updated {$affected} resources: dctype='{$dctype}' -> resource_type='{$resource_type}'");
             } else {
-                log_message('warning', "Could not extract resource_type from dctype: '{$dctype}'");
+                log_message('error', "Could not extract resource_type from dctype: '{$dctype}'");
             }
         }
         

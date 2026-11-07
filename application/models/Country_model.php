@@ -318,6 +318,30 @@ class Country_model extends CI_Model {
 	
 	/**
 	*
+	* Return country id by ISO code
+	**/
+	function find_country_by_iso($iso)
+	{
+		$iso=strtoupper(trim((string)$iso));
+		if ($iso===''){
+			return false;
+		}
+
+		$this->db->select('countryid');
+		$this->db->where('iso',$iso);
+		$country=$this->db->get('countries')->row_array();
+
+		if ($country)
+		{
+			return $country['countryid'];
+		}
+
+		return false;
+	}
+
+
+	/**
+	*
 	* Return country id by country name
 	**/
 	function find_country_by_name($name)

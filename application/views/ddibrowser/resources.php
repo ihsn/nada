@@ -34,10 +34,13 @@
         {
             $url=prep_url($row['filename']);
         }
-        elseif (trim($row['filename'])!=='' && check_resource_file($this->survey_folder.'/'.$row['filename'])!==FALSE )
+        elseif (trim($row['filename'])!=='')
         {
-            $url=site_url().'/catalog/'.$this->uri->segment(2).'/download/'.$row['resource_id'];
-            $file_size=format_bytes(filesize($this->survey_folder.'/'.$row['filename']),2);
+            $safe_file = check_resource_file_under($this->survey_folder, $row['filename']);
+            if ($safe_file !== FALSE) {
+                $url=site_url().'/catalog/'.$this->uri->segment(2).'/download/'.$row['resource_id'];
+                $file_size=format_bytes(filesize($safe_file),2);
+            }
         }
         //get file extension
         $ext=get_file_extension($row['filename']);

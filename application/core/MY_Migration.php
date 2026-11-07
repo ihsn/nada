@@ -139,7 +139,7 @@ class MY_Migration extends CI_Migration {
                         $error_code = $error['code'];
                         
                         // Check if error is safe to skip (handles "42S21/2705" format internally)
-                        if ($this->is_safe_to_skip_error($error_code, $this->db->dbdriver)) {
+                        if ($this->is_safe_to_skip_error($error_code, $this->db->dbdriver, $error['message'])) {
                             $skipped++;
                             echo "✓ SKIPPED (already applied) - Error {$error_code}: {$error['message']}\n";
                             echo "  Time: {$execution_time}ms\n\n";
@@ -259,7 +259,7 @@ class MY_Migration extends CI_Migration {
         return (int)$error_code;
     }
     
-    protected function is_safe_to_skip_error($error_code, $db_driver)
+    protected function is_safe_to_skip_error($error_code, $db_driver, $error_message = '')
     {
         if (in_array($db_driver, array('mysql', 'mysqli'))) {
             $safe_errors = array(
@@ -274,6 +274,13 @@ class MY_Migration extends CI_Migration {
             
             // MySQL SQLSTATE codes (fallback)
             $safe_sqlstates = array('42S01', '42S02', '42S21', '42S22');
+
+            // MariaDB / older MySQL report a duplicate FK constraint name as
+            // 1005 "Can't create table ... (errno: 121 ...)" instead of 1826
+            if ($this->extract_native_error_code($error_code) === 1005
+                && strpos((string)$error_message, 'errno: 121') !== false) {
+                return true;
+            }
             
         } elseif ($db_driver == 'sqlsrv') {
             $safe_errors = array(
@@ -391,7 +398,7 @@ class MY_Migration extends CI_Migration {
         $code = isset($error['code']) ? $error['code'] : '';
         $message = isset($error['message']) ? $error['message'] : 'unknown error';
 
-        if ($this->is_safe_to_skip_error($code, $this->db->dbdriver)) {
+        if ($this->is_safe_to_skip_error($code, $this->db->dbdriver, $message)) {
             log_message('info', "Skipped (already applied) {$description}: {$message}");
             return;
         }

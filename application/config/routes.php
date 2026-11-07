@@ -142,6 +142,7 @@ $route['api/datasets/(:any)/resources/fix_links'] = 'api/resources/fix_links/$1'
 $route['api/admin/resources/(:any)/resources'] = 'api/admin/resources/$1';
 $route['api/admin/resources/(:any)/resources/(:num)'] = 'api/admin/resources/$1/$2';
 $route['api/admin/resources/(:any)/resources/delete/(:num)'] = 'api/admin/resources/delete/$1/$2';
+$route['api/admin/resources/(:any)/resources/update/(:num)'] = 'api/admin/resources/update/$1/$2';
 $route['api/admin/resources/(:any)/resources/delete_all'] = 'api/admin/resources/delete_all/$1';
 $route['api/admin/resources/(:any)/resources/import_rdf'] = 'api/admin/resources/import_rdf/$1';
 $route['api/admin/resources/(:any)/resources/export_rdf'] = 'api/admin/resources/export_rdf/$1';
@@ -189,7 +190,11 @@ $route['api/admin/catalog/import_package/create']       = 'api/admin/catalog/imp
 $route['api/admin/catalog/import_package/datafile']     = 'api/admin/catalog/import_package_datafile';
 $route['api/admin/catalog/import_package/finalize']     = 'api/admin/catalog/import_package_finalize';
 $route['api/admin/catalog/list_collections']            = 'api/admin/catalog/list_collections';
+$route['api/admin/catalog/featured_studies']            = 'api/admin/catalog/featured_studies';
+$route['api/admin/catalog/(:any)/data_file_resources/(:any)'] = 'api/admin/catalog/data_file_resources/$1/$2';
+$route['api/admin/catalog/(:any)/data_file_resources'] = 'api/admin/catalog/data_file_resources/$1';
 $route['api/admin/catalog/(:any)/warnings']            = 'api/admin/catalog/warnings/$1';
+$route['admin/catalog/featured_studies'] = 'admin/catalog/featured_studies';
 $route['api/admin/catalog/(:any)/summary']             = 'api/admin/catalog/summary/$1';
 $route['api/admin/catalog/(:any)/folder-status']      = 'api/admin/catalog/folder_status/$1';
 $route['api/admin/catalog/(:any)/aliases/delete']       = 'api/admin/catalog/aliases_delete/$1';
@@ -212,6 +217,7 @@ $route['api/admin/catalog/(:any)/microdata/variables/(:any)']    = 'api/admin/mi
 $route['api/admin/catalog/(:any)/microdata/variables']           = 'api/admin/microdata/variables/$1';
 $route['api/admin/catalog/(:any)/microdata/datafiles/(:any)']    = 'api/admin/microdata/datafiles/$1/$2';
 $route['api/admin/catalog/(:any)/microdata/datafiles']           = 'api/admin/microdata/datafiles/$1';
+$route['api/admin/catalog/(:any)/pdf_options'] = 'api/admin/catalog/pdf_options/$1';
 $route['api/admin/catalog/(:any)/generate_pdf'] = 'api/admin/catalog/generate_pdf/$1';
 $route['api/admin/catalog/delete_pdf/(:any)'] = 'api/admin/catalog/delete_pdf/$1';
 $route['api/admin/catalog/(:any)/replace_ddi'] = 'api/admin/catalog/replace_ddi/$1';
@@ -224,7 +230,6 @@ $route['api/admin/catalog/(:any)/transfer_ownership'] = 'api/admin/catalog/trans
 $route['api/admin/catalog/(:any)/files/download']       = 'api/admin/catalog_files/download/$1';
 $route['api/admin/catalog/(:any)/files/download/(.*)'] = 'api/admin/catalog_files/download/$1/$2';
 $route['api/admin/catalog/(:any)/files/commit']       = 'api/admin/catalog_files/commit_resumable/$1';
-$route['api/admin/catalog/(:any)/files/upload']       = 'api/admin/catalog_files/process_batch_uploads/$1';
 $route['api/admin/catalog/(:any)/files/(.*)/delete']  = 'api/admin/catalog_files/files_delete/$1/$2';
 $route['api/admin/catalog/(:any)/files/(.*)']        = 'api/admin/catalog_files/$1/$2';
 $route['api/admin/catalog/(:any)/files']              = 'api/admin/catalog_files/$1';
@@ -250,7 +255,6 @@ $route['api/admin/data-classifications/(.*)']        = 'api/admin/data_classific
 $route['api/admin/catalog-files/(:any)/download']       = 'api/admin/catalog_files/download/$1';
 $route['api/admin/catalog-files/(:any)/download/(.*)'] = 'api/admin/catalog_files/download/$1/$2';
 $route['api/admin/catalog-files/(:any)/commit']       = 'api/admin/catalog_files/commit_resumable/$1';
-$route['api/admin/catalog-files/(:any)/upload']       = 'api/admin/catalog_files/process_batch_uploads/$1';
 $route['api/admin/catalog-files/(:any)/(.*)/delete']  = 'api/admin/catalog_files/files_delete/$1/$2';
 $route['api/admin/catalog-files/(:any)/(.*)']        = 'api/admin/catalog_files/$1/$2';
 $route['api/admin/catalog-files/(:any)']              = 'api/admin/catalog_files/$1';
@@ -373,6 +377,7 @@ $route['catalog/(:num)/related-publications'] = "study/related_publications/$1";
 $route['catalog/(:num)/related_citations'] = "study/related_publications/$1";
 $route['catalog/(:num)/get-microdata'] = "study/get_microdata/$1";
 $route['catalog/(:num)/get_microdata'] = "study/get_microdata/$1";
+$route['catalog/(:num)/view-document'] = "study/view_document/$1";
 $route['catalog/(:num)/related_materials'] = "study/related_materials/$1";
 $route['catalog/(:num)/related-materials'] = "study/related_materials/$1";
 $route['catalog/(:num)/downloads'] = "study/downloads/$1";
@@ -403,6 +408,7 @@ $route['embed/catalog/(:num)/table'] = 'embed/catalog_table/$1';
 $route['admin'] = "admin/admin";
 $route['admin/ui-kit'] = "admin/admin/ui_kit";
 $route['admin/logs/cleanup'] = "admin/logs/cleanup";
+$route['admin/search-index'] = "admin/semantic";
 
 // DB Logs API
 $route['api/db_logs/row_counts']              = "api/db_logs/row_counts";
@@ -480,6 +486,8 @@ $route['api/admin/timeseries/data/(:any)/count']                 = 'api/admin/ti
 $route['api/admin/timeseries/data/(:any)']                       = 'api/admin/timeseries/data/$1';
 $route['api/admin/timeseries/data/(:any)/sync-counts']          = 'api/admin/timeseries/data_sync_counts/$1';
 $route['api/admin/timeseries/data/(:any)/value-counts-summary'] = 'api/admin/timeseries/data_value_counts_summary/$1';
+$route['api/admin/timeseries/data/(:any)/presentation']      = 'api/admin/timeseries/data_presentation/$1';
+$route['api/admin/timeseries/presentation/batch']          = 'api/admin/timeseries/presentation_batch';
 $route['api/admin/timeseries/data/(:any)/attach-dsd']          = 'api/admin/timeseries/data_attach_dsd/$1';
 $route['api/admin/timeseries/data/(:any)/rehash']              = 'api/admin/timeseries/data_rehash/$1';
 $route['api/admin/timeseries/data/(:any)/duplicates']          = 'api/admin/timeseries/data_duplicates/$1';
@@ -558,8 +566,6 @@ $route['access_direct/(:num)/download/(:any)'] = "access_direct/download/$1/$2";
 $route['access_enclave/(:num)'] = "access_enclave/index/$1";
 $route['access_enclave/(:num)/download/(:any)'] = "access_enclave/download/$1/$2";
 
-$route['admin/permissions/(:num)'] = "admin/permissions/index/$1";
-
 //Downloads API
 $route['api/downloads/(:any)/files'] = "api/downloads/files/$1";
 $route['api/downloads/(:any)/info/(:any)'] = "api/downloads/info/$1/$2";
@@ -600,11 +606,20 @@ $route['api/admin/bulk-data-access/(.*)'] = 'api/admin/bulk_da/$1';
 
 $route['api/admin/licensed-requests'] = 'api/admin/licensed_requests';
 $route['api/admin/licensed-requests/(.*)'] = 'api/admin/licensed_requests/$1';
+$route['api/admin/licensed_requests/export'] = 'api/admin/licensed_requests/export';
 $route['api/admin/licensed_requests/item/(:num)'] = 'api/admin/licensed_requests/item/$1';
 $route['api/admin/licensed_requests/item_delete/(:num)'] = 'api/admin/licensed_requests/item_delete/$1';
 $route['api/admin/licensed_requests/batch_delete'] = 'api/admin/licensed_requests/batch_delete';
 $route['api/admin/licensed_requests/send_mail/(:num)'] = 'api/admin/licensed_requests/send_mail/$1';
 $route['api/admin/licensed_requests/forward/(:num)'] = 'api/admin/licensed_requests/forward/$1';
+$route['admin/licensed_requests/edit/(:num)/(:any)'] = 'admin/licensed_requests/edit/$1/$2';
+
+// Admin permissions / roles API (site admin only)
+$route['api/admin/permissions/resources'] = 'api/admin/permissions/resources';
+$route['api/admin/permissions/roles/(:num)/permissions'] = 'api/admin/permissions/role_permissions/$1';
+$route['api/admin/permissions/roles/(:num)/delete'] = 'api/admin/permissions/role_delete/$1';
+$route['api/admin/permissions/roles/(:num)'] = 'api/admin/permissions/role/$1';
+$route['api/admin/permissions/roles'] = 'api/admin/permissions/roles';
 
 
 /* End of file routes.php */

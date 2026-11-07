@@ -289,10 +289,9 @@ class Data_access_licensed extends CI_Driver {
 		//survey folder path
 		$survey_folder=$this->CI->Catalog_model->get_survey_path_full($survey_id);
 
-		//build licensed file path
-		$file_path=$survey_folder.'/'.$fileinfo['filename'];
-
-		if (!file_exists($file_path))
+		$this->CI->load->helper('file');
+		$file_path = resolve_under_directory($survey_folder, $fileinfo['filename']);
+		if ($file_path === false || ! is_file($file_path))
 		{
 			show_error('RESOURCE_NOT_FOUND');
 		}

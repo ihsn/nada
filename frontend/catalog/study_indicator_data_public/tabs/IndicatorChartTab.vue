@@ -164,7 +164,7 @@
                     rounded="lg"
                     class="chart-hint pa-3 mb-3 text-body-2 text-medium-emphasis"
                   >
-                    <span>Time axis uses a continuous date scale (missing periods appear as wider gaps).</span>
+                    <span>Time axis uses a continuous date scale (missing periods appear as breaks in the line).</span>
                   </v-sheet>
                   <v-alert
                     v-if="!isIndicatorEmbed && dataLoadCommitted && seriesTruncated"
@@ -372,12 +372,18 @@ import {
 import debounce from 'lodash/debounce';
 import Chart from 'chart.js/auto';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
-import { buildIndicatorFilterContextLine } from '@/shared/timeseries/indicatorFilterContext.js';
+import { buildIndicatorChartSubtitle } from '@/shared/timeseries/indicatorFilterContext.js';
 import { cellNoteIds, createNoteNumbering, formatMarkers, noteLines } from '@/shared/timeseries/indicatorNotes.js';
 import { usePublicTimeseriesApi } from '../composables/usePublicTimeseriesApi';
 import IndicatorFilterSidebar from '../components/IndicatorFilterSidebar.vue';
 import IndicatorTimeFilterPanel from '../components/IndicatorTimeFilterPanel.vue';
 import { resolveTimeBoundsYears } from '@/shared/timeseries/indicatorTimeFilterUtils.js';
+import {
+  presentationChartType,
+  presentationDefaultCodes,
+  presentationFromSchema,
+  presentationTimeRange,
+} from '@/shared/timeseries/indicatorPresentation.js';
 import IndicatorEmbedDialog from '../components/IndicatorEmbedDialog.vue';
 
 defineOptions({ name: 'IndicatorChartTab' });
@@ -762,39 +768,56 @@ function draftHasAnyChartFilterSelection() {
 }
 
 /**
- * First visit with no query filters: pick the first codelist code for geography, periodicity,
- * and each dimension facet, and use the full schema reporting-year span when the year slider applies.
+ * First visit with no query filters: use the indicator's default view codes and time period where
+ * they have data, else the first codelist code for geography, periodicity, and each dimension facet, and
+ * the full schema reporting-year span when the year slider applies.
  * Skips when the URL already carried filter params or the draft is non-empty.
  */
 function applyDefaultChartFiltersIfBlank() {
   if (urlHasChartFilterParams() || draftHasAnyChartFilterSelection()) return;
 
+  const presentation = presentationFromSchema(schema.value);
+  const defaults = presentationDefaultCodes(presentation, {
+    geographyName: geographyComponent.value?.name,
+    codelistSelectItems: codelistSelectItems.value,
+  });
+  const defaultCodes = (name) => {
+    if (defaults[name]) return defaults[name];
+    const items = codelistSelectItems.value[name] || [];
+    return items.length ? [String(items[0].value)] : [];
+  };
+
   const geo = geographyComponent.value;
-  if (geo?.name) {
-    const items = codelistSelectItems.value[geo.name] || [];
-    if (items.length && !filterDraft.dGeography.length) {
-      filterDraft.dGeography.push(String(items[0].value));
-    }
+  if (geo?.name && !filterDraft.dGeography.length) {
+    filterDraft.dGeography.push(...defaultCodes(geo.name));
   }
   const per = periodicityComponent.value;
-  if (per?.name) {
-    const items = codelistSelectItems.value[per.name] || [];
-    if (items.length && !filterDraft.dPeriodicity.length) {
-      filterDraft.dPeriodicity.push(String(items[0].value));
-    }
+  if (per?.name && !filterDraft.dPeriodicity.length) {
+    filterDraft.dPeriodicity.push(...defaultCodes(per.name));
   }
   for (const col of facetComponentsForC.value) {
-    const items = codelistSelectItems.value[col.name] || [];
-    if (items.length && !(filterDraft.c[col.name]?.length)) {
-      filterDraft.c[col.name].push(String(items[0].value));
+    if (!(filterDraft.c[col.name]?.length)) {
+      filterDraft.c[col.name].push(...defaultCodes(col.name));
     }
   }
 
   const b = resolveTimeBoundsYears(schema.value, chartMetadata.value?.time_bounds);
-  if (b) {
+  const range = presentationTimeRange(presentation, b);
+  if (range) {
+    filterDraft.from = range.from;
+    filterDraft.to = range.to;
+  } else if (b) {
     filterDraft.from = String(b.min);
     filterDraft.to = String(b.max);
   }
+}
+
+/** No `chart=` in the URL: start with the indicator's `data_presentation.chart_type`. */
+function applyPresentationChartTypeIfBlank() {
+  if (typeof window === 'undefined') return;
+  if (new URLSearchParams(window.location.search || '').has(Q_CHART)) return;
+  const t = presentationChartType(presentationFromSchema(schema.value));
+  if (t) chartType.value = t;
 }
 
 /**
@@ -1139,19 +1162,22 @@ const valueAxisLabel = computed(() => {
 
 const xAxisLabel = computed(() => timePeriodFilterSectionLabel.value);
 
-/** Second line under chart title: applied reporting-year range, geography, periodicity, and dimension slices. */
-const chartFilterSubtitle = computed(() =>
-  buildIndicatorFilterContextLine({
+/** Second line under chart title: geography, single-value slices, and the period range actually plotted (not the filter range). */
+const chartFilterSubtitle = computed(() => {
+  const model = chartModel.value;
+  const times = model?.sortedTimes || [];
+  const fallbackFrom = String(activeFilters.value?.from ?? '').trim();
+  const fallbackTo = String(activeFilters.value?.to ?? '').trim();
+  return buildIndicatorChartSubtitle({
     activeFilters: activeFilters.value,
     geographyComponent: geographyComponent.value,
-    periodicityComponent: periodicityComponent.value,
     facetComponentsForC: facetComponentsForC.value,
     codelistSelectItems: codelistSelectItems.value,
-    facetLabel,
-    facetShowsFilter: () => true,
-    timeBoundsFallback: chartMetadata.value?.time_bounds,
-  })
-);
+    facetShowsFilter,
+    periodFrom: model ? String(times[0] ?? '') : fallbackFrom,
+    periodTo: model ? String(times[times.length - 1] ?? '') : fallbackTo,
+  });
+});
 
 const chartDataTableHeaders = computed(() => {
   const base = [
@@ -1393,6 +1419,64 @@ function classifyTimeKeys(sortedTimes) {
   return { useNumeric: false, kind: null, parse: null };
 }
 
+/** Applied frequency code (A, Q, M, W, D, …) when exactly one is in the loaded filters; '' otherwise. */
+const appliedFrequency = computed(() => {
+  const p = activeFilters.value?.d?.periodicity;
+  return Array.isArray(p) && p.length === 1 ? String(p[0]).trim().toUpperCase() : '';
+});
+
+/** Upper bound on filled category periods (guards against bogus keys spanning millennia). */
+const MAX_FILLED_PERIODS = 5000;
+
+/** Period key <-> sequential index for frequencies on a category axis. */
+const PERIOD_STEPS = {
+  A: {
+    index: (t) => (/^\d{4}$/.test(t) ? Number(t) : null),
+    format: (i) => String(i),
+  },
+  Q: {
+    index: (t) => {
+      const m = /^(\d{4})-Q([1-4])$/i.exec(t);
+      return m ? Number(m[1]) * 4 + Number(m[2]) - 1 : null;
+    },
+    format: (i) => `${Math.floor(i / 4)}-Q${(i % 4) + 1}`,
+  },
+  M: {
+    index: (t) => {
+      const m = /^(\d{4})-(\d{2})$/.exec(t);
+      const mo = m ? Number(m[2]) : 0;
+      return mo >= 1 && mo <= 12 ? Number(m[1]) * 12 + mo - 1 : null;
+    },
+    format: (i) => `${Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, '0')}`,
+  },
+};
+
+/** Day gap above which a line breaks, for frequencies plotted on the numeric date axis. */
+const DATE_STEP_DAYS = { D: 1, W: 7 };
+
+/**
+ * Every period from the first to the last observed one, so years without data show as breaks
+ * in the line instead of being dropped from the axis. Returns `sortedTimes` unchanged when the
+ * a key does not fit the frequency. Unknown or missing frequencies with plain `YYYY` keys are treated as annual.
+ */
+function fillPeriodRange(sortedTimes, freq) {
+  const code = PERIOD_STEPS[freq] ? freq : sortedTimes.every((t) => /^\d{4}$/.test(t)) ? 'A' : '';
+  const step = PERIOD_STEPS[code];
+  if (!step || sortedTimes.length < 2) return sortedTimes;
+  const keyByIndex = new Map();
+  for (const t of sortedTimes) {
+    const i = step.index(String(t).trim());
+    if (i == null) return sortedTimes;
+    keyByIndex.set(i, t);
+  }
+  const lo = Math.min(...keyByIndex.keys());
+  const hi = Math.max(...keyByIndex.keys());
+  if (hi - lo + 1 > MAX_FILLED_PERIODS) return sortedTimes;
+  const out = [];
+  for (let i = lo; i <= hi; i++) out.push(keyByIndex.get(i) ?? step.format(i));
+  return out;
+}
+
 /** Concrete chart type for the toolbar selection; `auto` picks by number of time periods and series (same rules as Metadata Editor). */
 function resolveChartType(selected, periodCount, seriesCount) {
   if (selected === 'line' || selected === 'column' || selected === 'hbar') return selected;
@@ -1427,11 +1511,16 @@ function seriesDimensionInfo(seriesIds) {
   return { partsById, keys, varying };
 }
 
-/** Series label using only the columns that vary (constant ones are already in the chart subtitle). */
+/**
+ * Series label using only the columns that vary (constant ones are already in the chart subtitle).
+ * A lone series keeps every column except frequency, which the x axis already shows.
+ */
 function shortSeriesLabel(id, dims) {
   const parts = dims?.partsById?.[id];
-  if (!parts || !dims.varying.length) return seriesLabelForId(id);
-  return dims.varying.map((k) => codeLabelForColumn(k, parts[k] ?? '')).join(' · ');
+  if (!parts) return seriesLabelForId(id);
+  const freqName = periodicityComponent.value?.name;
+  const keys = dims.varying.length ? dims.varying : Object.keys(parts).filter((k) => k !== freqName);
+  return keys.map((k) => codeLabelForColumn(k, parts[k] ?? '')).join(' · ');
 }
 
 /**
@@ -1596,6 +1685,11 @@ function buildChartModel() {
   }
 
   const scale = isBar ? { useNumeric: false, kind: null, parse: null } : classifyTimeKeys(sortedTimes);
+  // Lines get every period on the axis so gaps break the line; bars keep only observed periods.
+  const axisTimes = isBar || scale.useNumeric ? sortedTimes : fillPeriodRange(sortedTimes, appliedFrequency.value);
+  const breakGapMs = scale.useNumeric && DATE_STEP_DAYS[appliedFrequency.value]
+    ? DATE_STEP_DAYS[appliedFrequency.value] * 86400000 * 1.5
+    : null;
 
   let seriesIds = allSeriesIds;
   let dropped = 0;
@@ -1604,7 +1698,7 @@ function buildChartModel() {
     seriesIds = seriesIds.slice(0, MAX_SERIES);
   }
 
-  const sparsePoints = sortedTimes.length > 150;
+  const sparsePoints = axisTimes.length > 150;
 
   let totalPoints = 0;
   const datasets = seriesIds.map((id, idx) => {
@@ -1622,8 +1716,18 @@ function buildChartModel() {
         data.push({ x, y: v, t });
       }
       data.sort((a, b) => a.x - b.x);
+      if (breakGapMs) {
+        // A null point between observations further apart than the frequency step breaks the line.
+        const withBreaks = [];
+        for (const p of data) {
+          const prev = withBreaks[withBreaks.length - 1];
+          if (prev && p.x - prev.x > breakGapMs) withBreaks.push({ x: (prev.x + p.x) / 2, y: null, t: null });
+          withBreaks.push(p);
+        }
+        data = withBreaks;
+      }
     } else {
-      data = sortedTimes.map((t) => {
+      data = axisTimes.map((t) => {
         const v = m.get(t);
         if (Number.isFinite(v)) {
           totalPoints++;
@@ -1635,8 +1739,8 @@ function buildChartModel() {
 
     const color = wbCategoryColor(idx);
     const noteIds = scale.useNumeric && scale.parse
-      ? data.map((p) => chartNotesByPoint.value.get(chartNoteKey(id, p.t)) || [])
-      : sortedTimes.map((t) => chartNotesByPoint.value.get(chartNoteKey(id, t)) || []);
+      ? data.map((p) => (p.t == null ? [] : chartNotesByPoint.value.get(chartNoteKey(id, p.t)) || []))
+      : axisTimes.map((t) => chartNotesByPoint.value.get(chartNoteKey(id, t)) || []);
     return {
       label: shortSeriesLabel(id, dims),
       data,
@@ -1656,8 +1760,8 @@ function buildChartModel() {
   return {
     type,
     singlePeriod: false,
-    labels: sortedTimes,
-    sortedTimes,
+    labels: axisTimes,
+    sortedTimes: axisTimes,
     useNumericTimeX: scale.useNumeric,
     timeXKind: scale.kind,
     datasets,
@@ -1821,7 +1925,8 @@ async function renderOrUpdateChart() {
   const isBar = model.type === 'column' || model.type === 'hbar';
   const isHorizontal = model.type === 'hbar';
   const numericX = model.useNumericTimeX === true;
-  const legendVisible = model.datasets.length > 0 && !(model.singlePeriod && model.datasets.length === 1);
+  // A single series is described by the subtitle; the legend only tells several apart.
+  const legendVisible = model.datasets.length > 1;
   const chartTitleText = studyTitle.value || 'Chart';
   let chartSubtitleText = String(chartFilterSubtitle.value ?? '');
   if (model.singlePeriod && !chartSubtitleText.includes(String(model.period))) {
@@ -1987,7 +2092,7 @@ async function renderOrUpdateChart() {
               return i >= 0 ? String(model.labels[i] ?? '') : '';
             },
             label(item) {
-              let line = `${item.dataset.label || ''}: ${item.formattedValue}`;
+              let line = item.dataset.label ? `${item.dataset.label}: ${item.formattedValue}` : item.formattedValue;
               const nums = item.dataset.noteMarkers && item.dataset.noteMarkers[item.dataIndex];
               if (nums && nums.length) line += `  [${formatMarkers(nums)}]`;
               return line;
@@ -2246,6 +2351,7 @@ async function loadAll() {
     schema.value = sch;
     syncFilterDraftCShape();
     applyCatalogQueryFromUrl();
+    applyPresentationChartTypeIfBlank();
     await loadCodelistsForSchema();
     await nextTick();
     applyDefaultChartFiltersIfBlank();

@@ -10,8 +10,11 @@
       <v-col cols="12" md="8">
         <h1 class="text-h5 font-weight-semibold text-high-emphasis mb-0">Menu Management</h1>
       </v-col>
-      <v-col cols="12" md="4" class="d-flex justify-end ga-2">
-        <v-btn color="primary" prepend-icon="mdi-plus" :href="`${siteBaseUrl}/admin/menu/add`">
+      <v-col cols="12" md="4" class="d-flex justify-end ga-2 flex-wrap">
+        <v-btn variant="tonal" prepend-icon="mdi-link-variant" @click="router.push('/new-link')">
+          Add Link
+        </v-btn>
+        <v-btn color="primary" prepend-icon="mdi-plus" @click="router.push('/new')">
           Add Page
         </v-btn>
       </v-col>
@@ -36,14 +39,73 @@
         <v-icon size="64" color="grey" class="mb-4">mdi-menu</v-icon>
         <h2 class="text-h6 mb-2">No menu items found</h2>
         <p class="text-medium-emphasis mb-4">Create your first menu item to get started.</p>
-        <v-btn color="primary" prepend-icon="mdi-plus" :href="`${siteBaseUrl}/admin/menu/add`">Add Page</v-btn>
+        <v-btn color="primary" prepend-icon="mdi-plus" @click="router.push('/new')">Add Page</v-btn>
       </v-card-text>
     </v-card>
 
     <v-card v-else elevation="1">
       <div class="menu-table-header d-flex align-center px-4 py-2 text-caption text-medium-emphasis font-weight-medium">
+        <div style="width: 40px" class="d-flex justify-center">
+          <v-checkbox
+            :model-value="allSelected"
+            :indeterminate="someSelected && !allSelected"
+            density="compact"
+            hide-details
+            @update:model-value="toggleSelectAll"
+          />
+        </div>
         <div style="width: 28px"></div>
-        <div style="flex: 2">Title</div>
+        <div style="flex: 2" class="d-flex align-center ga-2 min-width-0">
+          <v-menu v-if="selectedIds.length" location="bottom start">
+            <template #activator="{ props: batchMenuProps }">
+              <v-btn
+                variant="text"
+                size="small"
+                class="text-none px-1 flex-shrink-0"
+                v-bind="batchMenuProps"
+                :loading="batchBusy"
+                append-icon="mdi-dots-vertical"
+              >
+                Actions
+              </v-btn>
+            </template>
+            <v-list density="compact" min-width="180">
+              <v-list-item
+                prepend-icon="mdi-publish"
+                title="Publish"
+                :disabled="batchBusy"
+                @click="batchPublish(1)"
+              />
+              <v-list-item
+                prepend-icon="mdi-eye-off-outline"
+                title="Unpublish"
+                :disabled="batchBusy"
+                @click="batchPublish(0)"
+              />
+              <v-divider />
+              <v-list-item
+                prepend-icon="mdi-delete"
+                title="Delete"
+                base-color="error"
+                :disabled="batchBusy"
+                @click="openBatchDeleteDialog"
+              />
+              <v-divider />
+              <v-list-item
+                prepend-icon="mdi-close"
+                title="Clear selection"
+                :disabled="batchBusy"
+                @click="clearSelection"
+              />
+            </v-list>
+          </v-menu>
+          <template v-else>
+            <span>Title</span>
+          </template>
+          <span v-if="selectedIds.length" class="text-body-2 font-weight-regular">
+            {{ selectedIds.length }} selected
+          </span>
+        </div>
         <div style="width: 60px" class="text-center">Link</div>
         <div style="flex: 1; min-width: 110px">Published</div>
         <div style="flex: 1; min-width: 120px">Modified</div>
@@ -54,14 +116,23 @@
       <div ref="parentList" class="parent-sortable">
         <div v-for="parent in menus" :key="parent.id" :data-id="parent.id" class="menu-group">
           <div class="parent-block">
-            <div class="menu-row d-flex align-center px-4 py-2">
+            <div class="menu-row d-flex align-center px-4 py-2" :class="{ 'menu-row--selected': isSelected(parent.id) }">
+              <div style="width: 40px" class="d-flex justify-center flex-shrink-0" @click.stop>
+                <v-checkbox
+                  :model-value="isSelected(parent.id)"
+                  density="compact"
+                  hide-details
+                  @update:model-value="(v) => setSelected(parent.id, v)"
+                />
+              </div>
               <v-icon class="parent-drag-handle drag-handle mr-2 text-medium-emphasis flex-shrink-0" size="18">mdi-drag-vertical</v-icon>
               <div style="flex: 2" class="d-flex align-start ga-2">
                 <v-icon size="20" :color="parent.linktype == 1 ? 'blue-darken-1' : 'grey-darken-1'" class="flex-shrink-0 mt-1">
                   {{ parent.linktype == 1 ? 'mdi-link-variant' : 'mdi-file-document-outline' }}
                 </v-icon>
-                <div>
-                  <a :href="`${siteBaseUrl}/admin/menu/edit/${parent.id}`" class="font-weight-medium text-decoration-none text-high-emphasis">{{ parent.title }}</a>
+                <div class="min-width-0">
+                  <a href="#" class="font-weight-medium text-decoration-none text-high-emphasis" @click.prevent="router.push(`/edit/${parent.id}`)">{{ parent.title }}</a>
+                  <div v-if="parent.url" class="text-caption text-medium-emphasis text-truncate">{{ parent.url }}</div>
                 </div>
               </div>
               <div style="width: 60px" class="d-flex justify-center">
@@ -91,7 +162,7 @@
                     <v-btn icon variant="text" v-bind="menuProps" size="small"><v-icon>mdi-dots-vertical</v-icon></v-btn>
                   </template>
                   <v-list density="compact" min-width="150">
-                    <v-list-item prepend-icon="mdi-pencil" title="Edit" :href="`${siteBaseUrl}/admin/menu/edit/${parent.id}`" />
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="router.push(`/edit/${parent.id}`)" />
                     <v-divider />
                     <v-list-item prepend-icon="mdi-delete" title="Delete" base-color="error" @click="openDeleteDialog(parent)" />
                   </v-list>
@@ -110,7 +181,16 @@
               :key="child.id"
               :data-id="child.id"
               class="menu-row menu-row--child d-flex align-center px-4 py-2"
+              :class="{ 'menu-row--selected': isSelected(child.id) }"
             >
+              <div style="width: 40px" class="d-flex justify-center flex-shrink-0" @click.stop>
+                <v-checkbox
+                  :model-value="isSelected(child.id)"
+                  density="compact"
+                  hide-details
+                  @update:model-value="(v) => setSelected(child.id, v)"
+                />
+              </div>
               <v-icon class="child-drag-handle drag-handle mr-2 text-medium-emphasis flex-shrink-0" size="18">mdi-drag-vertical</v-icon>
               <div style="flex: 2" class="d-flex align-start">
                 <span style="width: 24px; flex-shrink: 0; padding-top: 2px"></span>
@@ -118,8 +198,9 @@
                 <v-icon size="20" :color="child.linktype == 1 ? 'blue-darken-1' : 'grey-darken-1'" class="flex-shrink-0 mr-2 mt-1">
                   {{ child.linktype == 1 ? 'mdi-link-variant' : 'mdi-file-document-outline' }}
                 </v-icon>
-                <div>
-                  <a :href="`${siteBaseUrl}/admin/menu/edit/${child.id}`" class="text-medium-emphasis text-decoration-none">{{ child.title }}</a>
+                <div class="min-width-0">
+                  <a href="#" class="text-medium-emphasis text-decoration-none" @click.prevent="router.push(`/edit/${child.id}`)">{{ child.title }}</a>
+                  <div v-if="child.url" class="text-caption text-medium-emphasis text-truncate">{{ child.url }}</div>
                 </div>
               </div>
               <div style="width: 60px" class="d-flex justify-center">
@@ -149,7 +230,7 @@
                     <v-btn icon variant="text" v-bind="menuProps" size="small"><v-icon>mdi-dots-vertical</v-icon></v-btn>
                   </template>
                   <v-list density="compact" min-width="150">
-                    <v-list-item prepend-icon="mdi-pencil" title="Edit" :href="`${siteBaseUrl}/admin/menu/edit/${child.id}`" />
+                    <v-list-item prepend-icon="mdi-pencil" title="Edit" @click="router.push(`/edit/${child.id}`)" />
                     <v-divider />
                     <v-list-item prepend-icon="mdi-delete" title="Delete" base-color="error" @click="openDeleteDialog(child)" />
                   </v-list>
@@ -165,17 +246,13 @@
 
     <v-dialog v-model="deleteDialog.open" max-width="420">
       <v-card>
-        <v-card-title class="text-h6 pa-4">Delete Menu Item</v-card-title>
+        <v-card-title class="text-h6 pa-4">Confirm delete</v-card-title>
         <v-divider />
         <v-card-text class="pa-4">
           <v-alert v-if="deleteDialog.error" type="error" class="mb-4" density="compact" closable @click:close="deleteDialog.error = null">
             {{ deleteDialog.error }}
           </v-alert>
-          <p>Delete <strong>{{ deleteDialog.item?.title }}</strong>?</p>
-          <v-alert v-if="deleteDialog.hasChildren" type="warning" density="compact" class="mt-3" variant="tonal">
-            This item has child menu items. They will be moved to the top level.
-          </v-alert>
-          <p class="text-medium-emphasis text-body-2 mt-2">This action cannot be undone.</p>
+          <p>Are you sure you want to delete?</p>
         </v-card-text>
         <v-divider />
         <v-card-actions class="pa-3">
@@ -185,17 +262,55 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="batchDeleteDialog.open" max-width="420">
+      <v-card>
+        <v-card-title class="text-h6 pa-4">Confirm delete</v-card-title>
+        <v-divider />
+        <v-card-text class="pa-4">
+          <v-alert
+            v-if="batchDeleteDialog.error"
+            type="error"
+            class="mb-4"
+            density="compact"
+            closable
+            @click:close="batchDeleteDialog.error = null"
+          >
+            {{ batchDeleteDialog.error }}
+          </v-alert>
+          <p>Are you sure you want to delete?</p>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions class="pa-3">
+          <v-spacer />
+          <v-btn variant="text" @click="batchDeleteDialog.open = false">Cancel</v-btn>
+          <v-btn color="error" variant="flat" :loading="batchDeleteDialog.loading" @click="doBatchDelete">
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
 import Sortable from 'sortablejs';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useMenuApi } from '../composables/useMenuApi';
 
+const router = useRouter();
 const { siteUrl } = useAppConfig();
-const { loading, listMenus, deleteMenu, publishMenu, reorderMenus } = useMenuApi();
+const {
+  loading,
+  listMenus,
+  deleteMenu,
+  publishMenu,
+  reorderMenus,
+  batchDeleteMenus,
+  batchPublishMenus,
+} = useMenuApi();
 
 const siteBaseUrl = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));
 const breadcrumbItems = computed(() => [
@@ -203,10 +318,48 @@ const breadcrumbItems = computed(() => [
   { title: 'Menu', disabled: true },
 ]);
 
-const menus        = ref([]);
-const savingOrder  = ref(false);
-const toast        = reactive({ open: false, message: '', color: 'success' });
-const deleteDialog = reactive({ open: false, item: null, hasChildren: false, error: null, loading: false });
+const menus             = ref([]);
+const selectedIds       = ref([]);
+const batchBusy         = ref(false);
+const savingOrder       = ref(false);
+const toast             = reactive({ open: false, message: '', color: 'success' });
+const deleteDialog      = reactive({ open: false, item: null, error: null, loading: false });
+const batchDeleteDialog = reactive({ open: false, error: null, loading: false });
+
+const allMenuIds = computed(() => {
+  const ids = [];
+  menus.value.forEach((parent) => {
+    ids.push(Number(parent.id));
+    (parent.children || []).forEach((child) => ids.push(Number(child.id)));
+  });
+  return ids;
+});
+
+const allSelected = computed(
+  () => allMenuIds.value.length > 0 && selectedIds.value.length === allMenuIds.value.length
+);
+const someSelected = computed(() => selectedIds.value.length > 0);
+
+function isSelected(id) {
+  return selectedIds.value.includes(Number(id));
+}
+
+function setSelected(id, checked) {
+  const n = Number(id);
+  if (checked) {
+    if (!selectedIds.value.includes(n)) selectedIds.value = [...selectedIds.value, n];
+  } else {
+    selectedIds.value = selectedIds.value.filter((x) => x !== n);
+  }
+}
+
+function toggleSelectAll(checked) {
+  selectedIds.value = checked ? [...allMenuIds.value] : [];
+}
+
+function clearSelection() {
+  selectedIds.value = [];
+}
 
 const parentList     = ref(null);
 let   parentSortable = null;
@@ -355,6 +508,7 @@ onBeforeUnmount(destroyAllSortables);
 async function loadMenus() {
   try {
     menus.value = normalizeMenus(await listMenus());
+    selectedIds.value = selectedIds.value.filter((id) => allMenuIds.value.includes(id));
     await nextTick();
     initParentSortable();
   } catch (e) {
@@ -365,10 +519,9 @@ async function loadMenus() {
 onMounted(loadMenus);
 
 function openDeleteDialog(item) {
-  deleteDialog.item        = item;
-  deleteDialog.hasChildren = Array.isArray(item.children) && item.children.length > 0;
-  deleteDialog.error       = null;
-  deleteDialog.open        = true;
+  deleteDialog.item  = item;
+  deleteDialog.error = null;
+  deleteDialog.open  = true;
 }
 
 async function doDelete() {
@@ -396,6 +549,44 @@ async function togglePublish(item) {
     showToast(e?.response?.data?.message || e.message, 'error');
   }
 }
+
+async function batchPublish(published) {
+  if (!selectedIds.value.length || batchBusy.value) return;
+  batchBusy.value = true;
+  try {
+    await batchPublishMenus(selectedIds.value, published);
+    showToast(published ? 'Published selected items.' : 'Unpublished selected items.');
+    clearSelection();
+    await loadMenus();
+  } catch (e) {
+    showToast(e?.response?.data?.message || e.message, 'error');
+  } finally {
+    batchBusy.value = false;
+  }
+}
+
+function openBatchDeleteDialog() {
+  if (!selectedIds.value.length) return;
+  batchDeleteDialog.error = null;
+  batchDeleteDialog.open = true;
+}
+
+async function doBatchDelete() {
+  if (!selectedIds.value.length) return;
+  batchDeleteDialog.loading = true;
+  batchDeleteDialog.error = null;
+  try {
+    await batchDeleteMenus(selectedIds.value);
+    batchDeleteDialog.open = false;
+    showToast('Selected menu items deleted.');
+    clearSelection();
+    await loadMenus();
+  } catch (e) {
+    batchDeleteDialog.error = e?.response?.data?.message || e.message;
+  } finally {
+    batchDeleteDialog.loading = false;
+  }
+}
 </script>
 
 <style scoped>
@@ -417,6 +608,10 @@ async function togglePublish(item) {
 }
 .menu-row:hover {
   background-color: rgba(0, 0, 0, 0.02);
+}
+
+.menu-row--selected {
+  background-color: rgba(var(--v-theme-primary), 0.06);
 }
 
 .menu-row--child {

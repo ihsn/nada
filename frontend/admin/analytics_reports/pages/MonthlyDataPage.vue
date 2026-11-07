@@ -4,7 +4,7 @@
     <v-card class="admin-analytics-card" rounded="lg" elevation="1">
       <v-card-title class="d-flex flex-wrap align-center gap-2">
         <v-icon start>mdi-calendar-month</v-icon>
-        Monthly aggregates
+        {{ t('analytics_monthly_aggregates', 'Monthly aggregates') }}
         <v-spacer />
         <StudiesFilesToggle v-model="dataView" />
         <ExportFormatMenu
@@ -17,7 +17,7 @@
       <v-card-text class="admin-analytics-card-sections">
         <v-row dense>
           <v-col cols="12" sm="3">
-            <FormField label="Year">
+            <FormField :label="t('analytics_year', 'Year')">
               <v-text-field
                 v-model.number="filters.year"
                 type="number"
@@ -29,7 +29,7 @@
             </FormField>
           </v-col>
           <v-col cols="12" sm="3">
-            <FormField label="Month">
+            <FormField :label="t('analytics_month', 'Month')">
               <v-select
                 v-model="filters.month"
                 :items="monthOptions"
@@ -43,7 +43,7 @@
             </FormField>
           </v-col>
           <v-col cols="12" sm="3">
-            <FormField label="Study (IDNO or ID)">
+            <FormField :label="t('analytics_study_filter', 'Study (IDNO or ID)')">
               <v-text-field
                 v-model="filters.study_id"
                 density="compact"
@@ -54,8 +54,8 @@
             </FormField>
           </v-col>
           <v-col cols="12" sm="3" class="d-flex align-end ga-2 pb-1">
-            <v-btn color="primary" :loading="loading" @click="reload">Filter</v-btn>
-            <v-btn variant="outlined" @click="clearFilters">Clear</v-btn>
+            <v-btn color="primary" :loading="loading" @click="reload">{{ t('analytics_filter', 'Filter') }}</v-btn>
+            <v-btn variant="outlined" @click="clearFilters">{{ t('analytics_clear', 'Clear') }}</v-btn>
           </v-col>
         </v-row>
         <v-data-table-server
@@ -70,7 +70,7 @@
         >
           <template #item.finalized="{ item }">
             <v-chip size="small" :color="item.finalized ? 'success' : 'warning'" variant="tonal">
-              {{ item.finalized ? 'Finalized' : 'Open' }}
+              {{ item.finalized ? t('analytics_finalized', 'Finalized') : t('analytics_open', 'Open') }}
             </v-chip>
           </template>
         </v-data-table-server>
@@ -83,6 +83,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useI18n } from '@/shared/composables/useI18n';
 import { useAnalyticsApi } from '../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../composables/useAnalyticsMessages';
 import { MONTH_OPTIONS } from '../utils/constants';
@@ -96,6 +97,7 @@ import ExportFormatMenu from '../components/shared/ExportFormatMenu.vue';
 defineOptions({ name: 'MonthlyDataPage' });
 
 const { config } = useAppConfig();
+const { t } = useI18n();
 const api = useAnalyticsApi();
 const { notifyError } = useAnalyticsMessages();
 
@@ -112,24 +114,24 @@ const page = ref(1);
 const limit = 50;
 
 const studyHeaders = [
-  { title: 'ID', key: 'study_id' },
-  { title: 'Title', key: 'title' },
-  { title: 'Year', key: 'year' },
-  { title: 'Month', key: 'month' },
-  { title: 'Pageviews', key: 'pageviews' },
-  { title: 'Unique visitors', key: 'unique_visitors' },
-  { title: 'Downloads', key: 'downloads' },
-  { title: 'Status', key: 'finalized' },
+  { title: t('analytics_id', 'ID'), key: 'study_id' },
+  { title: t('analytics_title_column', 'Title'), key: 'title' },
+  { title: t('analytics_year', 'Year'), key: 'year' },
+  { title: t('analytics_month', 'Month'), key: 'month' },
+  { title: t('analytics_pageviews', 'Pageviews'), key: 'pageviews' },
+  { title: t('analytics_unique_visitors', 'Unique visitors'), key: 'unique_visitors' },
+  { title: t('analytics_downloads', 'Downloads'), key: 'downloads' },
+  { title: t('analytics_status', 'Status'), key: 'finalized' },
 ];
 
 const fileHeaders = [
-  { title: 'Study ID', key: 'study_id' },
-  { title: 'Title', key: 'title' },
-  { title: 'Year', key: 'year' },
-  { title: 'Month', key: 'month' },
-  { title: 'File name', key: 'file_name' },
-  { title: 'Downloads', key: 'downloads' },
-  { title: 'Status', key: 'finalized' },
+  { title: t('analytics_study_id', 'Study ID'), key: 'study_id' },
+  { title: t('analytics_title_column', 'Title'), key: 'title' },
+  { title: t('analytics_year', 'Year'), key: 'year' },
+  { title: t('analytics_month', 'Month'), key: 'month' },
+  { title: t('analytics_file_name', 'File name'), key: 'file_name' },
+  { title: t('analytics_downloads', 'Downloads'), key: 'downloads' },
+  { title: t('analytics_status', 'Status'), key: 'finalized' },
 ];
 
 const headers = computed(() => (dataView.value === 'studies' ? studyHeaders : fileHeaders));
@@ -150,7 +152,7 @@ async function load() {
     rows.value = res.data || [];
     total.value = res.total || 0;
   } catch (e) {
-    notifyError(e.message || 'Failed to load monthly data');
+    notifyError(e.message || t('analytics_load_monthly_error', 'Failed to load monthly data'));
   } finally {
     loading.value = false;
   }

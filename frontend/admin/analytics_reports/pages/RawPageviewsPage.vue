@@ -2,7 +2,7 @@
   <v-card class="admin-analytics-card" rounded="lg" elevation="1">
     <v-card-title>
       <v-icon start>mdi-eye</v-icon>
-      Raw pageviews
+      {{ t('analytics_raw_pageviews', 'Raw pageviews') }}
     </v-card-title>
     <v-card-text class="admin-analytics-card-sections">
       <RawLogsHintAlert :max-days="rawMaxDays" />
@@ -33,9 +33,9 @@
             v-if="item.study_id"
             :href="adminStudyEditUrl(siteUrl, item)"
             class="admin-analytics-cell-truncate admin-analytics-study-link"
-            :title="item.study_title || `Study ${item.study_id}`"
+            :title="item.study_title || t('analytics_study_number', 'Study %s', item.study_id)"
           >
-            {{ item.study_title || `Study ${item.study_id}` }}
+            {{ item.study_title || t('analytics_study_number', 'Study %s', item.study_id) }}
           </a>
           <span v-else>—</span>
         </template>
@@ -62,6 +62,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useI18n } from '@/shared/composables/useI18n';
 import { useAnalyticsApi } from '../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../composables/useAnalyticsMessages';
 import { adminStudyEditUrl, formatDateTime } from '../utils/formatters';
@@ -73,6 +74,7 @@ import RawLogsHintAlert from '../components/shared/RawLogsHintAlert.vue';
 defineOptions({ name: 'RawPageviewsPage' });
 
 const { config, siteUrl } = useAppConfig();
+const { t } = useI18n();
 const timezone = computed(() => config.value?.serverTimezone || 'UTC');
 const api = useAnalyticsApi();
 const { notifyError } = useAnalyticsMessages();
@@ -89,17 +91,17 @@ const page = ref(1);
 const limit = 50;
 
 const headers = [
-  { title: 'Time', key: 'ts' },
-  { title: 'Study', key: 'study_title', minWidth: '200px' },
-  { title: 'ID', key: 'study_id', width: '72px' },
-  { title: 'Session', key: 'session_id' },
-  { title: 'Page URL', key: 'page_url', maxWidth: '360px' },
-  { title: 'Section', key: 'section' },
+  { title: t('analytics_time', 'Time'), key: 'ts' },
+  { title: t('analytics_study', 'Study'), key: 'study_title', minWidth: '200px' },
+  { title: t('analytics_id', 'ID'), key: 'study_id', width: '72px' },
+  { title: t('analytics_session', 'Session'), key: 'session_id' },
+  { title: t('analytics_page_url', 'Page URL'), key: 'page_url', maxWidth: '360px' },
+  { title: t('analytics_section', 'Section'), key: 'section' },
 ];
 
 async function load() {
   if (!filters.value.date_from || !filters.value.date_to) {
-    notifyError('From and To dates are required');
+    notifyError(t('analytics_required_dates', 'From and To dates are required'));
     return;
   }
   loading.value = true;
@@ -117,7 +119,7 @@ async function load() {
     rows.value = res.data || [];
     total.value = res.total || 0;
   } catch (e) {
-    notifyError(e.message || 'Failed to load pageviews');
+    notifyError(e.message || t('analytics_load_pageviews_error', 'Failed to load pageviews'));
   } finally {
     loading.value = false;
   }

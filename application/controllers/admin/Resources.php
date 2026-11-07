@@ -144,8 +144,16 @@ class Resources extends MY_Controller {
 			redirect('admin/catalog');			
 		}
 
-		if (is_numeric($id) && $id > 0) {
-			$this->_require_resource_on_study($id, $survey_id);
+		// Create/edit lives in the Vue resources tab. PHP form remains only for
+		// study-file → new resource linking via token (?t=) from the files tab.
+		$token = $this->input->get_post('t');
+		$is_file_link_add = ($id === 'add' && is_string($token) && $token !== '');
+		if (! $is_file_link_add) {
+			if (is_numeric($id) && (int) $id > 0) {
+				$this->_require_resource_on_study($id, $survey_id);
+				redirect('admin/catalog/edit/' . (int) $survey_id . '/resources/edit/' . (int) $id);
+			}
+			redirect('admin/catalog/edit/' . (int) $survey_id . '/resources/add');
 		}
 		
 		//js auto complete file list
@@ -173,7 +181,10 @@ class Resources extends MY_Controller {
 			}
 			$existing = $this->managefiles_model->get_resources_by_filepath($survey_id, $linked_file);
 			if (is_array($existing) && isset($existing[0]['resource_id'])) {
-				redirect('admin/resources/edit/'.$existing[0]['resource_id'].'/'.$survey_id);
+				redirect(
+					'admin/catalog/edit/' . (int) $survey_id
+					. '/resources/edit/' . (int) $existing[0]['resource_id']
+				);
 			}
 		}
 
@@ -343,21 +354,13 @@ class Resources extends MY_Controller {
 			return FALSE;
 		}
 		
-		//get relative survey folder path
-		$survey_folder=$this->Catalog_model->get_survey_path($surveyid);
-		
-		//catalog folder path
-		$catalog_root=$this->config->item("catalog_root");
-		
-		//complete survey folder path
-		$survey_folder=$catalog_root.'/'.$survey_folder;
-		
-		//file path
-		$file_path=$survey_folder.'/'.$str;
-	 
-	 	//validate as file
-	 	if (file_exists($file_path) )
-		{
+		$survey_folder = $this->Catalog_model->get_survey_path_full($surveyid);
+		if (! $survey_folder) {
+			return FALSE;
+		}
+
+		$this->load->helper('file');
+		if (resolve_under_directory($survey_folder, $str) !== false) {
 			return TRUE;
 		}
 		
@@ -449,222 +452,8 @@ class Resources extends MY_Controller {
 	
 	function import($sid)
 	{
-	
-		if (!is_numeric($sid))
-		{
-			show_error("invalid_id");
-		}
-		
-		$this->_require_study_edit($sid);
-		
-		$this->load->library('form_validation');
-		
-		if ($this->input->post('submit'))
-		{
-			$this->do_import($sid);
-			//echo 'importing';
-		}
-		else
-		{
-			$data['form_title']=t('import_external_resources');
-			//import form
-			$content=$this->load->view('resources/import', $data,true);			
-			$this->template->write('content', $content,true);
-			$this->template->render();	
-		}
+		show_404();
 	}
-	
-	function do_import($sid)
-	{
-		$this->_require_study_edit($sid);
-		
-		//catalog folder path
-		$catalog_root=$this->config->item("catalog_root");
-		
-		//if not fixed path, use a relative path
-		if (!file_exists($catalog_root) )
-		{
-			$catalog_root=FCPATH.$catalog_root;
-		}		
-		
-		//create .htaccess if not already exists
-		@file_put_contents($catalog_root.'/.htaccess','deny from all');
-		@chmod($catalog_root.'/.htaccess',0444);
-		
-		$temp_upload_folder=$catalog_root.'/tmp';
-		
-		@mkdir($temp_upload_folder);
-		
-		if (!file_exists($temp_upload_folder))
-		{
-			show_error('DATAFILES-TEMP-FOLDER-NOT-SET');
-		}
-
-		//upload class configurations
-		$config['upload_path'] 	 = $temp_upload_folder;
-		$config['overwrite'] 	 = FALSE;
-		$config['encrypt_name']	 = TRUE; 
-		$config['allowed_types'] = 'rdf';
-		
-		//load upload library
-		$this->load->library('upload', $config);
-
-		//process uploaded file
-		if ( ! $this->upload->do_upload())
-		{
-			//get errors while uploading
-			$error = $this->upload->display_errors();
-			
-			//set error
-			$this->session->set_flashdata('error', $error);
-			
-			//redirect back to the upload page
-			redirect('admin/resources/import/'.$sid,'refresh');
-		}	
-		else //successful upload
-		{			
-			//get uploaded file information
-			$data = $this->upload->data();
-																			
-			//read rdf file contents
-			$rdf_contents=file_get_contents($data['full_path']);
-			
-			//load RDF parser class
-			$this->load->library('RDF_Parser');
-			
-			//parse RDF to array
-			$rdf_array=$this->rdf_parser->parse($rdf_contents);
-			
-			if ($rdf_array===FALSE || $rdf_array==NULL)
-			{
-				$this->session->set_flashdata('error', t('error_import_failed') );
-			}
-			else
-			{
-				$rdf_fields=$this->rdf_parser->fields;
-				
-				//success
-				foreach($rdf_array as $rdf_rec)
-				{
-					$insert_data['survey_id']=$sid;
-					
-					foreach($rdf_fields as $key=>$value)
-					{
-						if ( isset($rdf_rec[$rdf_fields[$key]]))
-						{
-							$insert_data[$key]=trim($rdf_rec[$rdf_fields[$key]]);
-						}	
-					}										
-					
-					//check if it is not a URL
-					if (!is_url($insert_data['filename']))
-					{
-						//fix html entities e.g &amp; &quot;
-						$insert_data['filename']=htmlspecialchars_decode($insert_data['filename'],ENT_QUOTES);
-						
-						//clean file paths
-						$insert_data['filename']=unix_path($insert_data['filename']);
-
-						//remove slash before the file path otherwise can't link the path to the file
-						if (substr($insert_data['filename'],0,1)=='/')
-						{
-							$insert_data['filename']=substr($insert_data['filename'],1,255);
-						}												
-					}
-					
-					//check if the resource file already exists
-					$resource_exists=FALSE;//$this->Resource_model->get_survey_resources_by_filepath($insert_data['survey_id'],$insert_data['filename']);
-					
-					if (!$resource_exists)
-					{										
-						//insert into db
-						$this->Survey_resource_model->insert($insert_data);
-						
-						//log
-						$this->db_logger->write_log('resource-imported',$insert_data['title'].'-'.$insert_data['filename'],'resources',$insert_data['survey_id']);
-											
-						//create resources folder structure
-						if ($this->input->post('folder_structure')=='yes')
-						{						
-							$this->_create_folder_structure($insert_data['filename']);
-						}
-					}
-					else
-					{
-						$this->errors[]=t('resource_already_exists').'<b>'. $insert_data['filename'].'</b>';
-					}
-				}
-
-				if (isset($this->errors) )
-				{
-						$this->session->set_flashdata('error', implode('<BR>',$this->errors));
-				}
-				
-				$this->session->set_flashdata('message', sprintf(t('n_resources_imported'),count($rdf_array)) );	
-			}
-			
-			//fix resources file paths
-			$this->load->library('catalog_admin');
-			$this->catalog_admin->fix_resource_links($sid);
-			
-			//redirect
-			redirect('admin/catalog/edit/'.$sid.'/resources','refresh');
-		}
-	}	
-
-	/**
-	* Create folder structure for imported external resources
-	*
-	**/
-	function _create_folder_structure($str)
-	{				
-		if ($str=='' || strpos($str,'http:') || strpos($str,'https:') || strpos($str,'ftp:') ||  strpos($str,'../') ||  strpos($str,'./') )
-		{
-			return FALSE;
-		}
-
-		//change file slash
-		$str=unix_path($str);
-		
-		//strip filename from the path
-		$path_arr=explode('/', $str);
-
-		//assuming the last part is always going to be the filename
-		unset($path_arr[count($path_arr)-1]);
-
-		//folder path without filename
-		$folder_structure=trim(implode('/',$path_arr));
-
-		if ($folder_structure=='')
-		{
-			return FALSE;
-		}
-				
-		//get survey id
-		$surveyid = $this->_resolve_survey_id_from_uri();
-		if (!is_numeric($surveyid)) {
-			return FALSE;
-		}
-		
-		//get relative survey folder path
-		$survey_folder=$this->Catalog_model->get_survey_path($surveyid);
-		
-		//catalog folder path
-		$catalog_root=$this->config->item("catalog_root");
-		
-		//complete survey folder path
-		$survey_folder=$catalog_root.'/'.$survey_folder;
-		
-		if (!file_exists($survey_folder.'/'.$folder_structure))
-		{
-			log_message('debug', 'Creating folder for external resources - '.$survey_folder.'/'.$folder_structure);
-			if (!@mkdir($survey_folder.'/'.$folder_structure, 0777, true)) 
-			{
-				log_message('debug', 'Failed creating folder for external resources - '.$survey_folder.'/'.$folder_structure);
-			}
-		}
-	}
-
 
 	/**
 	*
@@ -689,22 +478,7 @@ class Resources extends MY_Controller {
 	
 	function fixlinks($surveyid)
 	{
-		if (!is_numeric($surveyid))
-		{
-			show_error("invalid_id");
-		}
-		
-		$this->_require_study_edit($surveyid);
-	
-		$this->load->library('catalog_admin');		
-		$fixed_count=$this->catalog_admin->fix_resource_links($surveyid);		
-		
-		// Build message - fixlinks now also syncs all resource metadata
-		$message = sprintf(t('n_resources_fixed'), $fixed_count);
-		$message .= ' ' . t('resource_metadata_synced');
-		
-		$this->session->set_flashdata('message', $message);
-		redirect('admin/catalog/edit/'.$surveyid.'/resources',"refresh");
+		show_404();
 	}
 	
 	/**

@@ -51,18 +51,12 @@ class Embed extends MY_Controller {
 
 		$this->load->helper('vite_helper');
 
-		$study_abstract = isset($survey['abstract']) ? strip_tags((string) $survey['abstract']) : '';
-		if (strlen($study_abstract) > 4000) {
-			$study_abstract = substr($study_abstract, 0, 4000) . '…';
-		}
-
 		$content = $this->load->view('catalog/study_indicator_data_public', array(
 			'survey_id' => $sid,
 			'idno' => isset($survey['idno']) ? (string) $survey['idno'] : '',
 			'indicator_main_view' => 'table',
 			'catalog_page_title' => function_exists('t') ? t('tab_indicator_table') : 'Table',
 			'study_title' => isset($survey['title']) ? (string) $survey['title'] : '',
-			'study_abstract' => $study_abstract,
 			'indicator_data_api_ui' => array(),
 			'embed_mode' => true,
 		), true);
@@ -110,18 +104,12 @@ class Embed extends MY_Controller {
 
 		$this->load->helper('vite_helper');
 
-		$study_abstract = isset($survey['abstract']) ? strip_tags((string) $survey['abstract']) : '';
-		if (strlen($study_abstract) > 4000) {
-			$study_abstract = substr($study_abstract, 0, 4000) . '…';
-		}
-
 		$content = $this->load->view('catalog/study_indicator_data_public', array(
 			'survey_id' => $sid,
 			'idno' => isset($survey['idno']) ? (string) $survey['idno'] : '',
 			'indicator_main_view' => 'chart',
 			'catalog_page_title' => function_exists('t') ? t('tab_indicator_chart') : 'Chart & data',
 			'study_title' => isset($survey['title']) ? (string) $survey['title'] : '',
-			'study_abstract' => $study_abstract,
 			'indicator_data_api_ui' => array(),
 			'embed_mode' => true,
 		), true);

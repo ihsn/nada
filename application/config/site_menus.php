@@ -179,7 +179,7 @@ $menu[]=array(
 	),
 	array(
 		'title'	=>'Semantic Search',
-		'url'	=>'admin/semantic'
+		'url'	=>'admin/search-index'
 	),
 	array(
 		'type'	=>'divider'

@@ -38,6 +38,10 @@ class Data_table_mongo_model extends CI_Model {
             throw new Exception('MongoDB is not configured. Copy application/config/mongo.sample.php to mongo.php.');
         }
 
+        if (!extension_loaded('mongodb')){
+            throw new Exception('The PHP mongodb extension is not installed or not enabled.');
+        }
+
 
 	    if (!empty($username) && !empty($password)){
             return new MongoDB\Client(

@@ -36,7 +36,7 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
  *
  * IDNO utilities: GET /api/admin/catalog/check_idno/{idno} (existence); POST /api/admin/catalog/replace_idno — JSON `{ "old_idno", "new_idno" }` (same as api/datasets/replace_idno).
  *
- * DDI PDF on disk: POST/DELETE via `{idno}/generate_pdf` and `delete_pdf/{idno}`; PDF documentation status may use `api/admin/pdf_documentation` when deployed.
+ * DDI PDF on disk: GET `{idno}/pdf_options` (form defaults + status); POST `{idno}/generate_pdf`; POST `delete_pdf/{idno}`.
  *
  * Primary study payload: GET /api/admin/catalog/{idno} (`info_get`) includes idno, years, countries, aliases, folder_path / folder_path_full, metadata.
  *
@@ -590,9 +590,68 @@ class Catalog extends MY_REST_Controller
 
 
 	/**
+	 * Defaults for the study PDF options form (replaces admin/pdf_generator/setup).
+	 *
+	 * GET /api/admin/catalog/{idno}/pdf_options — query id_format=id for numeric surveys.id.
+	 */
+	function pdf_options_get($idno = null)
+	{
+		try {
+			$sid = $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit', $sid);
+			$dataset = $this->dataset_manager->get_row($sid);
+
+			if (! is_array($dataset) || ! $dataset) {
+				throw new Exception('DATASET_NOT_FOUND');
+			}
+
+			$this->load->library('catalog_admin');
+			$pdf = $this->catalog_admin->get_study_pdf($sid);
+			if (! is_array($pdf)) {
+				$pdf = array('status' => 'na');
+			}
+			unset($pdf['path']);
+
+			$varcount = isset($dataset['varcount']) ? (int) $dataset['varcount'] : 0;
+			$warning = '';
+			if ($dataset['type'] == 'survey' && $varcount > 2000) {
+				$this->lang->load('ddibrowser');
+				$warning = trim(strip_tags(sprintf(t('study_contains_too_many_variables'), $varcount)));
+			}
+
+			$this->set_response(
+				array(
+					'status'             => 'success',
+					'can_generate'       => ($dataset['type'] == 'survey'),
+					'varcount'           => $varcount,
+					'warning'            => $warning,
+					'languages'          => $this->_pdf_report_languages(),
+					'defaults'           => $this->_pdf_form_defaults($dataset),
+					'pdf_documentation'  => $pdf,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array(
+					'status'  => 'failed',
+					'message' => $e->getMessage(),
+				),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
 	 * Generate DDI documentation PDF (same behaviour as POST api/datasets/{idno}/generate_pdf).
 	 *
-	 * POST /api/admin/catalog/{idno}/generate_pdf — JSON body optional (variable_toc, variable_description, include_resources, language).
+	 * POST /api/admin/catalog/{idno}/generate_pdf
+	 * JSON body optional. When omitted, flags default to included and titles come from the study.
+	 * Form fields (admin UI): website_title, study_title, publisher, website_url,
+	 * variable_toc|toc_variable, variable_description|data_dic_desc, include_resources|ext_resources,
+	 * language|report_lang.
 	 */
 	function generate_pdf_post($idno = null)
 	{
@@ -600,6 +659,9 @@ class Catalog extends MY_REST_Controller
 
 		try {
 			$options = $this->raw_json_input();
+			if (! is_array($options)) {
+				$options = array();
+			}
 
 			$sid = $this->get_sid_from_idno($idno);
 			$this->has_dataset_access('edit', $sid);
@@ -613,15 +675,16 @@ class Catalog extends MY_REST_Controller
 				throw new Exception('PDF can only be generated for Surveys only');
 			}
 
+			$defaults = $this->_pdf_form_defaults($dataset);
 			$pdf_options = array(
-				'publisher'      => $dataset['authoring_entity'],
-				'website_title'  => $this->config->item('website_title'),
-				'study_title'    => $dataset['title'],
-				'website_url'    => site_url(),
-				'toc_variable'   => isset($options['variable_toc']) ? (int) $options['variable_toc'] : 1,
-				'data_dic_desc'  => isset($options['variable_description']) ? (int) $options['variable_description'] : 1,
-				'ext_resources'  => isset($options['include_resources']) ? (int) $options['include_resources'] : 1,
-				'report_lang'    => isset($options['language']) ? $options['language'] : 'en',
+				'publisher'      => $this->_pdf_text_option($options, 'publisher', $defaults['publisher'], 255, false),
+				'website_title'  => $this->_pdf_text_option($options, 'website_title', $defaults['website_title'], 255, true),
+				'study_title'    => $this->_pdf_text_option($options, 'study_title', $defaults['study_title'], 400, true),
+				'website_url'    => $this->_pdf_text_option($options, 'website_url', $defaults['website_url'], 255, true),
+				'toc_variable'   => $this->_pdf_flag($options, array('variable_toc', 'toc_variable'), 1),
+				'data_dic_desc'  => $this->_pdf_flag($options, array('variable_description', 'data_dic_desc'), 1),
+				'ext_resources'  => $this->_pdf_flag($options, array('include_resources', 'ext_resources'), 1),
+				'report_lang'    => $this->_pdf_report_lang($options, $defaults['report_lang']),
 			);
 
 			if ($pdf_options['ext_resources'] === 1) {
@@ -648,13 +711,22 @@ class Catalog extends MY_REST_Controller
 
 			$this->config->set_item('log_threshold', 0);
 
+			$start_time = date('H:i:s', date('U'));
 			$this->pdf_report->generate($sid, $report_file, $pdf_options);
+			$end_time = date('H:i:s', date('U'));
 
 			$this->config->set_item('log_threshold', $log_threshold);
 
+			if (isset($this->db_logger)) {
+				$this->db_logger->write_log('survey', 'report generated ' . $start_time . ' -  ' . $end_time, 'ddi-report', $sid);
+			}
+
+			$response_options = $pdf_options;
+			unset($response_options['ext_resources_html']);
+
 			$response = array(
 				'status'             => 'success',
-				'options'            => $pdf_options,
+				'options'            => $response_options,
 				'dataset_id'         => $dataset['id'],
 				'dataset_variables'  => $dataset['varcount'],
 				'output'             => $report_file,
@@ -676,6 +748,176 @@ class Catalog extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
+	}
+
+
+	/**
+	 * @return array
+	 */
+	private function _pdf_report_languages()
+	{
+		return array(
+			array('code' => 'en', 'title' => 'English'),
+			array('code' => 'es', 'title' => 'Spanish'),
+			array('code' => 'fr', 'title' => 'French'),
+			array('code' => 'ru', 'title' => 'Russian'),
+			array('code' => 'zh-CN', 'title' => 'Chinese (华语)'),
+			array('code' => 'ar', 'title' => 'Arabic'),
+			array('code' => 'mn', 'title' => 'Mongolian'),
+			array('code' => 'pt', 'title' => 'Portuguese'),
+		);
+	}
+
+
+	/**
+	 * @param array $dataset
+	 * @return array
+	 */
+	private function _pdf_form_defaults($dataset)
+	{
+		$nation = isset($dataset['nation']) ? trim((string) $dataset['nation']) : '';
+		$title = isset($dataset['title']) ? trim((string) $dataset['title']) : '';
+		$study_title = $nation !== '' ? ($nation . ' - ' . $title) : $title;
+
+		return array(
+			'publisher'      => $this->_pdf_publisher_text(isset($dataset['authoring_entity']) ? $dataset['authoring_entity'] : ''),
+			'website_title'  => (string) $this->config->item('website_title'),
+			'study_title'    => $study_title,
+			'website_url'    => site_url(),
+			'report_lang'    => 'en',
+			'toc_variable'   => 0,
+			'data_dic_desc'  => 0,
+			'ext_resources'  => 0,
+		);
+	}
+
+
+	/**
+	 * @param mixed $value
+	 * @return string
+	 */
+	private function _pdf_publisher_text($value)
+	{
+		if (is_array($value)) {
+			return $this->_pdf_publisher_from_list($value);
+		}
+
+		$text = trim((string) $value);
+		if ($text === '') {
+			return '';
+		}
+
+		$decoded = json_decode($text, true);
+		if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+			return $this->_pdf_publisher_from_list($decoded);
+		}
+
+		return $text;
+	}
+
+
+	/**
+	 * @param array $items
+	 * @return string
+	 */
+	private function _pdf_publisher_from_list($items)
+	{
+		$parts = array();
+		foreach ($items as $item) {
+			if (is_string($item) || is_numeric($item)) {
+				$part = trim((string) $item);
+			} elseif (is_array($item)) {
+				if (! empty($item['name'])) {
+					$part = trim((string) $item['name']);
+				} elseif (! empty($item['affiliation'])) {
+					$part = trim((string) $item['affiliation']);
+				} else {
+					$part = '';
+				}
+			} else {
+				$part = '';
+			}
+			if ($part !== '') {
+				$parts[] = $part;
+			}
+		}
+
+		$joined = implode(', ', $parts);
+		if (strlen($joined) > 255) {
+			$joined = substr($joined, 0, 255);
+		}
+
+		return $joined;
+	}
+
+
+	/**
+	 * @param array  $options
+	 * @param string $key
+	 * @param string $fallback
+	 * @param int    $max
+	 * @param bool   $required
+	 * @return string
+	 */
+	private function _pdf_text_option($options, $key, $fallback, $max, $required)
+	{
+		if (! array_key_exists($key, $options)) {
+			return (string) $fallback;
+		}
+
+		$value = trim((string) $options[$key]);
+		if ($required && $value === '') {
+			throw new Exception($key . ' is required');
+		}
+		if (strlen($value) > $max) {
+			throw new Exception($key . ' exceeds ' . $max . ' characters');
+		}
+
+		return $value;
+	}
+
+
+	/**
+	 * @param array $options
+	 * @param array $keys
+	 * @param int   $default
+	 * @return int
+	 */
+	private function _pdf_flag($options, $keys, $default)
+	{
+		foreach ($keys as $key) {
+			if (array_key_exists($key, $options)) {
+				return ((int) $options[$key]) ? 1 : 0;
+			}
+		}
+
+		return $default ? 1 : 0;
+	}
+
+
+	/**
+	 * @param array  $options
+	 * @param string $fallback
+	 * @return string
+	 */
+	private function _pdf_report_lang($options, $fallback)
+	{
+		$code = $fallback;
+		if (array_key_exists('language', $options)) {
+			$code = trim((string) $options['language']);
+		} elseif (array_key_exists('report_lang', $options)) {
+			$code = trim((string) $options['report_lang']);
+		}
+
+		$allowed = array();
+		foreach ($this->_pdf_report_languages() as $lang) {
+			$allowed[] = $lang['code'];
+		}
+		if (! in_array($code, $allowed, true)) {
+			throw new Exception('report_lang is not supported');
+		}
+
+		return $code;
 	}
 
 
@@ -3315,6 +3557,244 @@ class Catalog extends MY_REST_Controller
 		}
 		catch (Exception $e) {
 			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+
+	/**
+	 * List all featured studies across collections.
+	 *
+	 * GET /api/admin/catalog/featured_studies
+	 */
+	function featured_studies_get()
+	{
+		try {
+			$user = $this->api_user();
+			if (! $user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+			if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			$rows = $this->Repository_model->get_all_featured_studies();
+			if ($rows === false) {
+				$rows = array();
+			}
+
+			$studies = array();
+			foreach ($rows as $row) {
+				$studies[] = array(
+					'id'           => isset($row['id']) ? (int) $row['id'] : null,
+					'title'        => isset($row['title']) ? (string) $row['title'] : '',
+					'repositoryid' => isset($row['repositoryid']) ? (string) $row['repositoryid'] : '',
+					'nation'       => isset($row['nation']) ? (string) $row['nation'] : '',
+					'year_start'   => isset($row['year_start']) ? $row['year_start'] : null,
+				);
+			}
+
+			$this->set_response(
+				array(
+					'status'  => 'success',
+					'studies' => $studies,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS-DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array('status' => 'failed', 'message' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
+	 * List DDI data files with attached external resources for a study.
+	 *
+	 * GET /api/admin/catalog/{idno}/data_file_resources
+	 * GET /api/admin/catalog/{idno}/data_file_resources/{file_id} — one file + candidate microdata resources
+	 */
+	function data_file_resources_get($idno = null, $file_id = null)
+	{
+		try {
+			$user = $this->api_user();
+			if (! $user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+			if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			$sid = $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view', $sid);
+
+			$this->load->model('Data_file_resources_model');
+			$this->load->model('Data_file_model');
+			$this->load->model('Survey_resource_model');
+
+			if ($file_id !== null && $file_id !== '') {
+				$file = $this->Data_file_model->get_file_by_id($sid, $file_id);
+				if (! $file) {
+					throw new Exception('DATA_FILE_NOT_FOUND');
+				}
+				$attached = $this->Data_file_resources_model->get_file_resources($sid, $file_id);
+				$resources = $this->Survey_resource_model->get_microdata_resources($sid);
+				if (! is_array($resources)) {
+					$resources = array();
+				}
+
+				$this->set_response(
+					array(
+						'status'              => 'success',
+						'file'                => $file,
+						'attached_resources'  => array_values($attached),
+						'microdata_resources' => $resources,
+					),
+					REST_Controller::HTTP_OK
+				);
+				return;
+			}
+
+			$grouped = $this->Data_file_resources_model->get_all_files_resources($sid);
+			if (! is_array($grouped)) {
+				$grouped = array();
+			}
+
+			$files = array();
+			foreach ($grouped as $fid => $rows) {
+				if (! is_array($rows) || count($rows) === 0) {
+					continue;
+				}
+				$first = $rows[0];
+				$attached = array();
+				foreach ($rows as $row) {
+					if (empty($row['resource_id'])) {
+						continue;
+					}
+					$attached[] = array(
+						'resource_id' => (int) $row['resource_id'],
+						'filename'    => isset($row['filename']) ? (string) $row['filename'] : '',
+						'file_format' => isset($row['file_format']) ? (string) $row['file_format'] : '',
+					);
+				}
+				$files[] = array(
+					'file_id'             => isset($first['file_id']) ? $first['file_id'] : $fid,
+					'file_name'           => isset($first['file_name']) ? (string) $first['file_name'] : '',
+					'description'         => isset($first['description']) ? (string) $first['description'] : '',
+					'attached_resources'  => $attached,
+				);
+			}
+
+			$this->set_response(
+				array(
+					'status' => 'success',
+					'files'  => $files,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS-DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array('status' => 'failed', 'message' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+
+	/**
+	 * Replace attached external resources for a DDI data file.
+	 *
+	 * POST /api/admin/catalog/{idno}/data_file_resources/{file_id}
+	 * JSON body: { "resources": [ { "resource_id": 1, "file_format": "spss" }, ... ] }
+	 */
+	function data_file_resources_post($idno = null, $file_id = null)
+	{
+		try {
+			$user = $this->api_user();
+			if (! $user) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+			if ($this->acl_manager->get_admin_catalog_repository_scope($user) === false) {
+				throw new AclAccessDeniedException('ACCESS-DENIED');
+			}
+
+			$sid = $this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit', $sid);
+
+			if ($file_id === null || $file_id === '') {
+				throw new Exception('FILE_ID_REQUIRED');
+			}
+
+			$this->load->model('Data_file_resources_model');
+			$this->load->model('Data_file_model');
+
+			$file = $this->Data_file_model->get_file_by_id($sid, $file_id);
+			if (! $file) {
+				throw new Exception('DATA_FILE_NOT_FOUND');
+			}
+
+			$input = $this->raw_json_input();
+			if (! is_array($input)) {
+				$input = array();
+			}
+			$rows = array();
+			if (isset($input['resources']) && is_array($input['resources'])) {
+				$rows = $input['resources'];
+			}
+
+			$allowed_formats = array('', 'spss', 'stata', 'r', 'csv', 'txt');
+			$options = array();
+			foreach ($rows as $row) {
+				if (! is_array($row)) {
+					continue;
+				}
+				$rid = isset($row['resource_id']) ? (int) $row['resource_id'] : 0;
+				if ($rid <= 0) {
+					continue;
+				}
+				$fmt = isset($row['file_format']) ? strtolower(trim((string) $row['file_format'])) : '';
+				if (! in_array($fmt, $allowed_formats, true)) {
+					$fmt = '';
+				}
+				$options[] = array(
+					'resource_id' => $rid,
+					'file_format' => $fmt,
+				);
+			}
+
+			$this->Data_file_resources_model->batch_update($sid, $file_id, $options);
+			$this->events->emit('db.after.update', 'surveys', $sid);
+
+			$attached = $this->Data_file_resources_model->get_file_resources($sid, $file_id);
+
+			$this->set_response(
+				array(
+					'status'             => 'success',
+					'attached_resources' => array_values($attached),
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e) {
+			unset($e);
+			$this->set_response(array('status' => 'failed', 'message' => 'ACCESS-DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array('status' => 'failed', 'message' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
 		}
 	}
 

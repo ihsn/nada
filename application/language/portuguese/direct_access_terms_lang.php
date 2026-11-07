@@ -1,17 +1,18 @@
 <?php 
-$lang['title_terms_and_conditions']="Términos y condiciones";
-$lang['terms_text']="<ul class=&quot;bl&quot;>
-<li>Los datos y otro materiales provistos por la Biblioteca de Microdatos deberán ser utilizados exclusivamente por el usuario y no podrán ser redistribuidas o vendidas a otras personas, instituciones u organizaciones sin el consentimiento previo por escrito de la Biblioteca de Microdatos o del repositorio que lo origina y en caso de hacerlo, deberá estar sujeta a las condiciones que acompañan a dicho consentimiento.</li>
-<li>Los datos deberán ser utilizados solamente con fines de investigación científica y estadística. Deberán ser utilizados exclusivamente para la generación, y tal vez la presentación de informes, con información agregada y no para las investigaciones sobre personas u organizaciones específicas. En otras palabras, los datos deberán ser tratados como un producto terminado - puede ser utilizado como una base para seguir trabajando, pero no para la ingeniería inversa o &quot;investigación preliminar&quot; sobre las fuentes de los datos en sí</li>
-<li>No se deberá intentar identificar a los encuestados o proveedores de microdatos, y no se hará uso de la identidad de ninguna persona, institución o establecimiento descubierto accidentalmente. Cualquier descubrimiento debe inmediatamente ser comunicado a la Biblioteca de microdatos, con el fin de evaluar su uso posterior, aplicar más métodos estadísticos de control de acceso, imponer nuevas restricciones en el acceso, o volver a clasificar adecuadamente los datos. </li>
-<li>No se deberá intentar crear vínculos entre los conjuntos de datos proporcionados por la Biblioteca de Microdatos, o entre Microdatos de  Biblioteca de datos y otros conjuntos de datos que pudieran identificar a los individuos u organizaciones. </li>
-<li>Cualquier libro, artículos, ponencias, tesis, disertaciones, informes u otras publicaciones que utilizan datos obtenidos de la Biblioteca de Microdatos debe citar la fuente, en línea con el requisito de citación provisto con el conjunto de datos. </li>
-<li>El recolector original de los datos, la Biblioteca de Microdatos y los organismos de financiación pertinentes no tienen ninguna responsabilidad por el uso de los datos o de interpretación o inferencias basadas en él.</li>
-</ul>
-
-<p>Al ir más allá de este punto con el proceso de recuperación de datos, usted expresa su acuerdo para cumplir con los términos y condiciones antes mencionados y da su garantía de que el uso de los datos estadísticos obtenidos a partir del Archivo Nacional de Datos se ajuste a los estandares de las prácticas y restricciones legales ampliamente-aceptadas que tienen por objeto proteger la confidencialidad de los encuestados.</p>";
-$lang['form_removed_and_not_available']="El formulario ha sido eliminado y ya no esta disponible.";
-$lang['survey_data_files']="Archivo de Datos de la Encuesta";
+$lang['title_terms_and_conditions']="Termos e condições";
+$lang['terms_text']="
+<ol>
+  <li>Os dados e outros materiais fornecidos pelo Arquivo Nacional de Dados não serão redistribuídos nem vendidos a outras pessoas, instituições ou organizações sem o acordo escrito do Arquivo Nacional de Dados.</li>
+  <li>Os dados serão utilizados apenas para fins de investigação estatística e científica, exclusivamente para a elaboração de relatórios com informação agregada e não para investigar pessoas ou organizações específicas.</li>
+  <li>Não será feita nenhuma tentativa de reidentificar os inquiridos, nem será utilizada a identidade de qualquer pessoa ou estabelecimento descoberta inadvertidamente. Qualquer descoberta deste tipo será imediatamente comunicada ao Arquivo Nacional de Dados.</li>
+  <li>Não será feita nenhuma tentativa de estabelecer ligações entre os conjuntos de dados fornecidos pelo Arquivo Nacional de Dados, ou entre estes e outros conjuntos de dados, que possam identificar pessoas ou organizações.</li>
+  <li>Quaisquer livros, artigos, comunicações em conferências, teses, dissertações, relatórios ou outras publicações que utilizem dados obtidos do Arquivo Nacional de Dados citarão a fonte dos dados de acordo com o requisito de citação fornecido com cada conjunto de dados.</li>
+  <li>Será enviada ao Arquivo Nacional de Dados uma cópia electrónica de todos os relatórios e publicações baseados nos dados solicitados.</li>
+  <li>O recolhedor original dos dados, o Arquivo Nacional de Dados e as entidades financiadoras relevantes não têm qualquer responsabilidade pela utilização dos dados nem pelas interpretações ou inferências baseadas nessa utilização.</li>
+</ol>
+<p>Ao continuar para o processo de obtenção de dados, declara a sua concordância em cumprir os termos e condições acima indicados e garante que a utilização dos dados estatísticos obtidos do Arquivo Nacional de Dados estará em conformidade com as normas de prática amplamente aceites e com as restrições legais destinadas a proteger a confidencialidade dos inquiridos.</p>";
+$lang['form_removed_and_not_available']="O formulário foi removido e já não está disponível.";
+$lang['survey_data_files']="Ficheiros de dados do inquérito";
 
 
 /* End of file direct_access_terms_lang.php */

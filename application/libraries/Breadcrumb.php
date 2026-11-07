@@ -498,10 +498,6 @@ class Breadcrumb
 					$breadcrumbs['admin/catalog/batch-generate'] = t('batch_generate_ddi_title');
 				break;
 				
-				case 'transfer':
-					$breadcrumbs['admin/catalog/transfer']=t('transfer_study_ownership');
-				break;
-				
 				case 'delete':
 					$breadcrumbs['admin/catalog/delete']=t('delete');
 				break;				
@@ -636,12 +632,12 @@ class Breadcrumb
 			{
 				case 'edit':
 					$breadcrumbs['admin/catalog/edit/'.$segments[5]]=$this->get_study_title($segments[5]);
-					$breadcrumbs['admin/resources/edit/'.$segments[4].'/'.$segments[5]]=t('edit_resource');
+					$breadcrumbs['admin/catalog/edit/'.$segments[5].'/resources/edit/'.$segments[4]]=t('edit_resource');
 				break;
 
 				case 'add':
 					$breadcrumbs['admin/catalog/edit/'.$segments[5]]=$this->get_study_title($segments[5]);
-					$breadcrumbs['admin/menu/add/']=t('add_new_resource');
+					$breadcrumbs['admin/catalog/edit/'.$segments[5].'/resources/add']=t('add_new_resource');
 				break;
 			}
 		}

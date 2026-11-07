@@ -21,6 +21,7 @@ class Analytics_reports extends MY_Controller {
         $this->acl_manager->has_access_or_die('reports', 'view');
 
         $this->load->helper('vite_helper');
+        $translations = $this->lang->load('analytics', '', true);
         $view_data = array(
             'title'           => t('Analytics'),
             'site_url'        => site_url(),
@@ -31,6 +32,8 @@ class Analytics_reports extends MY_Controller {
             'server_timezone' => date_default_timezone_get(),
             'server_date'     => date('Y-m-d'),
             'nada_base_path'  => rtrim(FCPATH, '/'),
+            'analytics_locale' => $this->config->item('language') === 'portuguese' ? 'pt-PT' : 'en-US',
+            'translations'    => is_array($translations) ? $translations : array(),
         );
 
         $page = array(

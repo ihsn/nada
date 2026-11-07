@@ -1,0 +1,33 @@
+<?php
+
+$lang['Dashboard'] = 'Painel';
+$lang['Studies'] = 'Estudos';
+$lang['Manage studies'] = 'Gerir estudos';
+$lang['Licensed requests'] = 'Pedidos sob licença';
+$lang['Manage collections'] = 'Gerir colecções';
+$lang['Citations'] = 'Citações';
+$lang['All citations'] = 'Todas as citações';
+$lang['Import citations'] = 'Importar citações';
+$lang['Export citations'] = 'Exportar citações';
+$lang['Users'] = 'Utilizadores';
+$lang['All users'] = 'Todos os utilizadores';
+$lang['Add user'] = 'Adicionar utilizador';
+$lang['Impersonate user'] = 'Personificar utilizador';
+$lang['Menu'] = 'Menu';
+$lang['All pages'] = 'Todas as páginas';
+$lang['Reports'] = 'Relatórios';
+$lang['All reports'] = 'Todos os relatórios';
+$lang['Analytics'] = 'Estatísticas de utilização';
+$lang['API Logs'] = 'Registos da API';
+$lang['Site Logs'] = 'Registos do site';
+$lang['Settings'] = 'Configurações';
+$lang['Countries'] = 'Países';
+$lang['Regions'] = 'Regiões';
+$lang['Vocabularies'] = 'Vocabulários';
+$lang['Central Data Catalog'] = 'Catálogo central de dados';
+$lang['Facets'] = 'Facetas';
+$lang['Translate'] = 'Traduzir';
+$lang['Data deposit'] = 'Depósito de dados';
+$lang['Data tables'] = 'Tabelas de dados';
+$lang['Display manager'] = 'Gestor de apresentação';
+$lang['Database migration'] = 'Actualizações da base de dados';

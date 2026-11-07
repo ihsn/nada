@@ -2,13 +2,13 @@
   <v-card class="admin-analytics-card" rounded="lg" elevation="1">
     <v-card-title>
       <v-icon start>mdi-download</v-icon>
-      Raw downloads
+      {{ t('analytics_raw_downloads', 'Raw downloads') }}
     </v-card-title>
     <v-card-text class="admin-analytics-card-sections">
       <RawLogsHintAlert :max-days="rawMaxDays" />
       <v-row dense>
         <v-col cols="12" sm="3">
-          <FormField label="From">
+          <FormField :label="t('analytics_from', 'From')">
             <v-text-field
               v-model="filters.date_from"
               type="date"
@@ -19,7 +19,7 @@
           </FormField>
         </v-col>
         <v-col cols="12" sm="3">
-          <FormField label="To">
+          <FormField :label="t('analytics_to', 'To')">
             <v-text-field
               v-model="filters.date_to"
               type="date"
@@ -30,7 +30,7 @@
           </FormField>
         </v-col>
         <v-col cols="12" sm="3">
-          <FormField label="File type">
+          <FormField :label="t('analytics_file_type', 'File type')">
             <v-text-field
               v-model="filters.file_type"
               density="compact"
@@ -41,8 +41,8 @@
           </FormField>
         </v-col>
         <v-col cols="12" sm="3" class="d-flex align-end ga-2 pb-1">
-          <v-btn color="primary" :loading="loading" @click="reload">Filter</v-btn>
-          <v-btn variant="outlined" @click="clearFilters">Clear</v-btn>
+          <v-btn color="primary" :loading="loading" @click="reload">{{ t('analytics_filter', 'Filter') }}</v-btn>
+          <v-btn variant="outlined" @click="clearFilters">{{ t('analytics_clear', 'Clear') }}</v-btn>
         </v-col>
       </v-row>
       <v-data-table-server
@@ -69,6 +69,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useI18n } from '@/shared/composables/useI18n';
 import { useAnalyticsApi } from '../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../composables/useAnalyticsMessages';
 import { formatDateTime } from '../utils/formatters';
@@ -80,6 +81,7 @@ import RawLogsHintAlert from '../components/shared/RawLogsHintAlert.vue';
 defineOptions({ name: 'RawDownloadsPage' });
 
 const { config } = useAppConfig();
+const { t } = useI18n();
 const api = useAnalyticsApi();
 const { notifyError } = useAnalyticsMessages();
 
@@ -100,15 +102,15 @@ const page = ref(1);
 const limit = 50;
 
 const headers = [
-  { title: 'Time', key: 'ts' },
-  { title: 'Study ID', key: 'study_id' },
-  { title: 'File', key: 'file_name' },
-  { title: 'Type', key: 'file_type' },
+  { title: t('analytics_time', 'Time'), key: 'ts' },
+  { title: t('analytics_study_id', 'Study ID'), key: 'study_id' },
+  { title: t('analytics_file', 'File'), key: 'file_name' },
+  { title: t('analytics_type', 'Type'), key: 'file_type' },
 ];
 
 async function load() {
   if (!filters.date_from || !filters.date_to) {
-    notifyError('From and To dates are required');
+    notifyError(t('analytics_required_dates', 'From and To dates are required'));
     return;
   }
   loading.value = true;
@@ -126,7 +128,7 @@ async function load() {
     rows.value = res.data || [];
     total.value = res.total || 0;
   } catch (e) {
-    notifyError(e.message || 'Failed to load downloads');
+    notifyError(e.message || t('analytics_load_downloads_error', 'Failed to load downloads'));
   } finally {
     loading.value = false;
   }

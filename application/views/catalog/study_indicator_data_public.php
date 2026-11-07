@@ -14,7 +14,6 @@ $_page_title = isset($catalog_page_title)
 	: (function_exists('t') ? t('tab_indicator_chart') : 'Chart & data');
 
 $_study_title = isset($study_title) ? (string) $study_title : '';
-$_study_abstract = isset($study_abstract) ? (string) $study_abstract : '';
 $_indicator_ui = isset($indicator_data_api_ui) && is_array($indicator_data_api_ui) ? $indicator_data_api_ui : array();
 $_embed_mode = !empty($embed_mode);
 
@@ -33,7 +32,6 @@ window.APP_CONFIG = Object.assign({}, window.APP_CONFIG || {}, {
 	pageTitle: <?php echo json_encode($_page_title); ?>,
 	indicatorMainView: <?php echo json_encode($_imv); ?>,
 	studyTitle: <?php echo json_encode($_study_title, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>,
-	studyAbstract: <?php echo json_encode($_study_abstract, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>,
 	indicatorDataApiUi: <?php echo json_encode($_indicator_ui, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP); ?>,
 	indicatorEmbed: <?php echo json_encode($_embed_mode); ?>
 });

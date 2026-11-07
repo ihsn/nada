@@ -2,7 +2,7 @@
 $lang['required']="O campo %s é requerido.";
 $lang['isset']="O campo %s deve ter um valor.";
 $lang['valid_email']="O campo %s deve conter um correio válido.";
-$lang['valid_emails']="O campo %s deve conter todos los correios válidos.";
+$lang['valid_emails']="O campo %s deve conter apenas endereços de correio electrónico válidos.";
 $lang['valid_url']="O campo %s deve conter um URL válido.";
 $lang['valid_ip']="O campo %s deve conter um IP válido.";
 $lang['min_length']="O campo %s deve conter pelo menos %s caracteres de largura.";

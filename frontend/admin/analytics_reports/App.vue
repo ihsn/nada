@@ -17,7 +17,7 @@
     >
       {{ snackbar.text }}
       <template #actions>
-        <v-btn variant="text" size="small" @click="snackbar.open = false">Close</v-btn>
+        <v-btn variant="text" size="small" @click="snackbar.open = false">{{ t('analytics_close', 'Close') }}</v-btn>
       </template>
     </v-snackbar>
   </v-app>
@@ -25,6 +25,7 @@
 
 <script setup>
 import { provide, reactive } from 'vue';
+import { useI18n } from '@/shared/composables/useI18n';
 import './styles/analytics-layout.css';
 import AnalyticsSidebar from './components/AnalyticsSidebar.vue';
 import AnalyticsPageHeader from './components/AnalyticsPageHeader.vue';
@@ -32,6 +33,7 @@ import { SET_MESSAGE_KEY } from './composables/useAnalyticsMessages';
 
 defineOptions({ name: 'AdminAnalyticsReportsApp' });
 
+const { t } = useI18n();
 const snackbar = reactive({ open: false, text: '', color: 'surface' });
 
 function setMessage(text, type = 'info') {

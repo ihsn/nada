@@ -48,14 +48,14 @@
 	<?php foreach($rows as $row): ?>
     	
 		<?php $row=(object)$row;?>
-        <?php $filepath=unix_path($this->survey_folder.'/'.$row->filename);?>
-        <?php $file_exists=file_exists($filepath);?>
+        <?php $filepath=check_resource_file_under($this->survey_folder, $row->filename);?>
+        <?php $file_exists=($filepath !== FALSE);?>
         <?php if ($file_exists):?>
 			<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
             <tr class="<?php echo $tr_class; ?>">
                 <td><a href="<?php echo site_url();?>/access_direct/download/<?php echo $surveyid;?>/<?php echo $row->resource_id;?>"><?php echo $row->title; ?></a></td>            
                 <td><a href="<?php echo site_url();?>/access_direct/download/<?php echo $surveyid;?>/<?php echo $row->resource_id;?>"><?php echo basename($row->filename); ?></a></td>
-                <td><?php echo format_bytes(@filesize(unix_path($this->survey_folder.'/'.$row->filename)),2);?></td>
+                <td><?php echo format_bytes(@filesize($filepath),2);?></td>
                 <td><?php echo date($this->config->item("date_format_long"),$row->changed); ?></td>            
                 <td>
                     <a href="<?php echo site_url();?>/access_direct/download/<?php echo $surveyid;?>/<?php echo $row->resource_id;?>"><?php echo t('download');?></a>

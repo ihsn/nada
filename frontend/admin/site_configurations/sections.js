@@ -13,6 +13,18 @@ export const SECTION_DEFS = [
       'admin_header_background',
     ],
   },
+  {
+    id: 'site_notice',
+    titleKey: 'Site notice',
+    keys: [
+      'site_notice_enabled',
+      'site_notice_title',
+      'site_notice_message',
+      'site_notice_remember_minutes',
+      'site_notice_bar_enabled',
+      'site_notice_bar_text',
+    ],
+  },
   { id: 'languages', titleKey: 'language', keys: ['language', 'supported_languages'] },
   { id: 'html_editor', titleKey: 'use_html_editor_for_html', keys: ['use_html_editor'] },
   {

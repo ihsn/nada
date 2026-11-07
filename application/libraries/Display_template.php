@@ -83,13 +83,13 @@ class Display_template{
         }
 
         $lang_file = (string) $map[$lookup];
-        $lang_language = $this->ci->config->item('language');
-        $lang_file_path = APPPATH . '/language/' . $lang_language . '/' . $lang_file . '_lang.php';
+        $lang_language = $this->ci->config->item('language') ?: 'english';
+        $lang_filename = preg_replace('/_lang$/', '', str_replace('.php', '', $lang_file)) . '_lang.php';
 
-        if (file_exists($lang_file_path)) {
-            $this->ci->lang->load($lang_file);
-        } else {
-            log_message('error', 'missing language file ' . $lang_file_path);
+        $this->ci->lang->load($lang_file);
+        if (!isset($this->ci->lang->is_loaded[$lang_filename])
+            || $this->ci->lang->is_loaded[$lang_filename] !== $lang_language) {
+            log_message('error', 'missing language file language/' . $lang_language . '/' . $lang_filename);
         }
     }
 

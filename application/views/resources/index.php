@@ -112,18 +112,18 @@
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>        
         <?php 
 				$resource_exists=FALSE;
-				if( trim($row->filename)=='')
+				if (trim($row->filename) === '')
 				{
 					$resource_exists=FALSE;
-				}
-				else if(file_exists(unix_path($this->survey_folder.'/'.$row->filename)) )
-				{
-					$resource_exists=TRUE;
 				}
 				else if (is_url($row->filename))
 				{
 					$resource_exists=TRUE;
-				}		
+				}
+				else if (check_resource_file_under($this->survey_folder, $row->filename) !== FALSE)
+				{
+					$resource_exists=TRUE;
+				}
 		?>
         <?php $resource_class=($resource_exists===TRUE) ? 'resource-found' : 'resource-notfound';?> 
     	<tr class="<?php echo $tr_class; ?>">

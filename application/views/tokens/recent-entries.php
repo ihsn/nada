@@ -11,6 +11,7 @@ $type_icons=array(
     'microdata'=>'fa-database',
     'geospatial'=>'fa-globe-americas',
     'timeseries'=>'fa-chart-line',
+    'timeseriesdb'=>'fa-database',
     'document'=>'fa-file-alt',
     'table'=>'fa-table',
     'script'=>'fa-file-code',
@@ -34,7 +35,7 @@ $type_icons=array(
                     <h5>
                     <a href="<?php echo site_url(); ?>/catalog/<?php echo $row['id']; ?>"  title="<?php echo $row['title']; ?>" >
                         <?php if(isset($row['type'])):?>
-                            <i title="<?php echo $row['type'];?>" class="fa <?php echo $type_icons[$row['type']];?> fa-nada-icon wb-title-icon"></i>    
+                            <i title="<?php echo $row['type'];?>" class="fa <?php echo isset($type_icons[$row['type']]) ? $type_icons[$row['type']] : 'fa-database';?> fa-nada-icon wb-title-icon"></i>    
                         <?php endif;?>                        
                             <?php echo $row['title'];?>
                         </a>

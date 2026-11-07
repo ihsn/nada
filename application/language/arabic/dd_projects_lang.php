@@ -27,7 +27,6 @@ $lang['invalid_email']="عنوان البريد الإلكتروني غير صا
 $lang['add_citations']="اقتباس جديد";
 $lang['diagnostic']="التشخيص";
 $lang['outstanding_fields']="%d حقول إلزامية معلقة";
-$lang['no_plupload_support']="لا يحتوي متصفحك على دعم Flash أو Silverlight أو Gears أو BrowserPlus أو HTML5.";
 $lang['project_locked_message']="تم إرسال هذا المشروع في %s. لم يعد من الممكن تحرير المشروع ، ولكن يمكنك عرض معلومات ملخص المشروع وتنزيلها. إذا كنت بحاجة إلى مراجعة أو إضافة المزيد من الملفات إلى تقديمك ، فيمكنك طلب إعادة فتح المشروع.";
 $lang['submit']="أرسل/قدم";
 $lang['request_reopen']="طلب إعادة فتح";

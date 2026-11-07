@@ -3,6 +3,7 @@
     class="pdf-viewer-core"
     :class="{
       'pdf-viewer-core--embedded': embedded,
+      'pdf-viewer-core--light': theme === 'light',
       'pdf-viewer-core--failed': !!error,
     }"
   >
@@ -135,6 +136,7 @@ const props = defineProps({
   pageChips:   { type: Array, default: () => [] },
   title:       { type: String, default: '' },
   embedded:    { type: Boolean, default: false },
+  theme:       { type: String, default: 'dark' },
 });
 
 const { t } = useI18n();
@@ -535,7 +537,38 @@ onUnmounted(async () => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #525659;
+  --pdf-bg: #525659;
+  --pdf-toolbar-bg: #323639;
+  --pdf-toolbar-fg: #f1f1f1;
+  --pdf-toolbar-border: rgba(255, 255, 255, 0.08);
+  --pdf-active-bg: rgba(255, 255, 255, 0.16);
+  --pdf-active-fg: #fff;
+  --pdf-input-bg: #1e1e1e;
+  --pdf-input-fg: #fff;
+  --pdf-input-border: rgba(255, 255, 255, 0.2);
+  --pdf-chips-bg: #3a3d40;
+  --pdf-chips-border: rgba(255, 255, 255, 0.06);
+  --pdf-chips-label: rgba(255, 255, 255, 0.75);
+  --pdf-chip-active-bg: rgba(255, 255, 255, 0.2);
+  --pdf-page-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+  background: var(--pdf-bg);
+}
+
+.pdf-viewer-core--light {
+  --pdf-bg: #f1f3f5;
+  --pdf-toolbar-bg: #fff;
+  --pdf-toolbar-fg: #1a2332;
+  --pdf-toolbar-border: rgba(0, 0, 0, 0.12);
+  --pdf-active-bg: rgba(0, 0, 0, 0.08);
+  --pdf-active-fg: #1a2332;
+  --pdf-input-bg: #fff;
+  --pdf-input-fg: #1a2332;
+  --pdf-input-border: rgba(0, 0, 0, 0.25);
+  --pdf-chips-bg: #e9ecef;
+  --pdf-chips-border: rgba(0, 0, 0, 0.08);
+  --pdf-chips-label: rgba(26, 35, 50, 0.7);
+  --pdf-chip-active-bg: rgba(0, 0, 0, 0.12);
+  --pdf-page-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
 }
 
 .pdf-viewer-core--embedded {
@@ -573,9 +606,9 @@ onUnmounted(async () => {
   gap: 12px;
   flex-wrap: wrap;
   padding: 8px 12px;
-  background: #323639;
-  color: #f1f1f1;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--pdf-toolbar-bg);
+  color: var(--pdf-toolbar-fg);
+  border-bottom: 1px solid var(--pdf-toolbar-border);
   flex-shrink: 0;
 }
 
@@ -608,8 +641,8 @@ onUnmounted(async () => {
 }
 
 .pdf-viewer-core__full-btn--active {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: var(--pdf-active-bg);
+  color: var(--pdf-active-fg);
 }
 
 .pdf-viewer-core__page-indicator {
@@ -622,10 +655,10 @@ onUnmounted(async () => {
 .pdf-viewer-core__page-input {
   width: 52px;
   padding: 4px 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--pdf-input-border);
   border-radius: 4px;
-  background: #1e1e1e;
-  color: #fff;
+  background: var(--pdf-input-bg);
+  color: var(--pdf-input-fg);
   text-align: center;
 }
 
@@ -641,14 +674,14 @@ onUnmounted(async () => {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: #3a3d40;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--pdf-chips-bg);
+  border-bottom: 1px solid var(--pdf-chips-border);
   flex-shrink: 0;
 }
 
 .pdf-viewer-core__chips-label {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--pdf-chips-label);
   margin-right: 4px;
 }
 
@@ -657,8 +690,8 @@ onUnmounted(async () => {
 }
 
 .pdf-viewer-core__chip--active {
-  background: rgba(255, 255, 255, 0.2) !important;
-  color: #fff !important;
+  background: var(--pdf-chip-active-bg) !important;
+  color: var(--pdf-active-fg) !important;
 }
 
 .pdf-viewer-core__loading {
@@ -693,7 +726,7 @@ onUnmounted(async () => {
 
 .pdf-viewer-core__canvas {
   display: block;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--pdf-page-shadow);
   background: #fff;
 }
 </style>

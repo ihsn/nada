@@ -369,7 +369,7 @@ CREATE TABLE `surveys` (
   `metadata` mediumtext,
   `var_keywords` mediumtext,
   `keywords` text,
-  `abstract` varchar(500) DEFAULT NULL,
+  `abstract` varchar(2000) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `surveyid_UNIQUE` (`idno`),
   UNIQUE KEY `idx_srvy_unq` (`idno`,`repositoryid`),
@@ -2036,6 +2036,16 @@ CREATE TABLE `study_admin_metadata` (
   `changed` int unsigned DEFAULT NULL,
   PRIMARY KEY (`sid`),
   KEY `idx_study_admin_metadata_changed` (`changed`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `study_presentation` (
+  `sid` int NOT NULL,
+  `settings` json NOT NULL,
+  `created_by` int unsigned DEFAULT NULL,
+  `changed_by` int unsigned DEFAULT NULL,
+  `created` int unsigned DEFAULT NULL,
+  `changed` int unsigned DEFAULT NULL,
+  PRIMARY KEY (`sid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `analytics_legacy_counts` (

@@ -1,4 +1,4 @@
-/** @typedef {{ source: string, sid: number|null, idno: string, resourceId: number|null, page: number, pageChips: number[] }} ViewerParams */
+/** @typedef {{ source: string, sid: number|null, idno: string, resourceId: number|null, page: number, pageChips: number[], theme: 'light'|'dark' }} ViewerParams */
 
 const MAX_PAGE_CHIPS = 20;
 
@@ -50,6 +50,7 @@ export function parseViewerParams(search = '') {
     resourceId: resourceRaw && /^\d+$/.test(resourceRaw) ? parseInt(resourceRaw, 10) : null,
     page,
     pageChips,
+    theme: params.get('theme') === 'light' ? 'light' : 'dark',
   };
 }
 

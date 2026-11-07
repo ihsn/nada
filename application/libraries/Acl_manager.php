@@ -101,10 +101,38 @@ class Acl_manager
 	}
 
 
+	/**
+	 * Delete a role and related rows (user assignments + role permissions).
+	 *
+	 * Locked/system roles cannot be deleted.
+	 *
+	 * @param int $role_id
+	 * @return bool
+	 * @throws Exception ROLE_LOCKED when the role is a locked system role
+	 */
 	function delete_role($role_id)
 	{
-		$this->ci->db->where('id',$role_id);
-		return $this->ci->db->delete("roles");
+		$role_id = (int) $role_id;
+		if ($role_id <= 0) {
+			return false;
+		}
+
+		$role = $this->get_role_by_id($role_id);
+		if (empty($role)) {
+			return false;
+		}
+		if (! empty($role['is_locked']) && (int) $role['is_locked'] === 1) {
+			throw new Exception('ROLE_LOCKED');
+		}
+
+		// Remove memberships first so user_roles does not keep orphan role_ids.
+		$this->ci->db->where('role_id', $role_id);
+		$this->ci->db->delete('user_roles');
+
+		$this->remove_role_permissions($role_id);
+
+		$this->ci->db->where('id', $role_id);
+		return $this->ci->db->delete('roles');
 	}
 
 

@@ -29,7 +29,6 @@ $lang['external'] = 'Externe';
 $lang['confirm_submit'] = 'Confirmer la soumission';
 $lang['invalid_email'] = 'Adresse e-mail non valide !';
 $lang['outstanding_fields'] = '%d champs obligatoires restent à remplir';
-$lang['no_plupload_support'] = 'Votre navigateur ne prend pas en charge Flash, Silverlight, Gears, BrowserPlus ni HTML5.';
 $lang['project_locked_message'] = 'Ce projet a été soumis le %s. Il ne peut plus être modifié, mais vous pouvez consulter et télécharger son résumé. Si vous devez réviser votre soumission ou y ajouter des fichiers, vous pouvez demander la réouverture du projet.';
 $lang['request_reopen'] = 'Demander la réouverture';
 $lang['catalog_to_publish'] = 'Choisissez le catalogue dans lequel publier';

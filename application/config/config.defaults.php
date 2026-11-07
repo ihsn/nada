@@ -38,6 +38,12 @@ $config['nada_ai_on_outage']='database';
 // searches in other languages when it does.
 $config['nada_ai_multilingual']='no';
 $config['site_user_register']='yes';
+$config['site_notice_enabled']='no';
+$config['site_notice_title']='';
+$config['site_notice_message']='';
+$config['site_notice_remember_minutes']='10';
+$config['site_notice_bar_enabled']='no';
+$config['site_notice_bar_text']='';
 
 //default cache expiration in seconds
 $config['cache_default_expires'] = 60*60*2;//2 hours

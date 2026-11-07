@@ -73,6 +73,12 @@ Catalog search pages past the numbered pages are reached with a cursor (URLs end
 
 `robots.txt` is only read at the root of the host (`https://your-host/robots.txt`); when NADA is installed in a subfolder, the file goes in the host's root folder, not NADA's. This applies to fresh installs too.
 
+## API keys created before NADA 5.6
+
+NADA 5.6 started storing API keys as hashes. Keys from earlier versions that have not been converted are accepted by default: each one is converted the first time it is used, and expires one year later.
+
+NADA 5.7.2 rejected these keys, so on a site upgrading from 5.7.2 they can start working again. Revoke any old keys that should no longer work. To reject all unconverted keys, set `$config['api_key_enable_legacy_support'] = FALSE;` in `application/config/rest.php`.
+
 ## Fresh installs
 
 New installations use `install/schema.mysql.sql` (or `schema.sqlsrv.sql`) plus `install/schema.dd.{mysql,sqlsrv}.sql`. The schema files already include all migrations up to the release, and the installer records the latest version. You do not need to run `migrate latest` after a fresh install.

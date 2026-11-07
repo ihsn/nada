@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import CatalogListPage from './pages/CatalogListPage.vue';
 import AdminCatalogBatchPage from './pages/AdminCatalogBatchPage.vue';
+import FeaturedStudiesPage from './pages/FeaturedStudiesPage.vue';
 
 /**
  * History base must match the browser pathname prefix. PHP's site_url() may include
@@ -10,7 +11,7 @@ function adminCatalogHistoryBase() {
   if (typeof window !== 'undefined' && window.location && window.location.pathname) {
     let p = window.location.pathname;
     p = p.replace(/\/+$/, '') || '/';
-    p = p.replace(/\/batch-(import|refresh|generate)$/, '') || '/';
+    p = p.replace(/\/(batch-(import|refresh|generate)|featured_studies)$/, '') || '/';
     return `${p}/`;
   }
   const raw =
@@ -48,6 +49,11 @@ export function createAdminCatalogRouter() {
         name: 'batch-generate',
         component: AdminCatalogBatchPage,
         props: { tool: 'batch-generate' },
+      },
+      {
+        path: '/featured_studies',
+        name: 'featured-studies',
+        component: FeaturedStudiesPage,
       },
     ],
   });

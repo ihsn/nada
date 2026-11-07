@@ -486,84 +486,6 @@ class Catalog extends MY_Controller {
 	}
 
 	/**
-	* Imports an uploaded DDI file or batch import
-	*
-	*/
-	private function __replace_ddi($sid,$new_ddi_file)
-	{
-		$this->load->model("Survey_alias_model");
-		$this->load->model("Dataset_model");
-		$this->load->model("Data_file_model");
-		$this->load->library('Dataset_manager');
-
-		//get survey info
-		$survey=$this->Dataset_model->get_row($sid);
-		$user=$this->ion_auth->current_user();
-
-		if (!$survey){
-			show_error("SURVEY_NOT_FOUND");
-		}
-
-		//get ddi path
-		$survey_ddi_path=$this->Catalog_model->get_survey_ddi_path($sid);
-
-		$parser_params=array(
-            'file_type'=>'survey',
-            'file_path'=>$new_ddi_file
-        );
-        
-		$this->load->library('Metadata_parser', $parser_params);
-		
-		 //parser to read metadata
-		 $parser=$this->metadata_parser->get_reader();
-
-		 $new_idno=$parser->get_id();
-
-		 //sanitize ID to remove anything except a-Z1-9 characters
-		 if ($new_idno!==$this->sanitize_filename($new_idno)){
-			 throw new Exception(t('IDNO_INVALID_FORMAT').': '.$new_idno);
-		 }
- 
-		 //check if the study already exists, find the sid		
-		$new_ddi_sid=$this->dataset_manager->find_by_idno($new_idno);
-
-		//check if uploaded study ID is used by another study in the catalog
-		if(!empty($new_ddi_sid) && $new_ddi_sid!=$sid){			
-			$error=t('replace_ddi_failed_duplicate_study_found'). ': '.anchor(site_url('admin/catalog/edit/'.$new_ddi_sid));
-			$this->db_logger->write_log('ddi-replace-error',$error,'catalog');
-			throw new Exception($error);
-		}
-
-		//copy
-		$survey_folder_path=$this->Dataset_model->get_storage_fullpath($sid);
-		$survey_target_ddi=unix_path($survey_folder_path.'/'.$new_idno.'.xml');
-
-		if (!@rename($new_ddi_file,$survey_target_ddi)){
-			throw new Exception("COPY_FAILED: ".$survey_target_ddi);
-		}
-
-		//update survey metadata to point to new file
-		$survey_options=array(
-			'metafile'=>$new_idno.'.xml'
-		);
-		
-		$this->Dataset_model->update_options($sid,$survey_options);
-
-		//if Survey ID has changed then add the OLD ID as alias
-		if (!$this->Survey_alias_model->id_exists($new_idno)){
-			$alias_options = array(
-				'sid'  => $sid,
-				'alternate_id' => $new_idno,
-			);
-			$this->Survey_alias_model->insert($alias_options);
-		}
-	
-		//refresh metadata
-		return redirect('admin/catalog/refresh/'.$sid,'refresh');
-	}
-
-
-	/**
 	*
 	* Refresh DDI Information in the database
 	*
@@ -861,142 +783,18 @@ class Catalog extends MY_Controller {
 	* Replace a DDI
 	*
 	**/
+	/** Retired — use Vue Replace DDI dialog / api/admin/catalog/{id}/replace_ddi */
 	function replace_ddi($sid=NULL)
 	{
-		if (!is_numeric($sid)){
-			show_error("ID_INVALID");
-		}
-
-		$this->acl_manager->require_catalog_access();
-
-		$survey_gate = $this->Catalog_model->get_survey($sid);
-		if (!$survey_gate) {
-			show_error('Survey was not found');
-		}
-		$this->acl_manager->has_access_or_die('study', 'edit', null, $survey_gate['repositoryid']);
-
-
-		if(!isset($_FILES['userfile'])){			
-			$data['id']=$sid;
-			$data['survey']=$this->Catalog_model->select_single($sid);
-
-			$content=$this->load->view('catalog/replace_ddi',$data,TRUE);
-			$this->template->write('content', $content,true);
-			$this->template->render();
-			return;
-		}
-
-		//no file uploaded?
-		if ($_FILES['userfile']['size']==0){		
-			$this->session->set_flashdata('error', "NO_FILE_UPLOADED");	
-			redirect('admin/catalog/replace_ddi/'.$sid,'refresh');exit;
-		}
-
-		//catalog folder path
-		$catalog_root=$this->config->item("catalog_root");
-
-		if (!file_exists($catalog_root) ){
-			show_error("CATALOG_ROOT_NOT_FOUND");
-		}
-
-		$tmp_path=unix_path($catalog_root.'/tmp');
-
-		try
-		{
-			//upload the ddi
-			$upload_result=$this->upload_ddi_file($key='userfile',$destination=$tmp_path);
-
-			if(!$upload_result){				
-				$error = $this->upload->display_errors();
-				$this->db_logger->write_log('ddi-upload',$error,'catalog');
-				throw new Exception($error);
-			}
-
-			$this->__replace_ddi($sid,$new_ddi_file=$upload_result['full_path']);
-		}
-		catch (Exception $e)
-		{
-			$this->session->set_flashdata('error', $e->getMessage());
-			redirect('admin/catalog/replace_ddi/'.$sid,'refresh');			
-		}
+		unset($sid);
+		show_404();
 	}
 
-
-
-	/**
-	*
-	* Transfer Ownership of a study to another catalog
-	*
-	* @surveyid  number | string in case of multiple IDs seperated by comma
-	**/
+	/** Retired — use Vue Transfer Ownership dialog / api/admin/catalog/{id}/transfer_ownership */
 	function transfer($surveyid=NULL)
 	{
-		$this->acl_manager->require_catalog_access();
-
-		if ($surveyid==NULL && !$this->input->post("sid")){
-			show_error("PARAM_MISSING");
-		}
-
-		if ($this->input->post("sid")){
-			$surveys_arr=$this->input->post("sid");
-		}
-		else{
-			$surveys_arr=explode(",",$surveyid);
-		}
-
-		$surveys=array();
-
-		//get survey info by id
-		foreach($surveys_arr as $id)
-		{
-			if (is_numeric($id)){
-				$survey_row=$this->Catalog_model->get_survey($id);
-				if ($survey_row){
-					$this->acl_manager->has_access_or_die('study', 'edit', null, $survey_row['repositoryid']);
-					$surveys[$id]=$survey_row;
-				}
-			}
-		}
-
-		if (count($surveys) === 0) {
-			show_error("PARAM_MISSING");
-		}
-
-		//postback?
-		if ($this->input->post("submit"))
-		{
-			$repositoryid=$this->input->post("repositoryid");
-
-			//validate repository
-			if ($repositoryid=='central'){
-				$exists=true;
-			}
-			else{
-				$exists=$this->Catalog_model->repository_exists($repositoryid);
-			}
-
-			if (!$exists){
-				$this->form_validation->set_error(t('error_no_collection_selected'));
-			}
-			else{
-				foreach($surveys as $key=>$value){
-					$this->acl_manager->has_access_or_die('study', 'edit', null, $value['repositoryid']);
-					//transfer ownership
-					$this->Catalog_model->transfer_ownership($repositoryid,$key);
-				}
-				$this->session->set_flashdata('message', t('msg_study_ownership_has_changed'));
-				redirect('admin/catalog');
-			}
-		}
-
-		$options=array(
-			'repositories'=>$this->Repository_model->select_all(),
-			'surveys'=>$surveys
-		);
-
-		$content=$this->load->view('catalog/transfer_ownership',$options,TRUE);
-		$this->template->write('content', $content,true);
-  		$this->template->render();
+		unset($surveyid);
+		show_404();
 	}
 
 
@@ -1406,6 +1204,36 @@ class Catalog extends MY_Controller {
 	 * @param array      $survey_row
 	 * @return array
 	 */
+	/**
+	 * Labels for the Vue study PDF options dialog.
+	 *
+	 * @return array
+	 */
+	private function _pdf_dialog_labels()
+	{
+		$this->lang->load('ddibrowser');
+		$this->lang->load('breadcrumbs');
+		$this->lang->load('configurations');
+
+		return array(
+			'generate_study_pdf'          => t('generate_study_pdf'),
+			'website_title'               => t('website_title'),
+			'study_title'                 => t('study_title'),
+			'publisher'                   => t('publisher'),
+			'website_url'                 => t('website_url'),
+			'report_lang'                 => t('report_lang'),
+			'report_options'              => t('Report options'),
+			'include_variable_toc'        => t('include_variable_toc'),
+			'include_variable_desc'       => t('include_variable_desc'),
+			'include_external_resources'  => t('include_external_resources'),
+			'processing_pdf_report'       => t('processing_pdf_report'),
+			'pdf_generated'               => t('PDF report generated successfully.'),
+			'pdf_required_fields'         => 'Website title, study title, and website URL are required.',
+			'pdf_surveys_only'            => 'PDF can only be generated for surveys.',
+		);
+	}
+
+
 	private function _study_edit_vue_common($id, array $survey_row)
 	{
 		return array(
@@ -1541,10 +1369,9 @@ class Catalog extends MY_Controller {
 			$this->_study_edit_vue_common($id, $survey_row),
 			array(
 				'apiBaseUrl'                => site_url('api/admin/catalog/'),
+				'studyType'                 => isset($survey_row['type']) ? $survey_row['type'] : 'survey',
 				'dataClassificationsApiUrl' => site_url('api/admin/catalog/data-classifications'),
 				'dataClassificationsEnabled' => (bool) $data_classifications_enabled,
-				'pdfSetupUrl'               => site_url('admin/pdf_generator/setup/' . $id),
-				'pdfDeleteUrl'              => site_url('admin/pdf_generator/delete/' . $id),
 				'countriesMappingUrl'       => site_url('admin/countries/mappings'),
 				'labels'                    => array(
 					'ref_no'                       => t('ref_no'),
@@ -1561,6 +1388,8 @@ class Catalog extends MY_Controller {
 					'metadata_in_pdf'              => t('metadata_in_pdf'),
 					'generate_pdf'                 => t('Generate PDF'),
 					'delete'                       => t('delete'),
+					'confirm_delete'               => t('js_confirm_delete'),
+					'pdf_deleted'                  => t('PDF report deleted.'),
 					'pdf_not_generated'            => t('pdf_not_generated'),
 					'pdf_uptodate'                 => t('pdf_uptodate'),
 					'pdf_outdated'                 => t('pdf_outdated'),
@@ -1583,7 +1412,18 @@ class Catalog extends MY_Controller {
 					'cancel'                       => t('cancel'),
 					'study_no_data_files_assigned' => sprintf(t('study_no_data_files_assigned'), ''),
 					'data_selection_apply_to_files' => t('data_selection_apply_to_files'),
-				),
+					'data_files'                   => t('data_files'),
+					'data_file'                    => t('data_file'),
+					'external_resources'           => t('external_resources'),
+					'no_ddi_data_files'            => t('no_records_found'),
+					'edit'                         => t('edit'),
+					'link_data_file_resources'     => t('Link external resources for the data file'),
+					'select_resources_for_data_file' => t('Select all the external resources that are used by this data file'),
+					'no_microdata_resources'       => t('no_records_found'),
+					'select'                       => t('select'),
+					'external_resource'            => t('external_resources'),
+					'file_format'                  => t('format'),
+				) + $this->_pdf_dialog_labels(),
 			)
 		);
 	}
@@ -1596,9 +1436,9 @@ class Catalog extends MY_Controller {
 			array(
 				'apiBaseUrl'          => site_url('api/admin/catalog/'),
 				'uploadsApiUrl'       => rtrim(site_url('api/uploads'), '/') . '/',
-				'resourcesEditBase'   => rtrim(site_url('admin/resources/edit'), '/'),
-				// Read by the built files screen. Creates a resource for a file that has none yet.
-				'managefilesEditBase' => rtrim(site_url('admin/resources/edit/add/' . (int) $id), '/'),
+				'resourcesTabUrl'     => site_url('admin/catalog/edit/' . (int) $id . '/resources'),
+				// Study-file → new resource (token flow); still PHP until ported.
+				'resourcesFileLinkBase' => rtrim(site_url('admin/resources/edit/add/' . (int) $id), '/'),
 				'labels'              => array(
 					'name'                 => t('name'),
 					'size'                 => t('size'),
@@ -1642,44 +1482,67 @@ class Catalog extends MY_Controller {
 
 	private function _study_edit_resources_app_config($id, array $survey_row)
 	{
+		$this->load->model('Survey_resource_model');
+		$dctypes = $this->Survey_resource_model->get_dc_types();
+		$dcformats = $this->Survey_resource_model->get_dc_formats();
+
 		return array_merge(
 			$this->_study_edit_vue_common($id, $survey_row),
 			array(
 				'resourcesApiBase' => rtrim(site_url('api/admin/resources'), '/') . '/',
+				'resourcesTabUrl'  => site_url('admin/catalog/edit/' . (int) $id . '/resources'),
+				'dctypes'          => is_array($dctypes) ? $dctypes : array(),
+				'dcformats'        => is_array($dcformats) ? $dcformats : array(),
 				'legacyUrls'       => array(
-					'addUrl'       => site_url('admin/resources/add/new/' . (int) $id),
-					'importUrl'    => site_url('admin/resources/import/' . (int) $id),
-					'fixLinksUrl'  => site_url('admin/resources/fixlinks/' . (int) $id),
 					'exportRdfUrl' => site_url('admin/catalog/export_rdf/' . (int) $id),
-					'editBase'     => rtrim(site_url('admin/resources/edit'), '/'),
 				),
 				'labels'           => array(
-					'add_resource'         => t('link_add_new_resource'),
-					'import_rdf'         => t('link_import_rdf'),
-					'fix_links'          => t('link_fix_broken'),
-					'export_rdf'         => t('rdf_export'),
-					'total'              => t('total_files_count'),
-					'sort_by'            => t('sort_by'),
-					'sort_asc'           => 'Ascending',
-					'sort_desc'          => 'Descending',
-					'delete_selection'   => t('delete_selection'),
-					'col_title'          => t('title'),
-					'col_link'           => t('link'),
-					'col_type'           => t('resource_type'),
-					'col_modified'       => t('modified'),
-					'col_created'        => t('created'),
-					'col_id'             => 'ID',
-					'col_file'           => t('filename'),
-					'actions'            => t('actions'),
-					'edit'               => t('edit'),
-					'download'           => t('download'),
-					'delete'             => t('delete'),
-					'legend_ok'          => t('legend_file_exist'),
-					'legend_missing'     => t('legend_file_no_exist'),
-					'confirm_delete'     => t('js_confirm_delete'),
-					'confirm_batch_delete' => t('js_confirm_delete'),
-					'no_selection'       => t('js_no_item_selected'),
-					'saved'              => t('form_update_success'),
+					'add_resource'           => t('link_add_new_resource'),
+					'import_rdf'             => t('link_import_rdf'),
+					'fix_links'              => t('link_fix_broken'),
+					'fix_links_done'         => t('n_resources_fixed'),
+					'confirm_fix_links'      => t('link_fix_broken'),
+					'export_rdf'             => t('rdf_export'),
+					'total'                  => t('total_files_count'),
+					'sort_by'                => t('sort_by'),
+					'sort_asc'               => 'Ascending',
+					'sort_desc'              => 'Descending',
+					'delete_selection'       => t('delete_selection'),
+					'col_title'              => t('title'),
+					'col_link'               => t('link'),
+					'col_type'               => t('resource_type'),
+					'col_modified'           => t('modified'),
+					'col_created'            => t('created'),
+					'col_id'                 => 'ID',
+					'col_file'               => t('filename'),
+					'actions'                => t('actions'),
+					'edit'                   => t('edit'),
+					'download'               => t('download'),
+					'delete'                 => t('delete'),
+					'legend_ok'              => t('legend_file_exist'),
+					'legend_missing'         => t('legend_file_no_exist'),
+					'confirm_delete'         => t('js_confirm_delete'),
+					'confirm_batch_delete'   => t('js_confirm_delete'),
+					'no_selection'           => t('js_no_item_selected'),
+					'saved'                  => t('form_update_success'),
+					'back'                   => t('back'),
+					'cancel'                 => t('cancel'),
+					'submit'                 => t('submit'),
+					'description'            => t('description'),
+					'format'                 => t('format'),
+					'resource_url'           => t('resource_url_filepath'),
+					'additional_info'        => t('additional_info'),
+					'resource_identifier'    => t('resource_identifier'),
+					'authors'                => t('authors'),
+					'date'                   => t('date'),
+					'country'                => t('country'),
+					'language'               => t('language'),
+					'contributors'           => t('contributors'),
+					'publishers'             => t('publishers'),
+					'abstract'               => t('abstract'),
+					'toc'                    => t('table_of_contents'),
+					'choose_file'            => t('select_upload_files'),
+					'import'                 => t('link_import_rdf'),
 				),
 			)
 		);
@@ -1877,16 +1740,14 @@ class Catalog extends MY_Controller {
 				'thumbnailsPublicBase' => base_url('files/thumbnails/'),
 				'studyType'            => isset($survey_row['type']) ? $survey_row['type'] : 'survey',
 				'catalogListUrl'       => site_url('admin/catalog'),
+				'studyTitle'           => isset($survey_row['title']) ? (string) $survey_row['title'] : '',
 				'legacyUrls'           => array(
 					'browsePublic' => site_url('catalog/' . (int) $id),
-					'importRdf'    => site_url('admin/resources/import/' . (int) $id),
-					'fixLinks'     => site_url('admin/resources/fixlinks/' . (int) $id),
-					'pdfSetup'     => site_url('admin/pdf_generator/setup/' . (int) $id),
-					'replaceDdi'   => site_url('admin/catalog/replace_ddi/' . (int) $id),
+					'importRdf'    => site_url('admin/catalog/edit/' . (int) $id . '/resources?import=1'),
+					'fixLinks'     => site_url('admin/catalog/edit/' . (int) $id . '/resources?fix=1'),
 					'exportDdi'    => site_url('admin/catalog/ddi/' . (int) $id),
 					'refreshDdi'   => site_url('admin/catalog/refresh/' . (int) $id),
 					'generateDdi'  => site_url('admin/catalog/generate_ddi/' . (int) $id),
-					'transfer'     => site_url('admin/catalog/transfer/' . (int) $id),
 					'exportRdf'    => site_url('admin/catalog/export_rdf/' . (int) $id),
 					'deleteStudy'  => site_url('admin/catalog/delete/' . (int) $id),
 				),
@@ -1901,6 +1762,7 @@ class Catalog extends MY_Controller {
 					'upload'                 => t('upload'),
 					'remove'                 => t('remove'),
 					'cancel'                 => t('cancel'),
+					'submit'                 => t('submit'),
 					'upload_thumbnail_title' => t('Upload thumbnail'),
 					'survey_options'         => t('Survey options'),
 					'options'                => t('study_sidebar_options'),
@@ -1910,16 +1772,22 @@ class Catalog extends MY_Controller {
 					'link_resources'         => t('link_resources'),
 					'generate_pdf'           => t('generate_pdf'),
 					'replace_ddi'            => t('replace_ddi'),
+					'msg_select_ddi'         => t('msg_select_ddi'),
+					'replace_ddi_success'    => t('form_update_success'),
 					'export_ddi'             => t('export_ddi'),
 					'refresh_ddi'            => t('refresh_ddi'),
 					'transfer_study'         => t('transfer_study_ownership'),
+					'msg_select_repository'  => t('msg_select_repository'),
+					'select_repository_hint' => t('select_the_repository_from_the_list_below'),
+					'transfer'               => t('transfer'),
+					'transfer_success'       => t('msg_study_ownership_has_changed'),
 					'export_rdf'             => t('export_rdf'),
 					'click_publish'          => t('click_to_publish_unpublish'),
 					'saved'                  => t('form_update_success'),
 					'loading'                => t('loading'),
 					'confirm_generate_ddi'   => 'This will overwrite the existing DDI file. Are you sure?',
 					'generate_ddi'           => t('Generate DDI'),
-				),
+				) + $this->_pdf_dialog_labels(),
 			)
 		);
 	}
@@ -2013,7 +1881,16 @@ class Catalog extends MY_Controller {
 		}
 		
 		$options['id']=$id;
-		$result=$this->Catalog_model->update_survey_options($options);
+
+		try{
+			$result=$this->Catalog_model->update_survey_options($options);
+		}
+		catch(ValidationException $e){
+			$errors=$e->GetValidationErrors();
+			$this->session->set_flashdata('error', isset($errors['access_policy']) ? $errors['access_policy'] : $e->getMessage());
+			redirect('admin/catalog/edit/'.$id);
+			return;
+		}
 
 		if ($result){
 			$this->session->set_flashdata('message', t('form_update_success'));
@@ -2110,186 +1987,50 @@ class Catalog extends MY_Controller {
 		$this->Related_study_model->delete_relationship($sid_1,$sid_2,$rel_id=null);
 	}
 
-	function set_featured_study($repositoryid,$sid,$status)
+	/** Retired — use api/admin/catalog options featured + featured_studies Vue page */
+	function set_featured_study($repositoryid = null, $sid = null, $status = null)
 	{
-		$result=$this->Repository_model->set_featured_study($repositoryid,$sid,$status);
-
-		nada_redirect($this->input->get('destination'));
-
-		if ($this->input->get("ajax")){
-			echo json_encode(array('status'=>$result));
-		}
+		unset($repositoryid, $sid, $status);
+		show_404();
 	}
 
 
-	//list all featured studies
+	/**
+	 * Featured studies list — Vue catalog SPA route /featured_studies.
+	 */
 	function featured_studies()
 	{
-		$data['featured_studies']=$this->Repository_model->get_all_featured_studies();
-		$content=$this->load->view('catalog/featured_studies', $data,TRUE);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
+		$this->acl_manager->require_catalog_access();
+		$this->_render_admin_catalog_vue_shell();
 	}
 
 
-	/**
-	 * 
-	 * Attach survey data files to external resources
-	 * 
-	 */
-	function attach_data_file_resources($sid,$file_id)
+	/** Retired — use Vue overview dialog / api/admin/catalog/…/data_file_resources */
+	function attach_data_file_resources($sid = null, $file_id = null)
 	{
-		$this->load->model("Dataset_model");
-		$this->load->model("Survey_resource_model");
-		$this->load->model("Data_file_model");
-		$this->load->model("Data_file_resources_model");
-
-		$survey=$this->Dataset_model->get_row($sid);
-
-		if(!$survey){
-			show_error("DATASET-NOT-FOUND");
-		}
-
-		//load data file and resources
-		//TODO
-
-		$data['sid']=$sid;
-		$data['file_id']=$file_id;
-		$data['survey']=$survey;
-
-		//get file info
-		$data['file']=$this->Data_file_model->get_file_by_id($sid,$file_id);
-
-		//get all microdata type external resources
-		$data['resources']=$this->Survey_resource_model->get_microdata_resources($sid);
-
-		//get current data file and attached resources
-		$data['attached_resources']=$this->Data_file_resources_model->get_file_resources($sid,$file_id);
-
-		$content=$this->load->view('catalog/attach_data_file_resources',$data,true);
-		
-		$this->template->set_template('admin_blank');
-		$this->template->write('content', $content,true);
-		$this->template->render();
+		unset($sid, $file_id);
+		show_404();
 	}
 
-	//process posted form
-	function attach_data_file_resources_post($sid,$file_id)
+	/** Retired — use POST api/admin/catalog/…/data_file_resources/{file_id} */
+	function attach_data_file_resources_post($sid = null, $file_id = null)
 	{
-		$this->load->model("Data_file_resources_model");
-		$resources=$this->input->post("resource_id");
-		$formats=$this->input->post("format");
-
-		$options=array();
-		foreach($resources as $idx=>$value)
-		{
-			echo $value;
-			echo "-";
-			echo $formats[$idx];
-
-			$options[]=array(
-				'resource_id'=>$value,
-				'sid'=>$sid,
-				'fid'=>$file_id,
-				'file_format'=>$formats[$idx]
-			);
-		}
-
-		//update data file resources links
-		$this->Data_file_resources_model->batch_update($sid, $file_id, $options);
-
-		redirect('admin/catalog/attach_data_file_resources/'.$sid.'/'.$file_id);
+		unset($sid, $file_id);
+		show_404();
 	}
 
 
-	/**
-	 *
-	 * Upload ddi file for ddi replace
-	 * 
-	 * @return array
-	 */
-	private function upload_ddi_file($key,$destination)
+	/** Retired — assign DOI from study overview / api/admin/catalog/…/doi */
+	function doi($sid = null)
 	{
-		if ($_FILES[$key]['size']==0)
-		{
-			return false;
-		}
-		$config['encrypt_name']	 = TRUE;
-		$config['upload_path'] = $destination;
-		$config['allowed_types'] = 'xml';
-		$config['overwrite'] = true;
-		$this->load->library('upload', $config);
-		if ( ! $this->upload->do_upload($key))
-		{
-			throw new Exception( $this->upload->display_errors() );
-		}
-		else
-		{
-			$data = $this->upload->data();
-			return $data;
-		}
+		unset($sid);
+		show_404();
 	}
 
-
-	function doi($sid=null) 
-	{
-		$this->template->set_template('admin_blank');
- 
-		$this->load->model("Dataset_model");
-		$dataset=$this->Dataset_model->get_row($sid);
-
-		$this->config->load('doi');
-		$doi_options=$this->config->item("doi");
-		
-		$options=array();
-		$options['dataset']=$dataset;
-		$options['doi_options']=$doi_options;
-		$content=$this->load->view('catalog/doi', $options,true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
-	}
-
-	/*
-	*
-	* Set DOI
-	*
-	*/
+	/** Retired — use POST api/admin/catalog/…/doi */
 	function update_doi()
 	{
-		//study id
-		$id=$this->input->post("sid");
-
-		if (!is_numeric($id)){
-			show_404();
-		}
-		
-		$survey=$this->Catalog_model->get_survey($id);
-
-		if(!$survey){
-			show_404();
-		}
-
-		//test user study permissiosn
-		//$this->acl->user_has_study_access($id);
-		$this->acl_manager->has_access_or_die('study', 'edit', null, $survey['repositoryid']);
-
-		//is ajax call
-		$ajax=$this->input->get_post('ajax');
-		
-		$doi=$this->input->post("doi");
-
-		try{
-			$result=$this->Dataset_model->assign_doi($id,$doi);
-		}
-		catch(Exception $e){
-			$this->session->set_flashdata('error', $e->getMessage());
-			redirect('admin/catalog/edit/'.$id);
-		}
-
-		$this->session->set_flashdata('message', t('form_update_success'));		
-		
-		$this->events->emit('db.after.update', 'surveys', $id,'atomic');
-		redirect('admin/catalog/edit/'.$id);
+		show_404();
 	}
 
 

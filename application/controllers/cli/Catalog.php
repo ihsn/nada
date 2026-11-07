@@ -8,8 +8,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *
  * Data maintenance
  * ----------------
- *   populate_abstracts [batch_size]   Extract and back-fill surveys.abstract
- *                                     for all existing records (default batch: 200)
+ *   populate_abstracts [batch_size] [all]
+ *                                     Extract and back-fill surveys.abstract (default batch: 200).
+ *                                     Only NULL rows unless "all" is given, which rebuilds every row.
  *
  *   indicator_ts_orphans [purge]      Scan MongoDB indicator_ts_* collections for observation
  *                                     rows whose sid no longer exists in surveys. Optional
@@ -37,7 +38,7 @@ class Catalog extends CI_Controller
         echo "NADA Catalog CLI\n";
         echo "================\n\n";
         echo "Available commands:\n";
-        echo "  php index.php cli/catalog/populate_abstracts [batch_size]\n";
+        echo "  php index.php cli/catalog/populate_abstracts [batch_size] [all]\n";
         echo "      Extract abstract from metadata and populate surveys.abstract\n";
         echo "      for all existing records. Safe to re-run (skips non-NULL rows).\n";
         echo "  php index.php cli/catalog/indicator_ts_orphans [purge]\n";
@@ -53,25 +54,32 @@ class Catalog extends CI_Controller
     // =========================================================================
 
     /**
-     * Back-fill surveys.abstract from metadata JSON for all existing records.
+     * Back-fill surveys.abstract from metadata JSON.
      *
-     * Processes surveys in batches. Skips rows where abstract is already set.
-     * Safe to resume — re-running processes only rows still NULL.
+     * By default only rows whose abstract is NULL are processed. Pass "all" as the second
+     * argument to rebuild every row (e.g. after the abstract length limit was raised).
+     * Rows are paged by id, so the command is safe to interrupt and re-run.
      *
      * Usage:
      *   php index.php cli/catalog/populate_abstracts
      *   php index.php cli/catalog/populate_abstracts 500
+     *   php index.php cli/catalog/populate_abstracts 200 all
      */
-    public function populate_abstracts(int $batch_size = 200): void
+    public function populate_abstracts(int $batch_size = 200, string $mode = ''): void
     {
         $batch_size = max(1, (int)$batch_size);
+        $rebuild_all = ($mode === 'all');
 
         $this->load->model('Dataset_model');
 
-        $total_rows    = (int)$this->db->where('abstract IS NULL')->count_all_results('surveys');
+        if ($rebuild_all) {
+            $total_rows = (int)$this->db->count_all('surveys');
+        } else {
+            $total_rows = (int)$this->db->where('abstract IS NULL')->count_all_results('surveys');
+        }
         $total_surveys = (int)$this->db->count_all('surveys');
 
-        echo "surveys.abstract back-fill\n";
+        echo "surveys.abstract back-fill" . ($rebuild_all ? " (rebuild all)" : "") . "\n";
         echo str_repeat('-', 50) . "\n";
         echo "Total surveys       : {$total_surveys}\n";
         echo "Rows needing update : {$total_rows}\n";
@@ -83,17 +91,22 @@ class Catalog extends CI_Controller
             return;
         }
 
-        $offset     = 0;
+        $last_id    = 0;
         $updated    = 0;
         $skipped    = 0;
         $batch_num  = 0;
         $start      = microtime(true);
 
         while (true) {
-            $rows = $this->db
+            $this->db
                 ->select('id, type, metadata')
-                ->where('abstract IS NULL')
-                ->limit($batch_size, $offset)
+                ->where('id >', $last_id);
+            if (!$rebuild_all) {
+                $this->db->where('abstract IS NULL');
+            }
+            $rows = $this->db
+                ->order_by('id', 'ASC')
+                ->limit($batch_size)
                 ->get('surveys')
                 ->result_array();
 
@@ -106,6 +119,7 @@ class Catalog extends CI_Controller
             $batch_updated = 0;
 
             foreach ($rows as $row) {
+                $last_id  = (int)$row['id'];
                 $metadata = $this->decode_metadata($row['metadata']);
 
                 if ($metadata === null) {
@@ -122,7 +136,6 @@ class Catalog extends CI_Controller
             }
 
             $updated += $batch_updated;
-            $offset  += count($rows);
 
             echo "updated {$batch_updated}. Running total: {$updated}\n";
         }

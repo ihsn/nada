@@ -88,6 +88,134 @@ if ( ! function_exists('is_url'))
 		return preg_match('#^(https?|ftp)://#i', trim((string) $str)) === 1;
 	}
 }
+
+/**
+ * Lexically sanitize an untrusted relative path (no resolve / existence check).
+ *
+ * @param string $relative
+ * @return string|false Clean relative path (no leading slash), or false
+ */
+if ( ! function_exists('sanitize_relative_path'))
+{
+	function sanitize_relative_path($relative)
+	{
+		$relative = trim((string) $relative);
+		if ($relative === '' || strpos($relative, "\0") !== false) {
+			return false;
+		}
+		if (function_exists('is_url') && is_url($relative)) {
+			return false;
+		}
+		if ($relative[0] === '/' || $relative[0] === '\\' || preg_match('/^[A-Za-z]:/', $relative) === 1) {
+			return false;
+		}
+
+		$rel = ltrim(str_replace('\\', '/', $relative), '/');
+		$parts = array();
+		foreach (explode('/', $rel) as $segment) {
+			if ($segment === '' || $segment === '.') {
+				continue;
+			}
+			if ($segment === '..') {
+				return false;
+			}
+			$parts[] = $segment;
+		}
+		if (empty($parts)) {
+			return false;
+		}
+
+		return implode('/', $parts);
+	}
+}
+
+/**
+ * Absolute path under $root for a target that may not exist yet (uploads / mkdir).
+ * Verifies the deepest existing ancestor stays inside $root.
+ *
+ * @param string $root
+ * @param string $relative
+ * @return string|false Absolute unix path (may not exist yet)
+ */
+if ( ! function_exists('build_path_under_directory'))
+{
+	function build_path_under_directory($root, $relative)
+	{
+		$rel = sanitize_relative_path($relative);
+		if ($rel === false) {
+			return false;
+		}
+
+		$root = unix_path((string) $root);
+		$root_real = realpath($root);
+		if ($root_real === false || ! is_dir($root_real)) {
+			return false;
+		}
+		$root_real = rtrim(unix_path($root_real), '/');
+
+		$candidate = unix_path($root_real . '/' . $rel);
+		$probe = $candidate;
+		// Stop on dangling symlinks too (file_exists is false for them; climbing past would bypass).
+		while (! file_exists($probe) && ! is_link($probe) && $probe !== dirname($probe)) {
+			$probe = dirname($probe);
+		}
+		$probe_real = realpath($probe);
+		if ($probe_real === false) {
+			return false;
+		}
+		$probe_real = unix_path($probe_real);
+		if ($probe_real !== $root_real && strpos($probe_real, $root_real . '/') !== 0) {
+			return false;
+		}
+
+		return $candidate;
+	}
+}
+
+/**
+ * Resolve a relative file path under a trusted root directory.
+ * Do not trust DB/user values: rejects absolute paths, drive letters, null bytes, and ".." segments.
+ * When the target exists, returns a realpath that is verified to stay under $root.
+ *
+ * @param string $root     Survey/catalog folder (trusted)
+ * @param string $relative Path relative to $root (untrusted)
+ * @return string|false    Canonical absolute path, or false
+ */
+if ( ! function_exists('resolve_under_directory'))
+{
+	function resolve_under_directory($root, $relative)
+	{
+		$rel = sanitize_relative_path($relative);
+		if ($rel === false) {
+			return false;
+		}
+
+		$root = unix_path((string) $root);
+		$root_real = realpath($root);
+		if ($root_real === false || ! is_dir($root_real)) {
+			return false;
+		}
+		$root_real = rtrim(unix_path($root_real), '/');
+
+		$candidate = unix_path($root_real . '/' . $rel);
+		$full = realpath($candidate);
+		if ($full === false) {
+			return false;
+		}
+		$full = unix_path($full);
+
+		if ($full === $root_real) {
+			return false; // directory itself is not a downloadable resource file
+		}
+
+		$prefix = $root_real . '/';
+		if (strpos($full, $prefix) !== 0) {
+			return false;
+		}
+
+		return $full;
+	}
+}
 /**
  * silent_unlink
  *

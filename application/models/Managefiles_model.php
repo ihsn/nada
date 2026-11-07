@@ -154,9 +154,10 @@ class Managefiles_model extends CI_Model {
 					);
 				}
 			
-				//build absolute resource path
-				$resource_path=unix_path($survey_folder.'/'.$resource['filename']);				
-				$result[$resource["resource_id"]]['filename']=$resource_path;
+				// Resolve under study folder — do not trust DB filename as a raw join.
+				$this->load->helper('file');
+				$resource_path = resolve_under_directory($survey_folder, $resource['filename']);
+				$result[$resource["resource_id"]]['filename'] = ($resource_path !== false) ? $resource_path : '';
 				$result[$resource["resource_id"]]['ismicro']=$ismicro;
 			}
 			return $result;

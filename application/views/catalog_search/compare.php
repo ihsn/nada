@@ -2,6 +2,40 @@
 .var-compare-container .compare-box .survey-link{
 	margin-bottom:10px;
 }
+
+/* Full-width page without the site header. The compare header stays in the page flow, so the
+   site notice bar can show above it, and sticks to the top when scrolling. */
+body.wb-template-blank .site-header{
+	display:none;
+}
+body.wb-template-blank .wb-page-body.container-fluid{
+	margin-top:0;
+}
+body.wb-template-blank .compare-header{
+	position:sticky;
+	top:0;
+	margin:0 -15px;
+	border-top:0;
+}
+body.wb-template-blank .compare-header .col{
+	display:flex;
+	flex-wrap:wrap;
+	align-items:center;
+	justify-content:space-between;
+	gap:.5rem 1.5rem;
+}
+body.wb-template-blank .compare-header h1.title{
+	margin:0;
+}
+body.wb-template-blank .compare-header .action-bar{
+	flex-wrap:wrap;
+	justify-content:flex-end;
+	gap:.5rem 1.5rem;
+	margin-top:0;
+}
+.var-compare-container{
+	margin-top:1rem;
+}
 </style>
 
 <script type="text/javascript">
@@ -86,16 +120,10 @@ function readCookie(name) {
 function eraseCookie(name) {
 	createCookie(name,"",-1);
 }
-
-$( document ).ready(function() {
-	$(".compare-header #variables-compare-fullscreen" ).click(function() {
-		$("body").toggleClass("wb-fullscreen");
-	});  
-});
 </script>
 
-<div class="compare-header clearfix py-4 px-3">
-	<div class="container">
+<div class="compare-header clearfix py-3 px-3">
+	<div class="container-fluid">
 		<div class="row">
 			<div class="col">
 				
@@ -111,7 +139,6 @@ $( document ).ready(function() {
 						</a> 
 					</span>
 					<span class="wb-actions-export">
-						<small>Download variables as </small>
 						<a href="<?php echo site_url('catalog/compare/print/pdf'); ?>"  class="download btn btn-outline-primary btn-sm">
 							<!-- <i class="fa fa-file-pdf-o" aria-hidden="true"></i>  -->
 							<i class="fas fa-file-pdf"></i>
@@ -128,12 +155,7 @@ $( document ).ready(function() {
 							<!-- <i class="fa fa-file-code-o" aria-hidden="true"></i>  -->
 							<i class="far fa-file-code"></i>
 							<?php echo t('download_json');?>
-						</a> 
-
-						<a href="#" class="fullscreen btn btn-sm" id="variables-compare-fullscreen">
-							<i class="fas fa-expand-alt"></i>
-							<i class="fas fa-compress-alt"></i>
-						</a> 
+						</a>
 					</span>
 				</div>
 			</div>

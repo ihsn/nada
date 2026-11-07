@@ -530,7 +530,7 @@ class Configurations extends MY_REST_Controller
 				$value = $v;
 			}
 
-			if (in_array($key, array('site_user_register', 'site_password_protect'), TRUE))
+			if (in_array($key, array('site_user_register', 'site_password_protect', 'site_notice_enabled', 'site_notice_bar_enabled'), TRUE))
 			{
 				$v = strtolower(trim((string) $value));
 				if (! in_array($v, array('yes', 'no'), true))
@@ -538,6 +538,26 @@ class Configurations extends MY_REST_Controller
 					throw new Exception('INVALID_VALUE:'.$key);
 				}
 				$value = $v;
+			}
+
+			if (in_array($key, array('site_notice_title', 'site_notice_message', 'site_notice_bar_text'), TRUE))
+			{
+				$value = trim((string) $value);
+				$max_length = $key === 'site_notice_message' ? 4000 : 255;
+				if (mb_strlen($value, 'UTF-8') > $max_length)
+				{
+					throw new Exception('INVALID_LENGTH:'.$key);
+				}
+			}
+
+			if ($key === 'site_notice_remember_minutes')
+			{
+				$v = trim((string) $value);
+				if (! ctype_digit($v))
+				{
+					throw new Exception('INVALID_VALUE:site_notice_remember_minutes');
+				}
+				$value = (string) (int) $v;
 			}
 
 			if ($key === 'nada_ai_url')

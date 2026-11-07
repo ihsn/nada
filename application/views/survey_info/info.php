@@ -19,6 +19,16 @@
     
 	$sub_title=implode(", ", $sub_title);
 ?>
+<style>
+@media (max-width: 767.98px) {
+	.study-info .collection-thumb-container {
+		margin-bottom: 1rem;
+	}
+	.study-info .collection-thumb-container img {
+		max-width: 120px;
+	}
+}
+</style>
 <div class="row study-info">
 	<?php if ($survey['owner_repo']['thumbnail']!='' || ( isset($survey['thumbnail']) && trim($survey['thumbnail'])!='')):?>
 		<?php 
@@ -154,19 +164,6 @@
                 </div>
                 <?php endif; ?>
 
-                <?php if ($survey['type']=='document' && isset($survey['metadata']['document_description']['abstract']) ):?>
-                <div class="row mb-2 pb-2  border-bottom">
-                    <div class="col-md-2">
-                        <?php echo t('abstract');?>
-                    </div>
-                    <div class="col">
-                        <div class="abstract" id="study-abstract">
-                            <?php echo ($survey['metadata']['document_description']['abstract']);?>
-                        </div>
-                    </div>
-                </div>
-                <?php endif;?>
-
                 <?php if (isset($survey['repositories']) && is_array($survey['repositories']) && count($survey['repositories'])>0): ?> 
                 <div class="row  border-bottom mb-2 pb-2 mt-2">
                     <div class="col-md-2">
@@ -181,6 +178,21 @@
                                     </a>                                    
                                 </span>
                             <?php endforeach;?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif;?>
+
+                <?php if (!empty($page_tabs['view_document']['show_tab'])):?>
+                <div class="row border-bottom mb-2 pb-2 mt-2">
+                    <div class="col-md-2">
+                        <?php echo t('PDF');?>
+                    </div>
+                    <div class="col">
+                        <div class="study-pdf link-col">
+                            <a href="<?php echo html_escape($page_tabs['view_document']['url']);?>">
+                                <span class="badge badge-primary"><i class="far fa-file-pdf" aria-hidden="true"></i> <?php echo t('tab_view_document');?></span>
+                            </a>
                         </div>
                     </div>
                 </div>

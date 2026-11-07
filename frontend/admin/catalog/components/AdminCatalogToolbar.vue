@@ -1,5 +1,15 @@
 <template>
   <div class="d-flex flex-wrap align-center justify-end catalog-toolbar-actions__inner">
+    <v-btn
+      color="primary"
+      size="small"
+      variant="tonal"
+      class="text-none catalog-toolbar-btn"
+      :href="featuredUrl"
+      :title="t('featured_studies', 'Featured studies')"
+    >
+      {{ t('featured_studies', 'Featured studies') }}
+    </v-btn>
     <v-menu location="bottom end">
       <template #activator="{ props: menuProps }">
         <v-btn
@@ -65,6 +75,7 @@ function actionHref(path) {
 }
 
 const uploadUrl = computed(() => actionHref('admin/catalog/upload'));
+const featuredUrl = computed(() => actionHref('admin/catalog/featured_studies'));
 const exportCsvUrl = computed(() => {
   const base = actionHref('admin/catalog/export_csv');
   const orVal = String(props.ownerRepo || '').trim();
@@ -89,16 +100,22 @@ function bulkHref(routeName) {
 
 /*
  * Admin layout (Bootstrap) sets global `a { color; }` / `a:hover`. v-btn with href
- * renders as <a>, which stole link colors onto primary buttons — poor contrast.
+ * renders as <a>. Elevated primary buttons need on-primary text; tonal buttons need
+ * primary text (on-primary is white and disappears on the light tonal fill).
  */
 .catalog-toolbar-actions__inner :deep(a.catalog-toolbar-btn.v-btn) {
-  color: rgb(var(--v-theme-on-primary)) !important;
   text-decoration: none !important;
 }
 
-.catalog-toolbar-actions__inner :deep(a.catalog-toolbar-btn.v-btn:hover),
-.catalog-toolbar-actions__inner :deep(a.catalog-toolbar-btn.v-btn:focus-visible) {
+.catalog-toolbar-actions__inner :deep(a.catalog-toolbar-btn.v-btn.v-btn--variant-elevated),
+.catalog-toolbar-actions__inner :deep(a.catalog-toolbar-btn.v-btn.v-btn--variant-elevated:hover),
+.catalog-toolbar-actions__inner :deep(a.catalog-toolbar-btn.v-btn.v-btn--variant-elevated:focus-visible) {
   color: rgb(var(--v-theme-on-primary)) !important;
-  text-decoration: none !important;
+}
+
+.catalog-toolbar-actions__inner :deep(a.catalog-toolbar-btn.v-btn.v-btn--variant-tonal),
+.catalog-toolbar-actions__inner :deep(a.catalog-toolbar-btn.v-btn.v-btn--variant-tonal:hover),
+.catalog-toolbar-actions__inner :deep(a.catalog-toolbar-btn.v-btn.v-btn--variant-tonal:focus-visible) {
+  color: rgb(var(--v-theme-primary)) !important;
 }
 </style>

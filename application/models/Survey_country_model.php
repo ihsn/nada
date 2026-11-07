@@ -24,12 +24,14 @@ class Survey_country_model extends CI_Model {
 	/**
 	*
 	* Add/edit survey countries
+	*
+	* @codes - optional [country name => ISO code]; matched by code first, then by name
 	**/
-	function update_countries($sid, $countries)
+	function update_countries($sid, $countries, $codes=array())
 	{
 		$this->remove_survey_countries($sid);
 
-		if(!is_array($countries) ){ 
+		if(!is_array($countries) ){
 			return false;
 		}
 
@@ -38,8 +40,14 @@ class Survey_country_model extends CI_Model {
 		$data=array();
 		foreach ($countries as $country)
 		{
-			//country id if exists			
-			$countryid=$this->Country_model->find_country_by_name($country);
+			//country id if exists
+			$countryid=false;
+			if (is_array($codes) && isset($codes[$country])){
+				$countryid=$this->Country_model->find_country_by_iso($codes[$country]);
+			}
+			if (!$countryid){
+				$countryid=$this->Country_model->find_country_by_name($country);
+			}
 
 			//add to survey_countries
 			$this->add_single_country($sid, $country, $countryid);

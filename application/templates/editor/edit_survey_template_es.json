@@ -3190,6 +3190,155 @@
             ]
         },
         {
+            "type": "section_container",
+            "id": "provenance",
+            "key": "provenance_container",
+            "title": "Procedencia",
+            "items": [
+                {
+                    "key": "provenance",
+                    "title": "Procedencia",
+                    "type": "section",
+                    "help_text": "La información de procedencia se utiliza para documentar el origen de los metadatos.",
+                    "items": [
+                        {
+                            "key": "provenance.original_repository",
+                            "title": "repositorio original",
+                            "type": "section",
+                            "help_text": "Información sobre el repositorio original donde se crearon los metadatos por primera vez.",
+                            "items": [
+                                {
+                                    "key": "provenance.original_repository.repository_name",
+                                    "title": "Nombre del repositorio",
+                                    "type": "string",
+                                    "help_text": "El nombre del repositorio original.",
+                                    "display_type": "text"
+                                },
+                                {
+                                    "key": "provenance.original_repository.url",
+                                    "title": "URL",
+                                    "type": "string",
+                                    "help_text": "La URL del repositorio o conjunto de datos original.",
+                                    "rules": {
+                                        "is_uri": true
+                                    },
+                                    "display_type": "text"
+                                },
+                                {
+                                    "key": "provenance.original_repository.dataset_identifier",
+                                    "title": "Identificador del conjunto de datos",
+                                    "type": "string",
+                                    "help_text": "El identificador del conjunto de datos en el repositorio original.",
+                                    "display_type": "text"
+                                },
+                                {
+                                    "key": "provenance.original_repository.doi",
+                                    "title": "DOI",
+                                    "type": "string",
+                                    "help_text": "El Identificador de objeto digital (DOI) del conjunto de datos en el repositorio original.",
+                                    "display_type": "text"
+                                },
+                                {
+                                    "key": "provenance.original_repository.dataset_title",
+                                    "title": "Título del conjunto de datos",
+                                    "type": "string",
+                                    "help_text": "El título del conjunto de datos en el repositorio original.",
+                                    "display_type": "text"
+                                },
+                                {
+                                    "key": "provenance.original_repository.date_published",
+                                    "title": "Fecha de publicación del conjunto de datos (AAAA-MM-DD)",
+                                    "type": "string",
+                                    "help_text": "La fecha en que se publicó el conjunto de datos en el repositorio original.",
+                                    "display_type": "text"
+                                },
+                                {
+                                    "key": "provenance.original_repository.notes",
+                                    "title": "Notas",
+                                    "type": "string",
+                                    "help_text": "Información adicional sobre el repositorio original.",
+                                    "display_type": "textarea"
+                                }
+                            ]
+                        },
+                        {
+                            "key": "provenance.source_repository_section",
+                            "title": "Repositorio de origen",
+                            "type": "section",
+                            "help_text": "Información sobre el repositorio de origen del que se recopilaron los metadatos.",
+                            "items": [
+                                {
+                                    "key": "provenance.source_repository",
+                                    "title": "Repositorios de origen",
+                                    "type": "nested_array",
+                                    "help_text": "Información sobre el repositorio de origen del que se recopilaron los metadatos.",
+                                    "props": [
+                                        {
+                                            "key": "repository_name",
+                                            "prop_key": "provenance.source_repository.repository_name",
+                                            "title": "Nombre del repositorio",
+                                            "type": "string",
+                                            "help_text": "El nombre del repositorio de origen.",
+                                            "display_type": "text"
+                                        },
+                                        {
+                                            "key": "url",
+                                            "prop_key": "provenance.source_repository.url",
+                                            "title": "URL",
+                                            "type": "string",
+                                            "help_text": "La URL del repositorio o conjunto de datos de origen.",
+                                            "rules": {
+                                                "is_uri": true
+                                            },
+                                            "display_type": "text"
+                                        },
+                                        {
+                                            "key": "dataset_identifier",
+                                            "prop_key": "provenance.source_repository.dataset_identifier",
+                                            "title": "Identificador del conjunto de datos",
+                                            "type": "string",
+                                            "help_text": "El identificador del conjunto de datos en el repositorio de origen.",
+                                            "display_type": "text"
+                                        },
+                                        {
+                                            "key": "dataset_title",
+                                            "prop_key": "provenance.source_repository.dataset_title",
+                                            "title": "Título del conjunto de datos",
+                                            "type": "string",
+                                            "help_text": "El título del conjunto de datos en el repositorio de origen.",
+                                            "display_type": "text"
+                                        },
+                                        {
+                                            "key": "date_acquired",
+                                            "prop_key": "provenance.source_repository.date_acquired",
+                                            "title": "Fecha de adquisición (AAAA-MM-DD)",
+                                            "type": "string",
+                                            "help_text": "La fecha en la que se adquirieron los metadatos del repositorio de origen.",
+                                            "display_type": "text"
+                                        },
+                                        {
+                                            "key": "acquisition_mode",
+                                            "prop_key": "provenance.source_repository.acquisition_mode",
+                                            "title": "Modo de adquisición",
+                                            "type": "string",
+                                            "help_text": "El modo de adquisición de los metadatos del repositorio de origen. p.ej. OAI-PMH, API, entrada manual, etc."
+                                        },
+                                        {
+                                            "key": "notes",
+                                            "prop_key": "provenance.source_repository.notes",
+                                            "title": "Notas",
+                                            "type": "string",
+                                            "help_text": "Información adicional sobre el repositorio de origen."
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "key": "additional_container",
             "title": "Campos adicionales",
             "type": "section_container",

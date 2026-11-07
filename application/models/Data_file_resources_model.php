@@ -86,10 +86,19 @@ class Data_file_resources_model extends CI_Model {
 
 		//update
 		foreach($options as $option){
-			$option['sid']=$sid;
-			$options['fid']=$file_id;
-
-			$this->db->insert('data_files_resources',$option);
+			if (! is_array($option)) {
+				continue;
+			}
+			$row = array(
+				'sid'         => (int) $sid,
+				'fid'         => (int) $file_id,
+				'resource_id' => isset($option['resource_id']) ? (int) $option['resource_id'] : 0,
+				'file_format' => isset($option['file_format']) ? (string) $option['file_format'] : '',
+			);
+			if ($row['resource_id'] <= 0) {
+				continue;
+			}
+			$this->db->insert('data_files_resources', $row);
 		}
 	}
 

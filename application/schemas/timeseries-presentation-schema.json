@@ -1,0 +1,124 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "timeseries-presentation-schema.json",
+	"title": "Indicator data presentation",
+	"description": "Default view of an indicator's chart and table pages. Catalog settings stored by NADA, not part of the indicator metadata. Applied only when the page URL carries no filters or layout; visitors can change everything afterwards. Codes, periods and columns without data are skipped at display time, so defaults can be set before the data is loaded.",
+	"type": "object",
+	"properties": {
+		"geography": {
+			"title": "Geography",
+			"description": "Geography codes to show, e.g. [\"WLD\"] or [\"WLD\", \"EAS\", \"ECS\"]. Every listed code that has data is selected; if none has data, the first available value is used.",
+			"type": "array",
+			"items": {
+				"type": "string",
+				"minLength": 1
+			}
+		},
+		"time_period": {
+			"type": "object",
+			"title": "Time period",
+			"description": "Period range to show, in the indicator's time period format (e.g. 2000, 2000-Q1, 2000-01). Leave 'to' empty to always show up to the latest data. Without this, the full range with data is shown.",
+			"properties": {
+				"from": {
+					"title": "From",
+					"type": "string"
+				},
+				"to": {
+					"title": "To",
+					"type": "string"
+				}
+			},
+			"additionalProperties": false
+		},
+		"dimensions": {
+			"type": "array",
+			"title": "Dimensions",
+			"description": "Codes to show for other columns, including frequency. Every listed code that has data is selected; if none has data, the first available value is used. Columns not listed use the first available value.",
+			"items": {
+				"type": "object",
+				"properties": {
+					"column": {
+						"title": "Column",
+						"description": "Data structure column name, e.g. SEX, FREQ.",
+						"type": "string",
+						"minLength": 1
+					},
+					"values": {
+						"title": "Values",
+						"description": "Codes, e.g. [\"_T\"].",
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"type": "string",
+							"minLength": 1
+						}
+					}
+				},
+				"required": [
+					"column",
+					"values"
+				],
+				"additionalProperties": false
+			}
+		},
+		"chart_type": {
+			"title": "Chart type",
+			"description": "'auto' (default): picked from the number of periods and series. 'line', 'column' (vertical bars) or 'hbar' (horizontal bars).",
+			"type": "string",
+			"enum": [
+				"auto",
+				"line",
+				"column",
+				"hbar"
+			],
+			"default": "auto"
+		},
+		"table_layout": {
+			"type": "object",
+			"title": "Table layout",
+			"description": "Initial arrangement of the table. Use data structure column names, including the time period column (e.g. TIME_PERIOD). Columns left out of both are added to the rows, so every selected value keeps its own row. Without this, time periods are shown as columns and the other columns as rows.",
+			"properties": {
+				"rows": {
+					"title": "Rows",
+					"description": "Columns shown as rows, outermost first, e.g. [\"REF_AREA\"].",
+					"type": "array",
+					"items": {
+						"type": "string",
+						"minLength": 1
+					}
+				},
+				"columns": {
+					"title": "Columns",
+					"description": "Columns shown as table columns, outermost first, e.g. [\"TIME_PERIOD\"].",
+					"type": "array",
+					"items": {
+						"type": "string",
+						"minLength": 1
+					}
+				},
+				"time_order": {
+					"title": "Time order",
+					"description": "'asc' (default): oldest period first. 'desc': latest period first.",
+					"type": "string",
+					"enum": [
+						"asc",
+						"desc"
+					],
+					"default": "asc"
+				},
+				"headers": {
+					"title": "Header style",
+					"description": "'grouped' (default): multi-level headers with spanning cells. 'flat': one header row combining the labels.",
+					"type": "string",
+					"enum": [
+						"grouped",
+						"flat"
+					],
+					"default": "grouped"
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"additionalProperties": false
+}

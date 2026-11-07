@@ -377,7 +377,7 @@ CREATE TABLE surveys (
   metadata varchar(max),
   var_keywords varchar(max),
   keywords varchar(max),
-  abstract nvarchar(500) NULL,  
+  abstract nvarchar(max) NULL,
   PRIMARY KEY (id)
 );
 
@@ -2225,6 +2225,17 @@ CREATE TABLE study_admin_metadata (
   CONSTRAINT ck_study_admin_metadata_metadata_isjson CHECK (ISJSON(metadata)=1)
 );
 CREATE INDEX idx_study_admin_metadata_changed ON study_admin_metadata (changed);
+
+CREATE TABLE study_presentation (
+  sid int NOT NULL,
+  settings nvarchar(max) NOT NULL,
+  created_by int NULL,
+  changed_by int NULL,
+  created int NULL,
+  changed int NULL,
+  PRIMARY KEY (sid),
+  CONSTRAINT ck_study_presentation_settings_isjson CHECK (ISJSON(settings)=1)
+);
 
 CREATE TABLE analytics_legacy_counts (
   survey_id int NOT NULL PRIMARY KEY,

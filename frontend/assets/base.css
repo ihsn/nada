@@ -52,6 +52,17 @@ body.admin-vue-body .v-field {
 }
 
 /**
+ * Resting (non-floating) field labels: Vuetify's margin-inline-start lives in a cascade
+ * layer, so the unlayered `* { margin: 0 }` reset above wins and the label sits on the
+ * left border. Restore the inset; the floating-label rule below is more specific.
+ */
+.v-application .v-label.v-field-label,
+body.admin-vue-body .v-label.v-field-label {
+  margin-inline-start: var(--v-field-padding-start);
+  margin-inline-end: var(--v-field-padding-end);
+}
+
+/**
  * Outlined fields: Vuetify sets .v-label.v-field-label--floating to margin: 0 4px,
  * which ignores --v-field-padding-start. Re-tie the floating label to the same inset.
  */

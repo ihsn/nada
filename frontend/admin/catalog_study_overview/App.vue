@@ -112,29 +112,31 @@
           <tr>
             <td class="sov-label-cell text-caption text-medium-emphasis">{{ lbl.metadata_in_pdf }}</td>
             <td>
-              <div class="sov-flex">
+              <div class="sov-pdf-row">
+                <span class="sov-pdf-status" :class="'sov-pdf-status--' + pdfStatus">
+                  <v-icon :icon="pdfStatusMeta.icon" size="18" />
+                  <span>{{ pdfStatusMeta.text }}</span>
+                </span>
                 <v-btn
-                  v-if="pdfStatus === 'na' || pdfStatus === 'outdated'"
-                  color="primary"
                   size="small"
-                  variant="flat"
-                  :href="pdfSetupUrl"
+                  variant="tonal"
+                  color="primary"
+                  class="sov-pdf-generate"
+                  @click="pdfDialog = true"
                 >{{ lbl.generate_pdf }}</v-btn>
                 <v-btn
                   v-if="pdfStatus !== 'na'"
                   size="small"
                   variant="tonal"
-                  :href="pdfDeleteUrl"
-                >{{ lbl.delete }}</v-btn>
-                <v-chip v-if="pdfStatus === 'na'" size="small" color="warning" variant="flat">
-                  <v-icon size="16" start>mdi-alert</v-icon>{{ lbl.pdf_not_generated }}
-                </v-chip>
-                <v-chip v-else-if="pdfStatus === 'uptodate'" size="small" color="success" variant="flat">
-                  <v-icon size="16" start>mdi-check</v-icon>{{ lbl.pdf_uptodate }}
-                </v-chip>
-                <v-chip v-else size="small" color="warning" variant="flat">
-                  <v-icon size="16" start>mdi-alert</v-icon>{{ lbl.pdf_outdated }}
-                </v-chip>
+                  color="error"
+                  class="sov-pdf-delete"
+                  :loading="pdfDeleteBusy"
+                  :title="lbl.delete || 'Delete'"
+                  :aria-label="lbl.delete || 'Delete PDF'"
+                  @click="onDeletePdf"
+                >
+                  <v-icon icon="mdi-delete-outline" size="18" />
+                </v-btn>
               </div>
             </td>
           </tr>
@@ -161,18 +163,21 @@
               <div class="text-caption text-medium-emphasis mb-1">{{ lbl.data_access }}</div>
               <v-select
                 v-model="selectedAccessModel"
-                :items="accessSelectItems"
+                :items="isIndicator ? indicatorAccessItems : accessSelectItems"
                 item-title="title"
                 item-value="value"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                clearable
+                :clearable="!isIndicator"
+                :error="indicatorAccessMismatch"
                 class="sov-field-full mb-2"
-                :placeholder="accessSelectItems.length === 0 ? lbl.loading : undefined"
+                :placeholder="!isIndicator && accessSelectItems.length === 0 ? lbl.loading : undefined"
               />
 
-              <div v-if="isRemoteDataAccess" class="sov-remote-da-block">
+              <div v-if="isIndicator" class="sov-indicator-access-help text-caption text-medium-emphasis mb-2">{{ lbl.indicator_open_access_help }}</div>
+
+              <div v-if="!isIndicator && isRemoteDataAccess" class="sov-remote-da-block">
                 <div class="text-caption text-medium-emphasis mb-1">{{ lbl.remote_data_access_url }}</div>
                 <v-text-field
                   id="remote-da"
@@ -185,9 +190,17 @@
                 />
               </div>
 
-              <v-btn class="sov-da-update-btn" size="small" variant="tonal" color="primary" :loading="savingDa" @click="saveDataAccess">{{ lbl.update }}</v-btn>
+              <v-btn
+                class="sov-da-update-btn"
+                size="small"
+                variant="tonal"
+                color="primary"
+                :loading="savingDa"
+                @click="saveDataAccess"
+              >{{ lbl.update }}</v-btn>
 
               <div
+                v-if="!isIndicator"
                 :class="'study-microdata model-' + (dataset.data_access_type || '')"
                 class="sov-microdata-applies"
               >
@@ -359,18 +372,22 @@
         </tbody>
       </v-table>
     </v-main>
+    <GeneratePdfDialog v-model="pdfDialog" @generated="onPdfGenerated" />
   </v-app>
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import GeneratePdfDialog from '@/admin/catalog_study_pdf/GeneratePdfDialog.vue';
+import { useStudyPdfApi } from '@/admin/catalog_study_pdf/useStudyPdfApi';
 import { useStudyOverviewApi } from './composables/useStudyOverviewApi';
 
 defineOptions({ name: 'CatalogStudyOverviewApp' });
 
 const { config } = useAppConfig();
 const api = useStudyOverviewApi();
+const pdfApi = useStudyPdfApi();
 
 const loading = ref(true);
 const dataset = ref(null);
@@ -399,6 +416,20 @@ const accessSelectItems = computed(() =>
   }))
 );
 
+/** Indicators (timeseries) are always open access — no access type selection */
+const isIndicator = computed(() => dataset.value?.type === 'timeseries');
+
+/** Indicators: highlight the dropdown (red border) until `open` is selected */
+const indicatorAccessMismatch = computed(
+  () => isIndicator.value && String(selectedAccessModel.value || '').toLowerCase() !== 'open'
+);
+
+/** Indicators: empty or `open` (a stored non-open type shows as empty) */
+const indicatorAccessItems = computed(() => [
+  { title: ' ', value: '' },
+  { title: lbl.value.open_access, value: 'open' },
+]);
+
 /** Data access model `remote` — show external repository URL field */
 const isRemoteDataAccess = computed(() => String(selectedAccessModel.value || '').toLowerCase() === 'remote');
 
@@ -422,6 +453,8 @@ const aliasSaving = ref(false);
 const collectionsSaving = ref(false);
 
 const snackbar = ref({ show: false, text: '', color: 'success' });
+const pdfDialog = ref(false);
+const pdfDeleteBusy = ref(false);
 
 const lbl = computed(() => ({
   ref_no: 'Reference',
@@ -457,12 +490,13 @@ const lbl = computed(() => ({
   loading: '…',
   fix_country: 'Fix country',
   data_selection_apply_to_files: 'Applies to files',
+  open_access: 'Open access',
+  indicator_open_access_help: 'For indicators, only open access is supported.',
+
   study_no_data_files_assigned: 'No microdata files',
   ...((config.value && config.value.labels) || {}),
 }));
 
-const pdfSetupUrl = computed(() => config.value?.pdfSetupUrl || '#');
-const pdfDeleteUrl = computed(() => config.value?.pdfDeleteUrl || '#');
 const countriesMappingUrl = computed(() => config.value?.countriesMappingUrl || '#');
 
 const folderPathDisplay = computed(() => {
@@ -483,6 +517,16 @@ const yearsText = computed(() => {
 });
 
 const pdfStatus = computed(() => dataset.value?.pdf_documentation?.status || 'na');
+
+const pdfStatusMeta = computed(() => {
+  if (pdfStatus.value === 'uptodate') {
+    return { icon: 'mdi-check-circle', text: lbl.value.pdf_uptodate || 'Up to date' };
+  }
+  if (pdfStatus.value === 'outdated') {
+    return { icon: 'mdi-alert', text: lbl.value.pdf_outdated || 'Outdated' };
+  }
+  return { icon: 'mdi-alert-circle-outline', text: lbl.value.pdf_not_generated || 'PDF not generated' };
+});
 
 const linkedRepoRows = computed(() => {
   const owner = dataset.value?.repositoryid ? String(dataset.value.repositoryid).toLowerCase() : '';
@@ -708,7 +752,9 @@ async function reloadAll() {
     await loadAccessOptionsForClass(daClass);
 
     const models = new Set((accessOptions.value || []).map((o) => o.model));
-    if (!models.has(selectedAccessModel.value)) {
+    if (isIndicator.value) {
+      selectedAccessModel.value = String(study.data_access_type || '').toLowerCase() === 'open' ? 'open' : '';
+    } else if (!models.has(selectedAccessModel.value)) {
       selectedAccessModel.value = accessOptions.value[0]?.model || '';
     }
   } catch (e) {
@@ -735,6 +781,9 @@ async function loadAccessOptionsForClass(code) {
 
 async function onClassificationChange() {
   await loadAccessOptionsForClass(selectedClassCode.value);
+  if (isIndicator.value) {
+    return;
+  }
   const models = new Set((accessOptions.value || []).map((o) => o.model));
   if (selectedAccessModel.value && !models.has(selectedAccessModel.value)) {
     selectedAccessModel.value = accessOptions.value[0]?.model || '';
@@ -744,15 +793,23 @@ async function onClassificationChange() {
 async function saveDataAccess() {
   savingDa.value = true;
   try {
-    const payload = {
-      access_policy: selectedAccessModel.value ?? '',
-      data_remote_url: remoteDa.value ?? '',
-    };
+    // Indicators: send access_policy only when `open` is selected; empty leaves the stored value unchanged
+    const payload = isIndicator.value
+      ? (selectedAccessModel.value === 'open' ? { access_policy: 'open' } : {})
+      : {
+          access_policy: selectedAccessModel.value ?? '',
+          data_remote_url: remoteDa.value ?? '',
+        };
     if (dcEnabled.value && selectedClassCode.value) {
       payload.data_classification = selectedClassCode.value;
     }
+    if (Object.keys(payload).length === 0) {
+      return;
+    }
     await api.postOptions(payload);
     snackbar.value = { show: true, text: lbl.value.saved, color: 'success' };
+    // sidebar (separate app) reloads its warnings
+    window.dispatchEvent(new CustomEvent('catalogStudyOptionsChanged'));
     await reloadAll();
   } catch (e) {
     snackbar.value = { show: true, text: e.message || String(e), color: 'error' };
@@ -859,8 +916,37 @@ async function onFeaturedChange(v) {
   }
 }
 
-onMounted(() => {
+function onPdfGenerated(message) {
+  snackbar.value = { show: true, text: message || lbl.value.pdf_generated || 'PDF report generated', color: 'success' };
   reloadAll();
+}
+
+function onSidebarPdfChanged() {
+  reloadAll();
+}
+
+async function onDeletePdf() {
+  const prompt = lbl.value.confirm_delete || 'Delete the generated PDF?';
+  if (!window.confirm(prompt)) return;
+  pdfDeleteBusy.value = true;
+  try {
+    await pdfApi.deletePdf();
+    snackbar.value = { show: true, text: lbl.value.pdf_deleted || 'PDF deleted', color: 'success' };
+    await reloadAll();
+  } catch (e) {
+    snackbar.value = { show: true, text: e?.response?.data?.message || e?.message || 'Delete failed', color: 'error' };
+  } finally {
+    pdfDeleteBusy.value = false;
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('nada-study-pdf-changed', onSidebarPdfChanged);
+  reloadAll();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('nada-study-pdf-changed', onSidebarPdfChanged);
 });
 </script>
 
@@ -968,6 +1054,33 @@ onMounted(() => {
 }
 .sov-da-update-btn {
   margin-top: 16px;
+}
+.sov-pdf-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.sov-pdf-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 4px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.sov-pdf-status--uptodate {
+  color: rgb(var(--v-theme-success));
+}
+.sov-pdf-status--outdated {
+  color: rgb(var(--v-theme-warning));
+}
+.sov-pdf-status--na {
+  color: rgb(var(--v-theme-error));
+}
+.sov-pdf-delete {
+  min-width: 32px;
+  padding-inline: 0;
 }
 .sov-flex {
   display: flex;

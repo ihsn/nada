@@ -1,6 +1,7 @@
 <?php
+$this->lang->load('home');
 $this->template->add_variable("body_class","container-fluid-full");
-$this->title='Home';
+$this->title=t('home_title');
 
 $survey_count=$this->stats_model->get_survey_count();
 $popular_surveys=$this->stats_model->get_popular_surveys(5);

@@ -27,15 +27,26 @@ export function useStudyResourcesApi() {
     return { id_format: 'id' };
   }
 
-  function csrfHeaders() {
+  function csrfHeaders(extra = {}) {
     const name = csrfTokenName.value || 'ncsrf';
     const tok = csrfToken.value || '';
-    if (!tok) return {};
+    if (!tok) return { ...extra };
     return {
       [name]: tok,
       'X-CSRF-TOKEN': tok,
       'X-Requested-With': 'XMLHttpRequest',
+      ...extra,
     };
+  }
+
+  function apiError(e, fallback) {
+    const d = e?.response?.data;
+    if (d == null) return e?.message || fallback;
+    if (typeof d === 'string') return d;
+    if (d.errors && typeof d.errors === 'object' && !Array.isArray(d.errors)) {
+      return Object.values(d.errors).flat().join(' ') || d.message || fallback;
+    }
+    return d.message || d.errors || e?.message || fallback;
   }
 
   /**
@@ -58,9 +69,58 @@ export function useStudyResourcesApi() {
   /**
    * @param {number|string} resourceId
    */
+  async function getResource(resourceId) {
+    const rid = encodeURIComponent(String(resourceId));
+    const { data } = await axios.get(
+      `${resourcesPrefix()}${studyRefSegment()}/resources/${rid}`,
+      { params: studyRefParams(), withCredentials: true }
+    );
+    if (data.status !== 'success') throw new Error(data.errors || data.message || 'LOAD_RESOURCE_FAILED');
+    const list = Array.isArray(data.resources) ? data.resources : [];
+    return list[0] || null;
+  }
+
+  /**
+   * @param {Record<string, any>} payload
+   */
+  async function createResource(payload) {
+    const { data } = await axios.post(
+      `${resourcesPrefix()}${studyRefSegment()}/resources`,
+      payload,
+      {
+        params: studyRefParams(),
+        withCredentials: true,
+        headers: csrfHeaders({ 'Content-Type': 'application/json' }),
+      }
+    );
+    if (data.status !== 'success') throw new Error(apiError({ response: { data } }, 'CREATE_FAILED'));
+    return data;
+  }
+
+  /**
+   * @param {number|string} resourceId
+   * @param {Record<string, any>} payload
+   */
+  async function updateResource(resourceId, payload) {
+    const rid = encodeURIComponent(String(resourceId));
+    const { data } = await axios.post(
+      `${resourcesPrefix()}${studyRefSegment()}/resources/update/${rid}`,
+      payload,
+      {
+        params: studyRefParams(),
+        withCredentials: true,
+        headers: csrfHeaders({ 'Content-Type': 'application/json' }),
+      }
+    );
+    if (data.status !== 'success') throw new Error(apiError({ response: { data } }, 'UPDATE_FAILED'));
+    return data;
+  }
+
+  /**
+   * @param {number|string} resourceId
+   */
   async function deleteResource(resourceId) {
     const rid = encodeURIComponent(String(resourceId));
-    // POST …/resources/delete/{id}: same as DELETE …/resources/{id} when DELETE is blocked.
     const { data } = await axios.post(
       `${resourcesPrefix()}${studyRefSegment()}/resources/delete/${rid}`,
       {},
@@ -74,5 +134,47 @@ export function useStudyResourcesApi() {
     return data;
   }
 
-  return { fetchResources, deleteResource, studyRefSegment, studyRefParams };
+  /**
+   * @param {File} file
+   */
+  async function importRdf(file) {
+    const body = new FormData();
+    body.append('file', file);
+    const { data } = await axios.post(
+      `${resourcesPrefix()}${studyRefSegment()}/resources/import_rdf`,
+      body,
+      {
+        params: studyRefParams(),
+        withCredentials: true,
+        headers: csrfHeaders(),
+      }
+    );
+    if (data.status !== 'success') throw new Error(apiError({ response: { data } }, 'IMPORT_FAILED'));
+    return data;
+  }
+
+  async function fixLinks() {
+    const { data } = await axios.post(
+      `${resourcesPrefix()}${studyRefSegment()}/resources/fix_links`,
+      {},
+      {
+        params: studyRefParams(),
+        withCredentials: true,
+        headers: csrfHeaders({ 'Content-Type': 'application/json' }),
+      }
+    );
+    return data;
+  }
+
+  return {
+    fetchResources,
+    getResource,
+    createResource,
+    updateResource,
+    deleteResource,
+    importRdf,
+    fixLinks,
+    studyRefSegment,
+    studyRefParams,
+  };
 }

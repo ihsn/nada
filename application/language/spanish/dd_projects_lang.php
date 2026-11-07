@@ -27,7 +27,6 @@ $lang['invalid_email']="¡Dirección de correo electrónico inválida!";
 $lang['add_citations']="Nueva cita";
 $lang['diagnostic']="Diagnóstico";
 $lang['outstanding_fields']="%d campos obligatorios pendientes";
-$lang['no_plupload_support']="Su navegador no es compatible con Flash, Silverlight, Gears, BrowserPlus o HTML5.";
 $lang['project_locked_message']="Este proyecto se envió el %s. El proyecto ya no se puede editar, pero puede ver y descargar la información de resumen del proyecto. Si necesita revisar o agregar más archivos a su envío, puede solicitar que se reabra el proyecto.";
 $lang['submit']="Enviar";
 $lang['request_reopen']="Solicitar reabrir";

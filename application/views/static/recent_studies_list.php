@@ -1,3 +1,9 @@
+<?php
+//localized dates, falls back to English if the intl extension is not available
+$date_formatter=class_exists('IntlDateFormatter')
+    ? new IntlDateFormatter(ci_lang_to_iso(),IntlDateFormatter::MEDIUM,IntlDateFormatter::NONE)
+    : null;
+?>
 <section class="home-latest">
     <div class="home-section-header">
         <h2 class="home-section-title"><?php echo t('latest_additions');?></h2>
@@ -36,7 +42,7 @@
                     <?php if(!empty($row['authoring_entity'])):?>
                         <span class="home-latest-authors"><?php echo html_escape($row['authoring_entity']);?></span>
                     <?php endif;?>
-                    <span class="home-latest-date"><?php echo date("M d, Y",$row['created']);?></span>
+                    <span class="home-latest-date"><?php echo $date_formatter ? $date_formatter->format((int)$row['created']) : date("M d, Y",$row['created']);?></span>
                 </div>
             </div>
         </li>

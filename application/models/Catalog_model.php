@@ -703,7 +703,15 @@ class Catalog_model extends CI_Model {
 				$update_arr[$key]=$value;
 			}
 		}
-		
+
+		//indicators are always open access
+		if (array_key_exists('formid', $update_arr)) {
+			$this->load->model('Dataset_model');
+			$da_type = $this->Dataset_model->get_type($options[$key_field]);
+			$this->Dataset_model->validate_indicator_access_policy($da_type, $update_arr['formid']);
+			$this->Dataset_model->apply_indicator_access_policy($da_type, $update_arr);
+		}
+
 		//update
 		$this->db->where($key_field, $options[$key_field]);
 		$result=$this->db->update('surveys', $update_arr); 
@@ -778,6 +786,11 @@ class Catalog_model extends CI_Model {
 			if ($this->db->table_exists('study_admin_metadata')) {
 				$this->db->where('sid', $id);
 				$this->db->delete('study_admin_metadata');
+			}
+
+			if ($this->db->table_exists('study_presentation')) {
+				$this->db->where('sid', $id);
+				$this->db->delete('study_presentation');
 			}
 
 		}		

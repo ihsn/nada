@@ -12,6 +12,9 @@ use JsonSchema\Constraints\Constraint;
  * 
  */
 class Dataset_model extends CI_Model {
+
+	// Max characters kept in surveys.abstract (shown on catalog search result cards).
+	const ABSTRACT_MAX_LENGTH = 2000;
  
 	//fields for the study description
 	private $survey_fields=array(
@@ -239,6 +242,77 @@ class Dataset_model extends CI_Model {
 		
 		if($survey){
 			return $survey['type'];
+		}
+	}
+
+
+	/**
+	 * Data access models that are never allowed for indicators (timeseries).
+	 * Indicators are always open access; `direct` and `data_na` are accepted and stored as `open`.
+	 */
+	private $indicator_rejected_access_models=array('public', 'licensed', 'data_enclave', 'enclave', 'remote');
+
+	private $open_access_formid=null;
+
+	public function is_indicator_type($type)
+	{
+		return $type === 'timeseries';
+	}
+
+	/**
+	 * Reject data access types that are not allowed for indicators.
+	 *
+	 * @param string          $type   dataset type
+	 * @param string|int|null $access data access model code (e.g. `licensed`) or numeric formid
+	 * @throws ValidationException
+	 */
+	public function validate_indicator_access_policy($type, $access)
+	{
+		if (!$this->is_indicator_type($type)) {
+			return;
+		}
+
+		if ($access === null || $access === false || trim((string) $access) === '') {
+			return;
+		}
+
+		$code = strtolower(trim((string) $access));
+
+		if (is_numeric($access)) {
+			$this->load->model('Form_model');
+			$form = $this->Form_model->get_single((int) $access);
+			$code = isset($form['model']) ? strtolower((string) $form['model']) : '';
+		}
+
+		if (in_array($code, $this->indicator_rejected_access_models, true)) {
+			$message = "Indicators are always open access; access_policy '" . $code . "' is not allowed."
+				. " Use 'open' or omit access_policy. To link to externally hosted data, use link_indicator.";
+			throw new ValidationException('INDICATOR_ACCESS_POLICY_NOT_ALLOWED: ' . $message, array('access_policy' => $message));
+		}
+	}
+
+	/**
+	 * Force the `open` data access form on indicator rows.
+	 *
+	 * @param string $type dataset type
+	 * @param array  $data surveys row data (modified in place)
+	 */
+	public function apply_indicator_access_policy($type, array &$data)
+	{
+		if (!$this->is_indicator_type($type)) {
+			return;
+		}
+
+		if ($this->open_access_formid === null) {
+			$this->load->model('Form_model');
+			$this->open_access_formid = $this->Form_model->get_formid_by_name('open');
+		}
+
+		if ($this->open_access_formid) {
+			$data['formid'] = (int) $this->open_access_formid;
+		}
+		else {
+			log_message('error', 'apply_indicator_access_policy: data access form `open` not found in forms table');
 		}
 	}
 
@@ -593,6 +667,9 @@ class Dataset_model extends CI_Model {
 			$data['abbreviation']=substr($data['abbreviation'],0,40);
 		}
 
+		//indicators are always open access
+		$this->apply_indicator_access_policy($type, $data);
+
 		//keywords
 		if (isset($data['metadata']) && !isset($data['keywords'])){
 			//$keywords=str_replace("\n","",$this->array_to_plain_text($options['metadata']));
@@ -657,6 +734,9 @@ class Dataset_model extends CI_Model {
 		if (isset($data['abbreviation'])){
 			$data['abbreviation']=substr($data['abbreviation'],0,40);
 		}
+
+		//indicators are always open access
+		$this->apply_indicator_access_policy($type, $data);
 
 		//keywords
 		if (!isset($data['keywords']) && isset($data['metadata'])){
@@ -824,7 +904,7 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	function extract_abstract($metadata, $type = '', $max_len = 500)
+	function extract_abstract($metadata, $type = '', $max_len = self::ABSTRACT_MAX_LENGTH)
 	{
 		$abstract = $this->get_metadata_abstract_text($metadata, $type);
 		if ($abstract === null) {
@@ -1977,6 +2057,13 @@ class Dataset_model extends CI_Model {
 
 		if (empty($data)) {
 			return false;
+		}
+
+		//indicators are always open access: reject restricted types, store `open`
+		if (array_key_exists('formid', $data)) {
+			$da_type = isset($data['type']) ? $data['type'] : $this->get_type($sid);
+			$this->validate_indicator_access_policy($da_type, $data['formid']);
+			$this->apply_indicator_access_policy($da_type, $data);
 		}
 
 		//abstract
@@ -3155,7 +3242,8 @@ class Dataset_model extends CI_Model {
         $nation_str='';
         if (count($nations)>$max_show){
             $nation_str=implode(", ", array_slice($nations, 0, $max_show));
-            $nation_str.='...and '. (count($nations) - $max_show). ' more';
+            //language-neutral, so the saved text reads the same in every UI language
+            $nation_str.=' +'. (count($nations) - $max_show);
         }else{
             $nation_str=implode(", ", $nations);
         }

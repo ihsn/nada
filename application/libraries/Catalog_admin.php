@@ -89,11 +89,10 @@ class Catalog_Admin
 		//get all data files for a survey
 		$data_files=$this->ci->Data_file_resources_model->get_all_files_resources($sid);
 
-		//total resources
-		$output['total'] = count($data_files);
-
-		//formatted resources list
-		$output['formatted']=$this->ci->load->view('catalog/data_files', array('rows'=>$data_files),TRUE);
+		$output['total'] = is_array($data_files) ? count($data_files) : 0;
+		// HTML view retired — Vue study overview uses api/admin/catalog/…/data_file_resources
+		$output['formatted'] = '';
+		$output['files'] = is_array($data_files) ? $data_files : array();
 
 		return $output;
 	}
@@ -301,8 +300,9 @@ class Catalog_Admin
 
 		//published
 		//collection dates are missing?
-		$this->ci->db->select('published,year_start,year_end');
-		$this->ci->db->where('id',$sid);
+		$this->ci->db->select('surveys.published,surveys.year_start,surveys.year_end,surveys.type,forms.model as data_access_type');
+		$this->ci->db->join('forms','forms.formid=surveys.formid','left');
+		$this->ci->db->where('surveys.id',$sid);
 		$study_row=$this->ci->db->get('surveys')->row_array();
 
 		if($study_row['published']==0)
@@ -313,6 +313,12 @@ class Catalog_Admin
 		if ((int)$study_row['year_start']===0 && (int)$study_row['year_end']===0)
 		{
 			$warnings[]='warning_study_years_not_set';
+		}
+
+		//indicators are always open access
+		if ($study_row['type']==='timeseries' && strtolower((string)$study_row['data_access_type'])!=='open')
+		{
+			$warnings[]='warning_indicator_data_access_not_open';
 		}
 
 		//study data access model
@@ -367,12 +373,14 @@ class Catalog_Admin
 		$broken_links=array();
 
 		//build an array of broken resources, ignore the resources with correct paths
+		$this->ci->load->helper('file');
 		foreach($resources as $resource)
 		{
 			//check if the resource file found on disk
 			if(!is_url($resource['filename']))
 			{
-				if(!file_exists( unix_path($survey_folder.'/'.$resource['filename'])))
+				$resolved = resolve_under_directory($survey_folder, $resource['filename']);
+				if ($resolved === false || ! is_file($resolved))
 				{
 					$broken_links[]=$resource;
 				}

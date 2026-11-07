@@ -187,6 +187,44 @@ export function useStudyTimeseriesApi(studySid) {
     }
   }
 
+  /** GET …/data/{idno}/presentation — default view settings plus observed code options per column. */
+  async function fetchPresentation() {
+    try {
+      const { data } = await axios.get(`${dataPath()}/presentation`, {
+        params: noCacheParams(),
+        withCredentials: true,
+      });
+      if (data.status !== 'success') throw new Error(data.message || 'Default view request failed');
+      return data.result ?? {};
+    } catch (err) {
+      throw new Error(messageFromApiError(err), { cause: err });
+    }
+  }
+
+  /** POST …/data/{idno}/presentation — replace the default view settings (null removes them). */
+  async function savePresentation(presentation) {
+    // Schema errors come back as { message, errors: [{ property, message }] }; list them after the message.
+    const withSchemaErrors = (d, fallback) => {
+      const errs = Array.isArray(d?.errors) ? d.errors : [];
+      const detail = errs.map((e) => [e?.property, e?.message].filter(Boolean).join(' ')).join('; ');
+      const msg = String(d?.message || fallback).replace(/:\s*$/, '');
+      return detail ? `${msg}: ${detail}` : msg;
+    };
+    try {
+      const { data } = await axios.post(
+        `${dataPath()}/presentation`,
+        { data_presentation: presentation },
+        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+      );
+      if (data.status !== 'success') throw new Error(withSchemaErrors(data, 'Save failed'));
+      return data.result ?? {};
+    } catch (err) {
+      const d = err?.response?.data;
+      if (d && typeof d === 'object') throw new Error(withSchemaErrors(d, messageFromApiError(err)), { cause: err });
+      throw err instanceof Error ? err : new Error(messageFromApiError(err), { cause: err });
+    }
+  }
+
   async function wrap(promise) {
     loading.value = true;
     try {
@@ -207,5 +245,7 @@ export function useStudyTimeseriesApi(studySid) {
     importCsvData,
     rehashData,
     clearIndicatorData,
+    fetchPresentation,
+    savePresentation,
   };
 }

@@ -8,8 +8,7 @@
 
     <template v-else-if="schema">
       <div class="data-api-main">
-        <h1 class="text-h5 font-weight-semibold mb-3">Data API</h1>
-        <p v-if="studyAbstract" class="text-body-2 text-medium-emphasis mb-6 study-abstract">{{ studyAbstract }}</p>
+        <h1 class="text-h5 font-weight-semibold mb-6">Data API</h1>
 
         <div class="section-block api-usage-section">
           <IndicatorDataApiReferenceCard
@@ -18,6 +17,10 @@
             :show-bulk-downloads-api-link="registryFiles.length > 0"
             :bulk-downloads-catalog-url="downloadsCatalogUrl"
             :example-limit="OBSERVATIONS_PAGE_LIMIT"
+            :filter-examples="apiFilterExamples"
+            :structure-url="structurePageUrl"
+            :openapi-url="openapiSpecUrl"
+            :playground-url="apiPlaygroundUrl"
           />
         </div>
 
@@ -296,7 +299,6 @@ const setMessage = inject('setMessage', () => {});
 const { config, siteUrl } = useAppConfig();
 const studyIdno = computed(() => String(config.value?.studyIdno ?? '').trim());
 const studyTitle = computed(() => String(config.value?.studyTitle ?? '').trim());
-const studyAbstract = computed(() => String(config.value?.studyAbstract ?? '').trim());
 
 const ui = computed(() => {
   const raw = config.value?.indicatorDataApiUi;
@@ -394,6 +396,52 @@ const facetComponentsForC = computed(() => {
     if (c.name === ov || c.name === tp) return false;
     return c.column_type === 'dimension';
   });
+});
+
+/** Sample codes from this dataset, used to illustrate d[…] / c[…] filters in the API usage panel. */
+function sampleCodes(componentName, max = 2) {
+  return selectItemsFor(componentName)
+    .slice(0, max)
+    .map((it) => String(it.value));
+}
+
+const apiFilterExamples = computed(() => {
+  const geo = geographyComponent.value;
+  const per = periodicityComponent.value;
+  const roleSrc = geo && sampleCodes(geo.name).length ? ['geography', geo] : per && sampleCodes(per.name, 1).length ? ['periodicity', per] : null;
+  // c[…] takes any column name; prefer an extra dimension, else fall back to the geography / periodicity column.
+  const colSrc =
+    facetComponentsForC.value.find((c) => sampleCodes(c.name, 1).length) ||
+    [geo, per].find((c) => c && sampleCodes(c.name, 1).length) ||
+    null;
+  return {
+    role: roleSrc
+      ? { role: roleSrc[0], label: facetLabel(roleSrc[1]), codes: sampleCodes(roleSrc[1].name, roleSrc[0] === 'geography' ? 2 : 1) }
+      : null,
+    column: colSrc ? { name: colSrc.name, label: facetLabel(colSrc), codes: sampleCodes(colSrc.name, 1) } : null,
+  };
+});
+
+const structurePageUrl = computed(() => {
+  const sid = Number(config.value?.studySid) || 0;
+  const base = String(siteUrl.value || '').replace(/\/$/, '');
+  return sid && base ? `${base}/catalog/${sid}/indicator-structure` : '';
+});
+
+const openapiSpecUrl = computed(() => {
+  const base = String(siteUrl.value || '').replace(/\/$/, '');
+  return base ? `${base}/schemas/openapi/timeseries` : '';
+});
+
+/** Playground page, opened on the observations query with this indicator's values filled in. */
+const apiPlaygroundUrl = computed(() => {
+  const base = String(config.value?.baseUrl || '').replace(/\/$/, '');
+  const id = studyIdno.value;
+  if (!base || !id) return '';
+  const params = new URLSearchParams({ idno: id, limit: String(OBSERVATIONS_PAGE_LIMIT) });
+  const role = apiFilterExamples.value.role;
+  if (role?.codes?.length) params.set(`d[${role.role}]`, role.codes.join(','));
+  return `${base}/api-documentation/timeseries/playground.html?${params}#/Data/getObservations`;
 });
 
 function facetShowsFilter(componentName) {
@@ -840,10 +888,6 @@ onMounted(() => {
 
 .api-usage-section + .section-block {
   margin-top: 0.75rem;
-}
-
-.study-abstract {
-  white-space: pre-line;
 }
 
 .grid-filters-section {
