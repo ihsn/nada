@@ -21,7 +21,7 @@
           </v-col>
         </v-row>
         <p class="text-caption text-medium-emphasis mt-2 mb-0">
-          Runs the catalog search exactly as the public catalog would with semantic search on (NADA-AI's OpenSearch,
+          Runs the catalog search exactly as the public catalog would with NADA-AI as the search engine (its OpenSearch,
           relevance order), with the search driver's debug output.
         </p>
 

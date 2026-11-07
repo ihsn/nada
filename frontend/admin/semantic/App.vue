@@ -3,7 +3,7 @@
     <v-main class="admin-semantic-page">
       <v-container fluid class="admin-semantic-main px-2 pt-2 pb-6">
         <header class="admin-semantic-page-header">
-          <h1 class="admin-semantic-page-title text-h5 font-weight-medium">Semantic search</h1>
+          <h1 class="admin-semantic-page-title text-h5 font-weight-medium">Search index</h1>
         </header>
 
         <div class="admin-semantic-layout">

@@ -9,7 +9,7 @@ require_once(APPPATH . 'core/MY_Migration.php');
  * search_index_queue.priority orders the work: 0 for catalog changes, 1 for rows a sync queued, so a change made
  * during a long sync is not processed after all of it.
  *
- * search_index_meta has one row (added by 20261031120004_rename_search_engine_settings, once search_index_engine is
+ * search_index_meta has one row (added by 20261107120004_rename_search_engine_settings, once search_index_engine is
  * set) describing the rows in search_index_state / search_index_queue:
  *   engine            the engine they were written for (not always search_index_engine: the tables are cleared on
  *                     the first catalog change after the index engine changed)

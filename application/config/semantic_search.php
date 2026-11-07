@@ -10,7 +10,7 @@
  * trailing slash).
  *
  * Set nada_ai_url, nada_ai_api_key and nada_ai_debug in Site configurations > Search. nada_ai_api_key is nada-ai's
- * admin key, used both for searching and for indexing from the Semantic search admin pages. These settings can be
+ * admin key, used both for searching and for indexing from the Search index admin page. These settings can be
  * saved without making nada-ai the search engine; enable it by choosing NADA-AI as the search engine on the same page
  * (search_engine = nada_ai).
  */

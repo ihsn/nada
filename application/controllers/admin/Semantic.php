@@ -24,7 +24,7 @@ class Semantic extends MY_Controller
 		);
 
 		$page = array(
-			'title'           => t('Semantic search'),
+			'title'           => t('Search index'),
 			'content'         => $this->load->view('admin/semantic/index', $view_data, true),
 			'hide_breadcrumb' => true,
 			'theme_folder'    => 'adminvue',

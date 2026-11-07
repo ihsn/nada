@@ -4,13 +4,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 require_once(APPPATH . 'core/MY_Migration.php');
 
 /**
- * Schema steps added after v5.7.2. They run after every earlier migration, so they also reach databases that already
- * ran the 20261031* migrations.
+ * Schema steps added after v5.7.2.
  *
  * - Search index tables: re-runs the archived catalog_search_queue_filters step, which creates search_index_meta
  *   and adds search_index_queue.priority and search_index_meta.nada_ai_url where they are missing.
  * - resources text columns widened as install/schema.*.sql defines them (and Unicode on SQL Server; never
- *   narrowed), and the api_logs indexes.
+ *   narrowed).
  * - SQL Server: the full-text index on citations (keyword and duplicate search). SQL Server allows one full-text
  *   index per table, so it covers the columns of both MySQL citation full-text indexes.
  *
@@ -24,7 +23,6 @@ class Migration_Schema_updates_after_v572 extends MY_Migration {
 			'20260909120002_catalog_search_queue_filters.php',
 		));
 		$this->widen_resources_columns();
-		$this->add_api_logs_indexes();
 		$this->add_citations_fulltext_sqlsrv();
 	}
 
@@ -125,47 +123,6 @@ class Migration_Schema_updates_after_v572 extends MY_Migration {
 			);
 		}
 		$this->forget_table_cache();
-	}
-
-	/** api_logs indexes as install/schema.*.sql defines them */
-	private function add_api_logs_indexes()
-	{
-		if (!$this->table_exists('api_logs')) {
-			return;
-		}
-		$driver  = $this->db->dbdriver;
-		$indexes = array(
-			'idx_api_logs_time'               => array('time'),
-			'idx_api_logs_method'             => array('method'),
-			'idx_api_logs_response_code'      => array('response_code'),
-			'idx_api_logs_authorized'         => array('authorized'),
-			'idx_api_logs_user_id'            => array('user_id'),
-			'idx_api_logs_ip_address'         => array('ip_address'),
-			'idx_api_logs_time_method'        => array('time', 'method'),
-			'idx_api_logs_time_response_code' => array('time', 'response_code'),
-		);
-		// long text columns: prefix indexes on MySQL, as the fresh schema
-		if ($driver === 'sqlsrv') {
-			$indexes['idx_api_logs_uri']     = array('uri');
-			$indexes['idx_api_logs_api_key'] = array('api_key');
-		} else {
-			$indexes['idx_api_logs_uri_prefix']     = array('uri(100)');
-			$indexes['idx_api_logs_api_key_prefix'] = array('api_key(20)');
-		}
-		foreach ($indexes as $name => $columns) {
-			if ($this->index_exists('api_logs', $name)) {
-				continue;
-			}
-			if ($driver === 'sqlsrv') {
-				$sql = 'CREATE NONCLUSTERED INDEX ' . $name . ' ON api_logs (' . implode(', ', $columns) . ')';
-			} else {
-				$cols = array_map(function ($c) {
-					return preg_replace('/^(\w+)/', '`$1`', $c);
-				}, $columns);
-				$sql = 'ALTER TABLE `api_logs` ADD INDEX `' . $name . '` (' . implode(', ', $cols) . ')';
-			}
-			$this->assert_db_query($this->db->query($sql), $name);
-		}
 	}
 
 	private function add_citations_fulltext_sqlsrv()

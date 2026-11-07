@@ -222,12 +222,12 @@ $config['acl_permissions'] = [
         ]
     ],
     "semantic_search"=>[
-        "title" => "Semantic search indexing",
-        "description" => "Manage the NADA-AI semantic search index",
+        "title" => "Search index",
+        "description" => "View the search index, run indexing jobs, and rebuild the index",
         "permissions"=>[
             [
                 "permission" => "view",
-                "description" => "Browse semantic search status, jobs, and collection info"
+                "description" => "Browse search index status, jobs, and collection info"
             ],
             [
                 "permission" => "edit",
@@ -235,7 +235,7 @@ $config['acl_permissions'] = [
             ],
             [
                 "permission" => "delete",
-                "description" => "Recreate (drop and rebuild) the semantic search index"
+                "description" => "Recreate (drop and rebuild) the search index"
             ]
         ]
     ],

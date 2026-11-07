@@ -12,7 +12,7 @@ export default createRouter({
       name: 'overview',
       meta: {
         title: 'Overview',
-        subtitle: 'Is semantic search working, and what can be found with it',
+        subtitle: 'Is the search index working, and what can be found with it',
       },
     },
     {

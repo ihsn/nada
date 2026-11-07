@@ -21,8 +21,9 @@ import { useEngineStatus } from '../composables/useEngineStatus.js';
 defineOptions({ name: 'SemanticEngineStatusBanner' });
 
 /**
- * Shown on every page of the dashboard, and only when something is wrong: nada-ai runs another engine than the
- * setting says, or it is not answering (the outage breaker is open). The full picture is the Overview card.
+ * Shown on every page of the dashboard, and only when something needs attention: the site keeps no NADA-AI index,
+ * nada-ai runs another engine than the setting says, or it is not answering (the outage breaker is open). The full
+ * picture is the Overview card.
  */
 const route = useRoute();
 const { problems, refresh } = useEngineStatus();

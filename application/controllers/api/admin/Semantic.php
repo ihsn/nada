@@ -41,7 +41,7 @@ class Semantic extends MY_REST_Controller
 			$base_url = rtrim((string) $this->config->item('nada_ai_url'), '/');
 			if ($base_url === '')
 			{
-				throw new Exception('Semantic search is not configured: set the NADA-AI API URL in Site configurations > Search.');
+				throw new Exception('NADA-AI is not configured: set the NADA-AI API URL in Site configurations > Search.');
 			}
 
 			$api_key = (string) $this->config->item('nada_ai_api_key');

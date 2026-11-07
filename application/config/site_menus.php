@@ -178,7 +178,7 @@ $menu[]=array(
 		'type'	=>'divider'
 	),
 	array(
-		'title'	=>'Semantic Search',
+		'title'	=>'Search index',
 		'url'	=>'admin/search-index'
 	),
 	array(

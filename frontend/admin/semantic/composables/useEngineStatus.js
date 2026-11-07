@@ -64,6 +64,13 @@ export function useEngineStatus() {
   /** Problems worth an admin's attention, worst first: [{key, type, text}]. Empty when everything is fine. */
   const problems = computed(() => {
     const out = [];
+    if (status.value && status.value.index_engine !== 'nada_ai') {
+      out.push({
+        key: 'unsupported',
+        type: 'info',
+        text: 'Indexing from this page is not available for the current search engine. It needs "Index kept in sync" set to NADA-AI in Site configurations › Search.',
+      });
+    }
     if (!usesNadaAi.value || !status.value) return out;
     if (mismatch.value) {
       out.push({
