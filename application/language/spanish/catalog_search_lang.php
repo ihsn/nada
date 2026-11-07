@@ -373,6 +373,19 @@ $lang['compare_variables_summary']="%d variables de %d estudios";
 $lang['You have selected the maximum variables to compare']="Ha seleccionado el número máximo de variables para comparar";
 $lang['Select two or more variables to compare']="Seleccione dos o más variables para comparar";
 $lang['catalog_search_empty_hint']="Pruebe con otras palabras clave o borre los filtros para explorar todos los conjuntos de datos.";
+$lang['pagination']="Paginación";
+$lang['pager_prev']="Página anterior";
+$lang['pager_next']="Página siguiente";
+$lang['pager_page_n']="Página %s";
+$lang['pager_page_of']="Página %s de %s";
+$lang['pager_range']="%s–%s de %s";
+$lang['pager_past_numbered']="Los resultados posteriores a %s no están numerados. Afine la búsqueda o invierta el orden para llegar al final.";
+$lang['pager_page_not_found']="Página no encontrada.";
+$lang['search_took_too_long']="La búsqueda tardó demasiado. Inténtelo de nuevo o precísela con más palabras o filtros.";
+$lang['sort_study_title_az']="Título del estudio (A-Z)";
+$lang['sort_study_title_za']="Título del estudio (Z-A)";
+$lang['sort_variable_name_az']="Nombre de la variable (A-Z)";
+$lang['sort_variable_name_za']="Nombre de la variable (Z-A)";
 
 
 /* End of file catalog_search */

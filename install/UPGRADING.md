@@ -59,6 +59,45 @@ If the command line is not available, open **Site administration → Database mi
 
 For SQL Server on IIS, `set_time_limit(0)` does not raise the IIS / FastCGI request limit. See the [SQL Server upgrade notes](NADA57_SQLSRV_UPGRADE.md) and the [SQL Server manual runbook](NADA57_SQLSRV_MANUAL_RUNBOOK.md). SQL Server administrators can also run [nada56-upgrade-sqlsrv.sql](nada56-upgrade-sqlsrv.sql) in SSMS and then finish the PHP-only steps in the web interface.
 
+## Search settings and NADA-AI
+
+### Setting names (all sites)
+
+The migrations rename the search settings, so there is nothing to change by hand. A value already saved under a new name is kept.
+
+| Old setting | New setting |
+|---|---|
+| `search_provider` | `search_engine`: `database`, `solr` or `nada_ai` (`semantic` becomes `nada_ai`; `opensearch` becomes `database`) |
+| `semantic_search_url` | `nada_ai_url` |
+| `semantic_search_api_key`, `semantic_search_admin_api_key` | `nada_ai_api_key` (NADA now uses one key, NADA-AI's admin key) |
+| `semantic_search_debug` | `nada_ai_debug` |
+| `semantic_search_engine`, `citation_search_provider` | Removed |
+| None | `search_index_engine` (new): the engine whose index NADA keeps in sync, set from `search_engine` |
+
+`application/config/semantic_search.php` is replaced by `application/config/nada_ai.php`. Its old settings are no longer read, and the old file can be deleted.
+
+### Deploying with NADA-AI
+
+Skip this part if the site does not use NADA-AI. Otherwise, follow this order, keeping steps 1 to 4 close together:
+
+1. **Update NADA-AI first.** NADA needs NADA-AI's new search fields and filters. Until NADA is updated too, variable searches from the old NADA past row 1,000 fail; to avoid that during a longer gap, set `NADA_VARIABLES_MAX_OFFSET=10000` on NADA-AI until NADA is updated.
+2. **Add the filter fields to the study index.** On the NADA-AI server:
+
+   ```bash
+   curl -X POST -H "X-NADA-Admin-Key: YOUR_NADA_AI_ADMIN_KEY" http://localhost:8020/admin/filters/ensure-indexes
+   ```
+
+   Adjust the address to your deployment.
+3. **Rebuild the variable index.** Writes to the variable index fail on the old mapping until this is done, and variable search is incomplete while it runs. It takes about 1.5 to 2 hours at 10 million variables.
+
+   ```bash
+   curl -X POST -H "X-NADA-Admin-Key: YOUR_NADA_AI_ADMIN_KEY" "http://localhost:8020/admin/index/variables/recreate?confirm=true"
+   ```
+
+4. **Update NADA and run the migrations,** as in steps 1 and 2 at the top of this guide.
+5. **Check the settings.** In **Site configurations → Search**, confirm the search engine, the NADA-AI URL and the API key, which must be NADA-AI's admin key. Also check the [key NADA-AI uses for NADA](#nada-ai-api-key).
+6. **Send every study to NADA-AI again.** This fills the new filter and sidebar count fields. On the **Search index** admin page, open **Indexing**, choose **Force re-index…** and run it for each study type. Search keeps working while it runs, and you can follow it under **Activity**.
+
 ## robots.txt (recommended)
 
 Catalog search pages past the numbered pages are reached with a cursor (URLs ending in `…&cursor=…`), an endless chain of URLs crawlers should not follow. NADA does not install a `robots.txt` (a site may already have its own), so:

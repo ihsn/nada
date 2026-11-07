@@ -370,6 +370,19 @@ $lang['compare_variables_summary']="%d variables issues de %d études";
 $lang['You have selected the maximum variables to compare']="Vous avez sélectionné le nombre maximal de variables à comparer";
 $lang['Select two or more variables to compare']="Sélectionnez au moins deux variables à comparer";
 $lang['catalog_search_empty_hint']="Essayez d'autres mots-clés ou effacez vos filtres pour parcourir tous les jeux de données.";
+$lang['pagination']="Pagination";
+$lang['pager_prev']="Page précédente";
+$lang['pager_next']="Page suivante";
+$lang['pager_page_n']="Page %s";
+$lang['pager_page_of']="Page %s sur %s";
+$lang['pager_range']="%s–%s sur %s";
+$lang['pager_past_numbered']="Les résultats au-delà de %s ne sont pas numérotés. Affinez la recherche ou inversez l'ordre de tri pour atteindre la fin.";
+$lang['pager_page_not_found']="Page introuvable.";
+$lang['search_took_too_long']="La recherche a pris trop de temps. Réessayez, ou précisez-la avec plus de mots ou de filtres.";
+$lang['sort_study_title_az']="Titre de l'étude (A-Z)";
+$lang['sort_study_title_za']="Titre de l'étude (Z-A)";
+$lang['sort_variable_name_az']="Nom de la variable (A-Z)";
+$lang['sort_variable_name_za']="Nom de la variable (Z-A)";
 
 
 /* End of file catalog_search */

@@ -256,6 +256,7 @@ $lang['batch_failed_count']="%s sur %s ont échoué. Consultez la console pour p
 $lang['batch_processing']="Traitement en cours…";
 $lang['confirm_set_study_status']="Définir le statut de cette étude sur %s ?";
 $lang['search_placeholder']="Rechercher %s...";
+$lang['warning_indicator_data_access_not_open']="Le type d'accès aux données doit être défini sur l'accès libre pour les indicateurs";
 
 
 /* End of file catalog_admin */
