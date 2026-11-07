@@ -41,7 +41,7 @@ function catalog_search_url($repositoryid = null)
 function catalog_search_debug_enabled()
 {
 	$CI =& get_instance();
-	$CI->config->load('semantic_search');
+	$CI->config->load('nada_ai');
 	$enabled = filter_var($CI->config->item('nada_ai_debug'), FILTER_VALIDATE_BOOLEAN);
 
 	return $enabled && catalog_search_debug_viewer();
@@ -54,7 +54,7 @@ function catalog_search_debug_enabled()
 function nada_ai_debug_enabled()
 {
 	$CI =& get_instance();
-	$CI->config->load('semantic_search');
+	$CI->config->load('nada_ai');
 
 	return filter_var($CI->config->item('nada_ai_debug'), FILTER_VALIDATE_BOOLEAN) && catalog_search_debug_viewer();
 }

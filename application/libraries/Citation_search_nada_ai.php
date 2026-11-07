@@ -54,7 +54,7 @@ class Citation_search_nada_ai
     function __construct($params = array())
     {
         $this->ci =& get_instance();
-        $this->ci->config->load('semantic_search');
+        $this->ci->config->load('nada_ai');
 
         $this->api_key = (string) $this->ci->config->item('nada_ai_api_key');
         $timeout       = (int) $this->ci->config->item('nada_ai_timeout');

@@ -62,7 +62,7 @@ class Search_engine_resolver
     public function __construct()
     {
         $this->ci =& get_instance();
-        $this->ci->config->load('semantic_search');
+        $this->ci->config->load('nada_ai');
         $this->ci->load->library('nada_ai_link');
     }
 

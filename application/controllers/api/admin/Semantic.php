@@ -27,7 +27,7 @@ class Semantic extends MY_REST_Controller
 		parent::__construct();
 		$this->load->library('acl_manager');
 		$this->is_authenticated_or_die();
-		$this->config->load('semantic_search');
+		$this->config->load('nada_ai');
 	}
 
 	// =====================================================================

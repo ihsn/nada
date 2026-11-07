@@ -83,7 +83,7 @@ abstract class catalog_search_semantic_base
     public function __construct(array $params = [])
     {
         $this->ci = & get_instance();
-        $this->ci->config->load('semantic_search');
+        $this->ci->config->load('nada_ai');
 
         $this->api_url       = rtrim((string) $this->ci->config->item('nada_ai_url'), '/');
         $this->api_key       = (string) $this->ci->config->item('nada_ai_api_key');

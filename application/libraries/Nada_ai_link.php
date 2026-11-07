@@ -50,7 +50,7 @@ class Nada_ai_link
     public function __construct()
     {
         $this->ci =& get_instance();
-        $this->ci->config->load('semantic_search');
+        $this->ci->config->load('nada_ai');
     }
 
     // =========================================================================
