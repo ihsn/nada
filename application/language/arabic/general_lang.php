@@ -155,6 +155,7 @@ $lang['home_semantic_placeholder']="صف البيانات التي تبحث عن
 $lang['home_ai_assisted']="بمساعدة الذكاء الاصطناعي";
 $lang['home_semantic_hint']="ابحث بكلماتك الخاصة، دون الحاجة إلى كلمات مفتاحية دقيقة.";
 $lang['home_semantic_hint_multilingual']="ابحث بكلماتك الخاصة، بمعظم اللغات الرئيسية.";
+$lang['site_notice_explore_demo']="استكشف العرض التجريبي";
 
 /* End of file general */
 /* Location: ./application/language/arabic/general */

@@ -188,6 +188,7 @@ $lang['home_semantic_placeholder']="Describa los datos que busca";
 $lang['home_ai_assisted']="Asistida por IA";
 $lang['home_semantic_hint']="Busque con sus propias palabras, sin necesidad de palabras clave exactas.";
 $lang['home_semantic_hint_multilingual']="Busque con sus propias palabras, en la mayoría de los idiomas principales.";
+$lang['site_notice_explore_demo']="Explorar la demo";
 
 /* End of file general */
 /* Location: ./application/language/spanish/general */

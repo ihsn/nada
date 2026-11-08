@@ -107,6 +107,7 @@ function inject_site_notice($params)
 	if ($show_dialog)
 	{
 		$minutes = $CI->config->item('site_notice_remember_minutes');
+		$CI->lang->load('general');
 
 		$notice = $CI->load->view('partials/site_notice', array(
 			'title'   => trim((string) $CI->config->item('site_notice_title')),

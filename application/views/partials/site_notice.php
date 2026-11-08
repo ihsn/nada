@@ -19,7 +19,7 @@
     </div>
     <p><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></p>
     <form method="dialog">
-        <button type="submit" autofocus>Explore Demo</button>
+        <button type="submit" autofocus><?php echo t('site_notice_explore_demo'); ?></button>
     </form>
 </dialog>
 <style>

@@ -170,6 +170,7 @@ $lang['home_semantic_placeholder']="Décrivez les données que vous recherchez";
 $lang['home_ai_assisted']="Assistée par IA";
 $lang['home_semantic_hint']="Recherchez avec vos propres mots, sans avoir besoin de mots-clés exacts.";
 $lang['home_semantic_hint_multilingual']="Recherchez avec vos propres mots, dans la plupart des grandes langues.";
+$lang['site_notice_explore_demo']="Explorer la démo";
 
 /* End of file general */
 /* Location: ./application/language/french/general */
