@@ -38,25 +38,20 @@
       </div>
 
       <div class="catalog-pdf-dialog__body">
-        <div v-if="loading" class="catalog-pdf-dialog__loading">
-          <v-progress-circular indeterminate color="primary" />
-          <div class="text-caption text-medium-emphasis mt-2">{{ t('js_loading') }}</div>
-        </div>
-
-        <v-alert
-          v-else-if="error"
-          type="error"
-          variant="tonal"
-          class="ma-4"
-          :text="error"
-        />
-
         <iframe
-          v-else-if="iframeUrl"
-          :key="viewerKey"
+          v-if="iframeUrl"
+          :key="iframeUrl"
           :src="iframeUrl"
           :title="displayTitle || t('pdf_preview', 'PDF preview')"
           class="catalog-pdf-dialog__iframe"
+        />
+
+        <v-alert
+          v-else
+          type="error"
+          variant="tonal"
+          class="ma-4"
+          :text="t('RESOURCE_NOT_PDF_STREAMABLE')"
         />
       </div>
     </v-card>
@@ -64,15 +59,10 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
-import { resolvePdfViewerTitle } from '@/shared/pdf-viewer/resolvePdfViewerTitle';
-import { joinSiteUrl } from '../catalogUrls';
-import {
-  buildPdfViewerUrlFromContext,
-  resolveSemanticPdfContext,
-} from '../catalogPdfViewer';
+import { buildPdfViewerUrlFromContext, semanticPdfContext } from '../catalogPdfViewer';
 
 defineOptions({ name: 'CatalogDocumentPdfDialog' });
 
@@ -85,21 +75,12 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const { t } = useI18n();
-const { config, siteUrl } = useAppConfig();
+const { siteUrl } = useAppConfig();
 
-const loading = ref(false);
-const error = ref(null);
-const context = ref(null);
-const displayTitle = ref('');
-const viewerKey = ref(0);
+// the matched page names its PDF (resource) and page: nothing to look up
+const context = computed(() => semanticPdfContext(props.row, props.pageHit));
 
-function catalogApiBaseUrl() {
-  const fromConfig = config.value?.apiBaseUrl;
-  if (fromConfig) {
-    return String(fromConfig).replace(/\/?$/, '/');
-  }
-  return joinSiteUrl(siteUrl.value, 'api/catalog/');
-}
+const displayTitle = computed(() => context.value?.title || '');
 
 const iframeUrl = computed(() =>
   buildPdfViewerUrlFromContext(siteUrl.value, context.value, { embed: true })
@@ -116,81 +97,6 @@ function close() {
 function onDialogToggle(open) {
   if (!open) close();
 }
-
-function resetState() {
-  loading.value = false;
-  error.value = null;
-  context.value = null;
-  displayTitle.value = '';
-}
-
-async function loadViewer() {
-  if (!props.row) {
-    error.value = t('pdf_preview');
-    return;
-  }
-
-  loading.value = true;
-  error.value = null;
-  context.value = null;
-
-  try {
-    const resolved = await resolveSemanticPdfContext({
-      row: props.row,
-      pageHit: props.pageHit,
-      siteUrl: siteUrl.value,
-      apiBaseUrl: catalogApiBaseUrl(),
-    });
-
-    if (!resolved) {
-      error.value = t('RESOURCE_NOT_PDF_STREAMABLE');
-      return;
-    }
-
-    context.value = resolved;
-    viewerKey.value += 1;
-
-    displayTitle.value = await resolvePdfViewerTitle({
-      siteUrl: siteUrl.value,
-      sid: resolved.sid,
-      idno: resolved.idno,
-      resourceId: resolved.resourceId,
-    });
-  } catch (e) {
-    error.value = e?.message || t('pdf_preview', 'PDF preview');
-  } finally {
-    loading.value = false;
-  }
-}
-
-watch(
-  () => props.modelValue,
-  (open) => {
-    if (open) {
-      loadViewer();
-    } else {
-      resetState();
-    }
-  },
-  // The parent mounts this dialog only once it is open (v-if), so modelValue
-  // is already true at setup and a non-immediate watch would never load.
-  { immediate: true }
-);
-
-watch(
-  () => props.pageHit,
-  () => {
-    if (!props.modelValue || !props.pageHit || !context.value) return;
-    const page = Number(props.pageHit.page);
-    if (Number.isFinite(page) && page > 0) {
-      context.value = {
-        ...context.value,
-        initialPage: page,
-      };
-      viewerKey.value += 1;
-    }
-  }
-);
 </script>
 
 <style scoped>
@@ -246,15 +152,6 @@ watch(
   flex-direction: column;
   overflow: hidden;
   background: #525659;
-}
-
-.catalog-pdf-dialog__loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  padding: 32px;
 }
 
 .catalog-pdf-dialog__iframe {

@@ -354,6 +354,7 @@ $lang["results_count_variables"]="%s–%s de %s variáveis";
 $lang["image_details_view"]="Vista de detalhes";
 $lang["image_gallery_view"]="Vista de galeria";
 $lang["semantic_pdf_match_count"]="Encontrado no PDF — %d página(s)";
+$lang["semantic_pdf_match_count_pdfs"]="Encontrado em %d PDF — %d página(s)";
 $lang["pdf_page_of"]="Página %d de %d";
 $lang["pdf_page"]="Página %d";
 $lang["RESOURCE_NOT_PDF_STREAMABLE"]="Não existe nenhum recurso PDF local disponível para este estudo.";

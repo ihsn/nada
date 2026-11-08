@@ -1705,6 +1705,28 @@
     "file": "assets/public/materialdesignicons-webfont-Dp5v-WZN.woff2",
     "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff2"
   },
+  "_CatalogStudySemanticPages-BqfTtwZh.css": {
+    "file": "assets/public/CatalogStudySemanticPages-BqfTtwZh.css",
+    "src": "_CatalogStudySemanticPages-BqfTtwZh.css"
+  },
+  "_CatalogStudySemanticPages-CBdlZYbn.js": {
+    "file": "assets/public/CatalogStudySemanticPages-CBdlZYbn.js",
+    "name": "CatalogStudySemanticPages",
+    "isDynamicEntry": true,
+    "imports": [
+      "_VContainer-8e_Xy-lG.js",
+      "_VApp-C9Zp0W8M.js",
+      "_useI18n-i9ffYxm0.js",
+      "_siteUrl-Dt9iCqdT.js",
+      "_VChip-DSMdhWS7.js"
+    ],
+    "dynamicImports": [
+      "catalog-search/components/CatalogDocumentPdfDialog.vue"
+    ],
+    "css": [
+      "assets/public/CatalogStudySemanticPages-BqfTtwZh.css"
+    ]
+  },
   "_IndicatorEmbedDialog-D-B5xoy9.js": {
     "file": "assets/public/IndicatorEmbedDialog-D-B5xoy9.js",
     "name": "IndicatorEmbedDialog",
@@ -1910,9 +1932,9 @@
     "file": "assets/public/materialdesignicons-f3sFGprf.css",
     "src": "_materialdesignicons-f3sFGprf.css"
   },
-  "_resolvePdfViewerTitle-TDc6yxVB.js": {
-    "file": "assets/public/resolvePdfViewerTitle-TDc6yxVB.js",
-    "name": "resolvePdfViewerTitle"
+  "_siteUrl-Dt9iCqdT.js": {
+    "file": "assets/public/siteUrl-Dt9iCqdT.js",
+    "name": "siteUrl"
   },
   "_useI18n-i9ffYxm0.js": {
     "file": "assets/public/useI18n-i9ffYxm0.js",
@@ -1930,30 +1952,28 @@
     ]
   },
   "catalog-search/components/CatalogDocumentPdfDialog.vue": {
-    "file": "assets/public/CatalogDocumentPdfDialog-CN_Fx3jB.js",
+    "file": "assets/public/CatalogDocumentPdfDialog-CX6M5bkD.js",
     "name": "CatalogDocumentPdfDialog",
     "src": "catalog-search/components/CatalogDocumentPdfDialog.vue",
     "isDynamicEntry": true,
     "imports": [
       "_VApp-C9Zp0W8M.js",
       "_useI18n-i9ffYxm0.js",
-      "_resolvePdfViewerTitle-TDc6yxVB.js",
-      "catalog-search/main.js",
+      "_CatalogStudySemanticPages-CBdlZYbn.js",
       "_VChip-DSMdhWS7.js",
       "_VCard-CI7TQ04I.js",
       "_VDialog-B4Sy-BKp.js",
-      "_VMain-riEDzwko.js",
       "_VContainer-8e_Xy-lG.js",
+      "_siteUrl-Dt9iCqdT.js",
       "_VSelect-Dscq2PeB.js",
-      "_VRow-F0gBzTOI.js",
-      "_VSwitch-BdTQFwBP.js"
+      "_VMain-riEDzwko.js"
     ],
     "css": [
-      "assets/public/CatalogDocumentPdfDialog-BWrdlLnO.css"
+      "assets/public/CatalogDocumentPdfDialog-BkJyJnWQ.css"
     ]
   },
   "catalog-search/components/CatalogImageGallery.vue": {
-    "file": "assets/public/CatalogImageGallery-N9JVeI-9.js",
+    "file": "assets/public/CatalogImageGallery-Cr0z2p1x.js",
     "name": "CatalogImageGallery",
     "src": "catalog-search/components/CatalogImageGallery.vue",
     "isDynamicEntry": true,
@@ -1974,26 +1994,8 @@
       "assets/public/CatalogImageGallery-DbPXi4E8.css"
     ]
   },
-  "catalog-search/components/CatalogStudySemanticPages.vue": {
-    "file": "assets/public/CatalogStudySemanticPages-OyiAGKhi.js",
-    "name": "CatalogStudySemanticPages",
-    "src": "catalog-search/components/CatalogStudySemanticPages.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "_VContainer-8e_Xy-lG.js",
-      "_VApp-C9Zp0W8M.js",
-      "_useI18n-i9ffYxm0.js",
-      "_VChip-DSMdhWS7.js"
-    ],
-    "dynamicImports": [
-      "catalog-search/components/CatalogDocumentPdfDialog.vue"
-    ],
-    "css": [
-      "assets/public/CatalogStudySemanticPages-BkkX4pGA.css"
-    ]
-  },
   "catalog-search/components/CatalogStudyVariableMatches.vue": {
-    "file": "assets/public/CatalogStudyVariableMatches-D7rkmECc.js",
+    "file": "assets/public/CatalogStudyVariableMatches-C_KAFuAS.js",
     "name": "CatalogStudyVariableMatches",
     "src": "catalog-search/components/CatalogStudyVariableMatches.vue",
     "isDynamicEntry": true,
@@ -2018,7 +2020,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableCompareCart.vue": {
-    "file": "assets/public/CatalogVariableCompareCart-ChRiuOuF.js",
+    "file": "assets/public/CatalogVariableCompareCart-C71jpPn1.js",
     "name": "CatalogVariableCompareCart",
     "src": "catalog-search/components/CatalogVariableCompareCart.vue",
     "isDynamicEntry": true,
@@ -2042,7 +2044,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableDetailDialog.vue": {
-    "file": "assets/public/CatalogVariableDetailDialog-DhANQgEj.js",
+    "file": "assets/public/CatalogVariableDetailDialog-DFdC5rxd.js",
     "name": "CatalogVariableDetailDialog",
     "src": "catalog-search/components/CatalogVariableDetailDialog.vue",
     "isDynamicEntry": true,
@@ -2064,7 +2066,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableResultsList.vue": {
-    "file": "assets/public/CatalogVariableResultsList-Cg_zTZ9S.js",
+    "file": "assets/public/CatalogVariableResultsList-CRXju_WO.js",
     "name": "CatalogVariableResultsList",
     "src": "catalog-search/components/CatalogVariableResultsList.vue",
     "isDynamicEntry": true,
@@ -2115,7 +2117,7 @@
     ]
   },
   "catalog-search/main.js": {
-    "file": "assets/public/catalog_search-D2Lw51n7.js",
+    "file": "assets/public/catalog_search-ClUSLqUZ.js",
     "name": "catalog_search",
     "src": "catalog-search/main.js",
     "isEntry": true,
@@ -2131,7 +2133,7 @@
       "_VSwitch-BdTQFwBP.js"
     ],
     "dynamicImports": [
-      "catalog-search/components/CatalogStudySemanticPages.vue",
+      "_CatalogStudySemanticPages-CBdlZYbn.js",
       "catalog-search/components/CatalogStudyVariableMatches.vue",
       "catalog-search/components/SemanticHitDebug.vue",
       "catalog-search/components/CatalogImageGallery.vue",
@@ -2303,7 +2305,7 @@
     "src": "node_modules/pdfjs-dist/build/pdf.worker.min.mjs"
   },
   "pdf-viewer/main.js": {
-    "file": "assets/public/pdf_viewer-CPd2uvpj.js",
+    "file": "assets/public/pdf_viewer-DKBc7Bgu.js",
     "name": "pdf_viewer",
     "src": "pdf-viewer/main.js",
     "isEntry": true,
@@ -2311,7 +2313,7 @@
       "_VApp-C9Zp0W8M.js",
       "_useI18n-i9ffYxm0.js",
       "_VChip-DSMdhWS7.js",
-      "_resolvePdfViewerTitle-TDc6yxVB.js"
+      "_siteUrl-Dt9iCqdT.js"
     ],
     "css": [
       "assets/public/pdf_viewer-B5YZg41g.css",

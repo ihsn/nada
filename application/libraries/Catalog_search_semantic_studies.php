@@ -659,6 +659,7 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
     private function load_rows(array $hits): array
     {
         $by_sid = $this->fetch_rows(array_map(static fn($hit) => (int) $hit['sid'], $hits));
+        $pdfs   = $this->fetch_passage_pdfs($hits);
 
         $rows    = [];
         $dropped = 0;
@@ -671,7 +672,7 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
                 continue;
             }
 
-            $row['semantic_document_pages'] = $this->document_pages($hit['passages'] ?? []);
+            $row['semantic_document_pages'] = $this->document_pages($hit['passages'] ?? [], (int) $row['id'], $pdfs);
             if ($this->debug) {
                 $row['semantic_hit'] = $hit;
             }
@@ -682,20 +683,68 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
     }
 
     /**
-     * API passages ({page (1-based), total_pages?, score?, excerpt?}, best first) -> the page list of the study
-     * card ({page_index (0-based), page, ...}).
+     * The PDF resources the hits' passages were read from, by resource id: those that still exist and are hosted
+     * PDFs (the catalog streams them). A resource deleted or changed since indexing is not in the list.
      *
+     * @return array<int, array{survey_id: int, title: string}>
+     */
+    private function fetch_passage_pdfs(array $hits): array
+    {
+        $ids = [];
+        foreach ($hits as $hit) {
+            foreach ($hit['passages'] ?? [] as $passage) {
+                $id = (int) ($passage['resource_id'] ?? 0);
+                if ($id > 0) {
+                    $ids[$id] = true;
+                }
+            }
+        }
+        if (empty($ids)) {
+            return [];
+        }
+
+        $this->ci->load->model('Survey_resource_model');
+        $this->ci->db->select('resource_id, survey_id, title, filename, dcformat');
+        $this->ci->db->where_in('resource_id', array_keys($ids));
+
+        $pdfs = [];
+        foreach ($this->ci->db->get('resources')->result_array() as $resource) {
+            if (!$this->ci->Survey_resource_model->is_local_pdf_resource($resource)) {
+                continue;
+            }
+            $pdfs[(int) $resource['resource_id']] = [
+                'survey_id' => (int) $resource['survey_id'],
+                'title'     => (string) $resource['title'],
+            ];
+        }
+
+        return $pdfs;
+    }
+
+    /**
+     * API passages ({resource_id, page (1-based), total_pages?, score?, excerpt?}, best first) -> the page list of
+     * the study card ({resource_id, resource_title, page_index (0-based), page, ...}). A page of a PDF that is no
+     * longer this study's hosted PDF is left out: the catalog could not open it.
+     *
+     * @param array<int, array{survey_id: int, title: string}> $pdfs from fetch_passage_pdfs()
      * @return array<int, array>
      */
-    private function document_pages(array $passages): array
+    private function document_pages(array $passages, int $sid, array $pdfs): array
     {
         $pages = [];
         foreach ($passages as $passage) {
-            $page = (int) ($passage['page'] ?? 0);
-            if ($page < 1) {
+            $page        = (int) ($passage['page'] ?? 0);
+            $resource_id = (int) ($passage['resource_id'] ?? 0);
+            $pdf         = $pdfs[$resource_id] ?? null;
+            if ($page < 1 || $pdf === null || $pdf['survey_id'] !== $sid) {
                 continue;
             }
-            $entry = ['page_index' => $page - 1, 'page' => $page];
+            $entry = [
+                'resource_id'    => $resource_id,
+                'resource_title' => $pdf['title'],
+                'page_index'     => $page - 1,
+                'page'           => $page,
+            ];
             foreach (['total_pages', 'score', 'excerpt'] as $key) {
                 if (isset($passage[$key])) {
                     $entry[$key] = $passage[$key];

@@ -366,6 +366,7 @@ $lang['results_count_variables']="%s–%s de %s variables";
 $lang['image_details_view']="Vista de detalles";
 $lang['image_gallery_view']="Vista de galería";
 $lang['semantic_pdf_match_count']="Coincidencias en el PDF: %d página(s)";
+$lang['semantic_pdf_match_count_pdfs']="Coincidencias en %d PDF: %d página(s)";
 $lang['pdf_page_of']="Página %d de %d";
 $lang['pdf_page']="Página %d";
 $lang['RESOURCE_NOT_PDF_STREAMABLE']="No hay ningún recurso PDF local disponible para este estudio.";

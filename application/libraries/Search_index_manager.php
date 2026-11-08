@@ -115,6 +115,30 @@ class Search_index_manager
 	}
 
 	/**
+	 * A resource of study $sid was added, changed or removed, or a file it points at was replaced or deleted.
+	 *
+	 * Only a document's index reads its resources (each hosted PDF is indexed page by page), so only a document
+	 * study is queued, for a full re-index. Any other type, or a study that no longer exists, is left alone: a full
+	 * re-index of a survey would also re-sync all of its variables for nothing.
+	 *
+	 * @param int|string $sid surveys.id
+	 */
+	public function resources_changed($sid)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return;
+		}
+
+		$study = $this->ci->db->select('type')->where('id', $sid)->get('surveys')->row_array();
+		if (!$study || $study['type'] !== 'document') {
+			return;
+		}
+
+		$this->handle_event('surveys', $sid, 'resources');
+	}
+
+	/**
 	 * @return array queue row
 	 */
 	public function enqueue($object_type, $object_id, $object_key, $change_class)
@@ -1189,7 +1213,8 @@ class Search_index_manager
 		if ($action === 'delete') {
 			return self::CLASS_DELETE;
 		}
-		if (in_array($action, array('import', 'replace', 'update', 'create', 'refresh', 'facet'), true)) {
+		// a document's resources changed (see resources_changed()): its PDFs are read again, in full
+		if (in_array($action, array('import', 'replace', 'update', 'create', 'refresh', 'facet', 'resources'), true)) {
 			return self::CLASS_FULL;
 		}
 		return self::CLASS_FULL;

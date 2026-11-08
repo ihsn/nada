@@ -35,10 +35,20 @@
     </div>
 
     <div v-if="expanded" class="study-semantic-pages-block__panel">
-      <ul class="study-semantic-pages-block__list">
+      <ul
+        v-for="group in groups"
+        :key="group.resourceId"
+        class="study-semantic-pages-block__list"
+      >
         <li
-          v-for="pageHit in pages"
-          :key="pageHit.page_index"
+          v-if="groups.length > 1"
+          class="study-semantic-pages-block__pdf-title"
+        >
+          {{ group.title || t('pdf_preview') }}
+        </li>
+        <li
+          v-for="pageHit in group.pages"
+          :key="`${pageHit.resource_id}-${pageHit.page_index}`"
           class="study-semantic-pages-block__item"
         >
           <button
@@ -70,6 +80,7 @@
 <script setup>
 import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { useI18n } from '@/shared/composables/useI18n';
+import { semanticPageHits, semanticPdfGroups } from '../catalogPdfViewer';
 
 const CatalogDocumentPdfDialog = defineAsyncComponent(
   () => import('./CatalogDocumentPdfDialog.vue')
@@ -87,15 +98,22 @@ const expanded = ref(false);
 const pdfDialogOpen = ref(false);
 const pdfPageHit = ref(null);
 
-const pages = computed(() => {
-  const list = props.row?.semantic_document_pages;
-  return Array.isArray(list) ? list : [];
-});
+const pages = computed(() => semanticPageHits(props.row));
 
+const groups = computed(() => semanticPdfGroups(props.row));
+
+// the best page overall, in its own PDF
 const topPageHit = computed(() => pages.value[0] ?? null);
 
 const summaryLabel = computed(() =>
-  t('semantic_pdf_match_count', 'Matched in PDF — %d page(s)', pages.value.length)
+  groups.value.length > 1
+    ? t(
+        'semantic_pdf_match_count_pdfs',
+        'Matched in %d PDFs — %d page(s)',
+        groups.value.length,
+        pages.value.length
+      )
+    : t('semantic_pdf_match_count', 'Matched in PDF — %d page(s)', pages.value.length)
 );
 
 function pageTitle(pageHit) {
@@ -238,6 +256,19 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.study-semantic-pages-block__list + .study-semantic-pages-block__list {
+  margin-top: 10px;
+}
+
+.study-semantic-pages-block__pdf-title {
+  margin: 0;
+  padding: 2px 4px;
+  font-size: var(--catalog-font-small, 0.75rem);
+  font-weight: 600;
+  color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
+  overflow-wrap: anywhere;
 }
 
 .study-semantic-pages-block__item {

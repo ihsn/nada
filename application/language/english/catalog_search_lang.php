@@ -383,6 +383,7 @@ $lang['results_count_variables']="%s–%s of %s variables";
 $lang['image_details_view']="Details view";
 $lang['image_gallery_view']="Gallery view";
 $lang['semantic_pdf_match_count']="Matched in PDF — %d page(s)";
+$lang['semantic_pdf_match_count_pdfs']="Matched in %d PDFs — %d page(s)";
 $lang['pdf_page_of']="Page %d of %d";
 $lang['pdf_page']="Page %d";
 $lang['RESOURCE_NOT_PDF_STREAMABLE']="No local PDF resource available for this study.";

@@ -363,6 +363,7 @@ $lang['results_count_variables']="%s–%s sur %s variables";
 $lang['image_details_view']="Vue détaillée";
 $lang['image_gallery_view']="Vue galerie";
 $lang['semantic_pdf_match_count']="Correspondance dans le PDF — %d page(s)";
+$lang['semantic_pdf_match_count_pdfs']="Correspondances dans %d PDF — %d page(s)";
 $lang['pdf_page_of']="Page %d sur %d";
 $lang['pdf_page']="Page %d";
 $lang['RESOURCE_NOT_PDF_STREAMABLE']="Aucune ressource PDF locale disponible pour cette étude.";

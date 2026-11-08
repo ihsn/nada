@@ -45,6 +45,89 @@ class Survey_resource_model extends CI_Model {
 	private $_dctype_group_cache_loaded = false;
 
 	/**
+	 * Studies whose resources changed while a bulk operation runs (see pause_index_queue()), queued once at its end.
+	 * Null when nothing is paused.
+	 *
+	 * @var array<int, true>|null
+	 */
+	private $_index_queue_paused_sids = null;
+
+	/**
+	 * Queue study $sid for the search index after a change of its resources or of a file they point at
+	 * (Search_index_manager::resources_changed() keeps only document studies).
+	 */
+	private function queue_resources_changed($sid)
+	{
+		$sid = (int) $sid;
+		if ($sid <= 0) {
+			return;
+		}
+		if (is_array($this->_index_queue_paused_sids)) {
+			$this->_index_queue_paused_sids[$sid] = true;
+			return;
+		}
+		$this->load->library('Search_index_manager');
+		$this->search_index_manager->resources_changed($sid);
+	}
+
+	/**
+	 * Collect the studies a bulk operation changes instead of queuing each write. Returns whether this call paused
+	 * (a nested bulk operation leaves the outer one in charge); pass it to resume_index_queue().
+	 */
+	private function pause_index_queue()
+	{
+		if (is_array($this->_index_queue_paused_sids)) {
+			return false;
+		}
+		$this->_index_queue_paused_sids = array();
+		return true;
+	}
+
+	/**
+	 * End a pause started by pause_index_queue() and queue each study it collected, once.
+	 *
+	 * @param bool $paused what pause_index_queue() returned
+	 */
+	private function resume_index_queue($paused)
+	{
+		if (!$paused) {
+			return;
+		}
+		$sids = array_keys($this->_index_queue_paused_sids);
+		$this->_index_queue_paused_sids = null;
+		foreach ($sids as $sid) {
+			$this->queue_resources_changed($sid);
+		}
+	}
+
+	/** The study resource $resource_id belongs to, or 0 when there is no such resource. */
+	private function survey_id_of_resource($resource_id)
+	{
+		$row = $this->db->select('survey_id')->where('resource_id', (int) $resource_id)->get('resources')->row_array();
+		return $row ? (int) $row['survey_id'] : 0;
+	}
+
+	/**
+	 * Queue study $sid when one of its resources points at the stored file $filename (a file uploaded over, or
+	 * deleted from, the study folder): only such a file is read by the index.
+	 */
+	private function queue_if_file_is_resource($sid, $filename)
+	{
+		$name = $this->normalize_filename((string) $filename);
+		if ($name === '') {
+			return;
+		}
+		$this->db->select('filename');
+		$this->db->where('survey_id', (int) $sid);
+		foreach ($this->db->get('resources')->result_array() as $resource) {
+			if ($this->normalize_filename((string) $resource['filename']) === $name) {
+				$this->queue_resources_changed($sid);
+				return;
+			}
+		}
+	}
+
+	/**
 	 * Load dctype group config from Dctype_model (codelists DB or config fallback) once per request.
 	 */
 	private function _ensure_dctype_group_cache()
@@ -190,12 +273,21 @@ class Survey_resource_model extends CI_Model {
 	function update($resource_id,$options)
 	{
 		$data = $this->prepare_resource_data($options, false, $resource_id);
-		
+		$sid  = $this->survey_id_of_resource($resource_id);
+
 		//update db
 		$this->db->where('resource_id', $resource_id);
-		$result=$this->db->update('resources', $data); 
-		
-		return $result;		
+		$result=$this->db->update('resources', $data);
+
+		if ($result) {
+			$this->queue_resources_changed($sid);
+			// moved to another study: that one changed too
+			if (isset($data['survey_id']) && (int) $data['survey_id'] !== $sid) {
+				$this->queue_resources_changed($data['survey_id']);
+			}
+		}
+
+		return $result;
 	}
 	
 	
@@ -208,8 +300,13 @@ class Survey_resource_model extends CI_Model {
 	{
 		$data = $this->prepare_resource_data($options, true);
 
-		$this->db->insert('resources', $data); 		
-		return $this->db->insert_id();
+		$this->db->insert('resources', $data);
+		$resource_id = $this->db->insert_id();
+
+		if (isset($data['survey_id'])) {
+			$this->queue_resources_changed($data['survey_id']);
+		}
+		return $resource_id;
 	}
 
 
@@ -419,8 +516,14 @@ class Survey_resource_model extends CI_Model {
 
 	function delete($id)
 	{
-		$this->db->where('resource_id', $id); 
-		return $this->db->delete('resources');
+		$sid = $this->survey_id_of_resource($id);
+		$this->db->where('resource_id', $id);
+		$result = $this->db->delete('resources');
+
+		if ($result) {
+			$this->queue_resources_changed($sid);
+		}
+		return $result;
 	}
 
 
@@ -431,10 +534,11 @@ class Survey_resource_model extends CI_Model {
 			return false;
 		}
 
-		$this->db->where('survey_id', $sid);  
-		$this->db->where('resource_id', $resource_id); 
+		$this->db->where('survey_id', $sid);
+		$this->db->where('resource_id', $resource_id);
 		$this->db->delete('resources');
 
+		$this->queue_resources_changed($sid);
 		return true;
 	}
 
@@ -458,8 +562,13 @@ class Survey_resource_model extends CI_Model {
 	**/
 	function delete_all_survey_resources($survey_id)
 	{
-		$this->db->where('survey_id', $survey_id); 
-		return $this->db->delete('resources');
+		$this->db->where('survey_id', $survey_id);
+		$result = $this->db->delete('resources');
+
+		if ($result) {
+			$this->queue_resources_changed($survey_id);
+		}
+		return $result;
 	}
 	
 
@@ -1423,7 +1532,20 @@ class Survey_resource_model extends CI_Model {
 	*
 	* Import RDF file
 	**/
+	/**
+	 * Import the resources of an RDF file into study $surveyid; the study is queued for the search index once.
+	 */
 	public function import_rdf($surveyid,$filepath)
+	{
+		$paused = $this->pause_index_queue();
+		try {
+			return $this->import_rdf_resources($surveyid, $filepath);
+		} finally {
+			$this->resume_index_queue($paused);
+		}
+	}
+
+	private function import_rdf_resources($surveyid,$filepath)
 	{
 		//check file exists
 		if (!file_exists($filepath)){
@@ -1664,7 +1786,10 @@ class Survey_resource_model extends CI_Model {
 			throw new Exception($error);
 		}
 
-		return $this->upload->data();		
+		$uploaded = $this->upload->data();
+		// uploaded over a file a resource points at: that resource's file was replaced
+		$this->queue_if_file_is_resource($sid, $uploaded['file_name']);
+		return $uploaded;
 	}
 	
 
@@ -1743,6 +1868,7 @@ class Survey_resource_model extends CI_Model {
 		if ($isdeleted === FALSE) {
 			throw new Exception('file_delete_failed');
 		}
+		$this->queue_if_file_is_resource($sid, $filepath);
 		return true;
 	}
 
@@ -1803,7 +1929,21 @@ class Survey_resource_model extends CI_Model {
 	*
 	* Fix file paths for external resources and sync all resource metadata
 	**/
+	/**
+	 * Point resources whose file moved within the study folder at its new path; the study is queued for the search
+	 * index once.
+	 */
 	function fix_resource_links($surveyid)
+	{
+		$paused = $this->pause_index_queue();
+		try {
+			return $this->fix_resource_links_in_folder($surveyid);
+		} finally {
+			$this->resume_index_queue($paused);
+		}
+	}
+
+	private function fix_resource_links_in_folder($surveyid)
 	{		
 		$this->load->model('Catalog_model');
 
@@ -2704,6 +2844,17 @@ class Survey_resource_model extends CI_Model {
 	 */
 	public function sync_all_resources($survey_id, $calculate_checksum = false)
 	{
+		$paused = $this->pause_index_queue();
+		try {
+			return $this->sync_survey_resources($survey_id, $calculate_checksum);
+		} finally {
+			$this->resume_index_queue($paused);
+		}
+	}
+
+	/** sync_all_resources() without the pause: each resource it updates queues the study. */
+	private function sync_survey_resources($survey_id, $calculate_checksum)
+	{
 		if (!is_numeric($survey_id)) {
 			throw new Exception('Invalid survey ID');
 		}
@@ -2744,6 +2895,7 @@ class Survey_resource_model extends CI_Model {
 						'is_url' => $is_url,
 						'changed' => time()
 					));
+					$this->queue_resources_changed($survey_id);
 					log_message('info', "Resource #{$resource_id}: is_url updated to {$is_url}");
 				}
 				
@@ -2793,6 +2945,8 @@ class Survey_resource_model extends CI_Model {
 					$result = $this->db->update('resources', $update_data);
 
 					if ($result) {
+						// the file on disk differs from what the row said: it may have been replaced
+						$this->queue_resources_changed($survey_id);
 						$summary['synced']++;
 						$summary['details'][] = array(
 							'resource_id' => $resource_id,
@@ -2891,6 +3045,7 @@ class Survey_resource_model extends CI_Model {
 					'is_url' => $is_url,
 					'changed' => time()
 				));
+				$this->queue_resources_changed($resource['survey_id']);
 				$result['changes'][] = 'is_url: ' . $resource['is_url'] . ' → ' . $is_url;
 				log_message('info', "Resource #{$resource_id}: is_url updated to {$is_url}");
 			}
@@ -2928,6 +3083,8 @@ class Survey_resource_model extends CI_Model {
 			if (count($update_data) > 1) {
 				$this->db->where('resource_id', $resource_id);
 				$this->db->update('resources', $update_data);
+				// the file on disk differs from what the row said: it may have been replaced
+				$this->queue_resources_changed($resource['survey_id']);
 				$result['status'] = 'synced';
 				$result['changes'] = $changes;
 				log_message('info', "Resource #{$resource_id} synced: " . implode(', ', $changes));

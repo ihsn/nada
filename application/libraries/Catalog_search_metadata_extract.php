@@ -630,12 +630,17 @@ class Catalog_search_metadata_extract
         if ($include_resources) {
             $resources = $this->ci->Survey_resource_model->get_survey_resources($sid);
             $idno = $row['idno'] ?? null;
-            if ($idno !== null) {
-                foreach ($resources as &$r) {
+            foreach ($resources as &$r) {
+                if ($idno !== null) {
                     $r['dataset_idno'] = $idno;
                 }
-                unset($r);
+                // the stored file's size now, in bytes (null for a link or a missing file), not the column: a file
+                // can be replaced without its row being saved. Indexing keys its PDF cache on it, so a replaced
+                // file is downloaded again.
+                $size = $this->ci->Survey_resource_model->get_resource_filesize($r);
+                $r['filesize'] = $size === false ? null : (int) $size;
             }
+            unset($r);
             $doc['resources'] = $this->ci->Survey_resource_model->generate_api_download_link($resources, true);
         }
 
