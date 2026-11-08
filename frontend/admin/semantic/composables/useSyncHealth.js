@@ -161,9 +161,11 @@ export function useSyncHealth() {
         error: `NADA-AI could not read the queue or the records from NADA (see NADA-AI's log): ${pause.message || ''}`,
         firewall: `A firewall blocks NADA-AI's requests to NADA${pause.message ? `: ${pause.message}` : ''}. Allow NADA-AI's address, or point it at NADA's internal URL.`,
         nada_unavailable: 'NADA-AI cannot reach NADA.',
-        not_tracking: 'NADA does not track changes for this NADA-AI.',
-        other_nada_ai: 'NADA tracks changes for another NADA-AI instance; this one is refused.',
+        // shown only while NADA tracks NADA-AI, so this is NADA-AI's answer from before tracking started
+        not_tracking: 'NADA-AI was turned away at its last check, before NADA started tracking changes for it. Nothing to do: it picks up the changes at its next check.',
+        other_nada_ai: "NADA-AI was turned away because NADA tracks a different NADA-AI index. Right after the study index is rebuilt this clears by itself within a minute; otherwise check that NADA's NADA-AI URL points at this NADA-AI.",
       };
+      const reasonType = { nada_unavailable: 'warning', not_tracking: 'info', other_nada_ai: 'warning' };
       if (sch.state === 'crashed') {
         out.push({ key: 'crashed', type: 'error', text: `NADA-AI's scheduler stopped with an error at ${when(sch.crash?.at)}${sch.restarts ? ` (restarted ${sch.restarts} times)` : ''}: ${sch.crash?.message || ''}` });
       } else if (sch.state === 'stuck') {
@@ -176,8 +178,8 @@ export function useSyncHealth() {
         out.push({ key: 'paused-manual', type: 'warning', text: reasons.manual });
       } else if (sch.state === 'paused' || sch.state === 'not_tracking') {
         const text = reasons[pause.reason] || pause.message || 'NADA-AI has paused the queue.';
-        const until = pause.resume_at ? ` Next try at ${when(pause.resume_at)}.` : '';
-        out.push({ key: `paused-${pause.reason}`, type: pause.reason === 'nada_unavailable' ? 'warning' : 'error', text: text + until });
+        const until = pause.resume_at ? ` Next check at ${when(pause.resume_at)}.` : '';
+        out.push({ key: `paused-${pause.reason}`, type: reasonType[pause.reason] || 'error', text: text + until });
       }
     } else if (schedulerError.value) {
       out.push({ key: 'unreachable', type: 'warning', text: 'NADA-AI is not answering; what NADA sees of the queue is below.' });
@@ -218,7 +220,7 @@ export function useSyncHealth() {
       out.push({
         key: 'sync-needed',
         type: 'info',
-        text: 'NADA started tracking this index afresh. If NADA-AI already has an index, use Indexing › Maintenance › Restore tracking from the index; otherwise Update all on the Indexing page.',
+        text: `Nothing has been sent to NADA-AI since NADA started tracking changes${tracked.tracked_since ? ` on ${when(tracked.tracked_since)}` : ''}. If NADA-AI's index is already complete, use Restore tracking from the index (Indexing › Maintenance). Otherwise use Update all on the Indexing page to send the catalog.`,
       });
     }
 

@@ -171,7 +171,10 @@ watch(
     } else {
       resetState();
     }
-  }
+  },
+  // The parent mounts this dialog only once it is open (v-if), so modelValue
+  // is already true at setup and a non-immediate watch would never load.
+  { immediate: true }
 );
 
 watch(

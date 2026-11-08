@@ -59,7 +59,9 @@
       </div>
 
       <div v-else-if="activity.pause" class="text-body-2 text-medium-emphasis mt-2">
-        {{ activity.pause.message }}<template v-if="activity.pause.resume_at"> — next try at {{ timeText(activity.pause.resume_at) }}</template>
+        <template v-if="activity.state === 'not_tracking'">Turned away at its last check, before NADA started tracking changes for it.</template>
+        <template v-else>{{ activity.pause.message }}</template>
+        <template v-if="activity.pause.resume_at"> Next check at {{ timeText(activity.pause.resume_at) }}.</template>
       </div>
 
       <div v-if="activity.lastResultAt" class="text-caption text-medium-emphasis mt-2">
@@ -121,7 +123,8 @@ const STATES = {
   processing: { text: 'Indexing', color: 'primary', icon: 'mdi-progress-clock' },
   idle: { text: 'Idle', color: 'success', icon: 'mdi-check-circle-outline' },
   paused: { text: 'Paused', color: 'warning', icon: 'mdi-pause-circle-outline' },
-  not_tracking: { text: 'Not tracked', color: 'warning', icon: 'mdi-link-off' },
+  // the card shows only while NADA tracks NADA-AI: NADA-AI has not checked since tracking started
+  not_tracking: { text: 'Waiting for next check', color: 'info', icon: 'mdi-timer-sand' },
   disabled: { text: 'Scheduler off', color: 'warning', icon: 'mdi-power-off' },
   not_configured: { text: 'Not configured', color: 'error', icon: 'mdi-alert-circle-outline' },
   crashed: { text: 'Stopped', color: 'error', icon: 'mdi-alert-circle-outline' },
