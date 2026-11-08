@@ -1973,7 +1973,7 @@
     ]
   },
   "catalog-search/components/CatalogImageGallery.vue": {
-    "file": "assets/public/CatalogImageGallery-Cr0z2p1x.js",
+    "file": "assets/public/CatalogImageGallery-DNNbQo0e.js",
     "name": "CatalogImageGallery",
     "src": "catalog-search/components/CatalogImageGallery.vue",
     "isDynamicEntry": true,
@@ -1995,7 +1995,7 @@
     ]
   },
   "catalog-search/components/CatalogStudyVariableMatches.vue": {
-    "file": "assets/public/CatalogStudyVariableMatches-C_KAFuAS.js",
+    "file": "assets/public/CatalogStudyVariableMatches-M0d0H2Gb.js",
     "name": "CatalogStudyVariableMatches",
     "src": "catalog-search/components/CatalogStudyVariableMatches.vue",
     "isDynamicEntry": true,
@@ -2020,7 +2020,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableCompareCart.vue": {
-    "file": "assets/public/CatalogVariableCompareCart-C71jpPn1.js",
+    "file": "assets/public/CatalogVariableCompareCart-BR5hlt0W.js",
     "name": "CatalogVariableCompareCart",
     "src": "catalog-search/components/CatalogVariableCompareCart.vue",
     "isDynamicEntry": true,
@@ -2044,7 +2044,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableDetailDialog.vue": {
-    "file": "assets/public/CatalogVariableDetailDialog-DFdC5rxd.js",
+    "file": "assets/public/CatalogVariableDetailDialog-QjpVBVKh.js",
     "name": "CatalogVariableDetailDialog",
     "src": "catalog-search/components/CatalogVariableDetailDialog.vue",
     "isDynamicEntry": true,
@@ -2066,7 +2066,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableResultsList.vue": {
-    "file": "assets/public/CatalogVariableResultsList-CRXju_WO.js",
+    "file": "assets/public/CatalogVariableResultsList-B29--zWr.js",
     "name": "CatalogVariableResultsList",
     "src": "catalog-search/components/CatalogVariableResultsList.vue",
     "isDynamicEntry": true,
@@ -2117,7 +2117,7 @@
     ]
   },
   "catalog-search/main.js": {
-    "file": "assets/public/catalog_search-ClUSLqUZ.js",
+    "file": "assets/public/catalog_search-C0AgrKa8.js",
     "name": "catalog_search",
     "src": "catalog-search/main.js",
     "isEntry": true,
@@ -2142,7 +2142,7 @@
       "catalog-search/components/CatalogVariableCompareCart.vue"
     ],
     "css": [
-      "assets/public/catalog_search-BEk0NF7j.css"
+      "assets/public/catalog_search-CQExK1kV.css"
     ]
   },
   "catalog/study_indicator_data_public/main.js": {

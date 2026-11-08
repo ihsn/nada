@@ -66,24 +66,29 @@
             v-if="row.nation || yearRange || row.authoring_entity"
             class="study-card-meta"
           >
-            <div v-if="row.nation || yearRange" class="study-meta-line">
-              <v-icon size="14" class="study-meta-line__icon">$mdi-map-marker-outline</v-icon>
-              <span v-if="row.nation">{{ row.nation }}</span>
-              <span v-if="row.nation && yearRange" class="study-meta-line__sep">&middot;</span>
-              <span v-if="yearRange">{{ yearRange }}</span>
+            <div v-if="row.nation || yearRange" class="study-meta-line study-meta-line--place">
+              <span v-if="row.nation" class="study-meta-line__icon-box">
+                <v-icon size="14" class="study-meta-line__icon">$mdi-map-marker-outline</v-icon>
+              </span>
+              <!-- one text run so long country lists wrap naturally; keep on one line (whitespace matters) -->
+              <span class="study-meta-line__text"><span v-if="row.nation">{{ nationLabel }}</span> <span v-if="yearRange" class="study-meta-line__years"><span v-if="row.nation" class="study-meta-line__sep">&middot;&nbsp;</span>{{ yearRange }}</span></span>
             </div>
             <div v-if="row.authoring_entity" class="study-meta-line study-meta-line--author">
               {{ row.authoring_entity }}
             </div>
           </div>
 
-          <div v-if="timeseriesFrequency" class="study-frequency">
-            <span class="study-frequency__label">{{ t('frequency') }}:</span>
-            <v-chip size="x-small" variant="tonal" class="mr-1 mb-1">{{ timeseriesFrequency }}</v-chip>
-          </div>
-
-          <div v-if="timeseriesDimensions.length" class="study-dimensions">
-            <span class="study-dimensions__label">{{ t('dimensions') }}:</span>
+          <div v-if="timeseriesFrequency || timeseriesDimensions.length" class="study-dimensions">
+            <v-chip
+              v-if="timeseriesFrequency"
+              size="x-small"
+              variant="tonal"
+              class="study-dimension-chip"
+              :title="t('frequency')"
+              :aria-label="`${t('frequency')}: ${timeseriesFrequency}`"
+            >
+              {{ timeseriesFrequency }}
+            </v-chip>
             <v-chip
               v-for="dimension in timeseriesDimensions"
               :key="dimension"
@@ -91,6 +96,8 @@
               variant="tonal"
               color="secondary"
               class="study-dimension-chip"
+              :title="t('dimensions')"
+              :aria-label="`${t('dimensions')}: ${dimension}`"
             >
               {{ dimension }}
             </v-chip>
@@ -298,6 +305,11 @@ const citationsUrl = computed(() =>
   joinSiteUrl(siteUrl.value, `catalog/${props.row.id}/related_citations`)
 );
 
+// Keep the "+N more" suffix (added by Dataset_model::get_country_names_string) on the last name's line.
+const nationLabel = computed(() =>
+  String(props.row.nation || '').replace(/ \+(\d+)$/, ' +$1')
+);
+
 const yearRange = computed(() =>
   formatStudyYearRange(props.row.year_start, props.row.year_end)
 );
@@ -481,6 +493,27 @@ function goToCollection(repositoryid) {
   opacity: 0.4;
 }
 
+.study-meta-line--place {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+/* One line tall, so the icon lines up with the first line of wrapped text */
+.study-meta-line__icon-box {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: calc(var(--catalog-font-body, 1rem) * 1.5);
+}
+
+.study-meta-line__text {
+  min-width: 0;
+}
+
+.study-meta-line__years {
+  white-space: nowrap;
+}
+
 .study-meta-line--author {
   font-size: var(--catalog-font-ui, 0.875rem);
   font-style: italic;
@@ -500,12 +533,6 @@ function goToCollection(repositoryid) {
   align-items: center;
   gap: 6px;
   margin-top: 2px;
-}
-
-.study-dimensions__label {
-  font-size: var(--catalog-font-ui, 0.875rem);
-  font-weight: 600;
-  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 
 .study-dimension-chip {
