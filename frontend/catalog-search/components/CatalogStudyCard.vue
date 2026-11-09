@@ -258,6 +258,7 @@ const DEFAULT_ACCESS = { icon: '$mdi-file-document-outline', bg: '#546E7A' };
 const accessInfo = computed(() => ACCESS_MAP[props.row.form_model] ?? DEFAULT_ACCESS);
 
 const accessLabel = computed(() => {
+  if (datasetType.value === 'timeseries') return '';
   const key = 'legend_data_' + (props.row.form_model || 'data_na');
   return t(key, props.row.form_model ?? '');
 });

@@ -210,7 +210,7 @@ $lang['tab_image']="Imágenes";
 $lang['tab_script']="Scripts";
 $lang['tab_table']="Tablas
 ";
-$lang['tab_timeseries']="Series de tiempo";
+$lang['tab_timeseries']="Indicadores";
 $lang['tab_timeseriesdb']="Conjuntos de datos";
 $lang['tab_survey']="Microdatos";
 $lang['tab_video']="Videos";
