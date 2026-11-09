@@ -6,7 +6,6 @@ $this->title=t('home_title');
 $survey_count=$this->stats_model->get_survey_count();
 $popular_surveys=$this->stats_model->get_popular_surveys(5);
 $latest_surveys=$this->stats_model->get_latest_surveys(6);
-$variable_count=$this->stats_model->get_variable_count();
 
 //studies featured on the central catalog
 $featured_studies=$this->repository_model->get_featured_study(null);
@@ -159,9 +158,6 @@ $resources=array(
                 <?php if (count($counts)>0):?>
                 <section class="home-panel home-glance">
                     <h2 class="home-section-title"><?php echo t('home_catalog_at_a_glance'); ?></h2>
-                    <?php if ($variable_count>0):?>
-                        <p class="home-glance-summary"><?php echo sprintf(t('home_glance_summary'), '<strong>'.number_format($survey_count).'</strong>', '<strong>'.number_format($variable_count).'</strong>'); ?></p>
-                    <?php endif;?>
                     <div class="home-glance-grid">
                         <?php foreach($counts as $data_type=>$count):?>
                             <a class="home-glance-item" href="<?php echo $search_url.'?tab_type='.rawurlencode($data_type); ?>">

@@ -61,7 +61,6 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx    = $this->_context_from_idno_public($idno);
-			$this->_assert_public_indicator_timeseries_released((int) $ctx['sid']);
 			$filter = $this->Timeseries_mongo_model->build_observation_query_filter(
 				(int) $ctx['sid'],
 				$ctx['components'],
@@ -81,7 +80,6 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx    = $this->_context_from_idno_public($idno);
-			$this->_assert_public_indicator_timeseries_released((int) $ctx['sid']);
 			$query  = (array) $this->input->get();
 			$filter = $this->Timeseries_mongo_model->build_observation_query_filter(
 				(int) $ctx['sid'],
@@ -135,7 +133,6 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx    = $this->_context_from_idno_public($idno);
-			$this->_assert_public_indicator_timeseries_released((int) $ctx['sid']);
 			$query  = (array) $this->input->get();
 			$filter = $this->Timeseries_mongo_model->build_observation_query_filter(
 				(int) $ctx['sid'],
@@ -242,7 +239,6 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno_public($idno);
-			$this->_assert_public_indicator_timeseries_released((int) $ctx['sid']);
 
 			$dataset_title = '';
 			$row = $this->Dataset_model->get_row((int) $ctx['sid']);
@@ -267,19 +263,13 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno_public($idno);
-			$tsRow = $this->db->select('ts_sync_required')
-				->get_where('surveys', ['id' => (int) $ctx['sid']])
-				->row_array();
-			$tsSync = isset($tsRow['ts_sync_required']) ? (int) $tsRow['ts_sync_required'] : 0;
 			$tpField = $this->Timeseries_mongo_model->get_component_name_for_column_type($ctx['components'], 'time_period');
 			$ovField = $this->Timeseries_mongo_model->get_component_name_for_column_type($ctx['components'], 'observation_value');
-			$yearBounds = $tsSync === 1
-				? ['min' => null, 'max' => null]
-				: $this->Timeseries_mongo_model->reporting_year_min_max_for_study(
-					(int) $ctx['dsd_id'],
-					(int) $ctx['sid'],
-					$ctx['components']
-				);
+			$yearBounds = $this->Timeseries_mongo_model->reporting_year_min_max_for_study(
+				(int) $ctx['dsd_id'],
+				(int) $ctx['sid'],
+				$ctx['components']
+			);
 			// Default view (filters, time period, chart type, table layout): catalog settings, not metadata.
 			$this->load->model('Study_presentation_model');
 			$presentation = $this->Study_presentation_model->get_settings((int) $ctx['sid']);
@@ -294,7 +284,6 @@ class Timeseries_public extends MY_REST_Controller {
 					'collection'     => $this->Timeseries_mongo_model->get_collection_name((int) $ctx['dsd_id']),
 					'time_period_component'     => $tpField,
 					'observation_value_component' => $ovField,
-					'ts_sync_required' => $tsSync,
 					'reporting_year_bounds' => [
 						'min' => $yearBounds['min'],
 						'max' => $yearBounds['max'],
@@ -376,7 +365,6 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno_public($idno);
-			$this->_assert_public_indicator_timeseries_released((int) $ctx['sid']);
 			$filters = $this->Timeseries_value_count_model->get_filter_options(
 				(int) $ctx['sid'],
 				(int) $ctx['dsd_id'],
@@ -615,18 +603,6 @@ class Timeseries_public extends MY_REST_Controller {
 	// Internals
 	// ---------------------------------------------------------------------
 
-	private function _assert_public_indicator_timeseries_released($sid)
-	{
-		$sid = (int) $sid;
-		if ($sid <= 0) {
-			return;
-		}
-		$r = $this->db->select('ts_sync_required')->get_where('surveys', ['id' => $sid])->row_array();
-		if ($r && !empty($r['ts_sync_required'])) {
-			throw new Exception('INDICATOR_TIMESERIES_SYNC_PENDING');
-		}
-	}
-
 	/**
 	 * Published catalogue studies are readable anonymously; unpublished require dataset view ACL.
 	 */
@@ -744,10 +720,6 @@ class Timeseries_public extends MY_REST_Controller {
 		}
 		if ($msg === 'ACCESS-DENIED') {
 			$code = REST_Controller::HTTP_FORBIDDEN;
-		}
-		if ($msg === 'INDICATOR_TIMESERIES_SYNC_PENDING') {
-			$code = REST_Controller::HTTP_SERVICE_UNAVAILABLE;
-			$msg  = 'Indicator timeseries data is temporarily unavailable until the catalogue entry is synchronised.';
 		}
 		$this->set_response([
 			'status'  => 'error',

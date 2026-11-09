@@ -128,7 +128,7 @@ $lang['export_to_json']="تصدير الى JSON";
 $lang['translate']="ترجمة";
 
 //home page
-$lang['home_search_intro']="ابحث واستكشف %s مجموعة بيانات";
+$lang['home_search_intro']="ابحث واستكشف %s إدخالًا في الفهرس";
 $lang['home_search_placeholder']="ابحث حسب الموضوع أو البلد أو اسم المسح";
 $lang['home_try']="جرّب:";
 $lang['home_browse_catalog']="تصفح الفهرس بالكامل";
@@ -138,11 +138,10 @@ $lang['home_view_all_collections']="عرض جميع المجموعات (%s)";
 $lang['home_featured']="مختارات";
 $lang['home_featured_badge']="مختار";
 $lang['home_catalog_at_a_glance']="الفهرس في لمحة";
-$lang['home_glance_summary']="%s مجموعة بيانات و%s متغيرًا";
 $lang['home_explore_catalog']="استكشف الفهرس";
 $lang['home_resources']="الموارد";
 $lang['home_resource_catalog']="تصفح الفهرس";
-$lang['home_resource_catalog_text']="ابحث في جميع مجموعات البيانات والوثائق المنشورة وقم بتصفيتها.";
+$lang['home_resource_catalog_text']="ابحث في كل ما هو منشور في الفهرس وقم بتصفيته.";
 $lang['home_resource_citations']="الاستشهادات";
 $lang['home_resource_citations_text']="المنشورات التي تستخدم بيانات هذا الفهرس.";
 $lang['home_resource_api']="واجهة برمجة التطبيقات";

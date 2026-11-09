@@ -193,8 +193,8 @@
     >
       <div class="d-flex flex-wrap align-center gap-3">
         <div class="flex-grow-1">
-          <strong>Out of sync</strong> — indicator data is not cleared for the public catalogue until you resync or import.
-          Public timeseries APIs return “unavailable” while this flag is set. Resync updates keys from existing Mongo rows
+          <strong>Out of sync</strong> — the linked data structure changed after this data was loaded. The public catalogue
+          keeps showing the existing data until you resync or import. Resync updates keys from existing Mongo rows
           for the <em>current</em> linked structure; use Import if you changed structure or need to replace values.
           <span v-if="schema.ts_dimensions" class="text-body-2 text-medium-emphasis d-block mt-1">
             Dimensions: <code>{{ schema.ts_dimensions }}</code>
@@ -511,7 +511,7 @@ async function onDsdPick(v) {
   const hasObs = observationListTotal.value > 0;
   if (current && hasObs && idno !== current) {
     const ok = window.confirm(
-      'Change the linked data structure? All indicator observations and the stored import CSV for this study will be removed. Public indicator views stay hidden until you import again or resync. Continue?'
+      'Change the linked data structure? All indicator observations and the stored import CSV for this study will be removed. You will need to import the data again. Continue?'
     );
     if (!ok) {
       await finalizeDsdPickerState();

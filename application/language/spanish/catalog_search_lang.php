@@ -350,7 +350,6 @@ $lang['years']="Años";
 $lang['browse_all_indicators_in_catalog']="Explorar todos los indicadores del catálogo";
 $lang['showing_x_to_y_of_z_indicators']="Mostrando %d–%d de %d indicadores";
 $lang['tab_data_api']="API de datos";
-$lang['indicator_data_sync_pending_public']="Las vistas del gráfico del indicador y de la API de datos no están disponibles temporalmente mientras se actualiza este conjunto de datos. Aún puede abrir la pestaña Estructura de datos o volver a intentarlo más tarde.";
 $lang['preview']="Vista previa";
 $lang['pdf_preview']="Vista previa del PDF";
 $lang['view_full_pdf']="Ver PDF completo";

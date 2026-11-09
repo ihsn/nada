@@ -310,7 +310,6 @@ $lang["showing_x_to_y_of_z_indicators"]="A mostrar %d–%d de %d indicadores";
 $lang["no_databases_found"]="Não existem bases de dados listadas para esta série.";
 $lang["tab_indicator_table"]="Quadro";
 $lang["tab_data_api"]="API de dados";
-$lang["indicator_data_sync_pending_public"]="O gráfico do indicador e as vistas da API de dados estão temporariamente indisponíveis enquanto este conjunto de dados está a ser actualizado. Pode ainda abrir o separador Estrutura dos dados ou tentar novamente mais tarde.";
 $lang["document_description"]="Descrição do documento";
 $lang["table_description"]="Descrição do quadro";
 $lang["image_description"]="Descrição da imagem";

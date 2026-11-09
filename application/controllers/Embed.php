@@ -38,17 +38,6 @@ class Embed extends MY_Controller {
 			show_404();
 		}
 
-		if ((int) $this->Dataset_model->get_indicator_ts_sync_required_for_sid($sid) === 1) {
-			$msg = function_exists('t') ? t('indicator_data_sync_pending_public') : 'Indicator table is temporarily unavailable.';
-			$content = '<div class="container py-4"><p class="text-muted">' . htmlspecialchars($msg) . '</p></div>';
-			$page_title = isset($survey['title']) ? (string) $survey['title'] : ('Study ' . $sid);
-			$this->template->set_template('embed_table');
-			$this->template->write('title', $page_title, true);
-			$this->template->write('content', $content, true);
-			$this->template->render();
-			return;
-		}
-
 		$this->load->helper('vite_helper');
 
 		$content = $this->load->view('catalog/study_indicator_data_public', array(
@@ -89,17 +78,6 @@ class Embed extends MY_Controller {
 		$ctx = $this->Timeseries_dsd_model->resolve_dsd_for_sid($sid);
 		if ($ctx === null) {
 			show_404();
-		}
-
-		if ((int) $this->Dataset_model->get_indicator_ts_sync_required_for_sid($sid) === 1) {
-			$msg = function_exists('t') ? t('indicator_data_sync_pending_public') : 'Indicator chart is temporarily unavailable.';
-			$content = '<div class="container py-4"><p class="text-muted">' . htmlspecialchars($msg) . '</p></div>';
-			$page_title = isset($survey['title']) ? (string) $survey['title'] : ('Study ' . $sid);
-			$this->template->set_template('embed_chart');
-			$this->template->write('title', $page_title, true);
-			$this->template->write('content', $content, true);
-			$this->template->render();
-			return;
 		}
 
 		$this->load->helper('vite_helper');

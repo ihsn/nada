@@ -161,7 +161,7 @@ $lang['access_denied_title']="Acceso denegado";
 $lang['access_denied_message']="No tiene permiso para acceder a esta página o recurso. Si considera que debería tener acceso, comuníquese con el administrador del sistema.";
 
 //home page
-$lang['home_search_intro']="Busque y explore %s conjuntos de datos";
+$lang['home_search_intro']="Busque y explore %s entradas del catálogo";
 $lang['home_search_placeholder']="Buscar por tema, país o nombre de encuesta";
 $lang['home_try']="Pruebe:";
 $lang['home_browse_catalog']="Explorar todo el catálogo";
@@ -171,11 +171,10 @@ $lang['home_view_all_collections']="Ver las %s colecciones";
 $lang['home_featured']="Destacados";
 $lang['home_featured_badge']="Destacado";
 $lang['home_catalog_at_a_glance']="El catálogo de un vistazo";
-$lang['home_glance_summary']="%s conjuntos de datos y %s variables";
 $lang['home_explore_catalog']="Explorar el catálogo";
 $lang['home_resources']="Recursos";
 $lang['home_resource_catalog']="Explorar el catálogo";
-$lang['home_resource_catalog_text']="Busque y filtre todos los conjuntos de datos y documentos publicados.";
+$lang['home_resource_catalog_text']="Busque y filtre todo lo publicado en el catálogo.";
 $lang['home_resource_citations']="Citas";
 $lang['home_resource_citations_text']="Publicaciones que utilizan los datos de este catálogo.";
 $lang['home_resource_api']="API";

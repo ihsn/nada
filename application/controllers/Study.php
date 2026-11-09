@@ -691,10 +691,6 @@ class Study extends MY_Controller {
 			show_404();
 		}
 
-		if ((int) $this->Dataset_model->get_indicator_ts_sync_required_for_sid((int) $sid) === 1) {
-			show_404();
-		}
-
 		$this->load->library('Indicator_table_export');
 		try {
 			$this->indicator_table_export->export_and_stream(
@@ -747,11 +743,6 @@ class Study extends MY_Controller {
 		if ($ctx === null) {
 			$content = '<div class="container py-4"><p class="text-muted">' . htmlspecialchars(t('indicator_data_no_dsd')) . '</p></div>';
 			$this->render_page($sid, $content, $active_tab, $survey);
-			return;
-		}
-		$ts_sync_pending = (int) $this->Dataset_model->get_indicator_ts_sync_required_for_sid((int) $sid) === 1;
-		if ($ts_sync_pending && in_array($main_view, array('chart', 'table', 'observations'), true)) {
-			redirect(site_url('catalog/' . (int) $sid . '/indicator-structure'), 'location', 302);
 			return;
 		}
 		$this->load->helper('vite_helper');
@@ -978,7 +969,7 @@ class Study extends MY_Controller {
 				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources']);
 				break;
 			case 'timeseries':
-				$show_indicator=$counts['indicator_mongo'] && !$counts['indicator_sync_pending'];
+				$show_indicator=$counts['indicator_mongo'];
 				$tabs['indicator_chart']=$this->study_page_tab($sid, 'indicator-chart', t('tab_indicator_chart'), $show_indicator);
 				$tabs['indicator_table']=$this->study_page_tab($sid, 'indicator-table', t('tab_indicator_table'), $show_indicator);
 				$tabs['indicator_observations']=$this->study_page_tab($sid, 'indicator-data-api', t('tab_indicator_observations'), $show_indicator);
@@ -1066,7 +1057,6 @@ class Study extends MY_Controller {
 			'related_studies'=>0,
 			'data_api'=>0,
 			'indicator_mongo'=>false,
-			'indicator_sync_pending'=>false,
 			'related_series'=>0,
 			'document_pdfs'=>0,
 		);
@@ -1102,7 +1092,6 @@ class Study extends MY_Controller {
 		if (isset($needed['indicator'])){
 			$this->load->model('Timeseries_dsd_model');
 			$counts['indicator_mongo']=$this->Timeseries_dsd_model->resolve_dsd_for_sid((int)$sid) !== null;
-			$counts['indicator_sync_pending']=(int)$this->Dataset_model->get_indicator_ts_sync_required_for_sid((int)$sid) === 1;
 		}
 		if (isset($needed['related_series'])){
 			$this->load->model('Timeseries_db_model');

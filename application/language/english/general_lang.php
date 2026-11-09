@@ -149,7 +149,7 @@ $lang['access_denied_title']="Access denied";
 $lang['access_denied_message']="You do not have permission to access this page or resource. If you believe you should have access, please contact your system administrator.";
 
 //home page
-$lang['home_search_intro']="Search and explore %s datasets";
+$lang['home_search_intro']="Search and explore %s catalog entries";
 $lang['home_search_placeholder']="Search by topic, country, or survey name";
 $lang['home_try']="Try:";
 $lang['home_browse_catalog']="Browse the full catalog";
@@ -159,11 +159,10 @@ $lang['home_view_all_collections']="View all %s collections";
 $lang['home_featured']="Featured";
 $lang['home_featured_badge']="Featured";
 $lang['home_catalog_at_a_glance']="Catalog at a glance";
-$lang['home_glance_summary']="%s datasets and %s variables";
 $lang['home_explore_catalog']="Explore the catalog";
 $lang['home_resources']="Resources";
 $lang['home_resource_catalog']="Browse the catalog";
-$lang['home_resource_catalog_text']="Search and filter all published datasets and documents.";
+$lang['home_resource_catalog_text']="Search and filter everything published in the catalog.";
 $lang['home_resource_citations']="Citations";
 $lang['home_resource_citations_text']="Publications that use the data in this catalog.";
 $lang['home_resource_api']="API";

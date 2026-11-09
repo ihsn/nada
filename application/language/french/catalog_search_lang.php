@@ -347,7 +347,6 @@ $lang['years']="Années";
 $lang['browse_all_indicators_in_catalog']="Parcourir tous les indicateurs du catalogue";
 $lang['showing_x_to_y_of_z_indicators']="Affichage de %d–%d sur %d indicateurs";
 $lang['tab_data_api']="API de données";
-$lang['indicator_data_sync_pending_public']="Les vues graphique et API de données de l'indicateur sont temporairement indisponibles pendant la mise à jour de ce jeu de données. Vous pouvez toujours ouvrir l'onglet Structure des données ou réessayer plus tard.";
 $lang['preview']="Aperçu";
 $lang['pdf_preview']="Aperçu PDF";
 $lang['view_full_pdf']="Voir le PDF complet";

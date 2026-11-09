@@ -471,12 +471,6 @@ h1 {
 }
 
 /* Catalog at a glance */
-.home-glance-summary {
-    font-size: .9rem;
-    color: var(--wbg-lightgray);
-    margin: -.5rem 0 1rem;
-}
-
 .home-glance-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
