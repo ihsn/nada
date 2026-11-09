@@ -487,6 +487,57 @@ if ( ! function_exists('_parse_attributes'))
 	}
 
 	/**
+	 * The page on this site that linked to the current request, as a site URI
+	 * ("catalog/12?tab=1") that redirect() accepts. Empty when the Referer is
+	 * missing, points to another site, or is the home page.
+	 *
+	 * @return string
+	 */
+	if ( ! function_exists('local_referrer_uri'))
+	{
+		function local_referrer_uri()
+		{
+			$CI =& get_instance();
+			$referrer = trim((string) $CI->input->server('HTTP_REFERER'));
+			if ($referrer === '') {
+				return '';
+			}
+
+			$ref = parse_url($referrer);
+			$base = parse_url(base_url());
+			if (!is_array($ref) || !is_array($base) || empty($ref['host']) || empty($base['host'])) {
+				return '';
+			}
+
+			// Same host and port; the scheme may differ behind a TLS-terminating proxy
+			if (strcasecmp($ref['host'], $base['host']) !== 0
+				|| (isset($ref['port']) ? $ref['port'] : null) !== (isset($base['port']) ? $base['port'] : null)) {
+				return '';
+			}
+
+			$base_path = rtrim(isset($base['path']) ? $base['path'] : '', '/') . '/';
+			$path = isset($ref['path']) ? $ref['path'] : '/';
+			if (strpos($path . '/', $base_path) !== 0) {
+				return '';
+			}
+
+			$uri = ltrim((string) substr($path, strlen($base_path) - 1), '/');
+
+			// Strip the front controller (index.php) when the URL includes it
+			$index_page = (string) $CI->config->item('index_page');
+			if ($index_page !== '' && ($uri === $index_page || strpos($uri, $index_page . '/') === 0)) {
+				$uri = ltrim(substr($uri, strlen($index_page)), '/');
+			}
+
+			if ($uri !== '' && !empty($ref['query'])) {
+				$uri .= '?' . $ref['query'];
+			}
+
+			return $uri;
+		}
+	}
+
+	/**
 	 * Redirect to a path on this site. An outside address uses $fallback.
 	 * With no fallback, an outside address is left for the caller.
 	 *

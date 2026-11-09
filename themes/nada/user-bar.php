@@ -15,7 +15,7 @@ if ($languages!==FALSE)
 	{
 		foreach($languages as $language)
 		{
-			$lang_ul.='<span class="lang-label"> '.anchor('switch_language/'.$language.'/?destination=catalog', strtoupper(t(strtolower($language)))).' </span>';
+			$lang_ul.='<span class="lang-label"> '.anchor('switch_language/'.$language, strtoupper(t(strtolower($language)))).' </span>';
 		}
 	}
 }
