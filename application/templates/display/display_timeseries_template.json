@@ -50,8 +50,7 @@
                             "title": "Aliases",
                             "type": "array",
                             "props": [
-                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.aliases.name" },
-                                { "key": "value", "title": "Value", "type": "string", "prop_key": "series_description.aliases.value" }
+                                { "key": "alias", "title": "Alias", "type": "string", "prop_key": "series_description.aliases.alias" }
                             ]
                         },
                         {
@@ -59,9 +58,11 @@
                             "title": "Alternate identifiers",
                             "type": "array",
                             "props": [
-                                { "key": "type", "title": "Type", "type": "string", "prop_key": "series_description.alternate_identifiers.type" },
-                                { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.alternate_identifiers.id" },
-                                { "key": "identifier", "title": "Identifier", "type": "string", "prop_key": "series_description.alternate_identifiers.identifier" }
+                                { "key": "identifier", "title": "Identifier", "type": "string", "prop_key": "series_description.alternate_identifiers.identifier" },
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.alternate_identifiers.name" },
+                                { "key": "database", "title": "Database", "type": "string", "prop_key": "series_description.alternate_identifiers.database" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.alternate_identifiers.uri", "display_options": { "is_uri": true } },
+                                { "key": "notes", "title": "Notes", "type": "string", "prop_key": "series_description.alternate_identifiers.notes" }
                             ]
                         },
                         {
@@ -78,9 +79,9 @@
                             "title": "Dimensions",
                             "type": "array",
                             "props": [
-                                { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.dimensions.id" },
                                 { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.dimensions.name" },
-                                { "key": "label", "title": "Label", "type": "string", "prop_key": "series_description.dimensions.label" }
+                                { "key": "label", "title": "Label", "type": "string", "prop_key": "series_description.dimensions.label" },
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.dimensions.description" }
                             ]
                         },
                         {
@@ -88,8 +89,9 @@
                             "title": "Definition references",
                             "type": "array",
                             "props": [
-                                { "key": "title", "title": "Title", "type": "string", "prop_key": "series_description.definition_references.title" },
-                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.definition_references.uri", "display_options": { "is_uri": true } }
+                                { "key": "source", "title": "Source", "type": "string", "prop_key": "series_description.definition_references.source" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.definition_references.uri", "display_options": { "is_uri": true } },
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.definition_references.note" }
                             ]
                         },
                         {
@@ -98,7 +100,8 @@
                             "type": "array",
                             "props": [
                                 { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.concepts.name" },
-                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.concepts.description" }
+                                { "key": "definition", "title": "Definition", "type": "string", "prop_key": "series_description.concepts.definition" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.concepts.uri", "display_options": { "is_uri": true } }
                             ]
                         },
                         {
@@ -144,8 +147,10 @@
                             "type": "array",
                             "props": [
                                 { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.authoring_entity.name" },
-                                { "key": "role", "title": "Role", "type": "string", "prop_key": "series_description.authoring_entity.role" },
-                                { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "series_description.authoring_entity.affiliation" }
+                                { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "series_description.authoring_entity.affiliation" },
+                                { "key": "abbreviation", "title": "Abbreviation", "type": "string", "prop_key": "series_description.authoring_entity.abbreviation" },
+                                { "key": "email", "title": "Email", "type": "string", "prop_key": "series_description.authoring_entity.email" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.authoring_entity.uri", "display_options": { "is_uri": true } }
                             ]
                         },
                         {
@@ -172,7 +177,8 @@
                             "type": "array",
                             "props": [
                                 { "key": "acronym", "title": "Acronym", "type": "string", "prop_key": "series_description.acronyms.acronym" },
-                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.acronyms.description" }
+                                { "key": "expansion", "title": "Expansion", "type": "string", "prop_key": "series_description.acronyms.expansion" },
+                                { "key": "occurrence", "title": "Occurrence", "type": "string", "prop_key": "series_description.acronyms.occurrence" }
                             ]
                         },
                         {
@@ -198,7 +204,10 @@
                             "type": "array",
                             "props": [
                                 { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.related_indicators.id" },
-                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.related_indicators.name" },
+                                { "key": "code", "title": "Code", "type": "string", "prop_key": "series_description.related_indicators.code" },
+                                { "key": "label", "title": "Label", "type": "string", "prop_key": "series_description.related_indicators.label" },
+                                { "key": "relationship", "title": "Relationship", "type": "string", "prop_key": "series_description.related_indicators.relationship" },
+                                { "key": "type", "title": "Type", "type": "string", "prop_key": "series_description.related_indicators.type" },
                                 { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.related_indicators.uri", "display_options": { "is_uri": true } }
                             ]
                         },
@@ -207,8 +216,10 @@
                             "title": "Compliance",
                             "type": "array",
                             "props": [
-                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.compliance.name" },
-                                { "key": "status", "title": "Status", "type": "string", "prop_key": "series_description.compliance.status" }
+                                { "key": "standard", "title": "Standard", "type": "string", "prop_key": "series_description.compliance.standard" },
+                                { "key": "abbreviation", "title": "Abbreviation", "type": "string", "prop_key": "series_description.compliance.abbreviation" },
+                                { "key": "custodian", "title": "Custodian", "type": "string", "prop_key": "series_description.compliance.custodian" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.compliance.uri", "display_options": { "is_uri": true } }
                             ]
                         },
                         {
@@ -227,7 +238,9 @@
                             "type": "array",
                             "props": [
                                 { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.series_groups.name" },
-                                { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.series_groups.id" }
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.series_groups.description" },
+                                { "key": "version", "title": "Version", "type": "string", "prop_key": "series_description.series_groups.version" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.series_groups.uri", "display_options": { "is_uri": true } }
                             ]
                         },
                         {
@@ -303,9 +316,8 @@
                             "title": "API documentation",
                             "type": "array",
                             "props": [
-                                { "key": "title", "title": "Title", "type": "string", "prop_key": "series_description.api_documentation.title" },
-                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.api_documentation.uri", "display_options": { "is_uri": true } },
-                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.api_documentation.description" }
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.api_documentation.description" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.api_documentation.uri", "display_options": { "is_uri": true } }
                             ]
                         }
                     ]
@@ -316,21 +328,11 @@
                     "title": "links",
                     "items": [
                         {
-                            "key": "series_description.series_links",
-                            "title": "Series links",
-                            "type": "array",
-                            "props": [
-                                { "key": "title", "title": "Title", "type": "string", "prop_key": "series_description.series_links.title" },
-                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.series_links.uri", "display_options": { "is_uri": true } },
-                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.series_links.description" }
-                            ]
-                        },
-                        {
                             "key": "series_description.links",
                             "title": "Links",
                             "type": "array",
                             "props": [
-                                { "key": "title", "title": "Title", "type": "string", "prop_key": "series_description.links.title" },
+                                { "key": "type", "title": "Type", "type": "string", "prop_key": "series_description.links.type" },
                                 { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.links.uri", "display_options": { "is_uri": true } },
                                 { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.links.description" }
                             ]
@@ -359,59 +361,27 @@
                 },
                 {
                     "type": "section",
-                    "key": "timeseries.lda_topics",
-                    "title": "lda_topics",
-                    "items": [
-                        {
-                            "key": "lda_topics.model_info",
-                            "title": "Model info",
-                            "type": "array",
-                            "props": [
-                                { "key": "name", "title": "Name", "type": "string", "prop_key": "lda_topics.model_info.name" },
-                                { "key": "value", "title": "Value", "type": "string", "prop_key": "lda_topics.model_info.value" }
-                            ]
-                        },
-                        {
-                            "key": "lda_topics.topic_description",
-                            "title": "Topic description",
-                            "type": "array",
-                            "props": [
-                                { "key": "topic", "title": "Topic", "type": "string", "prop_key": "lda_topics.topic_description.topic" },
-                                { "key": "label", "title": "Label", "type": "string", "prop_key": "lda_topics.topic_description.label" },
-                                { "key": "score", "title": "Score", "type": "string", "prop_key": "lda_topics.topic_description.score" }
-                            ]
-                        },
-                        {
-                            "key": "embeddings",
-                            "title": "Embeddings",
-                            "type": "array",
-                            "props": [
-                                { "key": "name", "title": "Name", "type": "string", "prop_key": "embeddings.name" },
-                                { "key": "model", "title": "Model", "type": "string", "prop_key": "embeddings.model" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "type": "section",
                     "key": "timeseries.metadata_production",
                     "title": "metadata_production",
                     "items": [
-                        { "key": "series_description.title", "title": "Document title", "type": "string" },
-                        { "key": "series_description.idno", "title": "Document ID", "type": "string" },
+                        { "key": "metadata_information.title", "title": "Document title", "type": "string" },
+                        { "key": "metadata_information.idno", "title": "Document ID", "type": "string" },
                         {
-                            "key": "series_description.producers",
+                            "key": "metadata_information.producers",
                             "title": "Producers",
                             "type": "array",
                             "props": [
-                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.producers.name" },
-                                { "key": "abbr", "title": "Abbreviation", "type": "string", "prop_key": "series_description.producers.abbr" },
-                                { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "series_description.producers.affiliation" },
-                                { "key": "role", "title": "Role", "type": "string", "prop_key": "series_description.producers.role" }
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "metadata_information.producers.name" },
+                                { "key": "abbr", "title": "Abbreviation", "type": "string", "prop_key": "metadata_information.producers.abbr" },
+                                { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "metadata_information.producers.affiliation" },
+                                { "key": "role", "title": "Role", "type": "string", "prop_key": "metadata_information.producers.role" }
                             ]
                         },
-                        { "key": "series_description.prod_date", "title": "Date of production", "type": "string" },
-                        { "key": "series_description.version", "title": "Version", "type": "string" }
+                        { "key": "metadata_information.prod_date", "title": "Date of production", "type": "string" },
+                        { "key": "metadata_information.version_statement.version", "title": "Version", "type": "string" },
+                        { "key": "metadata_information.version_statement.version_date", "title": "Version date", "type": "string" },
+                        { "key": "metadata_information.version_statement.version_resp", "title": "Version responsibility", "type": "string" },
+                        { "key": "metadata_information.version_statement.version_notes", "title": "Version notes", "type": "string" }
                     ]
                 }
             ]
