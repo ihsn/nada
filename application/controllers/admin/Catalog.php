@@ -1372,7 +1372,7 @@ class Catalog extends MY_Controller {
 				'studyType'                 => isset($survey_row['type']) ? $survey_row['type'] : 'survey',
 				'dataClassificationsApiUrl' => site_url('api/admin/catalog/data-classifications'),
 				'dataClassificationsEnabled' => (bool) $data_classifications_enabled,
-				'countriesMappingUrl'       => site_url('admin/countries/mappings'),
+				'countriesMappingUrl'       => site_url('admin/countries') . '#/mappings',
 				'labels'                    => array(
 					'ref_no'                       => t('ref_no'),
 					'created'                      => t('created'),

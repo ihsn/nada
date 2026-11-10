@@ -78,6 +78,7 @@ export const adminEntries = {
   admin_datadeposit: path.resolve(__dirname, 'admin/datadeposit/main.js'),
   admin_logs: path.resolve(__dirname, 'admin/logs/main.js'),
   admin_filestore: path.resolve(__dirname, 'admin/filestore/main.js'),
+  admin_countries: path.resolve(__dirname, 'admin/countries/main.js'),
 };
 
 export const allEntries = {

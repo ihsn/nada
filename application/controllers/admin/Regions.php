@@ -1,128 +1,42 @@
 <?php
+/**
+ * Admin regions — Vue 3 SPA shell (same app as admin/countries).
+ *
+ * UI: frontend/admin/countries
+ * JSON: api/admin/regions
+ */
 class Regions extends MY_Controller {
- 
-    function __construct() 
-    {
-        parent::__construct();   
-		$this->load->model('country_region_model');
-		$this->template->set_template('admin5');
-    	
+
+	public function __construct()
+	{
+		parent::__construct();
+		$this->load->helper('url');
 		$this->lang->load('general');
 		$this->acl_manager->has_access_or_die('regions', 'edit');
-		//$this->lang->load('country');	
 	}
- 
- 
-	function index()
+
+	public function index()
 	{
-		$data['tree']=$this->country_region_model->get_tree();
-		$content=$this->load->view('regions/index', $data,TRUE);
-		
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('Regions'),true);
-	  	$this->template->render();
+		$this->load->helper('vite_helper');
+
+		$view_data = array(
+			'view'              => 'regions',
+			'countries_api_url' => site_url('api/admin/countries'),
+			'regions_api_url'   => site_url('api/admin/regions'),
+			'site_url'          => site_url(),
+			'base_url'          => base_url(),
+			'csrf_token'        => $this->security->get_csrf_hash(),
+			'csrf_token_name'   => $this->security->get_csrf_token_name(),
+			'assets_base'       => base_url('frontend/dist/'),
+			'translations'      => $this->lang->language,
+		);
+
+		$page = array(
+			'title'           => t('Regions'),
+			'content'         => $this->load->view('admin/countries/index', $view_data, true),
+			'hide_breadcrumb' => true,
+			'theme_folder'    => 'adminvue',
+		);
+		$this->load->view('layouts/admin_vue', $page);
 	}
-	
-	
-	function add()
-	{
-		$this->edit();
-	}
-
-
-	/**
-	* Edit
-	*
-	* handles both add or edit
-	*/
-	function edit($id=NULL)	
-	{
-		if (!is_numeric($id)  && $id!=NULL)
-		{
-			show_error('INVALID-ID');
-		}
-		
-		//validation rules
-		$this->form_validation->set_rules('title', t('title'), 'xss_clean|trim|required|max_length[100]');
-		$this->form_validation->set_rules('weight', t('weight'), 'is_numeric|xss_clean|trim|required|max_length[3]');
-		
-		$data=array();
-		$region_parents=$this->country_region_model->get_parents();
-		$data['parent_regions'][0]='--PARENT--';
-		$data['country_list']=$this->country_region_model->get_countries_compact();
-		
-		foreach($region_parents as $item)
-		{
-			$data['parent_regions'][$item['id']]=$item['title'];
-		}		
-				
-		//process form				
-		if ($this->form_validation->run() == TRUE)
-		{
-			$options=array();
-			$post_arr=$_POST;
-						
-			//read post values to pass to db
-			foreach($post_arr as $key=>$value)
-			{
-				$options[$key]=$this->input->post($key);
-			}					
-			
-			if ($id==NULL)
-			{
-				$db_result=$this->country_region_model->insert($options);
-			}
-			else
-			{
-				$db_result=$this->country_region_model->update($id,$options);
-			}
-									
-			if ($db_result===TRUE)
-			{
-				$this->session->set_flashdata('message', t('form_update_success'));
-				redirect("admin/regions","refresh");
-			}
-			else
-			{
-				//update failed
-				$this->form_validation->set_error(t('form_update_fail'));
-			}
-			
-		}
-		else //loading form the first time
-		{
-				if ( is_numeric($id) )
-				{
-					//from db
-					$data['row']=$this->country_region_model->select_single($id);
-					
-					if (!$data['row'])
-					{
-						show_error("INVALID-ID");
-					}
-				
-				}
-		}
-
-		//show form
-		$content=$this->load->view('regions/edit',$data,true);									
-		$this->template->write('content', $content,true);
-	  	$this->template->render();								
-	}
-	
-	function delete($id)
-	{
-		if(!is_numeric($id))
-		{
-			show_error("INVALID_PARAM");
-		}
-		
-		$this->country_region_model->delete($id);
-		redirect("admin/regions");
-	}
-
-
-	
-	
-
-}    
+}

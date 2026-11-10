@@ -620,6 +620,14 @@ $route['api/admin/permissions/roles/(:num)/delete'] = 'api/admin/permissions/rol
 $route['api/admin/permissions/roles/(:num)'] = 'api/admin/permissions/role/$1';
 $route['api/admin/permissions/roles'] = 'api/admin/permissions/roles';
 
+// Admin countries / regions API
+$route['api/admin/countries/mappings'] = 'api/admin/countries/mappings';
+$route['api/admin/countries/(:num)/delete'] = 'api/admin/countries/item_delete/$1';
+$route['api/admin/countries/(:num)'] = 'api/admin/countries/item/$1';
+$route['api/admin/regions/countries'] = 'api/admin/regions/countries';
+$route['api/admin/regions/(:num)/delete'] = 'api/admin/regions/item_delete/$1';
+$route['api/admin/regions/(:num)'] = 'api/admin/regions/item/$1';
+
 
 /* End of file routes.php */
 /* Location: ./system/application/config/routes.php */

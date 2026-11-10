@@ -187,7 +187,7 @@ class Country_region_model extends CI_Model {
 		$countries=array();
 		
 		//remove duplicates
-		foreach($options['country'] as $country)
+		foreach((isset($options['country']) ? (array)$options['country'] : array()) as $country)
 		{		
 			$countries[$country]=$country;
 		}
@@ -319,6 +319,22 @@ class Country_region_model extends CI_Model {
 	}
 	
 	
+	/**
+	 * Number of countries per region
+	 *
+	 * @return array region_id => total
+	 */
+	function country_counts()
+	{
+		$this->db->select('region_id, count(distinct country_id) as total');
+		$this->db->group_by('region_id');
+		$output = array();
+		foreach ($this->db->get('region_countries')->result_array() as $row) {
+			$output[(int) $row['region_id']] = (int) $row['total'];
+		}
+		return $output;
+	}
+
 	//return sub/children regions
 	function get_child_regions($region_id)
 	{

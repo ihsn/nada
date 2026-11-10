@@ -144,7 +144,7 @@ $menu[]=array(
 		),
 		array(
 			'title'	=>'Regions',
-			'url'	=>'admin/Regions'
+			'url'	=>'admin/regions'
 		),
 		array(
 			'type'	=>'divider'

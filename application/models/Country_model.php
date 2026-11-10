@@ -115,7 +115,7 @@ class Country_model extends CI_Model {
 		$aliases=array();
 		
 		//remove duplicates
-		foreach($options['alias'] as $alias)
+		foreach((isset($options['alias']) ? (array)$options['alias'] : array()) as $alias)
 		{		
 			$aliases[$alias]=$alias;
 		}
@@ -172,7 +172,7 @@ class Country_model extends CI_Model {
 		$aliases=array();
 		
 		//remove duplicates
-		foreach($options['alias'] as $alias)
+		foreach((isset($options['alias']) ? (array)$options['alias'] : array()) as $alias)
 		{		
 			$aliases[$alias]=$alias;
 		}
@@ -242,13 +242,52 @@ class Country_model extends CI_Model {
 	//delete a country
 	function delete($countryid)
 	{
+		$sids = $this->sids_with_countries(array((int) $countryid));
+
 		$this->db->where('countryid', $countryid);
 		$this->db->delete('countries');
 		
 		//delete aliases
 		$this->delete_aliases($countryid);
 
-		$this->emit_filters_change($this->sids_with_countries(array((int) $countryid)));
+		$this->db->where('country_id', $countryid);
+		$this->db->delete('region_countries');
+
+		//studies keep the country name; they show up again under mappings
+		$this->db->where('cid', $countryid);
+		$this->db->update('survey_countries', array('cid' => 0));
+
+		$this->emit_filters_change($sids);
+	}
+
+	/**
+	 * Return the country that owns an alias
+	 *
+	 * @return int|false
+	 */
+	function find_alias_owner($alias)
+	{
+		$this->db->select('countryid');
+		$this->db->where('alias', $alias);
+		$row = $this->db->get('country_aliases')->row_array();
+		return $row ? (int) $row['countryid'] : false;
+	}
+
+	/**
+	 * Number of studies per country
+	 *
+	 * @return array countryid => total
+	 */
+	function study_counts()
+	{
+		$this->db->select('cid, count(distinct sid) as total');
+		$this->db->where('cid >', 0);
+		$this->db->group_by('cid');
+		$output = array();
+		foreach ($this->db->get('survey_countries')->result_array() as $row) {
+			$output[(int) $row['cid']] = (int) $row['total'];
+		}
+		return $output;
 	}
 	
 
