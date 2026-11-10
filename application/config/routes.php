@@ -628,6 +628,15 @@ $route['api/admin/regions/countries'] = 'api/admin/regions/countries';
 $route['api/admin/regions/(:num)/delete'] = 'api/admin/regions/item_delete/$1';
 $route['api/admin/regions/(:num)'] = 'api/admin/regions/item/$1';
 
+// Admin translate API (site UI string translations)
+$route['api/admin/translate/import'] = 'api/admin/translate/import';
+$route['api/admin/translate/(:any)/files/(:any)/reset'] = 'api/admin/translate/file_reset/$1/$2';
+$route['api/admin/translate/(:any)/files/(:any)'] = 'api/admin/translate/file/$1/$2';
+$route['api/admin/translate/(:any)/files'] = 'api/admin/translate/files/$1';
+$route['api/admin/translate/(:any)/search'] = 'api/admin/translate/search/$1';
+$route['api/admin/translate/(:any)/export'] = 'api/admin/translate/export/$1';
+$route['api/admin/translate/(:any)/delete'] = 'api/admin/translate/item_delete/$1';
+
 
 /* End of file routes.php */
 /* Location: ./system/application/config/routes.php */

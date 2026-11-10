@@ -17,18 +17,13 @@ $lang['import_language_hint'] = 'Upload a zip file exported from this applicatio
 $lang['import_zip_label'] = 'Language zip file';
 
 $lang['select_language_to_translate']="Select language to translate";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
-$lang['lang_custom']="Custom";
+$lang['lang_modified']="Modified";
+$lang['lang_modified_title']="Official language with local userdata overrides";
+$lang['lang_official_title']="Shipped with the application";
+$lang['lang_custom_title']="Created in userdata only";
+$lang['keys_translated']="keys translated";
+$lang['files_missing']="files missing";
+$lang['translate_reset_file_confirm']="Remove the userdata override for this file and fall back to the official translation?";
 
 //translation search
 $lang['search_all_files']="Search all files";
@@ -43,5 +38,5 @@ $lang['search_no_results']="No matching translations found.";
 $lang['search_not_translated']="Not translated";
 
 
-/* End of file general_lang.php */
-/* Location: ./application/language/english/general_lang.php */
+/* End of file translate_lang.php */
+/* Location: ./application/language/english/translate_lang.php */

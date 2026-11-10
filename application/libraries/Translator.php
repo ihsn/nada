@@ -179,22 +179,477 @@ class Translator{
 	}
 	
 	
-	function translation_file_exists($language,$translation_file)
+	/**
+	 * Whether a translation file exists in userdata or application/language.
+	 *
+	 * @param  string $language
+	 * @param  string $translation_file  base name without _lang.php
+	 * @return bool
+	 */
+	function translation_file_exists($language, $translation_file)
 	{
-		$user_data=$this->ci->config->item('userdata_path').'/'.$language.'/'.$translation_file;
+		return $this->translation_file_path($language, $translation_file, false) !== false;
+	}
 
-		if(file_exists($user_data))
-		{
-			return true;
+
+	/**
+	 * Validate a language folder name (lowercase letters, digits, underscore).
+	 *
+	 * @param  string $lang
+	 * @return bool
+	 */
+	function is_valid_language_name($lang)
+	{
+		return (bool) preg_match('/^[a-z][a-z0-9_]{1,29}$/', (string) $lang);
+	}
+
+
+	/**
+	 * True when a translation value is considered missing (empty string).
+	 *
+	 * @param  mixed $value
+	 * @return bool
+	 */
+	function is_missing_value($value)
+	{
+		return ! is_string($value) || $value === '';
+	}
+
+
+	/**
+	 * English language file basename whitelist: "general" => "general_lang.php".
+	 *
+	 * @return array
+	 */
+	function get_english_file_map()
+	{
+		$files = $this->get_language_files_array(APPPATH . 'language/english');
+		$map = array();
+		if (! is_array($files)) {
+			return $map;
+		}
+		foreach ($files as $f) {
+			if (substr($f, -9) !== '_lang.php') {
+				continue;
+			}
+			$map[str_replace('_lang.php', '', $f)] = $f;
+		}
+		return $map;
+	}
+
+
+	/**
+	 * Resolve english PHP filename for a base name, or false.
+	 *
+	 * @param  string $file_base  e.g. "general"
+	 * @return string|false
+	 */
+	function resolve_english_filename($file_base)
+	{
+		$map = $this->get_english_file_map();
+		return isset($map[$file_base]) ? $map[$file_base] : false;
+	}
+
+
+	/**
+	 * Load English keys for a file base name.
+	 *
+	 * @param  string $file_base
+	 * @return array|false
+	 */
+	function get_english_translations($file_base)
+	{
+		$filename = $this->resolve_english_filename($file_base);
+		if ($filename === false) {
+			return false;
+		}
+		$data = $this->get_translations_array(APPPATH . 'language/english/' . $filename);
+		return is_array($data) ? $data : false;
+	}
+
+
+	/**
+	 * Effective translations for a language file (userdata overrides application).
+	 *
+	 * @param  string $language
+	 * @param  string $file_base
+	 * @return array  key => string (may be empty)
+	 */
+	function get_effective_translations($language, $file_base)
+	{
+		$filename = $this->resolve_english_filename($file_base);
+		if ($filename === false) {
+			return array();
 		}
 
-		$fullpath=APPPATH.'/'.$language.'/'.$translation_file;
-		if (file_exists($fullpath))
-		{
-			return true;
+		$merged = array();
+		$app = $this->get_translations_array(APPPATH . 'language/' . $language . '/' . $filename);
+		if (is_array($app)) {
+			$merged = $app;
 		}
-		
-		return false;
+
+		$user_data = $this->ci->config->item('userdata_path');
+		if (! empty($user_data)) {
+			$user = $this->get_translations_array($user_data . '/language/' . $language . '/' . $filename);
+			if (is_array($user)) {
+				foreach ($user as $k => $v) {
+					$merged[$k] = $v;
+				}
+			}
+		}
+
+		return $merged;
+	}
+
+
+	/**
+	 * Generate PHP language file contents from a key => value map.
+	 * Empty values are omitted so application/language can fill gaps.
+	 *
+	 * @param  array  $translations
+	 * @param  string $language_file  base name for footer comment
+	 * @param  string $language
+	 * @return string
+	 */
+	function generate_php_content(array $translations, $language_file = '', $language = '')
+	{
+		$php = "<?php\n";
+		foreach ($translations as $key => $value) {
+			if (! is_string($key) || $this->is_missing_value($value)) {
+				continue;
+			}
+			$php .= '$lang[\'' . addslashes($key) . '\'] = \'' . addslashes($value) . '\';' . "\n";
+		}
+		if ($language_file !== '') {
+			$php .= "\n/* End of file " . $language_file . " */\n";
+			if ($language !== '') {
+				$php .= '/* Location: ./userdata/language/' . $language . '/' . $language_file . "_lang.php */\n";
+			}
+		}
+		return $php;
+	}
+
+
+	/**
+	 * Write translations to the userdata save path (never application/language).
+	 *
+	 * @param  string $language
+	 * @param  string $file_base
+	 * @param  array  $translations  key => value (only English keys; empty omitted)
+	 * @return array  ['type'=>'success'|'error','msg'=>string,'path'=>string]
+	 */
+	function save_translations($language, $file_base, array $translations)
+	{
+		if (! $this->is_valid_language_name($language) || ! $this->language_exists($language)) {
+			return array('type' => 'error', 'msg' => 'INVALID_LANGUAGE', 'path' => '');
+		}
+
+		$en = $this->get_english_translations($file_base);
+		if ($en === false) {
+			return array('type' => 'error', 'msg' => 'INVALID_FILE', 'path' => '');
+		}
+
+		$filtered = array();
+		foreach ($en as $key => $en_val) {
+			if (! array_key_exists($key, $translations)) {
+				continue;
+			}
+			$val = $translations[$key];
+			if (! is_string($val) && ! is_numeric($val)) {
+				continue;
+			}
+			$val = (string) $val;
+			if (strpos($val, "\0") !== false) {
+				return array('type' => 'error', 'msg' => 'INVALID_VALUE_NULL_BYTE: ' . $key, 'path' => '');
+			}
+			if (strlen($val) > 10240) {
+				return array('type' => 'error', 'msg' => 'VALUE_TOO_LONG: ' . $key, 'path' => '');
+			}
+			if (! $this->is_missing_value($val)) {
+				$filtered[$key] = $val;
+			}
+		}
+
+		$output_file = $this->translation_file_path($language, $file_base, true);
+		if ($output_file === false || $output_file === '') {
+			return array('type' => 'error', 'msg' => 'SAVE_PATH_UNAVAILABLE', 'path' => '');
+		}
+
+		$dir = dirname($output_file);
+		if (! is_dir($dir) && ! @mkdir($dir, 0755, true)) {
+			return array('type' => 'error', 'msg' => 'Could not create language folder: ' . $dir, 'path' => $output_file);
+		}
+
+		if (file_exists($output_file)) {
+			@copy($output_file, $output_file . '.bak');
+		}
+
+		$php = $this->generate_php_content($filtered, $file_base, $language);
+		if (@file_put_contents($output_file, $php) === false) {
+			return array('type' => 'error', 'msg' => 'Could not save file. ' . $output_file, 'path' => $output_file);
+		}
+
+		return array('type' => 'success', 'msg' => 'File has been saved. ' . $output_file, 'path' => $output_file);
+	}
+
+
+	/**
+	 * Delete userdata override for one language file (official app file remains).
+	 *
+	 * @param  string $language
+	 * @param  string $file_base
+	 * @return array  ['type'=>'success'|'error','msg'=>string]
+	 */
+	function reset_userdata_file($language, $file_base)
+	{
+		if (! $this->is_valid_language_name($language) || ! $this->language_exists($language)) {
+			return array('type' => 'error', 'msg' => 'INVALID_LANGUAGE');
+		}
+		if ($this->resolve_english_filename($file_base) === false) {
+			return array('type' => 'error', 'msg' => 'INVALID_FILE');
+		}
+
+		$user_data = $this->ci->config->item('userdata_path');
+		if (empty($user_data)) {
+			return array('type' => 'error', 'msg' => 'userdata_path is not configured.');
+		}
+
+		$path = $user_data . '/language/' . $language . '/' . $file_base . '_lang.php';
+		if (! file_exists($path)) {
+			return array('type' => 'error', 'msg' => 'No userdata override for this file.');
+		}
+
+		if (! @unlink($path)) {
+			return array('type' => 'error', 'msg' => 'Could not delete userdata file.');
+		}
+
+		@unlink($path . '.bak');
+
+		return array('type' => 'success', 'msg' => 'Userdata override removed.');
+	}
+
+
+	/**
+	 * Delete a custom language folder from userdata (not allowed for official languages).
+	 *
+	 * @param  string $language
+	 * @return array
+	 */
+	function delete_language($language)
+	{
+		if (! $this->is_valid_language_name($language)) {
+			return array('type' => 'error', 'msg' => 'INVALID_LANGUAGE');
+		}
+		if ($language === 'english') {
+			return array('type' => 'error', 'msg' => 'Cannot delete the base language.');
+		}
+
+		$info = $this->get_language_info($language);
+		if ($info['has_official']) {
+			return array('type' => 'error', 'msg' => 'Cannot delete an official language. Reset userdata overrides instead.');
+		}
+		if (! $info['has_userdata']) {
+			return array('type' => 'error', 'msg' => 'Language not found.');
+		}
+
+		$user_data = $this->ci->config->item('userdata_path');
+		$folder = $user_data . '/language/' . $language;
+		if (! $this->_delete_directory($folder)) {
+			return array('type' => 'error', 'msg' => 'Could not delete language folder.');
+		}
+
+		return array('type' => 'success', 'msg' => 'Language "' . $language . '" deleted.');
+	}
+
+
+	/**
+	 * Per-file status for a language vs English.
+	 *
+	 * @param  string $language
+	 * @return array  [file_base => ['complete'=>bool,'total'=>int,'translated'=>int,'missing'=>int,'has_userdata'=>bool]]
+	 */
+	function get_files_status($language)
+	{
+		$out = array();
+		$map = $this->get_english_file_map();
+		$user_data = $this->ci->config->item('userdata_path');
+
+		foreach ($map as $base => $filename) {
+			$en = $this->get_translations_array(APPPATH . 'language/english/' . $filename);
+			if (! is_array($en) || empty($en)) {
+				$out[$base] = array(
+					'complete' => true,
+					'total' => 0,
+					'translated' => 0,
+					'missing' => 0,
+					'has_userdata' => false,
+				);
+				continue;
+			}
+
+			$effective = $this->get_effective_translations($language, $base);
+			$translated = 0;
+			foreach ($en as $key => $en_val) {
+				$val = array_key_exists($key, $effective) ? $effective[$key] : '';
+				if (! $this->is_missing_value(is_string($val) || is_numeric($val) ? (string) $val : '')) {
+					$translated++;
+				}
+			}
+			$total = count($en);
+			$missing = $total - $translated;
+			$has_userdata = ! empty($user_data)
+				&& file_exists($user_data . '/language/' . $language . '/' . $filename);
+
+			$out[$base] = array(
+				'complete' => $missing === 0,
+				'total' => $total,
+				'translated' => $translated,
+				'missing' => $missing,
+				'has_userdata' => $has_userdata,
+			);
+		}
+
+		return $out;
+	}
+
+
+	/**
+	 * Entries for one language file (English + effective translation).
+	 *
+	 * @param  string $language
+	 * @param  string $file_base
+	 * @return array|false
+	 */
+	function get_file_entries($language, $file_base)
+	{
+		$en = $this->get_english_translations($file_base);
+		if ($en === false) {
+			return false;
+		}
+
+		$effective = $this->get_effective_translations($language, $file_base);
+		$entries = array();
+		foreach ($en as $key => $english) {
+			$translation = array_key_exists($key, $effective)
+				? (string) $effective[$key]
+				: '';
+			$entries[] = array(
+				'key' => (string) $key,
+				'english' => (string) $english,
+				'translation' => $translation,
+				'missing' => $this->is_missing_value($translation),
+			);
+		}
+
+		$user_data = $this->ci->config->item('userdata_path');
+		$filename = $file_base . '_lang.php';
+		$has_userdata = ! empty($user_data)
+			&& file_exists($user_data . '/language/' . $language . '/' . $filename);
+
+		return array(
+			'file' => $file_base,
+			'language' => $language,
+			'path' => $this->translation_file_path($language, $file_base, true),
+			'has_userdata' => $has_userdata,
+			'entries' => $entries,
+		);
+	}
+
+
+	/**
+	 * Search keys / English / translations across all files.
+	 *
+	 * @param  string $language
+	 * @param  string $q
+	 * @param  bool   $only_missing
+	 * @param  int    $limit
+	 * @return array  ['results'=>[], 'truncated'=>bool, 'limit'=>int]
+	 */
+	function search_language($language, $q = '', $only_missing = false, $limit = 500)
+	{
+		$q = mb_substr(trim((string) $q), 0, 100);
+		$limit = max(1, min(2000, (int) $limit));
+		$results = array();
+		$truncated = false;
+		$map = $this->get_english_file_map();
+
+		foreach ($map as $base => $filename) {
+			$en = $this->get_translations_array(APPPATH . 'language/english/' . $filename);
+			if (! is_array($en)) {
+				continue;
+			}
+			$tr = $this->get_effective_translations($language, $base);
+
+			foreach ($en as $key => $en_value) {
+				$tr_value = array_key_exists($key, $tr) ? (string) $tr[$key] : '';
+				$en_value = (string) $en_value;
+				$is_missing = $this->is_missing_value($tr_value);
+
+				if ($only_missing && ! $is_missing) {
+					continue;
+				}
+
+				if ($q !== ''
+					&& mb_stripos((string) $key, $q) === false
+					&& mb_stripos($en_value, $q) === false
+					&& mb_stripos($tr_value, $q) === false
+				) {
+					continue;
+				}
+
+				if (count($results) >= $limit) {
+					$truncated = true;
+					break 2;
+				}
+
+				$results[] = array(
+					'file' => $base,
+					'key' => (string) $key,
+					'english' => $en_value,
+					'translation' => $tr_value,
+					'missing' => $is_missing,
+				);
+			}
+		}
+
+		return array(
+			'results' => $results,
+			'truncated' => $truncated,
+			'limit' => $limit,
+		);
+	}
+
+
+	/**
+	 * Recursively delete a directory.
+	 *
+	 * @param  string $dir
+	 * @return bool
+	 */
+	function _delete_directory($dir)
+	{
+		if (! is_dir($dir)) {
+			return false;
+		}
+		$items = scandir($dir);
+		if ($items === false) {
+			return false;
+		}
+		foreach ($items as $item) {
+			if ($item === '.' || $item === '..') {
+				continue;
+			}
+			$path = $dir . '/' . $item;
+			if (is_dir($path)) {
+				if (! $this->_delete_directory($path)) {
+					return false;
+				}
+			}
+			elseif (! @unlink($path)) {
+				return false;
+			}
+		}
+		return @rmdir($dir);
 	}
 
 
@@ -287,7 +742,7 @@ class Translator{
 	 */
 	function create_language($lang)
 	{
-		if (!preg_match('/^[a-z][a-z0-9_]{1,29}$/', $lang))
+		if (! $this->is_valid_language_name($lang))
 		{
 			return array('type' => 'error', 'msg' => 'Invalid language name. Use lowercase letters, digits and underscores only (2–30 characters).');
 		}
@@ -378,7 +833,13 @@ class Translator{
 			}
 			else
 			{
-				$translated += count(array_intersect_key($lang_data, $en_data));
+				foreach ($en_data as $key => $en_val)
+				{
+					if (array_key_exists($key, $lang_data) && ! $this->is_missing_value((string) $lang_data[$key]))
+					{
+						$translated++;
+					}
+				}
 			}
 		}
 
@@ -668,14 +1129,8 @@ class Translator{
 				continue;
 			}
 
-			// Generate PHP file content
-			$php = "<?php\n";
-			foreach ($filtered as $key => $value)
-			{
-				$php .= '$lang[\'' . addslashes($key) . '\'] = \'' . addslashes($value) . '\';' . "\n";
-			}
-
 			$dest = $lang_folder . '/' . $en_basenames[$base];
+			$file_base = str_replace('_lang.php', '', $en_basenames[$base]);
 
 			// Backup existing file before overwriting
 			if (file_exists($dest))
@@ -683,6 +1138,7 @@ class Translator{
 				@copy($dest, $dest . '.bak');
 			}
 
+			$php = $this->generate_php_content($filtered, $file_base, $language);
 			if (@file_put_contents($dest, $php) === false)
 			{
 				$skipped[] = $name . ' (write failed)';
