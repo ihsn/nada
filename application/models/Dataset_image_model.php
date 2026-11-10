@@ -48,6 +48,9 @@ class Dataset_image_model extends Dataset_model {
 		if($dataset_id>0 && isset($options['overwrite']) && $options['overwrite']!=='yes'){
 			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$dataset_id);
         }
+
+        //IDNO must be URL-safe (unchanged IDNOs on existing studies are allowed)
+        $this->validate_idno_format($core_fields['idno'], $dataset_id);
         
         //fields to be stored as metadata
         $study_metadata_sections=array('metadata_information','image_description','files','provenance','embeddings','lda_topics','tags','additional');
@@ -115,6 +118,9 @@ class Dataset_image_model extends Dataset_model {
 		if(is_numeric($new_id) && $sid!=$new_id ){
 			throw new ValidationException("VALIDATION_ERROR", "IDNO matches an existing dataset: ".$new_id.':'.$core_fields['idno']);
         }                
+
+        //IDNO must be URL-safe (unchanged IDNOs on existing studies are allowed)
+        $this->validate_idno_format($core_fields['idno'], $sid);
 
         $options['changed']=date("U");
         

@@ -38,6 +38,9 @@ class Dataset_script_model extends Dataset_model {
 		if($dataset_id>0 && isset($options['overwrite']) && $options['overwrite']!=='yes'){
 			throw new ValidationException("VALIDATION_ERROR", "IDNO already exists. ".$dataset_id);
         }
+
+        //IDNO must be URL-safe (unchanged IDNOs on existing studies are allowed)
+        $this->validate_idno_format($core_fields['idno'], $dataset_id);
         
         //fields to be stored as metadata
         $study_metadata_sections=array('doc_desc','project_desc','provenance','datacite','tags','additional');

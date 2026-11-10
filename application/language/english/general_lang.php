@@ -176,6 +176,7 @@ $lang['home_ai_assisted']="AI-assisted";
 $lang['home_semantic_hint']="Search in your own words. No exact keywords needed.";
 $lang['home_semantic_hint_multilingual']="Search in your own words, in most major languages.";
 $lang['site_notice_explore_demo']="Explore Demo";
+$lang['idno_invalid_format']="Invalid IDNO. The IDNO can only contain letters, numbers, periods, hyphens, and underscores, must start with a letter or number, and be at most 200 characters";
 
 /* End of file general_lang.php */
 /* Location: ./application/language/english/general_lang.php */

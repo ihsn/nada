@@ -77,6 +77,9 @@ class Dataset_document_model extends Dataset_model {
             }
         }
 
+        //IDNO must be URL-safe (unchanged IDNOs on existing studies are allowed)
+        $this->validate_idno_format($core_fields['idno'], $dataset_id);
+
         $options['changed']=date("U");
         
         //fields to be stored as metadata

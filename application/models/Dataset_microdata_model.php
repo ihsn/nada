@@ -93,6 +93,12 @@ class Dataset_microdata_model extends Dataset_model {
             }
         }
 
+        //IDNO must be URL-safe (unchanged IDNOs on existing studies are allowed)
+        $this->validate_idno_format($core_fields['idno'], $dataset_id);
+
+        //validate alternative IDNOs (added as aliases after save) before writing anything
+        $this->validate_survey_aliases($dataset_id, $alternative_idnos);
+
         $options['changed']=date("U");
 		
         $study_metadata_sections=array('doc_desc','study_desc','provenance','datacite','tags','additional');

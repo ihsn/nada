@@ -105,18 +105,17 @@ class DDI2_Import{
             throw new Exception('CODEBOOK_IDNO_MISSING');
         }
 
-        //sanitize ID to remove anything except a-Z1-9 characters
-        /*if ($idno!==$this->sanitize_filename($idno)){
-            throw new Exception(t('IDNO_INVALID_FORMAT').': '.$idno);
-        }*/       
-
         //check if the study already exists, find the sid
         $found_by_idno=false;
         if (!$sid){
             $sid=$this->ci->dataset_manager->find_by_idno($idno);
             $this->sid=$sid;
             $found_by_idno=!empty($sid);
-        }        
+        }
+
+        //IDNO must be URL-safe; check before any files/folders are written
+        $this->ci->load->model('Dataset_model');
+        $this->ci->Dataset_model->validate_idno_format($idno, $sid);
 
         //study found
 		if ($sid){

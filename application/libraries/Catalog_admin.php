@@ -456,11 +456,9 @@ class Catalog_Admin
         $new_idno  = $reader->get_study_IDNO();
         $reader    = null;
 		 
-		 //sanitize ID to remove anything except a-Z1-9 characters
-		 /*if ($new_idno!==$this->sanitize_filename($new_idno)){
-			 throw new Exception(t('IDNO_INVALID_FORMAT').': '.$new_idno);
-		 }*/
- 
+		//IDNO must be URL-safe (also used as the DDI filename below)
+		$this->ci->Dataset_model->validate_idno_format($new_idno, $sid);
+
 		 //check if the study already exists, find the sid		
 		$new_ddi_sid=$this->ci->dataset_manager->find_by_idno($new_idno);
 

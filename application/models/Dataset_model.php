@@ -2027,8 +2027,13 @@ class Dataset_model extends CI_Model {
 	*
 	* @options - array()
 	*/
-	function update_options($sid,$options)	
+	function update_options($sid,$options)
 	{
+		//IDNO must be URL-safe (unchanged IDNOs on existing studies are allowed)
+		if (array_key_exists('idno',$options)){
+			$this->validate_idno_format($options['idno'], $sid);
+		}
+
 		$data=array();
 
 		foreach($options as $key=>$value){
@@ -2650,23 +2655,52 @@ class Dataset_model extends CI_Model {
             return;
         }
 
-		// Get the main IDNO for this dataset to avoid creating duplicate aliases
-		$main_idno = $this->get_idno($sid);
+		// validate all before inserting any, so a bad alias does not leave a partial set
+		$new_aliases = $this->validate_survey_aliases($sid, $aliases);
 
+		foreach($new_aliases as $alias){
+			$options = array(
+				'sid'  => $sid,
+				'alternate_id' => $alias,
+			);
+			$this->Survey_alias_model->insert($options);
+		}
+	}
+
+
+	/**
+	 * Validate IDNO format for aliases that would be added to a study
+	 *
+	 * Skips empty values, the study's main IDNO and aliases that already exist.
+	 * Returns the list of aliases to insert; throws ValidationException on invalid format.
+	 */
+	function validate_survey_aliases($sid, $aliases=array())
+	{
+		$this->load->model("Survey_alias_model");
+
+		if (!is_array($aliases)){
+			return array();
+		}
+
+		// Get the main IDNO for this dataset to avoid creating duplicate aliases
+		$main_idno = !empty($sid) ? $this->get_idno($sid) : false;
+
+		$new_aliases = array();
 		foreach($aliases as $alias){
 			// Skip if alias is empty or same as main IDNO
 			if(empty($alias) || $alias === $main_idno) {
 				continue;
 			}
 
-			if (!$this->Survey_alias_model->id_exists($alias)){
-				$options = array(
-					'sid'  => $sid,
-					'alternate_id' => $alias,
-				);
-				$this->Survey_alias_model->insert($options);
+			if ($this->Survey_alias_model->id_exists($alias)){
+				continue;
 			}
+
+			$this->validate_idno_format($alias);
+			$new_aliases[] = $alias;
 		}
+
+		return $new_aliases;
 	}
 
     
@@ -2762,22 +2796,46 @@ class Dataset_model extends CI_Model {
 	}
 
 
-	//validate survey IDNO
-	public function validate_survey_idno($idno)
-	{	
-		$sid=null;
-		if(array_key_exists('sid',$this->form_validation->validation_data)){
-			$sid=$this->form_validation->validation_data['sid'];
-		}
-
-		//check if the survey id already exists
-		$id=$this->find_by_idno($idno);	
-
-		if (is_numeric($id) && $id!=$sid ) {
-			$this->form_validation->set_message(__FUNCTION__, 'The ID should be unique.' );
+	/**
+	 * Check that an IDNO uses only URL-safe characters.
+	 *
+	 * IDNOs are used as URL path segments (e.g. /api/catalog/ddi/{idno}, /catalog/{idno}),
+	 * so characters such as "/", spaces, "?", "#" or "&" break routing.
+	 *
+	 * Allowed: letters, digits, period, hyphen, underscore; must start with a letter or digit
+	 * (blocks ".", ".." and option-like values); max 200 characters (surveys.idno column size).
+	 */
+	public function is_valid_idno_format($idno)
+	{
+		if (!is_string($idno) && !is_int($idno)) {
 			return false;
 		}
-		return true;
+
+		return preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/', (string)$idno) === 1;
+	}
+
+
+	/**
+	 * Validate IDNO format; throws ValidationException if invalid.
+	 *
+	 * @idno - IDNO to validate
+	 * @sid - (optional) existing study ID; if the IDNO is unchanged from what is stored
+	 *        for this study, it is accepted as-is so existing studies remain editable.
+	 */
+	public function validate_idno_format($idno, $sid = null)
+	{
+		if ($this->is_valid_idno_format($idno)) {
+			return true;
+		}
+
+		if (!empty($sid) && (string)$this->get_idno($sid) === (string)$idno) {
+			return true;
+		}
+
+		$this->lang->load('general');
+		$message = t('idno_invalid_format') . ': ' . (is_scalar($idno) ? (string)$idno : '');
+
+		throw new ValidationException('VALIDATION_ERROR: ' . $message, array('idno' => $message));
 	}
 
 
@@ -2812,52 +2870,6 @@ class Dataset_model extends CI_Model {
 		}
 		return true;
 	}
-
-	/**
-	 * 
-	 * 
-	 * Validate survey
-	 * @options - array of survey fields
-	 * @is_new - boolean - new survey or updating and existing survey
-	 * 
-	 **/
-	function validate($type,$options,$is_new=true)
-	{				
-		$this->form_validation->reset_validation();
-		$this->form_validation->set_data($options);
-	
-		//validation rules for a new record
-		if($is_new){				
-			#$this->form_validation->set_rules('title', 'Title', 'required|xss_clean|trim|max_length[255]');	
-			$this->form_validation->set_rules('repositoryid', 'Collection ID', 'required|xss_clean|trim|max_length[25]');	
-			#$this->form_validation->set_rules('nation', 'Country name', 'required|xss_clean|trim|max_length[255]');	
-			#$this->form_validation->set_rules('year', 'year', 'required|is_numeric|xss_clean|trim|max_length[4]');	
-
-			
-			//survey idno validation rule
-			$this->form_validation->set_rules(
-				'idno', 
-				'IDNO',
-				array(
-					"required",
-					"alpha_dash",
-					"max_length[200]",
-					"xss_clean",
-					array('validate_survey_idno',array($this, 'validate_survey_idno')),				
-				)		
-			);
-		}
-		
-		if ($this->form_validation->run() == TRUE){
-			return TRUE;
-		}
-		
-		//failed
-		$errors=$this->form_validation->error_array();
-		$error_str=$this->form_validation->error_array_to_string($errors);
-		throw new ValidationException("VALIDATION_ERROR: ".$error_str, $errors);
-	}
-
 
 	/**
 	 * 
