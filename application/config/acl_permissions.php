@@ -164,6 +164,10 @@ $config['acl_permissions'] = [
         "permissions"=>[
             [
                 "permission" => "view"
+            ],
+            [
+                "permission" => "edit",
+                "description" => "Run analytics aggregation and import legacy totals"
             ]
         ]
     ],
@@ -276,11 +280,11 @@ $config['acl_permissions'] = [
             ],
             [
                 "permission" => "create",
-                "description" => "Create codelists and versions"
+                "description" => "Create codelists and versions, and import codelists"
             ],
             [
                 "permission" => "edit",
-                "description" => "Edit codelists, items, groups, and import"
+                "description" => "Edit codelists, items, groups, translations, restore from seed, and overwrite on import"
             ],
             [
                 "permission" => "delete",
@@ -302,7 +306,7 @@ $config['acl_permissions'] = [
             ],
             [
                 "permission" => "edit",
-                "description" => "Update, import, export, and manage components"
+                "description" => "Update, import, and manage components (import also needs codelist create, and codelist edit when overwriting codelists)"
             ],
             [
                 "permission" => "delete",
@@ -324,7 +328,7 @@ $config['acl_permissions'] = [
             ],
             [
                 "permission" => "edit",
-                "description" => "Update templates, translations, defaults, import, and export"
+                "description" => "Update templates, translations, defaults, and import"
             ],
             [
                 "permission" => "delete",
@@ -427,6 +431,20 @@ $config['acl_permissions'] = [
             [
                 "permission" => "download",
                 "description" => "Download files from filestore"
+            ]
+        ]
+    ],
+    "logs"=>[
+        "title" => "Site and API logs",
+        "description" => "Browse site and API logs, and archive old log entries",
+        "permissions"=>[
+            [
+                "permission" => "view",
+                "description" => "Browse site logs, API logs, and log table statistics"
+            ],
+            [
+                "permission" => "cleanup",
+                "description" => "Export old log entries to CSV and delete them from the database"
             ]
         ]
     ],

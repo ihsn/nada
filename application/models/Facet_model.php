@@ -460,7 +460,7 @@ class Facet_model extends CI_Model {
 		$this->db->order_by('id ASC');
 
 		if ($start_row){
-			$this->db->where("id >",$start_row,false);
+			$this->db->where("id >", (int) $start_row);
 		}
 
 	  	$rows=$this->db->get("surveys")->result_array();

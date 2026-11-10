@@ -8,7 +8,7 @@ window.APP_CONFIG = {
     siteUrl:         "<?php echo addslashes($site_url); ?>",
     baseUrl:         "<?php echo addslashes($base_url); ?>",
     apiBaseUrl:      "<?php echo addslashes($api_base_url); ?>",
-    filestoreApiUrl: "<?php echo addslashes(isset($filestore_api_url) ? $filestore_api_url : site_url('api/filestore')); ?>",
+    filestoreApiUrl: "<?php echo addslashes(isset($filestore_api_url) ? $filestore_api_url : site_url('api/admin/filestore')); ?>",
     filesPublicUrl:  "<?php echo addslashes(isset($files_public_url) ? $files_public_url : base_url('files/public')); ?>",
     assetsBase:      "<?php echo addslashes(isset($assets_base) ? $assets_base : base_url('frontend/dist/')); ?>",
     csrfToken:       "<?php echo addslashes($csrf_token); ?>",

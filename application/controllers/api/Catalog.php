@@ -549,7 +549,7 @@ class Catalog extends MY_REST_Controller
 				throw new Exception("REPOSITORY-NOT-FOUND");
 			}
 
-			$datasets=$this->Repository_model->get_all_repo_studies($repo_id);
+			$datasets=$this->Repository_model->get_all_repo_studies($repo_id, 1);
 
 			$response=array(
 				'status'=>'success',

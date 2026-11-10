@@ -8,7 +8,7 @@ require(APPPATH . '/libraries/MY_REST_Controller.php');
  *
  * REST API for managing menu items.
  * Base URL: /api/admin/menu
- * Auth: session or API key; ACL via menu/* (see constructor).
+ * Auth: session or API key; each endpoint checks its menu/* privilege.
  */
 class Menu extends MY_REST_Controller {
 
@@ -18,34 +18,6 @@ class Menu extends MY_REST_Controller {
 		$this->is_authenticated_or_die();
 		$this->load->helper('url');
 		$this->load->model('Menu_model');
-		$this->_apply_menu_acl();
-	}
-
-	private function _apply_menu_acl()
-	{
-		$method = strtolower((string) $this->router->fetch_method());
-		if ($method === '' || $method === 'index') {
-			return;
-		}
-		if ($method === 'index_get' || $method === 'item_get' || $method === 'parents_get') {
-			$this->require_access('menu', 'view');
-			return;
-		}
-		if (preg_match('/delete/', $method)) {
-			$this->require_access('menu', 'delete');
-			return;
-		}
-		if ($method === 'publish_post' || $method === 'batch_publish_post') {
-			$this->require_access('menu', 'publish');
-			return;
-		}
-		if ($method === 'index_post') {
-			$this->require_access('menu', 'create');
-			return;
-		}
-		if (preg_match('/_(post|put)$/', $method)) {
-			$this->require_access('menu', 'edit');
-		}
 	}
 
 	/**
@@ -53,6 +25,8 @@ class Menu extends MY_REST_Controller {
 	 */
 	public function index_get()
 	{
+		$this->require_access('menu', 'view');
+
 		try {
 			$menus = $this->Menu_model->get_menu_tree_array();
 			$this->response(array('status' => 'success', 'menus' => $menus), REST_Controller::HTTP_OK);
@@ -66,6 +40,8 @@ class Menu extends MY_REST_Controller {
 	 */
 	public function item_get($id = null)
 	{
+		$this->require_access('menu', 'view');
+
 		try {
 			$id = (int) $id;
 			if ($id <= 0) {
@@ -91,6 +67,8 @@ class Menu extends MY_REST_Controller {
 	 */
 	public function parents_get()
 	{
+		$this->require_access('menu', 'view');
+
 		try {
 			$exclude = $this->get('exclude_id');
 			$exclude = is_numeric($exclude) ? (int) $exclude : NULL;
@@ -106,6 +84,8 @@ class Menu extends MY_REST_Controller {
 	 */
 	public function index_post()
 	{
+		$this->require_access('menu', 'create');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!is_array($input)) {
@@ -134,6 +114,7 @@ class Menu extends MY_REST_Controller {
 	 */
 	public function item_post($id = null)
 	{
+		$this->require_access('menu', 'edit');
 		return $this->_update_item($id);
 	}
 
@@ -142,6 +123,7 @@ class Menu extends MY_REST_Controller {
 	 */
 	public function item_put($id = null)
 	{
+		$this->require_access('menu', 'edit');
 		return $this->_update_item($id);
 	}
 
@@ -182,18 +164,27 @@ class Menu extends MY_REST_Controller {
 	}
 
 	/**
-	 * POST /api/admin/menu/{id}/delete — POST alias for menu_delete
+	 * POST /api/admin/menu/menu_delete/{id} — POST alias for menu_delete
 	 */
-	public function menu_delete_post($id)
+	public function menu_delete_post($id = null)
 	{
-		return $this->menu_delete($id);
+		$this->require_access('menu', 'delete');
+		return $this->_delete_item($id);
 	}
 
 	/**
-	 * DELETE /api/admin/menu/{id} — delete a menu item
+	 * DELETE /api/admin/menu/menu/{id} — delete a menu item
+	 */
+	public function menu_delete($id = null)
+	{
+		$this->require_access('menu', 'delete');
+		return $this->_delete_item($id);
+	}
+
+	/**
 	 * Re-parents children to pid=0 first, then deletes the item.
 	 */
-	public function menu_delete($id)
+	private function _delete_item($id)
 	{
 		try {
 			$id = (int) $id;
@@ -219,8 +210,10 @@ class Menu extends MY_REST_Controller {
 	/**
 	 * POST /api/admin/menu/{id}/publish — toggle publish state
 	 */
-	public function publish_post($id)
+	public function publish_post($id = null)
 	{
+		$this->require_access('menu', 'publish');
+
 		try {
 			$id = (int) $id;
 			if ($id <= 0) {
@@ -246,6 +239,8 @@ class Menu extends MY_REST_Controller {
 	 */
 	public function batch_delete_post()
 	{
+		$this->require_access('menu', 'delete');
+
 		try {
 			$input = $this->raw_json_input();
 			$ids   = $this->_parse_id_list(is_array($input) ? $input : array());
@@ -280,6 +275,8 @@ class Menu extends MY_REST_Controller {
 	 */
 	public function batch_publish_post()
 	{
+		$this->require_access('menu', 'publish');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!is_array($input)) {
@@ -339,6 +336,8 @@ class Menu extends MY_REST_Controller {
 	 */
 	public function reorder_post()
 	{
+		$this->require_access('menu', 'edit');
+
 		try {
 			$data = json_decode($this->input->raw_input_stream, true);
 

@@ -106,6 +106,7 @@ $lang['analytics_run_full'] = "Ejecutar la agregación completa";
 $lang['analytics_run_description'] = "Detecta automáticamente las fechas que faltan y ejecuta todos los pasos";
 $lang['analytics_stop_aggregation'] = "Detener la agregación";
 $lang['analytics_cancel_run'] = "Cancelar la ejecución actual";
+$lang['analytics_run_requires_edit'] = "Ejecutar la agregación requiere el permiso de edición de informes.";
 $lang['analytics_how_aggregation'] = "Cómo funciona la agregación";
 $lang['analytics_how_daily_title'] = "Diaria:";
 $lang['analytics_how_daily'] = "Completa los agregados diarios que faltan a partir de los eventos sin procesar, hasta ayer.";

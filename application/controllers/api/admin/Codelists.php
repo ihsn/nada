@@ -8,7 +8,7 @@ require(APPPATH . '/libraries/MY_REST_Controller.php');
  *
  * REST API for managing codelists, items, item translations, groups, group items, group translations.
  * Base URL: /api/admin/codelists
- * Auth: session or API key (is_authenticated_or_die).
+ * Auth: session or API key; each endpoint checks its `codelist/*` privilege.
  */
 class Codelists extends MY_REST_Controller {
 
@@ -19,30 +19,6 @@ class Codelists extends MY_REST_Controller {
 		$this->load->model('Codelist_model');
 		$this->load->model('Codelist_item_model');
 		$this->load->model('Codelist_group_model');
-		$this->_apply_codelist_acl();
-	}
-
-	private function _apply_codelist_acl()
-	{
-		$method = strtolower((string) $this->router->fetch_method());
-		if ($method === '' || $method === 'index') {
-			return;
-		}
-		if (preg_match('/_get$/', $method)) {
-			$this->require_access('codelist', 'view');
-			return;
-		}
-		if (preg_match('/delete/', $method)) {
-			$this->require_access('codelist', 'delete');
-			return;
-		}
-		if ($method === 'index_post') {
-			$this->require_access('codelist', 'create');
-			return;
-		}
-		if (preg_match('/_(post|put)$/', $method)) {
-			$this->require_access('codelist', 'edit');
-		}
 	}
 
 	/**
@@ -59,6 +35,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function index_get()
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$with_counts = $this->get('with_counts') !== '0' && $this->get('with_counts') !== false;
 			$flat = $this->_codelists_catalog_flat_mode();
@@ -136,6 +114,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function versions_get($name)
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$agency = $this->get('agency');
 			$rows    = $this->Codelist_model->get_codelist_versions($name, $agency ?: null);
@@ -156,6 +136,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function index_post()
 	{
+		$this->require_access('codelist', 'create');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -182,6 +164,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function by_name_get($name)
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$agency  = $this->get('agency');
 			$version = $this->get('version');
@@ -212,6 +196,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function by_idno_get($idno = null)
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$idno = $idno !== null ? rawurldecode($idno) : '';
 			if ($idno === '') {
@@ -245,6 +231,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function item_get($id)
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$id = (int) $id;
 			$codelist = $this->Codelist_model->get_codelist_by_id($id);
@@ -286,6 +274,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function item_restore_post($id)
 	{
+		$this->require_access('codelist', 'edit');
+
 		try {
 			$id = (int) $id;
 			$codelist = $this->Codelist_model->get_codelist_by_id($id);
@@ -471,6 +461,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function item_put($id)
 	{
+		$this->require_access('codelist', 'edit');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -499,6 +491,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function item_delete($id)
 	{
+		$this->require_access('codelist', 'delete');
+
 		try {
 			$this->Codelist_model->delete_codelist($id);
 			$this->set_response([
@@ -521,6 +515,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function batch_delete_post()
 	{
+		$this->require_access('codelist', 'delete');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -591,6 +587,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function item_items_get($codelist_id)
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$cid = (int) $codelist_id;
 			$view_flat = strtolower((string) $this->get('view')) === 'flat';
@@ -708,6 +706,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function item_items_post($codelist_id)
 	{
+		$this->require_access('codelist', 'edit');
+
 		try {
 			$this->_assert_codelist_mutable((int) $codelist_id);
 			$input = $this->raw_json_input();
@@ -733,6 +733,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function items_get($item_id)
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$row = $this->Codelist_item_model->get_item_by_id((int) $item_id, true);
 			if (!$row) {
@@ -756,6 +758,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function items_put($item_id)
 	{
+		$this->require_access('codelist', 'edit');
+
 		try {
 			$this->_assert_item_codelist_mutable((int) $item_id);
 			$input = $this->raw_json_input();
@@ -785,6 +789,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function items_delete($item_id)
 	{
+		$this->require_access('codelist', 'delete');
+
 		try {
 			$this->_assert_item_codelist_mutable((int) $item_id);
 			$this->Codelist_item_model->delete_item((int) $item_id);
@@ -806,6 +812,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function items_translations_get($item_id)
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$item = $this->Codelist_item_model->get_item_by_id((int) $item_id, false);
 			if (!$item) {
@@ -830,6 +838,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function items_translations_post($item_id)
 	{
+		$this->require_access('codelist', 'edit');
+
 		try {
 			$this->_assert_item_codelist_mutable((int) $item_id);
 			$input = $this->raw_json_input();
@@ -859,6 +869,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function items_translation_delete($item_id, $lang)
 	{
+		$this->require_access('codelist', 'delete');
+
 		try {
 			$this->_assert_item_codelist_mutable((int) $item_id);
 			$this->Codelist_item_model->delete_item_translation((int) $item_id, $lang);
@@ -883,6 +895,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function item_groups_get($codelist_id)
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$cid = (int) $codelist_id;
 			$page_raw = $this->get('page');
@@ -934,6 +948,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function item_groups_post($codelist_id)
 	{
+		$this->require_access('codelist', 'edit');
+
 		try {
 			$this->_assert_codelist_mutable((int) $codelist_id);
 			$input = $this->raw_json_input();
@@ -959,6 +975,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function groups_get($group_id)
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$row = $this->Codelist_group_model->get_group_by_id((int) $group_id, true, true);
 			if (!$row) {
@@ -982,6 +1000,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function groups_put($group_id)
 	{
+		$this->require_access('codelist', 'edit');
+
 		try {
 			$this->_assert_group_codelist_mutable((int) $group_id);
 			$input = $this->raw_json_input();
@@ -1011,6 +1031,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function groups_delete($group_id)
 	{
+		$this->require_access('codelist', 'delete');
+
 		try {
 			$this->_assert_group_codelist_mutable((int) $group_id);
 			$this->Codelist_group_model->delete_group((int) $group_id);
@@ -1032,6 +1054,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function groups_items_post($group_id)
 	{
+		$this->require_access('codelist', 'edit');
+
 		try {
 			$this->_assert_group_codelist_mutable((int) $group_id);
 			$input = $this->raw_json_input();
@@ -1061,6 +1085,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function groups_items_remove_delete($group_id, $item_id)
 	{
+		$this->require_access('codelist', 'delete');
+
 		try {
 			$this->_assert_group_codelist_mutable((int) $group_id);
 			$this->Codelist_group_model->remove_group_item((int) $group_id, (int) $item_id);
@@ -1095,6 +1121,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function import_json_post()
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -1110,6 +1138,12 @@ class Codelists extends MY_REST_Controller {
 
 			$overwrite = $this->_boolish($input['overwrite'] ?? null, false);
 			$dryRun    = $this->_boolish($input['dry_run'] ?? null, false);
+			if (!$dryRun) {
+				$this->require_access('codelist', 'create');
+				if ($overwrite) {
+					$this->require_access('codelist', 'edit');
+				}
+			}
 
 			$summary = $this->_import_single_codelist_from_json_payload($payload, $overwrite, $dryRun);
 			if ($dryRun) {
@@ -1306,6 +1340,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function groups_translations_get($group_id)
 	{
+		$this->require_access('codelist', 'view');
+
 		try {
 			$group = $this->Codelist_group_model->get_group_by_id((int) $group_id, false, false);
 			if (!$group) {
@@ -1330,6 +1366,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function groups_translations_post($group_id)
 	{
+		$this->require_access('codelist', 'edit');
+
 		try {
 			$this->_assert_group_codelist_mutable((int) $group_id);
 			$input = $this->raw_json_input();
@@ -1359,6 +1397,8 @@ class Codelists extends MY_REST_Controller {
 	 */
 	public function groups_translation_delete($group_id, $lang)
 	{
+		$this->require_access('codelist', 'delete');
+
 		try {
 			$this->_assert_group_codelist_mutable((int) $group_id);
 			$this->Codelist_group_model->delete_group_translation((int) $group_id, $lang);

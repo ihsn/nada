@@ -12,7 +12,7 @@
         <span v-if="lastCompletedAt">{{ formatDateTime(lastCompletedAt, timezone) }}</span>
         <span v-else class="text-medium-emphasis">{{ t('analytics_never', 'Never') }}</span>
       </div>
-      <AggregationControlsCard :running="running" @run="runFull" @stop="stop" />
+      <AggregationControlsCard :running="running" :can-run="canRun" @run="runFull" @stop="stop" />
       <AggregationStatusCard :status="status" />
       <CronInstructionsCard />
     </v-card-text>
@@ -35,6 +35,7 @@ defineOptions({ name: 'AggregationsPage' });
 const { config } = useAppConfig();
 const { t } = useI18n();
 const timezone = computed(() => config.value?.serverTimezone || 'UTC');
+const canRun = computed(() => config.value?.canRunAggregation === true);
 
 const { running, status, lastCompletedAt, runFull, stop } = useAggregationRunner();
 </script>

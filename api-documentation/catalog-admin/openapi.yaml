@@ -1893,7 +1893,7 @@ paths:
   # Filestore
   # ----------------------------------------------------------------
 
-  /filestore:
+  /admin/filestore:
     get:
       tags:
         - Filestore
@@ -1947,7 +1947,7 @@ paths:
         '200':
           description: Successful operation
 
-  /filestore/download/{fileName}:
+  /admin/filestore/download/{fileName}:
     get:
       tags:
         - Filestore

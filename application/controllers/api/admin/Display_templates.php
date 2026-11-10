@@ -17,30 +17,6 @@ class Display_templates extends MY_REST_Controller {
 		$this->load->model('Display_template_model');
 		$this->load->library('Display_template_validator');
 		$this->load->helper('display_template');
-		$this->_apply_display_template_acl();
-	}
-
-	private function _apply_display_template_acl()
-	{
-		$method = strtolower((string) $this->router->fetch_method());
-		if ($method === '' || $method === 'index') {
-			return;
-		}
-		if (preg_match('/_get$/', $method)) {
-			$this->require_access('display_template', 'view');
-			return;
-		}
-		if (preg_match('/delete/', $method)) {
-			$this->require_access('display_template', 'delete');
-			return;
-		}
-		if ($method === 'index_post') {
-			$this->require_access('display_template', 'create');
-			return;
-		}
-		if (preg_match('/_(post|put)$/', $method)) {
-			$this->require_access('display_template', 'edit');
-		}
 	}
 
 	/**
@@ -48,6 +24,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function index_get()
 	{
+		$this->require_access('display_template', 'view');
+
 		try {
 			$data_type = $this->get('data_type');
 			$status = $this->get('status');
@@ -69,6 +47,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function item_get($uid = null)
 	{
+		$this->require_access('display_template', 'view');
+
 		try {
 			$template = $this->Display_template_model->get_template_by_uid($uid);
 			if (!$template) {
@@ -105,6 +85,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function cores_get()
 	{
+		$this->require_access('display_template', 'view');
+
 		try {
 			$data_type = $this->get('data_type');
 			$cores = $this->Display_template_model->get_core_templates_by_type($data_type ?: null);
@@ -130,6 +112,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function core_get($identifier = null)
 	{
+		$this->require_access('display_template', 'view');
+
 		try {
 			$core = $this->Display_template_model->get_core_template_by_uid($identifier);
 			if (!$core) {
@@ -163,6 +147,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function index_post()
 	{
+		$this->require_access('display_template', 'create');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -188,6 +174,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function item_post($uid = null)
 	{
+		$this->require_access('display_template', 'edit');
+
 		try {
 			if ($this->Display_template_model->is_core_template_uid($uid)) {
 				throw new Exception('System core templates cannot be edited');
@@ -226,6 +214,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function delete_post($uid = null)
 	{
+		$this->require_access('display_template', 'delete');
+
 		try {
 			if ($this->Display_template_model->is_core_template_uid($uid)) {
 				throw new Exception('System core templates cannot be deleted');
@@ -253,6 +243,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function duplicate_post($uid = null)
 	{
+		$this->require_access('display_template', 'create');
+
 		try {
 			$user_id = $this->session->userdata('user_id');
 			$template = $this->Display_template_model->duplicate_template($uid, $user_id ? (int) $user_id : null);
@@ -273,6 +265,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function translations_get($uid = null)
 	{
+		$this->require_access('display_template', 'view');
+
 		try {
 			$template = $this->require_template($uid);
 			$this->set_response([
@@ -290,6 +284,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function translations_post($uid = null)
 	{
+		$this->require_access('display_template', 'edit');
+
 		try {
 			$template = $this->require_template($uid);
 			$input = $this->raw_json_input();
@@ -309,6 +305,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function translation_item_get($uid = null, $lang = null)
 	{
+		$this->require_access('display_template', 'view');
+
 		try {
 			$template = $this->require_template($uid);
 			$lang = display_template_normalize_lang($lang, true);
@@ -334,6 +332,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function translation_item_post($uid = null, $lang = null)
 	{
+		$this->require_access('display_template', 'edit');
+
 		try {
 			$template = $this->require_template($uid);
 			$input = $this->raw_json_input();
@@ -353,6 +353,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function translation_remove_post($uid = null, $lang = null)
 	{
+		$this->require_access('display_template', 'edit');
+
 		try {
 			$template = $this->require_template($uid);
 			$ok = $this->Display_template_model->delete_translation_lang((int) $template['id'], $lang);
@@ -394,6 +396,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function default_post($data_type = null, $uid = null)
 	{
+		$this->require_access('display_template', 'edit');
+
 		try {
 			$template = $this->Display_template_model->get_template_by_uid($uid);
 			if (!$template) {
@@ -431,6 +435,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function import_post()
 	{
+		$this->require_access('display_template', 'edit');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -500,6 +506,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function export_get($uid = null)
 	{
+		$this->require_access('display_template', 'view');
+
 		try {
 			$template = $this->Display_template_model->get_template_by_uid($uid);
 			if (!$template) {
@@ -526,6 +534,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function validate_post()
 	{
+		$this->require_access('display_template', 'view');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -592,6 +602,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function renderers_get()
 	{
+		$this->require_access('display_template', 'view');
+
 		try {
 			$renderers = $this->load_renderers_registry();
 			$this->set_response([
@@ -611,6 +623,8 @@ class Display_templates extends MY_REST_Controller {
 	 */
 	public function renderers_by_type_get($source_type = null)
 	{
+		$this->require_access('display_template', 'view');
+
 		try {
 			$this->load->helper('display_renderer');
 			$all = $this->load_renderers_registry();

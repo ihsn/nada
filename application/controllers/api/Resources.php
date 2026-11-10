@@ -535,13 +535,13 @@ class Resources extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($dataset_idno);
-			
-			//$this->has_dataset_access('edit',$sid);
 			$user=$this->api_user();
 
 			if(!$user){
 				throw new Exception("USER_NOT_LOGGEDIN");
 			}
+
+			$this->Survey_resource_model->require_readable_study($sid, $user->id);
 
 			if(!$resource_id){
 				throw new Exception("PARAM_NOT_SET: resource_id");

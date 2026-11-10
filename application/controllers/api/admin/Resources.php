@@ -574,8 +574,7 @@ class Resources extends MY_REST_Controller
 	{
 		try{
 			$sid=$this->get_sid_from_idno($dataset_idno);
-			
-			//$this->has_dataset_access('edit',$sid);
+			$this->has_dataset_access('view',$sid);
 			$user=$this->api_user();
 
 			if(!$user){

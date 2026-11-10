@@ -109,6 +109,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function collection_tables_get()
 	{
+		$this->require_access('table', 'view');
 		try{
 			$get_params=array();
 			parse_str($_SERVER['QUERY_STRING'], $get_params);
@@ -265,6 +266,7 @@ class Tables extends MY_REST_Controller
 	 */
 	function databases_get()
 	{
+		$this->require_access('table', 'view');
 		try{
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();

@@ -1302,6 +1302,22 @@ class Survey_resource_model extends CI_Model {
 	/**
 	 * Stream a local PDF inline (Content-Disposition: inline). Same ACL as download().
 	 */
+	/**
+	 * Files of an unpublished study are served only to an account with study view.
+	 * Everyone else gets the same error as a missing study.
+	 *
+	 * @param int      $survey_id
+	 * @param int|bool $user_id
+	 * @throws Exception DATASET_NOT_FOUND
+	 */
+	public function require_readable_study($survey_id, $user_id)
+	{
+		$this->load->library('acl_manager');
+		if (! $this->acl_manager->dataset_is_publicly_readable($survey_id, $user_id ? (int) $user_id : null)) {
+			throw new Exception('DATASET_NOT_FOUND');
+		}
+	}
+
 	function stream_pdf_inline($user, $survey_id, $resource_id)
 	{
 		$resource = $this->select_single($resource_id);
@@ -1314,11 +1330,13 @@ class Survey_resource_model extends CI_Model {
 			throw new Exception('RESOURCE_NOT_FOUND');
 		}
 
+		$user_id = isset($user->id) ? $user->id : false;
+
+		$this->require_readable_study($survey_id, $user_id);
+
 		if (! $this->is_local_pdf_resource($resource)) {
 			throw new Exception('RESOURCE_NOT_PDF_STREAMABLE');
 		}
-
-		$user_id = isset($user->id) ? $user->id : false;
 
 		$this->whitelist_stream_pdf($user_id, $survey_id, $resource);
 
@@ -1383,6 +1401,8 @@ class Survey_resource_model extends CI_Model {
 		}
 
 		$user_id=isset($user->id) ? $user->id : false;
+
+		$this->require_readable_study($survey_id, $user_id);
 		
 		$this->whitelist_download($user_id,$survey_id,$resource);
 		

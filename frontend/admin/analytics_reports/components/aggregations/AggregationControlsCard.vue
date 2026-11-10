@@ -11,7 +11,7 @@
             class="mb-2"
             prepend-icon="mdi-play-circle"
             :loading="running"
-            :disabled="running"
+            :disabled="running || !canRun"
             @click="emit('run')"
           >
             {{ t('analytics_run_full', 'Run full aggregation') }}
@@ -27,7 +27,7 @@
             block
             class="mb-2"
             prepend-icon="mdi-stop-circle"
-            :disabled="!running"
+            :disabled="!running || !canRun"
             @click="emit('stop')"
           >
             {{ t('analytics_stop_aggregation', 'Stop aggregation') }}
@@ -35,6 +35,9 @@
           <div class="text-caption text-medium-emphasis text-center">{{ t('analytics_cancel_run', 'Cancel the current run') }}</div>
         </v-col>
       </v-row>
+      <div v-if="!canRun" class="text-caption text-medium-emphasis mt-2">
+        {{ t('analytics_run_requires_edit', 'Running aggregation requires the Reports edit permission.') }}
+      </div>
     </v-card-text>
   </v-card>
 </template>
@@ -44,6 +47,7 @@ import { useI18n } from '@/shared/composables/useI18n';
 
 defineProps({
   running: { type: Boolean, default: false },
+  canRun: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['run', 'stop']);

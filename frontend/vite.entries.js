@@ -76,6 +76,8 @@ export const adminEntries = {
   admin_menu: path.resolve(__dirname, 'admin/menu/main.js'),
   admin_permissions: path.resolve(__dirname, 'admin/permissions/main.js'),
   admin_datadeposit: path.resolve(__dirname, 'admin/datadeposit/main.js'),
+  admin_logs: path.resolve(__dirname, 'admin/logs/main.js'),
+  admin_filestore: path.resolve(__dirname, 'admin/filestore/main.js'),
 };
 
 export const allEntries = {

@@ -15,6 +15,7 @@ window.APP_CONFIG = {
     serverDate: "<?php echo addslashes(isset($server_date) ? $server_date : date('Y-m-d')); ?>",
     nadaBasePath: "<?php echo addslashes(isset($nada_base_path) ? $nada_base_path : rtrim(FCPATH, '/')); ?>",
     analyticsLocale: <?php echo json_encode($analytics_locale); ?>,
+    canRunAggregation: <?php echo !empty($can_run_aggregation) ? 'true' : 'false'; ?>,
     translations: <?php echo json_encode($translations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>
 };
 </script>

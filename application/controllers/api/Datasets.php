@@ -286,6 +286,14 @@ class Datasets extends MY_REST_Controller
 			$sid=$this->get_sid_from_idno($idno);
 			$this->has_dataset_access('edit',$sid);
 
+			$linked_input = array_get_value($input,'linked_collections');
+			$this->acl_manager->check_study_collection_change_access(
+				$this->get_api_user_id(),
+				$sid,
+				array_get_value($input,'owner_collection'),
+				is_array($linked_input) ? $linked_input : null
+			);
+
 			$options=array(				
 				'repositoryid'			=> array_get_value($input,'owner_collection'),
 				'formid'				=> array_get_value($input,'access_policy'),
@@ -816,8 +824,8 @@ class Datasets extends MY_REST_Controller
 	function datafiles_get($idno=null)
 	{
 		try{
-			$this->has_dataset_access('view');
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view',$sid);
 			$user_id=$this->get_api_user_id();        
 			$survey=$this->dataset_manager->get_row($sid);
 
@@ -857,8 +865,8 @@ class Datasets extends MY_REST_Controller
 	function datafiles_post($idno=null)
 	{
 		try{
-			$this->has_dataset_access('edit');
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 
 			$options=$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
@@ -907,8 +915,8 @@ class Datasets extends MY_REST_Controller
 	function variables_get($idno=null,$file_id=null)
 	{
 		try{
-			$this->has_dataset_access('view');
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view',$sid);
 			$user_id=$this->get_api_user_id();        
 			$survey=$this->dataset_manager->get_row($sid);
 
@@ -940,13 +948,13 @@ class Datasets extends MY_REST_Controller
 	 */
 	function variable_get($idno=null,$var_id=null)
 	{
-		try{			
-			$this->has_dataset_access('view');
+		try{
 			if(!$var_id){
 				throw new Exception("MISSING_PARAM::VAR_ID");
 			}
 
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('view',$sid);
 			$user_id=$this->get_api_user_id();        
 			$variable=$this->Variable_model->get_var_by_vid($sid,$var_id);
 
@@ -986,12 +994,11 @@ class Datasets extends MY_REST_Controller
 	function variables_post($idno=null,$merge_metadata=false)
 	{
 		try{
-			$this->has_dataset_access('edit');
+			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 			$options=(array)$this->raw_json_input();
 			$user_id=$this->get_api_user_id();
 			$merge_metadata=$merge_metadata==='true';
-
-			$sid=$this->get_sid_from_idno($idno);
 
 			//check if a single variable input is provided or a list of variables
 			$key=key($options);
@@ -1094,8 +1101,8 @@ class Datasets extends MY_REST_Controller
 	function variable_delete($idno=null, $file_id=null,$var_id=null)
 	{
 		try{
-			$this->has_dataset_access('edit');
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 
 			if(!$file_id){
 				throw new Exception("FILE_ID is required");
@@ -1144,8 +1151,8 @@ class Datasets extends MY_REST_Controller
 	function variables_delete($idno=null, $file_id=null)
 	{
 		try{
-			$this->has_dataset_access('edit');
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 			$this->Dataset_model->remove_datafile_variables($sid,$file_id);
 
 			$response=array(
@@ -1185,8 +1192,8 @@ class Datasets extends MY_REST_Controller
 	function datafiles_delete($idno=null, $file_id=null)
 	{
 		try{
-			$this->has_dataset_access('edit');
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('edit',$sid);
 
 			if (!$file_id){
 				throw new Exception('FILE_ID is required');
@@ -1587,8 +1594,8 @@ class Datasets extends MY_REST_Controller
 	public function delete_delete($idno=null)
 	{
 		try{
-			$this->has_dataset_access('delete');
 			$sid=$this->get_sid_from_idno($idno);
+			$this->has_dataset_access('delete',$sid);
 			$this->dataset_manager->delete($sid);
 			$this->events->emit('db.after.delete', 'surveys', $sid);
 		
@@ -1620,7 +1627,10 @@ class Datasets extends MY_REST_Controller
 	public function delete_by_id_delete($sid=null)
 	{
 		try{
-			$this->has_dataset_access('delete');
+			if (!$sid || !is_numeric($sid)){
+				throw new Exception("INVALID_VALUE: SID");
+			}
+			$this->has_dataset_access('delete',(int)$sid);
 			$this->dataset_manager->delete($sid);
 			$this->events->emit('db.after.delete', 'surveys', $sid);
 		
@@ -1706,11 +1716,10 @@ class Datasets extends MY_REST_Controller
 		$da_link=$this->input->post("da_link");		
 
 		try{
-			$this->has_dataset_access('edit');
-
 			if (!$sid || !is_numeric($sid)){
 				throw new Exception("INVALID_VALUE: SID");
 			}
+			$this->has_dataset_access('edit',(int)$sid);
 
 			if (!$da_type || !is_numeric($da_type)){
 				throw new Exception("INVALID_VALUE: da_type");
@@ -2218,8 +2227,8 @@ class Datasets extends MY_REST_Controller
 	function tags_get($idno=null)
 	{
 		try{
-			$this->has_dataset_access('view');
 			$result=$this->dataset_manager->get_dataset_with_tags($idno);
+			$this->_require_view_on_result_studies($idno, $result);
 			$response=array(
 				'status'=>'success',
 				'found'=>count($result),
@@ -2246,8 +2255,8 @@ class Datasets extends MY_REST_Controller
 	function aliases_get($idno=null)
 	{
 		try{
-			$this->has_dataset_access('view');
 			$result=$this->dataset_manager->get_dataset_aliases($idno);
+			$this->_require_view_on_result_studies($idno, $result);
 			$response=array(
 				'status'=>'success',
 				'found'=>count($result),
@@ -2265,6 +2274,27 @@ class Datasets extends MY_REST_Controller
 	}
 
 
+	/**
+	 * Without an idno the result covers every study, so the site-wide check applies;
+	 * with one, require view on each study in the result (the idno may be an alias).
+	 */
+	private function _require_view_on_result_studies($idno, $rows)
+	{
+		if (empty($idno)) {
+			$this->has_dataset_access('view');
+			return;
+		}
+
+		$sids = array();
+		foreach ((array) $rows as $row) {
+			if (isset($row['id'])) {
+				$sids[(int) $row['id']] = true;
+			}
+		}
+		foreach (array_keys($sids) as $sid) {
+			$this->has_dataset_access('view', $sid);
+		}
+	}
 
 
 	/**
@@ -2563,9 +2593,8 @@ class Datasets extends MY_REST_Controller
 				throw new Exception("PARAM_MISSING: collection_idno");
 			}
 
-			//user has permissions on the repo			
-			//$this->acl->user_has_repository_access($repositoryid);
-					
+			$this->acl_manager->check_study_collection_change_access($this->get_api_user_id(), $sid, $repositoryid);
+
 			//validate repository
 			if ($repositoryid=='central'){
 				$exists=true;

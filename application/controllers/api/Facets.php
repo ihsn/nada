@@ -9,32 +9,14 @@ class Facets extends MY_REST_Controller
         parent::__construct();
         $this->load->model("Facet_model");
 		$this->is_authenticated_or_die();
-		$this->_apply_facets_acl();
     }
-
-	private function _apply_facets_acl()
-	{
-		$method = strtolower((string) $this->router->fetch_method());
-		if ($method === '' || $method === 'index') {
-			return;
-		}
-		if (preg_match('/_get$/', $method)) {
-			$this->require_access('facets', 'edit');
-			return;
-		}
-		if (preg_match('/delete/', $method)) {
-			$this->require_access('facets', 'delete');
-			return;
-		}
-		if (preg_match('/_(post|put)$/', $method)) {
-			$this->require_access('facets', 'edit');
-		}
-	}
 
 
     // GET /api/facets — list all user facets with term counts
     public function index_get()
     {
+        $this->require_access('facets', 'view');
+
         try {
             $rows   = $this->Facet_model->select_terms_counts_detailed();
             $facets = array();
@@ -52,6 +34,8 @@ class Facets extends MY_REST_Controller
     // GET /api/facets/get/{name} — single facet by name (with decoded mappings)
     public function get_get($name = null)
     {
+        $this->require_access('facets', 'view');
+
         try {
             $facet = $this->Facet_model->get_facet_by_name($name);
             if (!$facet) {
@@ -71,6 +55,8 @@ class Facets extends MY_REST_Controller
     // GET /api/facets/terms/{id} — terms for a given facet
     public function terms_get($id = null)
     {
+        $this->require_access('facets', 'view');
+
         try {
             $facet = $this->Facet_model->select_single($id);
             $terms = $this->Facet_model->get_facet_terms($id);
@@ -88,6 +74,8 @@ class Facets extends MY_REST_Controller
     // GET /api/facets/ordering — current per-type ordering + full facets map
     public function ordering_get()
     {
+        $this->require_access('facets', 'view');
+
         try {
             $this->load->model('Configurations_model');
             $data_types = array('all', 'microdata', 'geospatial', 'document', 'table', 'image', 'video', 'timeseries', 'script');
@@ -106,6 +94,8 @@ class Facets extends MY_REST_Controller
     // GET /api/facets/stats — indexer stats (term value counts + studies total)
     public function stats_get()
     {
+        $this->require_access('facets', 'view');
+
         try {
             $this->load->model('Dataset_model');
             $rows   = $this->Facet_model->select_term_value_counts('user');
@@ -124,6 +114,8 @@ class Facets extends MY_REST_Controller
     // POST /api/facets/delete/{id} — delete a user facet
     public function delete_post($id = null)
     {
+        $this->require_access('facets', 'delete');
+
         try {
             $facet = $this->Facet_model->select_single($id);
             if ($facet && $facet['facet_type'] === 'core') {
@@ -151,10 +143,14 @@ class Facets extends MY_REST_Controller
 	 *
 	 * */
 	public function reindex_post($start_row=NULL, $limit=10)
-	{		  
-        $output=$this->Facet_model->reindex($start_row, $limit, $loop=false);      
+	{
+        $this->require_access('facets', 'edit');
+
+        $start_row = max(0, (int) $start_row);
+        $limit = min(100, max(1, (int) $limit));
+
         try{
-			//$output=$this->Facet_model->reindex($start_row, $limit, $loop=false);
+			$output=$this->Facet_model->reindex($start_row, $limit, $loop=false);
 			$output=array(
                 'status'=>'success',
                 'result'=>$output
@@ -174,7 +170,9 @@ class Facets extends MY_REST_Controller
 
 
     public function clear_index_post()
-    {        
+    {
+        $this->require_access('facets', 'edit');
+
         try{
             $output=$this->Facet_model->clear_index();
             $output=array(
@@ -194,6 +192,8 @@ class Facets extends MY_REST_Controller
 
     function reorder_post()
 	{
+		$this->require_access('facets', 'edit');
+
 		try{
             $this->load->model("Configurations_model");
             $options=$this->input->post(null,true);
@@ -245,9 +245,19 @@ class Facets extends MY_REST_Controller
      */
     function index_post()
 	{
+		$this->require_access('facets', 'edit');
+
 		try{
-            $this->load->model("Configurations_model");
             $options=$this->raw_json_input();
+            if (!is_array($options)) {
+                throw new Exception('JSON body required');
+            }
+
+            $existing = isset($options['name']) ? $this->Facet_model->get_facet_by_name($options['name']) : null;
+            if ($existing && $existing['facet_type'] === 'core') {
+                throw new Exception('Core facets cannot be modified');
+            }
+            $options['facet_type'] = 'user';
 
             $result=$this->Facet_model->create_facet($options);
 

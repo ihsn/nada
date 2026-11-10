@@ -1850,6 +1850,19 @@ class Catalog extends MY_REST_Controller
 				if (! is_array($collection_options)) {
 					continue;
 				}
+				$this->acl_manager->check_study_collection_change_access(
+					$this->get_api_user_id(),
+					$sid,
+					isset($collection_options['owner_collection']) ? $collection_options['owner_collection'] : null,
+					isset($collection_options['link_collections']) && is_array($collection_options['link_collections']) ? $collection_options['link_collections'] : null,
+					isset($collection_options['mode']) ? $collection_options['mode'] : 'update'
+				);
+			}
+
+			foreach ($options as $collection_options) {
+				if (! is_array($collection_options)) {
+					continue;
+				}
 				if (isset($collection_options['study_idno'])) {
 					$body_idno = (string) $collection_options['study_idno'];
 					if (strcasecmp($body_idno, (string) $canonical_idno) !== 0) {
@@ -2382,6 +2395,8 @@ class Catalog extends MY_REST_Controller
 			if ($repositoryid === null || $repositoryid === '') {
 				throw new Exception('PARAM_MISSING: collection_idno or repositoryid');
 			}
+
+			$this->acl_manager->check_study_collection_change_access($this->get_api_user_id(), $sid, $repositoryid);
 
 			if ($repositoryid === 'central') {
 				$exists = true;
@@ -3879,6 +3894,14 @@ class Catalog extends MY_REST_Controller
 			$input=$this->raw_json_input();
 			$sid=$this->get_sid_from_idno($idno);
 			$this->has_dataset_access('edit',$sid);
+
+			$linked_input = array_get_value($input,'linked_collections');
+			$this->acl_manager->check_study_collection_change_access(
+				$this->get_api_user_id(),
+				$sid,
+				array_get_value($input,'owner_collection'),
+				is_array($linked_input) ? $linked_input : null
+			);
 
 			$options=array(				
 				'repositoryid'			=> array_get_value($input,'owner_collection'),

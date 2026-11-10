@@ -12,15 +12,6 @@ class Reports extends MY_REST_Controller
 		$this->load->model('Dataset_model');//remove with Datasets library
 		$this->load->library("Dataset_manager");
 		$this->is_authenticated_or_die();
-		$this->_apply_reports_acl();
-	}
-
-	private function _apply_reports_acl()
-	{
-		$method = strtolower((string) $this->router->fetch_method());
-		if (preg_match('/_get$/', $method)) {
-			$this->require_access('reports', 'view');
-		}
 	}
 	
 
@@ -42,6 +33,8 @@ class Reports extends MY_REST_Controller
 	**/
 	function datasets_published_get($type='month')
 	{
+		$this->require_access('reports', 'view');
+
 		try{
 			if ($type=='month'){
 				$result=$this->Reports_model->get_datasets_published();
@@ -93,6 +86,8 @@ class Reports extends MY_REST_Controller
 	 */
 	function licensed_requests_get($type='month')
 	{
+		$this->require_access('reports', 'view');
+
 		try{
 			if ($type=='month'){
 				$result=$this->Reports_model->get_licensed_requests_by_month();

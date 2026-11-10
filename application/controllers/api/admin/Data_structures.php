@@ -7,7 +7,7 @@ require(APPPATH . '/libraries/MY_REST_Controller.php');
  * Admin Data Structures API (global DSD catalogue)
  *
  * Base URL: /api/admin/data_structures
- * Auth: session or API key; ACL via `data_structure/*` (see constructor).
+ * Auth: session or API key; each endpoint checks its `data_structure/*` privilege (imports also check `codelist/*`).
  *
  * Endpoints (PUT/DELETE also have POST aliases where noted):
  *
@@ -56,35 +56,11 @@ class Data_structures extends MY_REST_Controller {
 	{
 		parent::__construct();
 		$this->is_authenticated_or_die();
-		$this->_apply_data_structure_acl();
 		$this->load->model('Data_structure_model');
 		$this->load->model('Data_structure_component_model');
 		$this->load->model('Codelist_model');
 		$this->load->model('Codelist_item_model');
 		$this->load->model('Codelist_group_model');
-	}
-
-	private function _apply_data_structure_acl()
-	{
-		$method = strtolower((string) $this->router->fetch_method());
-		if ($method === '' || $method === 'index') {
-			return;
-		}
-		if (preg_match('/_get$/', $method)) {
-			$this->require_access('data_structure', 'view');
-			return;
-		}
-		if (preg_match('/delete/', $method)) {
-			$this->require_access('data_structure', 'delete');
-			return;
-		}
-		if ($method === 'create_post' || $method === 'index_post') {
-			$this->require_access('data_structure', 'create');
-			return;
-		}
-		if (preg_match('/_(post|put)$/', $method)) {
-			$this->require_access('data_structure', 'edit');
-		}
 	}
 
 	/**
@@ -95,6 +71,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function index_get()
 	{
+		$this->require_access('data_structure', 'view');
+
 		try {
 			$flat = $this->get('flat') === '1' || $this->get('flat') === 'true';
 			$page_raw = $this->get('page');
@@ -173,6 +151,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function create_post()
 	{
+		$this->require_access('data_structure', 'create');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -180,6 +160,9 @@ class Data_structures extends MY_REST_Controller {
 			}
 			$overwrite = $this->_read_bool_flag_from_query_or_body('overwrite', $input, false);
 			unset($input['overwrite']);
+			if ($overwrite) {
+				$this->require_access('data_structure', 'edit');
+			}
 
 			if ($overwrite) {
 				$existing = $this->_resolve_existing_structure_for_overwrite($input);
@@ -229,6 +212,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function structure_lookup_get($segment = null)
 	{
+		$this->require_access('data_structure', 'view');
+
 		try {
 			$key = $segment !== null ? trim(rawurldecode((string) $segment)) : '';
 			if ($key === '') {
@@ -265,6 +250,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function structure_lookup_delete($segment = null)
 	{
+		$this->require_access('data_structure', 'delete');
+
 		try {
 			$key = $segment !== null ? trim(rawurldecode((string) $segment)) : '';
 			if ($key === '') {
@@ -308,6 +295,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function by_identity_get()
 	{
+		$this->require_access('data_structure', 'view');
+
 		try {
 			$name_raw = $this->get('name');
 			$name = ($name_raw !== null && $name_raw !== false && $name_raw !== '')
@@ -364,6 +353,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function versions_get($segment = null)
 	{
+		$this->require_access('data_structure', 'view');
+
 		try {
 			$key = $segment !== null ? trim(rawurldecode((string) $segment)) : '';
 			if ($key === '') {
@@ -400,6 +391,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function projects_get($segment = null)
 	{
+		$this->require_access('data_structure', 'view');
+
 		try {
 			$key = $segment !== null ? trim(rawurldecode((string) $segment)) : '';
 			if ($key === '') {
@@ -445,6 +438,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function update_post($segment = null)
 	{
+		$this->require_access('data_structure', 'edit');
+
 		$key = $segment !== null ? trim(rawurldecode((string) $segment)) : '';
 		if ($key === '') {
 			$this->set_response([
@@ -466,6 +461,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function status_post($segment = null)
 	{
+		$this->require_access('data_structure', 'edit');
+
 		$key = $segment !== null ? trim(rawurldecode((string) $segment)) : '';
 		if ($key === '') {
 			$this->set_response([
@@ -543,6 +540,7 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function delete_post($segment = null)
 	{
+		$this->require_access('data_structure', 'delete');
 		$this->structure_lookup_delete($segment);
 	}
 
@@ -554,6 +552,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function batch_delete_post()
 	{
+		$this->require_access('data_structure', 'delete');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -620,10 +620,16 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function import_post()
 	{
+		$this->require_access('data_structure', 'edit');
+		$this->require_access('codelist', 'create');
+
 		try {
 			$overwrite = $this->query('overwrite_codelists') === '1' || $this->query('overwrite_codelists') === 'true';
 			if ($this->input->post('overwrite_codelists') === '1' || $this->input->post('overwrite_codelists') === 'true') {
 				$overwrite = true;
+			}
+			if ($overwrite) {
+				$this->require_access('codelist', 'edit');
 			}
 			$dsd_id = trim((string) ($this->query('dsd_id') ?: $this->input->post('dsd_id')));
 
@@ -665,6 +671,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function import_json_post()
 	{
+		$this->require_access('data_structure', 'edit');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -684,6 +692,12 @@ class Data_structures extends MY_REST_Controller {
 				'dry_run'   => $this->_boolish($input['dry_run'] ?? null, false),
 				'user_id'   => $this->get_api_user_id(),
 			];
+			if (!$opts['dry_run']) {
+				$this->require_access('codelist', 'create');
+				if ($opts['overwrite']) {
+					$this->require_access('codelist', 'edit');
+				}
+			}
 
 			$this->load->library('data_structure_json_import');
 			$result = $this->data_structure_json_import->import_from_array($input, $opts);
@@ -723,6 +737,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function export_get($segment = null)
 	{
+		$this->require_access('data_structure', 'view');
+
 		try {
 			$key = $segment !== null ? trim(rawurldecode((string) $segment)) : '';
 			if ($key === '') {
@@ -775,6 +791,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function validate_post()
 	{
+		$this->require_access('data_structure', 'view');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -834,6 +852,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function components_get($segment = null)
 	{
+		$this->require_access('data_structure', 'view');
+
 		try {
 			$key = $segment !== null ? trim(rawurldecode((string) $segment)) : '';
 			if ($key === '') {
@@ -887,6 +907,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function components_post($segment = null)
 	{
+		$this->require_access('data_structure', 'edit');
+
 		try {
 			$key = $segment !== null ? trim(rawurldecode((string) $segment)) : '';
 			if ($key === '') {
@@ -930,6 +952,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function components_put($component_id)
 	{
+		$this->require_access('data_structure', 'edit');
+
 		try {
 			$input = $this->raw_json_input();
 			if (!$input || !is_array($input)) {
@@ -960,6 +984,7 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function components_update_post($component_id)
 	{
+		$this->require_access('data_structure', 'edit');
 		return $this->components_put($component_id);
 	}
 
@@ -968,6 +993,8 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function components_delete($component_id)
 	{
+		$this->require_access('data_structure', 'delete');
+
 		try {
 			$this->Data_structure_component_model->delete_component((int) $component_id);
 			$this->set_response([
@@ -988,6 +1015,7 @@ class Data_structures extends MY_REST_Controller {
 	 */
 	public function components_delete_post($component_id)
 	{
+		$this->require_access('data_structure', 'delete');
 		return $this->components_delete($component_id);
 	}
 

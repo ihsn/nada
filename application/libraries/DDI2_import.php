@@ -111,9 +111,11 @@ class DDI2_Import{
         }*/       
 
         //check if the study already exists, find the sid
+        $found_by_idno=false;
         if (!$sid){
             $sid=$this->ci->dataset_manager->find_by_idno($idno);
             $this->sid=$sid;
+            $found_by_idno=!empty($sid);
         }        
 
         //study found
@@ -121,6 +123,18 @@ class DDI2_Import{
             //overwrite?
             if(!$this->overwrite){
                 throw new Exception("SURVEY_ALREADY_EXISTS: ".$sid);
+            }
+
+            // callers passing $sid have already checked edit on it; access to the
+            // target collection does not cover a study found by the file's IDNO
+            if ($found_by_idno){
+                $this->ci->load->library('acl_manager');
+                $this->ci->acl_manager->check_study_access('edit', $this->user_id, $sid);
+                $this->ci->acl_manager->check_study_collection_change_access(
+                    $this->user_id,
+                    $sid,
+                    isset($params['repositoryid']) ? $params['repositoryid'] : null
+                );
             }
             
             //load existing options

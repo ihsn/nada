@@ -482,6 +482,19 @@ class Codelist_model extends CI_Model {
 			return null;
 		}
 		$row = $result->row_array();
+		if (!$row && $version !== null && $version !== '') {
+			// create_codelist stores x.y as x.y.0, so retry with that form. Exact match
+			// comes first so rows stored as x.y (e.g. seeded dctypes 1.0) stay reachable.
+			$normalized = $this->_normalize_semver_input($version);
+			if ($normalized !== $version) {
+				$result = $this->db->get_where('codelists', [
+					'name'    => $name,
+					'agency'  => $agency,
+					'version' => $normalized,
+				]);
+				$row = $result ? $result->row_array() : null;
+			}
+		}
 		return $row ?: null;
 	}
 

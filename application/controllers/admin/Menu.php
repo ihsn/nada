@@ -18,7 +18,7 @@ class Menu extends MY_Controller {
 			'site_url'          => site_url(),
 			'base_url'          => base_url(),
 			'api_base_url'      => site_url('api/admin/menu/'),
-			'filestore_api_url' => site_url('api/filestore'),
+			'filestore_api_url' => site_url('api/admin/filestore'),
 			'files_public_url'  => base_url('files/public'),
 			'assets_base'       => base_url('frontend/dist/'),
 			'csrf_token'        => $this->security->get_csrf_hash(),

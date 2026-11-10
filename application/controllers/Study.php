@@ -1334,6 +1334,9 @@ class Study extends MY_Controller {
 			$this->Survey_resource_model->download($this->user,$survey_id,$resource_id);
 		}
 		catch(Exception $e){
+			if ($e->getMessage() === 'DATASET_NOT_FOUND') {
+				show_404();
+			}
 			show_error($e->getMessage());
 		}
 	}
@@ -1354,6 +1357,9 @@ class Study extends MY_Controller {
 			$this->Survey_resource_model->stream_pdf_inline($this->user, $survey_id, $resource_id);
 		}
 		catch (Exception $e) {
+			if ($e->getMessage() === 'DATASET_NOT_FOUND') {
+				show_404();
+			}
 			show_error($e->getMessage());
 		}
 	}

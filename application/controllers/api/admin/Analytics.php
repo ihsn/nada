@@ -778,7 +778,7 @@ class Analytics extends MY_REST_Controller
 	 */
 	function aggregate_daily_post()
 	{
-		$this->require_analytics_access(null, false);
+		$this->require_access('reports', 'edit');
 		try {
 $date = $this->input->post('date');
 			$offset = (int)$this->input->post('offset') ?: 0;
@@ -870,7 +870,7 @@ $date = $this->input->post('date');
 	 */
 	function aggregate_monthly_post()
 	{
-		$this->require_analytics_access(null, false);
+		$this->require_access('reports', 'edit');
 		try {
 $year = $this->input->post('year');
 			$month = $this->input->post('month');
@@ -912,7 +912,7 @@ $year = $this->input->post('year');
 	 */
 	function aggregate_totals_post()
 	{
-		$this->require_analytics_access(null, false);
+		$this->require_access('reports', 'edit');
 		try {
 			$study_id_raw = $this->input->post('study_id');
 			$study_sid = $study_id_raw ? $this->resolve_optional_study_sid_value($study_id_raw) : null;
@@ -964,7 +964,7 @@ $year = $this->input->post('year');
 	 */
 	function aggregate_run_post()
 	{
-		$this->require_analytics_access(null, false);
+		$this->require_access('reports', 'edit');
 		try {
 $user_id = $this->session->userdata('user_id');
 			
@@ -1051,7 +1051,7 @@ $status = $this->Analytics_model->get_aggregation_status();
 	 */
 	function aggregate_stop_post()
 	{
-		$this->require_analytics_access(null, false);
+		$this->require_access('reports', 'edit');
 		try {
 $result = $this->Analytics_model->stop_aggregation_status();
 			
@@ -1176,7 +1176,7 @@ $result = $this->Analytics_model->stop_aggregation_status();
 	 */
 	function legacy_studies_post()
 	{
-		$this->require_analytics_access(null, false);
+		$this->require_access('reports', 'edit');
 		try {
 			$input = $this->raw_json_input();
 
@@ -1244,7 +1244,7 @@ $result = $this->Analytics_model->stop_aggregation_status();
 	 */
 	function legacy_files_post()
 	{
-		$this->require_analytics_access(null, false);
+		$this->require_access('reports', 'edit');
 		try {
 			$input = $this->raw_json_input();
 

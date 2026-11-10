@@ -106,6 +106,7 @@ $lang['analytics_run_full'] = "Lancer l'agrégation complète";
 $lang['analytics_run_description'] = "Détecte automatiquement les dates manquantes et exécute toutes les étapes";
 $lang['analytics_stop_aggregation'] = "Arrêter l'agrégation";
 $lang['analytics_cancel_run'] = "Annuler l'exécution en cours";
+$lang['analytics_run_requires_edit'] = "L'exécution de l'agrégation nécessite la permission de modification des rapports.";
 $lang['analytics_how_aggregation'] = "Fonctionnement de l'agrégation";
 $lang['analytics_how_daily_title'] = "Quotidienne :";
 $lang['analytics_how_daily'] = "Complète les agrégats quotidiens manquants à partir des événements bruts, jusqu'à hier.";

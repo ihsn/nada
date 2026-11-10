@@ -34,6 +34,7 @@ class Analytics_reports extends MY_Controller {
             'nada_base_path'  => rtrim(FCPATH, '/'),
             'analytics_locale' => $this->config->item('language') === 'portuguese' ? 'pt-PT' : 'en-US',
             'translations'    => is_array($translations) ? $translations : array(),
+            'can_run_aggregation' => $this->acl_manager->user_has_access('reports', 'edit'),
         );
 
         $page = array(

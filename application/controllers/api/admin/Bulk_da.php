@@ -19,24 +19,6 @@ class Bulk_da extends MY_REST_Controller
 		$this->lang->load('da_collection');
 		$this->is_authenticated_or_die();
 		$this->load->library('acl_manager');
-		$this->_apply_bulk_data_access_acl();
-	}
-
-	/**
-	 * Map REST action to bulk_data_access view / edit / delete.
-	 */
-	private function _apply_bulk_data_access_acl()
-	{
-		$method = strtolower((string) $this->router->fetch_method());
-		if (preg_match('/delete/', $method)) {
-			$this->require_access('bulk_data_access', 'delete');
-			return;
-		}
-		if (preg_match('/_(post|put)$/', $method)) {
-			$this->require_access('bulk_data_access', 'edit');
-			return;
-		}
-		$this->require_access('bulk_data_access', 'view');
 	}
 
 	/**
@@ -44,6 +26,8 @@ class Bulk_da extends MY_REST_Controller
 	 */
 	public function collections_get()
 	{
+		$this->require_access('bulk_data_access', 'view');
+
 		try {
 			$rows = $this->bulk_da_lib->select_all();
 			if (! is_array($rows)) {
@@ -72,6 +56,8 @@ class Bulk_da extends MY_REST_Controller
 	 */
 	public function collection_get($id = null)
 	{
+		$this->require_access('bulk_data_access', 'view');
+
 		try {
 			if (! is_numeric($id)) {
 				$this->set_response(array('status' => 'error', 'message' => 'INVALID_ID'), REST_Controller::HTTP_BAD_REQUEST);
@@ -106,6 +92,8 @@ class Bulk_da extends MY_REST_Controller
 	 */
 	public function collection_post()
 	{
+		$this->require_access('bulk_data_access', 'edit');
+
 		try {
 			$input = $this->raw_json_input();
 			if (! is_array($input)) {
@@ -156,6 +144,8 @@ class Bulk_da extends MY_REST_Controller
 	 */
 	public function collection_update_post($id = null)
 	{
+		$this->require_access('bulk_data_access', 'edit');
+
 		try {
 			if (! is_numeric($id)) {
 				$this->set_response(array('status' => 'error', 'message' => 'INVALID_ID'), REST_Controller::HTTP_BAD_REQUEST);
@@ -216,6 +206,8 @@ class Bulk_da extends MY_REST_Controller
 	 */
 	public function collections_delete_post()
 	{
+		$this->require_access('bulk_data_access', 'delete');
+
 		try {
 			$input = $this->raw_json_input();
 			if (! is_array($input) || ! isset($input['ids']) || ! is_array($input['ids'])) {
@@ -261,6 +253,8 @@ class Bulk_da extends MY_REST_Controller
 	 */
 	public function studies_search_get($collection_id = null)
 	{
+		$this->require_access('bulk_data_access', 'view');
+
 		try {
 			if (! is_numeric($collection_id)) {
 				$this->set_response(array('status' => 'error', 'message' => 'INVALID_ID'), REST_Controller::HTTP_BAD_REQUEST);
@@ -335,6 +329,8 @@ class Bulk_da extends MY_REST_Controller
 	 */
 	public function study_link_post()
 	{
+		$this->require_access('bulk_data_access', 'edit');
+
 		try {
 			$input = $this->raw_json_input();
 			if (! is_array($input)) {

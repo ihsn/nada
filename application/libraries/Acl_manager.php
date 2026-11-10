@@ -807,6 +807,48 @@ class Acl_manager
 	}
 
 	/**
+	 * Require study edit on every collection a study is moved into, linked to, or unlinked from.
+	 * Link handling mirrors Repository_model::update_collection_studies() so the check covers what gets saved.
+	 *
+	 * @param int|null          $user_id          null = current user
+	 * @param int               $study_id
+	 * @param string|null|false $owner_collection new owner collection; null/false/'' = unchanged
+	 * @param array|null        $link_collections null = links unchanged
+	 * @param string            $mode             'update' (merge) or 'replace'
+	 * @throws AclAccessDeniedException
+	 */
+	public function check_study_collection_change_access($user_id, $study_id, $owner_collection = null, $link_collections = null, $mode = 'update')
+	{
+		$this->ci->load->model('Catalog_model');
+		$this->ci->load->model('Repository_model');
+
+		$owner = null;
+		if ($owner_collection !== null && $owner_collection !== false && trim((string) $owner_collection) !== '') {
+			$owner = strtolower(trim((string) $owner_collection));
+			$current_owner = strtolower(trim((string) $this->ci->Catalog_model->get_study_owner((int) $study_id)));
+			if ($owner !== $current_owner) {
+				$this->check_study_access('edit', $user_id, null, $owner);
+			}
+		}
+
+		if ( ! is_array($link_collections)) {
+			return;
+		}
+
+		$current = array_map('strtolower', (array) $this->ci->Repository_model->linked_repos_by_study((int) $study_id));
+		$requested = array_map('strtolower', array_map('strval', $link_collections));
+		$final = ($mode === 'replace') ? $requested : array_merge($current, $requested);
+		if ($owner !== null) {
+			$final = array_diff($final, array($owner));
+		}
+
+		$changed = array_unique(array_merge(array_diff($final, $current), array_diff($current, $final)));
+		foreach ($changed as $repository_id) {
+			$this->check_study_access('edit', $user_id, null, $repository_id);
+		}
+	}
+
+	/**
 	 * Published studies are readable by anyone. Unpublished studies require study view.
 	 *
 	 * @param int      $sid

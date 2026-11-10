@@ -106,6 +106,7 @@ $lang['analytics_run_full'] = 'Run full aggregation';
 $lang['analytics_run_description'] = 'Auto-detects missing dates and processes all steps';
 $lang['analytics_stop_aggregation'] = 'Stop aggregation';
 $lang['analytics_cancel_run'] = 'Cancel the current run';
+$lang['analytics_run_requires_edit'] = 'Running aggregation requires the Reports edit permission.';
 $lang['analytics_how_aggregation'] = 'How aggregation works';
 $lang['analytics_how_daily_title'] = 'Daily:';
 $lang['analytics_how_daily'] = 'Fills missing daily aggregates from raw events, up to yesterday.';

@@ -410,12 +410,11 @@ $route['admin/ui-kit'] = "admin/admin/ui_kit";
 $route['admin/logs/cleanup'] = "admin/logs/cleanup";
 $route['admin/search-index'] = "admin/semantic";
 
-// DB Logs API
-$route['api/db_logs/row_counts']              = "api/db_logs/row_counts";
-$route['api/db_logs/cleanup/chunk']           = "api/db_logs/cleanup_chunk";
-$route['api/db_logs/api_logs/stats']         = "api/db_logs/api_logs_stats";
-$route['api/db_logs/api_logs/cleanup/chunk'] = "api/db_logs/api_logs_cleanup_chunk";
-$route['api/db_logs/api_logs/files']         = "api/db_logs/api_logs_files";
+// Admin DB logs API
+$route['api/admin/db_logs/cleanup/chunk']           = "api/admin/db_logs/cleanup_chunk";
+$route['api/admin/db_logs/api_logs/stats']          = "api/admin/db_logs/api_logs_stats";
+$route['api/admin/db_logs/api_logs/cleanup/chunk']  = "api/admin/db_logs/api_logs_cleanup_chunk";
+$route['api/admin/db_logs/api_logs/files']          = "api/admin/db_logs/api_logs_files";
 
 // Dashboard API
 $route['api/dashboard/stats'] = "api/dashboard/stats";
