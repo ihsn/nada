@@ -86,9 +86,13 @@ export function useDepositFilesApi() {
     return postJson(filesDeleteUrl(), { ids });
   }
 
+  function projectId() {
+    return route?.params?.id || config.value?.projectId || null;
+  }
+
   async function uploadFile(file, onProgress) {
     const completed = await resumable.uploadFile(file, {
-      metadata: { source: 'datadeposit' },
+      metadata: { source: 'datadeposit', project_id: projectId() },
       onProgress,
     });
     return commitUpload(completed.upload_id);

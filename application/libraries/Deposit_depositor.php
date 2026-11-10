@@ -2184,6 +2184,43 @@ class Deposit_depositor
 		);
 	}
 
+	/**
+	 * True when the user may add files to this project: collaborator, v2, still a draft.
+	 * Used by /api/uploads to let depositors start a resumable upload.
+	 */
+	public function can_upload_files(array $user, $id)
+	{
+		if (!is_numeric($id) || (int) $id < 1 || empty($user['email'])) {
+			return false;
+		}
+		$m = $this->ci->DD_project_model;
+		return $m->has_access($id, $user['email'])
+			&& $m->get_schema_version($id) >= 2
+			&& !$m->is_locked($id, $user['email']);
+	}
+
+	/**
+	 * Same file type and size rules as commit, checked before an upload starts.
+	 *
+	 * @return string|null error code, or null when allowed
+	 */
+	public function upload_file_rejection($filename, $total_size)
+	{
+		$basename = basename((string) $filename);
+		if ($basename === '' || $basename === '.' || $basename === '..') {
+			return 'INVALID_FILENAME';
+		}
+		if (!$this->extension_allowed($basename)) {
+			return 'FILE_TYPE_NOT_ALLOWED';
+		}
+		$this->ci->load->helper('datadeposit');
+		$max_bytes = datadeposit_max_upload_bytes();
+		if ($max_bytes > 0 && (int) $total_size > $max_bytes) {
+			return 'FILE_TOO_LARGE';
+		}
+		return null;
+	}
+
 	protected function require_access(array $user, $id)
 	{
 		if (!is_numeric($id)) {
