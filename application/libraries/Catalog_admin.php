@@ -153,7 +153,7 @@ class Catalog_Admin
 	* import a ddi file
 	*
 	*/
-	public function import_ddi($ddi_file,$overwrite=FALSE,$repositoryid, $delete_after_import=FALSE)
+	public function import_ddi($ddi_file,$overwrite,$repositoryid, $delete_after_import=FALSE)
 	{
 		//load DDI Parser Library
 		$this->ci->load->library('DDI_Parser');

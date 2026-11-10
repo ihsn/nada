@@ -114,15 +114,27 @@ Catalog search pages past the numbered pages are reached with a cursor (URLs end
 
 ## API keys created before NADA 5.6
 
-NADA 5.6 started storing API keys as hashes. Keys from earlier versions that have not been converted are accepted by default: each one is converted the first time it is used, and expires one year later.
+Keys from earlier versions that have not been converted are rejected by default. Users with such keys need to create a new key.
 
-NADA 5.7.2 rejected these keys, so on a site upgrading from 5.7.2 they can start working again. Revoke any old keys that should no longer work. To reject all unconverted keys, set `$config['api_key_enable_legacy_support'] = FALSE;` in `application/config/rest.php`.
+To accept them temporarily, set `$config['api_key_enable_legacy_support'] = TRUE;` in `application/config/rest.php`. Each old key is then converted the first time it is used, and expires one year later.
 
 ## NADA-AI API key
 
 NADA-AI reads the catalog and the change queue with an API key from NADA. The user that owns the key must be a full administrator, or have a role with both the **view** and **edit** privileges of the **Search index** permission. Without them, indexing stops with access denied.
 
 The same permission lets other users manage the **Search index** admin page without being full administrators.
+
+## Site and API logs permission
+
+The **Site logs**, **API logs** and **Log cleanup & archiving** admin pages now use their own **Site and API logs** permission instead of the **view** privilege of the users permission. Full administrators are not affected. For other roles that need these pages, grant **view** to browse the logs, and **cleanup** to archive old entries to CSV and delete them from the database.
+
+The log APIs moved from `api/db_logs` and `api/api_logs` to `api/admin/db_logs` and `api/admin/api_logs`. The old URLs no longer work, so update any scripts that call them.
+
+## Filestore API
+
+The filestore API moved from `api/filestore` to `api/admin/filestore`. The old URL no longer works, so update any scripts that call it. Public links to stored files (`files/public/...`) are not affected.
+
+Each filestore API call now checks its own privilege of the **Filestore** permission: **view** to list files, **download**, **upload**, and **delete**. Full administrators are not affected. The image picker in the menu page editor uses this API, so roles that edit menu pages also need **view** and **upload**.
 
 ## Indicator data access
 

@@ -372,11 +372,11 @@ $config['rest_key_column'] = 'api_key';
 | When enabled, legacy keys will be automatically migrated on first use
 | to the secure format (with hash and prefix).
 |
-| On by default so keys created before the upgrade keep working. Set to FALSE
-| to reject legacy keys that have not been used (and so migrated) yet.
+| Off by default: legacy keys that have not been migrated are rejected.
+| Set to TRUE only to let old keys keep working (they are migrated on first use).
 |
 */
-$config['api_key_enable_legacy_support'] = TRUE;
+$config['api_key_enable_legacy_support'] = FALSE;
 
 /*
 |--------------------------------------------------------------------------

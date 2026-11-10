@@ -79,7 +79,7 @@ class Data_access_licensed extends CI_Driver {
 	/**
 	* load the licensed form for single study and collections
 	**/
-	private function request_form($survey_id=NULL,$user)
+	private function request_form($survey_id,$user)
 	{
 
 		if ( !is_numeric($survey_id) )
@@ -228,7 +228,7 @@ class Data_access_licensed extends CI_Driver {
 	*
 	* NOTE: Downloads are logged and stats are updated
 	*/
-	function download($request_id=NULL,$file_id=NULL,$user)
+	function download($request_id,$file_id,$user)
 	{
 		$this->CI->load->model('managefiles_model');
 
