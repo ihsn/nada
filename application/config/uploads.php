@@ -7,8 +7,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |--------------------------------------------------------------------------
 |
 | resumable_upload_temp_path - Temporary storage path for chunked uploads
-|   Can be relative (to FCPATH) or absolute
-|   Default: 'datafiles/tmp/uploads'
+|   Relative paths are resolved under the catalog root (config 'catalog_root');
+|   absolute paths are used as-is. Keep it on the same filesystem as the
+|   catalog root so completed uploads can be moved instead of copied.
+|   Default: 'tmp/uploads'
 |
 | resumable_upload_max_size - Maximum file size in bytes (0 = unlimited)
 |   Default: 16GB (16 * 1024 * 1024 * 1024)
@@ -35,7 +37,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | Note: File type validation uses 'allowed_resource_types' from config.php
 |
 */
-$config['resumable_upload_temp_path'] = 'datafiles/tmp/uploads';
+$config['resumable_upload_temp_path'] = 'tmp/uploads';
 $config['resumable_upload_max_size'] = 16 * 1024 * 1024 * 1024;
 $config['resumable_upload_chunk_size'] = 10485760; // 10MB
 $config['resumable_upload_expiry_hours'] = 10;

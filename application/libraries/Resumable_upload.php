@@ -30,22 +30,60 @@ class Resumable_upload {
 		// Calculate maximum chunk size based on PHP limits
 		$this->max_chunk_size = $this->get_php_max_chunk_size();
 		
-		if (!$this->temp_path || trim($this->temp_path) == '') {
-			throw new Exception("RESUMABLE_UPLOAD_TEMP_PATH_NOT_SET");
+		$this->temp_path = $this->resolve_temp_path($this->temp_path);
+
+		// The directory is created lazily (see ensure_temp_path) so that loading
+		// the library never fails — read-only callers (status, list, cleanup)
+		// work without it, and write failures surface as a catchable error.
+	}
+
+	/**
+	 * Resolve the temp folder for chunked uploads.
+	 *
+	 * Absolute paths are used as-is; relative paths (default 'tmp/uploads')
+	 * are resolved under the catalog root (config 'catalog_root').
+	 *
+	 * @param string|null $configured
+	 * @return string
+	 */
+	private function resolve_temp_path($configured)
+	{
+		$configured = trim((string) $configured);
+		if ($configured === '') {
+			$configured = 'tmp/uploads';
 		}
-		
-		// If not absolute path, use relative to FCPATH
-		if (!file_exists($this->temp_path)) {
-			$this->temp_path = FCPATH . $this->temp_path;
+
+		$configured = unix_path($configured);
+
+		if ($configured[0] === '/' || preg_match('/^[A-Za-z]:/', $configured)) {
+			return rtrim($configured, '/');
 		}
-		
-		$this->temp_path = unix_path($this->temp_path);
-		
-		// Ensure temp directory exists
-		if (!file_exists($this->temp_path)) {
-			if (!@mkdir($this->temp_path, 0755, true)) {
-				throw new Exception("FAILED_TO_CREATE_TEMP_DIRECTORY: " . $this->temp_path);
+
+		return rtrim(unix_path(get_catalog_root() . '/' . $configured), '/');
+	}
+
+	/**
+	 * Create the temp folder if missing and verify it is writable.
+	 *
+	 * The full path is logged but not included in the exception message,
+	 * since that message is returned to API clients.
+	 *
+	 * @throws Exception STORAGE_NOT_WRITABLE
+	 */
+	private function ensure_temp_path()
+	{
+		if (!is_dir($this->temp_path)) {
+			if (!@mkdir($this->temp_path, 0755, true) && !is_dir($this->temp_path)) {
+				$err = error_get_last();
+				log_message('error', 'Resumable_upload: failed to create temp directory '
+					. $this->temp_path . ' - ' . (isset($err['message']) ? $err['message'] : 'unknown error'));
+				throw new Exception("STORAGE_NOT_WRITABLE: Upload storage folder could not be created");
 			}
+		}
+
+		if (!is_writable($this->temp_path)) {
+			log_message('error', 'Resumable_upload: temp directory is not writable ' . $this->temp_path);
+			throw new Exception("STORAGE_NOT_WRITABLE: Upload storage folder is not writable");
 		}
 	}
 	
@@ -99,6 +137,8 @@ class Resumable_upload {
 			throw new Exception("FILE_TYPE_NOT_ALLOWED");
 		}
 		
+		$this->ensure_temp_path();
+
 		// Generate upload ID (UUID v4)
 		$upload_id = $this->generate_upload_id();
 		
@@ -106,7 +146,10 @@ class Resumable_upload {
 		$upload_path = $this->get_upload_path($upload_id);
 		
 		if (!@mkdir($upload_path, 0755, true)) {
-			throw new Exception("FAILED_TO_CREATE_UPLOAD_DIRECTORY");
+			$err = error_get_last();
+			log_message('error', 'Resumable_upload: failed to create upload directory '
+				. $upload_path . ' - ' . (isset($err['message']) ? $err['message'] : 'unknown error'));
+			throw new Exception("STORAGE_NOT_WRITABLE: Upload folder could not be created");
 		}
 		
 		// Create metadata
@@ -170,7 +213,7 @@ class Resumable_upload {
 		// Ensure directory exists
 		if (!file_exists($upload_path)) {
 			if (!@mkdir($upload_path, 0755, true)) {
-				throw new Exception("FAILED_TO_CREATE_UPLOAD_DIRECTORY");
+				throw new Exception("STORAGE_NOT_WRITABLE: Upload folder could not be created");
 			}
 		}
 		
@@ -778,7 +821,7 @@ class Resumable_upload {
 		$upload_path = $this->get_upload_path($upload_id);
 		if (!is_dir($upload_path)) {
 			if (!@mkdir($upload_path, 0755, true)) {
-				throw new Exception("FAILED_TO_CREATE_UPLOAD_DIRECTORY");
+				throw new Exception("STORAGE_NOT_WRITABLE: Upload folder could not be created");
 			}
 		}
 

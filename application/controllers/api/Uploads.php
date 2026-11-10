@@ -18,9 +18,51 @@ class Uploads extends MY_REST_Controller
 	public function __construct()
 	{
 		parent::__construct();
-		$this->load->library('Resumable_upload', null, 'uploader');
 		// Authenticated catalog editors use resumable uploads (not necessarily site admins).
+		// Check auth before loading the uploader so anonymous requests never touch storage.
 		$this->is_authenticated_or_die();
+
+		try {
+			$this->load->library('Resumable_upload', null, 'uploader');
+		}
+		catch (Exception $e) {
+			log_message('error', 'Uploads: failed to initialize uploader - ' . $e->getMessage());
+			$this->response(array(
+				'status' => 'error',
+				'error_code' => 'UPLOAD_SERVICE_UNAVAILABLE',
+				'message' => 'Upload service is not available. Please contact the site administrator.'
+			), REST_Controller::HTTP_INTERNAL_SERVER_ERROR, false);
+			die();
+		}
+	}
+
+	/**
+	 * Send a JSON error response for an exception.
+	 *
+	 * Server-side storage problems return 500 with a generic message
+	 * (details are in the application log); everything else is treated
+	 * as a client error and returns 400 with the exception message.
+	 *
+	 * @param Exception $e
+	 */
+	private function send_error(Exception $e)
+	{
+		$error_code = $this->get_error_code($e->getMessage());
+
+		if ($error_code === 'STORAGE_NOT_WRITABLE') {
+			$this->set_response(array(
+				'status' => 'error',
+				'error_code' => $error_code,
+				'message' => 'Upload storage is not available on the server. Please contact the site administrator.'
+			), REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+			return;
+		}
+
+		$this->set_response(array(
+			'status' => 'error',
+			'error_code' => $error_code,
+			'message' => $e->getMessage()
+		), REST_Controller::HTTP_BAD_REQUEST);
 	}
 	
 	/**
@@ -93,12 +135,7 @@ class Uploads extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch (Exception $e) {
-			$output = array(
-				'status' => 'error',
-				'error_code' => $this->get_error_code($e->getMessage()),
-				'message' => $e->getMessage()
-			);
-			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+			$this->send_error($e);
 		}
 	}
 	
@@ -205,12 +242,7 @@ class Uploads extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch (Exception $e) {
-			$output = array(
-				'status' => 'error',
-				'error_code' => $this->get_error_code($e->getMessage()),
-				'message' => $e->getMessage()
-			);
-			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+			$this->send_error($e);
 		}
 	}
 	
@@ -261,12 +293,7 @@ class Uploads extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch (Exception $e) {
-			$output = array(
-				'status' => 'error',
-				'error_code' => $this->get_error_code($e->getMessage()),
-				'message' => $e->getMessage()
-			);
-			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+			$this->send_error($e);
 		}
 	}
 	
@@ -304,12 +331,7 @@ class Uploads extends MY_REST_Controller
 			force_download2($final_file);
 		}
 		catch (Exception $e) {
-			$output = array(
-				'status' => 'error',
-				'error_code' => $this->get_error_code($e->getMessage()),
-				'message' => $e->getMessage()
-			);
-			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+			$this->send_error($e);
 		}
 	}
 	
@@ -340,12 +362,7 @@ class Uploads extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch (Exception $e) {
-			$output = array(
-				'status' => 'error',
-				'error_code' => $this->get_error_code($e->getMessage()),
-				'message' => $e->getMessage()
-			);
-			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+			$this->send_error($e);
 		}
 	}
 
@@ -387,12 +404,7 @@ class Uploads extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch (Exception $e) {
-			$output = array(
-				'status' => 'error',
-				'error_code' => $this->get_error_code($e->getMessage()),
-				'message' => $e->getMessage()
-			);
-			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+			$this->send_error($e);
 		}
 	}
 	
@@ -430,12 +442,7 @@ class Uploads extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch (Exception $e) {
-			$output = array(
-				'status' => 'error',
-				'error_code' => $this->get_error_code($e->getMessage()),
-				'message' => $e->getMessage()
-			);
-			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+			$this->send_error($e);
 		}
 	}
 	
@@ -611,12 +618,7 @@ class Uploads extends MY_REST_Controller
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
 		catch (Exception $e) {
-			$output = array(
-				'status' => 'error',
-				'error_code' => $this->get_error_code($e->getMessage()),
-				'message' => $e->getMessage()
-			);
-			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+			$this->send_error($e);
 		}
 	}
 
