@@ -315,8 +315,8 @@ class Catalog_Admin
 			$warnings[]='warning_study_years_not_set';
 		}
 
-		//indicators are always open access
-		if ($study_row['type']==='timeseries' && strtolower((string)$study_row['data_access_type'])!=='open')
+		//indicators allow open, direct or data_na
+		if ($study_row['type']==='timeseries' && !in_array(strtolower((string)$study_row['data_access_type']), array('open','direct','data_na'), true))
 		{
 			$warnings[]='warning_indicator_data_access_not_open';
 		}

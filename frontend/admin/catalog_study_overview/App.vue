@@ -416,18 +416,19 @@ const accessSelectItems = computed(() =>
   }))
 );
 
-/** Indicators (timeseries) are always open access — no access type selection */
+/** Indicators (timeseries) allow only these data access types (enforced by the API) */
+const INDICATOR_ACCESS_MODELS = ['open', 'direct', 'data_na'];
 const isIndicator = computed(() => dataset.value?.type === 'timeseries');
 
-/** Indicators: highlight the dropdown (red border) until `open` is selected */
+/** Indicators: highlight the dropdown (red border) until an allowed type is selected */
 const indicatorAccessMismatch = computed(
-  () => isIndicator.value && String(selectedAccessModel.value || '').toLowerCase() !== 'open'
+  () => isIndicator.value && !INDICATOR_ACCESS_MODELS.includes(String(selectedAccessModel.value || '').toLowerCase())
 );
 
-/** Indicators: empty or `open` (a stored non-open type shows as empty) */
+/** Indicators: empty plus the allowed types offered for the data classification (a stored disallowed type shows as empty) */
 const indicatorAccessItems = computed(() => [
   { title: ' ', value: '' },
-  { title: lbl.value.open_access, value: 'open' },
+  ...accessSelectItems.value.filter((o) => INDICATOR_ACCESS_MODELS.includes(String(o.value || '').toLowerCase())),
 ]);
 
 /** Data access model `remote` — show external repository URL field */
@@ -491,7 +492,7 @@ const lbl = computed(() => ({
   fix_country: 'Fix country',
   data_selection_apply_to_files: 'Applies to files',
   open_access: 'Open access',
-  indicator_open_access_help: 'For indicators, only open access is supported.',
+  indicator_open_access_help: 'For indicators, only open access, direct access and data not available are supported. Data not available hides the indicator data and blocks the data API.',
 
   study_no_data_files_assigned: 'No microdata files',
   ...((config.value && config.value.labels) || {}),
@@ -753,7 +754,8 @@ async function reloadAll() {
 
     const models = new Set((accessOptions.value || []).map((o) => o.model));
     if (isIndicator.value) {
-      selectedAccessModel.value = String(study.data_access_type || '').toLowerCase() === 'open' ? 'open' : '';
+      const stored = String(study.data_access_type || '').toLowerCase();
+      selectedAccessModel.value = INDICATOR_ACCESS_MODELS.includes(stored) ? stored : '';
     } else if (!models.has(selectedAccessModel.value)) {
       selectedAccessModel.value = accessOptions.value[0]?.model || '';
     }
@@ -793,9 +795,9 @@ async function onClassificationChange() {
 async function saveDataAccess() {
   savingDa.value = true;
   try {
-    // Indicators: send access_policy only when `open` is selected; empty leaves the stored value unchanged
+    // Indicators: send access_policy only when an allowed type is selected; empty leaves the stored value unchanged
     const payload = isIndicator.value
-      ? (selectedAccessModel.value === 'open' ? { access_policy: 'open' } : {})
+      ? (INDICATOR_ACCESS_MODELS.includes(selectedAccessModel.value) ? { access_policy: selectedAccessModel.value } : {})
       : {
           access_policy: selectedAccessModel.value ?? '',
           data_remote_url: remoteDa.value ?? '',

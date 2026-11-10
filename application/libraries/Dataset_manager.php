@@ -211,7 +211,7 @@ class Dataset_manager{
 
     /**
      * Throws ValidationException when the access policy is not allowed for the dataset type
-     * (indicators accept only open; direct/data_na are stored as open).
+     * (indicators accept open, direct and data_na).
      */
     public function validate_indicator_access_policy($type, $access_policy)
     {

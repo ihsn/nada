@@ -17,6 +17,9 @@ require_once APPPATH . '/libraries/MY_REST_Controller.php';
  *   GET .../data/{idno}/chart — same filters as data list (from/to on _ts_year, d[…], c[…]); optional limit (capped); returns chart-ready records (time_period, observation_value, series_key, plus series-dimension fields) aggregated server-side from Mongo rows (see Timeseries_mongo_model::build_catalog_chart_records). Metadata includes time_bounds (min/max time_period among returned chart rows).
  *   GET .../data/{idno}/schema — includes time_period_component and observation_value_component (DSD field names) when present.
  *
+ *   Indicators with data access `data_na`: data, count, chart, table-export and filter-options return 403
+ *   (DATA-NOT-AVAILABLE); schema, export, export-xml and notes stay available.
+ *
  * Global data structures (same catalogue as admin, read-only):
  *   GET .../data-structures/by_idno/{idno}     ?with_components=1|0
  *   GET .../data-structures/by_identity/{name} ?agency=&version=&with_components=
@@ -61,6 +64,7 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx    = $this->_context_from_idno_public($idno);
+			$this->_assert_indicator_data_available($ctx['sid']);
 			$filter = $this->Timeseries_mongo_model->build_observation_query_filter(
 				(int) $ctx['sid'],
 				$ctx['components'],
@@ -80,6 +84,7 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx    = $this->_context_from_idno_public($idno);
+			$this->_assert_indicator_data_available($ctx['sid']);
 			$query  = (array) $this->input->get();
 			$filter = $this->Timeseries_mongo_model->build_observation_query_filter(
 				(int) $ctx['sid'],
@@ -133,6 +138,7 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx    = $this->_context_from_idno_public($idno);
+			$this->_assert_indicator_data_available($ctx['sid']);
 			$query  = (array) $this->input->get();
 			$filter = $this->Timeseries_mongo_model->build_observation_query_filter(
 				(int) $ctx['sid'],
@@ -239,6 +245,7 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno_public($idno);
+			$this->_assert_indicator_data_available($ctx['sid']);
 
 			$dataset_title = '';
 			$row = $this->Dataset_model->get_row((int) $ctx['sid']);
@@ -365,6 +372,7 @@ class Timeseries_public extends MY_REST_Controller {
 	{
 		try {
 			$ctx = $this->_context_from_idno_public($idno);
+			$this->_assert_indicator_data_available($ctx['sid']);
 			$filters = $this->Timeseries_value_count_model->get_filter_options(
 				(int) $ctx['sid'],
 				(int) $ctx['dsd_id'],
@@ -624,6 +632,17 @@ class Timeseries_public extends MY_REST_Controller {
 	}
 
 	/**
+	 * Indicators with data access `data_na` publish metadata only: observation endpoints are blocked.
+	 * Structure endpoints (schema, export, export-xml) and notes stay available.
+	 */
+	private function _assert_indicator_data_available($sid)
+	{
+		if ($this->Dataset_model->is_indicator_data_disabled((int) $sid)) {
+			throw new Exception('DATA-NOT-AVAILABLE');
+		}
+	}
+
+	/**
 	 * @return array{sid:int,idno:string,dsd_id:int,structure:array,components:array}
 	 */
 	private function _context_from_idno_public($idno)
@@ -720,6 +739,14 @@ class Timeseries_public extends MY_REST_Controller {
 		}
 		if ($msg === 'ACCESS-DENIED') {
 			$code = REST_Controller::HTTP_FORBIDDEN;
+		}
+		if ($msg === 'DATA-NOT-AVAILABLE') {
+			$this->set_response([
+				'status'  => 'error',
+				'error_code' => 'DATA-NOT-AVAILABLE',
+				'message' => 'Data is not available for this indicator.',
+			], REST_Controller::HTTP_FORBIDDEN);
+			return;
 		}
 		$this->set_response([
 			'status'  => 'error',

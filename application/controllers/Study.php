@@ -390,8 +390,9 @@ class Study extends MY_Controller {
 		
 		$user=$this->ion_auth->current_user();
 		$options['user_id']=isset($user->id) ? $user->id : false;
-        //indicators are open access: list microdata resources first on the Downloads tab
-        $include_microdata=isset($survey['type']) && $survey['type']==='timeseries';
+        //indicators: list data files first on the Downloads tab, unless data access is `data_na`
+        $include_microdata=isset($survey['type']) && $survey['type']==='timeseries'
+            && !$this->Dataset_model->is_indicator_data_disabled($sid);
         $options['resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid, $include_microdata);
         $options['group_labels'] = $this->Survey_resource_model->get_group_labels(ci_lang_to_iso());
         $options['sid']=$sid;
@@ -539,7 +540,7 @@ class Study extends MY_Controller {
 	{
 		$survey=$this->get_survey_info($sid);
 
-		//indicators are always open access; data files are listed on the Downloads tab
+		//indicators: data files are listed on the Downloads tab
 		if (isset($survey['type']) && $survey['type'] === 'timeseries'){
 			show_404();
 		}
@@ -686,6 +687,11 @@ class Study extends MY_Controller {
 			show_404();
 		}
 
+		//data access `data_na`: indicator data is not published
+		if ($this->Dataset_model->is_indicator_data_disabled((int) $sid)) {
+			show_404();
+		}
+
 		$ctx = $this->Timeseries_dsd_model->resolve_dsd_for_sid((int) $sid);
 		if ($ctx === null) {
 			show_404();
@@ -738,6 +744,12 @@ class Study extends MY_Controller {
 		$survey = $this->get_survey_info($sid);
 		if ($survey['type'] !== 'timeseries') {
 			show_404();
+		}
+		//data access `data_na`: only the structure tab is available
+		if ($main_view !== 'structure' && $this->Dataset_model->is_indicator_data_disabled((int) $sid)) {
+			$content = '<div class="container py-4"><p class="text-muted">' . htmlspecialchars(t('indicator_data_not_available')) . '</p></div>';
+			$this->render_page($sid, $content, $active_tab, $survey);
+			return;
 		}
 		$ctx = $this->Timeseries_dsd_model->resolve_dsd_for_sid((int) $sid);
 		if ($ctx === null) {
@@ -969,13 +981,15 @@ class Study extends MY_Controller {
 				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources']);
 				break;
 			case 'timeseries':
-				$show_indicator=$counts['indicator_mongo'];
+				//data access `data_na`: hide data tabs and data files; structure stays visible
+				$data_disabled=isset($dataset['data_access_type']) && strtolower((string)$dataset['data_access_type'])==='data_na';
+				$show_indicator=$data_disabled ? false : $counts['indicator_mongo'];
 				$tabs['indicator_chart']=$this->study_page_tab($sid, 'indicator-chart', t('tab_indicator_chart'), $show_indicator);
 				$tabs['indicator_table']=$this->study_page_tab($sid, 'indicator-table', t('tab_indicator_table'), $show_indicator);
 				$tabs['indicator_observations']=$this->study_page_tab($sid, 'indicator-data-api', t('tab_indicator_observations'), $show_indicator);
 				$tabs['indicator_structure']=$this->study_page_tab($sid, 'indicator-structure', t('tab_indicator_structure'), $counts['indicator_mongo']);
-				//Downloads includes microdata resources for indicators (open access)
-				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources'] + $counts['microdata']);
+				//Downloads includes data files for indicators, unless data access is `data_na`
+				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources'] + ($data_disabled ? 0 : $counts['microdata']));
 				break;
 			case 'timeseriesdb':
 			case 'timeseries-db':

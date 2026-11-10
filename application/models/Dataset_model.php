@@ -247,10 +247,12 @@ class Dataset_model extends CI_Model {
 
 
 	/**
-	 * Data access models that are never allowed for indicators (timeseries).
-	 * Indicators are always open access; `direct` and `data_na` are accepted and stored as `open`.
+	 * Data access models allowed for indicators (timeseries).
+	 *
+	 * - open / direct: observations and data files are public
+	 * - data_na: metadata only; the public data API and data files are blocked
 	 */
-	private $indicator_rejected_access_models=array('public', 'licensed', 'data_enclave', 'enclave', 'remote');
+	private $indicator_allowed_access_models=array('open', 'direct', 'data_na');
 
 	private $open_access_formid=null;
 
@@ -263,7 +265,7 @@ class Dataset_model extends CI_Model {
 	 * Reject data access types that are not allowed for indicators.
 	 *
 	 * @param string          $type   dataset type
-	 * @param string|int|null $access data access model code (e.g. `licensed`) or numeric formid
+	 * @param string|int|null $access data access model code (e.g. `open`) or numeric formid; empty is skipped
 	 * @throws ValidationException
 	 */
 	public function validate_indicator_access_policy($type, $access)
@@ -284,22 +286,40 @@ class Dataset_model extends CI_Model {
 			$code = isset($form['model']) ? strtolower((string) $form['model']) : '';
 		}
 
-		if (in_array($code, $this->indicator_rejected_access_models, true)) {
-			$message = "Indicators are always open access; access_policy '" . $code . "' is not allowed."
-				. " Use 'open' or omit access_policy. To link to externally hosted data, use link_indicator.";
+		if (!in_array($code, $this->indicator_allowed_access_models, true)) {
+			$label = $code !== '' ? $code : (string) $access;
+			$message = "access_policy '" . $label . "' is not allowed for indicators."
+				. " Use one of: " . implode(', ', $this->indicator_allowed_access_models) . "."
+				. " To link to externally hosted data, use link_indicator.";
 			throw new ValidationException('INDICATOR_ACCESS_POLICY_NOT_ALLOWED: ' . $message, array('access_policy' => $message));
 		}
 	}
 
 	/**
-	 * Force the `open` data access form on indicator rows.
+	 * Check the data access form on indicator rows before saving.
 	 *
-	 * @param string $type dataset type
-	 * @param array  $data surveys row data (modified in place)
+	 * A formid that is set must be allowed for indicators (throws otherwise).
+	 * New indicators without a formid default to `open`.
+	 *
+	 * @param string $type   dataset type
+	 * @param array  $data   surveys row data (modified in place)
+	 * @param bool   $is_new true when inserting a new dataset
+	 * @throws ValidationException
 	 */
-	public function apply_indicator_access_policy($type, array &$data)
+	public function apply_indicator_access_policy($type, array &$data, $is_new = false)
 	{
 		if (!$this->is_indicator_type($type)) {
+			return;
+		}
+
+		if (!empty($data['formid'])) {
+			$this->validate_indicator_access_policy($type, $data['formid']);
+			return;
+		}
+
+		if (!$is_new) {
+			//not provided on update: keep the stored value
+			unset($data['formid']);
 			return;
 		}
 
@@ -314,6 +334,28 @@ class Dataset_model extends CI_Model {
 		else {
 			log_message('error', 'apply_indicator_access_policy: data access form `open` not found in forms table');
 		}
+	}
+
+	/**
+	 * True when an indicator's data access is set to `data_na` (data not available).
+	 *
+	 * Indicators without a data access form are treated as open.
+	 *
+	 * @param int $sid
+	 * @return bool
+	 */
+	public function is_indicator_data_disabled($sid)
+	{
+		$this->db->select('surveys.type, forms.model');
+		$this->db->join('forms', 'forms.formid=surveys.formid', 'left');
+		$this->db->where('surveys.id', (int) $sid);
+		$row = $this->db->get('surveys')->row_array();
+
+		if (!$row || !$this->is_indicator_type($row['type'])) {
+			return false;
+		}
+
+		return strtolower((string) $row['model']) === 'data_na';
 	}
 
 	
@@ -667,8 +709,8 @@ class Dataset_model extends CI_Model {
 			$data['abbreviation']=substr($data['abbreviation'],0,40);
 		}
 
-		//indicators are always open access
-		$this->apply_indicator_access_policy($type, $data);
+		//indicators: validate data access; new indicators default to open
+		$this->apply_indicator_access_policy($type, $data, true);
 
 		//keywords
 		if (isset($data['metadata']) && !isset($data['keywords'])){
@@ -735,7 +777,7 @@ class Dataset_model extends CI_Model {
 			$data['abbreviation']=substr($data['abbreviation'],0,40);
 		}
 
-		//indicators are always open access
+		//indicators: validate data access
 		$this->apply_indicator_access_policy($type, $data);
 
 		//keywords
@@ -2060,15 +2102,14 @@ class Dataset_model extends CI_Model {
 			unset($options['aliases']);
 		}
 
-		if (empty($data)) {
-			return false;
-		}
-
-		//indicators are always open access: reject restricted types, store `open`
+		//indicators: reject data access types that are not allowed
 		if (array_key_exists('formid', $data)) {
 			$da_type = isset($data['type']) ? $data['type'] : $this->get_type($sid);
-			$this->validate_indicator_access_policy($da_type, $data['formid']);
 			$this->apply_indicator_access_policy($da_type, $data);
+		}
+
+		if (empty($data)) {
+			return false;
 		}
 
 		//abstract

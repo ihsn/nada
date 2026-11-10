@@ -124,6 +124,14 @@ NADA-AI reads the catalog and the change queue with an API key from NADA. The us
 
 The same permission lets other users manage the **Search index** admin page without being full administrators.
 
+## Indicator data access
+
+Indicators (`timeseries`) accept only the **Open access**, **Direct access** and **Data not available** data access types. Creating, importing or updating an indicator with any other type now fails with `INDICATOR_ACCESS_POLICY_NOT_ALLOWED` instead of being saved as open access. New indicators without a data access type are set to open access.
+
+**Data not available** publishes the indicator's metadata only. The Chart, Table and Data API tabs are hidden, data files are not listed under Downloads, and the timeseries API returns 403 (`DATA-NOT-AVAILABLE`) for `data`, `count`, `chart`, `table-export` and `filter-options`. The Data structure tab, `schema`, `export`, `export-xml` and `notes` stay available.
+
+Existing indicators keep their stored data access type. The study page in the admin shows a warning for any indicator that uses a type that is no longer allowed.
+
 ## Fresh installs
 
 New installations use `install/schema.mysql.sql` (or `schema.sqlsrv.sql`) plus `install/schema.dd.{mysql,sqlsrv}.sql`. The schema files already include all migrations up to the release, and the installer records the latest version. You do not need to run `migrate latest` after a fresh install.
