@@ -971,7 +971,21 @@ class Ion_auth
 			throw new Exception("User not found");
 		}
 
-		$message=sprintf(t('otp_email_body'), '<b>'.$otp_code.'</b>').'<br/><br/>'.sprintf(t('otp_email_expiry_notice'), 15);
+		// OTP strings live in users_lang; callers such as MY_Controller only load "general"
+		$this->ci->lang->load('users');
+
+		// Fall back to English if a translation is missing or lacks the %s placeholder,
+		// otherwise sprintf() silently drops the code from the email
+		$body_tpl=t('otp_email_body');
+		if (strpos($body_tpl, '%s')===false){
+			$body_tpl='Your verification code is: %s';
+		}
+		$expiry_tpl=t('otp_email_expiry_notice');
+		if (strpos($expiry_tpl, '%s')===false){
+			$expiry_tpl='This code expires in %s minutes. If you did not request it, you can ignore this email.';
+		}
+
+		$message=sprintf($body_tpl, '<b>'.$otp_code.'</b>').'<br/><br/>'.sprintf($expiry_tpl, 15);
 		$this->ci->email->clear();
 		$this->ci->email->initialize();
 		$this->ci->email->to($user->email);

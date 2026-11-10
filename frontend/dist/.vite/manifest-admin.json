@@ -1245,6 +1245,40 @@
       "assets/admin/admin_data_structures-C9DKexhA.css"
     ]
   },
+  "admin/database_migration/main.js": {
+    "file": "assets/admin/admin_database_migration-DPPL6aoa.js",
+    "name": "admin_database_migration",
+    "src": "admin/database_migration/main.js",
+    "isEntry": true,
+    "imports": [
+      "_router-DQmFDitI.js",
+      "_useAppConfig-ieDbQ97G.js",
+      "_VMain-O5sbL_yx.js",
+      "_VContainer-CX4j4LZ1.js",
+      "_VBreadcrumbs-BL6ykfqI.js",
+      "_VApp-JS_4w6Zb.js",
+      "_VAlert-DqwRsilr.js",
+      "_VRow-BOvFoHhG.js",
+      "_VCard-Dq1yZCgX.js",
+      "_VCheckboxBtn-uU_MNQ4A.js",
+      "_VSpacer-CeZYmPH9.js",
+      "_VList-BhjYmkaJ.js",
+      "_VDataTable-B9t5MxN3.js",
+      "_VChip-E76celQt.js",
+      "_VDialog-7LHxyHfa.js",
+      "_VSnackbar-TERf5T7z.js",
+      "_forwardRefs-DwYa945o.js",
+      "_VPagination-DF7s71s6.js",
+      "_VSelect-CoT24kh2.js",
+      "_dialog-transition-CyfzX7pT.js",
+      "_VMenu-CD_5OGVw.js",
+      "_VSheet-CA8X7REL.js",
+      "_VTable-BejU6bhe.js"
+    ],
+    "css": [
+      "assets/admin/admin_database_migration-Dr8pts7l.css"
+    ]
+  },
   "admin/datadeposit/main.js": {
     "file": "assets/admin/admin_datadeposit-N6A6Trjb.js",
     "name": "admin_datadeposit",

@@ -80,6 +80,7 @@ export const adminEntries = {
   admin_filestore: path.resolve(__dirname, 'admin/filestore/main.js'),
   admin_countries: path.resolve(__dirname, 'admin/countries/main.js'),
   admin_translate: path.resolve(__dirname, 'admin/translate/main.js'),
+  admin_database_migration: path.resolve(__dirname, 'admin/database_migration/main.js'),
 };
 
 export const allEntries = {

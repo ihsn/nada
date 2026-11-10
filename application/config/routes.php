@@ -637,6 +637,12 @@ $route['api/admin/translate/(:any)/search'] = 'api/admin/translate/search/$1';
 $route['api/admin/translate/(:any)/export'] = 'api/admin/translate/export/$1';
 $route['api/admin/translate/(:any)/delete'] = 'api/admin/translate/item_delete/$1';
 
+// Admin database migrations API (site admin only)
+$route['api/admin/database_migration/run'] = 'api/admin/database_migration/run';
+$route['api/admin/database_migration/mark_applied'] = 'api/admin/database_migration/mark_applied';
+$route['api/admin/database_migration/unmark'] = 'api/admin/database_migration/unmark';
+$route['api/admin/database_migration/set_version'] = 'api/admin/database_migration/set_version';
+
 
 /* End of file routes.php */
 /* Location: ./system/application/config/routes.php */
