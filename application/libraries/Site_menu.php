@@ -35,17 +35,65 @@ class Site_Menu
 		if (!is_array($items)) {
 			return array();
 		}
-		if (datadeposit_is_enabled()) {
+
+		$hidden = array();
+		if (!datadeposit_is_enabled()) {
+			$hidden[] = 'admin/datadeposit';
+		}
+		if (!$this->nada_ai_enabled()) {
+			$hidden[] = 'admin/search-index';
+		}
+		if (empty($hidden)) {
 			return $items;
 		}
+
 		$filtered = array();
 		foreach ($items as $item) {
-			if (isset($item['url']) && $item['url'] === 'admin/datadeposit') {
+			if (isset($item['url']) && in_array($item['url'], $hidden, true)) {
 				continue;
+			}
+			if (isset($item['items']) && is_array($item['items'])) {
+				$item['items'] = $this->remove_sub_items($item['items'], $hidden);
 			}
 			$filtered[] = $item;
 		}
 		return $filtered;
+	}
+
+	/**
+	 * Whether NADA-AI is set as the search engine or the search index engine (the index can be built before
+	 * search is switched to it).
+	 */
+	private function nada_ai_enabled()
+	{
+		$this->ci->load->library('search_engine_resolver');
+		$resolver = $this->ci->search_engine_resolver;
+
+		return $resolver->uses_nada_ai() || $resolver->index_engine() === Search_engine_resolver::NADA_AI;
+	}
+
+	/**
+	 * Drop sub-items whose url is in $hidden, along with the divider that followed each one, so no
+	 * doubled dividers are left behind.
+	 */
+	private function remove_sub_items(array $sub_items, array $hidden)
+	{
+		$result = array();
+		$skip_divider = false;
+		foreach ($sub_items as $sub) {
+			$is_divider = isset($sub['type']) && $sub['type'] === 'divider';
+			if ($is_divider && $skip_divider) {
+				$skip_divider = false;
+				continue;
+			}
+			$skip_divider = false;
+			if (!$is_divider && isset($sub['url']) && in_array($sub['url'], $hidden, true)) {
+				$skip_divider = true;
+				continue;
+			}
+			$result[] = $sub;
+		}
+		return $result;
 	}
 
 	/**
