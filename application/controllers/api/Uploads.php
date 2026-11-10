@@ -82,12 +82,17 @@ class Uploads extends MY_REST_Controller
 	function init_post()
 	{
 		try {
-			$this->_require_upload_starter();
 			$input = $this->raw_json_input();
-			
+
 			if (empty($input)) {
 				$input = $this->input->post(null, true);
 			}
+
+			$this->_require_upload_starter(
+				isset($input['metadata']) && is_array($input['metadata']) ? $input['metadata'] : array(),
+				isset($input['filename']) ? $input['filename'] : '',
+				isset($input['total_size']) ? $input['total_size'] : 0
+			);
 			
 			// Validate required fields
 			if (empty($input['filename'])) {
@@ -626,13 +631,53 @@ class Uploads extends MY_REST_Controller
 	 * Starting an upload needs a catalog, table, deposit, or configuration permission.
 	 * A signed-in account with none of those cannot create one.
 	 */
-	private function _require_upload_starter()
+	private function _require_upload_starter(array $metadata = array(), $filename = '', $total_size = 0)
 	{
 		if ($this->_caller_may_start_upload()) {
 			return;
 		}
 
+		if ($this->_depositor_may_start_upload($metadata)) {
+			// Depositor-only path: reject bad type/size before any bytes reach temp storage.
+			$rejection = $this->deposit_depositor->upload_file_rejection($filename, $total_size);
+			if ($rejection !== null) {
+				throw new Exception($rejection);
+			}
+			return;
+		}
+
 		throw new Exception('ACCESS-DENIED');
+	}
+
+	/**
+	 * Depositors have no staff permissions; they may upload into a draft
+	 * deposit project they collaborate on (metadata: source=datadeposit, project_id).
+	 * The file is still checked against the project again on commit.
+	 */
+	private function _depositor_may_start_upload(array $metadata)
+	{
+		if (!isset($metadata['source']) || $metadata['source'] !== 'datadeposit') {
+			return false;
+		}
+		if (empty($metadata['project_id']) || !is_numeric($metadata['project_id'])) {
+			return false;
+		}
+
+		$this->load->helper('datadeposit');
+		if (!datadeposit_is_enabled()) {
+			return false;
+		}
+
+		$user = $this->ion_auth->get_user((int) $this->get_api_user_id());
+		if (empty($user) || empty($user->id) || empty($user->email)) {
+			return false;
+		}
+
+		$this->load->library('Deposit_depositor');
+		return $this->deposit_depositor->can_upload_files(
+			array('id' => (int) $user->id, 'email' => (string) $user->email),
+			(int) $metadata['project_id']
+		);
 	}
 
 	/**
@@ -650,7 +695,10 @@ class Uploads extends MY_REST_Controller
 			throw new Exception('UPLOAD_NOT_FOUND');
 		}
 
-		$owner = isset($metadata['_upload_owner_user_id']) ? (int) $metadata['_upload_owner_user_id'] : 0;
+		// init_post stores the owner inside the caller metadata block (metadata.metadata).
+		$owner = isset($metadata['metadata']['_upload_owner_user_id'])
+			? (int) $metadata['metadata']['_upload_owner_user_id']
+			: 0;
 		if ($owner < 1 || $owner !== (int) $this->get_api_user_id()) {
 			throw new Exception('ACCESS-DENIED');
 		}

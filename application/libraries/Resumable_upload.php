@@ -672,7 +672,9 @@ class Resumable_upload {
 			}
 
 			if ($owner_user_id !== null) {
-				$owner = isset($metadata['_upload_owner_user_id']) ? (int) $metadata['_upload_owner_user_id'] : 0;
+				$owner = isset($metadata['metadata']['_upload_owner_user_id'])
+					? (int) $metadata['metadata']['_upload_owner_user_id']
+					: 0;
 				if ($owner !== (int) $owner_user_id) {
 					continue;
 				}
