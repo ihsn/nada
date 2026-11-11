@@ -1527,13 +1527,37 @@ class Users extends MY_Controller {
 		$rows = $this->User_model->get_export_rows();
 		$export = array();
 		foreach ($rows as $row) {
+			$created_on = isset($row['created_on']) ? (int) $row['created_on'] : 0;
+			$last_login = isset($row['last_login']) ? (int) $row['last_login'] : 0;
+
 			$export[] = array(
-				'id'         => (int) $row['id'],
-				'email'      => isset($row['email']) ? (string) $row['email'] : '',
-				'first_name' => isset($row['first_name']) ? (string) $row['first_name'] : '',
-				'last_name'  => isset($row['last_name']) ? (string) $row['last_name'] : '',
+				'id'          => (int) $row['id'],
+				'username'    => isset($row['username']) ? (string) $row['username'] : '',
+				'email'       => isset($row['email']) ? (string) $row['email'] : '',
+				'first_name'  => isset($row['first_name']) ? (string) $row['first_name'] : '',
+				'last_name'   => isset($row['last_name']) ? (string) $row['last_name'] : '',
+				'status'      => ((int) (isset($row['active']) ? $row['active'] : 0) === 1) ? 'ACTIVE' : 'DISABLED',
+				'organization'=> isset($row['company']) ? (string) $row['company'] : '',
+				'country'     => isset($row['country']) ? (string) $row['country'] : '',
+				'phone'       => isset($row['phone']) ? (string) $row['phone'] : '',
+				'date_joined' => $created_on > 0 ? date('Y-m-d', $created_on) : '',
+				'last_login'  => ($last_login > $created_on) ? date('Y-m-d', $last_login) : '',
 			);
 		}
+
+		$headers = array(
+			'id',
+			'username',
+			'email',
+			'first_name',
+			'last_name',
+			'status',
+			'organization',
+			'country',
+			'phone',
+			'date_joined',
+			'last_login',
+		);
 
 		if ($format === 'json') {
 			$filename = 'users-' . date('Y-m-d-His') . '.json';
@@ -1554,9 +1578,13 @@ class Users extends MY_Controller {
 		$outstream = fopen('php://output', 'w');
 		// UTF-8 BOM for Excel compatibility
 		fwrite($outstream, "\xEF\xBB\xBF");
-		fputcsv($outstream, array('id', 'email', 'first_name', 'last_name'));
+		fputcsv($outstream, $headers);
 		foreach ($export as $row) {
-			fputcsv($outstream, array($row['id'], $row['email'], $row['first_name'], $row['last_name']));
+			$line = array();
+			foreach ($headers as $key) {
+				$line[] = $row[$key];
+			}
+			fputcsv($outstream, $line);
 		}
 		fclose($outstream);
 	}

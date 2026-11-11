@@ -56,3 +56,6 @@ $config['analytics_raw_retention_days'] = 60;
 // Max inclusive date span for admin raw event list API (date_from … date_to)
 $config['analytics_raw_list_max_days'] = 31;
 
+// Max inclusive date span for admin search-keywords list/export (~6 months)
+$config['analytics_search_keywords_max_days'] = 186;
+

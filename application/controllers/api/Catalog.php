@@ -328,7 +328,11 @@ class Catalog extends MY_REST_Controller
 			$params['varcount']=$varcount_param;
 		}
 
-		$this->db_logger->write_log($log_type='api-search',$log_message=http_build_query($params),$log_section='api-search-v1',$log_survey=0);		
+		// Keywords only — never log the full query string / filters into sitelogs.keyword
+		$api_sk = isset($params['study_keywords']) ? trim((string) $params['study_keywords']) : '';
+		if ($api_sk !== '') {
+			$this->db_logger->write_log('search', $api_sk, 'api-search', 0);
+		}
 
 		//convert country names or iso codes into country IDs
 		$params['countries']=$this->get_countries_id($params['countries']);

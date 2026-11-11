@@ -584,6 +584,8 @@ $route['api/admin/analytics/aggregate/status'] = "api/admin/analytics/aggregate_
 $route['api/admin/analytics/aggregate/stop'] = "api/admin/analytics/aggregate_stop";
 $route['api/admin/analytics/raw/pageviews'] = "api/admin/analytics/raw_pageviews";
 $route['api/admin/analytics/raw/downloads'] = "api/admin/analytics/raw_downloads";
+$route['api/admin/analytics/search/keywords'] = "api/admin/analytics/search_keywords";
+$route['api/admin/analytics/search/keywords/export'] = "api/admin/analytics/search_keywords_export";
 $route['api/admin/analytics/overview'] = "api/admin/analytics/overview";
 $route['api/admin/analytics/meta'] = "api/admin/analytics/meta";
 $route['api/admin/analytics/daily/totals'] = "api/admin/analytics/daily_totals";
@@ -638,7 +640,9 @@ $route['api/admin/repository_sections/batch_delete'] = 'api/admin/repository_sec
 $route['api/admin/repository_sections/(:num)/delete'] = 'api/admin/repository_sections/item_delete/$1';
 $route['api/admin/repository_sections/(:num)'] = 'api/admin/repository_sections/item/$1';
 
-// Admin public-use request detail
+// Admin public-use requests
+$route['api/admin/public_requests/search'] = 'api/admin/public_requests/search';
+$route['api/admin/public_requests/export'] = 'api/admin/public_requests/export';
 $route['api/admin/public_requests/(:num)'] = 'api/admin/public_requests/item/$1';
 
 // Admin translate API (site UI string translations)

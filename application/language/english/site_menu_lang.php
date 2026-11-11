@@ -4,6 +4,7 @@ $lang['Dashboard']="Dashboard";
 $lang['Studies']="Studies";
 $lang['Manage studies']="Manage studies";
 $lang['Licensed requests']="Licensed requests";
+$lang['Public requests']="Public requests";
 $lang['Manage collections']="Manage collections";
 $lang['Citations']="Citations";
 $lang['All citations']="All citations";

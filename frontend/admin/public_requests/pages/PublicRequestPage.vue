@@ -32,13 +32,20 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import axios from 'axios';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { usePublicRequestsApi } from '../composables/usePublicRequestsApi';
 
 defineOptions({ name: 'PublicRequestPage' });
 
-const { siteUrl, apiBaseUrl, config } = useAppConfig();
+const props = defineProps({
+  id: { type: [String, Number], default: null },
+});
+
+const route = useRoute();
+const { siteUrl, config } = useAppConfig();
+const { fetchDetail } = usePublicRequestsApi();
 
 const loading = ref(false);
 const error = ref('');
@@ -46,11 +53,21 @@ const request = ref(null);
 
 const t = (key, fallback) => config.value?.translations?.[key] || fallback || key;
 const siteBase = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));
-const requestId = computed(() => Number(config.value?.requestId) || 0);
+
+const requestId = computed(() => {
+  const fromProp = Number(props.id);
+  if (fromProp > 0) return fromProp;
+  const fromRoute = Number(route.params.id);
+  if (fromRoute > 0) return fromRoute;
+  return Number(config.value?.requestId) || 0;
+});
 
 const breadcrumbItems = computed(() => [
   { title: t('Home', 'Home'), href: `${siteBase.value}/admin` },
-  { title: t('reports', 'Reports'), href: `${siteBase.value}/admin/reports` },
+  {
+    title: t('public_requests', 'Public requests'),
+    href: `${siteBase.value}/admin/public_requests`,
+  },
   { title: t('public_request', 'Public request'), disabled: true },
 ]);
 
@@ -72,7 +89,10 @@ const rows = computed(() => {
     { label: t('request_date', 'Request date'), value: formatDate(r.posted) },
     { label: t('study_title', 'Study title'), value: study || '—' },
     { label: t('study_id', 'Study ID'), value: r.idno || '—' },
-    { label: t('full_name', 'Full name'), value: `${r.first_name || ''} ${r.last_name || ''}`.trim() || '—' },
+    {
+      label: t('full_name', 'Full name'),
+      value: `${r.first_name || ''} ${r.last_name || ''}`.trim() || '—',
+    },
     { label: t('username', 'Username'), value: r.username || '—' },
     { label: t('email', 'Email'), value: r.email || '—' },
     { label: t('organization', 'Organization'), value: r.company || '—' },
@@ -82,23 +102,25 @@ const rows = computed(() => {
   ];
 });
 
-onMounted(async () => {
+async function load() {
+  error.value = '';
+  request.value = null;
   if (!requestId.value) {
     error.value = 'Invalid request id';
     return;
   }
   loading.value = true;
   try {
-    const base = String(apiBaseUrl.value || '').replace(/\/$/, '');
-    const { data } = await axios.get(`${base}/${requestId.value}`);
-    if (data.status !== 'success') throw new Error(data.message || 'Failed to load request');
-    request.value = data.request;
+    request.value = await fetchDetail(requestId.value);
   } catch (e) {
     error.value = e?.response?.data?.message || e.message || 'Failed to load request';
   } finally {
     loading.value = false;
   }
-});
+}
+
+onMounted(load);
+watch(requestId, load);
 </script>
 
 <style>

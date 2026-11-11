@@ -3,6 +3,7 @@ $lang['Dashboard']="控制盘";
 $lang['Studies']="研究";
 $lang['Manage studies']="管理研究";
 $lang['Licensed requests']="得到许可的请求";
+$lang['Public requests']="公开请求";
 $lang['Manage collections']="管理集合";
 $lang['Citations']="参考文献";
 $lang['All citations']="所有参考文献";

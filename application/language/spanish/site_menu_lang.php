@@ -3,6 +3,7 @@ $lang['Dashboard']="Panel de control";
 $lang['Studies']="Estudios";
 $lang['Manage studies']="Administrar estudios";
 $lang['Licensed requests']="Solicitudes de acceso con licencia";
+$lang['Public requests']="Solicitudes de acceso público";
 $lang['Manage collections']="Administrar colecciones";
 $lang['Citations']="Citas de autor";
 $lang['All citations']="Todas las citas";

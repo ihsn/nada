@@ -24,7 +24,7 @@
         />
       </FormField>
     </v-col>
-    <v-col cols="12" sm="4" md="3">
+    <v-col v-if="showStudyFilter" cols="12" sm="4" md="3">
       <FormField :label="t('analytics_study_filter', 'Study (IDNO or ID)')">
         <v-text-field
           v-model="local.studyId"
@@ -35,7 +35,7 @@
         />
       </FormField>
     </v-col>
-    <v-col cols="12" md="3" class="d-flex align-end ga-2 pb-1">
+    <v-col cols="12" :md="showStudyFilter ? 3 : 6" class="d-flex align-end ga-2 pb-1">
       <v-btn color="primary" :loading="loading" @click="emitApply">{{ t('analytics_filter', 'Filter') }}</v-btn>
       <v-btn variant="outlined" :disabled="loading" @click="emitClear">{{ t('analytics_clear', 'Clear') }}</v-btn>
     </v-col>
@@ -52,6 +52,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   /** When set, Clear resets to this range instead of empty dates. */
   resetOnClear: { type: Object, default: null },
+  showStudyFilter: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(['update:modelValue', 'apply', 'clear']);

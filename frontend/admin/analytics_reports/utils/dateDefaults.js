@@ -22,16 +22,26 @@ export function defaultRawDateRange(serverDate) {
   return { date_from: day, date_to: day, study_id: '' };
 }
 
-/** Last 30 calendar days inclusive (daily aggregates default). */
-export function defaultDailyDateRange(serverDate) {
+/**
+ * Last N calendar days inclusive (date_to = server today).
+ * @param {string} serverDate Y-m-d
+ * @param {number} days inclusive day count (default 10)
+ */
+export function defaultLastNDaysRange(serverDate, days = 10) {
+  const n = Math.max(1, Number(days) || 10);
   const end = parseServerDate(serverDate);
   const start = new Date(end);
-  start.setDate(start.getDate() - 29);
+  start.setDate(start.getDate() - (n - 1));
   return {
     date_from: formatYmd(start),
     date_to: formatYmd(end),
     study_id: '',
   };
+}
+
+/** Last 30 calendar days inclusive (daily aggregates default). */
+export function defaultDailyDateRange(serverDate) {
+  return defaultLastNDaysRange(serverDate, 30);
 }
 
 /** Current calendar month (monthly aggregates default). */

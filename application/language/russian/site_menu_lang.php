@@ -3,6 +3,7 @@ $lang['Dashboard']="Панель управления";
 $lang['Studies']="Исследования";
 $lang['Manage studies']="Управление исследованиями";
 $lang['Licensed requests']="Запросы на лицензированные данные";
+$lang['Public requests']="Запросы на открытые данные";
 $lang['Manage collections']="Управление коллекциями";
 $lang['Citations']="Библиография";
 $lang['All citations']="Вся библиография";

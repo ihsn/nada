@@ -214,6 +214,99 @@ class Public_model extends CI_Model {
 		
 		return FALSE;
 	}
+
+	/**
+	 * Admin list of public-use requests (paginated).
+	 *
+	 * @param int   $limit
+	 * @param int   $offset
+	 * @param array $options keywords, date_from, date_to (unix), sort_by, sort_order
+	 * @return array
+	 */
+	function admin_search_requests($limit = 30, $offset = 0, $options = array())
+	{
+		$this->_admin_search_apply($options);
+		$this->db->select(
+			'p.id, p.surveyid, p.title as request_title, p.abstract, p.posted, p.request_type,'
+			. 's.title as survey_title, s.idno, s.nation, s.year_start,'
+			. 'u.username, u.email, m.company, m.country'
+		);
+		$this->db->order_by($this->_admin_search_sort_column($options), $this->_admin_search_sort_order($options));
+		$this->db->limit(max(1, (int) $limit), max(0, (int) $offset));
+		$query = $this->db->get();
+		return $query ? $query->result_array() : array();
+	}
+
+	/**
+	 * @param array $options
+	 * @return int
+	 */
+	function admin_search_requests_count($options = array())
+	{
+		$this->_admin_search_apply($options);
+		return (int) $this->db->count_all_results();
+	}
+
+	/**
+	 * Apply shared joins/filters for admin search (leaves QB ready for select/count).
+	 *
+	 * @param array $options
+	 */
+	private function _admin_search_apply($options = array())
+	{
+		$this->db->from('public_requests p');
+		$this->db->join('surveys s', 's.id = p.surveyid', 'inner');
+		$this->db->join('users u', 'u.id = p.userid', 'left');
+		$this->db->join('meta m', 'u.id = m.user_id', 'left');
+
+		$keywords = isset($options['keywords']) ? trim((string) $options['keywords']) : '';
+		if ($keywords !== '') {
+			$this->db->group_start();
+			$this->db->like('p.title', $keywords);
+			$this->db->or_like('s.title', $keywords);
+			$this->db->or_like('u.username', $keywords);
+			$this->db->or_like('u.email', $keywords);
+			$this->db->or_like('m.company', $keywords);
+			$this->db->or_like('m.country', $keywords);
+			$this->db->group_end();
+		}
+
+		$date_from = isset($options['date_from']) ? (int) $options['date_from'] : 0;
+		$date_to = isset($options['date_to']) ? (int) $options['date_to'] : 0;
+		if ($date_from > 0) {
+			$this->db->where('p.posted >=', $date_from);
+		}
+		if ($date_to > 0) {
+			$this->db->where('p.posted <=', $date_to);
+		}
+	}
+
+	/**
+	 * @param array $options
+	 * @return string
+	 */
+	private function _admin_search_sort_column($options)
+	{
+		$map = array(
+			'id'           => 'p.id',
+			'posted'       => 'p.posted',
+			'username'     => 'u.username',
+			'survey_title' => 's.title',
+			'country'      => 'm.country',
+		);
+		$key = isset($options['sort_by']) ? (string) $options['sort_by'] : 'posted';
+		return isset($map[$key]) ? $map[$key] : 'p.posted';
+	}
+
+	/**
+	 * @param array $options
+	 * @return string
+	 */
+	private function _admin_search_sort_order($options)
+	{
+		$order = isset($options['sort_order']) ? strtolower((string) $options['sort_order']) : 'desc';
+		return ($order === 'asc') ? 'asc' : 'desc';
+	}
 	
 
 	/**

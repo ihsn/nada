@@ -3,6 +3,7 @@ $lang['Dashboard']="لوحة القيادة/التحكم";
 $lang['Studies']="دراسات";
 $lang['Manage studies']="إدارة الدراسات";
 $lang['Licensed requests']="الطلبات المرخصة";
+$lang['Public requests']="الطلبات العامة";
 $lang['Manage collections']="إدارة المجموعات";
 $lang['Citations']="اقتباسات";
 $lang['All citations']="جميع الإقتباسات";

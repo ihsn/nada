@@ -2406,6 +2406,147 @@ class Analytics_model extends CI_Model {
 	}
 
 	/**
+	 * Paginated catalog search keyword rows from sitelogs (no aggregation / GROUP BY).
+	 *
+	 * Newest first. Filters logtype=search with a non-empty keyword. Rows that look like
+	 * query strings (contain '=') are skipped — legacy API logging pollution.
+	 *
+	 * @param array  $filters date_from, date_to (Y-m-d, required by caller validation)
+	 * @param int    $limit
+	 * @param int    $offset
+	 * @param bool   $count_total
+	 * @return array{data: array, total: int, limit: int, offset: int, has_more: bool}
+	 */
+	public function get_search_keywords($filters = array(), $limit = 50, $offset = 0, $count_total = true)
+	{
+		$date_from = isset($filters['date_from']) ? $filters['date_from'] : null;
+		$date_to = isset($filters['date_to']) ? $filters['date_to'] : null;
+
+		$limit = max(1, $this->clamp_api_list_limit((int) $limit));
+		$offset = max(0, (int) $offset);
+
+		$logtime_from = $date_from ? strtotime($date_from . ' 00:00:00') : null;
+		$logtime_to = $date_to ? strtotime($date_to . ' 23:59:59') : null;
+
+		$where = "logtype = 'search' AND keyword IS NOT NULL AND keyword != '' AND keyword NOT LIKE '%=%'";
+		$params = array();
+		if ($logtime_from) {
+			$where .= ' AND logtime >= ?';
+			$params[] = (int) $logtime_from;
+		}
+		if ($logtime_to) {
+			$where .= ' AND logtime <= ?';
+			$params[] = (int) $logtime_to;
+		}
+
+		$total = 0;
+		if ($count_total) {
+			$count_sql = 'SELECT COUNT(*) AS total FROM sitelogs WHERE ' . $where;
+			$count_query = $this->db->query($count_sql, $params);
+			$total = $count_query && $count_query->num_rows() > 0
+				? (int) $count_query->row()->total
+				: 0;
+		}
+
+		$data_sql = 'SELECT id, logtime, keyword, section, username, ip, url
+			FROM sitelogs
+			WHERE ' . $where . '
+			ORDER BY logtime DESC, id DESC
+			LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset;
+		$query = $this->db->query($data_sql, $params);
+
+		$rows = array();
+		if ($query) {
+			foreach ($query->result_array() as $row) {
+				$rows[] = array(
+					'id'       => (int) $row['id'],
+					'ts'       => isset($row['logtime']) ? (int) $row['logtime'] : null,
+					'keyword'  => (string) $row['keyword'],
+					'section'  => isset($row['section']) ? (string) $row['section'] : '',
+					'username' => isset($row['username']) ? (string) $row['username'] : '',
+					'ip'       => isset($row['ip']) ? (string) $row['ip'] : '',
+					'url'      => isset($row['url']) ? (string) $row['url'] : '',
+				);
+			}
+		}
+
+		return array(
+			'data'     => $rows,
+			'total'    => $total,
+			'limit'    => $limit,
+			'offset'   => $offset,
+			'has_more' => $this->pagination_has_more($offset, $limit, $total),
+		);
+	}
+
+	/**
+	 * Max keyword rows for search-keywords CSV export.
+	 *
+	 * @return int
+	 */
+	public function get_search_keywords_export_max_rows()
+	{
+		return 10000;
+	}
+
+	/**
+	 * Keyword-only rows for CSV export (newest first, capped).
+	 *
+	 * @param array $filters date_from, date_to
+	 * @param int   $max_rows
+	 * @return array{data: array, total: int, limit: int, offset: int, has_more: bool}
+	 */
+	public function get_search_keywords_export($filters = array(), $max_rows = 10000)
+	{
+		$date_from = isset($filters['date_from']) ? $filters['date_from'] : null;
+		$date_to = isset($filters['date_to']) ? $filters['date_to'] : null;
+
+		$max_rows = max(1, min($this->get_search_keywords_export_max_rows(), (int) $max_rows));
+
+		$logtime_from = $date_from ? strtotime($date_from . ' 00:00:00') : null;
+		$logtime_to = $date_to ? strtotime($date_to . ' 23:59:59') : null;
+
+		$where = "logtype = 'search' AND keyword IS NOT NULL AND keyword != '' AND keyword NOT LIKE '%=%'";
+		$params = array();
+		if ($logtime_from) {
+			$where .= ' AND logtime >= ?';
+			$params[] = (int) $logtime_from;
+		}
+		if ($logtime_to) {
+			$where .= ' AND logtime <= ?';
+			$params[] = (int) $logtime_to;
+		}
+
+		$count_sql = 'SELECT COUNT(*) AS total FROM sitelogs WHERE ' . $where;
+		$count_query = $this->db->query($count_sql, $params);
+		$total = $count_query && $count_query->num_rows() > 0
+			? (int) $count_query->row()->total
+			: 0;
+
+		$data_sql = 'SELECT keyword
+			FROM sitelogs
+			WHERE ' . $where . '
+			ORDER BY logtime DESC, id DESC
+			LIMIT ' . (int) $max_rows;
+		$query = $this->db->query($data_sql, $params);
+
+		$rows = array();
+		if ($query) {
+			foreach ($query->result_array() as $row) {
+				$rows[] = array('keyword' => (string) $row['keyword']);
+			}
+		}
+
+		return array(
+			'data'     => $rows,
+			'total'    => $total,
+			'limit'    => $max_rows,
+			'offset'   => 0,
+			'has_more' => $this->pagination_has_more(0, $max_rows, $total),
+		);
+	}
+
+	/**
 	 * Max inclusive days allowed between date_from and date_to on raw list endpoints.
 	 *
 	 * @return int
@@ -2421,13 +2562,29 @@ class Analytics_model extends CI_Model {
 	}
 
 	/**
+	 * Max inclusive date span for search-keywords list/export (~6 months).
+	 *
+	 * @return int
+	 */
+	public function get_search_keywords_max_days()
+	{
+		$this->load->config('analytics');
+		$max = (int) $this->config->item('analytics_search_keywords_max_days');
+		if ($max <= 0) {
+			$max = 186;
+		}
+		return $max;
+	}
+
+	/**
 	 * Validate admin raw list date filters (required + max span).
 	 *
 	 * @param string|null $date_from Y-m-d
 	 * @param string|null $date_to   Y-m-d
+	 * @param int|null    $max_days  override max inclusive span (default: raw list max)
 	 * @throws Exception
 	 */
-	public function validate_admin_raw_date_range($date_from, $date_to)
+	public function validate_admin_raw_date_range($date_from, $date_to, $max_days = null)
 	{
 		if (!$date_from || !$date_to) {
 			throw new Exception('date_from and date_to are required (YYYY-MM-DD)');
@@ -2438,7 +2595,11 @@ class Analytics_model extends CI_Model {
 			throw new Exception('date_from must be on or before date_to');
 		}
 		$days = (int) floor((strtotime($date_to) - strtotime($date_from)) / 86400) + 1;
-		$max_days = $this->get_raw_list_max_days();
+		if ($max_days === null) {
+			$max_days = $this->get_raw_list_max_days();
+		} else {
+			$max_days = max(1, (int) $max_days);
+		}
 		if ($days > $max_days) {
 			throw new Exception('Date range cannot exceed ' . $max_days . ' days');
 		}

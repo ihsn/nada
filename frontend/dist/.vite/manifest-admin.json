@@ -648,7 +648,7 @@
     ]
   },
   "admin/analytics_reports/main.js": {
-    "file": "assets/admin/admin_analytics_reports-CtHh7SmA.js",
+    "file": "assets/admin/admin_analytics_reports-DPyvD-Zg.js",
     "name": "admin_analytics_reports",
     "src": "admin/analytics_reports/main.js",
     "isEntry": true,
@@ -1686,23 +1686,37 @@
     ]
   },
   "admin/public_requests/main.js": {
-    "file": "assets/admin/admin_public_requests-B4fua5QX.js",
+    "file": "assets/admin/admin_public_requests-na009ED6.js",
     "name": "admin_public_requests",
     "src": "admin/public_requests/main.js",
     "isEntry": true,
     "imports": [
       "_router-DQmFDitI.js",
       "_useAppConfig-ieDbQ97G.js",
-      "_VBreadcrumbs-BL6ykfqI.js",
-      "_VAlert-DqwRsilr.js",
-      "_VTable-BejU6bhe.js",
-      "_VCard-Dq1yZCgX.js",
-      "_VApp-JS_4w6Zb.js",
       "_VMain-O5sbL_yx.js",
-      "_VContainer-CX4j4LZ1.js"
+      "_VContainer-CX4j4LZ1.js",
+      "_VApp-JS_4w6Zb.js",
+      "_vue-router-fzLoKxhX.js",
+      "_useI18n-QjGJufi1.js",
+      "_VBreadcrumbs-BL6ykfqI.js",
+      "_VRow-BOvFoHhG.js",
+      "_VAlert-DqwRsilr.js",
+      "_VCheckboxBtn-uU_MNQ4A.js",
+      "_VCard-Dq1yZCgX.js",
+      "_VDataTable-B9t5MxN3.js",
+      "_VList-BhjYmkaJ.js",
+      "_VSelect-CoT24kh2.js",
+      "_VPagination-DF7s71s6.js",
+      "_VSnackbar-TERf5T7z.js",
+      "_VTable-BejU6bhe.js",
+      "_forwardRefs-DwYa945o.js",
+      "_VChip-E76celQt.js",
+      "_dialog-transition-CyfzX7pT.js",
+      "_VMenu-CD_5OGVw.js",
+      "_VSheet-CA8X7REL.js"
     ],
     "css": [
-      "assets/admin/admin_public_requests-CZgyfVgP.css"
+      "assets/admin/admin_public_requests-DKrjYJVd.css"
     ]
   },
   "admin/repository_sections/main.js": {

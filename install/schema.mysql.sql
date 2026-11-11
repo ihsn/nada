@@ -74,6 +74,7 @@ INSERT INTO `site_menu` VALUES
 (8,0,'Settings','admin/configurations',7,0,'configurations'),
 (12,2,'-','-',70,1,'catalog'),
 (13,2,'Licensed requests','admin/licensed_requests',80,1,'catalog'),
+(130,2,'Public requests','admin/public_requests',85,1,'catalog'),
 (14,2,'-','-',90,1,'catalog'),
 (15,2,'Manage collections','admin/collections',60,1,'repositories'),
 (17,4,'All citations','admin/citations',100,1,'citations'),

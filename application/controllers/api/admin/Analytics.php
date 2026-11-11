@@ -269,6 +269,91 @@ class Analytics extends MY_REST_Controller
 			$this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
+
+	/**
+	 * Catalog search keywords from sitelogs (chronological, paginated — no GROUP BY).
+	 *
+	 * GET /api/admin/analytics/search/keywords
+	 *
+	 * Query params:
+	 *   - date_from, date_to (Y-m-d, required; same max span as raw lists)
+	 *   - limit, offset
+	 */
+	function search_keywords_get()
+	{
+		try {
+			$this->require_analytics_access(null, false);
+			$filters = array(
+				'date_from' => $this->input->get('date_from'),
+				'date_to'   => $this->input->get('date_to'),
+			);
+			$this->Analytics_model->validate_admin_raw_date_range(
+				$filters['date_from'],
+				$filters['date_to'],
+				$this->Analytics_model->get_search_keywords_max_days()
+			);
+
+			$limit = (int) $this->input->get('limit') ?: 50;
+			$offset = (int) $this->input->get('offset') ?: 0;
+
+			$result = $this->Analytics_model->get_search_keywords($filters, $limit, $offset);
+
+			$this->set_response(
+				array(
+					'status'   => 'success',
+					'data'     => $result['data'],
+					'total'    => $result['total'],
+					'limit'    => $result['limit'],
+					'offset'   => $result['offset'],
+					'has_more' => $result['has_more'],
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (Exception $e) {
+			$this->set_response(
+				array('status' => 'error', 'message' => $e->getMessage()),
+				REST_Controller::HTTP_BAD_REQUEST
+			);
+		}
+	}
+
+	/**
+	 * Export catalog search keywords as CSV (keyword column only, max 10k rows).
+	 *
+	 * GET /api/admin/analytics/search/keywords/export?date_from=&date_to=
+	 */
+	function search_keywords_export_get()
+	{
+		try {
+			$this->require_analytics_access(null, false);
+			$filters = array(
+				'date_from' => $this->input->get('date_from'),
+				'date_to'   => $this->input->get('date_to'),
+			);
+			$this->Analytics_model->validate_admin_raw_date_range(
+				$filters['date_from'],
+				$filters['date_to'],
+				$this->Analytics_model->get_search_keywords_max_days()
+			);
+
+			$export_max = $this->Analytics_model->get_search_keywords_export_max_rows();
+			$result = $this->Analytics_model->get_search_keywords_export($filters, $export_max);
+
+			$this->deliver_aggregate_export(
+				'search_keywords_export',
+				'csv',
+				$result,
+				array('keyword'),
+				function ($row) {
+					return array($row['keyword']);
+				}
+			);
+		}
+		catch (Exception $e) {
+			$this->respond_export_exception($e);
+		}
+	}
 	
 	/**
 	 * Get daily study aggregates with pagination and filtering

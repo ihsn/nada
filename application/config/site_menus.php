@@ -24,6 +24,13 @@ $menu[]=array(
 				'type'	=>'divider'
 			),
 			array(
+				'title'	=>'Public requests',
+				'url'	=>'admin/public_requests'
+			),
+			array(
+				'type'	=>'divider'
+			),
+			array(
 				'title'	=>'Manage collections',
 				'url'	=>'admin/collections'
 			),
@@ -92,15 +99,8 @@ $menu[]=array(
 
 $menu[]=array(
 	'title'	=>'Reports',
-	'url'	=>'admin/reports',
+	'url'	=>'admin/analytics_reports',
 	'items'	=>array(
-		array(
-			'title'	=>'All reports',
-			'url'	=>'admin/reports'
-		),
-		array(
-				'type'	=>'divider'
-			),
 		array(
 			'title'	=>'Analytics reports',
 			'url'	=>'admin/analytics_reports'

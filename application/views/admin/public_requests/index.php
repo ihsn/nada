@@ -7,11 +7,12 @@ $use_vite_dev = defined('VUE_ENVIRONMENT') && VUE_ENVIRONMENT === 'development';
 window.APP_CONFIG = {
     siteUrl:       "<?php echo addslashes($site_url); ?>",
     baseUrl:       "<?php echo addslashes($base_url); ?>",
-    apiBaseUrl:    "<?php echo addslashes($api_base_url); ?>",
+    apiBaseUrl:    "<?php echo addslashes(rtrim($api_base_url, '/') . '/'); ?>",
     requestId:     <?php echo (int) $request_id; ?>,
     assetsBase:    "<?php echo addslashes(isset($assets_base) ? $assets_base : base_url('frontend/dist/')); ?>",
     csrfToken:     "<?php echo addslashes($csrf_token); ?>",
     csrfTokenName: "<?php echo addslashes(isset($csrf_token_name) ? $csrf_token_name : 'ncsrf'); ?>",
+    routerPathBase:"<?php echo addslashes(isset($router_path_base) ? $router_path_base : '/admin/public_requests'); ?>",
     translations:  <?php echo json_encode(isset($translations) ? $translations : array(), JSON_HEX_APOS | JSON_HEX_QUOT); ?>
 };
 </script>

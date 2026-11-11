@@ -278,9 +278,9 @@ class User_model extends CI_Model {
 	}
 
 	/**
-	 * Rows for user directory export (id, email, first_name, last_name).
+	 * Rows for user directory export.
 	 *
-	 * @return list<array{id:mixed,email:mixed,first_name:mixed,last_name:mixed}>
+	 * @return list<array<string,mixed>>
 	 */
 	function get_export_rows()
 	{
@@ -290,9 +290,16 @@ class User_model extends CI_Model {
 		$meta  = $this->tables['meta'];
 
 		$this->db->select(sprintf(
-			'%s.id, %s.email, %s.first_name, %s.last_name',
+			'%s.id, %s.username, %s.email, %s.active, %s.created_on, %s.last_login, %s.first_name, %s.last_name, %s.company, %s.country, %s.phone',
 			$users,
 			$users,
+			$users,
+			$users,
+			$users,
+			$users,
+			$meta,
+			$meta,
+			$meta,
 			$meta,
 			$meta
 		));
