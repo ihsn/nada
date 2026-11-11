@@ -29,7 +29,7 @@ $user=$this->session->userdata('username');
             <div class="float-right">
             <div class="dropdown ml-auto">
                 <a class="dropdown-toggle small" href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fa fa-user-circle-o fa-lg"></i><?php echo $user; ?>
+                    <i class="fa fa-user-circle-o fa-lg"></i><?php echo html_escape($user); ?>
                 </a>
 
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">

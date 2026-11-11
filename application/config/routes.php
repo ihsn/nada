@@ -640,6 +640,17 @@ $route['api/admin/repository_sections/batch_delete'] = 'api/admin/repository_sec
 $route['api/admin/repository_sections/(:num)/delete'] = 'api/admin/repository_sections/item_delete/$1';
 $route['api/admin/repository_sections/(:num)'] = 'api/admin/repository_sections/item/$1';
 
+// Admin users (session only)
+$route['api/admin/users/options'] = 'api/admin/users/options';
+$route['api/admin/users/batch'] = 'api/admin/users/batch';
+$route['api/admin/users/api_keys'] = 'api/admin/users/api_keys';
+$route['api/admin/users/api_keys/(:num)/revoke'] = 'api/admin/users/api_key_revoke/$1';
+$route['api/admin/users/api_keys/(:num)/extend'] = 'api/admin/users/api_key_extend/$1';
+$route['api/admin/users/api_keys/(:num)/delete'] = 'api/admin/users/api_key_delete/$1';
+$route['api/admin/users/(:num)/api_keys'] = 'api/admin/users/user_api_keys/$1';
+$route['api/admin/users/(:num)/delete'] = 'api/admin/users/item_delete/$1';
+$route['api/admin/users/(:num)'] = 'api/admin/users/item/$1';
+
 // Admin public-use requests
 $route['api/admin/public_requests/search'] = 'api/admin/public_requests/search';
 $route['api/admin/public_requests/export'] = 'api/admin/public_requests/export';

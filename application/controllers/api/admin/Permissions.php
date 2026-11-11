@@ -3,29 +3,46 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 require(APPPATH . '/libraries/MY_REST_Controller.php');
 
+class Permissions_api_error extends Exception
+{
+	public $status;
+
+	public function __construct($message, $status = 400)
+	{
+		parent::__construct($message);
+		$this->status = $status;
+	}
+}
+
 /**
  * Admin permissions / roles API.
  *
  * Base URL: /api/admin/permissions
- * Auth: session or API key; site admin only (same gate as admin/Permissions).
+ * Auth: browser session only; site admin only (same gate as admin/Permissions).
+ * Writes need a CSRF token (require_session_csrf). System roles (locked or admin) are read-only.
  *
  *   GET  resources
  *   GET  roles
- *   POST roles
+ *   POST roles                    body: { "role", "description", "weight" }
  *   GET  roles/{id}
- *   POST roles/{id}
+ *   POST roles/{id}               body: any of { "role", "description", "weight", "resources" }
  *   POST roles/{id}/delete
  *   GET  roles/{id}/permissions
  *   POST roles/{id}/permissions   body: { "resources": { "menu": ["view","edit"], ... } }
  */
 class Permissions extends MY_REST_Controller {
 
+	const MAX_ROLE_NAME = 100;
+	const MAX_DESCRIPTION = 255;
+	const MAX_WEIGHT = 999;
+
 	public function __construct()
 	{
 		parent::__construct();
 		$this->load->library('acl_manager');
-		$this->is_authenticated_or_die();
+		$this->_require_session_user();
 		$this->_require_site_admin();
+		$this->require_session_csrf();
 	}
 
 	/**
@@ -45,10 +62,7 @@ class Permissions extends MY_REST_Controller {
 			);
 		}
 		catch (Exception $e) {
-			$this->set_response(
-				array('status' => 'error', 'message' => $e->getMessage()),
-				REST_Controller::HTTP_BAD_REQUEST
-			);
+			$this->_error_response($e);
 		}
 	}
 
@@ -58,62 +72,49 @@ class Permissions extends MY_REST_Controller {
 	public function roles_get()
 	{
 		try {
+			$counts = $this->_role_user_counts();
+			$roles = array();
+			foreach ((array) $this->acl_manager->get_roles() as $role) {
+				$roles[] = $this->_format_role($role, $counts);
+			}
 			$this->set_response(
-				array(
-					'status' => 'success',
-					'roles'  => $this->_format_roles($this->acl_manager->get_roles()),
-				),
+				array('status' => 'success', 'roles' => $roles),
 				REST_Controller::HTTP_OK
 			);
 		}
 		catch (Exception $e) {
-			$this->set_response(
-				array('status' => 'error', 'message' => $e->getMessage()),
-				REST_Controller::HTTP_BAD_REQUEST
-			);
+			$this->_error_response($e);
 		}
 	}
 
 	/**
 	 * POST /api/admin/permissions/roles
-	 *
-	 * JSON: role (required), description, weight
 	 */
 	public function roles_post()
 	{
 		try {
-			$input = $this->raw_json_input();
-			if (! is_array($input)) {
-				throw new Exception('INVALID_JSON_INPUT');
-			}
+			$input = $this->_json_body();
 
 			$role = $this->_normalize_role_name(isset($input['role']) ? $input['role'] : (isset($input['name']) ? $input['name'] : ''));
 			$description = $this->_normalize_description(isset($input['description']) ? $input['description'] : '');
 			$weight = $this->_normalize_weight(isset($input['weight']) ? $input['weight'] : 0);
 
-			if ($role === '') {
-				throw new Exception('ROLE_REQUIRED');
-			}
-
+			$this->_assert_unique_name($role, 0);
 			$this->acl_manager->create_role($role, $description, $weight);
 			$created = $this->acl_manager->get_role_by_name($role);
 			if (! $created) {
 				throw new Exception('CREATE_FAILED');
 			}
 
+			$this->_audit('role-create', sprintf('role created: id=%d name="%s"', (int) $created['id'], $role));
+
 			$this->set_response(
-				array(
-					'status' => 'success',
-					'role'   => $this->_format_role($created),
-				),
+				array('status' => 'success', 'role' => $this->_format_role($created)),
 				REST_Controller::HTTP_CREATED
 			);
 		}
 		catch (Exception $e) {
-			$this->set_response(
-				array('status' => 'error', 'message' => $e->getMessage()),
-				REST_Controller::HTTP_BAD_REQUEST
-			);
+			$this->_error_response($e);
 		}
 	}
 
@@ -125,74 +126,70 @@ class Permissions extends MY_REST_Controller {
 		try {
 			$role = $this->_require_role($id);
 			$this->set_response(
-				array(
-					'status' => 'success',
-					'role'   => $this->_format_role($role),
-				),
+				array('status' => 'success', 'role' => $this->_format_role($role)),
 				REST_Controller::HTTP_OK
 			);
 		}
 		catch (Exception $e) {
-			$code = ($e->getMessage() === 'NOT_FOUND') ? REST_Controller::HTTP_NOT_FOUND : REST_Controller::HTTP_BAD_REQUEST;
-			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), $code);
+			$this->_error_response($e);
 		}
 	}
 
 	/**
 	 * POST /api/admin/permissions/roles/{id}
 	 *
-	 * JSON: role, description, weight
+	 * Partial update. Only the keys present are changed; "resources" replaces all grants.
+	 * Details and permissions are saved in one transaction.
 	 */
 	public function role_post($id = null)
 	{
 		try {
 			$role = $this->_require_role($id);
-			$this->_reject_locked($role);
+			$this->_reject_system_role($role);
+			$input = $this->_json_body();
 
-			$input = $this->raw_json_input();
-			if (! is_array($input)) {
-				throw new Exception('INVALID_JSON_INPUT');
+			$has_details = array_key_exists('role', $input) || array_key_exists('name', $input)
+				|| array_key_exists('description', $input) || array_key_exists('weight', $input);
+			$has_resources = array_key_exists('resources', $input);
+
+			if (! $has_details && ! $has_resources) {
+				throw new Permissions_api_error('NOTHING_TO_UPDATE');
 			}
 
-			$name = array_key_exists('role', $input)
-				? $this->_normalize_role_name($input['role'])
-				: (array_key_exists('name', $input)
-					? $this->_normalize_role_name($input['name'])
-					: (string) $role['name']);
+			$name = (string) $role['name'];
+			if (array_key_exists('role', $input)) {
+				$name = $this->_normalize_role_name($input['role']);
+			}
+			elseif (array_key_exists('name', $input)) {
+				$name = $this->_normalize_role_name($input['name']);
+			}
 			$description = array_key_exists('description', $input)
 				? $this->_normalize_description($input['description'])
-				: (isset($role['description']) ? (string) $role['description'] : '');
+				: (string) $role['description'];
 			$weight = array_key_exists('weight', $input)
 				? $this->_normalize_weight($input['weight'])
-				: (isset($role['weight']) ? (int) $role['weight'] : 0);
+				: (int) $role['weight'];
 
-			if ($name === '') {
-				throw new Exception('ROLE_REQUIRED');
+			$resources = $has_resources ? $this->_normalize_resources($input['resources']) : null;
+
+			if ($has_details) {
+				$this->_assert_unique_name($name, (int) $role['id']);
 			}
 
-			$ok = $this->acl_manager->update_role((int) $role['id'], $name, $description, $weight);
-			if ($ok !== TRUE) {
-				throw new Exception('UPDATE_FAILED');
-			}
+			$this->_save_role($role, $has_details ? compact('name', 'description', 'weight') : null, $resources);
 
-			$updated = $this->acl_manager->get_role_by_id((int) $role['id']);
+			$role_id = (int) $role['id'];
 			$this->set_response(
 				array(
-					'status' => 'success',
-					'role'   => $this->_format_role($updated),
+					'status'    => 'success',
+					'role'      => $this->_format_role($this->acl_manager->get_role_by_id($role_id)),
+					'resources' => $this->_role_resources_map($role_id),
 				),
 				REST_Controller::HTTP_OK
 			);
 		}
 		catch (Exception $e) {
-			$code = REST_Controller::HTTP_BAD_REQUEST;
-			if ($e->getMessage() === 'NOT_FOUND') {
-				$code = REST_Controller::HTTP_NOT_FOUND;
-			}
-			elseif ($e->getMessage() === 'ROLE_LOCKED') {
-				$code = REST_Controller::HTTP_FORBIDDEN;
-			}
-			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), $code);
+			$this->_error_response($e);
 		}
 	}
 
@@ -209,11 +206,33 @@ class Permissions extends MY_REST_Controller {
 	{
 		try {
 			$role = $this->_require_role($id);
-			$this->_reject_locked($role);
+			$this->_reject_system_role($role);
 
 			$role_id = (int) $role['id'];
-			// delete_role also clears user_roles + role_permissions
-			$this->acl_manager->delete_role($role_id);
+			$counts = $this->_role_user_counts();
+			$user_count = isset($counts[$role_id]) ? $counts[$role_id] : 0;
+
+			$this->db->trans_begin();
+			try {
+				// delete_role also clears user_roles + role_permissions
+				$this->acl_manager->delete_role($role_id);
+			}
+			catch (Exception $e) {
+				$this->db->trans_rollback();
+				throw $e;
+			}
+			if ($this->db->trans_status() === FALSE) {
+				$this->db->trans_rollback();
+				throw new Exception('DELETE_FAILED');
+			}
+			$this->db->trans_commit();
+
+			$this->_audit('role-delete', sprintf(
+				'role deleted: id=%d name="%s"; removed from %d user(s)',
+				$role_id,
+				$role['name'],
+				$user_count
+			));
 
 			$this->set_response(
 				array('status' => 'success', 'message' => 'DELETED'),
@@ -221,14 +240,7 @@ class Permissions extends MY_REST_Controller {
 			);
 		}
 		catch (Exception $e) {
-			$code = REST_Controller::HTTP_BAD_REQUEST;
-			if ($e->getMessage() === 'NOT_FOUND') {
-				$code = REST_Controller::HTTP_NOT_FOUND;
-			}
-			elseif ($e->getMessage() === 'ROLE_LOCKED') {
-				$code = REST_Controller::HTTP_FORBIDDEN;
-			}
-			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), $code);
+			$this->_error_response($e);
 		}
 	}
 
@@ -249,8 +261,7 @@ class Permissions extends MY_REST_Controller {
 			);
 		}
 		catch (Exception $e) {
-			$code = ($e->getMessage() === 'NOT_FOUND') ? REST_Controller::HTTP_NOT_FOUND : REST_Controller::HTTP_BAD_REQUEST;
-			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), $code);
+			$this->_error_response($e);
 		}
 	}
 
@@ -259,46 +270,27 @@ class Permissions extends MY_REST_Controller {
 	 *
 	 * Replaces all role permissions. JSON:
 	 *   { "resources": { "menu": ["view","edit"], "catalog": ["view"] } }
-	 * Empty resources clears all grants (same as unchecking every box in the PHP UI).
+	 * Empty resources clears all grants.
 	 */
 	public function role_permissions_post($id = null)
 	{
 		try {
 			$role = $this->_require_role($id);
-			$this->_reject_locked($role);
-
-			$input = $this->raw_json_input();
-			if (! is_array($input)) {
-				throw new Exception('INVALID_JSON_INPUT');
-			}
+			$this->_reject_system_role($role);
+			$input = $this->_json_body();
 
 			$resources = array();
-			if (isset($input['resources']) && is_array($input['resources'])) {
+			if (isset($input['resources'])) {
 				$resources = $input['resources'];
 			}
-			elseif (isset($input['resource']) && is_array($input['resource'])) {
+			elseif (isset($input['resource'])) {
 				// PHP form field name compatibility
 				$resources = $input['resource'];
 			}
 
-			$acl_permissions = $this->acl_manager->get_all_permissions();
-			$allowed_resources = is_array($acl_permissions) ? array_keys($acl_permissions) : array();
+			$this->_save_role($role, null, $this->_normalize_resources($resources));
 
 			$role_id = (int) $role['id'];
-			$this->acl_manager->remove_role_permissions($role_id);
-
-			foreach ($resources as $resource => $permissions) {
-				$resource = trim((string) $resource);
-				if ($resource === '' || ! in_array($resource, $allowed_resources, true)) {
-					continue;
-				}
-				$perms = $this->_normalize_permission_list($permissions, $resource, $acl_permissions);
-				if (empty($perms)) {
-					continue;
-				}
-				$this->acl_manager->set_role_permissions($role_id, $resource, $perms);
-			}
-
 			$this->set_response(
 				array(
 					'status'    => 'success',
@@ -309,28 +301,131 @@ class Permissions extends MY_REST_Controller {
 			);
 		}
 		catch (Exception $e) {
-			$code = REST_Controller::HTTP_BAD_REQUEST;
-			if ($e->getMessage() === 'NOT_FOUND') {
-				$code = REST_Controller::HTTP_NOT_FOUND;
-			}
-			elseif ($e->getMessage() === 'ROLE_LOCKED') {
-				$code = REST_Controller::HTTP_FORBIDDEN;
-			}
-			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), $code);
+			$this->_error_response($e);
 		}
 	}
 
 	// -------------------------------------------------------------------------
-	// Helpers
+	// Saving
 	// -------------------------------------------------------------------------
+
+	/**
+	 * @param array      $role
+	 * @param array|null $details   name, description, weight
+	 * @param array|null $resources resource => string[]; replaces all grants
+	 */
+	private function _save_role($role, $details, $resources)
+	{
+		$role_id = (int) $role['id'];
+		$before = $resources !== null ? $this->_role_resources_map($role_id) : array();
+
+		$this->db->trans_begin();
+		try {
+			if ($details !== null) {
+				$this->acl_manager->update_role($role_id, $details['name'], $details['description'], $details['weight']);
+			}
+			if ($resources !== null) {
+				$this->acl_manager->remove_role_permissions($role_id);
+				foreach ($resources as $resource => $perms) {
+					$this->acl_manager->set_role_permissions($role_id, $resource, $perms);
+				}
+			}
+		}
+		catch (Exception $e) {
+			$this->db->trans_rollback();
+			throw $e;
+		}
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			throw new Exception('UPDATE_FAILED');
+		}
+		$this->db->trans_commit();
+
+		if ($details !== null) {
+			$changes = array();
+			if ($details['name'] !== (string) $role['name']) {
+				$changes[] = sprintf('name "%s" -> "%s"', $role['name'], $details['name']);
+			}
+			if ($details['description'] !== (string) $role['description']) {
+				$changes[] = 'description';
+			}
+			if ($details['weight'] !== (int) $role['weight']) {
+				$changes[] = sprintf('weight %d -> %d', (int) $role['weight'], $details['weight']);
+			}
+			if ($changes) {
+				$this->_audit('role-update', sprintf('role id=%d "%s" updated: %s', $role_id, $details['name'], implode('; ', $changes)));
+			}
+		}
+
+		if ($resources !== null) {
+			$old = $this->_flatten_grants($before);
+			$new = $this->_flatten_grants($resources);
+			$added = array_values(array_diff($new, $old));
+			$removed = array_values(array_diff($old, $new));
+			if ($added || $removed) {
+				$this->_audit('role-permissions', sprintf(
+					'role id=%d "%s" permissions changed; added: %s; removed: %s',
+					$role_id,
+					$details !== null ? $details['name'] : $role['name'],
+					$added ? implode(', ', $added) : 'none',
+					$removed ? implode(', ', $removed) : 'none'
+				));
+			}
+		}
+	}
+
+	/**
+	 * @param array $map resource => string[]
+	 * @return string[] "resource.permission", sorted
+	 */
+	private function _flatten_grants($map)
+	{
+		$out = array();
+		foreach ($map as $resource => $perms) {
+			foreach ((array) $perms as $perm) {
+				$out[] = $resource . '.' . $perm;
+			}
+		}
+		sort($out);
+		return $out;
+	}
+
+	private function _audit($type, $message)
+	{
+		if ( ! isset($this->db_logger)) {
+			$this->load->library('db_logger');
+		}
+		$this->db_logger->write_log($type, $message, 'admin-roles');
+	}
+
+	// -------------------------------------------------------------------------
+	// Access
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Role changes are audited against the signed-in user, which only a browser session provides.
+	 */
+	private function _require_session_user()
+	{
+		$user_id = (int) $this->session->userdata('user_id');
+		if ($user_id < 1 || ! $this->ion_auth->get_user($user_id)) {
+			$this->response(
+				array('status' => 'failed', 'message' => 'SESSION-REQUIRED'),
+				REST_Controller::HTTP_UNAUTHORIZED,
+				false
+			);
+			exit;
+		}
+	}
 
 	private function _require_site_admin()
 	{
-		$user = $this->api_user();
+		$user = $this->ion_auth->get_user((int) $this->session->userdata('user_id'));
 		if (! $user || ! $this->acl_manager->user_is_admin($user)) {
-			$this->set_response(
+			$this->response(
 				array('status' => 'error', 'message' => 'ACCESS_DENIED'),
-				REST_Controller::HTTP_FORBIDDEN
+				REST_Controller::HTTP_FORBIDDEN,
+				false
 			);
 			exit;
 		}
@@ -339,63 +434,218 @@ class Permissions extends MY_REST_Controller {
 	/**
 	 * @param mixed $id
 	 * @return array
-	 * @throws Exception
 	 */
 	private function _require_role($id)
 	{
-		if (! is_numeric($id)) {
-			throw new Exception('INVALID_ID');
+		if (! is_numeric($id) || (int) $id < 1) {
+			throw new Permissions_api_error('INVALID_ID');
 		}
 		$role = $this->acl_manager->get_role_by_id((int) $id);
 		if (empty($role)) {
-			throw new Exception('NOT_FOUND');
+			throw new Permissions_api_error('NOT_FOUND', REST_Controller::HTTP_NOT_FOUND);
 		}
 		return $role;
 	}
 
 	/**
+	 * Locked roles and admin roles are built in; changing them could lock everyone out.
+	 *
 	 * @param array $role
-	 * @throws Exception
 	 */
-	private function _reject_locked($role)
+	private function _reject_system_role($role)
 	{
-		if (! empty($role['is_locked']) && (int) $role['is_locked'] === 1) {
-			throw new Exception('ROLE_LOCKED');
+		if ($this->_is_system_role($role)) {
+			throw new Permissions_api_error('ROLE_LOCKED', REST_Controller::HTTP_FORBIDDEN);
 		}
 	}
 
-	/**
-	 * @param array $roles
-	 * @return array
-	 */
-	private function _format_roles($roles)
+	private function _is_system_role($role)
 	{
-		$out = array();
-		if (! is_array($roles)) {
-			return $out;
+		return (! empty($role['is_locked']) && (int) $role['is_locked'] === 1)
+			|| (! empty($role['is_admin']) && (int) $role['is_admin'] === 1);
+	}
+
+	// -------------------------------------------------------------------------
+	// Input
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @return array decoded JSON object ({} and an empty body are allowed)
+	 */
+	private function _json_body()
+	{
+		$raw = (string) $this->input->raw_input_stream;
+		if (trim($raw) === '') {
+			return array();
 		}
-		foreach ($roles as $role) {
-			$out[] = $this->_format_role($role);
+		$data = json_decode($raw, true);
+		if (! is_array($data)) {
+			throw new Permissions_api_error('INVALID_JSON_INPUT');
+		}
+		return $data;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return string
+	 */
+	private function _normalize_role_name($value)
+	{
+		if (! is_scalar($value)) {
+			throw new Permissions_api_error('INVALID_ROLE_NAME');
+		}
+		$name = trim((string) $value);
+		if ($name === '') {
+			throw new Permissions_api_error('ROLE_REQUIRED');
+		}
+		if (strlen($name) > self::MAX_ROLE_NAME || ! preg_match('/^[A-Za-z0-9 ]+$/', $name)) {
+			throw new Permissions_api_error('INVALID_ROLE_NAME');
+		}
+		return $name;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return string
+	 */
+	private function _normalize_description($value)
+	{
+		if ($value === null) {
+			return '';
+		}
+		if (! is_scalar($value)) {
+			throw new Permissions_api_error('INVALID_DESCRIPTION');
+		}
+		$description = trim((string) $value);
+		if (mb_strlen($description) > self::MAX_DESCRIPTION) {
+			throw new Permissions_api_error('DESCRIPTION_TOO_LONG');
+		}
+		if ($description !== strip_tags($description)) {
+			throw new Permissions_api_error('INVALID_DESCRIPTION');
+		}
+		return $description;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return int
+	 */
+	private function _normalize_weight($value)
+	{
+		if ($value === null || $value === '') {
+			return 0;
+		}
+		if (! is_numeric($value) || (int) $value != $value || (int) $value < 0 || (int) $value > self::MAX_WEIGHT) {
+			throw new Permissions_api_error('INVALID_WEIGHT');
+		}
+		return (int) $value;
+	}
+
+	/**
+	 * Every resource and permission must exist in the acl_permissions config.
+	 *
+	 * @param mixed $resources
+	 * @return array resource => string[] (resources with no grants are dropped)
+	 */
+	private function _normalize_resources($resources)
+	{
+		if ($resources === null) {
+			return array();
+		}
+		if (! is_array($resources)) {
+			throw new Permissions_api_error('INVALID_RESOURCES');
+		}
+
+		$allowed = $this->_allowed_permissions();
+		$out = array();
+		foreach ($resources as $resource => $permissions) {
+			$resource = (string) $resource;
+			if (! isset($allowed[$resource])) {
+				throw new Permissions_api_error('INVALID_RESOURCE');
+			}
+			if (! is_array($permissions)) {
+				throw new Permissions_api_error('INVALID_PERMISSION');
+			}
+			$perms = array();
+			foreach ($permissions as $perm) {
+				if (! is_string($perm) || ! in_array($perm, $allowed[$resource], true)) {
+					throw new Permissions_api_error('INVALID_PERMISSION');
+				}
+				$perms[$perm] = true;
+			}
+			if ($perms) {
+				$out[$resource] = array_keys($perms);
+			}
 		}
 		return $out;
 	}
 
 	/**
+	 * @return array resource => string[]
+	 */
+	private function _allowed_permissions()
+	{
+		$allowed = array();
+		foreach ($this->_format_resources($this->acl_manager->get_all_permissions()) as $res) {
+			$allowed[$res['resource']] = array();
+			foreach ($res['permissions'] as $p) {
+				$allowed[$res['resource']][] = $p['permission'];
+			}
+		}
+		return $allowed;
+	}
+
+	private function _assert_unique_name($name, $role_id)
+	{
+		$existing = $this->acl_manager->get_role_by_name($name);
+		if (! empty($existing) && (int) $existing['id'] !== (int) $role_id) {
+			throw new Permissions_api_error('ROLE_EXISTS', REST_Controller::HTTP_CONFLICT);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Output
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @return array role_id => number of users holding the role
+	 */
+	private function _role_user_counts()
+	{
+		$rows = $this->db->select('role_id, COUNT(DISTINCT user_id) AS total', false)
+			->group_by('role_id')
+			->get('user_roles')
+			->result_array();
+		$counts = array();
+		foreach ($rows as $row) {
+			$counts[(int) $row['role_id']] = (int) $row['total'];
+		}
+		return $counts;
+	}
+
+	/**
 	 * @param array|null $role
+	 * @param array|null $counts from _role_user_counts(); loaded when omitted
 	 * @return array|null
 	 */
-	private function _format_role($role)
+	private function _format_role($role, $counts = null)
 	{
 		if (! is_array($role) || empty($role)) {
 			return null;
 		}
+		if ($counts === null) {
+			$counts = $this->_role_user_counts();
+		}
+		$id = isset($role['id']) ? (int) $role['id'] : 0;
 		return array(
-			'id'          => isset($role['id']) ? (int) $role['id'] : 0,
+			'id'          => $id,
 			'name'        => isset($role['name']) ? (string) $role['name'] : '',
 			'description' => isset($role['description']) ? (string) $role['description'] : '',
 			'weight'      => isset($role['weight']) ? (int) $role['weight'] : 0,
 			'is_locked'   => ! empty($role['is_locked']) && (int) $role['is_locked'] === 1,
 			'is_admin'    => ! empty($role['is_admin']) && (int) $role['is_admin'] === 1,
+			'is_system'   => $this->_is_system_role($role),
+			'user_count'  => isset($counts[$id]) ? $counts[$id] : 0,
 		);
 	}
 
@@ -462,86 +712,20 @@ class Permissions extends MY_REST_Controller {
 		return $map;
 	}
 
-	/**
-	 * @param mixed $permissions
-	 * @param string $resource
-	 * @param array $acl_permissions
-	 * @return string[]
-	 */
-	private function _normalize_permission_list($permissions, $resource, $acl_permissions)
+	private function _error_response(Exception $e)
 	{
-		if (! is_array($permissions)) {
-			$permissions = array($permissions);
+		$message = $e->getMessage();
+
+		if ($e instanceof Permissions_api_error && $e->status < 500) {
+			$this->set_response(array('status' => 'error', 'message' => $message), $e->status);
+			return;
+		}
+		if ($message === 'ROLE_LOCKED') {
+			$this->set_response(array('status' => 'error', 'message' => $message), REST_Controller::HTTP_FORBIDDEN);
+			return;
 		}
 
-		$allowed = array();
-		if (isset($acl_permissions[$resource]['permissions']) && is_array($acl_permissions[$resource]['permissions'])) {
-			foreach ($acl_permissions[$resource]['permissions'] as $p) {
-				if (is_array($p) && ! empty($p['permission'])) {
-					$allowed[] = (string) $p['permission'];
-				}
-			}
-		}
-
-		$out = array();
-		foreach ($permissions as $p) {
-			$p = trim((string) $p);
-			if ($p === '') {
-				continue;
-			}
-			if (! empty($allowed) && ! in_array($p, $allowed, true)) {
-				continue;
-			}
-			$out[] = $p;
-		}
-		return array_values(array_unique($out));
-	}
-
-	/**
-	 * @param mixed $value
-	 * @return string
-	 */
-	private function _normalize_role_name($value)
-	{
-		$name = trim((string) $value);
-		if ($name === '') {
-			return '';
-		}
-		if (strlen($name) > 100 || ! preg_match('/^[A-Za-z0-9 ]+$/', $name)) {
-			throw new Exception('INVALID_ROLE_NAME');
-		}
-		return $name;
-	}
-
-	/**
-	 * @param mixed $value
-	 * @return string
-	 */
-	private function _normalize_description($value)
-	{
-		$description = trim((string) $value);
-		if (strlen($description) > 255) {
-			$description = substr($description, 0, 255);
-		}
-		return $description;
-	}
-
-	/**
-	 * @param mixed $value
-	 * @return int
-	 */
-	private function _normalize_weight($value)
-	{
-		if ($value === null || $value === '') {
-			return 0;
-		}
-		if (! is_numeric($value) || (int) $value < 0) {
-			throw new Exception('INVALID_WEIGHT');
-		}
-		$weight = (int) $value;
-		if ($weight > 999) {
-			$weight = 999;
-		}
-		return $weight;
+		log_message('error', 'api/admin/permissions: ' . $message);
+		$this->set_response(array('status' => 'error', 'message' => 'SERVER_ERROR'), REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
 	}
 }

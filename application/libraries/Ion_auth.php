@@ -103,6 +103,38 @@ class Ion_auth
 		$this->message_end_delimiter   = $this->ci->config->item('message_end_delimiter');
 		$this->error_start_delimiter   = $this->ci->config->item('error_start_delimiter');
 		$this->error_end_delimiter     = $this->ci->config->item('error_end_delimiter');
+
+		$this->end_session_if_account_disabled();
+	}
+
+	/**
+	 * Sign out a session whose account was disabled or deleted after login, so the change takes effect
+	 * on the next request instead of when the session expires.
+	 */
+	private function end_session_if_account_disabled()
+	{
+		if (is_cli()) {
+			return;
+		}
+
+		$user_id = (int) $this->ci->session->userdata('user_id');
+		if ($user_id < 1) {
+			return;
+		}
+
+		$tables = $this->ci->config->item('tables');
+		$query  = $this->ci->db->query('SELECT active FROM ' . $tables['users'] . ' WHERE id = ?', array($user_id));
+		$row    = $query ? $query->row() : null;
+		if ($row && (int) $row->active === 1) {
+			return;
+		}
+
+		$identity = $this->ci->config->item('identity');
+		foreach (array($identity, 'group', 'id', 'user_id', 'username', 'email') as $key) {
+			if ($key) {
+				$this->ci->session->unset_userdata($key);
+			}
+		}
 	}
 	
 	/**

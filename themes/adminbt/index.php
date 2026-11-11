@@ -99,11 +99,8 @@ $site_navigation_menu=get_site_menu();
               <li class="dropdown">
               <?php $user=strtoupper($this->session->userdata('username'));?>
 			  <?php if ($user):?>
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo $user;?> <b class="caret"></b></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo html_escape($user); ?> <b class="caret"></b></a>
                 <ul class="dropdown-menu">
-                	<?php if ($this->session->userdata('impersonate_user')):?>
-                  		<li><?php echo anchor('admin/users/exit_impersonate',t('exit_impersonate'));?></li>  
-                    <?php endif;?>
                   <li><?php echo anchor('auth/change_password',t('change_password'));?></li>
                   <li><?php echo anchor('auth/logout',t('logout'));?></li>
                   <li class="divider"></li>

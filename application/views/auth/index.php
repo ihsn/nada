@@ -15,10 +15,10 @@
 		</tr>
 		<?php foreach ($users as $user):?>
 			<tr>
-				<td><?php echo $user['first_name']?></td>
-				<td><?php echo $user['last_name']?></td>
-				<td><?php echo $user['email'];?></td>
-				<td><?php echo $user['group_description'];?></td>
+				<td><?php echo html_escape($user['first_name']);?></td>
+				<td><?php echo html_escape($user['last_name']);?></td>
+				<td><?php echo html_escape($user['email']);?></td>
+				<td><?php echo html_escape($user['group_description']);?></td>
 				<td>
 					<?php if ($user['active']): ?>
 						<?php echo form_open('auth/deactivate/'.$user['id'], array('class' => 'd-inline mb-0')); ?>

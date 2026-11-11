@@ -48,7 +48,7 @@
 	<?php foreach($rows as $row): ?>
 		<?php if($tr_class=="") {$tr_class="alternate";} else{ $tr_class=""; } ?>
     	<tr class="<?php echo $tr_class; ?>">        	
-            <td><?php echo $row['email'];?></td>
+            <td><?php echo html_escape($row['email']);?></td>
             <td><?php echo $row['collection_name'];?></td>
 			<td>
                 <a href="<?php echo current_url();?>/delete/<?php echo $row['id'];?>"><?php echo t('delete');?></a>

@@ -4,7 +4,7 @@ $options_country = $this->ion_auth_model->get_all_countries();
 
 <div class="container"> 
 
-	<h1><?php echo t('edit_profile'); ?> - <?php echo $user->first_name . ' ' . $user->last_name; ?></h1>
+	<h1><?php echo t('edit_profile'); ?> - <?php echo html_escape($user->first_name . " " . $user->last_name); ?></h1>
 
 	<?php if (validation_errors()) : ?>
 		<div class="error">
@@ -36,7 +36,7 @@ $options_country = $this->ion_auth_model->get_all_countries();
 		<!--
 		<div class="form-group">
 			<label for="email"><?php echo t('email'); ?><span class="required">*</span></label>
-			<span><?php echo $user->email; ?></span>
+			<span><?php echo html_escape($user->email); ?></span>
 		</div>
 		-->
 

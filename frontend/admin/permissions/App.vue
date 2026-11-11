@@ -5,10 +5,13 @@
         <router-view />
       </v-container>
     </v-main>
+    <GlobalDialog />
   </v-app>
 </template>
 
 <script setup>
+import GlobalDialog from './components/GlobalDialog.vue';
+
 defineOptions({ name: 'AdminPermissionsApp' });
 </script>
 
@@ -16,5 +19,24 @@ defineOptions({ name: 'AdminPermissionsApp' });
 .admin-permissions-app,
 .admin-permissions-page {
   background-color: #f0f2f5;
+}
+
+.perm-breadcrumbs {
+  font-size: 0.8125rem;
+}
+
+.perm-breadcrumbs .v-breadcrumbs-item,
+.perm-breadcrumbs .v-breadcrumbs-divider {
+  opacity: 0.7;
+}
+
+.perm-section-header {
+  background: rgba(var(--v-theme-on-surface), 0.02);
+}
+
+.perm-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 </style>

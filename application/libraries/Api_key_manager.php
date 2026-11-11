@@ -69,16 +69,18 @@ class Api_key_manager {
     }
     
     /**
-     * Mask a legacy API key for display (show first 12 chars + "...")
+     * Mask a legacy API key for display (first 6 chars + "..."). Legacy keys are stored in full, so a
+     * short key is never shown at all.
      * 
      * @param string $api_key The full legacy API key (40 chars)
-     * @return string Masked key (e.g., "4d7f9a2b8c1e...")
+     * @return string Masked key (e.g., "4d7f9a...")
      */
     public function mask_legacy_key($api_key) {
-        if (empty($api_key) || strlen($api_key) < 12) {
-            return $api_key;
+        $api_key = (string) $api_key;
+        if (strlen($api_key) < 12) {
+            return '...';
         }
-        return substr($api_key, 0, 12) . '...';
+        return substr($api_key, 0, 6) . '...';
     }
     
     /**

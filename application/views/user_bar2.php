@@ -61,7 +61,7 @@ $(function() {
 <?php if ($user!=''):?>
     <div class="user-box">
         <ul>                
-            <li class="username"><?php echo $user; ?></li>
+            <li class="username"><?php echo html_escape($user); ?></li>
             <?php //if ($this->session->userdata('group_id')==1):?>
             <?php if ($this->ion_auth->is_site_admin()): ?>
 	            <li><a href="<?php echo site_url(); ?>/admin"><?php echo t('site_administration');?></a></li>

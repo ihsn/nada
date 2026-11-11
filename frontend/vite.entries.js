@@ -77,6 +77,7 @@ export const adminEntries = {
   admin_permissions: path.resolve(__dirname, 'admin/permissions/main.js'),
   admin_datadeposit: path.resolve(__dirname, 'admin/datadeposit/main.js'),
   admin_logs: path.resolve(__dirname, 'admin/logs/main.js'),
+  admin_users: path.resolve(__dirname, 'admin/users/main.js'),
   admin_filestore: path.resolve(__dirname, 'admin/filestore/main.js'),
   admin_countries: path.resolve(__dirname, 'admin/countries/main.js'),
   admin_translate: path.resolve(__dirname, 'admin/translate/main.js'),

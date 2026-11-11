@@ -73,10 +73,14 @@ $menu[]=array(
 			'title'	=>'Add user',
 			'url'	=>'admin/users/add'
 		),
-		/*array(
-			'title'	=>'Impersonate user',
-			'url'	=>'admin/users/impersonate'
-		)*/
+		array(
+			'title'	=>'API keys',
+			'url'	=>'admin/users/api_keys'
+		),
+		array(
+			'title'	=>'Roles',
+			'url'	=>'admin/permissions'
+		),
 	)
 );
 

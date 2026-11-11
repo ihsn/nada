@@ -10,7 +10,7 @@
 	<?php endif;?>
     
     <div class="author-info">
-	    <span class="author"><?php  $user=$this->ion_auth->get_user($note['userid']); echo $user->username;?></span> on
+	    <span class="author"><?php  $user=$this->ion_auth->get_user($note['userid']); echo html_escape($user ? $user->username : "");?></span> on
     	<span class="date"><?php echo date("m-d-Y",$note['created']);?></span>    	
     </div>
 	<div class="text"><?php echo nl2br(form_prep($note['note']));?></div>	
