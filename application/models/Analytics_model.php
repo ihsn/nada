@@ -670,11 +670,43 @@ class Analytics_model extends CI_Model {
 			$db_driver = $this->db->dbdriver;
 			$current_year  = (int)date('Y');
 			$current_month = (int)date('n');
-			
-			if ($db_driver === 'mysqli') {
-				// MySQL: Use COALESCE and LEFT JOIN
+
+			// sqlsrv has FULL OUTER JOIN; MySQL/MariaDB (mysqli/mysql) use LEFT JOIN + UNION.
+			if ($db_driver === 'sqlsrv') {
 				$sql = "
-					SELECT 
+					SELECT
+						COALESCE(legacy.study_id, curr.study_id) as study_id,
+						COALESCE(legacy.pageviews, 0) + COALESCE(curr.pageviews, 0) as pageviews,
+						COALESCE(legacy.downloads, 0) + COALESCE(curr.downloads, 0) as downloads
+					FROM (
+						SELECT study_id, pageviews, downloads
+						FROM analytics_monthly_studies
+						WHERE year = 0 AND month = 0
+				";
+				if ($study_id !== null) {
+					$sql .= " AND study_id = " . $this->db->escape($study_id);
+				}
+				$sql .= "
+					) legacy
+					FULL OUTER JOIN (
+						SELECT
+							study_id,
+							SUM(pageviews) as pageviews,
+							SUM(downloads) as downloads
+						FROM analytics_monthly_studies
+						WHERE year != 0 AND month != 0
+							AND NOT (year = {$current_year} AND month = {$current_month})
+				";
+				if ($study_id !== null) {
+					$sql .= " AND study_id = " . $this->db->escape($study_id);
+				}
+				$sql .= "
+						GROUP BY study_id
+					) curr ON legacy.study_id = curr.study_id
+				";
+			} else {
+				$sql = "
+					SELECT
 						COALESCE(legacy.study_id, current.study_id) as study_id,
 						COALESCE(legacy.pageviews, 0) + COALESCE(current.pageviews, 0) as pageviews,
 						COALESCE(legacy.downloads, 0) + COALESCE(current.downloads, 0) as downloads
@@ -689,7 +721,7 @@ class Analytics_model extends CI_Model {
 				$sql .= "
 					) legacy
 					LEFT JOIN (
-						SELECT 
+						SELECT
 							study_id,
 							SUM(pageviews) as pageviews,
 							SUM(downloads) as downloads
@@ -703,15 +735,15 @@ class Analytics_model extends CI_Model {
 				$sql .= "
 						GROUP BY study_id
 					) current ON legacy.study_id = current.study_id
-					
+
 					UNION
-					
-					SELECT 
+
+					SELECT
 						current.study_id,
 						COALESCE(legacy.pageviews, 0) + COALESCE(current.pageviews, 0) as pageviews,
 						COALESCE(legacy.downloads, 0) + COALESCE(current.downloads, 0) as downloads
 					FROM (
-						SELECT 
+						SELECT
 							study_id,
 							SUM(pageviews) as pageviews,
 							SUM(downloads) as downloads
@@ -736,39 +768,6 @@ class Analytics_model extends CI_Model {
 				$sql .= "
 					) legacy ON legacy.study_id = current.study_id
 					WHERE legacy.study_id IS NULL
-				";
-			} else {
-				// SQL Server: Use FULL OUTER JOIN
-				$sql = "
-					SELECT
-						COALESCE(legacy.study_id, curr.study_id) as study_id,
-						COALESCE(legacy.pageviews, 0) + COALESCE(curr.pageviews, 0) as pageviews,
-						COALESCE(legacy.downloads, 0) + COALESCE(curr.downloads, 0) as downloads
-					FROM (
-						SELECT study_id, pageviews, downloads
-						FROM analytics_monthly_studies
-						WHERE year = 0 AND month = 0
-				";
-				if ($study_id !== null) {
-					$sql .= " AND study_id = " . $this->db->escape($study_id);
-				}
-				$sql .= "
-					) legacy
-					FULL OUTER JOIN (
-						SELECT 
-							study_id,
-							SUM(pageviews) as pageviews,
-							SUM(downloads) as downloads
-						FROM analytics_monthly_studies
-						WHERE year != 0 AND month != 0
-							AND NOT (year = {$current_year} AND month = {$current_month})
-				";
-				if ($study_id !== null) {
-					$sql .= " AND study_id = " . $this->db->escape($study_id);
-				}
-				$sql .= "
-						GROUP BY study_id
-					) curr ON legacy.study_id = curr.study_id
 				";
 			}
 			
