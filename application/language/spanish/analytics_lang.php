@@ -76,7 +76,6 @@ $lang['analytics_export'] = "Exportar";
 $lang['analytics_export_limit'] = "Limitado a %s filas por archivo.";
 $lang['analytics_no_items'] = "Sin elementos";
 $lang['analytics_showing_items'] = "Mostrando %s–%s de %s";
-$lang['analytics_raw_hint'] = "Los eventos sin procesar son muy numerosos. Elija un período (máximo %s días). Para ver tendencias, use los datos diarios o mensuales.";
 $lang['analytics_required_dates'] = "Las fechas de inicio y fin son obligatorias";
 $lang['analytics_load_overview_error'] = "No se pudo cargar el resumen";
 $lang['analytics_load_daily_error'] = "No se pudieron cargar los datos diarios";

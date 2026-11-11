@@ -1231,6 +1231,7 @@ class Analytics_model extends CI_Model {
 			'export_max_rows' => $this->get_export_max_rows(),
 			'list_max_rows' => $this->get_api_list_max_rows(),
 			'raw_list_max_days' => $this->get_raw_list_max_days(),
+			'raw_list_wide_max_rows' => $this->get_raw_list_wide_max_rows(),
 			'raw_retention_days' => $retention,
 			'pageview_dedupe_window_minutes' => (int) $this->config->item('analytics_pageview_dedupe_window_minutes'),
 			'download_dedupe_window_minutes' => (int) $this->config->item('analytics_download_dedupe_window_minutes'),
@@ -1663,44 +1664,50 @@ class Analytics_model extends CI_Model {
 			$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 		}
 
-		// Build data query
-		$this->db->select('analytics_pageview_events.id, analytics_pageview_events.ts, analytics_pageview_events.study_id, analytics_pageview_events.session_id, analytics_pageview_events.page_url, analytics_pageview_events.section, analytics_pageview_events.user_agent, analytics_pageview_events.referrer, surveys.idno, surveys.title as study_title');
-		$this->db->from('analytics_pageview_events');
-		$this->db->join('surveys', 'analytics_pageview_events.study_id = surveys.id', 'left');
+		$cap = $this->apply_raw_wide_range_cap($date_from, $date_to, $limit, $offset, $total);
+		$limit = $cap['limit'];
+		$offset = $cap['offset'];
+		$total = $cap['total'];
 
-		// Apply filters for data query
-		if ($ts_from) {
-			$this->db->where('ts >=', $ts_from);
-		}
-		if ($ts_to) {
-			$this->db->where('ts <', $ts_to);
-		}
-		if ($study_id) {
-			$this->db->where('study_id', $study_id);
-		}
-
-		$sort_order = $this->normalize_sort_order($sort_order);
-
-		// Apply sorting
-		$valid_sort_fields = array('ts', 'study_id', 'session_id');
-		if (in_array($sort_by, $valid_sort_fields)) {
-			$this->db->order_by($sort_by, $sort_order);
-		} else {
-			$this->db->order_by('ts', 'DESC');
-		}
-		
-		// Apply pagination
-		$this->db->limit($limit, $offset);
-		
-		$query = $this->db->get();
-		
 		$events = array();
-		if ($query) {
-			foreach ($query->result_array() as $row) {
-				$events[] = $row;
+		if (!$cap['skip_query']) {
+			// Build data query
+			$this->db->select('analytics_pageview_events.id, analytics_pageview_events.ts, analytics_pageview_events.study_id, analytics_pageview_events.session_id, analytics_pageview_events.page_url, analytics_pageview_events.section, analytics_pageview_events.user_agent, analytics_pageview_events.referrer, surveys.idno, surveys.title as study_title');
+			$this->db->from('analytics_pageview_events');
+			$this->db->join('surveys', 'analytics_pageview_events.study_id = surveys.id', 'left');
+
+			// Apply filters for data query
+			if ($ts_from) {
+				$this->db->where('ts >=', $ts_from);
+			}
+			if ($ts_to) {
+				$this->db->where('ts <', $ts_to);
+			}
+			if ($study_id) {
+				$this->db->where('study_id', $study_id);
+			}
+
+			$sort_order = $this->normalize_sort_order($sort_order);
+
+			// Apply sorting
+			$valid_sort_fields = array('ts', 'study_id', 'session_id');
+			if (in_array($sort_by, $valid_sort_fields)) {
+				$this->db->order_by($sort_by, $sort_order);
+			} else {
+				$this->db->order_by('ts', 'DESC');
+			}
+
+			// Apply pagination
+			$this->db->limit($limit, $offset);
+
+			$query = $this->db->get();
+			if ($query) {
+				foreach ($query->result_array() as $row) {
+					$events[] = $row;
+				}
 			}
 		}
-		
+
 		return array(
 			'data' => $events,
 			'total' => $total,
@@ -1759,47 +1766,53 @@ class Analytics_model extends CI_Model {
 			$total = $count_query && $count_query->num_rows() > 0 ? (int)$count_query->row()->total : 0;
 		}
 
-		// Build data query
-		$this->db->select('analytics_download_events.id, analytics_download_events.ts, analytics_download_events.study_id, analytics_download_events.file_name, analytics_download_events.file_type, analytics_download_events.user_agent, analytics_download_events.hashed_ip, surveys.idno, surveys.title as study_title');
-		$this->db->from('analytics_download_events');
-		$this->db->join('surveys', 'analytics_download_events.study_id = surveys.id', 'left');
+		$cap = $this->apply_raw_wide_range_cap($date_from, $date_to, $limit, $offset, $total);
+		$limit = $cap['limit'];
+		$offset = $cap['offset'];
+		$total = $cap['total'];
 
-		// Apply filters for data query
-		if ($ts_from) {
-			$this->db->where('ts >=', $ts_from);
-		}
-		if ($ts_to) {
-			$this->db->where('ts <', $ts_to);
-		}
-		if ($study_id) {
-			$this->db->where('study_id', $study_id);
-		}
-		if ($file_type) {
-			$this->db->where('file_type', $file_type);
-		}
-		
-		$sort_order = $this->normalize_sort_order($sort_order);
-
-		// Apply sorting
-		$valid_sort_fields = array('ts', 'study_id', 'file_name', 'file_type');
-		if (in_array($sort_by, $valid_sort_fields)) {
-			$this->db->order_by($sort_by, $sort_order);
-		} else {
-			$this->db->order_by('ts', 'DESC');
-		}
-		
-		// Apply pagination
-		$this->db->limit($limit, $offset);
-		
-		$query = $this->db->get();
-		
 		$events = array();
-		if ($query) {
-			foreach ($query->result_array() as $row) {
-				$events[] = $row;
+		if (!$cap['skip_query']) {
+			// Build data query
+			$this->db->select('analytics_download_events.id, analytics_download_events.ts, analytics_download_events.study_id, analytics_download_events.file_name, analytics_download_events.file_type, analytics_download_events.user_agent, analytics_download_events.hashed_ip, surveys.idno, surveys.title as study_title');
+			$this->db->from('analytics_download_events');
+			$this->db->join('surveys', 'analytics_download_events.study_id = surveys.id', 'left');
+
+			// Apply filters for data query
+			if ($ts_from) {
+				$this->db->where('ts >=', $ts_from);
+			}
+			if ($ts_to) {
+				$this->db->where('ts <', $ts_to);
+			}
+			if ($study_id) {
+				$this->db->where('study_id', $study_id);
+			}
+			if ($file_type) {
+				$this->db->where('file_type', $file_type);
+			}
+
+			$sort_order = $this->normalize_sort_order($sort_order);
+
+			// Apply sorting
+			$valid_sort_fields = array('ts', 'study_id', 'file_name', 'file_type');
+			if (in_array($sort_by, $valid_sort_fields)) {
+				$this->db->order_by($sort_by, $sort_order);
+			} else {
+				$this->db->order_by('ts', 'DESC');
+			}
+
+			// Apply pagination
+			$this->db->limit($limit, $offset);
+
+			$query = $this->db->get();
+			if ($query) {
+				foreach ($query->result_array() as $row) {
+					$events[] = $row;
+				}
 			}
 		}
-		
+
 		return array(
 			'data' => $events,
 			'total' => $total,
@@ -2406,10 +2419,33 @@ class Analytics_model extends CI_Model {
 	}
 
 	/**
+	 * Shared sitelogs filters for search-keyword list/export (query builder).
+	 *
+	 * @param string|null $date_from Y-m-d
+	 * @param string|null $date_to   Y-m-d
+	 * @return void
+	 */
+	private function apply_search_keywords_filters($date_from, $date_to)
+	{
+		$this->db->where('logtype', 'search');
+		$this->db->where('keyword IS NOT NULL', null, false);
+		$this->db->where('keyword !=', '');
+		$this->db->not_like('keyword', '=');
+
+		if ($date_from) {
+			$this->db->where('logtime >=', (int) strtotime($date_from . ' 00:00:00'));
+		}
+		if ($date_to) {
+			$this->db->where('logtime <=', (int) strtotime($date_to . ' 23:59:59'));
+		}
+	}
+
+	/**
 	 * Paginated catalog search keyword rows from sitelogs (no aggregation / GROUP BY).
 	 *
 	 * Newest first. Filters logtype=search with a non-empty keyword. Rows that look like
 	 * query strings (contain '=') are skipped — legacy API logging pollution.
+	 * Uses the query builder so MySQL/MariaDB and sqlsrv pagination both work.
 	 *
 	 * @param array  $filters date_from, date_to (Y-m-d, required by caller validation)
 	 * @param int    $limit
@@ -2425,35 +2461,20 @@ class Analytics_model extends CI_Model {
 		$limit = max(1, $this->clamp_api_list_limit((int) $limit));
 		$offset = max(0, (int) $offset);
 
-		$logtime_from = $date_from ? strtotime($date_from . ' 00:00:00') : null;
-		$logtime_to = $date_to ? strtotime($date_to . ' 23:59:59') : null;
-
-		$where = "logtype = 'search' AND keyword IS NOT NULL AND keyword != '' AND keyword NOT LIKE '%=%'";
-		$params = array();
-		if ($logtime_from) {
-			$where .= ' AND logtime >= ?';
-			$params[] = (int) $logtime_from;
-		}
-		if ($logtime_to) {
-			$where .= ' AND logtime <= ?';
-			$params[] = (int) $logtime_to;
-		}
-
 		$total = 0;
 		if ($count_total) {
-			$count_sql = 'SELECT COUNT(*) AS total FROM sitelogs WHERE ' . $where;
-			$count_query = $this->db->query($count_sql, $params);
-			$total = $count_query && $count_query->num_rows() > 0
-				? (int) $count_query->row()->total
-				: 0;
+			$this->db->from('sitelogs');
+			$this->apply_search_keywords_filters($date_from, $date_to);
+			$total = (int) $this->db->count_all_results();
 		}
 
-		$data_sql = 'SELECT id, logtime, keyword, section, username, ip, url
-			FROM sitelogs
-			WHERE ' . $where . '
-			ORDER BY logtime DESC, id DESC
-			LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset;
-		$query = $this->db->query($data_sql, $params);
+		$this->db->select('id, logtime, keyword, section, username, ip, url');
+		$this->db->from('sitelogs');
+		$this->apply_search_keywords_filters($date_from, $date_to);
+		$this->db->order_by('logtime', 'DESC');
+		$this->db->order_by('id', 'DESC');
+		$this->db->limit($limit, $offset);
+		$query = $this->db->get();
 
 		$rows = array();
 		if ($query) {
@@ -2492,6 +2513,8 @@ class Analytics_model extends CI_Model {
 	/**
 	 * Keyword-only rows for CSV export (newest first, capped).
 	 *
+	 * Uses the query builder so MySQL/MariaDB and sqlsrv both work.
+	 *
 	 * @param array $filters date_from, date_to
 	 * @param int   $max_rows
 	 * @return array{data: array, total: int, limit: int, offset: int, has_more: bool}
@@ -2503,32 +2526,17 @@ class Analytics_model extends CI_Model {
 
 		$max_rows = max(1, min($this->get_search_keywords_export_max_rows(), (int) $max_rows));
 
-		$logtime_from = $date_from ? strtotime($date_from . ' 00:00:00') : null;
-		$logtime_to = $date_to ? strtotime($date_to . ' 23:59:59') : null;
+		$this->db->from('sitelogs');
+		$this->apply_search_keywords_filters($date_from, $date_to);
+		$total = (int) $this->db->count_all_results();
 
-		$where = "logtype = 'search' AND keyword IS NOT NULL AND keyword != '' AND keyword NOT LIKE '%=%'";
-		$params = array();
-		if ($logtime_from) {
-			$where .= ' AND logtime >= ?';
-			$params[] = (int) $logtime_from;
-		}
-		if ($logtime_to) {
-			$where .= ' AND logtime <= ?';
-			$params[] = (int) $logtime_to;
-		}
-
-		$count_sql = 'SELECT COUNT(*) AS total FROM sitelogs WHERE ' . $where;
-		$count_query = $this->db->query($count_sql, $params);
-		$total = $count_query && $count_query->num_rows() > 0
-			? (int) $count_query->row()->total
-			: 0;
-
-		$data_sql = 'SELECT keyword
-			FROM sitelogs
-			WHERE ' . $where . '
-			ORDER BY logtime DESC, id DESC
-			LIMIT ' . (int) $max_rows;
-		$query = $this->db->query($data_sql, $params);
+		$this->db->select('keyword');
+		$this->db->from('sitelogs');
+		$this->apply_search_keywords_filters($date_from, $date_to);
+		$this->db->order_by('logtime', 'DESC');
+		$this->db->order_by('id', 'DESC');
+		$this->db->limit($max_rows, 0);
+		$query = $this->db->get();
 
 		$rows = array();
 		if ($query) {
@@ -2547,7 +2555,7 @@ class Analytics_model extends CI_Model {
 	}
 
 	/**
-	 * Max inclusive days allowed between date_from and date_to on raw list endpoints.
+	 * Inclusive day span above which raw pageview/download lists apply the wide-range row cap.
 	 *
 	 * @return int
 	 */
@@ -2557,6 +2565,21 @@ class Analytics_model extends CI_Model {
 		$max = (int) $this->config->item('analytics_raw_list_max_days');
 		if ($max <= 0) {
 			$max = 31;
+		}
+		return $max;
+	}
+
+	/**
+	 * Max browsable rows for raw pageview/download lists when the date span is wide.
+	 *
+	 * @return int
+	 */
+	public function get_raw_list_wide_max_rows()
+	{
+		$this->load->config('analytics');
+		$max = (int) $this->config->item('analytics_raw_list_wide_max_rows');
+		if ($max <= 0) {
+			$max = 20000;
 		}
 		return $max;
 	}
@@ -2577,11 +2600,68 @@ class Analytics_model extends CI_Model {
 	}
 
 	/**
-	 * Validate admin raw list date filters (required + max span).
+	 * Inclusive day count for a validated Y-m-d range.
+	 *
+	 * @param string $date_from
+	 * @param string $date_to
+	 * @return int
+	 */
+	private function inclusive_day_span($date_from, $date_to)
+	{
+		return (int) floor((strtotime($date_to) - strtotime($date_from)) / 86400) + 1;
+	}
+
+	/**
+	 * Cap pagination for raw lists when the date span exceeds get_raw_list_max_days().
+	 *
+	 * @param string $date_from
+	 * @param string $date_to
+	 * @param int    $limit
+	 * @param int    $offset
+	 * @param int    $total
+	 * @return array{limit:int,offset:int,total:int,skip_query:bool}
+	 */
+	private function apply_raw_wide_range_cap($date_from, $date_to, $limit, $offset, $total)
+	{
+		$limit = max(0, (int) $limit);
+		$offset = max(0, (int) $offset);
+		$total = max(0, (int) $total);
+
+		if (!$date_from || !$date_to || $this->inclusive_day_span($date_from, $date_to) <= $this->get_raw_list_max_days()) {
+			return array(
+				'limit' => $limit,
+				'offset' => $offset,
+				'total' => $total,
+				'skip_query' => $limit <= 0,
+			);
+		}
+
+		$max_rows = $this->get_raw_list_wide_max_rows();
+		$total = min($total, $max_rows);
+		if ($offset >= $max_rows) {
+			return array(
+				'limit' => 0,
+				'offset' => $offset,
+				'total' => $total,
+				'skip_query' => true,
+			);
+		}
+
+		$limit = min($limit, $max_rows - $offset);
+		return array(
+			'limit' => $limit,
+			'offset' => $offset,
+			'total' => $total,
+			'skip_query' => $limit <= 0,
+		);
+	}
+
+	/**
+	 * Validate admin raw list date filters (required; optional max inclusive span).
 	 *
 	 * @param string|null $date_from Y-m-d
 	 * @param string|null $date_to   Y-m-d
-	 * @param int|null    $max_days  override max inclusive span (default: raw list max)
+	 * @param int|null    $max_days  when set, reject spans longer than this; null = no span limit
 	 * @throws Exception
 	 */
 	public function validate_admin_raw_date_range($date_from, $date_to, $max_days = null)
@@ -2594,14 +2674,12 @@ class Analytics_model extends CI_Model {
 		if ($date_from > $date_to) {
 			throw new Exception('date_from must be on or before date_to');
 		}
-		$days = (int) floor((strtotime($date_to) - strtotime($date_from)) / 86400) + 1;
-		if ($max_days === null) {
-			$max_days = $this->get_raw_list_max_days();
-		} else {
+		if ($max_days !== null) {
 			$max_days = max(1, (int) $max_days);
-		}
-		if ($days > $max_days) {
-			throw new Exception('Date range cannot exceed ' . $max_days . ' days');
+			$days = $this->inclusive_day_span($date_from, $date_to);
+			if ($days > $max_days) {
+				throw new Exception('Date range cannot exceed ' . $max_days . ' days');
+			}
 		}
 	}
 

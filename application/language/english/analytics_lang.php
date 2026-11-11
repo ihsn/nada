@@ -76,7 +76,6 @@ $lang['analytics_export'] = 'Export';
 $lang['analytics_export_limit'] = 'Limited to %s rows per file.';
 $lang['analytics_no_items'] = 'No items';
 $lang['analytics_showing_items'] = 'Showing %s–%s of %s';
-$lang['analytics_raw_hint'] = 'Raw events are high volume. Choose a date range (max %s days). For trends, use Daily or Monthly data.';
 $lang['analytics_required_dates'] = 'From and To dates are required';
 $lang['analytics_load_overview_error'] = 'Failed to load overview';
 $lang['analytics_load_daily_error'] = 'Failed to load daily data';

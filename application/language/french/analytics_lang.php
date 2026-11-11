@@ -76,7 +76,6 @@ $lang['analytics_export'] = "Exporter";
 $lang['analytics_export_limit'] = "Limité à %s lignes par fichier.";
 $lang['analytics_no_items'] = "Aucun élément";
 $lang['analytics_showing_items'] = "Affichage de %s–%s sur %s";
-$lang['analytics_raw_hint'] = "Les événements bruts sont très nombreux. Choisissez une période (%s jours au maximum). Pour les tendances, utilisez les données quotidiennes ou mensuelles.";
 $lang['analytics_required_dates'] = "Les dates de début et de fin sont obligatoires";
 $lang['analytics_load_overview_error'] = "Échec du chargement de la vue d'ensemble";
 $lang['analytics_load_daily_error'] = "Échec du chargement des données quotidiennes";

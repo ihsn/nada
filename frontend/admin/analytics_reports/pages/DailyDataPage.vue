@@ -21,6 +21,7 @@
         @clear="reload"
       />
       <v-data-table-server
+        class="admin-analytics-data-table"
         :headers="headers"
         :items="rows"
         :loading="loading"
@@ -29,7 +30,19 @@
         :page="page"
         hide-default-footer
         @update:page="onPage"
-      />
+      >
+        <template #item.title="{ item }">
+          <a
+            v-if="item.study_id"
+            :href="adminStudyEditUrl(siteUrl, item)"
+            class="admin-analytics-cell-truncate admin-analytics-study-link"
+            :title="item.title || t('analytics_study_number', 'Study %s', item.study_id)"
+          >
+            {{ item.title || t('analytics_study_number', 'Study %s', item.study_id) }}
+          </a>
+          <span v-else>{{ item.title || '—' }}</span>
+        </template>
+      </v-data-table-server>
       <PaginatedTableFooter v-model:page="page" :limit="limit" :total="total" @update:page="onPage" />
     </v-card-text>
   </v-card>
@@ -41,6 +54,7 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAnalyticsApi } from '../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../composables/useAnalyticsMessages';
+import { adminStudyEditUrl } from '../utils/formatters';
 import { defaultDailyDateRange } from '../utils/dateDefaults';
 import DateRangeFilter from '../components/shared/DateRangeFilter.vue';
 import PaginatedTableFooter from '../components/shared/PaginatedTableFooter.vue';
@@ -49,7 +63,7 @@ import ExportFormatMenu from '../components/shared/ExportFormatMenu.vue';
 
 defineOptions({ name: 'DailyDataPage' });
 
-const { config } = useAppConfig();
+const { config, siteUrl } = useAppConfig();
 const { t } = useI18n();
 const api = useAnalyticsApi();
 const { notifyError } = useAnalyticsMessages();
@@ -68,8 +82,8 @@ const limit = 50;
 
 const studyHeaders = [
   { title: t('analytics_date', 'Date'), key: 'date' },
-  { title: t('analytics_id', 'ID'), key: 'study_id' },
-  { title: t('analytics_title_column', 'Title'), key: 'title' },
+  { title: t('analytics_id', 'ID'), key: 'study_id', width: '72px' },
+  { title: t('analytics_title_column', 'Title'), key: 'title', minWidth: '200px' },
   { title: t('analytics_pageviews', 'Pageviews'), key: 'pageviews' },
   { title: t('analytics_unique_visitors', 'Unique visitors'), key: 'unique_visitors' },
   { title: t('analytics_downloads', 'Downloads'), key: 'downloads' },
@@ -77,8 +91,8 @@ const studyHeaders = [
 
 const fileHeaders = [
   { title: t('analytics_date', 'Date'), key: 'date' },
-  { title: t('analytics_study_id', 'Study ID'), key: 'study_id' },
-  { title: t('analytics_title_column', 'Title'), key: 'title' },
+  { title: t('analytics_study_id', 'Study ID'), key: 'study_id', width: '72px' },
+  { title: t('analytics_title_column', 'Title'), key: 'title', minWidth: '200px' },
   { title: t('analytics_file_name', 'File name'), key: 'file_name' },
   { title: t('analytics_downloads', 'Downloads'), key: 'downloads' },
 ];
