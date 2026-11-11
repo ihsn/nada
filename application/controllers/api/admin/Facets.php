@@ -1,7 +1,14 @@
 <?php
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
+/**
+ * Admin facets API.
+ *
+ * Base URL: /api/admin/facets
+ * Auth: session or API key; ACL facets/* per endpoint.
+ */
 class Facets extends MY_REST_Controller
 {
 	public function __construct()
@@ -12,7 +19,7 @@ class Facets extends MY_REST_Controller
     }
 
 
-    // GET /api/facets — list all user facets with term counts
+    // GET /api/admin/facets — list all user facets with term counts
     public function index_get()
     {
         $this->require_access('facets', 'view');
@@ -31,7 +38,7 @@ class Facets extends MY_REST_Controller
     }
 
 
-    // GET /api/facets/get/{name} — single facet by name (with decoded mappings)
+    // GET /api/admin/facets/get/{name} — single facet by name (with decoded mappings)
     public function get_get($name = null)
     {
         $this->require_access('facets', 'view');
@@ -52,7 +59,7 @@ class Facets extends MY_REST_Controller
     }
 
 
-    // GET /api/facets/terms/{id} — terms for a given facet
+    // GET /api/admin/facets/terms/{id} — terms for a given facet
     public function terms_get($id = null)
     {
         $this->require_access('facets', 'view');
@@ -71,7 +78,7 @@ class Facets extends MY_REST_Controller
     }
 
 
-    // GET /api/facets/ordering — current per-type ordering + full facets map
+    // GET /api/admin/facets/ordering — current per-type ordering + full facets map
     public function ordering_get()
     {
         $this->require_access('facets', 'view');
@@ -91,7 +98,7 @@ class Facets extends MY_REST_Controller
     }
 
 
-    // GET /api/facets/stats — indexer stats (term value counts + studies total)
+    // GET /api/admin/facets/stats — indexer stats (term value counts + studies total)
     public function stats_get()
     {
         $this->require_access('facets', 'view');
@@ -111,7 +118,7 @@ class Facets extends MY_REST_Controller
     }
 
 
-    // POST /api/facets/delete/{id} — delete a user facet
+    // POST /api/admin/facets/delete/{id} — delete a user facet
     public function delete_post($id = null)
     {
         $this->require_access('facets', 'delete');

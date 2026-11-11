@@ -91,7 +91,7 @@ function update_order()
 {
     var form_data=$("#form").serialize();
 
-    $.post("<?php echo site_url('api/facets/reorder/');?>", form_data, function(data) {		
+    $.post("<?php echo site_url('api/admin/facets/reorder/');?>", form_data, function(data) {		
 			alert("<?php echo t('updated'); ?>");
             console.log(data);		
 	})

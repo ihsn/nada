@@ -270,7 +270,7 @@ new Vue({
 
         submitForm() {
             this.saving = true;
-            const url   = '<?php echo site_url('api/facets'); ?>';
+            const url   = '<?php echo site_url('api/admin/facets'); ?>';
             const data  = {
                 title:      this.title,
                 name:       this.name,

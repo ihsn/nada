@@ -11,7 +11,7 @@ export function useDashboardApi() {
     loading.value = true;
     error.value = null;
     try {
-      const { data } = await axios.get(`${siteUrl.value}/api/dashboard/stats`);
+      const { data } = await axios.get(`${siteUrl.value}/api/admin/dashboard/stats`);
       if (data && data.data) return data.data;
       throw new Error('Unexpected response format from dashboard API.');
     } catch (e) {

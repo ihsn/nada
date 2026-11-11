@@ -43,7 +43,7 @@ class Facets extends MY_Controller {
 		$view_data = array(
 			'site_url'          => site_url(),
 			'base_url'          => base_url(),
-			'api_base_url'      => site_url('api/facets/'),
+			'api_base_url'      => site_url('api/admin/facets/'),
 			'assets_base'       => base_url('frontend/dist/'),
 			'csrf_token'        => $this->security->get_csrf_hash(),
 			'translations'      => $this->lang->language,

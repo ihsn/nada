@@ -1,8 +1,10 @@
 <?php
 /**
-*
-* Dialog for study selection
-**/
+ * Dialog for study selection (legacy iframe).
+ *
+ * Only remaining caller: citations import. Replace with a shared Vue study
+ * picker (api/admin/catalog search) when admin Citations migrates to Vue 3.
+ */
 class Dialog_select_studies extends MY_Controller {
 
 	var $active_repo=NULL;

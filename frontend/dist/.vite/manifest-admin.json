@@ -1181,7 +1181,7 @@
     ]
   },
   "admin/dashboard/main.js": {
-    "file": "assets/admin/admin_dashboard-BtMVrSkq.js",
+    "file": "assets/admin/admin_dashboard-CkGK7sDH.js",
     "name": "admin_dashboard",
     "src": "admin/dashboard/main.js",
     "isEntry": true,
@@ -1243,6 +1243,39 @@
     ],
     "css": [
       "assets/admin/admin_data_structures-C9DKexhA.css"
+    ]
+  },
+  "admin/dataaccess_whitelist/main.js": {
+    "file": "assets/admin/admin_dataaccess_whitelist-Ctiic3qZ.js",
+    "name": "admin_dataaccess_whitelist",
+    "src": "admin/dataaccess_whitelist/main.js",
+    "isEntry": true,
+    "imports": [
+      "_router-DQmFDitI.js",
+      "_useAppConfig-ieDbQ97G.js",
+      "_VBreadcrumbs-BL6ykfqI.js",
+      "_VAlert-DqwRsilr.js",
+      "_VRow-BOvFoHhG.js",
+      "_VCheckboxBtn-uU_MNQ4A.js",
+      "_VSelect-CoT24kh2.js",
+      "_VApp-JS_4w6Zb.js",
+      "_VCard-Dq1yZCgX.js",
+      "_VDataTable-B9t5MxN3.js",
+      "_VSpacer-CeZYmPH9.js",
+      "_VDialog-7LHxyHfa.js",
+      "_VMain-O5sbL_yx.js",
+      "_VContainer-CX4j4LZ1.js",
+      "_VList-BhjYmkaJ.js",
+      "_forwardRefs-DwYa945o.js",
+      "_dialog-transition-CyfzX7pT.js",
+      "_VMenu-CD_5OGVw.js",
+      "_VSheet-CA8X7REL.js",
+      "_VChip-E76celQt.js",
+      "_VPagination-DF7s71s6.js",
+      "_VTable-BejU6bhe.js"
+    ],
+    "css": [
+      "assets/admin/admin_dataaccess_whitelist-Bs9uTUIX.css"
     ]
   },
   "admin/database_migration/main.js": {
@@ -1650,6 +1683,60 @@
     ],
     "css": [
       "assets/admin/admin_permissions-DCKeQQeC.css"
+    ]
+  },
+  "admin/public_requests/main.js": {
+    "file": "assets/admin/admin_public_requests-B4fua5QX.js",
+    "name": "admin_public_requests",
+    "src": "admin/public_requests/main.js",
+    "isEntry": true,
+    "imports": [
+      "_router-DQmFDitI.js",
+      "_useAppConfig-ieDbQ97G.js",
+      "_VBreadcrumbs-BL6ykfqI.js",
+      "_VAlert-DqwRsilr.js",
+      "_VTable-BejU6bhe.js",
+      "_VCard-Dq1yZCgX.js",
+      "_VApp-JS_4w6Zb.js",
+      "_VMain-O5sbL_yx.js",
+      "_VContainer-CX4j4LZ1.js"
+    ],
+    "css": [
+      "assets/admin/admin_public_requests-CZgyfVgP.css"
+    ]
+  },
+  "admin/repository_sections/main.js": {
+    "file": "assets/admin/admin_repository_sections-Ch0K72Z9.js",
+    "name": "admin_repository_sections",
+    "src": "admin/repository_sections/main.js",
+    "isEntry": true,
+    "imports": [
+      "_router-DQmFDitI.js",
+      "_useAppConfig-ieDbQ97G.js",
+      "_vue-router-fzLoKxhX.js",
+      "_VMain-O5sbL_yx.js",
+      "_VContainer-CX4j4LZ1.js",
+      "_VApp-JS_4w6Zb.js",
+      "_VBreadcrumbs-BL6ykfqI.js",
+      "_VRow-BOvFoHhG.js",
+      "_VAlert-DqwRsilr.js",
+      "_VDataTable-B9t5MxN3.js",
+      "_VCard-Dq1yZCgX.js",
+      "_VSpacer-CeZYmPH9.js",
+      "_VDialog-7LHxyHfa.js",
+      "_VCheckboxBtn-uU_MNQ4A.js",
+      "_VPagination-DF7s71s6.js",
+      "_VSelect-CoT24kh2.js",
+      "_forwardRefs-DwYa945o.js",
+      "_VList-BhjYmkaJ.js",
+      "_dialog-transition-CyfzX7pT.js",
+      "_VMenu-CD_5OGVw.js",
+      "_VSheet-CA8X7REL.js",
+      "_VChip-E76celQt.js",
+      "_VTable-BejU6bhe.js"
+    ],
+    "css": [
+      "assets/admin/admin_repository_sections-B90Dn4MS.css"
     ]
   },
   "admin/semantic/main.js": {

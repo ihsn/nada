@@ -416,8 +416,8 @@ $route['api/admin/db_logs/api_logs/stats']          = "api/admin/db_logs/api_log
 $route['api/admin/db_logs/api_logs/cleanup/chunk']  = "api/admin/db_logs/api_logs_cleanup_chunk";
 $route['api/admin/db_logs/api_logs/files']          = "api/admin/db_logs/api_logs_files";
 
-// Dashboard API
-$route['api/dashboard/stats'] = "api/dashboard/stats";
+// Admin dashboard API
+$route['api/admin/dashboard/stats'] = "api/admin/dashboard/stats";
 
 // Admin Site Configurations API — REST_Controller::_remap handles GET/PUT/PATCH/DELETE on
 // api/admin/configurations and POST aliases api/admin/configurations/save|patch|remove.
@@ -532,6 +532,7 @@ $route['admin/datadeposit/projects/(:num)/(:any)'] = 'admin/datadeposit/projects
 $route['admin/datadeposit/projects/(:num)'] = 'admin/datadeposit/projects/$1';
 $route['admin/datadeposit/summary/(:num)'] = 'admin/datadeposit/summary/$1';
 $route['admin/datadeposit/tasks/info/(:num)'] = 'admin/datadeposit/task_info/$1';
+// Legacy datadeposittasks URLs always 404 (tasks live under admin/datadeposit + API).
 $route['admin/datadeposit/tasks/update/(:num)/(:num)'] = "admin/datadeposittasks/update/$1/$2";
 $route['admin/datadeposit/tasks/delete/(:num)'] = "admin/datadeposittasks/delete/$1";
 $route['admin/datadeposit/tasks/my_tasks'] = 'admin/datadeposit/my_tasks';
@@ -627,6 +628,18 @@ $route['api/admin/countries/(:num)'] = 'api/admin/countries/item/$1';
 $route['api/admin/regions/countries'] = 'api/admin/regions/countries';
 $route['api/admin/regions/(:num)/delete'] = 'api/admin/regions/item_delete/$1';
 $route['api/admin/regions/(:num)'] = 'api/admin/regions/item/$1';
+
+// Admin data-access whitelist
+$route['api/admin/dataaccess_whitelist/delete'] = 'api/admin/dataaccess_whitelist/delete';
+$route['api/admin/dataaccess_whitelist/(:num)/delete'] = 'api/admin/dataaccess_whitelist/item_delete/$1';
+
+// Admin repository sections (collection groups)
+$route['api/admin/repository_sections/batch_delete'] = 'api/admin/repository_sections/batch_delete';
+$route['api/admin/repository_sections/(:num)/delete'] = 'api/admin/repository_sections/item_delete/$1';
+$route['api/admin/repository_sections/(:num)'] = 'api/admin/repository_sections/item/$1';
+
+// Admin public-use request detail
+$route['api/admin/public_requests/(:num)'] = 'api/admin/public_requests/item/$1';
 
 // Admin translate API (site UI string translations)
 $route['api/admin/translate/import'] = 'api/admin/translate/import';

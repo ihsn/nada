@@ -3,8 +3,10 @@
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
 /**
- * Dashboard API Controller
+ * Admin dashboard API.
  *
+ * Base URL: /api/admin/dashboard
+ * Auth: session or API key; ACL dashboard/view.
  */
 class Dashboard extends MY_REST_Controller {
 
@@ -16,12 +18,8 @@ class Dashboard extends MY_REST_Controller {
         $this->load->model('Dashboard_model');
     }
 
-    /**
-     * Allow session-authenticated admin users through without an API key.
-     */
-
     // -------------------------------------------------------------------------
-    // GET  api/dashboard/stats
+    // GET  api/admin/dashboard/stats
     // -------------------------------------------------------------------------
     /**
      * Returns one JSON object containing:
