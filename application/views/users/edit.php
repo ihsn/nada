@@ -209,7 +209,9 @@ label{font-weight:bold;}
                     <div class="row mt-3">
                         <div class="col-md-12">
                             <?php if (is_array($api_keys) && count($api_keys) < 5 || !is_array($api_keys)) : ?>
-                            <a href="<?php echo site_url('admin/users/generate_api_key/' . $current_user_id); ?>" class="btn btn-primary btn-sm float-right mb-3"><?php echo t('generate_api_key'); ?></a>
+                            <?php echo form_open('admin/users/generate_api_key/' . (int) $current_user_id, array('class' => 'float-right mb-3')); ?>
+                                <button type="submit" class="btn btn-primary btn-sm"><?php echo t('generate_api_key'); ?></button>
+                            <?php echo form_close(); ?>
                             <?php endif; ?>
                         </div>
                     </div>

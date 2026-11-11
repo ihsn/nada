@@ -10,6 +10,7 @@ class Users extends MY_Controller {
 		
 		$this->load->helper(array('form', 'url'));		
 		$this->load->library( array('form_validation','pagination') );		
+		$this->load->library('User_account_guard');
        	$this->load->model('User_model');
 		
 		//language files
@@ -205,149 +206,6 @@ class Users extends MY_Controller {
 		return $rows;
 	}
 
-	/**
-	 * @param mixed $role_ids
-	 * @return int[]
-	 */
-	private function _filter_assignable_role_ids($role_ids)
-	{
-		if ( ! is_array($role_ids)) {
-			return array();
-		}
-
-		$allowed = array();
-		foreach ($this->acl_manager->get_roles() as $role) {
-			if ( ! $this->acl_manager->user_is_admin() && ! empty($role['is_admin'])) {
-				continue;
-			}
-			$allowed[(int) $role['id']] = true;
-		}
-
-		$out = array();
-		foreach ($role_ids as $role_id) {
-			$role_id = (int) $role_id;
-			if ($role_id > 0 && isset($allowed[$role_id])) {
-				$out[] = $role_id;
-			}
-		}
-
-		return $out;
-	}
-
-	/**
-	 * Roles a non-admin may assign. Admins see every role.
-	 *
-	 * @return array
-	 */
-	private function _roles_for_assignment_form()
-	{
-		$roles = $this->acl_manager->get_roles();
-		if ($this->acl_manager->user_is_admin()) {
-			return $roles;
-		}
-
-		return array_values(array_filter($roles, function ($role) {
-			return empty($role['is_admin']);
-		}));
-	}
-
-	/**
-	 * @param array $role_ids
-	 * @return bool
-	 */
-	private function _role_ids_include_admin($role_ids)
-	{
-		if ( ! is_array($role_ids) || $role_ids === array()) {
-			return false;
-		}
-
-		$admin_ids = array();
-		foreach ($this->acl_manager->get_roles() as $role) {
-			if ( ! empty($role['is_admin'])) {
-				$admin_ids[(int) $role['id']] = true;
-			}
-		}
-
-		foreach ($role_ids as $role_id) {
-			if (isset($admin_ids[(int) $role_id])) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * @return int
-	 */
-	private function _current_user_id()
-	{
-		$user = $this->acl_manager->current_user();
-		if ( ! $user || empty($user->id)) {
-			return 0;
-		}
-
-		return (int) $user->id;
-	}
-
-	/**
-	 * A non-admin must not edit, delete, or change the status of an admin-role account.
-	 *
-	 * @param int         $user_id
-	 * @param object|null $user
-	 * @return bool
-	 */
-	private function _target_is_protected_admin($user_id, $user = null)
-	{
-		if ($this->acl_manager->user_is_admin()) {
-			return false;
-		}
-
-		if ($user === null) {
-			$user = $this->ion_auth->get_user($user_id);
-		}
-
-		if ( ! $user) {
-			return false;
-		}
-
-		return $this->acl_manager->user_is_admin($user);
-	}
-
-	/**
-	 * @param int   $user_id
-	 * @param array $role_ids
-	 * @return bool
-	 */
-	private function _would_remove_own_admin_role($user_id, $role_ids)
-	{
-		if ((int) $user_id !== $this->_current_user_id()) {
-			return false;
-		}
-
-		if ( ! $this->acl_manager->user_is_admin()) {
-			return false;
-		}
-
-		return ! $this->_role_ids_include_admin($role_ids);
-	}
-
-	/**
-	 * Skip the caller, and skip admin-role accounts when the caller is not an admin.
-	 *
-	 * @param int $user_id
-	 * @return bool
-	 */
-	private function _may_change_user_account($user_id)
-	{
-		$user_id = (int) $user_id;
-		if ($user_id < 1 || $user_id === $this->_current_user_id()) {
-			return false;
-		}
-
-		return ! $this->_target_is_protected_admin($user_id);
-	}
-
 	function bulk_action()
 	{
 		$this->acl_manager->has_access_or_die('user', 'edit');
@@ -395,7 +253,7 @@ class Users extends MY_Controller {
 		$success_count = 0;
 
 		foreach ($user_ids as $user_id) {
-			if (is_numeric($user_id) && $this->_may_change_user_account($user_id) && $this->User_model->delete($user_id)) {
+			if (is_numeric($user_id) && $this->user_account_guard->may_change_user_account($user_id) && $this->User_model->delete($user_id)) {
 				$success_count++;
 			}
 		}
@@ -408,7 +266,7 @@ class Users extends MY_Controller {
 		$success_count = 0;
 
 		foreach ($user_ids as $user_id) {
-			if (is_numeric($user_id) && $this->_may_change_user_account($user_id) && $this->_update_user_status($user_id, $status)) {
+			if (is_numeric($user_id) && $this->user_account_guard->may_change_user_account($user_id) && $this->_update_user_status($user_id, $status)) {
 				$success_count++;
 			}
 		}
@@ -450,16 +308,9 @@ class Users extends MY_Controller {
 			}
 		}
 
-		$assignable_roles = $this->acl_manager->get_roles();
-		if ( ! $this->acl_manager->user_is_admin()) {
-			$assignable_roles = array_values(array_filter($assignable_roles, function ($role) {
-				return empty($role['is_admin']);
-			}));
-		}
-
 		$data = array(
 			'users'    => $users,
-			'roles'    => $assignable_roles,
+			'roles'    => $this->user_account_guard->assignable_roles(),
 			'user_ids' => $user_ids,
 		);
 
@@ -476,7 +327,7 @@ class Users extends MY_Controller {
 		$this->acl_manager->has_access_or_die('user', 'edit');
 
 		$user_ids = $this->input->post('user_ids');
-		$role_ids = $this->_filter_assignable_role_ids($this->input->post('role_ids'));
+		$role_ids = $this->user_account_guard->filter_assignable_role_ids($this->input->post('role_ids'));
 
 		if (empty($user_ids) || empty($role_ids)) {
 			$this->session->set_flashdata('error', t('please_select_users'));
@@ -487,7 +338,7 @@ class Users extends MY_Controller {
 		$success_count = 0;
 
 		foreach ($user_ids_array as $user_id) {
-			if ( ! is_numeric($user_id)) {
+			if ( ! $this->user_account_guard->may_change_user_account($user_id)) {
 				continue;
 			}
 			foreach ($role_ids as $role_id) {
@@ -565,7 +416,7 @@ class Users extends MY_Controller {
 		$this->acl_manager->has_access_or_die('user', 'edit');
 
 		$user_ids = $this->input->post('user_ids');
-		$role_ids = $this->_filter_assignable_role_ids($this->input->post('role_ids'));
+		$role_ids = $this->user_account_guard->filter_assignable_role_ids($this->input->post('role_ids'));
 
 		if (empty($user_ids) || empty($role_ids)) {
 			$this->session->set_flashdata('error', t('please_select_users'));
@@ -576,7 +427,7 @@ class Users extends MY_Controller {
 		$success_count = 0;
 
 		foreach ($user_ids_array as $user_id) {
-			if ( ! is_numeric($user_id)) {
+			if ( ! $this->user_account_guard->may_change_user_account($user_id)) {
 				continue;
 			}
 			foreach ($role_ids as $role_id) {
@@ -660,7 +511,7 @@ class Users extends MY_Controller {
         	$email     = $this->input->post('email');
         	$password  = $this->input->post('password');
         	
-        	$role_ids = $this->_filter_assignable_role_ids($this->role_ids_from_post());
+        	$role_ids = $this->user_account_guard->filter_assignable_role_ids($this->role_ids_from_post());
         	$additional_data = array('first_name' => $this->input->post('first_name'),
         							 'last_name'  => $this->input->post('last_name'),
         							 'company'    => $this->input->post('company'),
@@ -755,7 +606,7 @@ class Users extends MY_Controller {
 				$this->data['user_role'] = $this->role_ids_from_post();
 			}
 			
-			$this->data['roles']= $this->_roles_for_assignment_form();
+			$this->data['roles']= $this->user_account_guard->assignable_roles();
 			$this->data['options_country']= $this->ion_auth_model->get_all_countries();
 			
             $content=$this->load->view('users/create', $this->data,TRUE);
@@ -774,7 +625,7 @@ class Users extends MY_Controller {
 		if (!$db_data){
 			show_404();
 		}
-		if ($this->_target_is_protected_admin($id, $db_data)) {
+		if ($this->user_account_guard->target_is_protected_admin($id, $db_data)) {
 			$this->acl_manager->show_access_denied('feature');
 		}
 
@@ -808,13 +659,27 @@ class Users extends MY_Controller {
 				'country'     => $this->input->post('country'),
 			);
 
-			$role_ids = $this->_filter_assignable_role_ids($this->role_ids_from_post());
-			if ($this->_would_remove_own_admin_role($id, $role_ids)) {
+			$role_ids = $this->user_account_guard->filter_assignable_role_ids($this->role_ids_from_post());
+			if ($this->user_account_guard->would_remove_own_admin_role($id, $role_ids)) {
 				$this->session->set_flashdata('error', 'You cannot remove your own admin role.');
 				redirect('admin/users/edit/'.$id, 'refresh');
 				return;
 			}
-			$data['role_id'] = $role_ids;
+
+			if ($this->user_account_guard->may_change_roles($id, $db_data)) {
+				$data['role_id'] = $role_ids;
+			}
+			else {
+				$current_role_ids = array_map('intval', array_keys($this->acl_manager->get_user_roles((int) $id)));
+				sort($current_role_ids);
+				$requested_role_ids = $role_ids;
+				sort($requested_role_ids);
+				if ($requested_role_ids !== $current_role_ids) {
+					$this->session->set_flashdata('error', 'You cannot change your own roles.');
+					redirect('admin/users/edit/'.$id, 'refresh');
+					return;
+				}
+			}
 						
 			//change password, if not empty
 			if ($this->input->post("password") ){
@@ -909,7 +774,7 @@ class Users extends MY_Controller {
 				$this->data['user_role']= $db_data->user_role;//roles assigned to user
 			}
 
-			$this->data['roles']= $this->_roles_for_assignment_form();
+			$this->data['roles']= $this->user_account_guard->assignable_roles();
 			$this->data['options_country']= $this->ion_auth_model->get_all_countries();
 			
 			// Load user's API keys for admin management
@@ -933,11 +798,20 @@ class Users extends MY_Controller {
 		if (!is_numeric($user_id)) {
 			show_404();
 		}
+
+		// POST only, so the CSRF filter applies.
+		if ($this->input->method() !== 'post') {
+			show_error('Method not allowed', 405);
+		}
 		
 		// Verify user exists
 		$user = $this->ion_auth->get_user($user_id);
 		if (!$user) {
 			show_404();
+		}
+
+		if ($this->user_account_guard->target_is_protected_admin($user_id, $user)) {
+			$this->acl_manager->show_access_denied('feature');
 		}
 		
 		// Check if user already has 5 keys
@@ -993,6 +867,10 @@ class Users extends MY_Controller {
 		}
 		
 		$key_data = $query->row_array();
+
+		if ( ! empty($key_data['user_id']) && $this->user_account_guard->target_is_protected_admin((int) $key_data['user_id'])) {
+			$this->acl_manager->show_access_denied('feature');
+		}
 		
 		// Process form submission
 		if ($this->input->post('action')) {
@@ -1471,7 +1349,7 @@ class Users extends MY_Controller {
 			$deleted = 0;
 			foreach($delete_arr as $item)
 			{
-				if ( ! $this->_may_change_user_account($item)) {
+				if ( ! $this->user_account_guard->may_change_user_account($item)) {
 					continue;
 				}
 				$this->User_model->delete($item);

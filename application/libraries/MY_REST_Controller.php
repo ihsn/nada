@@ -279,6 +279,51 @@ abstract class MY_REST_Controller extends REST_Controller {
     }
 
     /**
+     * Opt-in CSRF check for writes authenticated by the browser session.
+     *
+     * `api/*` is excluded from the framework CSRF filter so API-key clients keep working; controllers that
+     * change sensitive data call this from their constructor. Requests without a session (API key) are not
+     * checked. The token may arrive as an `X-CSRF-TOKEN` header, a header named after the token, or a form
+     * field, and must match the CSRF cookie set by the admin page.
+     */
+    protected function require_session_csrf()
+    {
+        $method = strtoupper((string) $this->input->method());
+        if (in_array($method, array('GET', 'HEAD', 'OPTIONS'), true)) {
+            return;
+        }
+
+        if ( ! $this->session->userdata('user_id')) {
+            return;
+        }
+
+        $token_name  = (string) $this->config->item('csrf_token_name');
+        $cookie_name = (string) $this->config->item('cookie_prefix') . (string) $this->config->item('csrf_cookie_name');
+        $cookie      = isset($_COOKIE[$cookie_name]) && is_string($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : '';
+
+        $sent = (string) $this->input->get_request_header('X-CSRF-TOKEN', false);
+        if ($sent === '' && $token_name !== '') {
+            $sent = (string) $this->input->get_request_header($token_name, false);
+        }
+        if ($sent === '' && $token_name !== '') {
+            $posted = $this->input->post($token_name);
+            $sent   = is_string($posted) ? $posted : '';
+        }
+
+        if ($cookie === '' || $sent === '' || ! hash_equals($cookie, $sent)) {
+            $this->response(
+                array(
+                    'status'  => 'failed',
+                    'message' => 'CSRF-TOKEN-INVALID',
+                ),
+                REST_Controller::HTTP_FORBIDDEN,
+                false
+            );
+            exit;
+        }
+    }
+
+    /**
      * Standard 403 for ACL denial on admin APIs (matches is_admin_or_die JSON shape).
      */
     protected function access_denied_response()
