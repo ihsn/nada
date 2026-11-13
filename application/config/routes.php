@@ -651,6 +651,23 @@ $route['api/admin/users/(:num)/api_keys'] = 'api/admin/users/user_api_keys/$1';
 $route['api/admin/users/(:num)/delete'] = 'api/admin/users/item_delete/$1';
 $route['api/admin/users/(:num)'] = 'api/admin/users/item/$1';
 
+// Admin citations (session only)
+$route['api/admin/citations/options'] = 'api/admin/citations/options';
+$route['api/admin/citations/batch'] = 'api/admin/citations/batch';
+$route['api/admin/citations/preview'] = 'api/admin/citations/preview';
+$route['api/admin/citations/duplicates'] = 'api/admin/citations/duplicates';
+$route['api/admin/citations/doi'] = 'api/admin/citations/doi';
+$route['api/admin/citations/import/parse'] = 'api/admin/citations/import_parse';
+$route['api/admin/citations/import/commit'] = 'api/admin/citations/import_commit';
+$route['api/admin/citations/export'] = 'api/admin/citations/export';
+$route['api/admin/citations/(:num)/delete'] = 'api/admin/citations/item_delete/$1';
+$route['api/admin/citations/(:num)/publish'] = 'api/admin/citations/publish/$1';
+$route['api/admin/citations/(:num)/studies'] = 'api/admin/citations/studies/$1';
+$route['api/admin/citations/(:num)/attachment/delete'] = 'api/admin/citations/attachment_delete/$1';
+$route['api/admin/citations/(:num)/attachment'] = 'api/admin/citations/attachment/$1';
+$route['api/admin/citations/(:num)/check_url'] = 'api/admin/citations/check_url/$1';
+$route['api/admin/citations/(:num)'] = 'api/admin/citations/item/$1';
+
 // Admin public-use requests
 $route['api/admin/public_requests/search'] = 'api/admin/public_requests/search';
 $route['api/admin/public_requests/export'] = 'api/admin/public_requests/export';

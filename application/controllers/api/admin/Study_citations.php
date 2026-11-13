@@ -255,11 +255,15 @@ class Study_citations extends MY_REST_Controller
 			$cid = isset($row['id']) ? (int) $row['id'] : 0;
 			$fmt = '';
 			try {
-				$fmt = $this->chicago_citation->format($row, 'journal', false);
+				$fmt = $this->chicago_citation->format_escaped($row, 'journal');
 			}
 			catch (Exception $e) {
 				unset($e);
 				$fmt = '';
+			}
+			// shown with v-html: never fall back to the raw title
+			if (trim(strip_tags($fmt)) === '') {
+				$fmt = html_escape(isset($row['title']) ? $row['title'] : '');
 			}
 
 			$attached = $force_attached ? true : isset($attached_map[$cid]);
@@ -267,7 +271,7 @@ class Study_citations extends MY_REST_Controller
 				'id'                 => $cid,
 				'uuid'               => isset($row['uuid']) ? $row['uuid'] : null,
 				'title'              => isset($row['title']) ? $row['title'] : '',
-				'authors'            => isset($row['authors']) ? $row['authors'] : '',
+				'authors'            => isset($row['authors_text']) ? $row['authors_text'] : '',
 				'pub_year'           => isset($row['pub_year']) ? $row['pub_year'] : null,
 				'doi'                => isset($row['doi']) ? $row['doi'] : null,
 				'published'          => isset($row['published']) ? (int) $row['published'] : null,

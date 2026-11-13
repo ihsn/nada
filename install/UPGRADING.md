@@ -144,6 +144,37 @@ Indicators (`timeseries`) accept only the **Open access**, **Direct access** and
 
 Existing indicators keep their stored data access type. The study page in the admin shows a warning for any indicator that uses a type that is no longer allowed.
 
+## Citations are now stored as CSL-JSON
+
+Each citation is one CSL-JSON document (`citations.metadata`), which is the standard used by Zotero, Crossref and most reference managers. Two migrations move existing citations over: `20261111120001_citations_csl` converts every citation, and `20261112120001_citations_drop_legacy` removes the old columns. Both run with `migrate latest`.
+
+**Before you run the migrations:**
+
+- **Back up the database.** The second migration cannot be undone.
+- **First migration copies the old tables first** (before it alters anything) into `citations_legacy_backup` and `citation_authors_legacy_backup`, then converts in place. The live `citation_authors` table stays until the second migration so the backfill can read it.
+- **Second migration** checks that every citation has a complete document and stops with a message if any row was only partly converted. Nothing is dropped in that case; fix the citation and run it again. It then removes the old columns and the live `citation_authors` table. The `*_legacy_backup` copies stay for you to drop when satisfied:
+
+  ```sql
+  DROP TABLE citations_legacy_backup;
+  DROP TABLE citation_authors_legacy_backup;
+  ```
+- **SQL Server:** the column types change to `nvarchar` and the full-text index is rebuilt, which can take a few minutes on a large table.
+
+**After the migrations:**
+
+- **Rebuild the citation index** if you use Solr or NADA-AI. Citation types are now CSL types (for example `article-journal` instead of `journal`), and internal notes are no longer sent to the index. Until the index is rebuilt, a search that combines keywords with a citation type finds nothing.
+- **Citations that were published or unpublished are unchanged.** Citations created through the API without a `published` value are now saved as drafts; before they were published.
+
+**What changes for API users** (`api/citations`):
+
+- **Read-only.** `POST` and `DELETE` on `api/citations` are removed. Create, update, publish, attach studies, and delete use `api/admin/citations` (session or API key).
+- Existing read fields are still returned (`ctype` keeps the old type names, `authors` is still a list of first name, last name and initial).
+- Each citation also has `metadata` (the CSL document) and `csl_type`.
+- The `ctype` filter accepts either the old names or the CSL names.
+- Only published citations are returned, for every caller (including admins). `notes`, `flag`, `owner`, `url_status` and audit usernames are never returned.
+
+The citations admin pages (Citations menu) are a new interface. Its address, `admin/citations`, is unchanged; the study page links still work. The admin API is `api/admin/citations` and accepts a session or an API key.
+
 ## Fresh installs
 
 New installations use `install/schema.mysql.sql` (or `schema.sqlsrv.sql`) plus `install/schema.dd.{mysql,sqlsrv}.sql`. The schema files already include all migrations up to the release, and the installer records the latest version. You do not need to run `migrate latest` after a fresh install.

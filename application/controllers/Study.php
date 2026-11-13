@@ -499,9 +499,11 @@ class Study extends MY_Controller {
 		$this->lang->load("resource_manager");
 		$this->load->helper("resource_helper");
 				
-		$options['citations']=$this->Citation_model->get_citations_by_survey($sid,$this->input->get('sort_by'),$this->input->get('sort_order'));
+		$this->lang->load('citations');
+		$citations=$this->Citation_model->get_citations_by_survey($sid,$this->input->get('sort_by'),$this->input->get('sort_order'),$published_only=TRUE);
+		$options['citations']=$citations ? $this->Citation_model->strip_internal_fields($citations) : $citations;
+		$options['sid']=$sid;
 		$content=$this->load->view('catalog_search/survey_summary_citations',$options,TRUE);
-        $options['sid']=$sid;
 		$this->render_page($sid, $content,'related_citations', $survey);
 	}
 

@@ -1234,88 +1234,63 @@ class Solr_manager {
 
 
     /**
+     * Solr documents for citations rows (Citation_model::ROW_COLUMNS), built from the CSL document.
+     * Internal fields (notes, flag, owner) are not indexed.
+     *
+     * @param array $rows
+     * @return array
+     */
+    private function _citation_solr_documents(array $rows)
+    {
+        $docs = array();
+        foreach ($rows as $row) {
+            $csl = json_decode((string)$row['metadata'], true);
+            if (!is_array($csl)) {
+                $csl = array();
+            }
+            $docs[] = array(
+                'doctype'           => 3,
+                'id'                => (int)$row['id'],
+                'citation_id'       => (int)$row['id'],
+                'citation_uuid'     => $row['uuid'],
+                'title'             => $row['title'],
+                'subtitle'          => $row['container_title'],
+                'authors'           => $row['authors_text'],
+                'volume'            => $csl['volume'] ?? null,
+                'issue'             => $csl['issue'] ?? null,
+                'edition'           => $csl['edition'] ?? null,
+                'place_publication' => $csl['publisher-place'] ?? null,
+                'publisher'         => $csl['publisher'] ?? null,
+                'ctype'             => $row['ctype'],
+                'abstract'          => $csl['abstract'] ?? null,
+                'keywords'          => $csl['keyword'] ?? null,
+                'doi'               => $row['doi'],
+                'published'         => (int)$row['published'],
+                'pub_date'          => $row['pub_year'] !== null ? (int)$row['pub_year'] : null,
+                'title_sort'        => (string)$row['title'],
+                'cit_authors_sort'  => (string)$row['authors_text'],
+            );
+        }
+        return $docs;
+    }
+
+    /**
      * Import citations by ID array
      * @param array $id_array Array of citation IDs
      * @return bool Success status
      */
-    /**
-     * Build a [citation_id => "Last, First; Last, First"] map from citation_authors.
-     * Used to populate the cit_authors_sort field for Solr sorting.
-     *
-     * @param array $ids  Array of citation IDs
-     * @return array      [id => authors_string]
-     */
-    private function _build_cit_authors_sort_map(array $ids)
-    {
-        if (empty($ids)) {
-            return array();
-        }
-
-        $rows = $this->ci->db
-            ->select('cid, fname, lname')
-            ->where_in('cid', $ids)
-            ->where('author_type', 'author')
-            ->order_by('cid ASC, id ASC')
-            ->get('citation_authors')
-            ->result_array();
-
-        $map = array();
-        foreach ($rows as $row) {
-            $cid  = (int)$row['cid'];
-            $name = trim(($row['lname'] ?? '') . ' ' . ($row['fname'] ?? ''));
-            if ($name === '') {
-                continue;
-            }
-            $map[$cid][] = $name;
-        }
-
-        $result = array();
-        foreach ($map as $cid => $names) {
-            $result[$cid] = implode('; ', $names);
-        }
-        return $result;
-    }
-
     public function import_citations($id_array)
     {
-        $this->ci->db->select("
-                        3 as doctype,
-                        id,
-                        id as citation_id,
-                        uuid as citation_uuid,
-                        title,
-                        subtitle,
-                        authors,
-                        volume,
-                        issue,
-                        edition,
-                        place_publication,
-                        publisher,
-                        ctype,						
-                        abstract,
-                        keywords,
-                        notes,
-                        doi,
-                        published,
-                        pub_year as pub_date,
-                        ",FALSE);
-        $this->ci->db->where_in("id",$id_array);
+        $this->ci->load->model('Citation_model');
+        $this->ci->db->select(Citation_model::ROW_COLUMNS, FALSE);
+        $this->ci->db->where_in("citations.id",$id_array);
         $rows=$this->ci->db->get("citations")->result_array();
-
-        //echo "\r\n".count($rows). "rows found\r\n";
 
         if (!$rows){
             return false;
         }
 
-        $author_sort_map = $this->_build_cit_authors_sort_map(array_column($rows, 'id'));
-
-        foreach ($rows as $key => $row) {
-            $rows[$key]['title_sort']   = $row['title'] ?? '';
-            $rows[$key]['cit_authors_sort'] = $author_sort_map[$row['id']] ?? '';
-        }
-
-        $this->index_documents($rows,$_prefix='cit-');
+        $this->index_documents($this->_citation_solr_documents($rows),$_prefix='cit-');
     }
 
 
@@ -1516,55 +1491,24 @@ class Solr_manager {
 
         set_time_limit(0);
 
-        $this->ci->db->select("
-                        3 as doctype,
-                        id,
-                        id as citation_id,
-                        uuid as citation_uuid,
-                        title,
-                        subtitle,
-                        authors,
-                        volume,
-                        issue,
-                        edition,
-                        place_publication,
-                        publisher,
-                        ctype,						
-                        abstract,
-                        keywords,
-                        notes,
-                        doi,
-                        published,
-                        pub_year as pub_date
-                        ",FALSE);
+        $this->ci->load->model('Citation_model');
+        $this->ci->db->select(Citation_model::ROW_COLUMNS, FALSE);
     	$this->ci->db->limit($limit);
-		$this->ci->db->order_by('id ASC');
+		$this->ci->db->order_by('citations.id ASC');
 
 		if ($start_row){
-			$this->ci->db->where("id >",$start_row,false);
+			$this->ci->db->where("citations.id >",(int)$start_row,false);
 		}
 
 	  	$rows=$this->ci->db->get("citations")->result_array();
-
-		//echo "\r\n".count($rows). "rows found\r\n";
 
 		if (!$rows){
 			return false;
 		}
 
-		$last_row_id=NULL;
+		$last_row_id=(int)$rows[ count($rows)-1]['id'];
 
-		//row variable id
-		$last_row_id=$rows[ count($rows)-1]['citation_id'];
-
-		$author_sort_map = $this->_build_cit_authors_sort_map(array_column($rows, 'citation_id'));
-
-		foreach ($rows as $key => $row) {
-		    $rows[$key]['title_sort']   = $row['title'] ?? '';
-		    $rows[$key]['cit_authors_sort'] = $author_sort_map[$row['citation_id']] ?? '';
-		}
-
-		        $this->index_documents($rows,$id_prefix='cit-');
+		$this->index_documents($this->_citation_solr_documents($rows),$id_prefix='cit-');
 
 		        if($loop ==true){
             $this->import_citations_batch($last_row_id,$limit,$loop);

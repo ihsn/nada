@@ -3,6 +3,8 @@
 use Solarium\Core\Client\Adapter\Curl;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
+require_once(APPPATH . 'libraries/Citation_csl.php');
+
 /**
  * Citation Search — Solr Backend
  *
@@ -13,10 +15,10 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  *   search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid)
  * Sets $this->search_found_rows after each call.
  *
+ * Solr returns the matching citation ids; the rows are loaded from the database
+ * (Citation_model::get_rows_by_ids), so they have the same shape as the database search.
+ *
  * Limitations vs the DB and nada-ai backends:
- *   - authors returned as raw string (not structured array); Solr index stores
- *     the citations.authors text column, not the citation_authors table rows.
- *   - survey_count always 0 — not stored in Solr index.
  *   - no_survey_attached, has_notes, user, url_status, flag filters
  *     silently ignored — fields not in Solr citation index.
  *   - repositoryid filter silently ignored — survey linkage not in Solr index.
@@ -106,12 +108,16 @@ class Citation_search_solr
                         break;
 
                     case 'ctype':
-                        if (is_array($value) && !empty($value)) {
+                        // the index holds CSL types (citations.ctype); legacy NADA type names are mapped
+                        $types = Citation_csl::to_csl_types($value);
+                        if (!empty($types)) {
                             $terms = implode(' OR ', array_map(
                                 function ($v) use ($helper) { return 'ctype:' . $helper->escapeTerm((string)$v); },
-                                $value
+                                $types
                             ));
                             $query->createFilterQuery('ctype')->setQuery('(' . $terms . ')');
+                        } elseif (!empty($value)) {
+                            $query->createFilterQuery('ctype')->setQuery('ctype:__none__');
                         }
                         break;
 
@@ -135,8 +141,8 @@ class Citation_search_solr
             }
         }
 
-        // eDisMax fields for fulltext
-        $edismax->setQueryFields('title^3 subtitle authors^2 abstract keywords notes doi organization');
+        // eDisMax fields for fulltext (notes are internal and not indexed)
+        $edismax->setQueryFields('title^3 subtitle authors^2 abstract keywords doi publisher');
 
         // Sort
         $dir = (strtolower((string)$sort_order) === 'asc')
@@ -152,14 +158,7 @@ class Citation_search_solr
         }
 
         $query->setStart($offset)->setRows($limit);
-        $query->setFields([
-            'id', 'citation_id', 'citation_uuid',
-            'title', 'subtitle', 'authors',
-            'volume', 'issue', 'edition',
-            'place_publication', 'publisher',
-            'ctype', 'abstract', 'keywords', 'notes', 'doi',
-            'published', 'pub_date',
-        ]);
+        $query->setFields(['citation_id']);
 
         try {
             $resultset = $this->solr_client->select($query);
@@ -191,51 +190,15 @@ class Citation_search_solr
     // Result formatting
     // =========================================================================
 
+    /** Solr gives the matching ids in order; the rows come from the database (Citation_model::get_rows_by_ids). */
     private function format_results($resultset): array
     {
-        $rows = [];
+        $ids = [];
         foreach ($resultset as $doc) {
-            $rows[] = [
-                'id'                 => $doc->citation_id    ?? null,
-                'uuid'               => $doc->citation_uuid  ?? null,
-                'title'              => $doc->title          ?? null,
-                'subtitle'           => $doc->subtitle       ?? null,
-                'alt_title'          => null,
-                'authors'            => $doc->authors        ?? null,
-                'editors'            => null,
-                'translators'        => null,
-                'abstract'           => $doc->abstract       ?? null,
-                'keywords'           => $doc->keywords       ?? null,
-                'notes'              => $doc->notes          ?? null,
-                'organization'       => null,
-                'doi'                => $doc->doi            ?? null,
-                'url'                => null,
-                'ctype'              => $doc->ctype          ?? null,
-                'pub_year'           => $doc->pub_date       ?? null,
-                'pub_month'          => null,
-                'pub_day'            => null,
-                'volume'             => $doc->volume         ?? null,
-                'issue'              => $doc->issue          ?? null,
-                'edition'            => $doc->edition        ?? null,
-                'place_publication'  => $doc->place_publication ?? null,
-                'place_state'        => null,
-                'publisher'          => $doc->publisher      ?? null,
-                'page_from'          => null,
-                'page_to'            => null,
-                'publication_medium' => null,
-                'flag'               => null,
-                'url_status'         => null,
-                'owner'              => null,
-                'published'          => $doc->published      ?? null,
-                'created'            => null,
-                'changed'            => null,
-                'survey_count'       => 0,
-                'idnumber'           => null,
-                'data_accessed'      => null,
-                'changed_by_user'    => null,
-                'created_by_user'    => null,
-            ];
+            if (isset($doc->citation_id)) {
+                $ids[] = (int)$doc->citation_id;
+            }
         }
-        return $rows;
+        return $this->ci->Citation_model->get_rows_by_ids($ids);
     }
 }

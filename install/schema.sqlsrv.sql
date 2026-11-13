@@ -278,8 +278,8 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_survey_topics on [dbo].[survey_topics](
 
 CREATE TABLE survey_citations (
   id int NOT NULL IDENTITY(1,1),
-  sid int DEFAULT NULL,
-  citationid int DEFAULT NULL,
+  sid int NOT NULL,
+  citationid int NOT NULL,
   PRIMARY KEY (id)
 ) ;
 
@@ -820,46 +820,30 @@ CREATE TABLE lic_requests (
 
 CREATE TABLE citations (
   id int NOT NULL IDENTITY(1,1),
-  uuid varchar(50) NOT NULL,
-  title varchar(255) NOT NULL,
-  subtitle varchar(255) DEFAULT NULL,
-  alt_title varchar(255) DEFAULT NULL,
-  authors varchar(600),
-  editors varchar(600),
-  translators varchar(600),
-  changed int DEFAULT NULL,
-  created int DEFAULT NULL,
-  published tinyint DEFAULT '1',
-  volume varchar(45) DEFAULT NULL,
-  issue varchar(45) DEFAULT NULL,
-  idnumber varchar(45) DEFAULT NULL,
-  edition varchar(45) DEFAULT NULL,
-  place_publication varchar(255) DEFAULT NULL,
-  place_state varchar(255) DEFAULT NULL,
-  publisher varchar(255) DEFAULT NULL,
-  publication_medium tinyint DEFAULT '0',
-  url varchar(255) DEFAULT NULL,
-  page_from varchar(25) DEFAULT NULL,
-  page_to varchar(25) DEFAULT NULL,
-  data_accessed varchar(45) DEFAULT NULL,
-  organization varchar(255) DEFAULT NULL,
-  ctype varchar(45) NOT NULL,
-  pub_day varchar(15) DEFAULT NULL,
-  pub_month varchar(45) DEFAULT NULL,
+  uuid nvarchar(50) NOT NULL,
+  metadata nvarchar(max) NOT NULL,
+  ctype nvarchar(45) NOT NULL,
+  title nvarchar(1000) NOT NULL,
+  container_title nvarchar(500) DEFAULT NULL,
+  authors_text nvarchar(max),
+  search_text nvarchar(max),
   pub_year int DEFAULT NULL,
-  abstract varchar(max),
-  keywords varchar(max),
-  notes varchar(max),
-  doi varchar(255) DEFAULT NULL,
-  flag varchar(45) DEFAULT NULL,
-  owner varchar(255) DEFAULT NULL,
-  country varchar(100) DEFAULT NULL,
-  url_status varchar(50) DEFAULT NULL,
+  doi nvarchar(255) DEFAULT NULL,
+  url nvarchar(2048) DEFAULT NULL,
+  lang nvarchar(45) DEFAULT NULL,
+  published tinyint NOT NULL CONSTRAINT DF_citations_published DEFAULT 0,
+  flag nvarchar(64) DEFAULT NULL,
+  notes nvarchar(max),
+  owner nvarchar(255) DEFAULT NULL,
+  url_status nvarchar(50) DEFAULT NULL,
+  url_status_time int DEFAULT NULL,
+  attachment nvarchar(300) DEFAULT NULL,
+  created int DEFAULT NULL,
+  changed int DEFAULT NULL,
   created_by int DEFAULT NULL,
   changed_by int DEFAULT NULL,
-  attachment varchar(300) DEFAULT NULL,
-  lang varchar(50) DEFAULT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  CONSTRAINT ck_citations_metadata_isjson CHECK (ISJSON(metadata) = 1)
 );
 
 CREATE NONCLUSTERED INDEX idx_citations_published  ON [dbo].[citations] ([published]);
@@ -869,6 +853,28 @@ CREATE NONCLUSTERED INDEX idx_citations_flag        ON [dbo].[citations] ([flag]
 CREATE NONCLUSTERED INDEX idx_citations_url_status  ON [dbo].[citations] ([url_status]);
 CREATE NONCLUSTERED INDEX idx_citations_created_by  ON [dbo].[citations] ([created_by]);
 CREATE NONCLUSTERED INDEX idx_citations_changed_by  ON [dbo].[citations] ([changed_by]);
+CREATE NONCLUSTERED INDEX idx_citations_doi         ON [dbo].[citations] ([doi]);
+CREATE NONCLUSTERED INDEX idx_citations_changed     ON [dbo].[citations] ([changed]);
+
+ALTER TABLE survey_citations ADD CONSTRAINT fk_survey_citations_sid FOREIGN KEY (sid) REFERENCES surveys (id) ON DELETE CASCADE;
+ALTER TABLE survey_citations ADD CONSTRAINT fk_survey_citations_cid FOREIGN KEY (citationid) REFERENCES citations (id) ON DELETE CASCADE;
+
+--
+-- Citation flags codelist (citations.flag); admins edit it in the Codelists admin
+--
+SET IDENTITY_INSERT codelists ON;
+INSERT INTO codelists (id, pid, name, agency, version, version_seq, idno, description, status, created, changed) VALUES (2,NULL,'citation_flags','NADA','1.0.0',1,'NADA_citation_flags_1.0','Editorial flags for citations (admin/citations). Codes are stored in citations.flag.',0,NULL,NULL);
+UPDATE codelists SET pid = 2 WHERE id = 2;
+SET IDENTITY_INSERT codelists OFF;
+
+SET IDENTITY_INSERT codelist_item ON;
+INSERT INTO codelist_item (id, codelist_id, parent_id, code, title, sort_order) VALUES
+(20,2,NULL,'ds_unclear','Unclear related dataset',10),
+(21,2,NULL,'incomplete','Incomplete',20),
+(22,2,NULL,'tobe_checked','To be checked',30),
+(23,2,NULL,'duplicate','Duplicate',40),
+(24,2,NULL,'back_to_editor','Back to editor',50);
+SET IDENTITY_INSERT codelist_item OFF;
 
 --
 -- Table structure for table survey_aliases
@@ -1309,21 +1315,7 @@ CREATE TABLE survey_notes (
 
 
 
---
--- Table structure for table citation_authors
---
 
-CREATE TABLE citation_authors (
-  id int NOT NULL IDENTITY(1,1),
-  cid int DEFAULT NULL,
-  fname varchar(255) DEFAULT NULL,
-  lname varchar(255) DEFAULT NULL,
-  initial varchar(255) DEFAULT NULL,
-  author_type varchar(45) DEFAULT NULL,
-  PRIMARY KEY (id)
-) ;
-
-CREATE NONCLUSTERED INDEX idx_citation_authors_cid_type ON [dbo].[citation_authors] ([cid], [author_type]);
 
 
 
@@ -1610,8 +1602,7 @@ CREATE UNIQUE INDEX pk_idx_citations ON dbo.citations(id);
 
 CREATE FULLTEXT INDEX ON citations
 (
-  title, subtitle, alt_title, authors, editors, translators,
-  organization, abstract, keywords, notes, doi
+  title, container_title, authors_text, search_text, notes
 )
 KEY INDEX pk_idx_citations;
 

@@ -80,7 +80,7 @@
                         <div class=" badge-tiny"><?php echo t($row['ctype']);?></div>
                         <!--<h5><?php echo $row['title'];?></h5>-->
 
-                        <?php echo $this->chicago_citation->format($row,'journal');?>                        
+                        <?php echo $this->chicago_citation->format_escaped($row,'journal');?>                        
                     </div>
                 </div>
             </div>

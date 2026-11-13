@@ -606,7 +606,7 @@ class DDI2_Import{
         }
 
         $prefixed_groups=array(); //original_vid => array of stored vids
-        $vid_by_original_and_fid=array(); //original_vid => fid => stored vid (for var_wgt remapping)
+        $vid_by_original_and_fid=array(); //original_vid => fid => stored vid (for var_wgt_id remapping)
         foreach($staged_rows as $idx=>$row){
             $original_vid=$row['_original_vid'];
             if ($vid_counts[$original_vid] > 1){
@@ -631,17 +631,17 @@ class DDI2_Import{
         }
 
         foreach($staged_rows as $idx=>$row){
-            if (empty($row['metadata']['var_wgt'])) {
+            if (empty($row['metadata']['var_wgt_id'])) {
                 continue;
             }
 
-            $wgt_ddi=trim((string)$row['metadata']['var_wgt']);
+            $wgt_ddi=trim((string)$row['metadata']['var_wgt_id']);
             if ($wgt_ddi === '') {
                 continue;
             }
 
             if (isset($vid_by_original_and_fid[$wgt_ddi][$row['fid']])) {
-                $staged_rows[$idx]['metadata']['var_wgt']=$vid_by_original_and_fid[$wgt_ddi][$row['fid']];
+                $staged_rows[$idx]['metadata']['var_wgt_id']=$vid_by_original_and_fid[$wgt_ddi][$row['fid']];
             }
         }
 

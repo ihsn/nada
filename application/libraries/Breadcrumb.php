@@ -525,9 +525,6 @@ class Breadcrumb
 					$breadcrumbs['admin/citations/export']=t('export_citations');
 				break;
 				
-				case 'delete':
-					$breadcrumbs['admin/citations/delete'.$segments[4]]=t('delete');
-				break;				
 			}
 		}
 		

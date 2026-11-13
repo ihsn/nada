@@ -477,10 +477,9 @@ class Catalog_model extends CI_Model {
 	*/
 	function get_citations_by_survey($sid)
 	{
-		$this->db->select('citations.*');
-		$this->db->join('survey_citations', 'citations.id= survey_citations.citationid');
-		$this->db->where('survey_citations.sid', $sid); 
-		return $this->db->get('citations')->result_array();
+		$this->load->model('Citation_model');
+		$rows=$this->Citation_model->get_citations_by_survey($sid);
+		return $rows ? $rows : array();
 	}
 
 	/**
@@ -1577,7 +1576,7 @@ class Catalog_model extends CI_Model {
 		}
 		
 		$result=$result->row_array();
-		return $result['repositoryid'];
+		return $result ? $result['repositoryid'] : NULL;
 	}
 
 

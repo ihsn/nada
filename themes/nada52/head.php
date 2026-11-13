@@ -15,7 +15,7 @@
 <?php endif;?>    
 
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/fonts.css?v20260721">
-<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v20260927-3">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v20261113">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/custom.css?v20260625">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/home.css?v20260927-1">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/variables.css?v07042021">

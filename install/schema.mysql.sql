@@ -287,8 +287,8 @@ CREATE TABLE `survey_topics` (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `survey_citations` (
-  `sid` int(11) DEFAULT NULL,
-  `citationid` int(11) DEFAULT NULL,
+  `sid` int(11) NOT NULL,
+  `citationid` int(11) NOT NULL,
   `id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Idx_s_c` (`sid`,`citationid`),
@@ -807,56 +807,57 @@ CREATE TABLE `lic_requests` (
 CREATE TABLE `citations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uuid` varchar(50) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `subtitle` varchar(255) DEFAULT NULL,
-  `alt_title` varchar(255) DEFAULT NULL,
-  `authors` text,
-  `editors` text,
-  `translators` text,
-  `changed` int(11) DEFAULT NULL,
-  `created` int(11) DEFAULT NULL,
-  `published` tinyint(3) DEFAULT '1',
-  `volume` varchar(45) DEFAULT NULL,
-  `issue` varchar(45) DEFAULT NULL,
-  `idnumber` varchar(45) DEFAULT NULL,
-  `edition` varchar(45) DEFAULT NULL,
-  `place_publication` varchar(255) DEFAULT NULL,
-  `place_state` varchar(255) DEFAULT NULL,
-  `publisher` varchar(255) DEFAULT NULL,
-  `publication_medium` tinyint(3) DEFAULT '0' COMMENT '0=print, 1=online',
-  `url` varchar(255) DEFAULT NULL,
-  `page_from` varchar(25) DEFAULT NULL,
-  `page_to` varchar(25) DEFAULT NULL,
-  `data_accessed` varchar(45) DEFAULT NULL,
-  `organization` varchar(255) DEFAULT NULL,
-  `ctype` varchar(45) NOT NULL,
-  `pub_day` varchar(15) DEFAULT NULL,
-  `pub_month` varchar(45) DEFAULT NULL,
+  `metadata` json NOT NULL COMMENT 'CSL-JSON document (application/libraries/Citation_csl.php)',
+  `ctype` varchar(45) NOT NULL COMMENT 'CSL type, copied from metadata',
+  `title` varchar(1000) NOT NULL,
+  `container_title` varchar(500) DEFAULT NULL,
+  `authors_text` text,
+  `search_text` mediumtext,
   `pub_year` int(11) DEFAULT NULL,
-  `abstract` text,
-  `keywords` text,
-  `notes` text,
   `doi` varchar(255) DEFAULT NULL,
-  `flag` varchar(45) DEFAULT NULL,
+  `url` varchar(2048) DEFAULT NULL,
+  `lang` varchar(45) DEFAULT NULL,
+  `published` tinyint(3) NOT NULL DEFAULT '0',
+  `flag` varchar(64) DEFAULT NULL COMMENT 'code from the citation_flags codelist',
+  `notes` text,
   `owner` varchar(255) DEFAULT NULL,
-  `country` varchar(100) DEFAULT NULL,
   `url_status` varchar(50) DEFAULT NULL,
+  `url_status_time` int(11) DEFAULT NULL,
+  `attachment` varchar(300) DEFAULT NULL,
+  `created` int(11) DEFAULT NULL,
+  `changed` int(11) DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `changed_by` int(11) DEFAULT NULL,
-  `attachment` varchar(300) DEFAULT NULL,
-  `lang` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uid_UNIQUE` (`uuid`),
-  FULLTEXT KEY `ft_citations` (`title`,`subtitle`,`alt_title`,`authors`,`editors`,`translators`),
-  FULLTEXT KEY `ft_cit2` (`title`,`subtitle`,`authors`,`organization`,`abstract`,`keywords`,`notes`,`doi`),
+  FULLTEXT KEY `ft_cit_core` (`title`,`container_title`,`authors_text`),
+  FULLTEXT KEY `ft_cit_search` (`search_text`),
   KEY `idx_citations_published` (`published`),
   KEY `idx_citations_ctype` (`ctype`),
   KEY `idx_citations_pub_year` (`pub_year`),
   KEY `idx_citations_flag` (`flag`),
   KEY `idx_citations_url_status` (`url_status`),
   KEY `idx_citations_created_by` (`created_by`),
-  KEY `idx_citations_changed_by` (`changed_by`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+  KEY `idx_citations_changed_by` (`changed_by`),
+  KEY `idx_citations_doi` (`doi`(191)),
+  KEY `idx_citations_changed` (`changed`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `survey_citations`
+  ADD CONSTRAINT `fk_survey_citations_sid` FOREIGN KEY (`sid`) REFERENCES `surveys` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_survey_citations_cid` FOREIGN KEY (`citationid`) REFERENCES `citations` (`id`) ON DELETE CASCADE;
+
+--
+-- Citation flags codelist (citations.flag); admins edit it in the Codelists admin
+--
+INSERT INTO `codelists` (`id`,`pid`,`name`,`agency`,`version`,`version_seq`,`idno`,`description`,`status`,`created`,`changed`) VALUES (2,NULL,'citation_flags','NADA','1.0.0',1,'NADA_citation_flags_1.0','Editorial flags for citations (admin/citations). Codes are stored in citations.flag.',0,NULL,NULL);
+UPDATE `codelists` SET `pid` = 2 WHERE `id` = 2;
+INSERT INTO `codelist_item` (`id`,`codelist_id`,`parent_id`,`code`,`title`,`sort_order`) VALUES
+(20,2,NULL,'ds_unclear','Unclear related dataset',10),
+(21,2,NULL,'incomplete','Incomplete',20),
+(22,2,NULL,'tobe_checked','To be checked',30),
+(23,2,NULL,'duplicate','Duplicate',40),
+(24,2,NULL,'back_to_editor','Back to editor',50);
 
 
 
@@ -1247,23 +1248,7 @@ CREATE TABLE `survey_notes` (
 
 
 
---
--- Table structure for table `citation_authors`
---
 
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `citation_authors` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `cid` int(11) DEFAULT NULL,
-  `fname` varchar(255) DEFAULT NULL,
-  `lname` varchar(255) DEFAULT NULL,
-  `initial` varchar(255) DEFAULT NULL,
-  `author_type` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_cit_auth` (`cid`,`author_type`)
-) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 
 --

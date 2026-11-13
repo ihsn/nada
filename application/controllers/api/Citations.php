@@ -2,6 +2,13 @@
 
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
+/**
+ * Public citations API (read-only).
+ *
+ * Create / update / delete / publish live under api/admin/citations.
+ * Responses are always published-only and never include internal fields
+ * (notes, flag, owner, url_status, audit usernames, …).
+ */
 class Citations extends MY_REST_Controller
 {
 	public function __construct()
@@ -9,83 +16,61 @@ class Citations extends MY_REST_Controller
 		parent::__construct();
 		$this->load->helper("date");
 		$this->load->model('Dataset_model');
-		$this->load->model("Citation_model"); 
+		$this->load->model("Citation_model");
 	}
-	
+
 	/**
-	 * 
-	 * 
-	 * Get all citations
-	 * 
-	 * 
+	 * List published citations, or a single citation when $uuid is set.
 	 */
 	function index_get($uuid=null)
-	{	
+	{
 		try{
 			if($uuid){
 				return $this->single_get($uuid);
 			}
-			
+
 			$per_page = $this->get_page_size($this->input->get("ps"));
-		
+
 			$offset=(int)$this->input->get('offset');
 			if ($offset<0){
 				$offset=0;
 			}
 
-			//$collection=$this->input->get('collection');
-			
-			$published=1; //show only published citations by default
-
-			try{
-				if($this->is_admin()){
-					$published=null; //show all
-
-					if($this->input->get("published")!==false){
-						$published=(int)$this->input->get("published") == 1 ? 1:0;
-					}
-				}
-			}
-			catch(Exception $e){
-				$published=1;
-			}
-	
-			//sort order
 			$sort_order=$this->input->get('sort_order') ? $this->input->get('sort_order') : 'asc';
 			$sort_by=$this->input->get('sort_by') ? $this->input->get('sort_by') : 'rank';
-	
+
 			$filter=array(
 				'keywords'=>$this->input->get("keywords"),
 				'from'=>$this->input->get("from"),
 				'to'=>$this->input->get("to"),
 				'ctype'=>array_filter(explode(",",$this->input->get("ctype")))
-			);			
-	
+			);
+
 			// past the offsets the search engine reaches (nada-ai), pages continue with next_cursor / prev_cursor
 			$this->Citation_model->search_cursor = trim((string) xss_clean($this->input->get('cursor')));
 
 			$rows=$this->Citation_model->search(
-				$per_page, 
+				$per_page,
 				$offset,
-				$filter, 
-				$sort_by, 
+				$filter,
+				$sort_by,
 				$sort_order,
-				$published
-				//$repository=$collection
+				1 // published only
 			);
 
 			$total = $this->Citation_model->search_count();
 			$paging = $this->Citation_model->search_paging;
+			$rows = $this->Citation_model->strip_internal_fields($rows);
 
 			$response=array(
-				'published' =>$published,
+				'published' =>1,
 				'status'	=> 'success',
 				'total'		=> $total,
 				'found'		=> count($rows),
 				'offset'	=> $paging !== NULL ? $paging['offset'] : $offset,
 				'per_page'	=> $per_page,
 				'citations'	=> $rows,
-				
+
 			);
 			// nada-ai: offset reaches max_offset rows; next_cursor / prev_cursor (in place of offset) page past them
 			if ($paging !== NULL) {
@@ -110,9 +95,7 @@ class Citations extends MY_REST_Controller
 
 
 	/**
-	 * 
 	 * Get page size
-	 * 
 	 */
 	private function get_page_size($page_size)
 	{
@@ -128,9 +111,7 @@ class Citations extends MY_REST_Controller
 
 
 	/**
-	 * 
-	 * Get a single citation
-	 * 
+	 * Get a single published citation
 	 */
 	function single_get($uuid=null)
 	{
@@ -141,14 +122,18 @@ class Citations extends MY_REST_Controller
 			if(!is_numeric($id)){
 				throw new Exception("MISSING_PARAM: citationId");
 			}
-			
+
 			$citation=$this->Citation_model->select_single($id);
-			
-			if(!$citation){
-				throw new Exception("CITATION_NOT_FOUND");
-			}	
-			
-			$this->set_response($citation, REST_Controller::HTTP_OK);			
+
+			if(!$citation || (int)$citation['published']!==1){
+				$this->set_response(array(
+					'status'=>'failed',
+					'errors'=>'CITATION_NOT_FOUND'
+				), REST_Controller::HTTP_NOT_FOUND);
+				return;
+			}
+
+			$this->set_response($this->Citation_model->strip_internal_fields($citation), REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
 			$error_output=array(
@@ -156,36 +141,34 @@ class Citations extends MY_REST_Controller
 				'errors'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}		
+		}
 	}
 
 
-	
 	/**
-	 * 
-	 * Get citations by Study
-	 * 
+	 * Get published citations by Study
 	 */
 	function by_dataset_get($sid=null)
 	{
 		try{
 			if(!is_numeric($sid)){
-				$sid=$this->Dataset_model->find_by_idno($sid);				
+				$sid=$this->Dataset_model->find_by_idno($sid);
 			}
 
 			if (!$sid){
 				throw new Exception("MISSING_PARAM: DatasetId");
 			}
-			
-			$citations=$this->Citation_model->get_citations_by_survey($sid);
-			
+
+			$citations=$this->Citation_model->get_citations_by_survey($sid, NULL, NULL, $published_only=TRUE);
+			$citations=$citations ? $this->Citation_model->strip_internal_fields($citations) : array();
+
 			$output=array(
 				'status'=>'success',
 				'found'=>count($citations),
 				'records'=>$citations
 			);
 
-			$this->set_response($output, REST_Controller::HTTP_OK);			
+			$this->set_response($output, REST_Controller::HTTP_OK);
 		}
 		catch(Exception $e){
 			$error_output=array(
@@ -193,111 +176,20 @@ class Citations extends MY_REST_Controller
 				'errors'=>$e->getMessage()
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}		
-	}
-
-
-	
-	/**
-	 * 
-	 * Add new citation
-	 * 
-	 **/ 
-	function index_post()
-	{
-		$this->has_access($resource_='citation',$privilege='edit');
-		$this->load->model("Dataset_model");
-
-		try{
-			$options=$this->raw_json_input();
-			$user_id=$this->get_api_user_id();
-			
-			$options['created_by']=$user_id;
-			$options['changed_by']=$user_id;
-			$options['created']=date("U");
-			$options['changed']=date("U");
-
-			//remove empty values
-			foreach($options as $key=>$value){
-				if (empty($value)){
-					unset($options[$key]);
-				}
-			}
-
-			if (!isset($options['overwrite'])) {
-				$options['overwrite']=0;
-			}
-
-			//validate & create dataset
-			//$dataset_id=$this->dataset_manager->create_dataset($type,$options);
-
-			$this->Citation_model->validate_schema($options);
-			
-			$citation_id=$this->Citation_model->uuid_exists($options['uuid']);
-
-			if($citation_id>0 && $options['overwrite']==0){
-				throw new Exception("CITATION_ALREADY_EXISTS::".$citation_id);
-			}
-
-			if ($citation_id>0){
-				$this->Citation_model->update($citation_id,$options);
-			}
-			else{
-				$citation_id=$this->Citation_model->insert($options);
-			}
-
-			//attach related studies
-			if ( isset($options['related_studies'])){
-				$surveys=array();
-				foreach($options['related_studies'] as $survey){
-					$surveys[]=$this->Dataset_model->find_by_idno($survey);
-				}
-
-				$surveys=array_filter($surveys);
-
-				if (count($surveys)>0){
-					$this->Citation_model->attach_related_surveys($citation_id,$surveys);
-				}
-			}
-
-			$this->events->emit('db.after.update', 'citations', $citation_id, 'import');
-
-			$output=array(
-				'citation_id'=>$citation_id,
-				'uuid'=>$options['uuid'],
-				'options'=>$options,
-				'status'=>'success'
-			);
-
-			$this->set_response($output, REST_Controller::HTTP_OK);			
-		}
-		catch(ValidationException $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage(),
-				'errors'=>(array)$e->GetValidationErrors()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-		catch(Exception $e){
-			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
 		}
 	}
 
 
 	/**
-	 * 
-	 * 
-	 * Find similar citations
-	 * 
+	 * Find similar published citations
 	 */
 	function find_similar_get()
-    {
-        try{
+	{
+		try{
 			$keywords=array();
 
 			//key variables to search on
-			$search_keys=explode(",","title,author_fname,author_lname,doi");
+			$search_keys=explode(",","title,author_fname,author_lname");
 
 			foreach($search_keys as $key){
 				if (isset($_GET[$key])){
@@ -314,14 +206,22 @@ class Citations extends MY_REST_Controller
 
 			$keywords= implode(" ",$keywords);
 
-			$citations=$this->Citation_model->search_duplicates($keywords);
+			$doi=$this->get('doi',true);
+			$citations=$this->Citation_model->search_duplicates($keywords, is_string($doi) ? $doi : '');
+
+			if (is_array($citations)){
+				$citations=array_values(array_filter($citations, function($row){
+					return isset($row['published']) && (int)$row['published']===1;
+				}));
+				$citations=$this->Citation_model->strip_internal_fields($citations);
+			}
 
 			$output=array(
-				'citations'=>$citations,				
+				'citations'=>$citations,
 				'status'=>'success'
 			);
 
-			$this->set_response($output, REST_Controller::HTTP_OK);			
+			$this->set_response($output, REST_Controller::HTTP_OK);
 		}
 		catch(ValidationException $e){
 			$error_output=array(
@@ -334,81 +234,59 @@ class Citations extends MY_REST_Controller
 		catch(Exception $e){
 			$this->set_response($e->getMessage(), REST_Controller::HTTP_BAD_REQUEST);
 		}
-    }
+	}
 
 
 	/**
-	 * 
-	 *  Delete citation
-	 * 
+	 * Writes moved to api/admin/citations. Explicit handlers so clients get 405
+	 * (not an API-key 403 from the REST auth layer).
 	 */
-	public function delete_delete($uuid=null)
+	function index_post()
 	{
-		try{
-			$this->has_access($resource_='citation',$privilege='delete');
-			$id=$this->get_id_from_uuid ($uuid);			
-			$this->Citation_model->delete($id);
-			$this->events->emit('db.after.delete', 'citations', $id);
-		
-			$response=array(
-				'status'=>'success',
-				'message'=>'DELETED'
-			);
-
-			$this->set_response($response, REST_Controller::HTTP_OK);
-		}	
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}	
-	}
-	
-	public function index_delete($uuid=null)
-	{
-		return $this->delete_delete($uuid);
+		$this->_method_not_allowed('Use api/admin/citations to create or update citations');
 	}
 
-	/**
-	 * POST /api/citations/delete/{uuid}
-	 * Alias for DELETE when that verb is blocked.
-	 */
-	public function delete_post($uuid=null)
+	function index_delete($uuid=null)
 	{
-		return $this->delete_delete($uuid);
+		$this->_method_not_allowed('Use api/admin/citations to delete citations');
 	}
 
+	function delete_delete($uuid=null)
+	{
+		$this->_method_not_allowed('Use api/admin/citations to delete citations');
+	}
 
-	//override authentication to support both session authentication + api keys
+	function delete_post($uuid=null)
+	{
+		$this->_method_not_allowed('Use api/admin/citations to delete citations');
+	}
+
+	private function _method_not_allowed($message)
+	{
+		$this->set_response(array(
+			'status'=>'failed',
+			'errors'=>'METHOD_NOT_ALLOWED',
+			'message'=>$message
+		), REST_Controller::HTTP_METHOD_NOT_ALLOWED);
+	}
+
+	// Read-only public controller: no API key required (writes answer 405 above).
 	function _auth_override_check()
 	{
-		if ($this->input->method()=='get'){
-			return true;
-		}
-
-		if ($this->session->userdata('user_id')){
-			return true;
-		}
-		parent::_auth_override_check();
+		return true;
 	}
 
 
 	/**
-	 * 
-	 * 
 	 * Return ID by UUID
-	 * 
-	 * 
+	 *
 	 * @uuid 		- Citation UUID
 	 * @id_format 	- ID | IDNO
-	 * 
+	 *
 	 * Note: to use ID instead of UUID, must pass id_format in querystring
-	 * 
 	 */
 	public function get_id_from_uuid($uuid=null)
-	{		
+	{
 		if(!$uuid){
 			throw new Exception("UUID-NOT-PROVIDED");
 		}
@@ -427,5 +305,5 @@ class Citations extends MY_REST_Controller
 
 		return $id;
 	}
-	
+
 }

@@ -484,17 +484,17 @@ class Metadata_Import{
         }
 
         foreach($staged_rows as $idx=>$row){
-            if (empty($row['metadata_array']['var_wgt'])) {
+            if (empty($row['metadata_array']['var_wgt_id'])) {
                 continue;
             }
 
-            $wgt_ddi=trim((string)$row['metadata_array']['var_wgt']);
+            $wgt_ddi=trim((string)$row['metadata_array']['var_wgt_id']);
             if ($wgt_ddi === '') {
                 continue;
             }
 
             if (isset($vid_by_original_and_fid[$wgt_ddi][$row['_fid_token']])) {
-                $staged_rows[$idx]['metadata_array']['var_wgt']=$vid_by_original_and_fid[$wgt_ddi][$row['_fid_token']];
+                $staged_rows[$idx]['metadata_array']['var_wgt_id']=$vid_by_original_and_fid[$wgt_ddi][$row['_fid_token']];
             }
         }
 

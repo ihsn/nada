@@ -245,6 +245,43 @@ if ( ! function_exists('nada_var_sumstat_invd_non_wgtd'))
 }
 
 
+if ( ! function_exists('variable_weight_info'))
+{
+	/**
+	 * Read weight information from variable metadata.
+	 *
+	 * Current convention (same as the Metadata Editor):
+	 *   var_wgt    = 1/0 flag, the variable itself is a weight
+	 *   var_wgt_id = VID of the weight variable applied to this variable
+	 *
+	 * Legacy rows (DDI imports before var_wgt_id existed) stored the weight
+	 * variable's VID in var_wgt and the DDI @wgt flag in var_is_wgt; both are
+	 * still recognised here.
+	 *
+	 * @param  array $metadata Variable metadata
+	 * @return array ['is_weight' => bool, 'weight_vid' => string|null]
+	 */
+	function variable_weight_info($metadata)
+	{
+		$metadata = is_array($metadata) ? $metadata : array();
+		$wgt = isset($metadata['var_wgt']) ? $metadata['var_wgt'] : null;
+
+		$is_weight = (isset($metadata['var_is_wgt']) && $metadata['var_is_wgt'] === 'wgt')
+			|| $wgt === true
+			|| (is_numeric($wgt) && (int) $wgt === 1);
+
+		$weight_vid = null;
+		if (isset($metadata['var_wgt_id']) && is_scalar($metadata['var_wgt_id']) && trim((string) $metadata['var_wgt_id']) !== '') {
+			$weight_vid = trim((string) $metadata['var_wgt_id']);
+		} elseif (is_string($wgt) && trim($wgt) !== '' && !is_numeric($wgt)) {
+			$weight_vid = trim($wgt); // legacy: var_wgt held the weight variable's VID
+		}
+
+		return array('is_weight' => $is_weight, 'weight_vid' => $weight_vid);
+	}
+}
+
+
 if ( ! function_exists('merge_var_catgry_invd_sysmiss_display'))
 {
 	/**

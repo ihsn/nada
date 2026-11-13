@@ -262,25 +262,18 @@ class Catalog_search_metadata_extract
         );
     }
 
-    /** Columns of a citation export document (see citation_document_from_row). */
+    /** Columns of a citation export document (see citation_document_from_row); bibliographic fields come from metadata (CSL). */
     const CITATION_EXPORT_FIELDS = '
             id,
             uuid,
             title,
-            subtitle,
-            authors,
-            volume,
-            issue,
-            edition,
-            place_publication,
-            publisher,
+            container_title,
+            authors_text,
             ctype,
-            abstract,
-            keywords,
-            notes,
             doi,
             published,
-            pub_year
+            pub_year,
+            metadata
         ';
 
     /**
@@ -340,32 +333,34 @@ class Catalog_search_metadata_extract
     private function citation_document_from_row(array $row)
     {
         $pub_date = isset($row['pub_year']) ? (int) $row['pub_year'] : null;
-        unset($row['pub_year']);
+        $csl = json_decode((string) ($row['metadata'] ?? ''), true);
+        if (!is_array($csl)) {
+            $csl = array();
+        }
 
+        // internal fields (notes, flag, owner) are not sent to the search index
         return array(
             'metadata'      => array(
                 'title'             => $row['title'] ?? null,
-                'subtitle'          => $row['subtitle'] ?? null,
-                'authors'           => $row['authors'] ?? null,
-                'abstract'          => $row['abstract'] ?? null,
-                'keywords'          => $row['keywords'] ?? null,
-                'notes'             => $row['notes'] ?? null,
-                'doi'               => $row['doi'] ?? null,
-                'volume'            => $row['volume'] ?? null,
-                'issue'             => $row['issue'] ?? null,
-                'edition'           => $row['edition'] ?? null,
-                'place_publication' => $row['place_publication'] ?? null,
-                'publisher'         => $row['publisher'] ?? null,
+                'subtitle'          => ($row['container_title'] ?? '') !== '' ? $row['container_title'] : null,
+                'authors'           => ($row['authors_text'] ?? '') !== '' ? $row['authors_text'] : null,
+                'abstract'          => $csl['abstract'] ?? null,
+                'keywords'          => $csl['keyword'] ?? null,
+                'doi'               => ($row['doi'] ?? '') !== '' ? $row['doi'] : null,
+                'volume'            => $csl['volume'] ?? null,
+                'issue'             => $csl['issue'] ?? null,
+                'edition'           => $csl['edition'] ?? null,
+                'place_publication' => $csl['publisher-place'] ?? null,
+                'publisher'         => $csl['publisher'] ?? null,
             ),
             'core_fields'   => array(
                 'citation_id'   => (int) $row['id'],
                 'citation_uuid' => $row['uuid'] ?? null,
                 'title'         => $row['title'] ?? null,
-                'authors'       => $row['authors'] ?? null,
-                'abstract'      => $row['abstract'] ?? null,
-                'keywords'      => $row['keywords'] ?? null,
-                'notes'         => $row['notes'] ?? null,
-                'doi'           => $row['doi'] ?? null,
+                'authors'       => ($row['authors_text'] ?? '') !== '' ? $row['authors_text'] : null,
+                'abstract'      => $csl['abstract'] ?? null,
+                'keywords'      => $csl['keyword'] ?? null,
+                'doi'           => ($row['doi'] ?? '') !== '' ? $row['doi'] : null,
             ),
             'filters'       => array(
                 'doctype'   => self::CITATION_DOCTYPE,

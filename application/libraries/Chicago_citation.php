@@ -17,6 +17,18 @@ class Chicago_Citation{
     }
 	
 	/**
+	* Same as format(), for output that is shown as HTML: every value is HTML-escaped first, so a title
+	* like <script> can't reach the page. The markup in the result (spans, links) is the formatter's own.
+	*
+	*	@data	array	citation row (Citation_model rows)
+	*	@type	citation type - journal, book
+	*/
+	function format_escaped($data,$type='journal')
+	{
+		return $this->format(html_escape($data),$type);
+	}
+
+	/**
 	*
 	* Format the citation according to Chicago style
 	*
@@ -414,7 +426,11 @@ class Chicago_Citation{
 		
 		$place=implode(", ", $place);	
 		
-		$publisher= sprintf("%s: %s",$place,$data->publisher);
+		if ($place !== '') {
+			$publisher = sprintf('%s: %s', $place, $data->publisher);
+		} else {
+			$publisher = (string) $data->publisher;
+		}
 		
 		if ($data->pub_year>0)
 		{

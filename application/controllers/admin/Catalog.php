@@ -1100,15 +1100,10 @@ class Catalog extends MY_Controller {
 		redirect('admin/catalog/edit/'.$id.'/metadata');
 	}
 
-	function widgets($sid)
+	/** Retired — manage study embeds via api/widgets; public pages remain at widgets/* */
+	function widgets($sid = null)
 	{
-		$this->load->model("Widget_model");
-		$options['widget_storage_root']='files/embed/';
-		$options['widgets']=$this->Widget_model->widgets_by_study($sid);
-		
-		$content= $this->load->view('widgets/related_widgets', $options,TRUE);
-		$this->template->write('content', $content,true);
-		$this->template->render();
+		show_404();
 	}
 
 	/**
@@ -1128,8 +1123,8 @@ class Catalog extends MY_Controller {
 		//test user study permissiosn
 		//$this->acl->user_has_study_access($id);		
 
-		if ($this->uri->segment(5)=='widgets'){
-			return $this->widgets($id);
+		if ($this->uri->segment(5) === 'widgets') {
+			show_404();
 		}
 
 		$tab = $this->_study_edit_tab_slug();
