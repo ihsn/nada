@@ -91,20 +91,23 @@ if (isset($variable_metadata_display['var_catgry']) && is_array($variable_metada
         </span>
         <?php endif;?>
 
-        <?php if (isset($variable['metadata']['var_is_wgt'])  && $variable['metadata']['var_is_wgt']=='wgt' ):?>
+        <?php
+            $wgt_info = variable_weight_info(isset($variable['metadata']) ? $variable['metadata'] : array());
+            $wgt_is_weight = $wgt_info['is_weight'];
+            $wgt_ref_vid = $wgt_info['weight_vid'];
+        ?>
+        <?php if ($wgt_is_weight):?>
         <span class="fld-inline sum-stat var_is_wgt">
             <span class="fld-name var-fld-var_is_wgt"><?php echo t('var_is_wgt');?>: </span>
-            <?php $var_is_wgt=$variable['metadata']['var_is_wgt'];?>
             <span class="fld-value var_is_wgt-value"><?php echo t('yes');?></span>
             <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </span>
         <?php endif;?>
 
-        <?php if (isset($variable['metadata']['var_wgt'])):?>
+        <?php if ($wgt_ref_vid !== null):?>
         <span class="fld-inline sum-stat var_wgt">
             <span class="fld-name var-fld-var_wgt"><?php echo t('var_wgt');?>: </span>
-            <?php $var_wgt=$variable['metadata']['var_wgt'];?>
-            <span class="fld-value var_wgt-value"><?php echo $var_wgt;?></span>
+            <span class="fld-value var_wgt-value"><a href="<?php echo html_escape(site_url('catalog/'.$file['sid'].'/variable/'.$file['file_id'].'/'.rawurlencode($wgt_ref_vid)));?>"><?php echo html_escape($wgt_ref_vid);?></a></span>
             <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </span>
         <?php endif;?>

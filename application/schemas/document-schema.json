@@ -4,28 +4,6 @@
   "title": "Script Schema [DRAFT]",
   "description": "Schema for Document data type",
   "type": "object",
-  "definitions":{
-    "keyword":{
-      "type":"array",
-      "items":{
-        "type":"object",
-        "properties":{
-          "name":{
-            "title":"Name",
-            "type":"string"
-          },
-          "vocabulary":{
-            "title":"Vocabulary name",
-            "type":"string"
-          },
-          "uri":{
-            "title":"Vocabulary URI",
-            "type":"string"
-          }
-        }
-      }
-    }
-  },
   "properties": {    
 
     "repositoryid": {
@@ -795,11 +773,26 @@
         },
                 
         "keywords":{
-          "allOf": [ 
-            {"$ref":"#/definitions/keyword"}
-          ],
-          "title":"Keywords",
-          "description":"Keywords"
+          "type": "array",
+          "title": "Keywords",
+          "description": "Keywords",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "vocabulary": {
+                "title": "Vocabulary name",
+                "type": "string"
+              },
+              "uri": {
+                "title": "Vocabulary URI",
+                "type": "string"
+              }
+            }
+          }
         },
         "themes":{
           "type":"array",

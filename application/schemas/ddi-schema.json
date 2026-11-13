@@ -1,9 +1,9 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema#",
-  "$id": "https://ihsn.org/schemas/microdata/1.0.0",
-  "version": "1.0.0",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://ihsn.org/schemas/ddi2-codebook",
+  "version": "0.0",
   "title": "Microdata schema",
-  "description": "Schema for Survey data type based on DDI 2.5",
+  "description": "Schema for Microdata based on DDI Codebook 2.5",
   "definitions": {
     "doc_desc": {
       "type": "object",
@@ -87,11 +87,6 @@
               "_ddi_xpath": "docDscr/citation/verStmt/notes"
             }
           }
-        },
-        "checksum": {
-          "title": "Checksum",
-          "description": "Checksum value for the document using SHA-256",
-          "type": "string"
         }
       }
     },
@@ -703,7 +698,7 @@
                     "description": "Country ISO code",
                     "type": "string"
                   }
-                }                
+                }
               }
             },
             "bbox": {
@@ -977,9 +972,9 @@
                     "title": "Development activity resources",
                     "description": "Development activity resources",
                     "_ddi_xpath": "stdyDscr/studyDevelopment/developmentActivity/resource",
-                    "items":{
-                      "type":"object",
-                      "properties":{
+                    "items": {
+                      "type": "object",
+                      "properties": {
                         "name": {
                           "type": "string",
                           "title": "Resource name",
@@ -998,7 +993,7 @@
                           "_ddi_xpath": "stdyDscr/studyDevelopment/developmentActivity/resource/srcChar"
                         }
                       }
-                    }                    
+                    }
                   },
                   "outcome": {
                     "title": "Development Activity Outcome",
@@ -1060,8 +1055,8 @@
                   "title": "Collector training",
                   "description": "Describes the training provided to data collectors including interviewer training, process testing, compliance with standards etc. This is repeatable for language and to capture different aspects of the training process. The type attribute allows specification of the type of training being described.",
                   "type": "array",
-                  "items":{
-                    "type":"object",
+                  "items": {
+                    "type": "object",
                     "properties": {
                       "type": {
                         "title": "Training type",
@@ -1649,6 +1644,6 @@
       "items": {
         "$ref": "variable-group-schema.json"
       }
-    } 
+    }
   }
 }

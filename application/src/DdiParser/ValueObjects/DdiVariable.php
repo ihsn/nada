@@ -140,9 +140,16 @@ class DdiVariable
             'name'       => $this->get_attribute_value($var_array, 'name'),
             'var_intrvl' => $this->get_attribute_value($var_array, 'intrvl'),
             'var_dcml'   => $this->get_attribute_value($var_array, 'dcml'),
-            'var_wgt'    => $this->get_attribute_value($var_array, 'wgt-var'),
+            // var_wgt = 1/0 (is a weight), var_wgt_id = weight variable VID (DDI @wgt-var).
+            // var_is_wgt keeps the raw DDI @wgt value for backward compatibility.
+            'var_wgt'    => $this->get_attribute_value($var_array, 'wgt') === 'wgt' ? 1 : 0,
             'var_is_wgt' => $this->get_attribute_value($var_array, 'wgt'),
         ];
+
+        $wgt_var = trim((string) $this->get_attribute_value($var_array, 'wgt-var'));
+        if ($wgt_var !== '') {
+            $output['var_wgt_id'] = $wgt_var;
+        }
 
         $location = $this->get_simple_element('location');
         $output['loc_start_pos']  = $this->get_attribute_value($location, 'StartPos');
