@@ -44,6 +44,8 @@ $config['site_notice_message']='';
 $config['site_notice_remember_minutes']='10';
 $config['site_notice_bar_enabled']='no';
 $config['site_notice_bar_text']='';
+// Public site header (JSON, managed by Admin > Settings > Site header). Empty = the default NADA header.
+$config['site_header']='';
 
 //default cache expiration in seconds
 $config['cache_default_expires'] = 60*60*2;//2 hours

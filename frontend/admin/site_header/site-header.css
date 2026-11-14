@@ -1,0 +1,34 @@
+/* Site header admin: same shell as the other Vue admin pages */
+.admin-sh-app.v-application {
+  display: block;
+  min-height: 0 !important;
+  height: auto !important;
+}
+.admin-sh-app .v-application__wrap {
+  min-height: 0 !important;
+}
+.admin-sh-page {
+  background-color: #f0f2f5;
+}
+.admin-sh-app .v-main {
+  padding-top: 0 !important;
+}
+.admin-sh-main {
+  width: 100%;
+  max-width: 1400px;
+}
+.admin-sh-header {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+.admin-sh-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.admin-sh-tabs {
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}

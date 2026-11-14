@@ -469,6 +469,9 @@ class Configurations extends MY_REST_Controller
 
 	protected function apply_save_validation(array &$options)
 	{
+		// The site header has its own API (api/admin/site_header), which sanitizes it; never save it from here.
+		unset($options['site_header'], $options['site_header_draft']);
+
 		foreach ($options as $key => &$value)
 		{
 			if ($key === 'language')

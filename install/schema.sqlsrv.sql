@@ -1494,7 +1494,7 @@ CREATE NONCLUSTERED INDEX idx_logtime_username ON sitelogs(logtime, username);
 
 CREATE TABLE configurations (
   name varchar(200) NOT NULL,
-  value varchar(5000) NOT NULL,
+  value nvarchar(max) NOT NULL,
   label varchar(255) DEFAULT NULL,
   helptext varchar(255) DEFAULT NULL,
   item_group varchar(255) DEFAULT NULL,

@@ -37,9 +37,11 @@
 <script type="text/javascript">
     var CI = {'base_url': '<?php echo site_url(); ?>'};
 
+<?php $_sh_ci =& get_instance(); if (!(isset($_sh_ci->site_header_builder) && $_sh_ci->site_header_builder->is_preview())): // the header preview is shown in a frame on the admin page ?>
     if (top.frames.length!=0) {
         top.location=self.document.location;
     }
+<?php endif; ?>
 
     $(document).ready(function()  {
         /*global ajax error handler */

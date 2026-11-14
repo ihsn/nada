@@ -144,6 +144,20 @@ Indicators (`timeseries`) accept only the **Open access**, **Direct access** and
 
 Existing indicators keep their stored data access type. The study page in the admin shows a warning for any indicator that uses a type that is no longer allowed.
 
+## Site header
+
+Administrators can now change the public site header under **Settings > Site header**, without editing theme files. They pick one of six layouts and set the brand (title, logo, or both), login, language switcher, colours and a background image. They can also write their own HTML and place the logo, menu, login and language with tokens such as `{{brand}}`, `{{menu+login}}` and `{{language}}`. Changes are saved as a draft and previewed before they are published.
+
+Run `migrate latest`. The migration `20261113120001_configurations_value_text` widens `configurations.value` so that a custom header fits. Until it runs, only headers under 5000 characters can be saved.
+
+Sites that have not changed the header keep the current NADA header. The `nada52` theme's `header.php` now calls the header builder, and its `nav-menu.php`, `user-menu.php` and `lang-bar.php` were removed. If a custom theme copied those files, it keeps working as before but does not use the new settings.
+
+To always show the default header, for example after a broken change, add this to `application/config/config.php`:
+
+```php
+$config['site_header_force_default'] = TRUE;
+```
+
 ## Citations are now stored as CSL-JSON
 
 Each citation is one CSL-JSON document (`citations.metadata`), which is the standard used by Zotero, Crossref and most reference managers. Two migrations move existing citations over: `20261111120001_citations_csl` converts every citation, and `20261112120001_citations_drop_legacy` removes the old columns. Both run with `migrate latest`.

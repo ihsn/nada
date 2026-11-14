@@ -180,3 +180,8 @@ $lang['idno_invalid_format']="Invalid IDNO. The IDNO can only contain letters, n
 
 /* End of file general_lang.php */
 /* Location: ./application/language/english/general_lang.php */
+
+/* public site header */
+$lang['site_header_default_subtitle']="Data Catalog";
+$lang['toggle_navigation']="Toggle navigation";
+$lang['site_header_preview']="Header preview";
