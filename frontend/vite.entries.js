@@ -92,6 +92,7 @@ export const adminEntries = {
     'admin/repository_sections/main.js'
   ),
   admin_public_requests: path.resolve(__dirname, 'admin/public_requests/main.js'),
+  admin_solr: path.resolve(__dirname, 'admin/solr/main.js'),
 };
 
 export const allEntries = {

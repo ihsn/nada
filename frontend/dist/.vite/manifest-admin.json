@@ -1875,6 +1875,42 @@
       "assets/admin/admin_site_configurations-D2Yb4hv0.css"
     ]
   },
+  "admin/solr/main.js": {
+    "file": "assets/admin/admin_solr-CECHjHSw.js",
+    "name": "admin_solr",
+    "src": "admin/solr/main.js",
+    "isEntry": true,
+    "imports": [
+      "_router-CBh4reFY.js",
+      "_useAppConfig-2zaMa_YF.js",
+      "_vue-router-CLxaF-6W.js",
+      "_VRow-CBnnsq2e.js",
+      "_VCard-D3w9AWdy.js",
+      "_VList-BrSiOR5-.js",
+      "_VSpacer-BXYiztkg.js",
+      "_VApp-CWfjmBL_.js",
+      "_VChip-DlUbrSHm.js",
+      "_VAlert-BHYnaPZo.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_VCheckboxBtn-vMfNSnND.js",
+      "_VCheckbox-CAftkmRH.js",
+      "_VDataTable-DJCnEOOk.js",
+      "_VDialog-Cdlzi3bK.js",
+      "_VMain-BXi1fry0.js",
+      "_VContainer-vVZLjiIU.js",
+      "_VSnackbar-CltAAdX-.js",
+      "_forwardRefs-BMVMZkwt.js",
+      "_VPagination-DAOMMfTo.js",
+      "_VSelect-Cgq-yyWi.js",
+      "_dialog-transition-mmTXZNrk.js",
+      "_VMenu-u5XL0JMU.js",
+      "_VSheet-BOjHf-cR.js",
+      "_VTable-KWPPmPzr.js"
+    ],
+    "css": [
+      "assets/admin/admin_solr-CCF1UTSv.css"
+    ]
+  },
   "admin/study_timeseries_data/main.js": {
     "file": "assets/admin/admin_study_timeseries_data-BCjK8Rts.js",
     "name": "admin_study_timeseries_data",
