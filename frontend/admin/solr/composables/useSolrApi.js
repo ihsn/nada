@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 
-/** Admin Solr ops against top-level api/solr. */
+/** Admin Solr ops against api/admin/solr. */
 export function useSolrApi() {
   const { apiBaseUrl, csrfToken, csrfTokenName } = useAppConfig();
 

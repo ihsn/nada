@@ -2,15 +2,23 @@
 
 require(APPPATH.'/libraries/MY_REST_Controller.php');
 
+/**
+ * Admin Solr ops API.
+ *
+ * Base URL: /api/admin/solr
+ * Auth: session or API key; ACL configurations/edit (same gate as admin/Solr).
+ * Cookie-session writes require CSRF (require_session_csrf).
+ */
 class Solr extends MY_REST_Controller
 {
 	public function __construct()
 	{
-        parent::__construct();
-        $this->load->library("Solr_manager");
+		parent::__construct();
+		$this->load->library('Solr_manager');
 		$this->is_authenticated_or_die();
 		$this->require_access('configurations', 'edit');
-    }
+		$this->require_session_csrf();
+	}
 
 
     function ping_get()
@@ -1006,7 +1014,7 @@ class Solr extends MY_REST_Controller
     
     /**
      * Create a new Solr core
-     * POST /api/solr/core_create/{core_name}?instance_dir={dir}&config_set={set}
+     * POST /api/admin/solr/core_create/{core_name}?instance_dir={dir}&config_set={set}
      */
     public function core_create_post($core_name)
     {
@@ -1037,7 +1045,7 @@ class Solr extends MY_REST_Controller
     
     /**
      * List all Solr cores
-     * GET /api/solr/core_list
+     * GET /api/admin/solr/core_list
      */
     public function core_list_get()
     {
@@ -1061,7 +1069,7 @@ class Solr extends MY_REST_Controller
     
     /**
      * Get status of a specific core
-     * GET /api/solr/core_status/{core_name}
+     * GET /api/admin/solr/core_status/{core_name}
      */
     public function core_status_get($core_name)
     {
@@ -1093,7 +1101,7 @@ class Solr extends MY_REST_Controller
     
     /**
      * Check if configured core exists and get its status
-     * GET /api/solr/core_check_configured
+     * GET /api/admin/solr/core_check_configured
      */
     public function core_check_configured_get()
     {
@@ -1149,7 +1157,7 @@ class Solr extends MY_REST_Controller
     
     /**
      * Get Solr system information including version
-     * GET /api/solr/system_info
+     * GET /api/admin/solr/system_info
      */
     public function system_info_get()
     {
@@ -1173,7 +1181,7 @@ class Solr extends MY_REST_Controller
     
     /**
      * Delete/unload a Solr core
-     * POST /api/solr/core_delete/{core_name}?delete_index=true&delete_data_dir=true&delete_instance_dir=true
+     * POST /api/admin/solr/core_delete/{core_name}?delete_index=true&delete_data_dir=true&delete_instance_dir=true
      */
     public function core_delete_post($core_name)
     {
@@ -1201,7 +1209,7 @@ class Solr extends MY_REST_Controller
     
     /**
      * Reload a Solr core
-     * GET /api/solr/core_reload/{core_name}
+     * GET /api/admin/solr/core_reload/{core_name}
      */
     public function core_reload_get($core_name)
     {

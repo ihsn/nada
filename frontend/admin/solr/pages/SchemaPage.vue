@@ -276,7 +276,7 @@ async function loadStats() {
 
 function normalizeFields(list) {
   if (!Array.isArray(list)) return [];
-  // api/solr/schema_fields returns name strings; schema.fields are full objects
+  // api/admin/solr/schema_fields returns name strings; schema.fields are full objects
   return list.map((item) => {
     if (typeof item === 'string') {
       return { name: item, type: '—', indexed: null, stored: null, multiValued: null };

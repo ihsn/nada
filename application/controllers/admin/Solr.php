@@ -4,7 +4,7 @@
  * Admin Solr — Vue 3 SPA shell.
  *
  * UI: frontend/admin/solr
- * JSON: api/solr (top-level; ACL configurations/edit)
+ * JSON: api/admin/solr (ACL configurations/edit)
  */
 class Solr extends MY_Controller {
 
@@ -21,7 +21,7 @@ class Solr extends MY_Controller {
 		$this->load->helper('vite_helper');
 
 		$view_data = array(
-			'api_base_url'    => site_url('api/solr'),
+			'api_base_url'    => site_url('api/admin/solr'),
 			'site_url'        => site_url(),
 			'base_url'        => base_url(),
 			'csrf_token'      => $this->security->get_csrf_hash(),
