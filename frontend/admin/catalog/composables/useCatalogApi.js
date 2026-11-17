@@ -73,7 +73,8 @@ export function useCatalogApi() {
     const url = `${base}options/${encodeURIComponent(String(id))}`;
     const { data } = await axios.post(url, payload, {
       params: { id_format: 'id' },
-      headers: { 'Content-Type': 'application/json' },
+      headers: csrfHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true,
     });
     if (data.status !== 'success') throw new Error(data.message || 'Update failed');
     return data;
@@ -89,7 +90,8 @@ export function useCatalogApi() {
     const url = `${base}delete/${encodeURIComponent(String(id))}`;
     const { data } = await axios.post(url, {}, {
       params: { id_format: 'id' },
-      headers: { 'Content-Type': 'application/json' },
+      headers: csrfHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true,
     });
     if (data.status !== 'success') throw new Error(data.message || 'Delete failed');
     return data;

@@ -89,155 +89,23 @@ class Facets extends MY_Controller {
 	}
 
 
+	/**
+	 * Retired — use Vue facets admin reorder.
+	 */
 	function reorder_legacy()
 	{
-		$options['facets']=$this->Facet_model->select_all();
-		$options['data_types']=array(
-			'all',
-			'microdata',
-			'geospatial',
-			'document',
-			'table',
-			'image',
-			'video',
-			'timeseries',
-			'script'
-		);
-
-		$facet_sort_options=array();
-
-		foreach($options['data_types'] as $type){
-			//get ordering info from config file by data type
-			$sort_options=(array)json_decode($this->Configurations_model->get_config_item("facets_".$type));
-
-			//remove keys that are not in facets
-			foreach($sort_options as $idx=>$facet_key){
-				if(!isset($options['facets'][$facet_key])){
-					unset($sort_options[$idx]);
-				}
-			}
-
-			//disabled facets = all facets - sort_optins
-			$facets_disabled=array_diff(array_keys($options['facets']),$sort_options);
-
-			//enabled facets options
-			foreach($sort_options as $facet_key){
-				$facet_sort_options[$type][$facet_key]=array(
-					'enabled'=>true,
-					'title'=>$options['facets'][$facet_key]['title']
-				);
-			}
-
-			//disabled facets
-			foreach($facets_disabled as $facet_key){
-				$facet_sort_options[$type][$facet_key]=array(
-					'enabled'=>false,
-					'title'=>$options['facets'][$facet_key]['title']
-				);
-			}
-			
-		}
-
-		$options['facets_selection']=$facet_sort_options;		
-		$content=$this->load->view('facets/reorder', $options,TRUE);
-		
-		$this->template->write('content', $content,true);
-		$this->template->write('title', t('Facets'),true);
-	  	$this->template->render();
+		show_404();
 	}
 
 
 
 
 	/**
-	* Delete one or more records
-	* note: to use with ajax/json, pass the ajax as querystring
-	* 
-	* id 	int or comma seperate string
-	*/
+	 * Retired — use api/admin/facets (Vue facets admin).
+	 */
 	function delete($id)
 	{
-		$this->acl_manager->has_access_or_die('facets', 'delete');
-
-		$facet=$this->Facet_model->select_single($id);
-
-		if($facet){
-			if ($facet['facet_type']=='core'){
-				show_error('Core facets cannot be deleted!');
-			}
-		}
-
-		//array of id to be deleted
-		$delete_arr=array();
-	
-		//is ajax call
-		$ajax=$this->input->get_post('ajax');
-
-		if (!is_numeric($id))
-		{
-			$tmp_arr=explode(",",$id);
-		
-			foreach($tmp_arr as $key=>$value)
-			{
-				if (is_numeric($value))
-				{
-					$delete_arr[]=$value;
-				}
-			}
-			
-			if (count($delete_arr)==0)
-			{
-				//for ajax return JSON output
-				if ($ajax!='')
-				{
-					echo json_encode(array('error'=>"invalid id was provided") );
-					exit;
-				}
-				
-				$this->session->set_flashdata('error', 'Invalid id was provided.');
-				redirect('admin/menu',"refresh");
-			}	
-		}		
-		else
-		{
-			$delete_arr[]=$id;
-		}
-		
-		if ($this->input->post('cancel')!='')
-		{
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-			
-			nada_redirect($destination, 'admin/facets');
-		}
-		else if ($this->input->post('submit')!='')
-		{
-			foreach($delete_arr as $item)
-			{
-				//confirm delete	
-				$this->Facet_model->delete_facet($item);
-			}
-
-			//for ajax calls, return output as JSON						
-			if ($ajax!='')
-			{
-				echo json_encode(array('success'=>"true") );
-				exit;
-			}
-						
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-			
-			nada_redirect($destination, 'admin/facets');
-		}
-		else
-		{
-			//ask for confirmation
-			$content=$this->load->view('resources/delete', NULL,true);
-			
-			$this->template->write('content', $content,true);
-	  		$this->template->render();
-		}		
+		show_404();
 	}
 
 	

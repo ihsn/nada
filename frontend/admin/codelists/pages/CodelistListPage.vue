@@ -58,6 +58,7 @@
       ref="listRef"
       v-model:page="page"
       v-model:items-per-page="itemsPerPage"
+      v-model:sort-by="sortBy"
       :codelists="codelists"
       :loading="loading"
       :server-total="serverTotal"
@@ -136,11 +137,25 @@ const {
   deleteCodelistsBatch,
 } = useCodelistsApi();
 
+const SORT_KEYS = [
+  'id',
+  'name',
+  'agency',
+  'version',
+  'versions_count',
+  'idno',
+  'status',
+  'changed',
+  'item_count',
+];
+
 const listRef = ref(null);
 const codelists = ref([]);
 const serverTotal = ref(0);
 const page = ref(1);
 const itemsPerPage = ref(25);
+/** Empty = server default (agency, name). */
+const sortBy = ref([]);
 const search = ref('');
 const searchDebounced = ref('');
 const statusFilter = ref(null);
@@ -195,13 +210,27 @@ watch(
   }
 );
 
+function currentSortParams() {
+  const sort = Array.isArray(sortBy.value) ? sortBy.value[0] : null;
+  if (!sort?.key || !SORT_KEYS.includes(String(sort.key))) {
+    return { sort_by: '', sort_order: 'asc' };
+  }
+  return {
+    sort_by: String(sort.key),
+    sort_order: sort.order === 'desc' ? 'desc' : 'asc',
+  };
+}
+
 async function loadList() {
   try {
+    const { sort_by, sort_order } = currentSortParams();
     const r = await fetchCodelists({
       page: page.value,
       per_page: itemsPerPage.value,
       search: searchDebounced.value,
       status: statusFilter.value,
+      sort_by,
+      sort_order,
     });
     const total = r.total ?? 0;
     const rows = r.codelists ?? [];
@@ -216,6 +245,19 @@ async function loadList() {
     setMessage(e?.response?.data?.message || e?.message || 'Failed to load codelists', 'error');
   }
 }
+
+watch(
+  sortBy,
+  () => {
+    // Going back to page 1 reloads through the page watcher; reload here only when already there
+    if (page.value !== 1) {
+      page.value = 1;
+    } else {
+      loadList();
+    }
+  },
+  { deep: true }
+);
 
 watch([page, itemsPerPage, searchDebounced, statusFilter], loadList, { immediate: true });
 

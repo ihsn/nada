@@ -192,9 +192,30 @@ class Codelist_model extends CI_Model {
 	}
 
 	/**
+	 * Columns allowed for paged catalogue sort (API sort_by).
+	 *
+	 * @return string[]
+	 */
+	public static function list_sort_fields()
+	{
+		return [
+			'id',
+			'name',
+			'agency',
+			'version',
+			'idno',
+			'status',
+			'changed',
+			'versions_count',
+			'item_count',
+		];
+	}
+
+	/**
 	 * Paginated catalogue. Use flat=1 for all version rows; default is collapsed (family heads).
 	 *
-	 * @param array $options page, per_page, search, with_counts, flat, status (int|null)
+	 * @param array $options page, per_page, search, with_counts, flat, status (int|null),
+	 *                       sort_by (whitelist), sort_order (asc|desc)
 	 * @return array{ rows: array, total: int, page: int, per_page: int }
 	 */
 	public function get_codelists_paged(array $options = [])
@@ -215,17 +236,93 @@ class Codelist_model extends CI_Model {
 		if (array_key_exists('status', $options) && $options['status'] !== null && $options['status'] !== '' && $options['status'] !== false) {
 			$status = (int) $options['status'];
 		}
+		list($sort_by, $sort_order) = $this->_normalize_list_sort(
+			isset($options['sort_by']) ? $options['sort_by'] : '',
+			isset($options['sort_order']) ? $options['sort_order'] : ''
+		);
 
 		if ($flat) {
-			return $this->_get_codelists_flat_paged($page, $perPage, $offset, $search, $withCounts, $status);
+			return $this->_get_codelists_flat_paged($page, $perPage, $offset, $search, $withCounts, $status, $sort_by, $sort_order);
 		}
-		return $this->_get_codelists_collapsed_paged($page, $perPage, $offset, $search, $withCounts, $status);
+		return $this->_get_codelists_collapsed_paged($page, $perPage, $offset, $search, $withCounts, $status, $sort_by, $sort_order);
+	}
+
+	/**
+	 * @param mixed $sort_by
+	 * @param mixed $sort_order
+	 * @return array{0:string,1:string} [sort_by, sort_order] — empty sort_by means default order
+	 */
+	private function _normalize_list_sort($sort_by, $sort_order)
+	{
+		$by = is_string($sort_by) ? strtolower(trim($sort_by)) : '';
+		if ($by === '' || !in_array($by, self::list_sort_fields(), true)) {
+			$by = '';
+		}
+		$order = is_string($sort_order) ? strtolower(trim($sort_order)) : '';
+		if ($order !== 'desc') {
+			$order = 'asc';
+		}
+		return [$by, $order];
+	}
+
+	/**
+	 * Apply ORDER BY for paged catalogue. Empty $sort_by uses agency/name default.
+	 *
+	 * @param string $prefix Table/alias prefix including trailing dot, or '' for flat unaliased
+	 * @param string $sort_by
+	 * @param string $sort_order asc|desc
+	 * @param bool   $flat
+	 */
+	private function _apply_codelist_list_order($prefix, $sort_by, $sort_order, $flat)
+	{
+		$dir = ($sort_order === 'desc') ? 'DESC' : 'ASC';
+		$id_col = $prefix . 'id';
+
+		$map = [
+			'id'      => $prefix . 'id',
+			'name'    => $prefix . 'name',
+			'agency'  => $prefix . 'agency',
+			'version' => $prefix . 'version',
+			'idno'    => $prefix . 'idno',
+			'status'  => $prefix . 'status',
+			'changed' => $prefix . 'changed',
+		];
+
+		if ($sort_by === 'versions_count' && !$flat) {
+			$this->db->order_by('versions_count', $dir);
+			$this->db->order_by($id_col, $dir);
+			return;
+		}
+
+		if ($sort_by === 'item_count') {
+			// Unprefixed "id" would resolve to codelist_item.id inside the subquery
+			$outer_id = $prefix !== '' ? $id_col : 'codelists.id';
+			$expr = '(SELECT COUNT(*) FROM codelist_item ci WHERE ci.codelist_id = ' . $outer_id . ')';
+			$this->db->order_by($expr, $dir, false);
+			$this->db->order_by($id_col, $dir);
+			return;
+		}
+
+		if ($sort_by !== '' && isset($map[$sort_by])) {
+			$this->db->order_by($map[$sort_by], $dir);
+			if ($sort_by !== 'id') {
+				$this->db->order_by($id_col, $dir);
+			}
+			return;
+		}
+
+		$this->db->order_by($prefix . 'agency', 'ASC');
+		$this->db->order_by($prefix . 'name', 'ASC');
+		if ($flat) {
+			$this->db->order_by($prefix . 'version_seq', 'ASC');
+		}
+		$this->db->order_by($id_col, 'ASC');
 	}
 
 	/**
 	 * @return array{ rows: array, total: int, page: int, per_page: int }
 	 */
-	private function _get_codelists_flat_paged($page, $perPage, $offset, $search, $withCounts, $status)
+	private function _get_codelists_flat_paged($page, $perPage, $offset, $search, $withCounts, $status, $sort_by = '', $sort_order = 'asc')
 	{
 		$this->db->from('codelists');
 		$this->_apply_codelist_search($search, '');
@@ -235,10 +332,7 @@ class Codelist_model extends CI_Model {
 		$this->db->from('codelists');
 		$this->_apply_codelist_search($search, '');
 		$this->_apply_codelist_status_filter('', $status);
-		$this->db->order_by('agency', 'ASC');
-		$this->db->order_by('name', 'ASC');
-		$this->db->order_by('version_seq', 'ASC');
-		$this->db->order_by('id', 'ASC');
+		$this->_apply_codelist_list_order('', $sort_by, $sort_order, true);
 		$this->db->limit($perPage, $offset);
 		$_r = $this->db->get();
 		$rows = $_r ? $_r->result_array() : [];
@@ -259,7 +353,7 @@ class Codelist_model extends CI_Model {
 	/**
 	 * @return array{ rows: array, total: int, page: int, per_page: int }
 	 */
-	private function _get_codelists_collapsed_paged($page, $perPage, $offset, $search, $withCounts, $status)
+	private function _get_codelists_collapsed_paged($page, $perPage, $offset, $search, $withCounts, $status, $sort_by = '', $sort_order = 'asc')
 	{
 		$this->db->from('codelists c');
 		$this->db->where('c.id = c.pid', null, false);
@@ -275,8 +369,7 @@ class Codelist_model extends CI_Model {
 		$this->db->where('c.id = c.pid', null, false);
 		$this->_apply_codelist_search($search, 'c.');
 		$this->_apply_codelist_status_filter('c.', $status);
-		$this->db->order_by('c.agency', 'ASC');
-		$this->db->order_by('c.name', 'ASC');
+		$this->_apply_codelist_list_order('c.', $sort_by, $sort_order, false);
 		$this->db->limit($perPage, $offset);
 		$_r = $this->db->get();
 		$rows = $_r ? $_r->result_array() : [];

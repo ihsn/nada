@@ -383,7 +383,11 @@ class Timeseries_mongo_model extends CI_Model {
 			}
 		}
 		$resolved = $this->resolve_dsd_component_name($apiColumn, $components);
-		return $resolved !== null ? $resolved : null;
+		if ($resolved !== null && $resolved === $this->get_component_name_for_column_type($components, 'time_period')) {
+			// Chronological and indexed; the raw text sorts 2003-10 before 2003-2 and is not indexed.
+			return '_ts_period_start';
+		}
+		return $resolved;
 	}
 
 	/**
@@ -401,13 +405,85 @@ class Timeseries_mongo_model extends CI_Model {
 		$field = $sortByApi !== null && $sortByApi !== ''
 			? $this->resolve_public_observation_list_sort_field((string) $sortByApi, $components)
 			: null;
-		if ($field === null) {
-			if ($dir < 0) {
-				return ['_ts_year' => -1, '_ts_period_start' => -1, '_id' => 1];
-			}
-			return ['_ts_year' => 1, '_ts_period_start' => 1, '_id' => 1];
+		// Every key uses the same direction so the sort can walk an index (see ensure_indexes) forwards or backwards.
+		if ($field === null || $field === '_ts_year') {
+			return ['_ts_year' => $dir, '_ts_period_start' => $dir, '_id' => $dir];
 		}
-		return [$field => $dir, '_id' => 1];
+		if ($field === '_ts_period_start') {
+			return ['_ts_period_start' => $dir, '_id' => $dir];
+		}
+		if (in_array($field, $this->_indexed_filter_component_names($components), true)) {
+			return [$field => $dir, '_ts_year' => $dir, '_ts_period_start' => $dir, '_id' => $dir];
+		}
+		return [$field => $dir, '_id' => $dir];
+	}
+
+	/**
+	 * Index to force for a deep page of GET …/data, or null to let MongoDB choose.
+	 *
+	 * With a large skip, MongoDB's trial of every sid-prefixed index costs far more than the query itself.
+	 * Only used when the filter is sid, optionally with a from/to range on _ts_period_start (which every
+	 * list index contains), and the index exists (older collections would reject the hint). Other
+	 * filters are selective enough for MongoDB to choose well.
+	 *
+	 * @param int   $dsd_id
+	 * @param array $filter from build_observation_query_filter
+	 * @param array $sort   from build_public_observations_list_sort
+	 * @param int   $offset
+	 * @return string|null
+	 */
+	public function public_observations_list_hint($dsd_id, array $filter, array $sort, $offset)
+	{
+		if ((int) $offset < self::LIST_HINT_MIN_OFFSET) {
+			return null;
+		}
+		$keys = array_keys($filter);
+		if ($keys !== ['sid'] && $keys !== ['sid', '_ts_period_start']) {
+			return null;
+		}
+		$name = $this->_list_sort_index_name($sort);
+		if ($name === null || !in_array($name, $this->_index_names($dsd_id), true)) {
+			return null;
+		}
+		return $name;
+	}
+
+	/**
+	 * Name of the ensure_indexes() index whose key order matches a list sort, if any.
+	 *
+	 * @param array $sort
+	 * @return string|null
+	 */
+	private function _list_sort_index_name(array $sort)
+	{
+		$keys = array_keys($sort);
+		if ($keys === ['_ts_year', '_ts_period_start', '_id']) {
+			return self::INDEX_SID_TS_YEAR;
+		}
+		if ($keys === ['_ts_period_start', '_id']) {
+			return self::INDEX_SID_TS_PERIOD_START;
+		}
+		if (count($keys) === 4 && array_slice($keys, 1) === ['_ts_year', '_ts_period_start', '_id']) {
+			return self::component_index_name($keys[0]);
+		}
+		return null;
+	}
+
+	/**
+	 * @param int $dsd_id
+	 * @return string[]
+	 */
+	private function _index_names($dsd_id)
+	{
+		$dsd_id = (int) $dsd_id;
+		if (!isset($this->index_names_cache[$dsd_id])) {
+			$names = [];
+			foreach ($this->get_collection($dsd_id)->listIndexes() as $index) {
+				$names[] = $index->getName();
+			}
+			$this->index_names_cache[$dsd_id] = $names;
+		}
+		return $this->index_names_cache[$dsd_id];
 	}
 
 	/**
@@ -450,8 +526,8 @@ class Timeseries_mongo_model extends CI_Model {
 	 * MongoDB filter for observation count/find from a query string array (e.g. $this->input->get()).
 	 *
 	 * - Always includes sid.
-	 * - from / to constrain derived reporting year on `_ts_year` (inclusive), same role as metadata
-	 *   editor chart time range when using internal year (ISO dates map to their UTC calendar year).
+	 * - from / to constrain the derived period on `_ts_period_start` (years inclusive; "2006-Q3" / "2006-09"
+	 *   select sub-periods), same role as metadata editor chart time range (ISO dates map to their UTC year).
 	 * - Semantic roles: d[geography], d[time_period], d[periodicity], d[observation_value] map to the
 	 *   sole component with that column_type (equality / comma $in).
 	 * - Dimensions: if "c" is present and is an array (c[COMPONENT]=value), only those entries are used
@@ -525,22 +601,27 @@ class Timeseries_mongo_model extends CI_Model {
 				}
 			}
 		} else {
-			// Year-only mode: filter on _ts_year integer (existing behaviour).
+			// Year-only mode. derive_ts_fields() always sets _ts_year to the UTC year of _ts_period_start,
+			// so a year range is the same rows as a _ts_period_start range; the latter is bounded by the
+			// sid + _ts_period_start index (and is in every list index), the former is not.
+			$tz = new \DateTimeZone('UTC');
 			if ($from !== null && $from !== '') {
 				$y = $this->_parse_observation_query_reporting_year($from);
 				if ($y !== null) {
-					$filter['_ts_year'] = array_merge(
-						isset($filter['_ts_year']) ? $filter['_ts_year'] : [],
-						['$gte' => $y]
+					$startDt = new \DateTime(sprintf('%04d-01-01 00:00:00', $y), $tz);
+					$filter['_ts_period_start'] = array_merge(
+						isset($filter['_ts_period_start']) ? $filter['_ts_period_start'] : [],
+						['$gte' => new UTCDateTime($startDt->getTimestamp() * 1000)]
 					);
 				}
 			}
 			if ($to !== null && $to !== '') {
 				$y = $this->_parse_observation_query_reporting_year($to);
 				if ($y !== null) {
-					$filter['_ts_year'] = array_merge(
-						isset($filter['_ts_year']) ? $filter['_ts_year'] : [],
-						['$lte' => $y]
+					$endDt = new \DateTime(sprintf('%04d-01-01 00:00:00', $y + 1), $tz);
+					$filter['_ts_period_start'] = array_merge(
+						isset($filter['_ts_period_start']) ? $filter['_ts_period_start'] : [],
+						['$lt' => new UTCDateTime($endDt->getTimestamp() * 1000)]
 					);
 				}
 			}
@@ -731,6 +812,10 @@ class Timeseries_mongo_model extends CI_Model {
 			if ($canonical === null) {
 				throw new InvalidArgumentException("Filter d[{$role}]: this data structure has no {$role} column.");
 			}
+			if ($role === 'time_period') {
+				$this->_apply_time_period_filter($filter, $components, $parts);
+				continue;
+			}
 			if (count($parts) === 1) {
 				$filter[$canonical] = $parts[0];
 			} else {
@@ -752,12 +837,66 @@ class Timeseries_mongo_model extends CI_Model {
 			if ($parts === []) {
 				continue;
 			}
+			if ($canonical === $this->get_component_name_for_column_type($components, 'time_period')) {
+				$this->_apply_time_period_filter($filter, $components, $parts);
+				continue;
+			}
 			if (count($parts) === 1) {
 				$filter[$canonical] = $parts[0];
 			} else {
 				$filter[$canonical] = ['$in' => $parts];
 			}
 		}
+	}
+
+	/**
+	 * Filter on the standardized period (`_ts_period_start` + `_ts_freq`) instead of the raw time column,
+	 * so "2003" matches every annual 2003 row whatever its stored spelling, and the period indexes apply.
+	 * The frequency is required because 2003, 2003-S1, 2003-Q1, 2003-01 and 2003-01-01 share a start.
+	 * Combines (AND) with a from/to range on `_ts_period_start`; a later time-period filter replaces an earlier one.
+	 *
+	 * @param array    $filter
+	 * @param array    $components
+	 * @param string[] $values
+	 * @throws InvalidArgumentException when a value is not a recognized period
+	 */
+	private function _apply_time_period_filter(array &$filter, array $components, array $values)
+	{
+		$timeComp = $this->get_time_period_component($components);
+		$fmt      = $timeComp && !empty($timeComp['time_period_format']) ? (string) $timeComp['time_period_format'] : null;
+
+		$startsByFreq = [];
+		foreach ($values as $value) {
+			$ts = $this->derive_ts_fields((string) $value, $fmt);
+			if ($ts['_ts_period_start'] === null) {
+				throw new InvalidArgumentException(
+					"Unrecognized time period '{$value}'. Use YYYY, YYYY-Sn, YYYY-Qn, YYYY-MM, YYYY-Www, YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss[Z]."
+				);
+			}
+			$startsByFreq[$ts['_ts_freq']][] = $ts['_ts_period_start'];
+		}
+		if ($startsByFreq === []) {
+			return;
+		}
+
+		unset($filter['_ts_freq'], $filter['$or'], $filter['_ts_period_start']['$in']);
+		if (isset($filter['_ts_period_start']) && $filter['_ts_period_start'] === []) {
+			unset($filter['_ts_period_start']);
+		}
+		if (count($startsByFreq) === 1) {
+			$freq = (string) key($startsByFreq);
+			$filter['_ts_period_start'] = array_merge(
+				isset($filter['_ts_period_start']) ? $filter['_ts_period_start'] : [],
+				['$in' => $startsByFreq[$freq]]
+			);
+			$filter['_ts_freq'] = $freq;
+			return;
+		}
+		$or = [];
+		foreach ($startsByFreq as $freq => $starts) {
+			$or[] = ['_ts_period_start' => ['$in' => $starts], '_ts_freq' => (string) $freq];
+		}
+		$filter['$or'] = $or;
 	}
 
 	private function _append_observation_dimension_filters_legacy(array &$filter, array $components, array $query, array $reservedFlip)
@@ -774,6 +913,10 @@ class Timeseries_mongo_model extends CI_Model {
 			}
 			$canonical = $this->resolve_dsd_component_name((string) $key, $components);
 			if ($canonical === null) {
+				continue;
+			}
+			if ($canonical === $this->get_component_name_for_column_type($components, 'time_period')) {
+				$this->_apply_time_period_filter($filter, $components, [trim((string) $val)]);
 				continue;
 			}
 			$filter[$canonical] = $val;
@@ -910,6 +1053,10 @@ class Timeseries_mongo_model extends CI_Model {
 	/**
 	 * Parse reporting period string into `_ts_*` fields (UTC, half-open end).
 	 *
+	 * Accepts every data-structure time_period_format: YYYY (A), YYYY-Sn (S), YYYY-Qn (Q), YYYY-MM (M),
+	 * YYYY-Www (W, ISO week), YYYY-MM-DD (D), and timestamps (T). Anything else, including impossible
+	 * dates such as 2003-02-31, yields `_ts_freq` 'U' and null period fields.
+	 *
 	 * @param string $raw_period
 	 * @param string|null $time_period_format optional hint from DSD component
 	 * @return array<string,mixed>
@@ -933,74 +1080,87 @@ class Timeseries_mongo_model extends CI_Model {
 
 		$tzUtc = new DateTimeZone('UTC');
 
-		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $raw, $m)) {
-			$y = (int) $m[1];
-			$mo = (int) $m[2];
-			$d = (int) $m[3];
-			$start = new DateTimeImmutable(sprintf('%04d-%02d-%02d 00:00:00', $y, $mo, $d), $tzUtc);
-			$end   = $start->modify('+1 day');
-			$out['_ts_year']         = $y;
-			$out['_ts_freq']         = 'D';
-			$out['_ts_subperiod']    = (int) $start->format('z') + 1;
-			$out['_ts_period_start'] = new UTCDateTime($start->getTimestamp() * 1000);
-			$out['_ts_period_end']   = new UTCDateTime($end->getTimestamp() * 1000);
-			return $out;
+		// Timestamps (YYYY-MM-DDTHH:mm[:ss[.fff]][Z|±hh:mm]); no offset means UTC. 'T' is NADA-specific:
+		// SDMX has no instant frequency, and it must not collide with daily 'D' at midnight.
+		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/i', $raw, $m)) {
+			if (!checkdate((int) $m[2], (int) $m[3], (int) $m[1]) || (int) $m[4] > 23 || (int) $m[5] > 59
+				|| (isset($m[6]) && $m[6] !== '' && (int) $m[6] > 59)) {
+				return $out;
+			}
+			try {
+				$start = (new DateTimeImmutable($raw, $tzUtc))->setTimezone($tzUtc);
+			} catch (Exception $e) {
+				return $out;
+			}
+			$start = $start->setTime((int) $start->format('H'), (int) $start->format('i'), (int) $start->format('s'));
+			return $this->_ts_fields_for_period($start, $start->modify('+1 second'), 'T', (int) $start->format('z') + 1);
 		}
 
-		if (preg_match('/^(\d{4})-(\d{2})$/', $raw, $m)) {
-			$y  = (int) $m[1];
+		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $raw, $m)) {
+			if (!checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
+				return $out;
+			}
+			$start = new DateTimeImmutable(sprintf('%04d-%02d-%02d 00:00:00', $m[1], $m[2], $m[3]), $tzUtc);
+			return $this->_ts_fields_for_period($start, $start->modify('+1 day'), 'D', (int) $start->format('z') + 1);
+		}
+
+		if (preg_match('/^(\d{4})-W(\d{2})$/i', $raw, $m)) {
+			$start = (new DateTimeImmutable('now', $tzUtc))->setISODate((int) $m[1], (int) $m[2])->setTime(0, 0, 0);
+			if ((int) $m[2] < 1 || $start->format('o-W') !== sprintf('%04d-%02d', $m[1], $m[2])) {
+				return $out;
+			}
+			return $this->_ts_fields_for_period($start, $start->modify('+7 days'), 'W', (int) $m[2]);
+		}
+
+		if (preg_match('/^(\d{4})-(\d{2})$/', $raw, $m)
+			|| ($fmt !== '' && stripos($fmt, 'MM') !== false && stripos($fmt, 'DD') === false && preg_match('/^(\d{4})-(\d{1,2})$/', $raw, $m))) {
 			$mo = (int) $m[2];
-			$start = new DateTimeImmutable(sprintf('%04d-%02d-01 00:00:00', $y, $mo), $tzUtc);
-			$end   = $start->modify('first day of next month');
-			$out['_ts_year']         = $y;
-			$out['_ts_freq']         = 'M';
-			$out['_ts_subperiod']    = $mo;
-			$out['_ts_period_start'] = new UTCDateTime($start->getTimestamp() * 1000);
-			$out['_ts_period_end']   = new UTCDateTime($end->getTimestamp() * 1000);
-			return $out;
+			if ($mo < 1 || $mo > 12) {
+				return $out;
+			}
+			$start = new DateTimeImmutable(sprintf('%04d-%02d-01 00:00:00', $m[1], $mo), $tzUtc);
+			return $this->_ts_fields_for_period($start, $start->modify('first day of next month'), 'M', $mo);
 		}
 
 		if (preg_match('/^(\d{4})-Q([1-4])$/i', $raw, $m)) {
-			$y = (int) $m[1];
-			$q = (int) $m[2];
-			$startMonth = ($q - 1) * 3 + 1;
-			$start = new DateTimeImmutable(sprintf('%04d-%02d-01 00:00:00', $y, $startMonth), $tzUtc);
-			$end   = $start->modify('+3 months');
-			$out['_ts_year']         = $y;
-			$out['_ts_freq']         = 'Q';
-			$out['_ts_subperiod']    = $q;
-			$out['_ts_period_start'] = new UTCDateTime($start->getTimestamp() * 1000);
-			$out['_ts_period_end']   = new UTCDateTime($end->getTimestamp() * 1000);
-			return $out;
+			$q     = (int) $m[2];
+			$start = new DateTimeImmutable(sprintf('%04d-%02d-01 00:00:00', $m[1], ($q - 1) * 3 + 1), $tzUtc);
+			return $this->_ts_fields_for_period($start, $start->modify('+3 months'), 'Q', $q);
+		}
+
+		if (preg_match('/^(\d{4})-S([12])$/i', $raw, $m)) {
+			$half  = (int) $m[2];
+			$start = new DateTimeImmutable(sprintf('%04d-%02d-01 00:00:00', $m[1], $half === 1 ? 1 : 7), $tzUtc);
+			return $this->_ts_fields_for_period($start, $start->modify('+6 months'), 'S', $half);
 		}
 
 		if (preg_match('/^(\d{4})$/', $raw, $m)) {
-			$y = (int) $m[1];
-			$start = new DateTimeImmutable(sprintf('%04d-01-01 00:00:00', $y), $tzUtc);
-			$end   = $start->modify('+1 year');
-			$out['_ts_year']         = $y;
-			$out['_ts_freq']         = 'A';
-			$out['_ts_subperiod']    = null;
-			$out['_ts_period_start'] = new UTCDateTime($start->getTimestamp() * 1000);
-			$out['_ts_period_end']   = new UTCDateTime($end->getTimestamp() * 1000);
-			return $out;
-		}
-
-		if ($fmt !== '' && stripos($fmt, 'YYYY') !== false && stripos($fmt, 'MM') !== false && stripos($fmt, 'DD') === false) {
-			$parsed = DateTimeImmutable::createFromFormat('!Y-m', $raw, $tzUtc);
-			if ($parsed instanceof DateTimeImmutable) {
-				$start = $parsed;
-				$end   = $start->modify('first day of next month');
-				$out['_ts_year']         = (int) $start->format('Y');
-				$out['_ts_freq']         = 'M';
-				$out['_ts_subperiod']    = (int) $start->format('n');
-				$out['_ts_period_start'] = new UTCDateTime($start->getTimestamp() * 1000);
-				$out['_ts_period_end']   = new UTCDateTime($end->getTimestamp() * 1000);
-				return $out;
-			}
+			$start = new DateTimeImmutable(sprintf('%04d-01-01 00:00:00', $m[1]), $tzUtc);
+			return $this->_ts_fields_for_period($start, $start->modify('+1 year'), 'A', null);
 		}
 
 		return $out;
+	}
+
+	/**
+	 * `_ts_year` is always the UTC year of the period start (an ISO week starting 2003-12-29 is 2003),
+	 * so year ranges and period-start ranges select the same rows.
+	 *
+	 * @param DateTimeImmutable $start
+	 * @param DateTimeImmutable $end   exclusive
+	 * @param string            $freq
+	 * @param int|null          $subperiod
+	 * @return array<string,mixed>
+	 */
+	private function _ts_fields_for_period(DateTimeImmutable $start, DateTimeImmutable $end, $freq, $subperiod)
+	{
+		return [
+			'_ts_year'         => (int) $start->format('Y'),
+			'_ts_freq'         => $freq,
+			'_ts_subperiod'    => $subperiod,
+			'_ts_period_start' => new UTCDateTime($start->getTimestamp() * 1000),
+			'_ts_period_end'   => new UTCDateTime($end->getTimestamp() * 1000),
+		];
 	}
 
 	// -------------------------------------------------------------------------
@@ -1083,35 +1243,107 @@ class Timeseries_mongo_model extends CI_Model {
 	// Phase B — indexes
 	// -------------------------------------------------------------------------
 
+	/** Column types that are filtered on and get a per-component index. */
+	private static $indexed_filter_column_types = ['dimension', 'geography', 'periodicity', 'indicator_id'];
+
+	const INDEX_SID_TS_PERIOD_START = 'idx_sid_ts_period_start_id';
+	const INDEX_SID_TS_YEAR         = 'idx_sid_ts_year_period_id';
+
+	/** Smallest list offset at which public_observations_list_hint() forces an index. */
+	const LIST_HINT_MIN_OFFSET = 10000;
+
+	/** @var array<int,string[]> dsd_id => index names, per request */
+	private $index_names_cache = [];
+
 	/**
-	 * @param int $dsd_id
-	 * @param bool $include_unique_key_hash If false, only non-unique indexes (e.g. import-before-hash workflow).
+	 * @param string $component_name
+	 * @return string
 	 */
-	public function ensure_indexes($dsd_id, $include_unique_key_hash = true)
+	public static function component_index_name($component_name)
+	{
+		return 'idx_sid_' . $component_name . '_ts';
+	}
+
+	/**
+	 * Core indexes plus one index per filterable DSD component.
+	 *
+	 * @param int        $dsd_id
+	 * @param bool       $include_unique_key_hash If false, only non-unique indexes (e.g. import-before-hash workflow).
+	 * @param array|null $components data_structure_components rows; loaded from the DSD when null.
+	 */
+	public function ensure_indexes($dsd_id, $include_unique_key_hash = true, ?array $components = null)
 	{
 		$coll = $this->get_collection($dsd_id);
 		if ($include_unique_key_hash) {
+			$this->_create_index($coll, ['sid' => 1, 'key_hash' => 1], ['unique' => true, 'name' => 'uniq_sid_key_hash']);
+		}
+		$this->_create_index(
+			$coll,
+			['sid' => 1, '_ts_period_start' => 1, '_id' => 1],
+			['name' => self::INDEX_SID_TS_PERIOD_START]
+		);
+		// Matches the default public list sort and the reporting-year min/max lookup.
+		$this->_create_index(
+			$coll,
+			['sid' => 1, '_ts_year' => 1, '_ts_period_start' => 1, '_id' => 1],
+			['name' => self::INDEX_SID_TS_YEAR]
+		);
+
+		if ($components === null) {
+			$bundle     = $this->timeseries_dsd()->load_dsd_bundle((int) $dsd_id);
+			$components = $bundle !== null && isset($bundle['components']) ? (array) $bundle['components'] : [];
+		}
+		// Filter on one component, then return rows in the default list order without an in-memory sort.
+		foreach ($this->_indexed_filter_component_names($components) as $name) {
 			try {
-				$coll->createIndex(
-					['sid' => 1, 'key_hash' => 1],
-					['unique' => true, 'name' => 'uniq_sid_key_hash']
+				$this->_create_index(
+					$coll,
+					['sid' => 1, $name => 1, '_ts_year' => 1, '_ts_period_start' => 1, '_id' => 1],
+					['name' => self::component_index_name($name)]
 				);
 			} catch (Exception $e) {
-				if (stripos($e->getMessage(), 'already exists') === false) {
-					throw $e;
-				}
+				// Do not fail an import over an optional filter index (e.g. MongoDB's 64-index limit).
+				log_message('error', "Timeseries index on '{$name}' (dsd {$dsd_id}) not created: " . $e->getMessage());
 			}
 		}
+	}
+
+	/**
+	 * @param \MongoDB\Collection $coll
+	 * @param array               $keys
+	 * @param array               $options
+	 */
+	private function _create_index($coll, array $keys, array $options)
+	{
 		try {
-			$coll->createIndex(
-				['sid' => 1, '_ts_period_start' => 1],
-				['name' => 'idx_sid_ts_period_start']
-			);
+			$coll->createIndex($keys, $options);
 		} catch (Exception $e) {
 			if (stripos($e->getMessage(), 'already exists') === false) {
 				throw $e;
 			}
 		}
+	}
+
+	/**
+	 * @param array $components data_structure_components rows
+	 * @return string[]
+	 */
+	private function _indexed_filter_component_names(array $components)
+	{
+		$names = [];
+		foreach ($components as $c) {
+			if (!is_array($c) || empty($c['name']) || empty($c['column_type'])) {
+				continue;
+			}
+			if (!in_array((string) $c['column_type'], self::$indexed_filter_column_types, true)) {
+				continue;
+			}
+			$name = trim((string) $c['name']);
+			if (preg_match('/^[A-Za-z0-9_]+$/', $name)) {
+				$names[$name] = true;
+			}
+		}
+		return array_keys($names);
 	}
 
 	// -------------------------------------------------------------------------
@@ -1177,6 +1409,8 @@ class Timeseries_mongo_model extends CI_Model {
 		if ($sid <= 0) {
 			return 0;
 		}
+		// A killed request leaves MongoDB deleting in the background, which can race with a following import.
+		set_time_limit(0);
 		$result = $this->get_collection($dsd_id)->deleteMany([
 			'$or' => [
 				['sid' => $sid],
@@ -1290,6 +1524,7 @@ class Timeseries_mongo_model extends CI_Model {
 		$prefix  = strtolower((string) $this->collection_prefix);
 		$pattern = '/^' . preg_quote($prefix, '/') . '\d+$/';
 
+		set_time_limit(0);
 		$total = 0;
 		foreach ($db->listCollectionNames() as $collName) {
 			$collName = (string) $collName;
@@ -1598,6 +1833,19 @@ class Timeseries_mongo_model extends CI_Model {
 				'yMax' => array('$max' => '$__catalog_yr'),
 			),
 		);
+		// Imports store `_ts_year` as an integer, so the lowest and highest values can be read from
+		// idx_sid_ts_year_period_id without scanning every observation.
+		$sidIn  = array('$in' => array($sid, (string) $sid));
+		$yrOpts = array('projection' => array('_ts_year' => 1, '_id' => 0));
+		$yrMatch = array('sid' => $sidIn, '_ts_year' => array('$gte' => 1, '$lte' => 9999));
+		$first = $coll->findOne($yrMatch, $yrOpts + array('sort' => array('_ts_year' => 1)));
+		if ($first !== null && isset($first['_ts_year'])) {
+			$last = $coll->findOne($yrMatch, $yrOpts + array('sort' => array('_ts_year' => -1)));
+			if ($last !== null && isset($last['_ts_year'])) {
+				return array('min' => (int) $first['_ts_year'], 'max' => (int) $last['_ts_year']);
+			}
+		}
+
 		// Prefer coerced `_ts_year` first: raw `$min`/`$max` on `_ts_year` is null if any matched doc has null
 		// `_ts_year` (BSON null sorts first). Excluding invalid years before `$group` avoids that.
 		$pipelineTsYear = array(
@@ -2165,45 +2413,34 @@ class Timeseries_mongo_model extends CI_Model {
 			return [];
 		}
 
-		$projection = ['sid' => 1];
-		foreach ($component_names as $name) {
-			$projection[$name] = 1;
-		}
-
 		$filter = [
 			'$or' => [
 				['sid' => $sid],
 				['sid' => (string) $sid],
 			],
 		];
-		$rows = $this->find_observations($dsd_id, $filter, ['projection' => $projection]);
-		if (empty($rows)) {
-			return [];
-		}
 
+		// Group in MongoDB so only distinct codes reach PHP; loading every
+		// observation does not fit in memory for large series.
+		$coll   = $this->get_collection($dsd_id);
 		$counts = [];
-		foreach ($rows as $doc) {
-			if (!is_array($doc)) {
-				$doc = json_decode(json_encode($doc), true);
-				if (!is_array($doc)) {
-					continue;
-				}
-			}
-			foreach ($component_names as $component_name) {
-				if (!array_key_exists($component_name, $doc)) {
-					continue;
-				}
-				$code = $this->_value_count_code_string($doc[$component_name]);
+		foreach ($component_names as $component_name) {
+			$pipeline = [
+				['$match' => $filter],
+				['$group' => [
+					'_id'   => '$' . $component_name,
+					'count' => ['$sum' => 1],
+				]],
+			];
+			foreach ($coll->aggregate($pipeline, ['allowDiskUse' => true]) as $row) {
+				$code = $this->_value_count_code_string($row['_id']);
 				if ($code === null) {
 					continue;
-				}
-				if (!isset($counts[$component_name])) {
-					$counts[$component_name] = [];
 				}
 				if (!isset($counts[$component_name][$code])) {
 					$counts[$component_name][$code] = 0;
 				}
-				$counts[$component_name][$code]++;
+				$counts[$component_name][$code] += (int) $row['count'];
 			}
 		}
 

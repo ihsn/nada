@@ -25,83 +25,8 @@ class Resources extends MY_Controller {
 	* Delete one or more resources
 	**/
 	function delete($sid,$resource_id)
-	{			
-		$this->_require_study_edit($sid);
-		if (is_numeric($resource_id)) {
-			$this->_require_resource_on_study($resource_id, $sid);
-		}
-
-		//array of id to be deleted
-		$delete_arr=array();
-	
-		//is ajax call
-		$ajax=$this->input->get_post('ajax');
-
-		if (!is_numeric($resource_id))
-		{
-			$tmp_arr=explode(",",$resource_id);
-		
-			foreach($tmp_arr as $key=>$value)
-			{
-				if (is_numeric($value))
-				{
-					$delete_arr[]=$value;
-				}
-			}
-			
-			if (count($delete_arr)==0)
-			{
-				//for ajax return JSON output
-				if ($ajax!='')
-				{
-					echo json_encode(array('error'=>"invalid id was provided") );
-					exit;
-				}
-				
-				$this->session->set_flashdata('error', 'Invalid id was provided.');
-				redirect('admin/catalog');
-			}	
-		}		
-		else
-		{
-			$delete_arr[]=$resource_id;
-		}
-		
-		if ($this->input->post('cancel')!='')
-		{
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-			
-			nada_redirect($destination, 'admin/catalog');
-		}
-		else if ($this->input->post('submit')!='')
-		{
-			foreach($delete_arr as $item)
-			{
-				//confirm delete	
-				$this->Survey_resource_model->delete($item);
-			}
-
-			//for ajax calls, return output as JSON						
-			if ($ajax!='')
-			{
-				echo json_encode(array('success'=>"true") );
-				exit;
-			}
-						
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-			
-			nada_redirect($destination, 'admin/catalog');
-		}
-		else
-		{
-			//ask for confirmation
-			$content=$this->load->view('resources/delete', NULL,true);
-			
-			$this->template->write('content', $content,true);
-	  		$this->template->render();
-		}		
+	{
+		show_404();
 	}
 
 
@@ -129,50 +54,20 @@ class Resources extends MY_Controller {
 	
 	
 	/**
-	*
-	* Edit Resource
-	*/
-	function edit($id='add')
+	 * Edit / add resource — redirects into the Vue resources SPA.
+	 * Legacy ?t= file tokens redirect to /resources/add?file=…
+	 */
+	function edit($id = 'add')
 	{
 		$survey_id = $this->_resolve_survey_id_from_uri($id !== 'add' ? $id : null);
 
 		$this->_require_study_edit($survey_id);
 
-		if (!is_numeric($survey_id) || $survey_id < 1)
-		{
+		if (!is_numeric($survey_id) || $survey_id < 1) {
 			$this->session->set_flashdata('error', 'Invalid id was provided.');
-			redirect('admin/catalog');			
+			redirect('admin/catalog');
 		}
 
-		// Create/edit lives in the Vue resources tab. PHP form remains only for
-		// study-file → new resource linking via token (?t=) from the files tab.
-		$token = $this->input->get_post('t');
-		$is_file_link_add = ($id === 'add' && is_string($token) && $token !== '');
-		if (! $is_file_link_add) {
-			if (is_numeric($id) && (int) $id > 0) {
-				$this->_require_resource_on_study($id, $survey_id);
-				redirect('admin/catalog/edit/' . (int) $survey_id . '/resources/edit/' . (int) $id);
-			}
-			redirect('admin/catalog/edit/' . (int) $survey_id . '/resources/add');
-		}
-		
-		//js auto complete file list
-		$files_array=$this->get_files_array($survey_id);
-		$this->js_files='';
-		
-		if (is_array($files_array))
-		{
-			$this->js_files=implode(' ', $files_array);
-		}
-		
-		//check id
-		if (!is_numeric($id) && $id!='add')
-		{
-			$this->session->set_flashdata('error', 'Invalid id was provided.');
-			redirect("admin/catalog/edit/$survey_id/resources");
-		}
-	
-		$linked_file = '';
 		$token = $this->input->get_post('t');
 		if ($id === 'add' && is_string($token) && $token !== '') {
 			$linked_file = $this->_study_file_from_token($survey_id, $token);
@@ -186,160 +81,23 @@ class Resources extends MY_Controller {
 					. '/resources/edit/' . (int) $existing[0]['resource_id']
 				);
 			}
+			redirect(
+				'admin/catalog/edit/' . (int) $survey_id
+				. '/resources/add?file=' . rawurlencode($linked_file)
+			);
 		}
 
-		//redirect on Cancel
-		if ( $this->input->post("cancel")!="" )
-		{
-			$cancel_to = ($linked_file !== '') ? 'files' : 'resources';
-			redirect("admin/catalog/edit/$survey_id/".$cancel_to);
-		}	
-		
-		$this->load->library('form_validation');
-		
-		$data[]=NULL;
-		
-		//atleast one rule require for validation class to work
-		$this->form_validation->set_rules('title', t('title'), 'required|trim');
-		
-		//validation for resource_idno if provided
-		$this->form_validation->set_rules('resource_idno', t('resource_identifier'), 'trim|max_length[100]|callback__validate_resource_idno');
-				
-		if ($this->form_validation->run() == TRUE)
-		{
-			$options=array();
-			$post_arr=$_POST;
-			
-			//read post values to pass to db
-			foreach($post_arr as $key=>$value)
-			{
-				$options[$key]=$this->input->post($key);
-			}
-			
-			if ($id=='add')
-			{
-				//set survey_id 
-				$options['survey_id']=$survey_id;				
-			}
-			else
-			{
-				//set resource id			
-				$options['resource_id']=$id;
-			}
-							
-			//map form names with db names; a study-file token wins over a typed path
-			if ($linked_file !== '') {
-				$options['filename'] = $linked_file;
-				$options['survey_id'] = $survey_id;
-			} elseif (isset($options['url'])) {
-				$options['filename'] = $options['url'];
-			}
-			
-			// Set user information for audit trail
-			$user_id = $this->session->userdata('user_id');
-			if ($user_id) {
-				$options['changed_by'] = $user_id;
-				if ($id=='add') {
-					$options['created_by'] = $user_id;
-				}
-			}
-						
-			if ($id=='add')
-			{
-				$db_result=$this->Survey_resource_model->insert($options);
-				
-				//log
-				if ($db_result)
-				{
-					$this->db_logger->write_log('resource-added',$options['title'].'-'.$options['filename'],'resources',$survey_id);
-				}	
-			}
-			else
-			{
-				//update db
-				$db_result=$this->Survey_resource_model->update($id,$options);
-				
-				//log
-				if ($db_result)
-				{
-					$this->db_logger->write_log('resource-updated',$options['title'].'-'.$options['filename'],'resources',$survey_id);
-				}
-			}
-						
-			if (!$db_result)
-			{
-				//update failed
-				$this->form_validation->set_error(t('form_update_fail'));
-			}
-			else
-			{
-				//update successful
-				$this->session->set_flashdata('message', t('form_update_success') );
-				
-				//redirect back to the list
-				$done_to = ($linked_file !== '') ? 'files' : 'resources';
-				redirect("admin/catalog/edit/$survey_id/".$done_to);
-			}
-		}
-		else
-		{
-			if (is_numeric($id) && $id>0)
-			{
-				//load values from db
-				$data=$this->Survey_resource_model->select_single($id);
-				// Normalize dctype to bare code so the dropdown pre-selects correctly
-				if (!empty($data['dctype'])) {
-					$data['dctype'] = $this->Survey_resource_model->get_resource_type_from_dctype($data['dctype']);
-				}
-			}
-		}
-				
-		if (is_numeric($id))
-		{
-			$data['form_title']=t('edit_external_resource');
-		}
-		else
-		{
-			$data['form_title']=t('add_external_resource');
+		if (is_numeric($id) && (int) $id > 0) {
+			$this->_require_resource_on_study($id, $survey_id);
+			redirect('admin/catalog/edit/' . (int) $survey_id . '/resources/edit/' . (int) $id);
 		}
 
-		/* DISABLED: Data file dropdown
-		//get data files for dropdown
-		$this->load->model('Data_file_model');
-		$data_files = $this->Data_file_model->get_all_by_survey($survey_id);		
-		
-		$data['data_files'] = array();
-		
-		if ($data_files) {
-			$data['data_files'][''] = t('__select__'); // empty option
-			foreach ($data_files as $file_id => $file) {
-				$data['data_files'][$file['id']] = $file['file_name'] . ' (' . $file_id . ')';
-			}
-		}
-		*/
-		
-		if ($linked_file !== '') {
-			$data['filename'] = $linked_file;
-			$data['simple_mode'] = true;
-			$data['path_token'] = is_string($token) ? $token : '';
-			$data['back_link'] = 'admin/catalog/edit/'.$survey_id.'/files';
-			$data['back_text'] = t('link_resource_home');
-			$data['survey_id'] = $survey_id;
-		}
-
-		//load form
-		$content=$this->load->view('resources/edit', $data,true);
-		
-		$this->template->write('content', $content,true);
-	  	$this->template->render();		
+		redirect('admin/catalog/edit/' . (int) $survey_id . '/resources/add');
 	}
 
-
-
 	/**
-	* validate for file or url
-	*
-	*/
+	 * validate for file or url
+	 */
 	function _valid_file_url($str)
 	{
 		

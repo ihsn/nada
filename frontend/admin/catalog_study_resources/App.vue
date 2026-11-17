@@ -212,8 +212,9 @@ function listHref() {
   return resourcesTabPath.value || toPathname(window.location.pathname);
 }
 
-function addHref() {
-  return `${listHref()}/add`;
+function addHref(query = '') {
+  const q = query ? (query.startsWith('?') ? query : `?${query}`) : '';
+  return `${listHref()}/add${q}`;
 }
 
 function editHref(item) {
@@ -229,6 +230,7 @@ function parseRouteFromLocation() {
     editingId.value = null;
     return;
   }
+  // /resources/add and /resources/add?file=…
   if (path === `${base}/add`) {
     view.value = 'form';
     editingId.value = null;
@@ -314,9 +316,13 @@ async function runFixLinks() {
   try {
     const data = await fixLinks();
     const n = data?.links_fixed;
+    // fix_links_done is "%d resource(s) have been updated."
+    const done = lbl.value.fix_links_done || '%d resource(s) have been updated.';
     showSnack(
       n != null
-        ? `${lbl.value.fix_links_done || 'Links fixed'}: ${n}`
+        ? done.includes('%d')
+          ? done.replace('%d', String(n))
+          : `${done}: ${n}`
         : lbl.value.saved || 'Done',
       'success'
     );

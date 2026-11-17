@@ -254,15 +254,16 @@ class Timeseries extends MY_REST_Controller {
 			if (!empty($this->input->get('ensure_unique_index')) || $this->input->get('ensure_unique_index') === '1') {
 				$include_unique = true;
 			}
-			$this->Timeseries_mongo_model->ensure_indexes((int) $ctx['dsd_id'], $include_unique);
+			$this->Timeseries_mongo_model->ensure_indexes((int) $ctx['dsd_id'], $include_unique, (array) $ctx['components']);
 
-			$docs = [];
+			$docs     = [];
+			$unparsed = ['count' => 0, 'examples' => []];
 			foreach ($list as $idx => $row) {
 				if (!is_array($row)) {
 					throw new Exception('Invalid observation at index ' . $idx);
 				}
 				$fields = $this->Timeseries_mongo_model->filter_row_to_dsd_fields($row, $ctx['components']);
-				$docs[] = $this->Timeseries_mongo_model->build_observation_document(
+				$doc    = $this->Timeseries_mongo_model->build_observation_document(
 					(int) $ctx['sid'],
 					$ctx['idno'],
 					(int) $ctx['dsd_id'],
@@ -270,13 +271,16 @@ class Timeseries extends MY_REST_Controller {
 					$ctx['components'],
 					$ctx['structure']
 				);
+				$this->_track_unparsed_time_period($unparsed, $doc, $ctx['components']);
+				$docs[] = $doc;
 			}
 			$inserted = $this->Timeseries_mongo_model->insert_observations_batch((int) $ctx['dsd_id'], $docs, false);
 			$this->_sync_value_counts_for_context($ctx);
 			$this->Timeseries_mongo_model->refresh_ts_data_count_for_sid((int) $ctx['sid']);
+			$this->_log_unparsed_time_periods($unparsed, $ctx);
 			$this->set_response([
 				'status' => 'success',
-				'result' => ['inserted' => $inserted],
+				'result' => ['inserted' => $inserted, 'unparsed_time_periods' => $unparsed],
 			], REST_Controller::HTTP_CREATED);
 		} catch (Exception $e) {
 			if ($this->_exception_chain_matches_duplicate($e)) {
@@ -338,6 +342,8 @@ class Timeseries extends MY_REST_Controller {
 
 			$include_unique = $this->input->post('ensure_unique_index') !== '0';
 
+			set_time_limit(0);
+
 			$path = $csvSource['path'];
 			$fh   = fopen($path, 'rb');
 			if ($fh === false) {
@@ -381,7 +387,7 @@ class Timeseries extends MY_REST_Controller {
 				throw $e;
 			}
 
-			$this->Timeseries_mongo_model->ensure_indexes((int) $ctx['dsd_id'], $include_unique);
+			$this->Timeseries_mongo_model->ensure_indexes((int) $ctx['dsd_id'], $include_unique, (array) $ctx['components']);
 			$this->Timeseries_mongo_model->delete_observations_for_sid((int) $ctx['dsd_id'], (int) $ctx['sid']);
 			$this->_clear_value_counts_for_sid((int) $ctx['sid']);
 
@@ -403,6 +409,7 @@ class Timeseries extends MY_REST_Controller {
 			$insertedTotal  = 0;
 			$dataRowsBuilt  = 0;
 			$lineNum        = 1;
+			$unparsed       = ['count' => 0, 'examples' => []];
 			while (($row = fgetcsv($fh, 0, $delimiter)) !== false) {
 				$lineNum++;
 				if ($this->_csv_row_all_empty($row)) {
@@ -416,7 +423,7 @@ class Timeseries extends MY_REST_Controller {
 					}
 				}
 				$fields = $this->Timeseries_mongo_model->filter_row_to_dsd_fields($assoc, $ctx['components']);
-				$docs[] = $this->Timeseries_mongo_model->build_observation_document(
+				$doc    = $this->Timeseries_mongo_model->build_observation_document(
 					(int) $ctx['sid'],
 					$ctx['idno'],
 					(int) $ctx['dsd_id'],
@@ -424,6 +431,8 @@ class Timeseries extends MY_REST_Controller {
 					$ctx['components'],
 					$ctx['structure']
 				);
+				$this->_track_unparsed_time_period($unparsed, $doc, $ctx['components']);
+				$docs[] = $doc;
 				$dataRowsBuilt++;
 				if (count($docs) >= $chunkSize) {
 					$insertedTotal += $this->Timeseries_mongo_model->insert_observations_batch(
@@ -447,6 +456,7 @@ class Timeseries extends MY_REST_Controller {
 			if ($dataRowsBuilt === 0) {
 				throw new Exception('No data rows in CSV');
 			}
+			$this->_log_unparsed_time_periods($unparsed, $ctx);
 			$this->_sync_value_counts_for_context($ctx);
 			$this->Timeseries_mongo_model->refresh_ts_data_count_for_sid((int) $ctx['sid']);
 			$this->Dataset_model->clear_indicator_ts_sync_for_survey((int) $ctx['sid'], (int) $ctx['dsd_id']);
@@ -467,6 +477,7 @@ class Timeseries extends MY_REST_Controller {
 					'inserted' => $insertedTotal,
 					'lines_read'  => $lineNum - 1,
 					'ignored_columns' => array_values(array_unique($ignored_columns)),
+					'unparsed_time_periods' => $unparsed,
 					'import_source'   => $csvSource['source'],
 					'upload_id'       => $csvSource['upload_id'],
 					'resource_id'     => $resourceMeta ? (int) $resourceMeta['resource_id'] : null,
@@ -764,6 +775,7 @@ class Timeseries extends MY_REST_Controller {
 		try {
 			$ctx = $this->_context_from_idno($idno);
 			$this->has_dataset_access('edit', (int) $ctx['sid']);
+			set_time_limit(0);
 			$inserted = $this->_sync_value_counts_for_context($ctx);
 			$this->set_response([
 				'status' => 'success',
@@ -802,7 +814,8 @@ class Timeseries extends MY_REST_Controller {
 			if (array_key_exists('include_unique_key_hash', $input)) {
 				$include_unique = !empty($input['include_unique_key_hash']);
 			}
-			$this->Timeseries_mongo_model->ensure_indexes($dsd_id, $include_unique);
+			set_time_limit(0);
+			$this->Timeseries_mongo_model->ensure_indexes($dsd_id, $include_unique, (array) $bundle['components']);
 			$this->set_response([
 				'status' => 'success',
 				'result' => ['data_structure_id' => $dsd_id, 'indexes' => 'ok'],
@@ -1486,6 +1499,42 @@ class Timeseries extends MY_REST_Controller {
 			$rows,
 			(int) $ctx['dsd_id']
 		);
+	}
+
+	/**
+	 * Count an imported row whose time period could not be standardized (it cannot be found by
+	 * from/to or time-period filters); keep up to 10 distinct example values.
+	 *
+	 * @param array $tracker ['count' => int, 'examples' => string[]]
+	 * @param array $doc     from build_observation_document
+	 * @param array $components
+	 */
+	private function _track_unparsed_time_period(array &$tracker, array $doc, array $components)
+	{
+		if ($doc['_ts_period_start'] !== null) {
+			return;
+		}
+		$name = $this->Timeseries_mongo_model->get_component_name_for_column_type($components, 'time_period');
+		if ($name === null) {
+			return;
+		}
+		$tracker['count']++;
+		$raw = isset($doc[$name]) ? (string) $doc[$name] : '';
+		if (count($tracker['examples']) < 10 && !in_array($raw, $tracker['examples'], true)) {
+			$tracker['examples'][] = $raw;
+		}
+	}
+
+	/**
+	 * @param array $tracker from _track_unparsed_time_period
+	 * @param array $ctx
+	 */
+	private function _log_unparsed_time_periods(array $tracker, array $ctx)
+	{
+		if ($tracker['count'] > 0) {
+			log_message('error', "Timeseries import {$ctx['idno']}: {$tracker['count']} rows have an unrecognized time period, e.g. "
+				. implode(', ', array_map(function ($v) { return "'" . $v . "'"; }, $tracker['examples'])));
+		}
 	}
 
 	/**
