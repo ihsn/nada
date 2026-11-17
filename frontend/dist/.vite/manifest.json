@@ -1885,7 +1885,7 @@
     ]
   },
   "admin/site_configurations/main.js": {
-    "file": "assets/admin/admin_site_configurations-3y33Duhh.js",
+    "file": "assets/admin/admin_site_configurations-EZc9Sr9e.js",
     "name": "admin_site_configurations",
     "src": "admin/site_configurations/main.js",
     "isEntry": true,
@@ -1893,6 +1893,7 @@
       "_router-AtzTzX6F.js",
       "_useAppConfig-PpwtSK1z.js",
       "_vue-router-C-wEJZOM.js",
+      "_sortable.esm-BzJVkfZx.js",
       "_VMain-DWVVZeM3.js",
       "_VContainer-HaXek79X.js",
       "_VAlert-NXdEqBuU.js",
@@ -1917,7 +1918,7 @@
       "_VMenu-CiIMhsaG.js"
     ],
     "css": [
-      "assets/admin/admin_site_configurations-BHQMU3ir.css"
+      "assets/admin/admin_site_configurations-DBNWM2kx.css"
     ]
   },
   "admin/site_layout/main.js": {

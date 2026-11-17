@@ -1,6 +1,7 @@
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
+import Sortable from 'sortablejs';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useSiteConfigurationsApi } from '../composables/useSiteConfigurationsApi';
 import { SECTION_DEFS } from '../sections';
@@ -10,8 +11,15 @@ defineOptions({ name: 'SiteConfigurationsPage' });
 
 const route = useRoute();
 const { config, siteUrl } = useAppConfig();
-const { fetchSettings, fetchMeta, saveSettings, removeSetting, fetchTestEmailForm, sendTestEmail } =
-  useSiteConfigurationsApi();
+const {
+  fetchSettings,
+  fetchMeta,
+  saveSettings,
+  removeSetting,
+  fetchTestEmailForm,
+  sendTestEmail,
+  saveDatasetTypesOrder,
+} = useSiteConfigurationsApi();
 
 /** Matches legacy dropdown in application/views/site_configurations/test_email.php */
 const testEmailUseragents = [
@@ -62,6 +70,69 @@ const clearSecretKey = ref('');
 const clearingSecret = ref(false);
 const langRows = ref([]);
 const useDisplayByType = ref({});
+
+/** Catalog search type tabs — ordered by survey_types.weight (first = leftmost). */
+const datasetTypes = ref([]);
+const datasetTypesBaseline = ref('[]');
+let datasetTypesListEl = null;
+let datasetTypesSortable = null;
+
+const datasetTypesDirty = computed(
+  () => JSON.stringify(datasetTypes.value.map((row) => row.code)) !== datasetTypesBaseline.value,
+);
+
+function hydrateDatasetTypes(list) {
+  const rows = Array.isArray(list) ? list.map((row) => ({ ...row })) : [];
+  datasetTypes.value = rows;
+  datasetTypesBaseline.value = JSON.stringify(rows.map((row) => row.code));
+}
+
+function destroyDatasetTypesSortable() {
+  if (datasetTypesSortable) {
+    datasetTypesSortable.destroy();
+    datasetTypesSortable = null;
+  }
+}
+
+function initDatasetTypesSortable(el = datasetTypesListEl) {
+  if (!el || activeSection.value !== 'catalog') {
+    destroyDatasetTypesSortable();
+    return;
+  }
+  // Already bound to this element (avoid tearing down mid-drag on re-renders).
+  if (datasetTypesSortable && datasetTypesSortable.el === el) {
+    return;
+  }
+  destroyDatasetTypesSortable();
+  datasetTypesSortable = Sortable.create(el, {
+    handle: '.drag-handle',
+    draggable: '.site-config-dataset-types-item',
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    onEnd(evt) {
+      const { oldIndex, newIndex } = evt;
+      if (oldIndex == null || newIndex == null || oldIndex === newIndex) return;
+      // Replace the array so Vue and Sortable stay in sync (in-place splice snaps back).
+      const next = datasetTypes.value.slice();
+      const [moved] = next.splice(oldIndex, 1);
+      next.splice(newIndex, 0, moved);
+      datasetTypes.value = next;
+    },
+  });
+}
+
+/** Keep the list element; Sortable is (re)bound when Catalog is active. */
+function registerDatasetTypesList(el) {
+  datasetTypesListEl = el || null;
+  if (!el) {
+    destroyDatasetTypesSortable();
+    return;
+  }
+  if (activeSection.value === 'catalog') {
+    nextTick(() => initDatasetTypesSortable(el));
+  }
+}
 
 const DEFAULT_STUDY_TYPES = [
   { value: 'survey', titleKey: 'legacy_study_type_survey' },
@@ -215,6 +286,7 @@ const sectionDirty = computed(() => {
   const baseline = baselinePayloads.value[activeSection.value];
   return baseline !== undefined && JSON.stringify(pickSectionPayload(activeSection.value)) !== baseline;
 });
+const datasetTypesSaving = ref(false);
 
 async function reloadAll() {
   const [s, m] = await Promise.all([fetchSettings(), fetchMeta()]);
@@ -258,6 +330,7 @@ async function reloadAll() {
   initEngineSections();
   langRows.value = buildLangRows(m.available_folders, settings.value.supported_languages);
   hydrateDisplaySwitches(settings.value.legacy_study_templates);
+  hydrateDatasetTypes(m.dataset_types);
   baselinePayloads.value = Object.fromEntries(
     SECTION_DEFS.map((def) => [def.id, JSON.stringify(pickSectionPayload(def.id))]),
   );
@@ -332,6 +405,8 @@ const SAVE_ERROR_KEYS = {
   'INVALID_VALUE:nada_ai_on_outage': 'error_invalid_nada_ai_on_outage',
   'INVALID_VALUE:nada_ai_multilingual': 'error_invalid_nada_ai_multilingual',
   'INVALID_URL:nada_ai_url': 'error_invalid_nada_ai_url',
+  ORDER_REQUIRED: 'error_dataset_types_order_required',
+  ORDER_INCOMPLETE: 'error_dataset_types_order_incomplete',
 };
 
 function errorText(e) {
@@ -383,6 +458,23 @@ async function saveCurrentSection() {
     snackbar.value = true;
   } finally {
     saving.value = false;
+  }
+}
+
+async function saveDatasetTypesSection() {
+  datasetTypesSaving.value = true;
+  try {
+    const types = await saveDatasetTypesOrder(datasetTypes.value.map((row) => row.code));
+    hydrateDatasetTypes(types);
+    snackbarIsError.value = false;
+    snackbarText.value = tr('form_update_success');
+    snackbar.value = true;
+  } catch (e) {
+    snackbarIsError.value = true;
+    snackbarText.value = errorText(e);
+    snackbar.value = true;
+  } finally {
+    datasetTypesSaving.value = false;
   }
 }
 
@@ -465,13 +557,22 @@ watch([snackbar, snackbarText], () => {
   }, PAGE_ALERT_MS);
 });
 
-onBeforeUnmount(() => clearTimeout(pageAlertTimer));
+onBeforeUnmount(() => {
+  clearTimeout(pageAlertTimer);
+  destroyDatasetTypesSortable();
+});
 
 watch(
   () => activeSection.value,
-  (id) => {
+  async (id) => {
     if (id === 'mail') {
       loadTestEmailSection();
+    }
+    if (id === 'catalog') {
+      await nextTick();
+      initDatasetTypesSortable();
+    } else {
+      destroyDatasetTypesSortable();
     }
   },
   { immediate: true },
@@ -963,6 +1064,54 @@ onMounted(async () => {
                 </div>
               </v-col>
             </v-row>
+            </div>
+          </v-card>
+
+          <!-- Catalog data types tab order (Catalog page settings, separate save) -->
+          <v-card
+            v-show="activeSection === 'catalog'"
+            elevation="1"
+            rounded="lg"
+            class="bg-surface site-config-dataset-types-card"
+          >
+            <div class="pa-4 site-config-card-inner">
+              <div class="site-config-card__header d-flex align-center justify-space-between flex-wrap gap-3">
+                <h2 class="site-config-card__title">
+                  {{ tr('dataset_type_tabs_order') }}
+                </h2>
+                <v-btn
+                  color="primary"
+                  :loading="datasetTypesSaving"
+                  :disabled="!datasetTypes.length"
+                  prepend-icon="mdi-content-save"
+                  @click="saveDatasetTypesSection"
+                >
+                  {{ tr('update') }}<span v-if="datasetTypesDirty" class="ml-1" :title="tr('unsaved_changes')">*</span>
+                </v-btn>
+              </div>
+              <div class="site-config-field__hint mb-3">{{ tr('dataset_type_tabs_order_note') }}</div>
+              <div
+                v-if="datasetTypes.length"
+                :ref="registerDatasetTypesList"
+                class="site-config-dataset-types-list"
+              >
+                <div
+                  v-for="item in datasetTypes"
+                  :key="item.code"
+                  class="site-config-dataset-types-item d-flex align-center px-3 py-2"
+                >
+                  <span class="drag-handle mr-2 text-medium-emphasis flex-shrink-0" aria-hidden="true">
+                    <v-icon size="20">mdi-drag-vertical</v-icon>
+                  </span>
+                  <span class="flex-grow-1 text-body-2">
+                    {{ item.title || item.code }}
+                    <span class="text-caption text-medium-emphasis ml-1">[{{ item.code }}]</span>
+                  </span>
+                </div>
+              </div>
+              <p v-else class="text-body-2 text-medium-emphasis mb-0">
+                {{ tr('dataset_type_tabs_order_empty') }}
+              </p>
             </div>
           </v-card>
 
