@@ -137,8 +137,11 @@ $menu[]=array(
 			'url'	=>'admin/configurations'
 		),
 		array(
-			'title'	=>'Site header',
-			'url'	=>'admin/site_header'
+				'type'	=>'divider'
+			),
+		array(
+			'title'	=>'Site layout',
+			'url'	=>'admin/site-layout'
 		),
 		array(
 			'type'	=>'divider'

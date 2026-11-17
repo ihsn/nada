@@ -1494,11 +1494,23 @@ CREATE NONCLUSTERED INDEX idx_logtime_username ON sitelogs(logtime, username);
 
 CREATE TABLE configurations (
   name varchar(200) NOT NULL,
-  value nvarchar(max) NOT NULL,
+  value varchar(5000) NOT NULL,
   label varchar(255) DEFAULT NULL,
   helptext varchar(255) DEFAULT NULL,
   item_group varchar(255) DEFAULT NULL,
   PRIMARY KEY (name)
+) ;
+
+
+CREATE TABLE site_layout (
+  part nvarchar(20) NOT NULL,
+  state nvarchar(20) NOT NULL,
+  settings nvarchar(max) NOT NULL,
+  created int DEFAULT NULL,
+  created_by int DEFAULT NULL,
+  changed int DEFAULT NULL,
+  changed_by int DEFAULT NULL,
+  CONSTRAINT PK_site_layout PRIMARY KEY (part, state)
 ) ;
 
 

@@ -1400,13 +1400,28 @@ CREATE TABLE `sitelogs` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `configurations` (
   `name` varchar(200) NOT NULL,
-  `value` mediumtext NOT NULL,
+  `value` varchar(5000) NOT NULL,
   `label` varchar(255) DEFAULT NULL,
   `helptext` varchar(255) DEFAULT NULL,
   `item_group` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`name`)
 ) DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `site_layout` (Admin > Settings > Site layout: header, footer, styles)
+--
+
+CREATE TABLE `site_layout` (
+  `part` varchar(20) NOT NULL,
+  `state` varchar(20) NOT NULL,
+  `settings` mediumtext NOT NULL,
+  `created` int(11) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `changed` int(11) DEFAULT NULL,
+  `changed_by` int(11) DEFAULT NULL,
+  PRIMARY KEY (`part`,`state`)
+) DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `configurations`

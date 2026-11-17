@@ -1,0 +1,181 @@
+.admin-sl-app.v-application {
+  display: block;
+  min-height: 0 !important;
+  height: auto !important;
+}
+.admin-sl-app .v-application__wrap {
+  min-height: 0 !important;
+}
+.admin-sl-page {
+  background-color: #f0f2f5;
+}
+.admin-sl-app .v-main {
+  padding-top: 0 !important;
+}
+.admin-sl-main {
+  width: 100%;
+  max-width: none;
+}
+.admin-sl-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0.75rem;
+}
+.admin-sl-header__actions {
+  display: flex;
+  gap: 4px;
+}
+.admin-sl-tabs {
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  padding: 0 8px;
+}
+
+/* Settings (with Header|Footer tabs) on the left; one preview column on the right */
+.sl-editor {
+  display: grid;
+  grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.sl-editor--wide {
+  grid-template-columns: minmax(420px, 560px) minmax(0, 1fr);
+}
+.sl-editor__settings {
+  min-width: 0;
+  background: #fff;
+  overflow: hidden;
+}
+.sl-editor__body {
+  padding: 12px 14px 16px;
+}
+
+/* Soft panel fills so sections read as blocks on the white card */
+.sl-editor__settings .sh-panels,
+.sl-editor__settings .sf-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  background: transparent;
+}
+.sl-editor__settings .sh-panels .v-expansion-panel,
+.sl-editor__settings .sf-panels .v-expansion-panel {
+  background: #fff;
+  border: 1px solid #cfd4da;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+.sl-editor__settings .sh-panels .v-expansion-panel::after,
+.sl-editor__settings .sf-panels .v-expansion-panel::after {
+  display: none;
+}
+.sl-editor__settings .sh-panels .v-expansion-panel-title,
+.sl-editor__settings .sf-panels .v-expansion-panel-title {
+  background: #cfd4da;
+  color: rgba(0, 0, 0, 0.92);
+}
+.sl-editor__settings .sh-panels .v-expansion-panel-title .v-icon,
+.sl-editor__settings .sf-panels .v-expansion-panel-title .v-icon {
+  color: rgba(0, 0, 0, 0.84);
+  opacity: 1;
+}
+.sl-editor__settings .sh-panels .v-expansion-panel-text,
+.sl-editor__settings .sf-panels .v-expansion-panel-text {
+  background: #fafbfc;
+  flex: none;
+}
+.sl-editor__settings .sh-panels .v-expansion-panel-text__wrapper,
+.sl-editor__settings .sf-panels .v-expansion-panel-text__wrapper {
+  padding: 12px 16px 16px;
+}
+
+/*
+ * Sidebar type scale and spacing (Header, Footer and Styles tabs, and the item popups).
+ *   13px  panel titles, controls, switch and radio labels, body text
+ *   12px  field labels and help text
+ *   11px  section labels
+ * Fields sit in .sl-stack (16px apart); a field is .sl-field (label, control, help).
+ */
+.sl-editor__settings .v-input,
+.sl-editor__settings .v-label,
+.sl-editor__settings .v-field,
+.sl-editor__settings .v-select__selection-text,
+.sl-popup .v-input,
+.sl-popup .v-label,
+.sl-popup .v-field {
+  font-size: 0.8125rem;
+}
+.sl-editor__settings .v-messages,
+.sl-popup .v-messages {
+  font-size: 0.75rem;
+}
+.sl-editor__settings .text-body-2 {
+  font-size: 0.8125rem !important;
+  line-height: 1.5 !important;
+}
+.sl-stack,
+.v-card.sl-stack,
+.v-card-text.sl-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.sl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.sl-field > .sl-help {
+  margin-top: -2px;
+}
+.sl-switches {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sl-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: rgba(var(--v-theme-on-surface), 0.72);
+}
+.sl-help {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+}
+.sl-section-label {
+  margin: 8px 0 -8px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(var(--v-theme-on-surface), 0.5);
+}
+.sl-stack > .sl-section-label:first-child {
+  margin-top: 0;
+}
+
+.sl-editor__preview {
+  position: sticky;
+  top: 64px;
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .sl-editor,
+  .sl-editor--wide {
+    grid-template-columns: 1fr;
+  }
+  .sl-editor__preview {
+    position: sticky;
+    top: 56px;
+    z-index: 2;
+    order: -1;
+  }
+}

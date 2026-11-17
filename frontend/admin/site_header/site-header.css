@@ -1,34 +1,126 @@
-/* Site header admin: same shell as the other Vue admin pages */
-.admin-sh-app.v-application {
-  display: block;
-  min-height: 0 !important;
-  height: auto !important;
-}
-.admin-sh-app .v-application__wrap {
-  min-height: 0 !important;
-}
-.admin-sh-page {
-  background-color: #f0f2f5;
-}
-.admin-sh-app .v-main {
-  padding-top: 0 !important;
-}
-.admin-sh-main {
-  width: 100%;
-  max-width: 1400px;
-}
+/* Site header editor (left settings column) */
 .admin-sh-header {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.admin-sh-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.admin-sh-status__label {
+  min-width: 0;
+}
+.admin-sh-status--saving,
+.admin-sh-status--unsaved,
+.admin-sh-status--draft {
+  background: #fff8e6;
+  color: #8a5b00;
+}
+.admin-sh-status--theme {
+  background: #f0f2f5;
+  color: rgba(0, 0, 0, 0.65);
+}
+.admin-sh-status--published {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+.admin-sh-source {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.admin-sh-source__label {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.admin-sh-source__help {
+  flex: 0 0 auto;
+  opacity: 0.65;
+}
+.admin-sh-source__select {
+  width: 132px;
+  flex: 0 0 auto;
+  margin-left: 4px;
+}
+.admin-sh-source__select :deep(.v-field) {
+  font-size: 0.75rem;
+  --v-input-control-height: 28px;
+}
+.admin-sh-source__select :deep(.v-field__input) {
+  min-height: 28px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.admin-sh-source__select :deep(.v-select__selection-text) {
+  font-size: 0.75rem;
+}
+.admin-sh-toolbar {
+  display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 1rem;
+  gap: 8px;
 }
 .admin-sh-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 4px;
+  margin-left: auto;
 }
-.admin-sh-tabs {
-  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+.sh-mode {
+  width: 100%;
+  margin-bottom: 0;
+}
+.sh-mode .v-btn {
+  flex: 1 1 0;
+}
+.sh-panels .v-expansion-panel-title {
+  min-height: 44px !important;
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.sh-panels .v-expansion-panel-title > .v-icon {
+  margin-inline-end: 2px;
+  flex-shrink: 0;
+}
+.sh-panels .v-expansion-panel-title__icon {
+  margin-left: auto;
+}
+.sh-panels .sh-panel-sub + .v-expansion-panel-title__icon {
+  margin-left: 0;
+}
+.sh-panels .v-expansion-panel,
+.sh-panels .v-expansion-panel-text,
+.sh-panels .v-expansion-panel-text__wrapper {
+  flex: none;
+}
+.sh-panels [data-panel] {
+  scroll-margin-top: 72px;
+}
+.sh-panel-sub {
+  margin-left: auto;
+  margin-right: 8px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: rgba(var(--v-theme-on-surface), 0.55);
+}
+.sh-size-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }

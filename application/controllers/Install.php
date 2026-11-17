@@ -23,14 +23,23 @@ class Install extends CI_Controller {
 		//database utilities
 		$this->load->dbutil();
 
-		$this->template->set_template('installer');
-
 		$this->lang->load("general");
 		$this->lang->load("users");
 		$this->lang->load("install");
 
 		// Block re-installation if already installed — checked once here for all methods
 		$this->is_already_installed();
+	}
+
+	/**
+	 * Render an installer page inside the views-only shell (no public theme).
+	 */
+	private function _render($content, $title = '')
+	{
+		$this->load->view('install/layout', array(
+			'title'   => $title !== '' ? $title : t('installer_title'),
+			'content' => $content,
+		));
 	}
 
 	function _load_language_list()
@@ -88,12 +97,8 @@ class Install extends CI_Controller {
 		//test folder rights
 		$data['permissions']=$this->load->view("install/file_rw",NULL,TRUE);
 						
-		$content=$this->load->view('install/index',$data,TRUE);
-				
-		//render final output		
-		$this->template->write('title', t('title_data_catalog'),true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
+		$content = $this->load->view('install/index', $data, TRUE);
+		$this->_render($content, t('title_data_catalog'));
 	}
 
 	
@@ -248,18 +253,9 @@ class Install extends CI_Controller {
 												 );
 		$this->data['active']=$this->form_validation->set_value('active',1);
 		
-		$content=$this->load->view('install/create_user', $this->data,TRUE);
-		
-		//pass data to the site's template
-		$this->template->write('content', $content,true);
-		
-		//set page title
-		$this->template->write('title', $this->data['page_title'],true);
-
-		//render final output
-		$this->template->render();	
-
-    }
+		$content = $this->load->view('install/create_user', $this->data, TRUE);
+		$this->_render($content, $this->data['page_title']);
+	}
 	
 	function complete()
 	{
@@ -287,8 +283,7 @@ class Install extends CI_Controller {
 		}
 
 		$content = $this->load->view('install/completed', NULL, TRUE);
-		$this->template->write('content', $content, true);
-		$this->template->render();
+		$this->_render($content);
 	}
 	
 	

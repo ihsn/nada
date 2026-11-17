@@ -78,11 +78,6 @@ $template['base_url']=defined('JS_BASE_URL') ? JS_BASE_URL : base_url();
 | Admin Template Configuration
 |--------------------------------------------------------------------------
 */
-//installer template file with only the body and no layout
-$template['installer']['template'] = '../../themes/nada/installer';
-$template['installer']['theme_folder'] = 'nada';
-
-
 //blank template file with only the body and no layout
 $template['blank']['template'] = '../../themes/nada52/blank';
 $template['blank']['theme_folder'] = 'nada52';

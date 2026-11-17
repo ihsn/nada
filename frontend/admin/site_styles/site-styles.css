@@ -1,0 +1,42 @@
+.admin-ss-header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.admin-ss-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.admin-ss-status__label {
+  min-width: 0;
+}
+.admin-ss-status--saving,
+.admin-ss-status--unsaved,
+.admin-ss-status--draft {
+  background: #fff8e6;
+  color: #8a5b00;
+}
+.admin-ss-status--empty {
+  background: #f0f2f5;
+  color: rgba(0, 0, 0, 0.65);
+}
+.admin-ss-status--published {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+.admin-ss-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}

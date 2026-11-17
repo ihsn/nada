@@ -144,19 +144,87 @@ Indicators (`timeseries`) accept only the **Open access**, **Direct access** and
 
 Existing indicators keep their stored data access type. The study page in the admin shows a warning for any indicator that uses a type that is no longer allowed.
 
-## Site header
+## Shared theme assets (Bootstrap, Font Awesome, Popper)
 
-Administrators can now change the public site header under **Settings > Site header**, without editing theme files. They pick one of six layouts and set the brand (title, logo, or both), login, language switcher, colours and a background image. They can also write their own HTML and place the logo, menu, login and language with tokens such as `{{brand}}`, `{{menu+login}}` and `{{language}}`. Changes are saved as a draft and previewed before they are published.
+Public themes no longer ship their own copies of Bootstrap, Popper, or Font Awesome. Those files live under `themes/assets/` and are loaded from theme `head.php` / `head_vue.php` when CDN is off.
 
-Run `migrate latest`. The migration `20261113120001_configurations_value_text` widens `configurations.value` so that a custom header fits. Until it runs, only headers under 5000 characters can be saved.
+After upgrade, keep the new `themes/assets/` folder. Custom themes that still point at `themes/<name>/css/bootstrap.min.css` (or a local `fontawesome/` folder) should switch those URLs to `themes/assets/…`, or copy the shared files. Do not replace the whole `themes/nada52` folder with an old backup; that removes `themes/assets` references in the stock heads.
 
-Sites that have not changed the header keep the current NADA header. The `nada52` theme's `header.php` now calls the header builder, and its `nav-menu.php`, `user-menu.php` and `lang-bar.php` were removed. If a custom theme copied those files, it keeps working as before but does not use the new settings.
+## Site layout (header, footer & styles)
 
-To always show the default header, for example after a broken change, add this to `application/config/config.php`:
+Administrators edit the public site header, footer, and optional site-wide CSS under **Settings > Site layout** (`admin/site-layout`, tabs: Header, Footer, Styles). One admin JSON API serves all three parts and the package export/import (`api/admin/site_layout`); drafts are previewed at `site_layout_preview/{header|footer|styles}`.
+
+Run `migrate latest`. The migration `20261116120001_site_layout` creates the `site_layout` table, which holds the published and draft settings for each part (one row per part and state). Until it runs, the Site layout pages open but nothing can be saved. The settings are not stored in `configurations`, so they are not loaded on every page request.
+
+**Export** and **Import** on the Site layout page copy the header, footer and styles (with the header images) to another NADA site as a `.zip` file. Imported parts become drafts. They need the PHP `zip` extension (`ZipArchive`), which NADA already uses for study packages.
+
+Uploaded header images are stored in `files/site/`. On Apache, NADA adds `files/site/.htaccess` so that an SVG opened directly is sandboxed (`Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox`, needs `mod_headers`). On nginx or IIS, add the same headers for `files/site/*.svg` in the server config.
+
+### Styles
+
+Optional CSS for the public page body (headings, links, colors). Draft until published. Published CSS is written to `{catalog_root}/cache/site_styles/published.json` and injected in the theme `<head>` after theme stylesheets. Empty / reset = theme CSS only.
+
+To ignore published styles (for example after a bad edit), add this to `application/config/config.php`:
+
+```php
+$config['site_styles_force_default'] = TRUE;
+```
+
+
+### Header
+
+Three sources:
+
+1. **Theme file** (default) — PHP in the active theme (`themes/<theme>/header_theme.php`). Edit that file, or copy it to `header.local.php` so upgrades do not overwrite your markup. When `header.local.php` exists, it always wins.
+2. **Builder** — layout presets and row editor (brand, menu, login, languages, text).
+3. **Custom HTML** — your HTML with tokens such as `{{brand}}`, `{{menu+login}}`, `{{language}}`.
+
+Layouts are defined in `application/config/site_header_presets.php`. Changes are draft until published.
+
+**If you customized the header in `nada52` before this release:** back up `header.php` (and `lang-bar.php` / `nav-menu.php` / `user-menu.php` if you changed them) before upgrading. After upgrade, either recreate the header in the builder, or restore your markup as `themes/nada52/header.local.php` (see `header.local.php.example`). Do not replace the whole `themes/nada52` folder with an old copy.
+
+Sites with no published Site header settings keep the theme file header.
+
+To always force the theme file header (for example after a broken builder change), add this to `application/config/config.php`:
 
 ```php
 $config['site_header_force_default'] = TRUE;
 ```
+
+### Footer
+
+Two sources:
+
+1. **Theme file** (default) — PHP in the active theme (`themes/<theme>/footer_theme.php`). Edit that file, or copy it to `footer.local.php` so upgrades do not overwrite your markup. When `footer.local.php` exists, it always wins.
+2. **Custom HTML** — your HTML with tokens such as `{{site_title}}`, `{{year}}`, `{{menu}}`, `{{home_url}}`.
+
+Changes are draft until published (separately from the header). Published custom footers are written to `{catalog_root}/cache/site_footer/published.json` (see [Published files](#published-files)).
+
+The old **Website footer** textarea under Settings > General is removed from the admin UI for the main themes (it was unused there). The `website_footer` configuration key remains for the ddibrowser layout only. Use **Settings > Site layout** for the public catalog footer.
+
+To always force the theme file footer, add this to `application/config/config.php`:
+
+```php
+$config['site_footer_force_default'] = TRUE;
+```
+
+### Published files
+
+Public pages never read the `site_layout` table. **Publish** writes one file per part, and public pages read only that file:
+
+| Part | File (by default under `datafiles/`) | Written when |
+|------|--------------------------------------|--------------|
+| Header | `{catalog_root}/cache/site_header/published.json` | the source is Builder or Custom HTML |
+| Footer | `{catalog_root}/cache/site_footer/published.json` | the source is Custom HTML |
+| Styles | `{catalog_root}/cache/site_styles/published.json` | there is CSS |
+
+If a file is missing, visitors see the theme file header or footer, or no extra CSS. Nothing rebuilds the files automatically.
+
+- Publish writes the file **before** it stores the settings. If the file cannot be written, the publish fails and nothing changes for visitors. **Reset** removes the file first, for the same reason.
+- `catalog_root` must exist and be writable by the web server. Direct web access to these folders is blocked via `.htaccess` when they are created.
+- These files are part of the published site, even though they are under `cache/`. **Do not delete them when clearing caches.** Back them up with `datafiles`.
+- When a file does not match the published settings (deleted, database restored without `datafiles`, or a NADA upgrade that changes the file format), the Site layout tab shows a warning with a **Publish again** button, which rewrites the file from the published settings.
+- With several web servers, all of them must share the same `catalog_root`, as they already must for study files.
 
 ## Citations are now stored as CSL-JSON
 

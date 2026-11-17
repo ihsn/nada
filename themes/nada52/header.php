@@ -1,11 +1,21 @@
 <?php
 /**
- * Public site header.
+ * Public site header entry point.
  *
- * Built by application/libraries/Site_header_builder.php from the settings in Admin > Settings > Site header
- * (a preset layout or the admin's own HTML with {{tokens}}). With no settings it shows the default NADA header.
- * Set $config['site_header_force_default'] = TRUE in application/config/config.php to always show the default.
+ * Priority:
+ *  1. header.local.php — site-specific manual header (never shipped; survives upgrades)
+ *  2. Theme file (header_theme.php) — when Admin > Site header source is "Theme file",
+ *     or when $config['site_header_force_default'] is TRUE, or when nothing is published
+ *  3. Site header builder / custom HTML — Admin > Settings > Site header
  */
 $_ci =& get_instance();
 $_ci->load->library('site_header_builder');
-echo $_ci->site_header_builder->render(isset($data['menus']) ? $data['menus'] : null);
+
+$_sh_dir = __DIR__;
+if (is_file($_sh_dir . '/header.local.php')) {
+	include $_sh_dir . '/header.local.php';
+} elseif ($_ci->site_header_builder->use_theme_header()) {
+	include $_sh_dir . '/header_theme.php';
+} else {
+	echo $_ci->site_header_builder->render(isset($data['menus']) ? $data['menus'] : null);
+}

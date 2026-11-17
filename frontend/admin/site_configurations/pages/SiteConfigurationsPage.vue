@@ -559,10 +559,6 @@ onMounted(async () => {
                 <v-text-field v-model="settings.website_title" variant="outlined" density="comfortable" hide-details="auto" />
               </v-col>
               <v-col cols="12">
-                <label class="site-config-field__label">{{ tr('website_footer') }}</label>
-                <v-textarea v-model="settings.website_footer" variant="outlined" rows="4" hide-details="auto" />
-              </v-col>
-              <v-col cols="12">
                 <label class="site-config-field__label">{{ tr('default_home_page') }}</label>
                 <div class="site-config-field--fixed-width">
                   <v-text-field

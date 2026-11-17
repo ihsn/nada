@@ -409,6 +409,8 @@ $route['admin'] = "admin/admin";
 $route['admin/ui-kit'] = "admin/admin/ui_kit";
 $route['admin/logs/cleanup'] = "admin/logs/cleanup";
 $route['admin/search-index'] = "admin/semantic";
+$route['admin/site-layout'] = "admin/site_layout";
+
 
 // Admin DB logs API
 $route['api/admin/db_logs/cleanup/chunk']           = "api/admin/db_logs/cleanup_chunk";

@@ -1,5 +1,10 @@
 <template>
-  <div ref="host" class="sh-code-editor" :style="{ '--sh-editor-min': minHeight }" />
+  <div
+    ref="host"
+    class="sh-code-editor"
+    :class="{ 'sh-code-editor--fill': fill }"
+    :style="{ '--sh-editor-min': minHeight, '--sh-editor-max': maxHeight }"
+  />
 </template>
 
 <script setup>
@@ -14,6 +19,9 @@ const props = defineProps({
   modelValue: { type: String, default: '' },
   language: { type: String, default: 'html' },
   minHeight: { type: String, default: '260px' },
+  maxHeight: { type: String, default: '560px' },
+  /** Stretch scroller to fill a flex parent (e.g. expanded modal). */
+  fill: { type: Boolean, default: false },
   readonly: { type: Boolean, default: false },
 });
 const emit = defineEmits(['update:modelValue']);
@@ -36,8 +44,18 @@ onMounted(() => {
         }
       }),
       EditorView.theme({
-        '&': { fontSize: '13px', backgroundColor: 'rgb(var(--v-theme-surface))' },
-        '.cm-scroller': { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', minHeight: 'var(--sh-editor-min)', maxHeight: '560px', overflow: 'auto' },
+        '&': {
+          fontSize: '13px',
+          backgroundColor: 'rgb(var(--v-theme-surface))',
+          ...(props.fill ? { height: '100%' } : {}),
+        },
+        '.cm-scroller': {
+          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+          minHeight: 'var(--sh-editor-min)',
+          maxHeight: props.fill ? 'none' : 'var(--sh-editor-max)',
+          ...(props.fill ? { height: '100%' } : {}),
+          overflow: 'auto',
+        },
         '&.cm-focused': { outline: 'none' },
       }),
     ],
@@ -80,6 +98,15 @@ defineExpose({ insert });
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   border-radius: 6px;
   overflow: hidden;
+}
+.sh-code-editor--fill {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.sh-code-editor--fill :deep(.cm-editor) {
+  flex: 1;
+  height: 100%;
 }
 .sh-code-editor:focus-within {
   border-color: rgb(var(--v-theme-primary));

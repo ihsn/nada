@@ -1496,7 +1496,8 @@ h5.var-file a {
 
 @media (max-width: 991px) {
     .wb-logo {
-        background: url("images/logo-sm.png") no-repeat 0 0;
+        background: url("images/logo.png") no-repeat 0 0;
+        background-size: 30px 30px;
         width: 30px;
         height: 30px;
         display: block;

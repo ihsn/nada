@@ -13,6 +13,7 @@ ALTER TABLE `ci_sessions` ENGINE = Innodb;
 ALTER TABLE `citation_authors` ENGINE = Innodb;
 ALTER TABLE `citations` ENGINE = Innodb;
 ALTER TABLE `configurations` ENGINE = Innodb;
+ALTER TABLE `site_layout` ENGINE = Innodb;
 ALTER TABLE `countries` ENGINE = Innodb;
 ALTER TABLE `country_aliases` ENGINE = Innodb;
 ALTER TABLE `da_collection_surveys` ENGINE = Innodb;

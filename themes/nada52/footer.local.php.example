@@ -1,0 +1,13 @@
+<?php
+/**
+ * Optional site-specific footer.
+ *
+ * Copy this file to footer.local.php and edit it. When footer.local.php exists, the public site
+ * always uses it (Admin > Site footer theme / custom HTML are ignored for visitors).
+ *
+ * footer.local.php is not shipped and survives theme upgrades.
+ *
+ * Start from the stock theme footer:
+ *   cp themes/nada52/footer_theme.php themes/nada52/footer.local.php
+ */
+include __DIR__ . '/footer_theme.php';

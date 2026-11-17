@@ -1,0 +1,14 @@
+<?php
+/**
+ * Optional site-specific header.
+ *
+ * Copy this file to header.local.php and edit it. When header.local.php exists,
+ * the public site always uses it (Admin > Site header builder settings are ignored
+ * until you rename or remove header.local.php).
+ *
+ * header.local.php is not shipped in releases; keep it in your backups.
+ *
+ * Start from the stock theme header:
+ *   cp header_theme.php header.local.php
+ */
+include __DIR__ . '/header_theme.php';

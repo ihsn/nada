@@ -34,7 +34,7 @@ $site_navigation_menu=get_site_menu();
 	  <base href="<?php echo js_base_url(); ?>">
 	  <title><?php echo $title; ?></title>
 
-    <link rel="stylesheet" href="<?php echo base_url()?>themes/nada/css/font-awesome.min.css">
+    <link rel="stylesheet" href="<?php echo base_url(); ?>themes/assets/fontawesome/4.7.0/css/font-awesome.min.css">
 
     <!-- Bootstrap -->
     <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/bootstrap/css/bootstrap.css" rel="stylesheet">

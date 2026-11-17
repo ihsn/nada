@@ -23,6 +23,8 @@ $lang['API Logs']="API Logs";
 $lang['Site Logs']="Site Logs";
 $lang['Settings']="Settings";
 $lang['Site header']="Site header";
+$lang['Site layout']="Site layout";
+
 $lang['Countries']="Countries";
 $lang['Regions']="Regions";
 $lang['Vocabularies']="Vocabularies";
