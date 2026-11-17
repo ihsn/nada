@@ -129,10 +129,6 @@ $template['box']['theme_folder'] = 'opendata';
 $template['admin']['template'] = '../../themes/adminbt/index';
 $template['admin']['theme_folder'] = 'adminbt';
 
-//admin template file
-$template['admin5']['template'] = '../../themes/adminbt4/index';
-$template['admin5']['theme_folder'] = 'adminbt4';
-
 //blank admin template with all stylesheets included
 $template['admin_blank']['template'] = '../../themes/adminbt4/blank';
 $template['admin_blank']['theme_folder'] = 'adminbt4';

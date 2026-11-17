@@ -21,7 +21,6 @@ class Catalog extends MY_Controller {
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
 		//$this->load->helper("catalog");
-		$this->template->set_template('admin');
 		$this->load->library("Dataset_manager");
 
 		//load language file
@@ -308,7 +307,6 @@ class Catalog extends MY_Controller {
 
 		//user has permissions on the repo
 		//$this->acl->user_has_repository_access($this->active_repo->id);
-		$this->template->set_template('admin');
 
 		// Show Vue 3 upload UI (GET); POST is unchanged multipart handling below.
 		if (!$this->input->post('submit')) {

@@ -15,7 +15,6 @@ class Collections extends MY_Controller {
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
 		//$this->load->helper("catalog");
-		$this->template->set_template('admin');
 
 		//load language file
 		$this->lang->load('general');

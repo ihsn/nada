@@ -9,7 +9,6 @@ class Data_structures extends MY_Controller {
 	public function __construct()
 	{
 		parent::__construct();
-		$this->template->set_template('admin5');
 	}
 
 	public function index()
