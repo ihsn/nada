@@ -269,6 +269,14 @@ abstract class REST_Controller extends CI_Controller {
     protected $_insert_id = '';
 
     /**
+     * Log row built by _log_request(); written once in __destruct() together with
+     * rtime and response_code, so each request costs a single INSERT.
+     *
+     * @var array|null
+     */
+    protected $_pending_log = NULL;
+
+    /**
      * If the request is allowed based on the API key provided
      *
      * @var bool
@@ -623,10 +631,11 @@ abstract class REST_Controller extends CI_Controller {
         // Get the current timestamp
         $this->_end_rtime = microtime(TRUE);
 
-        // Log the loading time to the log table
+        // Write the log row (request details + response time + response code) in one INSERT
         if ($this->config->item('rest_enable_logging') === TRUE)
         {
             $this->_log_access_time();
+            $this->_write_log();
         }
     }
 
@@ -1215,25 +1224,113 @@ abstract class REST_Controller extends CI_Controller {
             $user_id = $this->_apiuser->user_id;
         }
         
-        // Insert the request into the log table
-        $is_inserted = $this->rest->db
-            ->insert(
-                $this->config->item('rest_logs_table'), [
-                'uri' => $this->uri->uri_string(),
-                'method' => $this->request->method,
-                //'params' => $this->_args ? ($this->config->item('rest_logs_json_params') === TRUE ? json_encode($this->_args) : serialize($this->_args)) : NULL,
-                'params' =>$this->input->server('QUERY_STRING'),
-                'api_key' => isset($this->rest->key) ? substr($this->rest->key, 0, 12) : '', // Log prefix only (first 12 chars)
-                'user_id'=> $user_id,
-                'ip_address' => $this->input->ip_address(),
-                'time' => time(),
-                'authorized' => $authorized
-            ]);
+        // A request is logged once. If _remap() logs it again (e.g. invalid key, then the
+        // key-level check), keep the first row and only ever downgrade "authorized".
+        if ($this->_pending_log !== NULL) {
+            $this->_pending_log['authorized'] = ($this->_pending_log['authorized'] && $authorized);
+            return TRUE;
+        }
 
-        // Get the last insert id to update at a later stage of the request
-        $this->_insert_id = $this->rest->db->insert_id();
+        // Only the query string is logged, never the request body.
+        $max_params = (int) $this->config->item('rest_logs_params_max_length');
+        $params = $this->_redact_query_string((string) $this->input->server('QUERY_STRING'));
 
-        return $is_inserted;
+        // Built now (user/key/ip as seen at auth time), inserted once in __destruct()
+        $this->_pending_log = [
+            'uri' => $this->_truncate_log_value($this->uri->uri_string(), 255),
+            'method' => $this->request->method,
+            'params' => $params === '' ? NULL : $this->_truncate_log_value($params, $max_params > 0 ? $max_params : 2048, '...[truncated]'),
+            'api_key' => isset($this->rest->key) ? substr($this->rest->key, 0, 12) : '', // Log prefix only (first 12 chars)
+            'user_id'=> $user_id,
+            'ip_address' => $this->input->ip_address(),
+            'time' => time(),
+            'authorized' => $authorized
+        ];
+
+        return TRUE;
+    }
+
+    /**
+     * Insert the pending log row (with rtime / response_code if known). Called from __destruct().
+     *
+     * @return bool
+     */
+    protected function _write_log()
+    {
+        if ($this->_pending_log === NULL || empty($this->rest->db)) {
+            return FALSE;
+        }
+
+        $row = $this->_pending_log;
+        $row['authorized'] = $row['authorized'] ? 1 : 0; // same values CI stored for TRUE/FALSE before
+        $this->_pending_log = NULL;
+
+        // Runs during shutdown: never let a logging failure surface as a fatal error.
+        try {
+            $is_inserted = $this->rest->db->insert($this->config->item('rest_logs_table'), $row);
+            $this->_insert_id = $this->rest->db->insert_id();
+            return (bool) $is_inserted;
+        } catch (Throwable $e) {
+            log_message('error', 'REST api_logs insert failed: ' . $e->getMessage());
+            return FALSE;
+        }
+    }
+
+    /**
+     * Replace values of sensitive query keys (rest_logs_redact_keys) with [REDACTED].
+     * Keys match case-insensitively on the whole name or the name before "[" (e.g. password[]).
+     *
+     * @param string $query_string Raw QUERY_STRING
+     * @return string
+     */
+    protected function _redact_query_string($query_string)
+    {
+        $redact = $this->config->item('rest_logs_redact_keys');
+        if ($redact === NULL) {
+            // Not set (older rest.php): use the defaults. Set an empty array to turn redaction off.
+            $redact = array('token', 'key', 'api_key', 'password', 'secret', 'email');
+        }
+        if ($query_string === '' || empty($redact) || !is_array($redact)) {
+            return $query_string;
+        }
+        $redact = array_map('strtolower', $redact);
+
+        $pairs = explode('&', $query_string);
+        foreach ($pairs as $i => $pair) {
+            if ($pair === '') {
+                continue;
+            }
+            $parts = explode('=', $pair, 2);
+            $name = strtolower(trim(urldecode($parts[0])));
+            $base = strstr($name, '[', TRUE);
+
+            if (in_array($name, $redact, TRUE) || ($base !== FALSE && in_array($base, $redact, TRUE))) {
+                $pairs[$i] = $parts[0] . '=[REDACTED]';
+            }
+        }
+
+        return implode('&', $pairs);
+    }
+
+    /**
+     * Cut a value to at most $max bytes (UTF-8 safe), appending $suffix when cut.
+     *
+     * @param string $value
+     * @param int $max Maximum length in bytes, including the suffix
+     * @param string $suffix
+     * @return string
+     */
+    protected function _truncate_log_value($value, $max, $suffix = '')
+    {
+        $value = (string) $value;
+        if (strlen($value) <= $max) {
+            return $value;
+        }
+
+        $keep = max(0, $max - strlen($suffix));
+        $cut = function_exists('mb_strcut') ? mb_strcut($value, 0, $keep, 'UTF-8') : substr($value, 0, $keep);
+
+        return $cut . $suffix;
     }
 
     /**
@@ -2245,46 +2342,36 @@ abstract class REST_Controller extends CI_Controller {
     }
 
     /**
-     * Updates the log table with the total access time
+     * Records the total access time on the pending log row (written in __destruct()).
      *
      * @access protected
-     * @author Chris Kacerguis
-     * @return bool TRUE log table updated; otherwise, FALSE
+     * @return bool TRUE if there is a pending log row; otherwise, FALSE
      */
     protected function _log_access_time()
     {
-        if($this->_insert_id == ''){
+        if ($this->_pending_log === NULL) {
             return false;
         }
 
-        $payload['rtime'] = $this->_end_rtime - $this->_start_rtime;
-
-        return $this->rest->db->update(
-            $this->config->item('rest_logs_table'), $payload, [
-            'id' => $this->_insert_id
-        ]);
+        $this->_pending_log['rtime'] = $this->_end_rtime - $this->_start_rtime;
+        return true;
     }
 
     /**
-     * Updates the log table with HTTP response code
+     * Records the HTTP response code on the pending log row (written in __destruct()).
      *
      * @access protected
-     * @author Justin Chen
      * @param $http_code int HTTP status code
-     * @return bool TRUE log table updated; otherwise, FALSE
+     * @return bool TRUE if there is a pending log row; otherwise, FALSE
      */
     protected function _log_response_code($http_code)
     {
-        if($this->_insert_id == ''){
+        if ($this->_pending_log === NULL) {
             return false;
         }
 
-        $payload['response_code'] = $http_code;
-
-        return $this->rest->db->update(
-            $this->config->item('rest_logs_table'), $payload, [
-            'id' => $this->_insert_id
-        ]);
+        $this->_pending_log['response_code'] = (int) $http_code;
+        return true;
     }
 
     /**
