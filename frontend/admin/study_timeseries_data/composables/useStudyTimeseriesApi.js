@@ -1,6 +1,7 @@
 import { ref, computed, unref } from 'vue';
 import axios from 'axios';
 import { useAppConfig } from '@/shared/composables/useAppConfig';
+import { useResumableUpload } from '@/shared/composables/useResumableUpload';
 
 /** Best-effort message from API JSON or axios error (handles non-JSON error bodies). */
 function messageFromApiError(err) {
@@ -31,16 +32,13 @@ function messageFromApiError(err) {
 export function useStudyTimeseriesApi(studySid) {
   const { apiBaseUrl } = useAppConfig();
   const loading = ref(false);
+  const resumable = useResumableUpload();
 
   const sidEncoded = computed(() => encodeURIComponent(String(unref(studySid) ?? '').trim()));
 
   function dataPath() {
     const base = (apiBaseUrl.value || '').replace(/\/$/, '');
     return `${base}/data/${sidEncoded.value}`;
-  }
-
-  function importCsvPath() {
-    return `${dataPath()}/import`;
   }
 
   function noCacheParams(extra = {}) {
@@ -136,14 +134,105 @@ export function useStudyTimeseriesApi(studySid) {
     }
   }
 
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /** Map final chunked-import progress to the result shape the page shows. */
+  function importResultFromProgress(p) {
+    return {
+      inserted: p?.inserted ?? 0,
+      lines_read: p?.lines_read ?? 0,
+      ignored_columns: Array.isArray(p?.ignored_columns) ? p.ignored_columns : [],
+      unparsed_time_periods: p?.unparsed_time_periods ?? null,
+      resource_saved: p?.resource_saved !== false,
+    };
+  }
+
+  /** GET …/data/{sid}/import-status — chunked import progress, or null when none. */
+  async function fetchImportStatus() {
+    try {
+      const { data } = await axios.get(`${dataPath()}/import-status`, {
+        params: noCacheParams(),
+        withCredentials: true,
+      });
+      if (data.status !== 'success') throw new Error(data.message || 'Import status request failed');
+      return data.result ?? null;
+    } catch (err) {
+      throw new Error(messageFromApiError(err));
+    }
+  }
+
   /**
-   * Multipart CSV import — POST …/data/{sid}/import. Optional `dsdIdno` links that DSD before loading rows.
-   * @param {{ file: File; delimiter: string; mapping?: Record<string, string>; ensureUniqueIndex?: boolean; dsdIdno?: string }} opts
+   * Repeat POST …/data/{sid}/import-process until the staged import finishes. Each call works for a
+   * bounded time on the server, so large files never hit request timeouts.
+   * @param {(p: object) => void} [onProgress]
+   */
+  async function runStagedImport(onProgress) {
+    let failures = 0;
+    for (;;) {
+      let progress;
+      try {
+        const { data } = await axios.post(
+          `${dataPath()}/import-process`,
+          { max_time: 30 },
+          {
+            params: { id_format: 'id' },
+            headers: { 'Content-Type': 'application/json' },
+            withCredentials: true,
+            timeout: 10 * 60 * 1000,
+          }
+        );
+        if (data.status !== 'success') throw new Error(data.message || 'Import failed');
+        progress = data.result ?? {};
+        failures = 0;
+      } catch (err) {
+        const status = err?.response?.status;
+        // 409: a previous call is still running server-side; gateway/network errors: the call may
+        // still be running. Progress is saved per batch, so waiting and retrying is safe.
+        const retryable = status === 409 || status === 502 || status === 503 || status === 504 || !err?.response;
+        if (retryable && failures < 30) {
+          failures += 1;
+          const p = err?.response?.data?.result;
+          if (p && onProgress) onProgress({ phase: 'processing', ...p });
+          await sleep(Math.min(2000 * failures, 15000));
+          continue;
+        }
+        throw new Error(messageFromApiError(err));
+      }
+      if (onProgress) onProgress({ phase: 'processing', ...progress });
+      if (progress.status === 'failed') {
+        throw new Error(progress.error || 'Import failed');
+      }
+      if (!progress.has_more) {
+        return importResultFromProgress(progress);
+      }
+    }
+  }
+
+  /**
+   * Chunked CSV import: resumable upload → POST …/data/upload (stage + validate header) → repeated
+   * import-process calls. Optional `dsdIdno` links that DSD before staging.
+   * @param {{ file: File; delimiter: string; mapping?: Record<string, string>; ensureUniqueIndex?: boolean; dsdIdno?: string; onProgress?: (p: object) => void }} opts
    */
   async function importCsvData(opts) {
+    const onProgress = opts.onProgress;
+    let uploadId;
+    try {
+      const completed = await resumable.uploadFile(opts.file, {
+        metadata: { source: 'indicator_timeseries', allowed_types: 'csv' },
+        onProgress: (ev) => {
+          if (onProgress) onProgress({ phase: 'uploading', loaded: ev.loaded, total: ev.total });
+        },
+      });
+      uploadId = completed.upload_id;
+    } catch (err) {
+      throw new Error(messageFromApiError(err));
+    }
+
     const form = new FormData();
     form.append('idno', String(unref(studySid) ?? '').trim());
-    form.append('file', opts.file);
+    form.append('upload_id', uploadId);
     form.append('delimiter', opts.delimiter ?? ',');
     const dsdIdno = opts.dsdIdno != null ? String(opts.dsdIdno).trim() : '';
     if (dsdIdno !== '') {
@@ -154,18 +243,21 @@ export function useStudyTimeseriesApi(studySid) {
       form.append('mapping', JSON.stringify(mapping));
     }
     form.append('ensure_unique_index', opts.ensureUniqueIndex === false ? '0' : '1');
+    if (onProgress) onProgress({ phase: 'staging' });
     try {
-      const { data } = await axios.post(importCsvPath(), form, {
+      const base = (apiBaseUrl.value || '').replace(/\/$/, '');
+      const { data } = await axios.post(`${base}/data/upload`, form, {
         params: { id_format: 'id' },
         withCredentials: true,
       });
       if (data.status !== 'success') {
-        throw new Error(data.message || 'Import failed');
+        throw new Error(data.message || 'Upload failed');
       }
-      return data.result ?? {};
     } catch (err) {
       throw new Error(messageFromApiError(err));
     }
+
+    return runStagedImport(onProgress);
   }
 
   /**
@@ -243,6 +335,8 @@ export function useStudyTimeseriesApi(studySid) {
     fetchData: (opts) => wrap(fetchData(opts)),
     syncValueCounts,
     importCsvData,
+    runStagedImport,
+    fetchImportStatus,
     rehashData,
     clearIndicatorData,
     fetchPresentation,

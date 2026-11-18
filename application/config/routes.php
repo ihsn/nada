@@ -480,7 +480,10 @@ $route['api/admin/data_structures/(:any)']                      = 'api/admin/dat
 
 // Admin Timeseries API (indicator observations / Mongo; nested paths first)
 $route['api/admin/timeseries/data/import']                         = 'api/admin/timeseries/data_import';
+$route['api/admin/timeseries/data/upload']                         = 'api/admin/timeseries/data_upload';
 $route['api/admin/timeseries/data/(:any)/import']                = 'api/admin/timeseries/data_import/$1';
+$route['api/admin/timeseries/data/(:any)/import-process']        = 'api/admin/timeseries/data_import_process/$1';
+$route['api/admin/timeseries/data/(:any)/import-status']         = 'api/admin/timeseries/data_import_status/$1';
 $route['api/admin/timeseries/data/(:any)/import-csv']             = 'api/admin/timeseries/data_import_csv/$1';
 $route['api/admin/timeseries/data/(:any)/clear-data']            = 'api/admin/timeseries/data_clear_data/$1';
 $route['api/admin/timeseries/data/(:any)/count']                 = 'api/admin/timeseries/data_count/$1';

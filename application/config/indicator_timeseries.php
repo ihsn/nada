@@ -11,7 +11,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 $config['indicator_timeseries_collection_prefix'] = 'indicator_ts_';
 /** Rows buffered before Mongo flush during CSV import (and rehash); caps memory per batch. */
-$config['indicator_timeseries_bulk_batch_size']     = 500;
+$config['indicator_timeseries_bulk_batch_size']     = 5000;
 /** Max documents per insertMany; larger API/CSV batches are split automatically. */
 $config['indicator_timeseries_max_bulk_insert']     = 5000;
 $config['indicator_timeseries_key_hash_algorithm']  = 'sha256';

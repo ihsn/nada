@@ -32,6 +32,7 @@ class Timeseries_value_count_model extends CI_Model {
 		$this->db->delete('timeseries_value_counts');
 
 		$inserted = 0;
+		$batch = [];
 		foreach ($rows as $row) {
 			if (!is_array($row)) {
 				continue;
@@ -43,14 +44,21 @@ class Timeseries_value_count_model extends CI_Model {
 			if ($did <= 0 || $component === '' || $code === '' || $count < 1) {
 				continue;
 			}
-			$this->db->insert('timeseries_value_counts', [
+			$batch[] = [
 				'sid'            => $sid,
 				'dsd_id'         => $did,
 				'component_name' => $component,
 				'code'           => $code,
 				'obs_count'      => $count,
-			]);
+			];
 			$inserted++;
+			if (count($batch) >= 500) {
+				$this->db->insert_batch('timeseries_value_counts', $batch);
+				$batch = [];
+			}
+		}
+		if ($batch !== []) {
+			$this->db->insert_batch('timeseries_value_counts', $batch);
 		}
 
 		if ($this->db->trans_status() === false) {

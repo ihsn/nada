@@ -1180,19 +1180,71 @@ class Timeseries_mongo_model extends CI_Model {
 	 */
 	public function build_observation_document($sid, $idno, $dsd_id, array $field_values, array $components, array $structure_row)
 	{
-		$key_spec_rev = $this->timeseries_dsd()->build_key_spec_revision($structure_row);
-		$key_hash     = $this->compute_observation_key_hash($sid, $dsd_id, $key_spec_rev, $field_values, $components);
+		$plan = $this->build_observation_plan($components, $structure_row);
+		return $this->build_observation_document_with_plan($sid, $idno, $dsd_id, $field_values, $plan);
+	}
 
+	/**
+	 * Values that are the same for every row of one DSD; compute once per import instead of per row.
+	 *
+	 * @param array $components
+	 * @param array $structure_row
+	 * @return array{key_spec_rev:string,key_names:string[],time_name:?string,time_format:?string}
+	 */
+	public function build_observation_plan(array $components, array $structure_row)
+	{
 		$timeComp = $this->get_time_period_component($components);
-		$rawTime  = '';
-		if ($timeComp !== null) {
-			$tname   = (string) $timeComp['name'];
-			$rawTime = isset($field_values[$tname]) ? (string) $field_values[$tname] : '';
+		return [
+			'key_spec_rev' => $this->timeseries_dsd()->build_key_spec_revision($structure_row),
+			'key_names'    => $this->get_key_identity_component_names($components),
+			'time_name'    => $timeComp !== null ? (string) $timeComp['name'] : null,
+			'time_format'  => $timeComp && !empty($timeComp['time_period_format'])
+				? (string) $timeComp['time_period_format']
+				: null,
+		];
+	}
+
+	/** @var array<string,array> raw period => derived _ts_* fields (time periods repeat heavily in imports) */
+	private $ts_fields_cache = [];
+
+	/**
+	 * Same output as {@see build_observation_document()}, using a precomputed {@see build_observation_plan()}.
+	 *
+	 * @param int         $sid
+	 * @param string|null $idno
+	 * @param int         $dsd_id
+	 * @param array       $field_values
+	 * @param array       $plan
+	 * @return array
+	 */
+	public function build_observation_document_with_plan($sid, $idno, $dsd_id, array $field_values, array $plan)
+	{
+		$kv = [];
+		foreach ($plan['key_names'] as $n) {
+			$kv[$n] = $this->normalize_scalar_for_hash(isset($field_values[$n]) ? $field_values[$n] : null);
 		}
-		$tpFormat = $timeComp && !empty($timeComp['time_period_format'])
-			? (string) $timeComp['time_period_format']
-			: null;
-		$tsFields = $this->derive_ts_fields($rawTime, $tpFormat);
+		ksort($kv, SORT_STRING);
+		$key_hash = $this->compute_key_hash(json_encode([
+			'sid'    => (int) $sid,
+			'dsd_id' => (int) $dsd_id,
+			'rev'    => (string) $plan['key_spec_rev'],
+			'kv'     => $kv,
+		], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+		$rawTime = '';
+		if ($plan['time_name'] !== null && isset($field_values[$plan['time_name']])) {
+			$rawTime = (string) $field_values[$plan['time_name']];
+		}
+		$cacheKey = $rawTime . "\0" . (string) $plan['time_format'];
+		if (isset($this->ts_fields_cache[$cacheKey])) {
+			$tsFields = $this->ts_fields_cache[$cacheKey];
+		} else {
+			$tsFields = $this->derive_ts_fields($rawTime, $plan['time_format']);
+			if (count($this->ts_fields_cache) >= 20000) {
+				$this->ts_fields_cache = [];
+			}
+			$this->ts_fields_cache[$cacheKey] = $tsFields;
+		}
 
 		$doc = [];
 		foreach ($field_values as $k => $v) {
@@ -1204,7 +1256,7 @@ class Timeseries_mongo_model extends CI_Model {
 
 		$doc['sid']          = (int) $sid;
 		$doc['dsd_id']       = (int) $dsd_id;
-		$doc['key_spec_rev'] = $key_spec_rev;
+		$doc['key_spec_rev'] = $plan['key_spec_rev'];
 		$doc['key_hash']     = $key_hash;
 		if ($idno !== null && $idno !== '') {
 			$doc['idno'] = (string) $idno;
@@ -2393,22 +2445,7 @@ class Timeseries_mongo_model extends CI_Model {
 			return [];
 		}
 
-		$component_names = [];
-		foreach ($components as $component) {
-			if (!is_array($component) || empty($component['name']) || empty($component['column_type'])) {
-				continue;
-			}
-			$columnType = (string) $component['column_type'];
-			if (!in_array($columnType, $allowed_column_types, true)) {
-				continue;
-			}
-			$name = trim((string) $component['name']);
-			if ($name === '') {
-				continue;
-			}
-			$component_names[$name] = true;
-		}
-		$component_names = array_keys($component_names);
+		$component_names = $this->get_value_count_component_names($components, $allowed_column_types);
 		if (empty($component_names)) {
 			return [];
 		}
@@ -2420,32 +2457,96 @@ class Timeseries_mongo_model extends CI_Model {
 			],
 		];
 
-		// Group in MongoDB so only distinct codes reach PHP; loading every
-		// observation does not fit in memory for large series.
-		$coll   = $this->get_collection($dsd_id);
-		$counts = [];
+		// One collection scan for all components: emit one {k, v} pair per counted component,
+		// then group on (k, v). Grouping happens in MongoDB so only distinct codes reach PHP.
+		$pairs = [];
 		foreach ($component_names as $component_name) {
-			$pipeline = [
-				['$match' => $filter],
-				['$group' => [
-					'_id'   => '$' . $component_name,
-					'count' => ['$sum' => 1],
-				]],
-			];
-			foreach ($coll->aggregate($pipeline, ['allowDiskUse' => true]) as $row) {
-				$code = $this->_value_count_code_string($row['_id']);
-				if ($code === null) {
-					continue;
-				}
-				if (!isset($counts[$component_name][$code])) {
-					$counts[$component_name][$code] = 0;
-				}
-				$counts[$component_name][$code] += (int) $row['count'];
+			$pairs[] = ['k' => ['$literal' => $component_name], 'v' => '$' . $component_name];
+		}
+		$pipeline = [
+			['$match' => $filter],
+			['$project' => ['_id' => 0, 'p' => $pairs]],
+			['$unwind' => '$p'],
+			['$group' => [
+				'_id'   => ['k' => '$p.k', 'v' => '$p.v'],
+				'count' => ['$sum' => 1],
+			]],
+		];
+
+		$tally = [];
+		$cursor = $this->get_collection($dsd_id)->aggregate($pipeline, ['allowDiskUse' => true]);
+		foreach ($cursor as $row) {
+			$component_name = (string) $row['_id']['k'];
+			$code = $this->_value_count_code_string(isset($row['_id']['v']) ? $row['_id']['v'] : null);
+			if ($code === null) {
+				continue;
 			}
+			if (!isset($tally[$component_name][$code])) {
+				$tally[$component_name][$code] = 0;
+			}
+			$tally[$component_name][$code] += (int) $row['count'];
 		}
 
+		return $this->value_count_rows_from_tally($dsd_id, $tally);
+	}
+
+	/**
+	 * Component names whose codes are counted into timeseries_value_counts.
+	 *
+	 * @param array    $components
+	 * @param string[] $allowed_column_types
+	 * @return string[]
+	 */
+	public function get_value_count_component_names(array $components, array $allowed_column_types = ['dimension', 'geography', 'periodicity'])
+	{
+		$component_names = [];
+		foreach ($components as $component) {
+			if (!is_array($component) || empty($component['name']) || empty($component['column_type'])) {
+				continue;
+			}
+			if (!in_array((string) $component['column_type'], $allowed_column_types, true)) {
+				continue;
+			}
+			$name = trim((string) $component['name']);
+			if ($name !== '') {
+				$component_names[$name] = true;
+			}
+		}
+		return array_keys($component_names);
+	}
+
+	/**
+	 * Add one observation document to an in-memory value-count tally (same rules as
+	 * {@see build_value_counts_for_sid()}), so an import can count codes while it streams rows.
+	 *
+	 * @param array    $tally component name => [code => count]
+	 * @param array    $doc
+	 * @param string[] $component_names from {@see get_value_count_component_names()}
+	 */
+	public function tally_value_counts(array &$tally, array $doc, array $component_names)
+	{
+		foreach ($component_names as $name) {
+			$code = $this->_value_count_code_string(isset($doc[$name]) ? $doc[$name] : null);
+			if ($code === null) {
+				continue;
+			}
+			if (!isset($tally[$name][$code])) {
+				$tally[$name][$code] = 0;
+			}
+			$tally[$name][$code]++;
+		}
+	}
+
+	/**
+	 * @param int   $dsd_id
+	 * @param array $tally component name => [code => count]
+	 * @return array<int,array{dsd_id:int,component_name:string,code:string,obs_count:int}>
+	 */
+	public function value_count_rows_from_tally($dsd_id, array $tally)
+	{
+		$dsd_id = (int) $dsd_id;
 		$out = [];
-		foreach ($counts as $component_name => $by_code) {
+		foreach ($tally as $component_name => $by_code) {
 			foreach ($by_code as $code => $count) {
 				if ($count < 1) {
 					continue;

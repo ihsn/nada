@@ -21,6 +21,11 @@ require_once APPPATH . '/libraries/MY_REST_Controller.php';
  *        the study→DSD link like {@see data_attach_dsd_post} before import; optional `delimiter`, `mapping`
  *        (JSON string), `ensure_unique_index` (0|1). On success copies CSV into the study catalogue folder as
  *        {sid}_indicator_data.csv and upserts a {@see resources} row (resource_idno from config).
+ *        Synchronous — large files should use the chunked flow below.
+ *   POST .../data/upload — same fields as data/import; validates the header and stages the CSV (no data changes)
+ *   POST .../data/{idno}/import-process — optional JSON { "max_time": 10–120 }; advances the staged import
+ *        for a bounded time; repeat while result.has_more (409 while another call holds the lock)
+ *   GET  .../data/{idno}/import-status — staged import progress (null when none)
  *   POST .../data/{idno}/rehash — optional JSON { "limit": n }
 	 *   GET  .../data/{idno}/duplicates
 	 *   GET  .../data/{idno}/schema
@@ -48,6 +53,7 @@ class Timeseries extends MY_REST_Controller {
 		$this->load->model('Timeseries_mongo_model');
 		$this->load->model('Timeseries_dsd_model');
 		$this->load->model('Timeseries_value_count_model');
+		$this->load->model('Timeseries_csv_import_model');
 		$this->load->model('Study_presentation_model');
 		$this->load->model('Survey_resource_model');
 		$this->load->model('Catalog_model');
@@ -165,6 +171,7 @@ class Timeseries extends MY_REST_Controller {
 		try {
 			$ctx = $this->_context_from_idno($idno);
 			$this->has_dataset_access('edit', (int) $ctx['sid']);
+			$this->_assert_no_running_import_job((int) $ctx['sid']);
 			$this->Timeseries_mongo_model->delete_observations_for_sid((int) $ctx['dsd_id'], (int) $ctx['sid']);
 			$this->_clear_value_counts_for_sid((int) $ctx['sid']);
 			$this->_unlink_indicator_timeseries_import_csv_and_legacy((int) $ctx['sid']);
@@ -296,188 +303,56 @@ class Timeseries extends MY_REST_Controller {
 
 	/**
 	 * POST .../data/import — multipart: required `idno`; CSV via `file` or completed `upload_id`; optional `dsd_idno`, `delimiter`, `mapping`, `ensure_unique_index`
+	 *
+	 * Synchronous: the whole file is processed inside this request. Large files should use
+	 * POST .../data/upload followed by repeated POST .../data/{idno}/import-process instead.
 	 */
 	public function data_import_post()
 	{
 		try {
-			$postIdno = $this->input->post('idno');
-			$idnoIn    = ($postIdno !== null && trim((string) $postIdno) !== '') ? trim((string) $postIdno) : '';
-			if ($idnoIn === '') {
-				throw new Exception('Dataset idno is required (multipart field "idno")');
-			}
-			$sid = (int) $this->get_sid_from_idno($idnoIn);
-			$this->has_dataset_access('edit', $sid);
+			$params = $this->_import_request_params();
+			$ctx    = $params['ctx'];
+			$this->_assert_no_running_import_job((int) $ctx['sid']);
 
-			$dsdIdno = $this->input->post('dsd_idno');
-			$dsdIdno = ($dsdIdno !== null && trim((string) $dsdIdno) !== '') ? trim((string) $dsdIdno) : '';
-			if ($dsdIdno !== '') {
-				$this->load->model('Data_structure_model');
-				$dsdRow = $this->Data_structure_model->get_structure_by_idno($dsdIdno);
-				if (!$dsdRow) {
-					throw new Exception("Data structure not found for dsd_idno '{$dsdIdno}'.");
-				}
-				$this->_apply_structure_link_to_survey($sid, [
-					'id'   => (int) $dsdRow['id'],
-					'idno' => (string) $dsdRow['idno'],
-				]);
-			}
-
-			$ctx = $this->_context_from_idno($idnoIn);
 			$csvSource = $this->_resolve_csv_import_file_path();
-
-			$delimiter = $this->input->post('delimiter');
-			$delimiter = ($delimiter !== null && $delimiter !== '') ? (string) $delimiter : ',';
-			if ($delimiter === '\\t') {
-				$delimiter = "\t";
-			}
-
-			$mapping_json = $this->input->post('mapping');
-			$mapping      = [];
-			if ($mapping_json !== null && $mapping_json !== '') {
-				$mapping = json_decode((string) $mapping_json, true);
-				if (!is_array($mapping)) {
-					throw new Exception('Invalid JSON in "mapping" form field');
-				}
-			}
-
-			$include_unique = $this->input->post('ensure_unique_index') !== '0';
+			$path      = $csvSource['path'];
+			$header    = $this->Timeseries_csv_import_model->read_header(
+				$path,
+				$params['delimiter'],
+				$params['mapping'],
+				$ctx['components']
+			);
 
 			set_time_limit(0);
 
-			$path = $csvSource['path'];
-			$fh   = fopen($path, 'rb');
-			if ($fh === false) {
-				throw new Exception('Could not read uploaded file');
-			}
-			$header = fgetcsv($fh, 0, $delimiter);
-			if ($header === false || empty($header)) {
-				fclose($fh);
-				throw new Exception('CSV has no header row');
-			}
-			$header = array_map(function ($h) {
-				return trim((string) $h);
-			}, $header);
+			// A synchronous import supersedes any staged chunked import for this study.
+			$this->_discard_import_job((int) $ctx['sid']);
 
-			$rename            = [];
-			$ignored_columns = [];
-			foreach ($header as $i => $col) {
-				$to = isset($mapping[$col]) ? trim((string) $mapping[$col]) : $col;
-				if ($to === '') {
-					continue;
-				}
-				$canonical = $this->Timeseries_mongo_model->resolve_dsd_component_name($to, $ctx['components']);
-				if ($canonical === null) {
-					$ignored_columns[] = $col !== '' ? $col : ('column ' . ($i + 1));
-					continue;
-				}
-				$rename[$i] = $canonical;
-			}
-			if (empty($rename)) {
-				fclose($fh);
-				$hint = $ignored_columns !== [] ? ' (ignored headers: ' . implode(', ', array_slice(array_values(array_unique($ignored_columns)), 0, 20)) . ')' : '';
-				throw new Exception('No CSV columns match a DSD field.' . $hint);
-			}
-			try {
-				$this->Timeseries_mongo_model->assert_csv_import_mapped_fields_cover_required_dsd(
-					array_values(array_unique(array_values($rename))),
-					$ctx['components']
-				);
-			} catch (Exception $e) {
-				fclose($fh);
-				throw $e;
-			}
-
-			$this->Timeseries_mongo_model->ensure_indexes((int) $ctx['dsd_id'], $include_unique, (array) $ctx['components']);
+			$this->Timeseries_mongo_model->ensure_indexes((int) $ctx['dsd_id'], $params['ensure_unique_index'], (array) $ctx['components']);
 			$this->Timeseries_mongo_model->delete_observations_for_sid((int) $ctx['dsd_id'], (int) $ctx['sid']);
 			$this->_clear_value_counts_for_sid((int) $ctx['sid']);
 
-			// Same idea as tables API (Data_table_mongo_model::import_csv_chunked): stream fgetcsv and
-			// flush Mongo inserts in bounded batches so we never hold the whole file as documents in RAM.
-			$chunkSize = (int) $this->config->item('indicator_timeseries_bulk_batch_size');
-			if ($chunkSize < 1) {
-				$chunkSize = 1000;
-			}
-			$maxBulk = (int) $this->config->item('indicator_timeseries_max_bulk_insert');
-			if ($maxBulk < 1) {
-				$maxBulk = 5000;
-			}
-			if ($chunkSize > $maxBulk) {
-				$chunkSize = $maxBulk;
-			}
-
-			$docs           = [];
-			$insertedTotal  = 0;
-			$dataRowsBuilt  = 0;
-			$lineNum        = 1;
-			$unparsed       = ['count' => 0, 'examples' => []];
-			while (($row = fgetcsv($fh, 0, $delimiter)) !== false) {
-				$lineNum++;
-				if ($this->_csv_row_all_empty($row)) {
-					continue;
-				}
-				$assoc = [];
-				foreach ($rename as $i => $name) {
-					$assoc[$name] = isset($row[$i]) ? trim((string) $row[$i]) : '';
-					if ($assoc[$name] === '') {
-						$assoc[$name] = null;
-					}
-				}
-				$fields = $this->Timeseries_mongo_model->filter_row_to_dsd_fields($assoc, $ctx['components']);
-				$doc    = $this->Timeseries_mongo_model->build_observation_document(
-					(int) $ctx['sid'],
-					$ctx['idno'],
-					(int) $ctx['dsd_id'],
-					$fields,
-					$ctx['components'],
-					$ctx['structure']
-				);
-				$this->_track_unparsed_time_period($unparsed, $doc, $ctx['components']);
-				$docs[] = $doc;
-				$dataRowsBuilt++;
-				if (count($docs) >= $chunkSize) {
-					$insertedTotal += $this->Timeseries_mongo_model->insert_observations_batch(
-						(int) $ctx['dsd_id'],
-						$docs,
-						false
-					);
-					$docs = [];
-				}
-			}
-			fclose($fh);
-
-			if (!empty($docs)) {
-				$insertedTotal += $this->Timeseries_mongo_model->insert_observations_batch(
-					(int) $ctx['dsd_id'],
-					$docs,
-					false
-				);
-			}
-
-			if ($dataRowsBuilt === 0) {
+			$state = $this->Timeseries_csv_import_model->process_rows(
+				$ctx,
+				$path,
+				$params['delimiter'],
+				$header['rename'],
+				$this->Timeseries_csv_import_model->initial_row_state($header['data_offset']),
+				0
+			);
+			if ($state['inserted'] === 0) {
 				throw new Exception('No data rows in CSV');
 			}
-			$this->_log_unparsed_time_periods($unparsed, $ctx);
-			$this->_sync_value_counts_for_context($ctx);
-			$this->Timeseries_mongo_model->refresh_ts_data_count_for_sid((int) $ctx['sid']);
-			$this->Dataset_model->clear_indicator_ts_sync_for_survey((int) $ctx['sid'], (int) $ctx['dsd_id']);
 
-			$resourceMeta = null;
-			if ($path !== '' && is_file($path)) {
-				try {
-					$resourceMeta = $this->_upsert_timeseries_csv_resource($ctx, $path);
-				} catch (Exception $persistEx) {
-					log_message('error', 'Timeseries CSV resource upsert failed: ' . $persistEx->getMessage());
-					$resourceMeta = null;
-				}
-			}
+			$resourceMeta = $this->_finalize_import($ctx, $state, $path, false);
 
 			$this->set_response([
 				'status' => 'success',
 				'result' => [
-					'inserted' => $insertedTotal,
-					'lines_read'  => $lineNum - 1,
-					'ignored_columns' => array_values(array_unique($ignored_columns)),
-					'unparsed_time_periods' => $unparsed,
+					'inserted' => $state['inserted'],
+					'lines_read'  => $state['lines_read'],
+					'ignored_columns' => $header['ignored_columns'],
+					'unparsed_time_periods' => $state['unparsed'],
 					'import_source'   => $csvSource['source'],
 					'upload_id'       => $csvSource['upload_id'],
 					'resource_id'     => $resourceMeta ? (int) $resourceMeta['resource_id'] : null,
@@ -493,6 +368,236 @@ class Timeseries extends MY_REST_Controller {
 				], REST_Controller::HTTP_CONFLICT);
 				return;
 			}
+			$this->_error_response($e);
+		}
+	}
+
+	/**
+	 * POST .../data/upload — stage a CSV for chunked import (step 1 of 2).
+	 *
+	 * Same multipart fields as POST .../data/import. Validates the header against the DSD and stores the
+	 * file in the study folder; existing observations are not touched until the first import-process call.
+	 * Then call POST .../data/{idno}/import-process until `has_more` is false.
+	 */
+	public function data_upload_post()
+	{
+		try {
+			$params = $this->_import_request_params();
+			$ctx    = $params['ctx'];
+			$sid    = (int) $ctx['sid'];
+			$this->_assert_no_running_import_job($sid);
+
+			$csvSource = $this->_resolve_csv_import_file_path();
+			$header    = $this->Timeseries_csv_import_model->read_header(
+				$csvSource['path'],
+				$params['delimiter'],
+				$params['mapping'],
+				$ctx['components']
+			);
+
+			$staged = $this->_staged_import_csv_path($sid);
+			if ($staged === null) {
+				throw new Exception('Study folder not found; cannot stage the import file');
+			}
+			@set_time_limit(0);
+			if (is_file($staged)) {
+				@unlink($staged);
+			}
+			if ($csvSource['source'] === 'file') {
+				$moved = @move_uploaded_file($csvSource['path'], $staged);
+			} else {
+				// rename() can fail across volumes; fall back to copy (the upload is deleted below).
+				$moved = @rename($csvSource['path'], $staged) || @copy($csvSource['path'], $staged);
+			}
+			if (!$moved || !is_file($staged)) {
+				throw new Exception('Could not store the uploaded CSV in the study folder');
+			}
+			if ($csvSource['upload_id'] !== null) {
+				$this->uploader->delete_upload($csvSource['upload_id']);
+			}
+
+			$job = $this->Timeseries_csv_import_model->create_job($sid, [
+				'idno'                => $ctx['idno'],
+				'dsd_id'              => (int) $ctx['dsd_id'],
+				'file_size'           => (int) filesize($staged),
+				'delimiter'           => $params['delimiter'],
+				'rename'              => $header['rename'],
+				'ignored_columns'     => $header['ignored_columns'],
+				'data_offset'         => (int) $header['data_offset'],
+				'ensure_unique_index' => $params['ensure_unique_index'],
+				'import_source'       => $csvSource['source'],
+			]);
+
+			$this->set_response([
+				'status' => 'success',
+				'result' => $this->Timeseries_csv_import_model->public_progress($job),
+				'links'  => [
+					'process' => site_url('api/admin/timeseries/data/' . rawurlencode($ctx['idno']) . '/import-process'),
+					'status'  => site_url('api/admin/timeseries/data/' . rawurlencode($ctx['idno']) . '/import-status'),
+				],
+			], REST_Controller::HTTP_CREATED);
+		} catch (Exception $e) {
+			$this->_error_response($e);
+		}
+	}
+
+	/**
+	 * POST .../data/{idno}/import-process — run the staged import for a bounded time (step 2 of 2).
+	 *
+	 * Optional JSON { "max_time": seconds } (10–120, default 30). Each call advances the import
+	 * (replace existing rows → insert CSV rows → finalize) and returns progress; repeat while
+	 * `result.has_more` is true. 409 when another call is still working on this study.
+	 */
+	public function data_import_process_post($idno = null)
+	{
+		$sid   = 0;
+		$token = null;
+		try {
+			$ctx = $this->_context_from_idno($idno);
+			$sid = (int) $ctx['sid'];
+			$this->has_dataset_access('edit', $sid);
+
+			$input   = $this->_optional_json_body();
+			$maxTime = isset($input['max_time']) ? (int) $input['max_time'] : 30;
+			$maxTime = max(10, min(120, $maxTime));
+
+			$model = $this->Timeseries_csv_import_model;
+			$job   = $model->get_job($sid);
+			if (!$job) {
+				throw new Exception('No staged import found for this study; upload a CSV first');
+			}
+			if (!in_array($job['status'], Timeseries_csv_import_model::ACTIVE_STATUSES, true)) {
+				$this->set_response(['status' => 'success', 'result' => $model->public_progress($job)], REST_Controller::HTTP_OK);
+				return;
+			}
+
+			$job = $model->acquire_lock($sid, $maxTime + 300);
+			if (!$job) {
+				$this->set_response([
+					'status'  => 'error',
+					'message' => 'Import is being processed by another request; retry shortly.',
+					'result'  => $model->public_progress($model->get_job($sid)),
+				], REST_Controller::HTTP_CONFLICT);
+				return;
+			}
+			$token = $job['lock_token'];
+
+			@set_time_limit(0);
+			// Keep going if the client disconnects, so saved progress always matches inserted rows.
+			ignore_user_abort(true);
+
+			if ((int) $job['dsd_id'] !== (int) $ctx['dsd_id']) {
+				throw new Exception('The study\'s data structure changed after the CSV was uploaded; upload it again');
+			}
+			$staged = $this->_staged_import_csv_path($sid);
+			if ($staged === null || !is_file($staged)) {
+				throw new Exception('Staged import file is missing; upload the CSV again');
+			}
+
+			$deadline  = microtime(true) + $maxTime;
+			$remaining = function () use ($deadline) {
+				return (int) max(1, ceil($deadline - microtime(true)));
+			};
+
+			$status = $job['status'];
+
+			if ($status === 'ready') {
+				$this->Timeseries_mongo_model->ensure_indexes((int) $ctx['dsd_id'], !empty($job['ensure_unique_index']), (array) $ctx['components']);
+				$this->_clear_value_counts_for_sid($sid);
+				$status = 'deleting';
+				$model->save_job($sid, $token, ['status' => $status, 'started_at' => time()]);
+			}
+
+			if ($status === 'deleting' && microtime(true) < $deadline) {
+				if ($model->delete_observations_batched((int) $ctx['dsd_id'], $sid, $remaining())) {
+					$status = 'in_progress';
+					$model->save_job($sid, $token, ['status' => $status]);
+				}
+			}
+
+			if ($status === 'in_progress' && microtime(true) < $deadline) {
+				$rowState = [
+					'byte_offset'    => (int) $job['byte_offset'],
+					'lines_read'     => (int) $job['lines_read'],
+					'inserted'       => (int) $job['inserted'],
+					'unparsed'       => $job['unparsed'],
+					'tally'          => $job['tally'],
+					'tally_overflow' => $job['tally_overflow'],
+					'eof'            => false,
+				];
+				$rowState = $model->process_rows(
+					$ctx,
+					$staged,
+					(string) $job['delimiter'],
+					$job['rename'],
+					$rowState,
+					$remaining(),
+					function (array $s) use ($model, $sid, $token) {
+						return $model->save_job($sid, $token, [
+							'byte_offset'    => $s['byte_offset'],
+							'lines_read'     => $s['lines_read'],
+							'inserted'       => $s['inserted'],
+							'unparsed'       => $s['unparsed'],
+							'tally'          => $s['tally'],
+							'tally_overflow' => $s['tally_overflow'],
+						]);
+					}
+				);
+				$save = [
+					'byte_offset' => $rowState['byte_offset'],
+					'lines_read'  => $rowState['lines_read'],
+				];
+				if ($rowState['eof']) {
+					if ($rowState['inserted'] === 0) {
+						throw new Exception('No data rows in CSV');
+					}
+					// Finalize in the next call so it gets a full time budget.
+					$status = 'finalizing';
+					$save['status'] = $status;
+				}
+				$model->save_job($sid, $token, $save);
+			} elseif ($status === 'finalizing') {
+				$resourceMeta = $this->_finalize_import($ctx, $job, $staged, true);
+				$model->save_job($sid, $token, [
+					'status'         => 'completed',
+					'completed_at'   => time(),
+					'resource_saved' => $resourceMeta !== null,
+				]);
+			}
+
+			$model->release_lock($sid, $token);
+			$token = null;
+
+			$this->set_response([
+				'status' => 'success',
+				'result' => $model->public_progress($model->get_job($sid)),
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$message = $this->_exception_chain_matches_duplicate($e)
+				? 'Duplicate observation (key_hash): the CSV contains more than one row for the same series and time period.'
+				: $e->getMessage();
+			if ($sid > 0 && $token !== null) {
+				log_message('error', "Timeseries chunked import failed (sid {$sid}): " . $e->getMessage());
+				$this->Timeseries_csv_import_model->release_lock($sid, $token, ['status' => 'failed', 'error' => $message]);
+			}
+			$this->_error_response(new Exception($message));
+		}
+	}
+
+	/**
+	 * GET .../data/{idno}/import-status — progress of the staged/chunked import (null when none).
+	 */
+	public function data_import_status_get($idno = null)
+	{
+		try {
+			$ctx = $this->_context_from_idno($idno);
+			$this->has_dataset_access('view', (int) $ctx['sid']);
+			$job = $this->Timeseries_csv_import_model->get_job((int) $ctx['sid']);
+			$this->set_response([
+				'status' => 'success',
+				'result' => $this->Timeseries_csv_import_model->public_progress($job),
+			], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
 			$this->_error_response($e);
 		}
 	}
@@ -1204,6 +1309,7 @@ class Timeseries extends MY_REST_Controller {
 		if (is_file($legacy)) {
 			@unlink($legacy);
 		}
+		$this->_discard_import_job($sid);
 	}
 
 	/**
@@ -1272,16 +1378,6 @@ class Timeseries extends MY_REST_Controller {
 				return false;
 			}
 			$i++;
-		}
-		return true;
-	}
-
-	private function _csv_row_all_empty(array $row)
-	{
-		foreach ($row as $cell) {
-			if (trim((string) $cell) !== '') {
-				return false;
-			}
 		}
 		return true;
 	}
@@ -1423,7 +1519,8 @@ class Timeseries extends MY_REST_Controller {
 			return null;
 		}
 		$destFull     = unix_path($surveyFolder . '/' . $basename);
-		if (!@copy($tmpPath, $destFull)) {
+		$alreadyInPlace = realpath($tmpPath) !== false && realpath($tmpPath) === realpath($destFull);
+		if (!$alreadyInPlace && !@copy($tmpPath, $destFull)) {
 			log_message('error', 'Timeseries CSV resource: copy to survey folder failed');
 			return null;
 		}
@@ -1545,5 +1642,168 @@ class Timeseries extends MY_REST_Controller {
 	private function _clear_value_counts_for_sid($sid)
 	{
 		$this->Timeseries_value_count_model->replace_counts_for_sid((int) $sid, []);
+	}
+
+	// -------------------------------------------------------------------------
+	// CSV import helpers (sync + chunked)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Shared multipart params for POST .../data/import and .../data/upload. Applies `dsd_idno` (study→DSD
+	 * link) before resolving the context.
+	 *
+	 * @return array{ctx:array,delimiter:string,mapping:array,ensure_unique_index:bool}
+	 */
+	private function _import_request_params()
+	{
+		$postIdno = $this->input->post('idno');
+		$idnoIn   = ($postIdno !== null && trim((string) $postIdno) !== '') ? trim((string) $postIdno) : '';
+		if ($idnoIn === '') {
+			throw new Exception('Dataset idno is required (multipart field "idno")');
+		}
+		$sid = (int) $this->get_sid_from_idno($idnoIn);
+		$this->has_dataset_access('edit', $sid);
+
+		$dsdIdno = $this->input->post('dsd_idno');
+		$dsdIdno = ($dsdIdno !== null && trim((string) $dsdIdno) !== '') ? trim((string) $dsdIdno) : '';
+		if ($dsdIdno !== '') {
+			$this->load->model('Data_structure_model');
+			$dsdRow = $this->Data_structure_model->get_structure_by_idno($dsdIdno);
+			if (!$dsdRow) {
+				throw new Exception("Data structure not found for dsd_idno '{$dsdIdno}'.");
+			}
+			$this->_apply_structure_link_to_survey($sid, [
+				'id'   => (int) $dsdRow['id'],
+				'idno' => (string) $dsdRow['idno'],
+			]);
+		}
+
+		$delimiter = $this->input->post('delimiter');
+		$delimiter = ($delimiter !== null && $delimiter !== '') ? (string) $delimiter : ',';
+		if ($delimiter === '\\t') {
+			$delimiter = "\t";
+		}
+
+		$mapping      = [];
+		$mapping_json = $this->input->post('mapping');
+		if ($mapping_json !== null && $mapping_json !== '') {
+			$mapping = json_decode((string) $mapping_json, true);
+			if (!is_array($mapping)) {
+				throw new Exception('Invalid JSON in "mapping" form field');
+			}
+		}
+
+		return [
+			'ctx'                 => $this->_context_from_idno($idnoIn),
+			'delimiter'           => $delimiter,
+			'mapping'             => $mapping,
+			'ensure_unique_index' => $this->input->post('ensure_unique_index') !== '0',
+		];
+	}
+
+	/**
+	 * Staged CSV for a chunked import: `{sid}_indicator_data.pending.csv` in the study folder.
+	 * Renamed to the canonical `{sid}_indicator_data.csv` when the import completes.
+	 *
+	 * @return string|null null when the study folder does not exist
+	 */
+	private function _staged_import_csv_path($sid)
+	{
+		$folder = $this->Catalog_model->get_survey_path_full((int) $sid);
+		if ($folder === null || $folder === '' || !is_dir($folder)) {
+			return null;
+		}
+		return unix_path(unix_path($folder) . '/' . (int) $sid . '_indicator_data.pending.csv');
+	}
+
+	/**
+	 * Reject when a chunked import is currently being processed for the study (lock held).
+	 */
+	private function _assert_no_running_import_job($sid)
+	{
+		$job = $this->Timeseries_csv_import_model->get_job((int) $sid);
+		if ($job
+			&& in_array($job['status'], Timeseries_csv_import_model::ACTIVE_STATUSES, true)
+			&& (int) $job['lock_until'] >= time()) {
+			throw new Exception('An import is currently running for this study; wait for it to finish');
+		}
+	}
+
+	/**
+	 * Remove the study's chunked-import job and staged file.
+	 */
+	private function _discard_import_job($sid)
+	{
+		$this->Timeseries_csv_import_model->delete_job((int) $sid);
+		$staged = $this->_staged_import_csv_path((int) $sid);
+		if ($staged !== null && is_file($staged)) {
+			@unlink($staged);
+		}
+	}
+
+	/**
+	 * After all rows are inserted: value counts, study counters, sync flag, canonical CSV + resource row.
+	 *
+	 * Value counts come from the tally built while streaming rows; they are recomputed in MongoDB only
+	 * when the tally overflowed or the stored row count does not match what this import inserted.
+	 *
+	 * @param array  $ctx
+	 * @param array  $state    inserted, unparsed, tally, tally_overflow
+	 * @param string $csvPath  the imported file
+	 * @param bool   $isStaged true: move $csvPath into place; false: copy it (temp upload)
+	 * @return array|null resource meta from {@see _upsert_timeseries_csv_resource()}
+	 */
+	private function _finalize_import(array $ctx, array $state, $csvPath, $isStaged)
+	{
+		$sid   = (int) $ctx['sid'];
+		$dsdId = (int) $ctx['dsd_id'];
+
+		$this->_log_unparsed_time_periods($state['unparsed'], $ctx);
+
+		$stored = $this->Timeseries_mongo_model->count_observations($dsdId, [
+			'$or' => [['sid' => $sid], ['sid' => (string) $sid]],
+		]);
+		if (empty($state['tally_overflow']) && $stored === (int) $state['inserted']) {
+			$this->Timeseries_value_count_model->replace_counts_for_sid(
+				$sid,
+				$this->Timeseries_mongo_model->value_count_rows_from_tally($dsdId, (array) $state['tally']),
+				$dsdId
+			);
+		} else {
+			if ($stored !== (int) $state['inserted']) {
+				log_message('error', "Timeseries import {$ctx['idno']}: inserted {$state['inserted']} rows but {$stored} are stored; recounting values from MongoDB");
+			}
+			$this->_sync_value_counts_for_context($ctx);
+		}
+
+		$this->Timeseries_mongo_model->refresh_ts_data_count_for_sid($sid);
+		$this->Dataset_model->clear_indicator_ts_sync_for_survey($sid, $dsdId);
+
+		$resourcePath = $csvPath;
+		if ($isStaged) {
+			$folder    = $this->Catalog_model->get_survey_path_full($sid);
+			$canonical = unix_path(unix_path($folder) . '/' . $this->Dataset_model->get_indicator_timeseries_import_csv_filename($sid));
+			if (is_file($canonical)) {
+				@unlink($canonical);
+			}
+			if (@rename($csvPath, $canonical)) {
+				$resourcePath = $canonical;
+			} else {
+				log_message('error', "Timeseries import {$ctx['idno']}: could not move staged CSV into place");
+			}
+		}
+
+		$resourceMeta = null;
+		if ($resourcePath !== '' && is_file($resourcePath)) {
+			try {
+				$resourceMeta = $this->_upsert_timeseries_csv_resource($ctx, $resourcePath);
+			} catch (Exception $persistEx) {
+				log_message('error', 'Timeseries CSV resource upsert failed: ' . $persistEx->getMessage());
+			}
+		}
+		if ($isStaged && $resourcePath !== $csvPath && is_file($csvPath)) {
+			@unlink($csvPath);
+		}
+		return $resourceMeta;
 	}
 }

@@ -3573,6 +3573,8 @@ paths:
         Supply the CSV either as a direct multipart `file` or as a completed resumable `upload_id`
         from `POST /uploads/init` and `POST /uploads/chunk/{upload_id}` — not both.
         Large files from external systems (e.g. Metadata Editor DuckDB export) should use `upload_id`.
+        The whole file is processed inside this request, so very large files can hit web-server
+        timeouts; use `POST /admin/timeseries/data/upload` + `POST .../import-process` for those.
       operationId: timeseriesAdminDataImport
       requestBody:
         required: true
@@ -3612,6 +3614,170 @@ paths:
       responses:
         '201':
           description: Import completed
+
+  /admin/timeseries/data/upload:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Stage a timeseries CSV for chunked import
+      description: >
+        Step 1 of the chunked import for large files. Accepts the same multipart fields as
+        `POST /admin/timeseries/data/import`. Validates the header against the DSD and stores the file
+        in the study folder; existing observations are not changed until the first
+        `POST /admin/timeseries/data/{idno}/import-process` call. Replaces any earlier staged import
+        for the study (409/400 if one is currently being processed).
+      operationId: timeseriesAdminDataUpload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [idno]
+              properties:
+                idno:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+                upload_id:
+                  type: string
+                delimiter:
+                  type: string
+                mapping:
+                  type: string
+                ensure_unique_index:
+                  type: string
+                  enum: ['0', '1']
+                dsd_idno:
+                  type: string
+      responses:
+        '201':
+          description: File staged (status `ready`)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [ready, deleting, in_progress, finalizing, completed, failed]
+                      has_more:
+                        type: boolean
+                        description: True while more import-process calls are needed.
+                      progress_percent:
+                        type: integer
+                      bytes_processed:
+                        type: integer
+                      file_size:
+                        type: integer
+                      lines_read:
+                        type: integer
+                      inserted:
+                        type: integer
+                      ignored_columns:
+                        type: array
+                        items:
+                          type: string
+                      unparsed_time_periods:
+                        type: object
+                      error:
+                        type: string
+                        nullable: true
+                      resource_saved:
+                        type: boolean
+                        nullable: true
+
+  /admin/timeseries/data/{idno}/import-process:
+    post:
+      tags:
+        - Timeseries Admin
+      summary: Advance a staged timeseries import
+      description: >
+        Step 2 of the chunked import. Each call works for at most `max_time` seconds — replacing the
+        study's existing observations, inserting CSV rows from the saved byte offset, then finalizing
+        (value counts, stored CSV, resource row) — and returns progress. Call repeatedly until
+        `result.has_more` is false. Returns 409 while another call is still processing the same study;
+        wait and retry.
+      operationId: timeseriesAdminDataImportProcess
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                max_time:
+                  type: integer
+                  minimum: 10
+                  maximum: 120
+                  default: 30
+      responses:
+        '200':
+          description: Progress after this call
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [ready, deleting, in_progress, finalizing, completed, failed]
+                      has_more:
+                        type: boolean
+                        description: True while more import-process calls are needed.
+                      progress_percent:
+                        type: integer
+                      bytes_processed:
+                        type: integer
+                      file_size:
+                        type: integer
+                      lines_read:
+                        type: integer
+                      inserted:
+                        type: integer
+                      ignored_columns:
+                        type: array
+                        items:
+                          type: string
+                      unparsed_time_periods:
+                        type: object
+                      error:
+                        type: string
+                        nullable: true
+                      resource_saved:
+                        type: boolean
+                        nullable: true
+        '409':
+          description: Another request is processing this import
+
+  /admin/timeseries/data/{idno}/import-status:
+    get:
+      tags:
+        - Timeseries Admin
+      summary: Staged timeseries import progress
+      description: Progress of the study's chunked import; `result` is null when there is none.
+      operationId: timeseriesAdminDataImportStatus
+      parameters:
+        - name: idno
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Import progress
 
   /admin/timeseries/data/{idno}/rehash:
     post:
