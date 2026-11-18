@@ -271,16 +271,8 @@ class Install extends CI_Controller {
 		$this->session->unset_userdata("installing");
 
 		// Write lock file to CATALOG_ROOT so future requests skip the DB check
-		$catalog_root = $this->config->item('catalog_root');
-		if (!empty($catalog_root))
-		{
-			if ($catalog_root[0] !== '/' && strpos($catalog_root, ':') === FALSE)
-			{
-				$catalog_root = FCPATH . $catalog_root;
-			}
-			$lock_file = rtrim($catalog_root, '/') . '/.nada_installed';
-			@file_put_contents($lock_file, date("U"));
-		}
+		$this->load->library('install_lock');
+		$this->install_lock->write();
 
 		$content = $this->load->view('install/completed', NULL, TRUE);
 		$this->_render($content);

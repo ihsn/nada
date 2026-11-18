@@ -261,53 +261,32 @@ class MY_Controller extends CI_Controller
 			show_error('You have not setup a database');
 		}
 
-		// Fast path: lock file present means app is installed — skip DB query
-		$lock_file = $this->_get_install_lock_path();
-		if ($lock_file && file_exists($lock_file))
+		// Fast path: a lock file written for this database means the app is installed — skip the DB query
+		$this->load->library('install_lock');
+		if ($this->install_lock->is_valid())
 		{
 			return TRUE;
 		}
 
-		// Lock file missing — check DB for app_installed row (the connection is open: Db_connection_guard, autoloaded,
-		// stops the request otherwise)
+		// No lock file, or one written for another database — check DB for app_installed row (the connection is open:
+		// Db_connection_guard, autoloaded, stops the request otherwise). On a database that is not installed the table
+		// is missing: that must send the request to the installer, not stop it with a db_debug error page.
+		$db_debug = $this->db->db_debug;
+		$this->db->db_debug = FALSE;
 		$this->db->select('name');
 		$this->db->where('name', 'app_installed');
 		$query = $this->db->get('configurations');
+		$this->db->db_debug = $db_debug;
 
 		if ($query && $query->num_rows() > 0)
 		{
-			// Installed — recreate lock file for subsequent requests (migration path)
-			if ($lock_file)
-			{
-				@file_put_contents($lock_file, date("U"));
-			}
+			// Installed — (re)write the lock file for subsequent requests
+			$this->install_lock->write();
 			return TRUE;
 		}
 
 		// connected, but the app is not installed
 		redirect('install');
-	}
-
-
-	/**
-	 * Returns the absolute path to the install lock file, or FALSE if
-	 * catalog_root is not configured.
-	 */
-	function _get_install_lock_path()
-	{
-		$catalog_root = $this->config->item('catalog_root');
-		if (empty($catalog_root))
-		{
-			return FALSE;
-		}
-
-		// Resolve to absolute path if relative (no leading / and no Windows drive letter)
-		if ($catalog_root[0] !== '/' && strpos($catalog_root, ':') === FALSE)
-		{
-			$catalog_root = FCPATH . $catalog_root;
-		}
-
-		return rtrim($catalog_root, '/') . '/.nada_installed';
 	}
 
 

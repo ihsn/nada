@@ -13,8 +13,14 @@ class Configurations_model extends CI_Model {
 	*/
     function load()
     {
+		// Runs on every request, before the "is the app installed" check: on a database that is not installed yet the
+		// table is missing, which must read as "no settings" (the request then goes to the installer), not stop the
+		// request with a database error page when db_debug is on.
+		$db_debug = $this->db->db_debug;
+		$this->db->db_debug = FALSE;
 		$this->db->select('name,value');
 		$result= $this->db->get('configurations');
+		$this->db->db_debug = $db_debug;
 
 		if ($result)
 		{

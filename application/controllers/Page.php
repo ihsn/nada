@@ -32,7 +32,8 @@ class Page extends MY_Controller {
 
 			//show home page
 			if ($page_==false){							
-				if ($default_home!==FALSE){
+				//an empty default home page would redirect the home page to itself, endlessly
+				if (is_string($default_home) && trim($default_home, " /")!==''){
 					//check if the page is a link or a static page
 					$data=$this->Menu_model->get_page($default_home);
 					
@@ -53,8 +54,8 @@ class Page extends MY_Controller {
 				$data=$this->Menu_model->get_page_by_min_weight();
 
 				if ($data){
-					//link or page
-					if ($data['linktype']!==0){
+					//link or page; a link with no URL would redirect the home page to itself, endlessly
+					if ($data['linktype']!==0 && trim((string) $data['url'], " /")!==''){
 						//link
 						redirect($data['url']);
 					}
