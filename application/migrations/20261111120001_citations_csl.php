@@ -35,7 +35,7 @@ class Migration_Citations_csl extends MY_Migration {
 		'flag'       => array(64, FALSE),
 		'notes'      => array(0, FALSE),
 		'owner'      => array(255, FALSE),
-		'lang'       => array(45, FALSE),
+		'lang'       => array(50, FALSE),
 		'url_status' => array(50, FALSE),
 		'url'        => array(2048, FALSE),
 		'doi'        => array(255, FALSE),

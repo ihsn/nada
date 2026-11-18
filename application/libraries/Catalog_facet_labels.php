@@ -162,9 +162,12 @@ class Catalog_facet_labels
         $this->ci->db->where('r.ispublished', 1);
         $this->ci->db->where_in('r.repositoryid', array_map('strval', array_keys($found)));
         $this->ci->db->order_by('r.weight');
+        // the search index may hold a repositoryid in another case than the table ("lsms" / "LSMS"): the collation
+        // matches either in where_in, so look the count up the same way
+        $found_ci = array_change_key_case($found, CASE_LOWER);
         $out = array();
         foreach ($this->ci->db->get('repositories r')->result_array() as $row) {
-            $row['found'] = $found[(string) $row['repositoryid']];
+            $row['found'] = $found_ci[strtolower((string) $row['repositoryid'])] ?? 0;
             $out[$row['id']] = $row;
         }
         return $out;

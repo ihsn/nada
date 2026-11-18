@@ -830,7 +830,7 @@ CREATE TABLE citations (
   pub_year int DEFAULT NULL,
   doi nvarchar(255) DEFAULT NULL,
   url nvarchar(2048) DEFAULT NULL,
-  lang nvarchar(45) DEFAULT NULL,
+  lang nvarchar(50) DEFAULT NULL,
   published tinyint NOT NULL CONSTRAINT DF_citations_published DEFAULT 0,
   flag nvarchar(64) DEFAULT NULL,
   notes nvarchar(max),
