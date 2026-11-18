@@ -29,7 +29,9 @@ class Codelists extends MY_REST_Controller {
 	 * collapsed=0 forces flat. flat=1 wins when both are set.
 	 *
 	 * With `page` (1-based): returns one page plus `total`, `page`, `per_page`.
-	 * Optional: `per_page` (default 50, max 200), `search` or `q`, `status` (exact smallint).
+	 * Optional: `per_page` (default 50, max 200), `search` or `q`, `status` (exact smallint),
+	 * `sort_by` / `sort_order` (asc|desc). Allowed sort_by: id, name, agency, version, idno,
+	 * status, changed, versions_count, item_count.
 	 * With `with_counts` (default on): item_count and dsd_component_count (main grid only; no group_count).
 	 * dsd_component_count: flat = by codelists.id; collapsed = DSD refs to any version with same agency+name.
 	 */
@@ -55,6 +57,16 @@ class Codelists extends MY_REST_Controller {
 					$search = $this->get('q');
 				}
 				$search = is_string($search) ? $search : '';
+				$sort_by = $this->get('sort_by');
+				$sort_by = is_string($sort_by) ? strtolower(trim($sort_by)) : '';
+				if ($sort_by === '' || !in_array($sort_by, Codelist_model::list_sort_fields(), true)) {
+					$sort_by = '';
+				}
+				$sort_order = $this->get('sort_order');
+				$sort_order = is_string($sort_order) ? strtolower(trim($sort_order)) : '';
+				if ($sort_order !== 'desc') {
+					$sort_order = 'asc';
+				}
 				$p = $this->Codelist_model->get_codelists_paged([
 					'page'        => $page,
 					'per_page'    => $per_page,
@@ -62,6 +74,8 @@ class Codelists extends MY_REST_Controller {
 					'with_counts' => $with_counts,
 					'flat'        => $flat,
 					'status'      => $status,
+					'sort_by'     => $sort_by,
+					'sort_order'  => $sort_order,
 				]);
 				$this->set_response([
 					'status' => 'success',

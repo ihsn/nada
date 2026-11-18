@@ -42,19 +42,19 @@ $options_datamatching=array(
 
     <tr class="border">
       <td width="200px"><?php echo t('first_name');?></td>
-      <td><span class="ures"><?php echo $user['fname']; ?></span></td>
+      <td><span class="ures"><?php echo html_escape($user['fname']); ?></span></td>
     </tr>
     <tr class="border">
       <td><?php echo t('last_name');?></td>
-      <td><span class="ures"><?php echo $user['lname']; ?></span></td>
+      <td><span class="ures"><?php echo html_escape($user['lname']); ?></span></td>
     </tr>
     <tr  class="border">
       <td><?php echo t('organization');?></td>
-      <td><span class="ures"><?php echo $user['organization']; ?></span></td>
+      <td><span class="ures"><?php echo html_escape($user['organization']); ?></span></td>
     </tr>
     <tr class="border">
       <td><?php echo t('email');?></td>
-      <td><span class="ures"><?php echo $user['email']; ?></span></td>
+      <td><span class="ures"><?php echo html_escape($user['email']); ?></span></td>
     </tr>
     <tr class="border">
       <td><?php echo t('dataset_requested');?></td>

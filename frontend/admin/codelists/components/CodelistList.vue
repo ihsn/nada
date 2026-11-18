@@ -26,6 +26,7 @@
           :page="page"
           :items-per-page="itemsPerPage"
           :items-per-page-options="[10, 25, 50, 100]"
+          :sort-by="sortBy"
           :loading="loading"
           item-value="id"
           item-selectable="selectable"
@@ -36,6 +37,7 @@
           class="elevation-0"
           @update:page="$emit('update:page', $event)"
           @update:items-per-page="$emit('update:itemsPerPage', $event)"
+          @update:sort-by="$emit('update:sortBy', $event)"
           @update:expanded="onExpandedChange"
         >
           <template #no-data>
@@ -189,10 +191,19 @@ const props = defineProps({
   serverTotal: { type: Number, default: 0 },
   page: { type: Number, default: 1 },
   itemsPerPage: { type: Number, default: 25 },
+  sortBy: { type: Array, default: () => [] },
   hasSearch: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['manage', 'delete', 'saved', 'batch-delete', 'update:page', 'update:itemsPerPage']);
+const emit = defineEmits([
+  'manage',
+  'delete',
+  'saved',
+  'batch-delete',
+  'update:page',
+  'update:itemsPerPage',
+  'update:sortBy',
+]);
 
 const selected = ref([]);
 
@@ -209,7 +220,7 @@ const displayItems = computed(() =>
 );
 
 watch(
-  () => [props.page, props.itemsPerPage],
+  () => [props.page, props.itemsPerPage, props.sortBy],
   () => {
     selected.value = [];
   }

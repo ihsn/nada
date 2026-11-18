@@ -1675,6 +1675,16 @@ function kses_init() {
  *
  * @since 2.8.1
  */
+/*
+ * safecss_filter_attr() (used when a "style" attribute is allowed) calls the WordPress hooks below.
+ * Outside WordPress they return the value unchanged.
+ */
+if ( ! function_exists( 'apply_filters' ) ) {
+    function apply_filters( $tag, $value ) {
+        return $value;
+    }
+}
+
 function safecss_filter_attr( $css, $deprecated = '' ) {
     if ( !empty( $deprecated ) )
         _deprecated_argument( __FUNCTION__, '2.8.1' ); // Never implemented

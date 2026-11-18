@@ -105,6 +105,7 @@
             <tr>
               <th class="perm-col-name">{{ t('role', 'Role') }}</th>
               <th>{{ t('description', 'Description') }}</th>
+              <th class="perm-col-users">{{ t('users', 'Users') }}</th>
               <th class="perm-col-actions text-end">{{ t('status', 'Status') }}</th>
             </tr>
           </thead>
@@ -117,13 +118,21 @@
                     :icon="role.is_admin ? 'mdi-shield-crown-outline' : 'mdi-shield-lock-outline'"
                     class="text-medium-emphasis flex-shrink-0"
                   />
-                  <span class="font-weight-semibold text-capitalize text-truncate">{{ role.name }}</span>
+                  <router-link
+                    :to="{ name: 'role', params: { id: role.id } }"
+                    class="perm-role-link font-weight-semibold text-capitalize text-truncate"
+                  >
+                    {{ role.name }}
+                  </router-link>
                   <v-chip size="x-small" variant="tonal" color="secondary" class="flex-shrink-0">
                     {{ t('system', 'System') }}
                   </v-chip>
                 </div>
               </td>
               <td class="text-medium-emphasis">{{ role.description || '—' }}</td>
+              <td>
+                <a :href="usersUrl(role)" class="perm-role-link">{{ role.user_count }}</a>
+              </td>
               <td class="text-end">
                 <span class="text-caption text-medium-emphasis">{{ t('locked', 'Locked') }}</span>
               </td>
@@ -154,6 +163,7 @@
             <tr>
               <th class="perm-col-name">{{ t('role', 'Role') }}</th>
               <th>{{ t('description', 'Description') }}</th>
+              <th class="perm-col-users">{{ t('users', 'Users') }}</th>
               <th class="perm-col-actions text-end">{{ t('actions', 'Actions') }}</th>
             </tr>
           </thead>
@@ -166,40 +176,29 @@
                     icon="mdi-account-key-outline"
                     class="text-medium-emphasis flex-shrink-0"
                   />
-                  <a
-                    href="#"
+                  <router-link
+                    :to="{ name: 'role', params: { id: role.id } }"
                     class="perm-role-link font-weight-medium text-capitalize text-truncate"
-                    @click.prevent="router.push(`/roles/${role.id}/edit`)"
                   >
                     {{ role.name }}
-                  </a>
+                  </router-link>
                 </div>
               </td>
               <td class="text-medium-emphasis">{{ role.description || '—' }}</td>
+              <td>
+                <a :href="usersUrl(role)" class="perm-role-link">{{ role.user_count }}</a>
+              </td>
               <td class="text-end text-no-wrap">
-                <v-tooltip :text="t('edit', 'Edit')" location="top">
+                <v-tooltip :text="t('edit_role_permissions', 'Edit role and permissions')" location="top">
                   <template #activator="{ props: tip }">
                     <v-btn
                       v-bind="tip"
                       icon
                       variant="text"
                       size="small"
-                      @click="router.push(`/roles/${role.id}/edit`)"
+                      :to="{ name: 'role', params: { id: role.id } }"
                     >
                       <v-icon size="20" icon="mdi-pencil-outline" />
-                    </v-btn>
-                  </template>
-                </v-tooltip>
-                <v-tooltip :text="t('permissions', 'Permissions')" location="top">
-                  <template #activator="{ props: tip }">
-                    <v-btn
-                      v-bind="tip"
-                      icon
-                      variant="text"
-                      size="small"
-                      @click="router.push(`/roles/${role.id}/permissions`)"
-                    >
-                      <v-icon size="20" icon="mdi-key-variant" />
                     </v-btn>
                   </template>
                 </v-tooltip>
@@ -252,15 +251,18 @@
           >
             {{ deleteDialog.error }}
           </v-alert>
-          <p class="mb-0">
-            {{
-              t(
-                'js_confirm_delete',
-                'Are you sure you want to delete the selected item(s)?'
-              )
-            }}
-            <strong v-if="deleteDialog.role">“{{ deleteDialog.role.name }}”</strong>
-          </p>
+          <div v-if="deleteDialog.role" class="perm-delete-text">
+            <p>
+              {{ t('delete_role_confirm', 'Delete the role "%s"? This cannot be undone.', deleteDialog.role.name) }}
+            </p>
+            <p v-if="deleteDialog.role.user_count > 0">
+              {{
+                deleteDialog.role.user_count === 1
+                  ? t('delete_role_users_one', '1 user will lose this role and its permissions.')
+                  : t('delete_role_users', '%d users will lose this role and its permissions.', deleteDialog.role.user_count)
+              }}
+            </p>
+          </div>
         </v-card-text>
         <v-divider />
         <v-card-actions class="pa-3">
@@ -294,6 +296,7 @@ const { siteUrl } = useAppConfig();
 const { listRoles, createRole, deleteRole } = usePermissionsApi();
 
 const siteBaseUrl = computed(() => String(siteUrl.value || '').replace(/\/$/, ''));
+const usersUrl = (role) => `${siteBaseUrl.value}/admin/users?role=${encodeURIComponent(String(role.id))}`;
 const breadcrumbItems = computed(() => [
   { title: t('admin', 'Admin'), href: `${siteBaseUrl.value}/admin` },
   { title: t('Manage roles', 'Manage roles'), disabled: true },
@@ -308,12 +311,8 @@ const createError = ref('');
 const createForm = reactive({ role: '', description: '' });
 const canCreate = computed(() => createForm.role.trim().length > 0);
 
-const systemRoles = computed(() =>
-  roles.value.filter((r) => r.is_locked || r.is_admin)
-);
-const customRoles = computed(() =>
-  roles.value.filter((r) => !r.is_locked && !r.is_admin)
-);
+const systemRoles = computed(() => roles.value.filter((r) => r.is_system));
+const customRoles = computed(() => roles.value.filter((r) => !r.is_system));
 
 const deleteDialog = reactive({ open: false, role: null, error: '', loading: false });
 const toast = reactive({ open: false, message: '', color: 'success' });
@@ -342,15 +341,12 @@ async function submitCreate() {
   creating.value = true;
   createError.value = '';
   try {
-    await createRole({
+    const created = await createRole({
       role: createForm.role.trim(),
       description: createForm.description.trim(),
     });
     cancelCreate();
-    toast.message = t('form_update_success', 'Your changes have been saved!');
-    toast.color = 'success';
-    toast.open = true;
-    await load();
+    await router.push({ name: 'role', params: { id: created.id }, query: { created: '1' } });
   } catch (e) {
     createError.value = e.message || 'Create failed';
   } finally {
@@ -371,7 +367,7 @@ async function confirmDelete() {
   try {
     await deleteRole(deleteDialog.role.id);
     deleteDialog.open = false;
-    toast.message = t('form_update_success', 'Your changes have been saved!');
+    toast.message = t('role_deleted', 'Role "%s" was deleted.', deleteDialog.role.name);
     toast.color = 'success';
     toast.open = true;
     await load();
@@ -390,7 +386,8 @@ onMounted(() => {
     toast.open = true;
     // Clear so refresh does not re-show
     if (typeof history !== 'undefined' && history.replaceState) {
-      const { flashSuccess, ...rest } = history.state || {};
+      const rest = { ...(history.state || {}) };
+      delete rest.flashSuccess;
       history.replaceState(rest, '');
     }
   }
@@ -430,6 +427,17 @@ onMounted(() => {
 .perm-col-name {
   width: 28%;
   min-width: 160px;
+}
+
+.perm-col-users {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.perm-delete-text {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .perm-col-actions {

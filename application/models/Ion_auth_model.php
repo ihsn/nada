@@ -680,6 +680,11 @@ class Ion_auth_model extends CI_Model
 	 **/
 	public function register($username, $password, $email, $additional_data = false, $group_name = false, $auth_type=NULL, $auth_type_id=NULL)
 	{	
+		$username = $this->_strip_html_value($username);
+		if (is_array($additional_data)) {
+			$additional_data = $this->_strip_html_fields($additional_data);
+		}
+
 	    if (empty($username) || empty($password) || empty($email) )
 	    {
 			$this->errors[]='Username, password, and email are required';
@@ -761,6 +766,7 @@ class Ion_auth_model extends CI_Model
 	        }
 	    }
 
+		$data = $this->_strip_html_fields($data);
 		$this->db->insert($this->tables['meta'], $data);
 		
 		return $id;
@@ -1051,8 +1057,42 @@ class Ion_auth_model extends CI_Model
 	 * @author Phil Sturgeon
 	 * @modified	Mehmood
 	 **/
+	/**
+	 * Account fields that are shown across the site. Forms reject HTML in them (disable_html_tags); this
+	 * also strips it for paths without a form (SSO sign-in, batch import, API).
+	 */
+	private static $plain_text_fields = array('username', 'first_name', 'last_name', 'company', 'phone', 'country');
+
+	/**
+	 * @param array $data
+	 * @return array
+	 */
+	private function _strip_html_fields(array $data)
+	{
+		foreach (self::$plain_text_fields as $field) {
+			if (isset($data[$field]) && is_string($data[$field])) {
+				$data[$field] = $this->_strip_html_value($data[$field]);
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return mixed
+	 */
+	private function _strip_html_value($value)
+	{
+		return is_string($value) ? trim(strip_tags($value)) : $value;
+	}
+
 	public function update_user($id, $data)
 	{
+		if (is_array($data)) {
+			$data = $this->_strip_html_fields($data);
+		}
+
 	    $this->db->trans_begin();
 	    
 		$update_needed=false;
@@ -1365,36 +1405,6 @@ class Ion_auth_model extends CI_Model
 	
 	
 	
-	function impersonate($user_id,$current_user)
-	{
-		if (!is_numeric($user_id)){
-			return FALSE;
-		}
-		
-		$user_obj=$this->get_user($user_id);
-		
-		//$this->update_last_login($result->id);
-		$this->session->set_userdata('email',  $user_obj->email);
-		$this->session->set_userdata('username',  $user_obj->username);
-		$this->session->set_userdata('user_id',  $user_obj->id);
-		$this->session->set_userdata('impersonate_user',  $current_user->id);		
-	}
-	
-	function exit_impersonate()
-	{
-		if (!$this->session->userdata('impersonate_user')){
-			return FALSE;
-		}
-		
-		$user_id=(int)$this->session->userdata('impersonate_user');
-		$user_obj=$this->get_user($user_id);
-		$this->session->set_userdata('email',  $user_obj->email);
-		$this->session->set_userdata('username',  $user_obj->username);
-		$this->session->set_userdata('user_id',  $user_obj->id);
-		$this->session->unset_userdata('impersonate_user');		
-	}
-
-	
 	
 	
 	/**
@@ -1616,6 +1626,7 @@ class Ion_auth_model extends CI_Model
 			'name' => $name,
 			'level' => 0,
 			'ignore_limits' => 1,
+			'is_private_key' => 0,
 			'revoked_at' => NULL,
 			'created_by' => $user_id
 		);

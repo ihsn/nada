@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "citation-csl-schema.json",
+  "title": "NADA citation (CSL-JSON)",
+  "description": "A citation stored in citations.metadata: a CSL-JSON 1.0.2 item. NADA-only values live under custom.nada. Converted from/to the legacy flat format by application/libraries/Citation_csl.php.",
+  "type": "object",
+  "required": ["type", "title"],
+  "additionalProperties": true,
+  "definitions": {
+    "names": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "family": {"type": "string"},
+          "given": {"type": "string"},
+          "literal": {"type": "string"},
+          "dropping-particle": {"type": "string"},
+          "non-dropping-particle": {"type": "string"},
+          "suffix": {"type": "string"}
+        },
+        "anyOf": [
+          {"required": ["family"]},
+          {"required": ["given"]},
+          {"required": ["literal"]}
+        ]
+      }
+    },
+    "date": {
+      "type": "object",
+      "properties": {
+        "date-parts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {"type": ["integer", "string"]}
+          }
+        },
+        "raw": {"type": "string"},
+        "literal": {"type": "string"},
+        "season": {"type": ["integer", "string"]},
+        "circa": {"type": ["boolean", "integer", "string"]}
+      }
+    },
+    "text": {"type": ["string", "number"]}
+  },
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "article", "article-journal", "article-magazine", "article-newspaper", "bill", "book", "broadcast",
+        "chapter", "classic", "collection", "dataset", "document", "entry", "entry-dictionary",
+        "entry-encyclopedia", "event", "figure", "graphic", "hearing", "interview", "legal_case", "legislation",
+        "manuscript", "map", "motion_picture", "musical_score", "pamphlet", "paper-conference", "patent",
+        "performance", "periodical", "personal_communication", "post", "post-weblog", "regulation", "report",
+        "review", "review-book", "software", "song", "speech", "standard", "thesis", "treaty", "webpage"
+      ]
+    },
+    "title": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "original-title": {"$ref": "#/definitions/text"},
+    "container-title": {"$ref": "#/definitions/text"},
+    "collection-title": {"$ref": "#/definitions/text"},
+    "author": {"$ref": "#/definitions/names"},
+    "editor": {"$ref": "#/definitions/names"},
+    "translator": {"$ref": "#/definitions/names"},
+    "issued": {"$ref": "#/definitions/date"},
+    "accessed": {"$ref": "#/definitions/date"},
+    "publisher": {"$ref": "#/definitions/text"},
+    "publisher-place": {"$ref": "#/definitions/text"},
+    "authority": {"$ref": "#/definitions/text"},
+    "genre": {"$ref": "#/definitions/text"},
+    "volume": {"$ref": "#/definitions/text"},
+    "issue": {"$ref": "#/definitions/text"},
+    "edition": {"$ref": "#/definitions/text"},
+    "number": {"$ref": "#/definitions/text"},
+    "page": {"$ref": "#/definitions/text"},
+    "medium": {"$ref": "#/definitions/text"},
+    "abstract": {"$ref": "#/definitions/text"},
+    "keyword": {"$ref": "#/definitions/text"},
+    "language": {"type": "string"},
+    "DOI": {"type": "string", "maxLength": 255},
+    "URL": {"type": "string", "maxLength": 2048},
+    "ISBN": {"$ref": "#/definitions/text"},
+    "ISSN": {"$ref": "#/definitions/text"},
+    "custom": {
+      "type": "object",
+      "properties": {
+        "nada": {
+          "type": "object",
+          "description": "Legacy NADA values with no clean CSL field, kept so the conversion back to the legacy format is exact.",
+          "properties": {
+            "legacy_ctype": {"type": "string"},
+            "subtitle": {"type": "string"},
+            "country": {"type": "string"},
+            "language_label": {"type": "string"}
+          }
+        }
+      }
+    }
+  }
+}

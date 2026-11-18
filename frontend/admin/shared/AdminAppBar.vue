@@ -69,13 +69,6 @@
         </template>
         <v-list density="comfortable" min-width="220" class="text-body-1 py-1">
           <v-list-item
-            v-if="user.impersonating"
-            :href="urls.exitImpersonate"
-            :title="labels.exitImpersonate"
-            prepend-icon="mdi-account-switch"
-            link
-          />
-          <v-list-item
             :href="urls.changePassword"
             :title="labels.changePassword"
             prepend-icon="mdi-key-variant"
@@ -157,7 +150,6 @@ const labels = computed(() =>
       home: 'Home',
       dataCatalog: 'Data catalog',
       citations: 'Citations',
-      exitImpersonate: 'Exit impersonate',
     },
     raw.labels || {},
   ),

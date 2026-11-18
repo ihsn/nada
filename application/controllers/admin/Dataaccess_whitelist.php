@@ -1,65 +1,60 @@
 <?php
+/**
+ * Admin data-access whitelist — Vue 3 SPA shell.
+ *
+ * UI: frontend/admin/dataaccess_whitelist
+ * JSON: api/admin/dataaccess_whitelist
+ */
 class Dataaccess_whitelist extends MY_Controller {
 
-    public function __construct()
-    {
-        parent::__construct();
+	public function __construct()
+	{
+		parent::__construct();
+		$this->load->helper('url');
+		$this->lang->load('general');
 
-		$this->template->set_template('admin5');
-		$this->load->model("Data_access_whitelist_model");
-        $this->load->model("Repository_model");
-		$this->load->helper(array ('querystring_helper','url', 'form') );
-        $this->load->library( array('acl_manager','form_validation','pagination') );
-
-        $this->lang->load('general');
-
-        if (!$this->acl_manager->user_is_admin()) {
-            $this->acl_manager->show_access_denied('feature');
-        }
-    }
-
-    function index()
-    {
-        $options['rows']=$this->Data_access_whitelist_model->select_all();
-        $options['collections']=$this->Repository_model->list_all();
-
-        $content=$this->load->view('dataaccess_whitelist/index', $options,true);
-		$this->template->write('title', t('Data access whitelist'),true);
-		$this->template->write('content', $content,true);
-	  	$this->template->render();
+		if (! $this->acl_manager->user_is_admin()) {
+			$this->acl_manager->show_access_denied('feature');
+		}
 	}
 
+	public function index()
+	{
+		$this->load->helper('vite_helper');
 
-    function create()
-    {
-        $user_id=$this->Data_access_whitelist_model->get_user_id($this->input->post("email"));
-        $repository_id=$this->input->post("repository_id");
+		$view_data = array(
+			'api_base_url'    => site_url('api/admin/dataaccess_whitelist'),
+			'site_url'        => site_url(),
+			'base_url'        => base_url(),
+			'csrf_token'      => $this->security->get_csrf_hash(),
+			'csrf_token_name' => $this->security->get_csrf_token_name(),
+			'assets_base'     => base_url('frontend/dist/'),
+			'translations'    => $this->lang->language,
+		);
 
-        if(!$repository_id || !$user_id){
-            $this->session->set_flashdata('error', t('Invalid values for `collection_name` or `email`'));
-    		redirect("admin/dataaccess_whitelist","refresh");        
-        }
+		$page = array(
+			'title'           => t('Data access whitelist'),
+			'content'         => $this->load->view('admin/dataaccess_whitelist/index', $view_data, true),
+			'hide_breadcrumb' => true,
+			'theme_folder'    => 'adminvue',
+		);
+		$this->load->view('layouts/admin_vue', $page);
+	}
 
-        try{
-            $result=$this->Data_access_whitelist_model->insert($repository_id,$user_id);
-        }
-        catch(Exception $e){
-            $this->session->set_flashdata('error', $e->getMessage());
-		    redirect("admin/dataaccess_whitelist","refresh");
-        }
-        $this->session->set_flashdata('message', t('form_update_success'));
-		redirect("admin/dataaccess_whitelist","refresh");        
-    }
+	/**
+	 * Legacy form POST — send callers to the SPA.
+	 */
+	public function create()
+	{
+		redirect('admin/dataaccess_whitelist', 'refresh');
+	}
 
-
-    function delete($id)
-    {
-        $this->Data_access_whitelist_model->delete_by_id($id);
-        $this->session->set_flashdata('message', t('form_update_success'));
-		redirect("admin/dataaccess_whitelist","refresh");
-    }
-
-
+	/**
+	 * Legacy delete URL — SPA handles deletes via API.
+	 */
+	public function delete($id = null)
+	{
+		unset($id);
+		redirect('admin/dataaccess_whitelist', 'refresh');
+	}
 }
-/* End of file Dataaccess_whitelist.php */
-/* Location: ./controllers/admin/Dataaccess_whitelist.php */

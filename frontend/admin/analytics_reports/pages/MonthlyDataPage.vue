@@ -59,6 +59,7 @@
           </v-col>
         </v-row>
         <v-data-table-server
+          class="admin-analytics-data-table"
           :headers="headers"
           :items="rows"
           :loading="loading"
@@ -68,6 +69,17 @@
           hide-default-footer
           @update:page="onPage"
         >
+          <template #item.title="{ item }">
+            <a
+              v-if="item.study_id"
+              :href="adminStudyEditUrl(siteUrl, item)"
+              class="admin-analytics-cell-truncate admin-analytics-study-link"
+              :title="item.title || t('analytics_study_number', 'Study %s', item.study_id)"
+            >
+              {{ item.title || t('analytics_study_number', 'Study %s', item.study_id) }}
+            </a>
+            <span v-else>{{ item.title || '—' }}</span>
+          </template>
           <template #item.finalized="{ item }">
             <v-chip size="small" :color="item.finalized ? 'success' : 'warning'" variant="tonal">
               {{ item.finalized ? t('analytics_finalized', 'Finalized') : t('analytics_open', 'Open') }}
@@ -86,6 +98,7 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAnalyticsApi } from '../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../composables/useAnalyticsMessages';
+import { adminStudyEditUrl } from '../utils/formatters';
 import { MONTH_OPTIONS } from '../utils/constants';
 import { defaultMonthlyFilters } from '../utils/dateDefaults';
 import MonthlyTrafficChartCard from '../components/monthly/MonthlyTrafficChartCard.vue';
@@ -96,7 +109,7 @@ import ExportFormatMenu from '../components/shared/ExportFormatMenu.vue';
 
 defineOptions({ name: 'MonthlyDataPage' });
 
-const { config } = useAppConfig();
+const { config, siteUrl } = useAppConfig();
 const { t } = useI18n();
 const api = useAnalyticsApi();
 const { notifyError } = useAnalyticsMessages();
@@ -114,8 +127,8 @@ const page = ref(1);
 const limit = 50;
 
 const studyHeaders = [
-  { title: t('analytics_id', 'ID'), key: 'study_id' },
-  { title: t('analytics_title_column', 'Title'), key: 'title' },
+  { title: t('analytics_id', 'ID'), key: 'study_id', width: '72px' },
+  { title: t('analytics_title_column', 'Title'), key: 'title', minWidth: '200px' },
   { title: t('analytics_year', 'Year'), key: 'year' },
   { title: t('analytics_month', 'Month'), key: 'month' },
   { title: t('analytics_pageviews', 'Pageviews'), key: 'pageviews' },
@@ -125,8 +138,8 @@ const studyHeaders = [
 ];
 
 const fileHeaders = [
-  { title: t('analytics_study_id', 'Study ID'), key: 'study_id' },
-  { title: t('analytics_title_column', 'Title'), key: 'title' },
+  { title: t('analytics_study_id', 'Study ID'), key: 'study_id', width: '72px' },
+  { title: t('analytics_title_column', 'Title'), key: 'title', minWidth: '200px' },
   { title: t('analytics_year', 'Year'), key: 'year' },
   { title: t('analytics_month', 'Month'), key: 'month' },
   { title: t('analytics_file_name', 'File name'), key: 'file_name' },

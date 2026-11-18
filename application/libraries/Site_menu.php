@@ -43,6 +43,9 @@ class Site_Menu
 		if (!$this->nada_ai_enabled()) {
 			$hidden[] = 'admin/search-index';
 		}
+		if (!$this->is_site_admin()) {
+			$hidden[] = 'admin/permissions';
+		}
 		if (empty($hidden)) {
 			return $items;
 		}
@@ -70,6 +73,20 @@ class Site_Menu
 		$resolver = $this->ci->search_engine_resolver;
 
 		return $resolver->uses_nada_ai() || $resolver->index_engine() === Search_engine_resolver::NADA_AI;
+	}
+
+	/**
+	 * The roles page (admin/permissions) is limited to site admins.
+	 */
+	private function is_site_admin()
+	{
+		$this->ci->load->library('acl_manager');
+		try {
+			return $this->ci->acl_manager->user_is_admin();
+		}
+		catch (Exception $e) {
+			return false;
+		}
 	}
 
 	/**
@@ -198,12 +215,10 @@ class Site_Menu
 			'nav' => $this->get_admin_nav_items(),
 			'user' => array(
 				'name' => strtoupper($this->ci->session->userdata('username') ? $this->ci->session->userdata('username') : ''),
-				'impersonating' => (bool) $this->ci->session->userdata('impersonate_user'),
 			),
 			'urls' => array(
 				'changePassword' => site_url('auth/change_password'),
 				'logout' => site_url('auth/logout'),
-				'exitImpersonate' => site_url('admin/users/exit_impersonate'),
 				'home' => site_url(),
 				'dataCatalog' => site_url('catalog'),
 				'citations' => site_url('citations'),
@@ -215,7 +230,6 @@ class Site_Menu
 				'home' => t('home'),
 				'dataCatalog' => t('data_catalog'),
 				'citations' => t('citations'),
-				'exitImpersonate' => t('exit_impersonate'),
 			),
 		);
 	}

@@ -14,7 +14,11 @@ require_once APPPATH . '/libraries/MY_REST_Controller.php';
  *   GET .../data/{idno}/export-xml — SDMX-ML 2.1 Structure message (application/xml); ?include_codelists=0 for Ref-only stubs
  *   GET .../data/{idno}/count
  *   GET .../data/{idno} — d[role] / c[COMPONENT] / legacy; paging: offset (or skip), limit, sort (asc|desc), sort_by (optional API column: sid, period_start, period_end, reporting_year, reporting_freq, or DSD component name); result includes total, found, offset; row JSON strips internal fields and adds period_start / period_end (ISO 8601 UTC), reporting_year / reporting_freq from _ts_year / _ts_freq (see strip_public_observation_fields + append_public_observation_timeseries_fields).
- *   GET .../data/{idno}/chart — same filters as data list (from/to on _ts_year, d[…], c[…]); optional limit (capped); returns chart-ready records (time_period, observation_value, series_key, plus series-dimension fields) aggregated server-side from Mongo rows (see Timeseries_mongo_model::build_catalog_chart_records). Metadata includes time_bounds (min/max time_period among returned chart rows).
+ *   Time filters always use the standardized period (_ts_period_start / _ts_freq), never the raw time column:
+ *   from/to select a range (YYYY inclusive, or YYYY-Qn / YYYY-MM bounds); d[time_period], c[TIME_COLUMN] and
+ *   ?TIME_COLUMN= select exact periods (comma = OR; "2003" is the annual period only); unrecognized values → 400.
+ *   sort_by=TIME_COLUMN sorts chronologically (same as period_start).
+ *   GET .../data/{idno}/chart — same filters as data list (from/to, d[…], c[…]); optional limit (capped); returns chart-ready records (time_period, observation_value, series_key, plus series-dimension fields) aggregated server-side from Mongo rows (see Timeseries_mongo_model::build_catalog_chart_records). Metadata includes time_bounds (min/max time_period among returned chart rows).
  *   GET .../data/{idno}/schema — includes time_period_component and observation_value_component (DSD field names) when present.
  *
  *   Indicators with data access `data_na`: data, count, chart, table-export and filter-options return 403
@@ -100,11 +104,16 @@ class Timeseries_public extends MY_REST_Controller {
 				$dir,
 				$ctx['components']
 			);
-			$rows = $this->Timeseries_mongo_model->find_observations($ctx['dsd_id'], $filter, [
+			$findOptions = [
 				'limit' => $limit,
 				'skip'  => $offset,
 				'sort'  => $sort,
-			]);
+			];
+			$hint = $this->Timeseries_mongo_model->public_observations_list_hint($ctx['dsd_id'], $filter, $sort, $offset);
+			if ($hint !== null) {
+				$findOptions['hint'] = $hint;
+			}
+			$rows = $this->Timeseries_mongo_model->find_observations($ctx['dsd_id'], $filter, $findOptions);
 			$list  = $this->_bson_list_to_array($rows);
 			$obs   = [];
 			foreach ($list as $row) {

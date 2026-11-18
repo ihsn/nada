@@ -4,6 +4,7 @@ $lang['Dashboard'] = 'Painel';
 $lang['Studies'] = 'Estudos';
 $lang['Manage studies'] = 'Gerir estudos';
 $lang['Licensed requests'] = 'Pedidos sob licença';
+$lang['Public requests'] = 'Pedidos públicos';
 $lang['Manage collections'] = 'Gerir colecções';
 $lang['Citations'] = 'Citações';
 $lang['All citations'] = 'Todas as citações';

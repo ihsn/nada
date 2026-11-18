@@ -1,10 +1,10 @@
 {
   "$id": "http://ihsn.org/schemas/microdata",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Survey Microdata Schema",
+  "title": "Microdata schema",
   "id": "survey-schema.json",
   "version": "0.0",
-  "description": "Schema for Survey data type based on DDI 2.5",
+  "description": "Schema for Microdata based on DDI Codebook 2.5",
   "allOf": [
     {
       "type": "object",

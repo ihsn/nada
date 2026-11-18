@@ -39,6 +39,9 @@ class Nada_ai_link
 
     /** Seconds to open the connection: an unreachable nada-ai is noticed this fast, not after the whole timeout. */
     const CONNECT_TIMEOUT = 2;
+
+    /** API error codes of a request paging past what the search serves (logged at debug, not error). */
+    const PAGING_ERROR_CODES = array('offset_out_of_range', 'cursor_invalid');
     /** Seconds a probe marker keeps the other requests away from a nada-ai that is being tried again. */
     const PROBE_TTL = 5;
     /** Seconds the last failure is remembered, to know that the first request after the cooldown is a probe. */
@@ -401,8 +404,11 @@ class Nada_ai_link
         }
 
         if ($status < 200 || $status >= 300) {
-            log_message('error', "{$caller}::post_json HTTP {$status} request: {$payload} response: {$raw}");
             $e = new Semantic_search_api_exception($this->error_message($status, (string) $raw), $url, $status, $body, (string) $raw);
+            // a page past max_offset or a stale cursor is an old link or a crawler, answered by the caller (404 /
+            // page_out_of_range): not an error of this site or of nada-ai
+            $level = in_array($e->error_code(), self::PAGING_ERROR_CODES, true) ? 'debug' : 'error';
+            log_message($level, "{$caller}::post_json HTTP {$status} request: {$payload} response: {$raw}");
             $this->note_failure($e);
             throw $e;
         }

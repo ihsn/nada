@@ -144,6 +144,119 @@ Indicators (`timeseries`) accept only the **Open access**, **Direct access** and
 
 Existing indicators keep their stored data access type. The study page in the admin shows a warning for any indicator that uses a type that is no longer allowed.
 
+## Shared theme assets (Bootstrap, Font Awesome, Popper)
+
+Public themes no longer ship their own copies of Bootstrap, Popper, or Font Awesome. Those files live under `themes/assets/` and are loaded from theme `head.php` / `head_vue.php` when CDN is off.
+
+After upgrade, keep the new `themes/assets/` folder. Custom themes that still point at `themes/<name>/css/bootstrap.min.css` (or a local `fontawesome/` folder) should switch those URLs to `themes/assets/…`, or copy the shared files. Do not replace the whole `themes/nada52` folder with an old backup; that removes `themes/assets` references in the stock heads.
+
+## Site layout (header, footer & styles)
+
+Administrators edit the public site header, footer, and optional site-wide CSS under **Settings > Site layout** (`admin/site-layout`, tabs: Header, Footer, Styles). One admin JSON API serves all three parts and the package export/import (`api/admin/site_layout`); drafts are previewed at `site_layout_preview/{header|footer|styles}`.
+
+Run `migrate latest`. The migration `20261116120001_site_layout` creates the `site_layout` table, which holds the published and draft settings for each part (one row per part and state). Until it runs, the Site layout pages open but nothing can be saved. The settings are not stored in `configurations`, so they are not loaded on every page request.
+
+**Export** and **Import** on the Site layout page copy the header, footer and styles (with the header images) to another NADA site as a `.zip` file. Imported parts become drafts. They need the PHP `zip` extension (`ZipArchive`), which NADA already uses for study packages.
+
+Uploaded header images are stored in `files/site/`. On Apache, NADA adds `files/site/.htaccess` so that an SVG opened directly is sandboxed (`Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox`, needs `mod_headers`). On nginx or IIS, add the same headers for `files/site/*.svg` in the server config.
+
+### Styles
+
+Optional CSS for the public page body (headings, links, colors). Draft until published. Published CSS is written to `{catalog_root}/cache/site_styles/published.json` and injected in the theme `<head>` after theme stylesheets. Empty / reset = theme CSS only.
+
+To ignore published styles (for example after a bad edit), add this to `application/config/config.php`:
+
+```php
+$config['site_styles_force_default'] = TRUE;
+```
+
+
+### Header
+
+Three sources:
+
+1. **Theme file** (default) — PHP in the active theme (`themes/<theme>/header_theme.php`). Edit that file, or copy it to `header.local.php` so upgrades do not overwrite your markup. When `header.local.php` exists, it always wins.
+2. **Builder** — layout presets and row editor (brand, menu, login, languages, text).
+3. **Custom HTML** — your HTML with tokens such as `{{brand}}`, `{{menu+login}}`, `{{language}}`.
+
+Layouts are defined in `application/config/site_header_presets.php`. Changes are draft until published.
+
+**If you customized the header in `nada52` before this release:** back up `header.php` (and `lang-bar.php` / `nav-menu.php` / `user-menu.php` if you changed them) before upgrading. After upgrade, either recreate the header in the builder, or restore your markup as `themes/nada52/header.local.php` (see `header.local.php.example`). Do not replace the whole `themes/nada52` folder with an old copy.
+
+Sites with no published Site header settings keep the theme file header.
+
+To always force the theme file header (for example after a broken builder change), add this to `application/config/config.php`:
+
+```php
+$config['site_header_force_default'] = TRUE;
+```
+
+### Footer
+
+Two sources:
+
+1. **Theme file** (default) — PHP in the active theme (`themes/<theme>/footer_theme.php`). Edit that file, or copy it to `footer.local.php` so upgrades do not overwrite your markup. When `footer.local.php` exists, it always wins.
+2. **Custom HTML** — your HTML with tokens such as `{{site_title}}`, `{{year}}`, `{{menu}}`, `{{home_url}}`.
+
+Changes are draft until published (separately from the header). Published custom footers are written to `{catalog_root}/cache/site_footer/published.json` (see [Published files](#published-files)).
+
+The old **Website footer** textarea under Settings > General is removed from the admin UI for the main themes (it was unused there). The `website_footer` configuration key remains for the ddibrowser layout only. Use **Settings > Site layout** for the public catalog footer.
+
+To always force the theme file footer, add this to `application/config/config.php`:
+
+```php
+$config['site_footer_force_default'] = TRUE;
+```
+
+### Published files
+
+Public pages never read the `site_layout` table. **Publish** writes one file per part, and public pages read only that file:
+
+| Part | File (by default under `datafiles/`) | Written when |
+|------|--------------------------------------|--------------|
+| Header | `{catalog_root}/cache/site_header/published.json` | the source is Builder or Custom HTML |
+| Footer | `{catalog_root}/cache/site_footer/published.json` | the source is Custom HTML |
+| Styles | `{catalog_root}/cache/site_styles/published.json` | there is CSS |
+
+If a file is missing, visitors see the theme file header or footer, or no extra CSS. Nothing rebuilds the files automatically.
+
+- Publish writes the file **before** it stores the settings. If the file cannot be written, the publish fails and nothing changes for visitors. **Reset** removes the file first, for the same reason.
+- `catalog_root` must exist and be writable by the web server. Direct web access to these folders is blocked via `.htaccess` when they are created.
+- These files are part of the published site, even though they are under `cache/`. **Do not delete them when clearing caches.** Back them up with `datafiles`.
+- When a file does not match the published settings (deleted, database restored without `datafiles`, or a NADA upgrade that changes the file format), the Site layout tab shows a warning with a **Publish again** button, which rewrites the file from the published settings.
+- With several web servers, all of them must share the same `catalog_root`, as they already must for study files.
+
+## Citations are now stored as CSL-JSON
+
+Each citation is one CSL-JSON document (`citations.metadata`), which is the standard used by Zotero, Crossref and most reference managers. Two migrations move existing citations over: `20261111120001_citations_csl` converts every citation, and `20261112120001_citations_drop_legacy` removes the old columns. Both run with `migrate latest`.
+
+**Before you run the migrations:**
+
+- **Back up the database.** The second migration cannot be undone.
+- **First migration copies the old tables first** (before it alters anything) into `citations_legacy_backup` and `citation_authors_legacy_backup`, then converts in place. The live `citation_authors` table stays until the second migration so the backfill can read it.
+- **Second migration** checks that every citation has a complete document and stops with a message if any row was only partly converted. Nothing is dropped in that case; fix the citation and run it again. It then removes the old columns and the live `citation_authors` table. The `*_legacy_backup` copies stay for you to drop when satisfied:
+
+  ```sql
+  DROP TABLE citations_legacy_backup;
+  DROP TABLE citation_authors_legacy_backup;
+  ```
+- **SQL Server:** the column types change to `nvarchar` and the full-text index is rebuilt, which can take a few minutes on a large table.
+
+**After the migrations:**
+
+- **Rebuild the citation index** if you use Solr or NADA-AI. Citation types are now CSL types (for example `article-journal` instead of `journal`), and internal notes are no longer sent to the index. Until the index is rebuilt, a search that combines keywords with a citation type finds nothing.
+- **Citations that were published or unpublished are unchanged.** Citations created through the API without a `published` value are now saved as drafts; before they were published.
+
+**What changes for API users** (`api/citations`):
+
+- **Read-only.** `POST` and `DELETE` on `api/citations` are removed. Create, update, publish, attach studies, and delete use `api/admin/citations` (session or API key).
+- Existing read fields are still returned (`ctype` keeps the old type names, `authors` is still a list of first name, last name and initial).
+- Each citation also has `metadata` (the CSL document) and `csl_type`.
+- The `ctype` filter accepts either the old names or the CSL names.
+- Only published citations are returned, for every caller (including admins). `notes`, `flag`, `owner`, `url_status` and audit usernames are never returned.
+
+The citations admin pages (Citations menu) are a new interface. Its address, `admin/citations`, is unchanged; the study page links still work. The admin API is `api/admin/citations` and accepts a session or an API key.
+
 ## Fresh installs
 
 New installations use `install/schema.mysql.sql` (or `schema.sqlsrv.sql`) plus `install/schema.dd.{mysql,sqlsrv}.sql`. The schema files already include all migrations up to the release, and the installer records the latest version. You do not need to run `migrate latest` after a fresh install.

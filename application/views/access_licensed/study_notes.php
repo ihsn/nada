@@ -16,7 +16,7 @@
 	<?php foreach($group as $note):?>
     <tr style="vertical-align:top">
     	<td><?php echo $key;?></td>
-        <td nowrap="nowrap"><?php  $user=$this->ion_auth->get_user($note['userid']); echo $user->username;?></td>
+        <td nowrap="nowrap"><?php  $user=$this->ion_auth->get_user($note['userid']); echo html_escape($user ? $user->username : "");?></td>
         <td nowrap="nowrap"><?php echo date("m-d-Y",$note['created']);?></td>
         <td><?php echo nl2br(form_prep($note['note']));?></td>
     </tr>

@@ -4,9 +4,9 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
 
 /**
  * @typedef {Object} ObservationFilters
- * @property {string} [from] reporting year lower bound (Mongo _ts_year, inclusive); year or ISO date
- * @property {string} [to] reporting year upper bound (Mongo _ts_year, inclusive)
- * @property {Record<string, string[]>} [d] semantic roles: geography, time_period, periodicity, observation_value (catalog chart UI uses from/to for reporting-year range on _ts_year, not d[time_period])
+ * @property {string} [from] period range start (on _ts_period_start, inclusive): YYYY, YYYY-Qn or YYYY-MM
+ * @property {string} [to] period range end (inclusive): YYYY, YYYY-Qn or YYYY-MM
+ * @property {Record<string, string[]>} [d] semantic roles: geography, time_period, periodicity, observation_value (catalog chart UI uses from/to for a period range; d[time_period] selects exact standardized periods)
  * @property {Record<string, string[]>} [c] DSD component name -> codes (comma-serialized for API)
  */
 

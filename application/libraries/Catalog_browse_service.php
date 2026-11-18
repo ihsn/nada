@@ -411,8 +411,16 @@ class Catalog_browse_service {
 			$search_options->sort_order = '';
 		}
 
-		if ($this->CI->input->get('sk') && isset($this->CI->db_logger)) {
-			$this->CI->db_logger->write_log('search', $this->CI->input->get('sk') . '/' . $this->CI->input->get('vk'), 'sk-vk');
+		// Log search keywords only (not filters / query string). Separate rows for study vs variable terms.
+		if (isset($this->CI->db_logger)) {
+			$sk = trim((string) $this->CI->input->get('sk'));
+			$vk = trim((string) $this->CI->input->get('vk'));
+			if ($sk !== '') {
+				$this->CI->db_logger->write_log('search', $sk, 'catalog-sk');
+			}
+			if ($vk !== '' && strcasecmp($vk, $sk) !== 0) {
+				$this->CI->db_logger->write_log('search', $vk, 'catalog-vk');
+			}
 		}
 
 		$data['repositories'] = $this->CI->Search_helper_model->get_repositories_list(1);

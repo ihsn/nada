@@ -80,6 +80,7 @@ export function useAnalyticsApi() {
     fetchMonthlyTotals: (params) => getJson('/monthly/totals', params),
     fetchRawPageviews: (params) => getJson('/raw/pageviews', params),
     fetchRawDownloads: (params) => getJson('/raw/downloads', params),
+    fetchSearchKeywords: (params) => getJson('/search/keywords', params),
     fetchDailyStudies: (params) => getJson('/daily/studies', params),
     fetchDailyFiles: (params) => getJson('/daily/files', params),
     fetchMonthlyStudies: (params) => getJson('/monthly/studies', params),

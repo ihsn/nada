@@ -4,6 +4,7 @@ $lang['Dashboard']="Dashboard";
 $lang['Studies']="Studies";
 $lang['Manage studies']="Manage studies";
 $lang['Licensed requests']="Licensed requests";
+$lang['Public requests']="Public requests";
 $lang['Manage collections']="Manage collections";
 $lang['Citations']="Citations";
 $lang['All citations']="All citations";
@@ -21,6 +22,9 @@ $lang['Analytics']="Analytics";
 $lang['API Logs']="API Logs";
 $lang['Site Logs']="Site Logs";
 $lang['Settings']="Settings";
+$lang['Site header']="Site header";
+$lang['Site layout']="Site layout";
+
 $lang['Countries']="Countries";
 $lang['Regions']="Regions";
 $lang['Vocabularies']="Vocabularies";

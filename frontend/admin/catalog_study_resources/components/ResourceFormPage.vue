@@ -245,10 +245,27 @@ function buildPayload() {
   return payload;
 }
 
+function applyCreatePrefillFromQuery() {
+  let file;
+  try {
+    file = String(new URLSearchParams(window.location.search).get('file') || '').trim();
+  } catch {
+    file = '';
+  }
+  file = file.replace(/^\/+/, '');
+  if (!file || file.includes('..')) return;
+  form.filename = file;
+  const base = file.split('/').pop() || file;
+  if (!String(form.title || '').trim()) {
+    form.title = base.replace(/\.[^.]+$/, '') || base;
+  }
+}
+
 async function loadEdit() {
   if (!isEdit.value) {
     resetForm();
     if (dtypeItems.value.length) form.dctype = dtypeItems.value[0].value;
+    applyCreatePrefillFromQuery();
     return;
   }
   loading.value = true;

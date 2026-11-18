@@ -1412,7 +1412,7 @@ class Catalog extends MY_REST_Controller
 					break;
 
 				case 'citations':
-					$summary['citations'] = (int) $this->Citation_model->get_citations_count_by_survey($sid);
+					$summary['citations'] = (int) $this->Citation_model->get_citations_count_by_survey($sid, FALSE);
 					break;
 
 				case 'notes':

@@ -24,6 +24,13 @@ $menu[]=array(
 				'type'	=>'divider'
 			),
 			array(
+				'title'	=>'Public requests',
+				'url'	=>'admin/public_requests'
+			),
+			array(
+				'type'	=>'divider'
+			),
+			array(
 				'title'	=>'Manage collections',
 				'url'	=>'admin/collections'
 			),
@@ -66,10 +73,14 @@ $menu[]=array(
 			'title'	=>'Add user',
 			'url'	=>'admin/users/add'
 		),
-		/*array(
-			'title'	=>'Impersonate user',
-			'url'	=>'admin/users/impersonate'
-		)*/
+		array(
+			'title'	=>'API keys',
+			'url'	=>'admin/users/api_keys'
+		),
+		array(
+			'title'	=>'Roles',
+			'url'	=>'admin/permissions'
+		),
 	)
 );
 
@@ -92,15 +103,8 @@ $menu[]=array(
 
 $menu[]=array(
 	'title'	=>'Reports',
-	'url'	=>'admin/reports',
+	'url'	=>'admin/analytics_reports',
 	'items'	=>array(
-		array(
-			'title'	=>'All reports',
-			'url'	=>'admin/reports'
-		),
-		array(
-				'type'	=>'divider'
-			),
 		array(
 			'title'	=>'Analytics reports',
 			'url'	=>'admin/analytics_reports'
@@ -131,6 +135,13 @@ $menu[]=array(
 		array(
 			'title'	=>'Settings',
 			'url'	=>'admin/configurations'
+		),
+		array(
+				'type'	=>'divider'
+			),
+		array(
+			'title'	=>'Site layout',
+			'url'	=>'admin/site-layout'
 		),
 		array(
 			'type'	=>'divider'

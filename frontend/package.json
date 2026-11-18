@@ -1,6 +1,6 @@
 {
   "name": "nada",
-  "version": "5.7.1",
+  "version": "5.9.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,6 +14,7 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "@codemirror/lang-css": "^6.3.1",
     "@codemirror/lang-html": "^6.4.11",
     "@mdi/font": "^7.4.47",
     "@tiptap/extension-image": "^3.32.2",
@@ -26,6 +27,7 @@
     "chart.js": "^4.4.8",
     "codemirror": "^6.0.2",
     "dompurify": "^3.4.11",
+    "js-beautify": "^2.0.3",
     "lodash": "^4.17.23",
     "pdfjs-dist": "^6.0.227",
     "sortablejs": "^1.15.7",
@@ -35,6 +37,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/js-beautify": "^1.14.3",
     "@vitejs/plugin-vue": "^6.0.4",
     "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",

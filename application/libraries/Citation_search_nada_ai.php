@@ -133,7 +133,12 @@ class Citation_search_nada_ai
         }
 
         $filters = array();
-        $ctypes = array_values(array_filter(array_map('strval', (array) ($filter['ctype'] ?? array())), 'strlen'));
+        // the index holds CSL types (citations.ctype); legacy NADA type names are mapped
+        require_once(APPPATH . 'libraries/Citation_csl.php');
+        $ctypes = Citation_csl::to_csl_types($filter['ctype'] ?? array());
+        if (!empty($filter['ctype']) && empty($ctypes)) {
+            return NULL;
+        }
         if (!empty($ctypes)) {
             $filters['ctypes'] = $ctypes;
         }
@@ -164,74 +169,20 @@ class Citation_search_nada_ai
         return $request;
     }
 
-    /** The rows of the given citations from this database, in the order given (the row shape of the mysql driver). */
+    /** The rows of the given citations from this database, in the order given (Citation_model::get_rows_by_ids). */
     private function rows_by_ids(array $ids)
     {
-        if (empty($ids)) {
-            return array();
-        }
+        $rows = $this->ci->Citation_model->get_rows_by_ids($ids);
 
-        $this->ci->db->select('
-            citations.id, citations.uuid, citations.title, citations.subtitle, citations.alt_title, citations.authors,
-            citations.editors, citations.translators, citations.changed, citations.created, citations.published,
-            citations.volume, citations.issue, citations.idnumber, citations.edition, citations.place_publication,
-            citations.place_state, citations.publisher, citations.publication_medium, citations.url, citations.page_from,
-            citations.page_to, citations.data_accessed, citations.organization, citations.ctype, citations.pub_day,
-            citations.pub_month, citations.pub_year, citations.abstract, citations.keywords, citations.notes,
-            citations.doi, citations.flag, citations.url_status, citations.owner,
-            user_changed.username as changed_by_user, user_created.username as created_by_user', FALSE);
-        $this->ci->db->from('citations');
-        $this->ci->db->join('users user_created', 'citations.created_by = user_created.id', 'left');
-        $this->ci->db->join('users user_changed', 'citations.changed_by = user_changed.id', 'left');
-        $this->ci->db->where_in('citations.id', $ids);
-        $rows = array();
-        foreach ($this->ci->db->get()->result_array() as $row) {
-            $rows[(int) $row['id']] = $row;
-        }
-
-        $author_map = $this->batch_load_authors($ids);
-        $count_map  = $this->batch_load_survey_counts($ids);
-
-        $ordered = array();
-        foreach ($ids as $id) {
-            if (!isset($rows[$id])) {
-                // in the index but not in this database: the index is out of sync, and the page is one row short
+        if (count($rows) < count($ids)) {
+            // in the index but not in this database: the index is out of sync, and the page is short
+            $found = array_map('intval', array_column($rows, 'id'));
+            foreach (array_diff(array_map('intval', $ids), $found) as $id) {
                 log_message('error', 'Citation_search_nada_ai: citation ' . $id . ' is in the index but not in the database');
-                continue;
             }
-            $row = $rows[$id];
-            $row['authors']      = isset($author_map[$id]) ? $author_map[$id] : array();
-            $row['survey_count'] = isset($count_map[$id]) ? $count_map[$id] : 0;
-            $ordered[] = $row;
         }
 
-        return $ordered;
-    }
-
-    private function batch_load_authors(array $ids)
-    {
-        $this->ci->db->select('*');
-        $this->ci->db->where_in('cid', $ids);
-        $this->ci->db->where('author_type', 'author');
-
-        $map = array();
-        foreach ($this->ci->db->get('citation_authors')->result_array() as $row) {
-            $map[(int) $row['cid']][] = $row;
-        }
-        return $map;
-    }
-
-    private function batch_load_survey_counts(array $ids)
-    {
-        $this->ci->db->select('citationid, COUNT(sid) as total');
-        $this->ci->db->where_in('citationid', $ids);
-        $this->ci->db->group_by('citationid');
-
-        $map = array();
-        foreach ($this->ci->db->get('survey_citations')->result_array() as $row) {
-            $map[(int) $row['citationid']] = (int) $row['total'];
-        }
-        return $map;
+        return $rows;
     }
 
     private function database_search($limit, $offset, $filter, $sort_by, $sort_order, $published, $repositoryid)

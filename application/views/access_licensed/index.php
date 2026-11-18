@@ -120,7 +120,7 @@
 						<?php echo $row->request_title; ?>
                 </a>
             </td>
-            <td><?php echo $row->username; ?>&nbsp;</td>
+            <td><?php echo html_escape($row->username); ?>&nbsp;</td>
 			<td><?php echo t($row->status); ?></td>
 			<td nowrap="nowrap"><?php echo date("m-d-Y",$row->created); ?></td>
 			<td nowrap="nowrap">

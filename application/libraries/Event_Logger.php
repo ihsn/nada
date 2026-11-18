@@ -91,6 +91,14 @@ class Event_Logger {
 	 */
 	public function log_search($query_text, $search_type = null, $results_count = null, $additional_data = array())
 	{
+		unset($results_count);
+
+		$keyword = trim((string) $query_text);
+		// Reject empty or query-string payloads (filters belong in url, not keyword)
+		if ($keyword === '' || strpos($keyword, '=') !== false) {
+			return false;
+		}
+
 		if (!$this->validate_analytics_request('pageview', $additional_data)) {
 			return false;
 		}
@@ -112,7 +120,7 @@ class Event_Logger {
 			'sessionid' => session_id(),
 			'logtype' => 'search',
 			'surveyid' => isset($additional_data['surveyid']) ? (int)$additional_data['surveyid'] : 0,
-			'keyword' => substr((string)$query_text, 0, 300),
+			'keyword' => substr($keyword, 0, 300),
 			'username' => $username,
 			'section' => $search_type ? substr((string)$search_type, 0, 255) : null,
 			'useragent' => isset($_SERVER['HTTP_USER_AGENT']) ? substr(strtolower($_SERVER['HTTP_USER_AGENT']), 0, 300) : null

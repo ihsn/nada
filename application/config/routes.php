@@ -409,6 +409,8 @@ $route['admin'] = "admin/admin";
 $route['admin/ui-kit'] = "admin/admin/ui_kit";
 $route['admin/logs/cleanup'] = "admin/logs/cleanup";
 $route['admin/search-index'] = "admin/semantic";
+$route['admin/site-layout'] = "admin/site_layout";
+
 
 // Admin DB logs API
 $route['api/admin/db_logs/cleanup/chunk']           = "api/admin/db_logs/cleanup_chunk";
@@ -416,8 +418,8 @@ $route['api/admin/db_logs/api_logs/stats']          = "api/admin/db_logs/api_log
 $route['api/admin/db_logs/api_logs/cleanup/chunk']  = "api/admin/db_logs/api_logs_cleanup_chunk";
 $route['api/admin/db_logs/api_logs/files']          = "api/admin/db_logs/api_logs_files";
 
-// Dashboard API
-$route['api/dashboard/stats'] = "api/dashboard/stats";
+// Admin dashboard API
+$route['api/admin/dashboard/stats'] = "api/admin/dashboard/stats";
 
 // Admin Site Configurations API — REST_Controller::_remap handles GET/PUT/PATCH/DELETE on
 // api/admin/configurations and POST aliases api/admin/configurations/save|patch|remove.
@@ -478,7 +480,10 @@ $route['api/admin/data_structures/(:any)']                      = 'api/admin/dat
 
 // Admin Timeseries API (indicator observations / Mongo; nested paths first)
 $route['api/admin/timeseries/data/import']                         = 'api/admin/timeseries/data_import';
+$route['api/admin/timeseries/data/upload']                         = 'api/admin/timeseries/data_upload';
 $route['api/admin/timeseries/data/(:any)/import']                = 'api/admin/timeseries/data_import/$1';
+$route['api/admin/timeseries/data/(:any)/import-process']        = 'api/admin/timeseries/data_import_process/$1';
+$route['api/admin/timeseries/data/(:any)/import-status']         = 'api/admin/timeseries/data_import_status/$1';
 $route['api/admin/timeseries/data/(:any)/import-csv']             = 'api/admin/timeseries/data_import_csv/$1';
 $route['api/admin/timeseries/data/(:any)/clear-data']            = 'api/admin/timeseries/data_clear_data/$1';
 $route['api/admin/timeseries/data/(:any)/count']                 = 'api/admin/timeseries/data_count/$1';
@@ -532,6 +537,7 @@ $route['admin/datadeposit/projects/(:num)/(:any)'] = 'admin/datadeposit/projects
 $route['admin/datadeposit/projects/(:num)'] = 'admin/datadeposit/projects/$1';
 $route['admin/datadeposit/summary/(:num)'] = 'admin/datadeposit/summary/$1';
 $route['admin/datadeposit/tasks/info/(:num)'] = 'admin/datadeposit/task_info/$1';
+// Legacy datadeposittasks URLs always 404 (tasks live under admin/datadeposit + API).
 $route['admin/datadeposit/tasks/update/(:num)/(:num)'] = "admin/datadeposittasks/update/$1/$2";
 $route['admin/datadeposit/tasks/delete/(:num)'] = "admin/datadeposittasks/delete/$1";
 $route['admin/datadeposit/tasks/my_tasks'] = 'admin/datadeposit/my_tasks';
@@ -583,6 +589,8 @@ $route['api/admin/analytics/aggregate/status'] = "api/admin/analytics/aggregate_
 $route['api/admin/analytics/aggregate/stop'] = "api/admin/analytics/aggregate_stop";
 $route['api/admin/analytics/raw/pageviews'] = "api/admin/analytics/raw_pageviews";
 $route['api/admin/analytics/raw/downloads'] = "api/admin/analytics/raw_downloads";
+$route['api/admin/analytics/search/keywords'] = "api/admin/analytics/search_keywords";
+$route['api/admin/analytics/search/keywords/export'] = "api/admin/analytics/search_keywords_export";
 $route['api/admin/analytics/overview'] = "api/admin/analytics/overview";
 $route['api/admin/analytics/meta'] = "api/admin/analytics/meta";
 $route['api/admin/analytics/daily/totals'] = "api/admin/analytics/daily_totals";
@@ -627,6 +635,48 @@ $route['api/admin/countries/(:num)'] = 'api/admin/countries/item/$1';
 $route['api/admin/regions/countries'] = 'api/admin/regions/countries';
 $route['api/admin/regions/(:num)/delete'] = 'api/admin/regions/item_delete/$1';
 $route['api/admin/regions/(:num)'] = 'api/admin/regions/item/$1';
+
+// Admin data-access whitelist
+$route['api/admin/dataaccess_whitelist/delete'] = 'api/admin/dataaccess_whitelist/delete';
+$route['api/admin/dataaccess_whitelist/(:num)/delete'] = 'api/admin/dataaccess_whitelist/item_delete/$1';
+
+// Admin repository sections (collection groups)
+$route['api/admin/repository_sections/batch_delete'] = 'api/admin/repository_sections/batch_delete';
+$route['api/admin/repository_sections/(:num)/delete'] = 'api/admin/repository_sections/item_delete/$1';
+$route['api/admin/repository_sections/(:num)'] = 'api/admin/repository_sections/item/$1';
+
+// Admin users (session only)
+$route['api/admin/users/options'] = 'api/admin/users/options';
+$route['api/admin/users/batch'] = 'api/admin/users/batch';
+$route['api/admin/users/api_keys'] = 'api/admin/users/api_keys';
+$route['api/admin/users/api_keys/(:num)/revoke'] = 'api/admin/users/api_key_revoke/$1';
+$route['api/admin/users/api_keys/(:num)/extend'] = 'api/admin/users/api_key_extend/$1';
+$route['api/admin/users/api_keys/(:num)/delete'] = 'api/admin/users/api_key_delete/$1';
+$route['api/admin/users/(:num)/api_keys'] = 'api/admin/users/user_api_keys/$1';
+$route['api/admin/users/(:num)/delete'] = 'api/admin/users/item_delete/$1';
+$route['api/admin/users/(:num)'] = 'api/admin/users/item/$1';
+
+// Admin citations (session only)
+$route['api/admin/citations/options'] = 'api/admin/citations/options';
+$route['api/admin/citations/batch'] = 'api/admin/citations/batch';
+$route['api/admin/citations/preview'] = 'api/admin/citations/preview';
+$route['api/admin/citations/duplicates'] = 'api/admin/citations/duplicates';
+$route['api/admin/citations/doi'] = 'api/admin/citations/doi';
+$route['api/admin/citations/import/parse'] = 'api/admin/citations/import_parse';
+$route['api/admin/citations/import/commit'] = 'api/admin/citations/import_commit';
+$route['api/admin/citations/export'] = 'api/admin/citations/export';
+$route['api/admin/citations/(:num)/delete'] = 'api/admin/citations/item_delete/$1';
+$route['api/admin/citations/(:num)/publish'] = 'api/admin/citations/publish/$1';
+$route['api/admin/citations/(:num)/studies'] = 'api/admin/citations/studies/$1';
+$route['api/admin/citations/(:num)/attachment/delete'] = 'api/admin/citations/attachment_delete/$1';
+$route['api/admin/citations/(:num)/attachment'] = 'api/admin/citations/attachment/$1';
+$route['api/admin/citations/(:num)/check_url'] = 'api/admin/citations/check_url/$1';
+$route['api/admin/citations/(:num)'] = 'api/admin/citations/item/$1';
+
+// Admin public-use requests
+$route['api/admin/public_requests/search'] = 'api/admin/public_requests/search';
+$route['api/admin/public_requests/export'] = 'api/admin/public_requests/export';
+$route['api/admin/public_requests/(:num)'] = 'api/admin/public_requests/item/$1';
 
 // Admin translate API (site UI string translations)
 $route['api/admin/translate/import'] = 'api/admin/translate/import';

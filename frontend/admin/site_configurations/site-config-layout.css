@@ -240,3 +240,40 @@
   white-space: pre;
 }
 
+.site-config-dataset-types-card {
+  margin-top: 2rem;
+}
+
+.site-config-dataset-types-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 420px;
+}
+
+.site-config-dataset-types-item {
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  background: rgb(var(--v-theme-surface));
+}
+
+.site-config-dataset-types-item .drag-handle {
+  display: inline-flex;
+  align-items: center;
+  cursor: grab;
+  touch-action: none;
+}
+
+.site-config-dataset-types-item .drag-handle:active {
+  cursor: grabbing;
+}
+
+.site-config-dataset-types-list .sortable-ghost {
+  opacity: 0.4;
+  background-color: rgba(var(--v-theme-primary), 0.08);
+}
+
+.site-config-dataset-types-list .sortable-chosen {
+  background-color: rgba(var(--v-theme-on-surface), 0.03);
+}
+

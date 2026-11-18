@@ -67,5 +67,39 @@ export function useSiteConfigurationsApi() {
     return data;
   }
 
-  return { fetchSettings, fetchMeta, saveSettings, removeSetting, fetchTestEmailForm, sendTestEmail };
+  /**
+   * Catalog search type-tab order (survey_types).
+   * @returns {Promise<Array<{ id: number, code: string, title: string, weight: number }>>}
+   */
+  async function fetchDatasetTypes() {
+    const { data } = await axios.get(`${base()}dataset_types`);
+    if (data.status !== 'success') throw new Error(data.message || 'DATASET_TYPES_LOAD_FAILED');
+    return Array.isArray(data.types) ? data.types : [];
+  }
+
+  /**
+   * Persist catalog type-tab order. First code becomes the leftmost tab.
+   * @param {string[]} codes
+   * @returns {Promise<Array<{ id: number, code: string, title: string, weight: number }>>}
+   */
+  async function saveDatasetTypesOrder(codes) {
+    const { data } = await axios.post(
+      `${base()}dataset_types_reorder`,
+      { codes },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'DATASET_TYPES_REORDER_FAILED');
+    return Array.isArray(data.types) ? data.types : [];
+  }
+
+  return {
+    fetchSettings,
+    fetchMeta,
+    saveSettings,
+    removeSetting,
+    fetchTestEmailForm,
+    sendTestEmail,
+    fetchDatasetTypes,
+    saveDatasetTypesOrder,
+  };
 }

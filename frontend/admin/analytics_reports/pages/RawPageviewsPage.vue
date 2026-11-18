@@ -5,7 +5,6 @@
       {{ t('analytics_raw_pageviews', 'Raw pageviews') }}
     </v-card-title>
     <v-card-text class="admin-analytics-card-sections">
-      <RawLogsHintAlert :max-days="rawMaxDays" />
       <DateRangeFilter
         v-model="filters"
         :loading="loading"
@@ -69,7 +68,6 @@ import { adminStudyEditUrl, formatDateTime } from '../utils/formatters';
 import { defaultRawDateRange } from '../utils/dateDefaults';
 import DateRangeFilter from '../components/shared/DateRangeFilter.vue';
 import PaginatedTableFooter from '../components/shared/PaginatedTableFooter.vue';
-import RawLogsHintAlert from '../components/shared/RawLogsHintAlert.vue';
 
 defineOptions({ name: 'RawPageviewsPage' });
 
@@ -81,7 +79,6 @@ const { notifyError } = useAnalyticsMessages();
 
 const serverDate = computed(() => config.value?.serverDate || '');
 const defaultRange = computed(() => defaultRawDateRange(serverDate.value));
-const rawMaxDays = ref(31);
 
 const filters = ref(defaultRawDateRange(serverDate.value));
 const loading = ref(false);
@@ -135,15 +132,7 @@ function reload() {
   load();
 }
 
-onMounted(async () => {
-  try {
-    const meta = await api.fetchMeta();
-    if (meta.data?.raw_list_max_days) {
-      rawMaxDays.value = meta.data.raw_list_max_days;
-    }
-  } catch {
-    /* keep default */
-  }
+onMounted(() => {
   filters.value = defaultRawDateRange(serverDate.value);
   load();
 });

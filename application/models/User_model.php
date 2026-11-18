@@ -220,7 +220,7 @@ class User_model extends CI_Model {
 		$this->db->flush_cache();
 
 		$columns = sprintf(
-			'%s.id,username,email,active,activation_code,created_on,last_login,country,company',
+			'%s.id,username,email,active,activation_code,created_on,last_login,country,company,first_name,last_name',
 			$this->tables['users']
 		);
 
@@ -249,7 +249,7 @@ class User_model extends CI_Model {
 		$this->db->flush_cache();
 
 		$columns = sprintf(
-			'%s.id,username,email,active,activation_code,created_on,last_login,country,company',
+			'%s.id,username,email,active,activation_code,created_on,last_login,country,company,first_name,last_name',
 			$this->tables['users']
 		);
 
@@ -278,9 +278,9 @@ class User_model extends CI_Model {
 	}
 
 	/**
-	 * Rows for user directory export (id, email, first_name, last_name).
+	 * Rows for user directory export.
 	 *
-	 * @return list<array{id:mixed,email:mixed,first_name:mixed,last_name:mixed}>
+	 * @return list<array<string,mixed>>
 	 */
 	function get_export_rows()
 	{
@@ -290,9 +290,16 @@ class User_model extends CI_Model {
 		$meta  = $this->tables['meta'];
 
 		$this->db->select(sprintf(
-			'%s.id, %s.email, %s.first_name, %s.last_name',
+			'%s.id, %s.username, %s.email, %s.active, %s.created_on, %s.last_login, %s.first_name, %s.last_name, %s.company, %s.country, %s.phone',
 			$users,
 			$users,
+			$users,
+			$users,
+			$users,
+			$users,
+			$meta,
+			$meta,
+			$meta,
 			$meta,
 			$meta
 		));
@@ -309,17 +316,56 @@ class User_model extends CI_Model {
 		return $this->db->get($this->tables['users']);
 	}
 
+	/**
+	 * Delete an account with its profile, roles, collection grants and API keys.
+	 */
 	function delete($id)
 	{
+		$id = (int) $id;
+
 		$this->db->where('id', $id);
 		$deleted = $this->db->delete($this->tables['users']);
 
 		if ($deleted) {
 			$this->db->where('user_id', $id);
 			$this->db->delete($this->tables['meta']);
+
+			$this->db->where('user_id', $id);
+			$this->db->delete('user_roles');
+
+			if ($this->db->table_exists('repositories_acl')) {
+				$this->db->where('user_id', $id);
+				$this->db->delete('repositories_acl');
+			}
+
+			if ($this->db->table_exists('api_keys')) {
+				$this->db->where('user_id', $id);
+				$this->db->delete('api_keys');
+			}
 		}
 
 		return $deleted;
+	}
+
+	/**
+	 * Activate or disable an account. Activating also clears any pending email-activation code.
+	 *
+	 * @param int  $id
+	 * @param bool $active
+	 * @return bool
+	 */
+	function set_user_status($id, $active)
+	{
+		$data = array('active' => $active ? 1 : 0);
+		if ($active) {
+			$data['activation_code'] = '';
+			$data['activation_code_expiry'] = null;
+			$data['activation_attempt_count'] = 0;
+			$data['activation_attempt_ts'] = null;
+		}
+
+		$this->db->where('id', (int) $id);
+		return (bool) $this->db->update($this->tables['users'], $data);
 	}
 
 	function get_all_countries()

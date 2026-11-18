@@ -9,7 +9,6 @@ class Datadeposit extends MY_Controller {
 		$this->load->helper('datadeposit');
 		$this->load->language('dd_projects');
 		$this->lang->load('general');
-		$this->template->set_template('admin5');
 
 		if (!datadeposit_is_enabled()) {
 			return;

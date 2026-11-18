@@ -243,11 +243,7 @@ class Citations extends MY_Controller {
 			show_404();
 		}
 
-		$citation=$this->Citation_model->select_single($citationid);
-
-		if (!$citation){
-			show_404();
-		}
+		$citation=$this->_get_public_citation($citationid);
 
 		//$citation['repo_citations_count']=$this->repository_model->get_citations_count_by_collection($this->active_repo['repositoryid']);
 
@@ -287,7 +283,7 @@ class Citations extends MY_Controller {
 			show_404();
 		}
 
-		$citation=$this->Citation_model->select_single($citationid);
+		$citation=$this->_get_public_citation($citationid);
 
 		header("Content-Type: text/plain");
 		$this->load->view('citations/export_bibtex', array('bib'=>$citation));
@@ -296,30 +292,48 @@ class Citations extends MY_Controller {
 	}
 
 
-
+	/**
+	 * Removed: it exported every citation (drafts and internal fields included) without a login.
+	 * Admins export from admin/citations/export.
+	 */
 	function export_all($format='html'){
-		$this->db->select('*');
-		$citations=$this->db->get('citations')->result_array();
-		//$this->load->view('citations/export_to_html',$data);
+		show_404();
+	}
 
-		$filename='citations-'.date("m-d-y-his").'.csv';
-		header('Content-Encoding: UTF-8');
-		header( 'Content-Type: text/csv' );
-        header( 'Content-Disposition: attachment;filename='.$filename);
-        $fp = fopen('php://output', 'w');
 
-		echo "\xEF\xBB\xBF"; // UTF-8 BOM
+	/**
+	 * Load a citation for the public pages: 404 when missing, or unpublished and the visitor
+	 * can't view citations in the admin. Internal fields are removed.
+	 */
+	private function _get_public_citation($citationid)
+	{
+		$citation=$this->Citation_model->select_single($citationid);
 
-		//add column names
-		fputcsv($fp, array_keys($citations[0]));
-
-		foreach($citations as $citation){
-			$citation['changed']=date("M-d-y",$citation['changed']);
-			$citation['created']=date("M-d-y",$citation['created']);
-			fputcsv($fp, $citation);
+		if (!$citation){
+			show_404();
 		}
 
-		fclose($fp);
+		if ((int)$citation['published']!==1 && !$this->_can_view_draft_citations()){
+			show_404();
+		}
+
+		return $this->Citation_model->strip_internal_fields($citation);
+	}
+
+
+	private function _can_view_draft_citations()
+	{
+		if (!$this->ion_auth->logged_in()){
+			return false;
+		}
+
+		try{
+			$this->acl_manager->has_access('citation','view');
+			return true;
+		}
+		catch(Exception $e){
+			return false;
+		}
 	}
 
 

@@ -473,6 +473,23 @@ $config['rest_logging_exclude_controllers'] = array('api_logs', 'analytics');
 
 /*
 |--------------------------------------------------------------------------
+| REST Logging: params (query string) handling
+|--------------------------------------------------------------------------
+|
+| api_logs.params stores the request QUERY_STRING only (never the request body).
+|
+| rest_logs_params_max_length: maximum stored length in bytes; longer values are cut
+|   and end with "...[truncated]". Default 2048.
+|
+| rest_logs_redact_keys: query parameter names (case-insensitive) whose values are
+|   replaced with [REDACTED] before saving. "password[]" matches "password".
+|
+*/
+$config['rest_logs_params_max_length'] = 2048;
+$config['rest_logs_redact_keys'] = array('token', 'key', 'api_key', 'password', 'secret', 'email');
+
+/*
+|--------------------------------------------------------------------------
 | REST Method Access Control
 |--------------------------------------------------------------------------
 | When set to TRUE, the REST API will check the access table to see if
@@ -503,17 +520,6 @@ $config['rest_enable_access'] = FALSE;
 |
 */
 $config['rest_access_table'] = 'access';
-
-/*
-|--------------------------------------------------------------------------
-| REST API Param Log Format
-|--------------------------------------------------------------------------
-|
-| When set to TRUE, the REST API log parameters will be stored in the database as JSON
-| Set to FALSE to log as serialized PHP
-|
-*/
-$config['rest_logs_json_params'] = FALSE;
 
 /*
 |--------------------------------------------------------------------------

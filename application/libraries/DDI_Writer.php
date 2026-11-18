@@ -357,11 +357,24 @@ class DDI_Writer
         return ($result->saveXML($result->documentElement));
     }
 
+    /**
+     * Weight info for a variable; handles var_wgt (0/1) + var_wgt_id and the legacy
+     * form where var_wgt held the weight variable's VID.
+     */
+    private function get_var_weight_info($var){
+        $this->ci->load->helper('metadata_view');
+        $data = ($var instanceof \Adbar\Dot) ? $var->all() : (array)$var;
+        return variable_weight_info($data);
+    }
+
     function get_var_wgt($var){
-        if (isset($var['var_wgt']) && (int)$var['var_wgt']==1){
-            return 'wgt';
-        }
-        return '';
+        $info = $this->get_var_weight_info($var);
+        return $info['is_weight'] ? 'wgt' : '';
+    }
+
+    function get_var_wgt_ref($var){
+        $info = $this->get_var_weight_info($var);
+        return $info['weight_vid'] !== null ? $info['weight_vid'] : '';
     }
 
     /**
@@ -397,7 +410,8 @@ class DDI_Writer
                 'files'=>$var['file_id'],
                 'dcml'=>$var['var_dcml'],
                 'intrvl'=>$var['var_intrvl'],
-                'wgt'=> $this->get_var_wgt($var)
+                'wgt'=> $this->get_var_wgt($var),
+                'wgt-var'=> $this->get_var_wgt_ref($var)
             ],
 
             'varFormat'=>[

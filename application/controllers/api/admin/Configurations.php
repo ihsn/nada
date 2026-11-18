@@ -20,6 +20,10 @@ require(APPPATH.'/libraries/MY_REST_Controller.php');
  *   POST .../patch/{key}    — same as PATCH with single key
  *   POST .../remove         — body: {"key":"name"} when key not in URI
  *   POST .../remove/{key}   — same as DELETE for one key
+ *
+ * Catalog type tabs (survey_types.weight):
+ *   GET  .../dataset_types
+ *   POST .../dataset_types_reorder  — body: {"codes":["survey",...]}
  */
 class Configurations extends MY_REST_Controller
 {
@@ -157,6 +161,9 @@ class Configurations extends MY_REST_Controller
 				);
 			}
 
+			$this->load->model('Survey_type_model');
+			$dataset_types = $this->Survey_type_model->get_types_for_ordering();
+
 			$meta = array(
 				'available_folders'         => $this->translator->get_languages_array(),
 				'language_codes'            => $lang_codes,
@@ -167,6 +174,7 @@ class Configurations extends MY_REST_Controller
 					'ddi_import_folder'  => ($ddi_import !== '' && is_dir($ddi_import)),
 				),
 				'catalog_study_types'       => $catalog_study_types,
+				'dataset_types'             => $dataset_types,
 				'datadeposit'               => $this->datadeposit_meta(),
 				'secrets_set'               => $this->secrets_set($c),
 			);
@@ -175,6 +183,75 @@ class Configurations extends MY_REST_Controller
 				array(
 					'status' => 'success',
 					'meta'   => $meta,
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * GET /api/admin/configurations/dataset_types
+	 *
+	 * Catalog search type-tab order (survey_types by weight DESC).
+	 */
+	public function dataset_types_get()
+	{
+		try
+		{
+			$this->require_configurations_edit();
+			$this->load->model('Survey_type_model');
+			$this->set_response(
+				array(
+					'status' => 'success',
+					'types'  => $this->Survey_type_model->get_types_for_ordering(),
+				),
+				REST_Controller::HTTP_OK
+			);
+		}
+		catch (AclAccessDeniedException $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => 'ACCESS_DENIED'), REST_Controller::HTTP_FORBIDDEN);
+		}
+		catch (Exception $e)
+		{
+			$this->set_response(array('status' => 'error', 'message' => $e->getMessage()), REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * POST /api/admin/configurations/dataset_types_reorder
+	 *
+	 * Body: { "codes": ["survey", "geospatial", ...] } — first code becomes the leftmost tab.
+	 */
+	public function dataset_types_reorder_post()
+	{
+		try
+		{
+			$this->require_configurations_edit();
+			$this->load->model('Survey_type_model');
+
+			$payload = $this->read_json_body_optional();
+
+			$codes = array();
+			if (isset($payload['codes']) && is_array($payload['codes'])) {
+				$codes = $payload['codes'];
+			} elseif ($payload && array_keys($payload) === range(0, count($payload) - 1)) {
+				$codes = $payload;
+			}
+
+			$types = $this->Survey_type_model->reorder_by_codes($codes);
+			$this->set_response(
+				array(
+					'status' => 'success',
+					'types'  => $types,
 				),
 				REST_Controller::HTTP_OK
 			);

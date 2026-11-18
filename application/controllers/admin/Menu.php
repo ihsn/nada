@@ -5,7 +5,6 @@ class Menu extends MY_Controller {
 	{
 		parent::__construct();
 		$this->lang->load('menu');
-		$this->template->set_template('admin5');
 	}
 
 	function index()

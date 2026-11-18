@@ -106,6 +106,23 @@
           {{ importFeedback }}
         </v-alert>
 
+        <v-alert
+          v-if="pendingImport && !importLoading"
+          type="warning"
+          density="compact"
+          variant="tonal"
+          class="mb-3"
+        >
+          <div class="d-flex flex-wrap align-center justify-space-between gap-2">
+            <span>
+              An earlier CSV import did not finish ({{ pendingImport.progress_percent ?? 0 }}%,
+              {{ (pendingImport.inserted ?? 0).toLocaleString() }} rows loaded).
+              Resume it, or import a new file to replace it.
+            </span>
+            <v-btn size="small" color="primary" variant="flat" @click="resumeCsvImport">Resume import</v-btn>
+          </div>
+        </v-alert>
+
         <div class="field-group field-group-upload" :class="{ 'mt-4': !schema }">
           <label v-if="missingDsd" class="field-label text-wrap" for="indicator-csv-upload">
             Attach a data structure above to enable file upload (CSV).
@@ -144,6 +161,16 @@
             >
               Import
             </v-btn>
+          </div>
+          <div v-if="importLoading && importProgress" class="mt-3">
+            <div class="text-body-2 text-medium-emphasis mb-1">{{ importProgressLabel }}</div>
+            <v-progress-linear
+              :model-value="importProgressPercent"
+              :indeterminate="importProgressPercent === null"
+              color="primary"
+              height="6"
+              rounded
+            />
           </div>
           <div
             v-if="hasIndicatorObservations"
@@ -317,6 +344,8 @@ const {
   fetchValueCountsSummary,
   syncValueCounts,
     importCsvData,
+    runStagedImport,
+    fetchImportStatus,
     rehashData,
     clearIndicatorData,
   } = useStudyTimeseriesApi(studySid);
@@ -353,6 +382,36 @@ const resyncLoading = ref(false);
 /** Inline import result or error (API messages show here even if global toast is missed). */
 const importFeedback = ref('');
 const importFeedbackType = ref('success');
+/** Live progress from the chunked import ({ phase, ... }). */
+const importProgress = ref(null);
+/** Unfinished chunked import found on page load (import-status result). */
+const pendingImport = ref(null);
+
+const importProgressPercent = computed(() => {
+  const p = importProgress.value;
+  if (!p) return null;
+  if (p.phase === 'uploading') return p.total ? Math.round((p.loaded / p.total) * 100) : null;
+  if (p.phase === 'processing' && p.status === 'in_progress') return p.progress_percent ?? 0;
+  return null;
+});
+
+const importProgressLabel = computed(() => {
+  const p = importProgress.value;
+  if (!p) return '';
+  if (p.phase === 'uploading') return `Uploading file… ${importProgressPercent.value ?? 0}%`;
+  if (p.phase === 'staging') return 'Checking CSV header…';
+  switch (p.status) {
+    case 'ready':
+    case 'deleting':
+      return 'Removing existing observations…';
+    case 'in_progress':
+      return `Importing rows… ${p.progress_percent ?? 0}% (${(p.inserted ?? 0).toLocaleString()} rows)`;
+    case 'finalizing':
+      return 'Updating summaries…';
+    default:
+      return 'Importing…';
+  }
+});
 const valueCountsLoading = ref(false);
 const valueCountsSyncing = ref(false);
 const valueCountsError = ref('');
@@ -727,33 +786,18 @@ async function submitCsvImport() {
   }
   importLoading.value = true;
   importFeedback.value = '';
+  importProgress.value = null;
+  pendingImport.value = null;
   try {
     const res = await importCsvData({
       file,
       delimiter: csvDelimiter,
       ensureUniqueIndex: true,
+      onProgress: (p) => {
+        importProgress.value = p;
+      },
     });
-    const inserted = res.inserted ?? 0;
-    const lines = res.lines_read ?? '—';
-    const ignored = Array.isArray(res.ignored_columns) ? res.ignored_columns : [];
-    let detail = `Imported ${inserted} observation(s) (lines read: ${lines}).`;
-    if (res.resource_saved === false) {
-      detail += ' CSV was not attached as a study resource (check survey folder / validation logs).';
-      importFeedbackType.value = 'warning';
-    }
-    if (ignored.length) {
-      const shown = ignored.slice(0, 20).join(', ');
-      const more = ignored.length > 20 ? ` (+${ignored.length - 20} more)` : '';
-      detail += ` Skipped ${ignored.length} non-DSD column(s): ${shown}${more}.`;
-    }
-    if (res.resource_saved !== false) {
-      importFeedbackType.value = ignored.length ? 'info' : 'success';
-    }
-    importFeedback.value = detail;
-    setMessage(`Imported ${inserted} observation(s).`, 'success');
-    importFile.value = null;
-    mainTab.value = 'preview';
-    await loadAll();
+    await showImportResult(res);
   } catch (e) {
     const msg = e?.message || e?.response?.data?.message || 'Import failed.';
     importFeedbackType.value = 'error';
@@ -761,7 +805,64 @@ async function submitCsvImport() {
     setMessage(msg, 'error');
   } finally {
     importLoading.value = false;
+    importProgress.value = null;
   }
+}
+
+async function resumeCsvImport() {
+  importLoading.value = true;
+  importFeedback.value = '';
+  importProgress.value = { phase: 'processing', ...(pendingImport.value || {}) };
+  pendingImport.value = null;
+  try {
+    const res = await runStagedImport((p) => {
+      importProgress.value = p;
+    });
+    await showImportResult(res);
+  } catch (e) {
+    const msg = e?.message || 'Import failed.';
+    importFeedbackType.value = 'error';
+    importFeedback.value = msg;
+    setMessage(msg, 'error');
+    await loadPendingImport();
+  } finally {
+    importLoading.value = false;
+    importProgress.value = null;
+  }
+}
+
+/** Show an unfinished chunked import (e.g. tab closed mid-import) so it can be resumed. */
+async function loadPendingImport() {
+  try {
+    const st = await fetchImportStatus();
+    pendingImport.value = st && st.has_more ? st : null;
+  } catch {
+    pendingImport.value = null;
+  }
+}
+
+async function showImportResult(res) {
+  const inserted = res.inserted ?? 0;
+  const lines = res.lines_read ?? '—';
+  const ignored = Array.isArray(res.ignored_columns) ? res.ignored_columns : [];
+  let detail = `Imported ${inserted} observation(s) (lines read: ${lines}).`;
+  if (res.resource_saved === false) {
+    detail += ' CSV was not attached as a study resource (check survey folder / validation logs).';
+    importFeedbackType.value = 'warning';
+  }
+  if (ignored.length) {
+    const shown = ignored.slice(0, 20).join(', ');
+    const more = ignored.length > 20 ? ` (+${ignored.length - 20} more)` : '';
+    detail += ` Skipped ${ignored.length} non-DSD column(s): ${shown}${more}.`;
+  }
+  if (res.resource_saved !== false) {
+    importFeedbackType.value = ignored.length ? 'info' : 'success';
+  }
+  importFeedback.value = detail;
+  setMessage(`Imported ${inserted} observation(s).`, 'success');
+  importFile.value = null;
+  mainTab.value = 'preview';
+  await loadAll();
 }
 
 async function confirmClearIndicatorData() {
@@ -887,7 +988,7 @@ async function loadAll() {
     schema.value = sch;
     offset.value = 0;
     observationListTotal.value = Number(count) || 0;
-    await Promise.all([reloadObservations(), loadValueCountsSummary()]);
+    await Promise.all([reloadObservations(), loadValueCountsSummary(), loadPendingImport()]);
   } catch (e) {
     const msg = e?.response?.data?.message || e?.message || 'Could not load timeseries data.';
     if (isMissingDsdMessage(msg)) {

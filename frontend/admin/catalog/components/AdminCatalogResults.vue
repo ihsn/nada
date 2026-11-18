@@ -189,7 +189,7 @@
                   <template #prepend><v-icon size="small" color="primary">mdi-transfer-right</v-icon></template>
                   <v-list-item-title class="text-caption">{{ t('transfer_ownership') }}</v-list-item-title>
                 </v-list-item>
-                <v-list-item :href="deleteUrl(study)">
+                <v-list-item @click="onDeleteStudy(study)">
                   <template #prepend><v-icon size="small" color="error">mdi-delete</v-icon></template>
                   <v-list-item-title class="text-caption">{{ t('delete_study') }}</v-list-item-title>
                 </v-list-item>                
@@ -347,9 +347,6 @@ function thumbnailUrl(study) {
 
 function editUrl(study) {
   return `${siteUrl.value}/admin/catalog/edit/${study.id}`;
-}
-function deleteUrl(study) {
-  return `${siteUrl.value}/admin/catalog/delete/${study.id}`;
 }
 
 function unlinkUrl(study) {
@@ -521,6 +518,30 @@ async function onTransferred(result) {
         result.total
       ),
     });
+  }
+}
+
+async function onDeleteStudy(study) {
+  if (study?.id == null || study.id === '') return;
+  const title = study.title || String(study.id);
+  const ok = await $dialog.confirm({
+    title: t('delete_study'),
+    message: t('confirm_delete_study', 'Delete study “%s”? This cannot be undone.', title),
+    confirmText: t('delete_study'),
+  });
+  if (!ok) return;
+  batchProcessing.value = true;
+  try {
+    await deleteStudy(study.id);
+    emit('refresh');
+  } catch (e) {
+    console.error('Delete study failed', e);
+    await $dialog.alert({
+      title: t('error') || 'Error',
+      message: e?.message || String(e),
+    });
+  } finally {
+    batchProcessing.value = false;
   }
 }
 

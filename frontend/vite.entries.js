@@ -77,10 +77,23 @@ export const adminEntries = {
   admin_permissions: path.resolve(__dirname, 'admin/permissions/main.js'),
   admin_datadeposit: path.resolve(__dirname, 'admin/datadeposit/main.js'),
   admin_logs: path.resolve(__dirname, 'admin/logs/main.js'),
+  admin_users: path.resolve(__dirname, 'admin/users/main.js'),
+  admin_citations: path.resolve(__dirname, 'admin/citations/main.js'),
   admin_filestore: path.resolve(__dirname, 'admin/filestore/main.js'),
   admin_countries: path.resolve(__dirname, 'admin/countries/main.js'),
   admin_translate: path.resolve(__dirname, 'admin/translate/main.js'),
   admin_database_migration: path.resolve(__dirname, 'admin/database_migration/main.js'),
+  admin_dataaccess_whitelist: path.resolve(
+    __dirname,
+    'admin/dataaccess_whitelist/main.js'
+  ),
+  admin_repository_sections: path.resolve(
+    __dirname,
+    'admin/repository_sections/main.js'
+  ),
+  admin_public_requests: path.resolve(__dirname, 'admin/public_requests/main.js'),
+  admin_solr: path.resolve(__dirname, 'admin/solr/main.js'),
+  admin_site_layout: path.resolve(__dirname, 'admin/site_layout/main.js'),
 };
 
 export const allEntries = {

@@ -332,7 +332,7 @@ const filterDraft = reactive({
   dGeography: [],
   dPeriodicity: [],
   dTimePeriod: [],
-  /** When the DSD time_period has no observed codelist facets, filter by Mongo `_ts_year` via API `from` / `to`. */
+  /** When the DSD time_period has no observed codelist facets, filter by period range via API `from` / `to`. */
   reportingYearFrom: '',
   reportingYearTo: '',
   c: {},

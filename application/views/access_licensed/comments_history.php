@@ -24,7 +24,7 @@
     <tr class="<?php echo $tr_class; ?>" style="vertical-align:top">
 	    <td><?php echo date("m/d/Y",$row->created); ?></td>
         <td><?php echo $row->request_status;?></td>        
-        <td nowrap="nowrap"><?php echo $row->first_name;?> <?php echo $row->last_name;?></td>
+        <td nowrap="nowrap"><?php echo html_escape($row->first_name);?> <?php echo html_escape($row->last_name);?></td>
         <td><div class="admin-comment"><?php echo nl2br(form_prep($row->description));?></div></td>
     </tr>
 <?php endforeach;?>

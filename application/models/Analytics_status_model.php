@@ -251,15 +251,26 @@ class Analytics_status_model extends CI_Model {
 	 */
 	public function touch_heartbeat()
 	{
+		$now = date('Y-m-d H:i:s');
 		if ($this->db->dbdriver === 'sqlsrv') {
+			// Match MySQL: update the newest running row (CI sqlsrv clears ORDER BY/LIMIT on UPDATE).
 			return $this->db->query(
-				"UPDATE TOP(1) analytics_aggregation_status SET last_updated_at = ? WHERE [status] = ?",
-				array(date('Y-m-d H:i:s'), self::STATUS_RUNNING)
+				"UPDATE analytics_aggregation_status
+				 SET last_updated_at = ?
+				 WHERE id IN (
+					SELECT id FROM (
+						SELECT TOP(1) id
+						FROM analytics_aggregation_status
+						WHERE [status] = ?
+						ORDER BY id DESC
+					) AS newest_running
+				 )",
+				array($now, self::STATUS_RUNNING)
 			);
 		}
 		return $this->db->query(
 			"UPDATE analytics_aggregation_status SET last_updated_at = ? WHERE status = ? ORDER BY id DESC LIMIT 1",
-			array(date('Y-m-d H:i:s'), self::STATUS_RUNNING)
+			array($now, self::STATUS_RUNNING)
 		);
 	}
 

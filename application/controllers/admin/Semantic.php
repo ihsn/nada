@@ -5,7 +5,6 @@ class Semantic extends MY_Controller
 	function __construct()
 	{
 		parent::__construct();
-		$this->template->set_template('admin5');
 	}
 
 	function index()

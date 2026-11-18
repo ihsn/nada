@@ -12,7 +12,6 @@ class Licensed_requests extends MY_Controller {
 		parent::__construct();
 		$this->load->helper(array('url'));
 		$this->load->model('Licensed_model');
-		$this->template->set_template('admin');
 		$this->lang->load('general');
 		$this->lang->load('licensed_request');
 		$this->lang->load('catalog_admin');

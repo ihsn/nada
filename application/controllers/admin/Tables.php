@@ -11,7 +11,6 @@ class Tables extends MY_Controller {
     {
         parent::__construct();
         $this->load->helper('url');
-        $this->template->set_template('admin5');
     }
 
     public function index()

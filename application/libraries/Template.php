@@ -543,7 +543,7 @@ class Template {
          return FALSE;
       }
 
-      $admin_template_groups = array('admin', 'admin5', 'admin_blank', 'member', 'installer');
+      $admin_template_groups = array('admin', 'admin_blank', 'member');
       if (in_array($this->template_group, $admin_template_groups, TRUE)) {
          return FALSE;
       }

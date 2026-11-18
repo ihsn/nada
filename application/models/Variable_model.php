@@ -560,6 +560,7 @@ class Variable_model extends CI_Model {
             'var_intrvl',
             'var_dcml',
             'var_wgt',
+            'var_wgt_id',
             'var_start_pos',
             'var_end_pos',
             'var_width',

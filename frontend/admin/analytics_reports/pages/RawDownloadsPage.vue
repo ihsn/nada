@@ -5,7 +5,6 @@
       {{ t('analytics_raw_downloads', 'Raw downloads') }}
     </v-card-title>
     <v-card-text class="admin-analytics-card-sections">
-      <RawLogsHintAlert :max-days="rawMaxDays" />
       <v-row dense>
         <v-col cols="12" sm="3">
           <FormField :label="t('analytics_from', 'From')">
@@ -58,7 +57,18 @@
         @update:page="onPage"
       >
         <template #item.ts="{ item }">
-          {{ formatDateTime(item.ts) }}
+          {{ formatDateTime(item.ts, timezone) }}
+        </template>
+        <template #item.study_title="{ item }">
+          <a
+            v-if="item.study_id"
+            :href="adminStudyEditUrl(siteUrl, item)"
+            class="admin-analytics-cell-truncate admin-analytics-study-link"
+            :title="item.study_title || t('analytics_study_number', 'Study %s', item.study_id)"
+          >
+            {{ item.study_title || t('analytics_study_number', 'Study %s', item.study_id) }}
+          </a>
+          <span v-else>—</span>
         </template>
       </v-data-table-server>
       <PaginatedTableFooter v-model:page="page" :limit="limit" :total="total" @update:page="onPage" />
@@ -72,21 +82,20 @@ import { useAppConfig } from '@/shared/composables/useAppConfig';
 import { useI18n } from '@/shared/composables/useI18n';
 import { useAnalyticsApi } from '../composables/useAnalyticsApi';
 import { useAnalyticsMessages } from '../composables/useAnalyticsMessages';
-import { formatDateTime } from '../utils/formatters';
+import { adminStudyEditUrl, formatDateTime } from '../utils/formatters';
 import { defaultRawDateRange } from '../utils/dateDefaults';
 import FormField from '../components/shared/FormField.vue';
 import PaginatedTableFooter from '../components/shared/PaginatedTableFooter.vue';
-import RawLogsHintAlert from '../components/shared/RawLogsHintAlert.vue';
 
 defineOptions({ name: 'RawDownloadsPage' });
 
-const { config } = useAppConfig();
+const { config, siteUrl } = useAppConfig();
 const { t } = useI18n();
+const timezone = computed(() => config.value?.serverTimezone || 'UTC');
 const api = useAnalyticsApi();
 const { notifyError } = useAnalyticsMessages();
 
 const serverDate = computed(() => config.value?.serverDate || '');
-const rawMaxDays = ref(31);
 
 function applyDefaultDates() {
   const d = defaultRawDateRange(serverDate.value);
@@ -103,7 +112,8 @@ const limit = 50;
 
 const headers = [
   { title: t('analytics_time', 'Time'), key: 'ts' },
-  { title: t('analytics_study_id', 'Study ID'), key: 'study_id' },
+  { title: t('analytics_study', 'Study'), key: 'study_title', minWidth: '200px' },
+  { title: t('analytics_id', 'ID'), key: 'study_id', width: '72px' },
   { title: t('analytics_file', 'File'), key: 'file_name' },
   { title: t('analytics_type', 'Type'), key: 'file_type' },
 ];
@@ -150,15 +160,7 @@ function clearFilters() {
   reload();
 }
 
-onMounted(async () => {
-  try {
-    const meta = await api.fetchMeta();
-    if (meta.data?.raw_list_max_days) {
-      rawMaxDays.value = meta.data.raw_list_max_days;
-    }
-  } catch {
-    /* keep default */
-  }
+onMounted(() => {
   applyDefaultDates();
   load();
 });

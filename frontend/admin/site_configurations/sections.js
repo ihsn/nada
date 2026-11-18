@@ -5,7 +5,6 @@ export const SECTION_DEFS = [
     titleKey: 'general_site_settings',
     keys: [
       'website_title',
-      'website_footer',
       'default_home_page',
       'website_webmaster_name',
       'website_webmaster_email',

@@ -13,7 +13,6 @@ class Analytics_reports extends MY_Controller {
         $this->load->helper('url');
         $this->load->model('Analytics_model');
         $this->lang->load('analytics');
-        $this->template->set_template('admin5');
     }
 
     public function index()

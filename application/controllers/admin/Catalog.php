@@ -21,7 +21,6 @@ class Catalog extends MY_Controller {
 		$this->load->helper('querystring_helper','url');
 		$this->load->helper('form');
 		//$this->load->helper("catalog");
-		$this->template->set_template('admin');
 		$this->load->library("Dataset_manager");
 
 		//load language file
@@ -308,7 +307,6 @@ class Catalog extends MY_Controller {
 
 		//user has permissions on the repo
 		//$this->acl->user_has_repository_access($this->active_repo->id);
-		$this->template->set_template('admin');
 
 		// Show Vue 3 upload UI (GET); POST is unchanged multipart handling below.
 		if (!$this->input->post('submit')) {
@@ -583,120 +581,12 @@ class Catalog extends MY_Controller {
 		}
 	}
 
+	/**
+	 * Retired — use api/admin/catalog/delete.
+	 **/
 	function delete($id)
 	{
-		$this->acl_manager->require_catalog_access();
-		//array of id to be deleted
-		$delete_arr=array();
-
-		//is ajax call
-		$ajax=$this->input->get_post('ajax');
-
-		if (!is_numeric($id))
-		{
-			$tmp_arr=explode(",",$id);
-
-			foreach($tmp_arr as $key=>$value)
-			{
-				if (is_numeric($value))
-				{
-					$delete_arr[]=$value;
-				}
-			}
-
-			if (count($delete_arr)==0)
-			{
-				//for ajax return JSON output
-				if ($ajax!='')
-				{
-					echo json_encode(array('error'=>"invalid id was provided") );
-					exit;
-				}
-
-				$this->session->set_flashdata('error', 'Invalid id was provided.');
-				redirect('admin/catalog');
-			}
-		}
-		else
-		{
-			$delete_arr[]=$id;
-		}
-
-		//test user has permission to delete study or not
-		//$this->acl->user_has_study_access($id);		
-
-		if ($this->input->post('cancel')!='')
-		{
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-
-			nada_redirect($destination, 'admin/catalog');
-		}
-		else if ($this->input->post('submit')!='')
-		{
-			foreach($delete_arr as $item)
-			{
-				//get survey info
-				$survey=$this->Catalog_model->get_survey($item);
-
-				//delete if exists
-				if ($survey)
-				{
-					$this->acl_manager->has_access_or_die('study', 'delete', null, $survey['repositoryid']);
-					//delete survey and related data from other tables
-					$this->Catalog_model->delete($item);
-					$this->events->emit('db.after.delete', 'surveys', $item,'delete');
-
-					//log deletion
-					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
-					$this->db_logger->write_log('study-deleted',$survey_name,'catalog',$item);
-				}
-			}
-
-			//for ajax calls, return output as JSON
-			if ($ajax!='')
-			{
-				echo json_encode(array('success'=>"true") );
-				exit;
-			}
-
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-
-			if (is_local_redirect($destination))
-			{
-				//redirect($destination);
-			}
-			else
-			{
-				redirect('admin/catalog');
-			}
-		}
-		else
-		{
-			$items=array(); //list of deleted items
-
-			foreach($delete_arr as $item)
-			{
-				//get survey info
-				$survey=$this->Catalog_model->get_survey($item);
-
-				//exists
-				if ($survey)
-				{
-					$this->acl_manager->has_access_or_die('study', 'delete', null, $survey['repositoryid']);
-					//log deletion
-					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
-					$items[]=$survey_name;
-				}
-			}
-
-			//ask for confirmation
-			$content=$this->load->view('resources/delete', array('deleted_items'=>$items),true);
-
-			$this->template->write('content', $content,true);
-	  		$this->template->render();
-		}
+		show_404();
 	}
 
 	/**
@@ -855,112 +745,14 @@ class Catalog extends MY_Controller {
 
 
 	/**
-	*
-	* Publish/Unpublish studies
-	*
-	* $id single numeric value or a comma seperated list of IDs
-	* TODO: remove - has been replaced by udpate function
-	**/
+	 * Retired — use api/admin/catalog options (published).
+	 **/
 	function publish($id,$publish=1)
 	{
-		if (!in_array($publish,array(0,1))){
-			$publish=1;
-		}
-
-		//array of id to be published
-		$id_arr=array();
-
-		//is ajax call
-		$ajax=$this->input->get_post('ajax');
-
-		if (!is_numeric($id)){
-			$tmp_arr=explode(",",$id);
-			foreach($tmp_arr as $key=>$value)
-			{
-				if (is_numeric($value)){
-					$id_arr[]=$value;
-				}
-			}
-
-			if (count($id_arr)==0)
-			{
-				//for ajax return JSON output
-				if ($ajax!=''){
-					echo json_encode(array('error'=>"invalid id was provided") );
-					exit;
-				}
-
-				$this->session->set_flashdata('error', 'Invalid id was provided.');
-				redirect('admin/catalog');
-			}
-		}
-		else{
-			$id_arr[]=$id;
-		}
-
-		if ($this->input->post('cancel')!='')
-		{
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-
-			nada_redirect($destination, 'admin/catalog');
-		}
-		else if ($this->input->post('submit')!='')
-		{
-			foreach($id_arr as $item)
-			{
-				//get survey info
-				$survey=$this->Catalog_model->get_survey($item);
-				$this->acl_manager->has_access_or_die('study', 'publish', null, $survey['repositoryid']);
-
-				//if exists
-				if ($survey){
-					//publish/unpublish a study
-					$result=$this->Catalog_model->publish_study($item,$publish);
-					$this->events->emit('db.after.update', 'surveys', $item,'publish');
-					//log
-					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
-					$this->db_logger->write_log('study-published',$survey_name,'catalog',$item);
-				}
-			}
-
-			//raise db update event
-			//$this->events->emit('db.after.update', 'surveys', $id_arr,'atomic');
-
-			//for ajax calls, return output as JSON
-			if ($ajax!=''){
-				echo json_encode(array('success'=>"true") );
-				exit;
-			}
-
-			//redirect page url
-			$destination=$this->input->get_post('destination');
-			redirect('admin/catalog');			
-		}
-		else
-		{
-			$items=array(); //list of items
-
-			foreach($id_arr as $item){				
-				$survey=$this->Catalog_model->get_survey($item);
-				$this->acl_manager->has_access_or_die('study', 'publish', null, $survey['repositoryid']);
-
-				if ($survey){
-					$survey_name=$survey['idno']. ' - '.$survey['title'].' - '. $survey['year_start'].' - '. $survey['nation'];
-					$items[]=$survey_name;
-				}
-			}
-
-			//ask for confirmation
-			$content=$this->load->view('catalog/publish_confirm', array('items'=>$items,'publish'=>$publish),true);
-
-			$this->template->write('content', $content,true);
-	  		$this->template->render();
-		}
+		show_404();
 	}
 
-	
-	
+
 	function create($type=null)
 	{
 		$this->acl_manager->require_catalog_access();
@@ -1100,15 +892,10 @@ class Catalog extends MY_Controller {
 		redirect('admin/catalog/edit/'.$id.'/metadata');
 	}
 
-	function widgets($sid)
+	/** Retired — manage study embeds via api/widgets; public pages remain at widgets/* */
+	function widgets($sid = null)
 	{
-		$this->load->model("Widget_model");
-		$options['widget_storage_root']='files/embed/';
-		$options['widgets']=$this->Widget_model->widgets_by_study($sid);
-		
-		$content= $this->load->view('widgets/related_widgets', $options,TRUE);
-		$this->template->write('content', $content,true);
-		$this->template->render();
+		show_404();
 	}
 
 	/**
@@ -1128,8 +915,8 @@ class Catalog extends MY_Controller {
 		//test user study permissiosn
 		//$this->acl->user_has_study_access($id);		
 
-		if ($this->uri->segment(5)=='widgets'){
-			return $this->widgets($id);
+		if ($this->uri->segment(5) === 'widgets') {
+			show_404();
 		}
 
 		$tab = $this->_study_edit_tab_slug();
@@ -1437,8 +1224,6 @@ class Catalog extends MY_Controller {
 				'apiBaseUrl'          => site_url('api/admin/catalog/'),
 				'uploadsApiUrl'       => rtrim(site_url('api/uploads'), '/') . '/',
 				'resourcesTabUrl'     => site_url('admin/catalog/edit/' . (int) $id . '/resources'),
-				// Study-file → new resource (token flow); still PHP until ported.
-				'resourcesFileLinkBase' => rtrim(site_url('admin/resources/edit/add/' . (int) $id), '/'),
 				'labels'              => array(
 					'name'                 => t('name'),
 					'size'                 => t('size'),
@@ -1749,7 +1534,6 @@ class Catalog extends MY_Controller {
 					'refreshDdi'   => site_url('admin/catalog/refresh/' . (int) $id),
 					'generateDdi'  => site_url('admin/catalog/generate_ddi/' . (int) $id),
 					'exportRdf'    => site_url('admin/catalog/export_rdf/' . (int) $id),
-					'deleteStudy'  => site_url('admin/catalog/delete/' . (int) $id),
 				),
 				'labels'               => array(
 					'status'                 => t('Status'),

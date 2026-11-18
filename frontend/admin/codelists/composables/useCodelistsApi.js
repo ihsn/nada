@@ -16,7 +16,8 @@ export function useCodelistsApi() {
    * List codelists (collapsed family heads by default).
    * @param {boolean|object} [opts]
    * Legacy: `true`/`false` = with_counts only, full unpaged array.
-   * Object: { withCounts, flat, page, per_page, search, status }. When `page` ≥ 1, returns a paginated object.
+   * Object: { withCounts, flat, page, per_page, search, status, sort_by, sort_order }.
+   * When `page` ≥ 1, returns a paginated object.
    * @returns {Promise<Array|{ codelists: array, total: number, page: number, per_page: number }>}
    */
   async function fetchCodelists(opts = true) {
@@ -29,6 +30,8 @@ export function useCodelistsApi() {
       let per_page = 50;
       let search = '';
       let status = null;
+      let sort_by = '';
+      let sort_order = 'asc';
 
       if (typeof opts === 'boolean') {
         withCounts = opts;
@@ -41,6 +44,8 @@ export function useCodelistsApi() {
         per_page = opts.per_page ?? 50;
         search = typeof opts.search === 'string' ? opts.search : '';
         status = opts.status;
+        sort_by = typeof opts.sort_by === 'string' ? opts.sort_by.trim() : '';
+        sort_order = opts.sort_order === 'desc' ? 'desc' : 'asc';
       }
 
       const params = { with_counts: withCounts ? '1' : '0' };
@@ -56,6 +61,10 @@ export function useCodelistsApi() {
         if (q) params.search = q;
         if (status != null && status !== '' && Number.isFinite(Number(status))) {
           params.status = String(Number(status));
+        }
+        if (sort_by) {
+          params.sort_by = sort_by;
+          params.sort_order = sort_order;
         }
       }
 

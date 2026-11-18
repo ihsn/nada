@@ -203,7 +203,6 @@ const { fetchFiles, deleteFile, uploadFile, downloadHref } = useStudyFilesApi();
 
 const lbl = computed(() => config.value?.labels || {});
 const resourcesTabUrl = computed(() => config.value?.resourcesTabUrl || '');
-const resourcesFileLinkBase = computed(() => config.value?.resourcesFileLinkBase || '');
 
 const loading = ref(true);
 const uploading = ref(false);
@@ -267,19 +266,19 @@ function resourceEditUrl(item) {
     return null;
   }
 
+  const tab = String(resourcesTabUrl.value || '').replace(/\/+$/, '');
+  if (!tab) return null;
+
   const rid = item?.resource?.resource_id;
-  if (rid != null && resourcesTabUrl.value) {
-    return `${String(resourcesTabUrl.value).replace(/\/+$/, '')}/edit/${encodeURIComponent(String(rid))}`;
+  if (rid != null) {
+    return `${tab}/edit/${encodeURIComponent(String(rid))}`;
   }
 
-  const token = item?.base64;
-  const linkBase = String(resourcesFileLinkBase.value || '').replace(/\/+$/, '');
-  if (token && linkBase) {
-    const params = new URLSearchParams({ t: token });
-    return `${linkBase}?${params.toString()}`;
-  }
-
-  return null;
+  // Unlinked study file → Vue resources create form with path prefilled
+  const relative = String(item?.relative_key || item?.name || '').replace(/^\/+/, '');
+  if (!relative || relative.includes('..')) return null;
+  const params = new URLSearchParams({ file: relative });
+  return `${tab}/add?${params.toString()}`;
 }
 
 function resourceEditTitle(item) {

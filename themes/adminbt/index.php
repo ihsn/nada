@@ -34,7 +34,7 @@ $site_navigation_menu=get_site_menu();
 	  <base href="<?php echo js_base_url(); ?>">
 	  <title><?php echo $title; ?></title>
 
-    <link rel="stylesheet" href="<?php echo base_url()?>themes/nada/css/font-awesome.min.css">
+    <link rel="stylesheet" href="<?php echo base_url(); ?>themes/assets/fontawesome/4.7.0/css/font-awesome.min.css">
 
     <!-- Bootstrap -->
     <link href="<?php echo base_url(); ?>themes/<?php echo $this->template->theme();?>/bootstrap/css/bootstrap.css" rel="stylesheet">
@@ -99,11 +99,8 @@ $site_navigation_menu=get_site_menu();
               <li class="dropdown">
               <?php $user=strtoupper($this->session->userdata('username'));?>
 			  <?php if ($user):?>
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo $user;?> <b class="caret"></b></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo html_escape($user); ?> <b class="caret"></b></a>
                 <ul class="dropdown-menu">
-                	<?php if ($this->session->userdata('impersonate_user')):?>
-                  		<li><?php echo anchor('admin/users/exit_impersonate',t('exit_impersonate'));?></li>  
-                    <?php endif;?>
                   <li><?php echo anchor('auth/change_password',t('change_password'));?></li>
                   <li><?php echo anchor('auth/logout',t('logout'));?></li>
                   <li class="divider"></li>

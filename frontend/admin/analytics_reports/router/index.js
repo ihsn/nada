@@ -3,6 +3,7 @@ import { useI18n } from '@/shared/composables/useI18n';
 import OverviewPage from '../pages/OverviewPage.vue';
 import RawPageviewsPage from '../pages/RawPageviewsPage.vue';
 import RawDownloadsPage from '../pages/RawDownloadsPage.vue';
+import SearchKeywordsPage from '../pages/SearchKeywordsPage.vue';
 import DailyDataPage from '../pages/DailyDataPage.vue';
 import MonthlyDataPage from '../pages/MonthlyDataPage.vue';
 import AggregationsPage from '../pages/AggregationsPage.vue';
@@ -26,6 +27,16 @@ const routes = [
     name: 'downloads',
     component: RawDownloadsPage,
     meta: { title: 'Raw downloads', titleKey: 'analytics_raw_downloads', navIcon: 'mdi-download' },
+  },
+  {
+    path: '/search-keywords',
+    name: 'search-keywords',
+    component: SearchKeywordsPage,
+    meta: {
+      title: 'Search keywords',
+      titleKey: 'analytics_search_keywords',
+      navIcon: 'mdi-magnify',
+    },
   },
   {
     path: '/daily',

@@ -185,9 +185,10 @@
             />
             <v-list-item
               class="csb-option-item rounded-lg"
-              :href="legacy.deleteStudy"
               prepend-icon="mdi-delete-outline"
               :title="lbl.delete_study || ''"
+              :disabled="deleteBusy"
+              @click="onDeleteStudy"
             />
           </v-list>
         </v-card-text>

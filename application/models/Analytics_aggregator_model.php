@@ -362,35 +362,36 @@ class Analytics_aggregator_model extends CI_Model {
 		}
 
 		$file_combinations = array();
-		$study_ids = array();
-		$file_names = array();
 		foreach ($files_query->result() as $row) {
 			$file_combinations[] = array(
 				'study_id' => $row->study_id,
 				'file_name' => $row->file_name
 			);
-			$study_ids[] = $row->study_id;
-			$file_names[] = $row->file_name;
 		}
 
 		// Use DELETE + INSERT pattern (works for both MySQL and SQL Server)
 		$this->db->trans_start();
 
-		// Delete existing aggregates for this date and file combinations
-		$this->db->where('date', $date);
-		$this->db->where_in('study_id', $study_ids);
-		$this->db->where_in('file_name', $file_names);
-		$this->db->delete('analytics_daily_files');
+		// Exact (study_id, file_name) pairs — do not use separate where_in lists
+		// (that is a Cartesian product and can delete rows outside this chunk).
+		$pair_conditions = array();
+		$pair_params = array($date);
+		foreach ($file_combinations as $file_combo) {
+			$pair_conditions[] = '(study_id = ? AND file_name = ?)';
+			$pair_params[] = $file_combo['study_id'];
+			$pair_params[] = $file_combo['file_name'];
+		}
+		$where_clause = implode(' OR ', $pair_conditions);
+		$this->db->query(
+			'DELETE FROM analytics_daily_files WHERE date = ? AND (' . $where_clause . ')',
+			$pair_params
+		);
 
-		// Build WHERE clause for file combinations
-		$where_conditions = array();
 		$params = array($date, $ts_start, $ts_end);
 		foreach ($file_combinations as $file_combo) {
-			$where_conditions[] = "(study_id = ? AND file_name = ?)";
 			$params[] = $file_combo['study_id'];
 			$params[] = $file_combo['file_name'];
 		}
-		$where_clause = implode(' OR ', $where_conditions);
 
 		// Insert aggregated data for all file combinations in batch
 		$sql = "
