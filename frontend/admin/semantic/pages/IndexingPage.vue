@@ -21,6 +21,15 @@
           Force re-index…
         </v-btn>
         <v-btn
+          variant="text"
+          prepend-icon="mdi-filter-cog-outline"
+          :loading="isSubmitting(REFRESH_ALL_KEY)"
+          :disabled="!canEdit"
+          @click="refreshFilters(null)"
+        >
+          Refresh filters
+        </v-btn>
+        <v-btn
           color="primary"
           prepend-icon="mdi-play"
           :loading="isSubmitting(ALL_TYPES_KEY)"
@@ -35,7 +44,9 @@
         <p class="text-body-2 text-medium-emphasis mb-3">
           <strong>Update</strong> queues the studies that are missing and the ones no longer in the catalog; NADA-AI
           then works through the queue, catalog edits first. <strong>Force re-index</strong> reads every study of a
-          type again, including the ones already searchable, outside the queue.
+          type again, including the ones already searchable, outside the queue. <strong>Refresh filters</strong>
+          queues the studies already searchable to have their filters (collections, published status, data access)
+          rewritten from the catalog, without reading their text or embedding anything.
         </p>
         <CoverageTable
           :rows="sortedTypeBreakdown"
@@ -51,6 +62,7 @@
           @select-missing="(type) => filterMissingByType(type, false)"
           @select-stale="filterStaleByType"
           @update-type="updateType"
+          @refresh-type="refreshFilters"
           @rebuild-type="openRebuild"
         />
       </v-card-text>
@@ -291,6 +303,7 @@ const dataTypes = computed(() => typeBreakdown.value.map((row) => row.data_type)
 const dataTypeOptions = computed(() => dataTypes.value.map((t) => ({ title: typeLabel(t), value: t })));
 
 const ALL_TYPES_KEY = '__all__';
+const REFRESH_ALL_KEY = 'refresh:__all__';
 const submittingKeys = ref(new Set()); // keys with an update/index POST currently in flight
 const toast = ref({ open: false, ok: true, message: '' });
 
@@ -449,6 +462,30 @@ async function updateAll() {
     showToast(false, `Could not update: ${failureText(e)}`);
   } finally {
     doneSubmitting(ALL_TYPES_KEY);
+    loadTypeBreakdown();
+  }
+}
+
+/**
+ * Refresh filters: queue a partial update of the studies already indexed (one type, or all when dataType is null),
+ * so NADA-AI rewrites their filters (collections, published status, data access) from the catalog without embedding.
+ * Missing and removed studies are queued too, as Update does.
+ */
+async function refreshFilters(dataType) {
+  const label = dataType ? typeLabel(dataType) : 'all studies';
+  if (!window.confirm(`Refresh the filters of ${label}: rewrite the collections, published status and data access of the studies already searchable? Their text is not read again.`)) {
+    return;
+  }
+  const key = dataType ? `refresh:${dataType}` : REFRESH_ALL_KEY;
+  startSubmitting(key);
+  try {
+    const data = await syncIndex({ objectType: 'survey', dataType, refreshIndexed: true });
+    await startProcessing();
+    showToast(true, `${dataType ? `${label}: ` : ''}${queuedText(data?.queued)}`);
+  } catch (e) {
+    showToast(false, `Could not refresh the filters of ${label}: ${failureText(e)}`);
+  } finally {
+    doneSubmitting(key);
     loadTypeBreakdown();
   }
 }

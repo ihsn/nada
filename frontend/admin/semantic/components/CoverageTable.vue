@@ -72,6 +72,16 @@
             >
               Update
             </v-btn>
+            <v-btn
+              size="small"
+              variant="text"
+              :disabled="!canEdit || !row.indexed"
+              :loading="isSubmitting(`refresh:${row.data_type}`)"
+              title="Rewrite the filters (collections, published status, access) of the indexed studies, without re-embedding"
+              @click="$emit('refresh-type', row.data_type)"
+            >
+              Refresh filters
+            </v-btn>
             <v-btn size="small" variant="text" :disabled="!canEdit" @click="$emit('rebuild-type', row.data_type)">
               Rebuild…
             </v-btn>
@@ -133,7 +143,7 @@ defineProps({
   rowSegments: { type: Function, required: true },
 });
 
-defineEmits(['select-errors', 'select-missing', 'select-stale', 'update-type', 'rebuild-type']);
+defineEmits(['select-errors', 'select-missing', 'select-stale', 'update-type', 'refresh-type', 'rebuild-type']);
 </script>
 
 <style scoped>
