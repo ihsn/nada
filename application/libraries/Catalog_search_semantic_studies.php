@@ -326,11 +326,12 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
         if (!empty($form_ids)) {
             $filters['form_ids'] = $form_ids;
         }
-        $collections = $this->normalise_array($this->collections);
+        // the search index holds repository ids in lowercase (see Catalog_search_metadata_extract)
+        $collections = array_map('strtolower', $this->normalise_array($this->collections));
         if (!empty($collections)) {
             $filters['collections'] = $collections;
         }
-        $repo = trim((string) $this->repo);
+        $repo = strtolower(trim((string) $this->repo));
         if ($repo !== '' && $repo !== 'central') {
             $filters['repository'] = $repo;
         }
@@ -612,12 +613,13 @@ class catalog_search_semantic_studies extends catalog_search_semantic_base
             $filters['tags'] = $tags;
         }
 
-        $collections = $this->normalise_array($this->collections);
+        // the search index holds repository ids in lowercase (see Catalog_search_metadata_extract)
+        $collections = array_map('strtolower', $this->normalise_array($this->collections));
         if (!empty($collections)) {
             $filters['collections'] = $collections;
         }
 
-        $repo = trim((string) $this->repo);
+        $repo = strtolower(trim((string) $this->repo));
         if ($repo !== '' && $repo !== 'central') {
             $filters['repository'] = $repo;
         }

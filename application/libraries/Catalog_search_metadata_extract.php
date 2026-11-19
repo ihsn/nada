@@ -539,7 +539,8 @@ class Catalog_search_metadata_extract
             'year_start'    => isset($row['year_start']) ? (int) $row['year_start'] : null,
             'year_end'      => isset($row['year_end']) ? (int) $row['year_end'] : null,
             'years'         => array_values($years),
-            'repositoryid'  => $row['repositoryid'] ?? null,
+            // repository ids are matched exactly (keyword terms) by the search index; lowercase them as the filters are
+            'repositoryid'  => isset($row['repositoryid']) ? strtolower(trim((string) $row['repositoryid'])) : null,
             'repositories'  => $repositories,
             'countries'     => array_values($countries),
             'regions'       => array_values($regions),
@@ -651,11 +652,11 @@ class Catalog_search_metadata_extract
     {
         $out = array();
         if ($primary !== null && $primary !== '') {
-            $out[] = (string) $primary;
+            $out[] = strtolower(trim((string) $primary));
         }
         foreach ($secondary as $rid) {
             if ($rid !== null && $rid !== '') {
-                $out[] = (string) $rid;
+                $out[] = strtolower(trim((string) $rid));
             }
         }
         return array_values(array_unique($out));
