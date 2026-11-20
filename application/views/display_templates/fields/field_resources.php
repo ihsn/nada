@@ -46,20 +46,17 @@ if (count($rows) < 1) {
 	return;
 }
 ?>
-<style>
-.resource-icon { font-size: 35px; padding: 10px; color: #0071bc; }
-</style>
 <div class="field resource-downloads field-<?php echo str_replace('.', '__', html_escape($field_key)); ?>">
 	<div class="field-title"><?php echo display_template_resolve_title($field_key, $field_title); ?></div>
-	<div class="field-value p-2">
+	<div class="field-value">
 	<?php foreach ($rows as $resource): ?>
 		<?php
 			$href = isset($resource['filename']) ? (string) $resource['filename'] : '';
 			$title = isset($resource['title']) && $resource['title'] !== '' ? (string) $resource['title'] : $href;
 		?>
-		<div class="row mb-3 pb-2 border-bottom">
-			<div class="col">
-				<a target="_blank" href="<?php echo html_escape($href); ?>" class="font-weight-bold">
+		<div class="resource-row d-flex align-items-start py-2 border-bottom">
+			<div class="flex-grow-1 pr-3 text-break">
+				<a target="_blank" rel="noopener" href="<?php echo html_escape($href); ?>" class="font-weight-bold">
 					<?php echo html_escape($title); ?>
 				</a>
 				<?php if (!empty($resource['dcformat'])): ?>
@@ -69,12 +66,9 @@ if (count($rows) < 1) {
 				<div><?php echo nl2br(html_escape($resource['description'])); ?></div>
 				<?php endif; ?>
 			</div>
-			<div class="col-md-2 col-sm-4">
-				<button class="float-right btn btn-primary btn-sm">
-					<i class="fa fa-download" aria-hidden="true"></i>
-					<a target="_blank" href="<?php echo html_escape($href); ?>" class="text-white"><?php echo t('Download'); ?></a>
-				</button>
-			</div>
+			<a target="_blank" rel="noopener" href="<?php echo html_escape($href); ?>" class="btn btn-primary btn-sm text-nowrap flex-shrink-0">
+				<i class="fa fa-download" aria-hidden="true"></i> <?php echo t('Download'); ?>
+			</a>
 		</div>
 	<?php endforeach; ?>
 	</div>

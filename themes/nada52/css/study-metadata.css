@@ -1,0 +1,427 @@
+/*
+ * Study metadata pages: description tab (display templates) and the
+ * geospatial feature catalogue tab.
+ *
+ * Moved out of inline <style> blocks in:
+ *  - application/views/display_templates/index.php
+ *  - application/views/display_templates/fields/field_*.php
+ *  - application/views/survey_info/geospatial_*.php
+ *
+ * Description rules are scoped to .display-template-page (the display
+ * template container); feature catalogue rules to .geo-catalogue or geo-*
+ * classes, so nothing leaks to other study tabs.
+ *
+ * Colors use the theme variables from _variables.css.
+ */
+
+
+/* ============================================================
+   Description tab (display templates)
+   ============================================================ */
+
+.display-template-page h2 {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    margin-bottom: 25px;
+    padding-top: 20px;
+}
+
+.display-template-page .field-title {
+    text-transform: uppercase;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.display-template-page h4.field-title {
+    margin-top: 0;
+}
+
+.display-template-page .field-section-container .field-section-container h2 {
+    font-size: 22px;
+}
+
+/* Same gap between every field: spacing comes from the field title; renderers' own bottom margins are reset */
+.display-template-page .field-section-container .field {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.display-template-page .field-stacked-record {
+    margin-bottom: 0;
+}
+
+.display-template-page .field-value > ul:last-child,
+.display-template-page .field-value > p:last-child {
+    margin-bottom: 0;
+}
+
+.display-template-page .geog-contact + .geog-contact {
+    margin-top: .5rem;
+}
+
+.display-template-page .badge-tags {
+    font-size: 14px !important;
+}
+
+.display-template-page .field-array-nested table {
+    width: auto;
+    margin: 0;
+    min-width: 8rem;
+}
+
+/* Section menu (scrollspy) */
+.display-template-page .metadata-sidebar-container {
+    top: 1rem;
+    padding-top: 20px;
+}
+
+.display-template-page .metadata-sidebar-container .nav-link {
+    padding: .3rem .75rem;
+    border-left: 2px solid transparent;
+}
+
+.display-template-page .metadata-sidebar-container .nav-link.active {
+    border-left-color: var(--action-color);
+    background: var(--wbg-lightbluegray);
+    font-weight: 600;
+}
+
+
+/* --- field_feature_catalog --- */
+
+.feature-catalog-container .feature-row {
+    position: relative;
+    color: var(--action-color);
+}
+
+.feature-catalog-container .feature-row:hover {
+    background: var(--wbg-lightbluegray);
+}
+
+.feature-catalog-container .icon-toggle {
+    position: absolute;
+    right: 20px;
+    top: 8px;
+    font-size: 20px;
+}
+
+.feature-catalog-container .collapsed .up_arrow,
+.feature-catalog-container .show_feature .down_arrow {
+    display: none;
+}
+
+.feature-catalog-container .show_feature {
+    background: #ced4da;
+}
+
+.feature-catalog-container .collapsed,
+.feature-catalog-container .show_feature {
+    cursor: pointer;
+}
+
+.feature-catalog-container .text-truncate {
+    margin-right: 30px;
+}
+
+
+/* --- field_scripts_script --- */
+
+.scripts-section .btn-xs {
+    font-size: small;
+}
+
+.scripts-section [data-toggle="collapse"] i:before {
+    content: "\f139";
+}
+
+.scripts-section [data-toggle="collapse"].collapsed i:before {
+    content: "\f13a";
+}
+
+
+/* --- field_photo_gallery --- */
+
+.resource-photo .carousel-container {
+    border: 1px solid gainsboro;
+    padding: 5px;
+}
+
+.resource-photo .carousel-inner {
+    max-height: 300px;
+    overflow: hidden !important;
+    height: 300px;
+}
+
+.resource-photo .carousel-img {
+    max-height: 300px;
+    width: auto;
+    margin: auto;
+}
+
+.resource-photo .carousel-indicators {
+    bottom: -5px;
+}
+
+.resource-photo .icon-wrap {
+    background: #545b62;
+    padding: 10px;
+    padding-bottom: 5px;
+    border: 1px solid white;
+}
+
+.resource-photo .gallery-indicators li {
+    height: 11px;
+    border: 1px solid #ced4da;
+    background-color: #6c757d;
+}
+
+.resource-photo .carousel-indicators .active {
+    background-color: #f8f9fa;
+}
+
+
+/* ============================================================
+   Geospatial feature catalogue tab
+   ============================================================ */
+
+/* --- Layout: sidebar + body (geospatial_catalogue_layout) --- */
+
+.geo-catalogue .var-info-panel {
+    display: none;
+}
+
+.geo-catalogue .table-variable-list td {
+    cursor: pointer;
+}
+
+.geo-catalogue .table-variable-list .var-breadcrumb {
+    display: none;
+}
+
+.geo-catalogue .var-id {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+.geo-catalogue .nada-list-group-item {
+    position: relative;
+    display: block;
+    padding: 5px 10px 5px 5px;
+    margin-bottom: -1px;
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-left: 0;
+    border-right: 0;
+    font-size: small;
+    word-wrap: break-word;
+}
+
+.geo-catalogue .nada-list-group-title {
+    font-weight: bold;
+    border-top: 0;
+}
+
+.geo-catalogue .sidebar-files .nada-list-group-item a {
+    display: block;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.geo-catalogue .sidebar-files .nada-list-group-item.active {
+    background: var(--wbg-lightbluegray);
+    border-left: 3px solid var(--action-color);
+    padding-left: 8px;
+}
+
+.geo-catalogue .sidebar-files .nada-list-group-item.active a {
+    color: var(--color-main);
+    font-weight: 600;
+}
+
+@media (max-width: 767.98px) {
+    /* stacked: sidebar above content */
+    .geo-catalogue .sidebar-files {
+        margin-bottom: 1.25rem;
+    }
+
+    .geo-catalogue .body-files.wb-border-left {
+        border-left: 0;
+    }
+
+    .geo-catalogue .sidebar-files .nada-list-group {
+        max-height: 12rem;
+        overflow-y: auto;
+    }
+}
+
+/* --- Feature types list (geospatial_feature_types) --- */
+
+.geo-catalogue .table-data-files td {
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* --- Shared bits --- */
+
+.geo-muted {
+    color: var(--color-label);
+}
+
+.geo-type {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: .75rem;
+    font-weight: normal;
+    color: #495057;
+    background: #f1f3f5;
+    border: 1px solid #e2e6ea;
+    border-radius: 3px;
+    padding: 1px 6px;
+    white-space: nowrap;
+}
+
+.geo-count {
+    font-size: .8rem;
+    color: var(--color-label);
+    white-space: nowrap;
+}
+
+.geo-dl {
+    margin: 1rem 0 0;
+}
+
+.geo-dl > dt,
+.geo-dl > dd {
+    padding-left: 0;
+}
+
+.geo-dl dt {
+    font-weight: 600;
+}
+
+.geo-dl dd {
+    margin-bottom: .35rem;
+}
+
+/* --- Feature type page (geospatial_feature_type) --- */
+
+.geo-ft-header h3 {
+    margin-bottom: .25rem;
+}
+
+.geo-ft-header .geo-ft-desc {
+    margin: .5rem 0 0;
+}
+
+.geo-attr-list .var-row .geo-attr-meta {
+    text-align: right;
+}
+
+.geo-attr-list .var-row .geo-attr-meta > * {
+    margin-left: .5rem;
+}
+
+.pnl-active .geo-muted,
+.pnl-active .geo-count {
+    color: inherit;
+    opacity: .85;
+}
+
+@media (max-width: 575.98px) {
+    /* phone: name on its own line, label and value info below */
+    .geo-attr-list .var-row > .col-md-3 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .geo-attr-list .var-row .geo-attr-meta {
+        text-align: left;
+    }
+
+    .geo-attr-list .var-row .geo-attr-meta > *:first-child {
+        margin-left: 0;
+    }
+}
+
+/* --- Attribute view (geospatial_features) --- */
+
+.geo-attr h3 {
+    margin-bottom: .1rem;
+}
+
+.geo-attr .geo-attr-in {
+    font-size: .9rem;
+    margin-bottom: 1rem;
+}
+
+/* --- Listed values (geospatial_listed_values) --- */
+
+.geo-lv {
+    margin-top: 1rem;
+}
+
+.geo-lv-title {
+    font-weight: 600;
+    margin-bottom: .35rem;
+}
+
+.geo-lv table {
+    margin-bottom: 0;
+}
+
+.geo-lv thead th {
+    border-top: 0;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+.geo-lv td,
+.geo-lv th {
+    padding: .3rem .5rem;
+}
+
+.geo-lv .geo-lv-code {
+    width: 1%;
+    white-space: nowrap;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: .85rem;
+}
+
+.geo-lv-codes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    columns: 4 160px;
+    column-gap: 1.5rem;
+}
+
+.geo-lv-codes li {
+    break-inside: avoid;
+    padding: .2rem 0;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.geo-lv .geo-lv-extra {
+    display: none;
+}
+
+.geo-lv.geo-lv-expanded .geo-lv-extra {
+    display: revert;
+}
+
+.geo-lv .geo-lv-less {
+    display: none;
+}
+
+.geo-lv.geo-lv-expanded .geo-lv-more {
+    display: none;
+}
+
+.geo-lv.geo-lv-expanded .geo-lv-less {
+    display: inline;
+}
+
+.geo-lv-toggle {
+    padding: 0;
+    margin-top: .35rem;
+    font-size: .875rem;
+}

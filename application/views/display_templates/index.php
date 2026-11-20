@@ -29,17 +29,15 @@ if (!empty($display_template_info) && is_array($display_template_info)) {
     }
 }
 ?>
-<div class="container-fluid"<?php echo $dti_attrs; ?>>
+<div class="container-fluid display-template-page"<?php echo $dti_attrs; ?>>
     <div class="row">
         <div class="col-md-3">
-            <div class="navbar-collapse sticky-top metadata-sidebar-container">
-            <div class="nav flex-column">
+            <div class="sticky-top metadata-sidebar-container">
+            <nav class="nav flex-column" id="dataset-metadata-sidebar">
             <?php foreach($sidebar as $key=>$item):?>
-                <li class="nav-item">                    
-                    <a class="nav-link" href="#<?php echo str_replace(".",".",$key);?>"><?php echo display_template_resolve_section_title($key, $item);?></a>
-                </li>
+                <a class="nav-link" href="#<?php echo html_escape($key);?>"><?php echo display_template_resolve_section_title($key, $item);?></a>
             <?php endforeach;?>
-            </div>
+            </nav>
             </div>
         </div>
         <div class="col-md-9">
@@ -48,34 +46,3 @@ if (!empty($display_template_info) && is_array($display_template_info)) {
     </div>
 </div>
 
-<style>
-
-.study-metadata h2{
-    border-bottom:1px solid #e8e8e8;
-    padding-bottom:5px;
-    margin-bottom:25px;
-    padding-top:20px;
-}
-.study-metadata .field-title{
-    text-transform: uppercase;
-    margin-top:15px;
-    font-weight:bold;
-}
-
-.study-metadata h4.field-title{
-    margin-top:0px;
-}
-
-.field-section-container .field-section-container h2{
-    font-size:22px;
-}
-
-.badge-tags{
-    font-size:14px!important;
-}
-.study-metadata .field-array-nested table{
-    width:auto;
-    margin:0;
-    min-width:8rem;
-}
-</style>

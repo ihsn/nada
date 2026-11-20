@@ -141,16 +141,3 @@
   
 </div>
 
-<style>
-  .btn-xs{
-    font-size:small;
-  }
-
-  .scripts-section [data-toggle="collapse"] i:before{
-        content: "\f139";
-    }
-    
-  .scripts-section  [data-toggle="collapse"].collapsed i:before{
-        content: "\f13a";
-    }
-</style>

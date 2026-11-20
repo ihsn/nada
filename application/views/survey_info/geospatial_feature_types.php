@@ -1,9 +1,3 @@
-<style>
-.table-data-files td{
-    cursor:pointer;
-    border-bottom:1px solid gainsboro;
-}
-</style>
 
 <?php
 $files = is_array($files) ? $files : array();
@@ -25,7 +19,10 @@ $attr_count_col = array_filter(array_column($files, 'var_count'));
     <tr class="data-file-row row-color1" data-url="<?php echo site_url("catalog/$sid/data-dictionary/{$file['file_id']}");?>">
         <td>
             <a href="<?php echo site_url("catalog/$sid/data-dictionary/{$file['file_id']}");?>?file_name=<?php echo html_escape($file['file_name']);?>"><?php echo html_escape($file['file_name']);?></a>
-            <div class="file-description"><?php echo nl2br($file['description']);?></div>
+            <?php $ft_desc = trim((string)$file['description']); ?>
+            <?php if ($ft_desc !== '' && strcasecmp($ft_desc, (string)$file['file_name']) !== 0): ?>
+            <div class="file-description"><?php echo nl2br(html_escape($ft_desc));?></div>
+            <?php endif; ?>
         </td>
         <?php if (!empty($attr_count_col)): ?>
         <td><?php echo $file['var_count'];?></td>

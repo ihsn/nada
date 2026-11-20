@@ -106,6 +106,11 @@ $config['display_renderers'] = array(
 				'label' => 'Record heading fields',
 				'description' => 'Comma-separated column keys for each record heading. First non-empty wins.',
 			),
+			'hide_field_title' => array(
+				'type' => 'text',
+				'label' => 'Hide field title',
+				'description' => 'Set to 1 to hide the caption, e.g. when it repeats the section title.',
+			),
 		),
 		'supports_layout_builder' => true,
 		'status' => 'active',

@@ -222,6 +222,13 @@ class Dataset_geospatial_model extends Dataset_model {
             $metadata['description']['feature_catalogue']['featureType']=$feature_types;
         }
 
+        // feature catalogue last in description (it can be large)
+        if (isset($metadata['description']['feature_catalogue'])){
+            $feature_catalogue=$metadata['description']['feature_catalogue'];
+            unset($metadata['description']['feature_catalogue']);
+            $metadata['description']['feature_catalogue']=$feature_catalogue;
+        }
+
         return $metadata;
 	}    
 
@@ -466,11 +473,17 @@ class Dataset_geospatial_model extends Dataset_model {
         }
         $output=array();
         foreach($listed_values as $lv){
-            $output[]=isset($lv['label']) ? $lv['label'] : '';
-            $output[]=isset($lv['definition']) ? $lv['definition'] : '';
+            if (!is_array($lv)){
+                continue;
+            }
+            foreach(array('code','label','definition') as $key){
+                if (isset($lv[$key]) && is_scalar($lv[$key]) && trim((string)$lv[$key])!==''){
+                    $output[]=trim((string)$lv[$key]);
+                }
+            }
         }
 
-        return implode(" ",$output);
+        return implode(" ",array_unique($output));
     }
 
     /**

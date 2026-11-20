@@ -5,17 +5,6 @@
 $field_key = isset($template['key']) ? (string) $template['key'] : (isset($name) ? (string) $name : 'feature_catalogue');
 ?>
 <?php if (isset($data) && is_array($data) && !empty($data['featureType']) && is_array($data['featureType'])): ?>
-<style>
-.feature-row { position: relative; color: #0071bc; }
-.feature-row:hover { background: #f0f0f0; }
-.icon-toggle { position: absolute; right: 20px; top: 8px; font-size: 20px; }
-.collapsed .up_arrow { display: none; }
-.show_feature .down_arrow { display: none; }
-.show_feature { background: #ced4da; }
-.feature-catalog-container .collapsed,
-.feature-catalog-container .show_feature { cursor: pointer; }
-.text-truncate { margin-right: 30px; }
-</style>
 <script>
 $(document).ready(function () {
 	$(document.body).on("click", ".feature-row", function () {
@@ -61,10 +50,10 @@ $(document).ready(function () {
 					<?php if (isset($feature['cardinality'])): ?>
 					<div class="col-md-12">
 						<div class="row">
-							<div class="col-md-3 font-weight-bold">Cardinality</div>
+							<div class="col-md-3 font-weight-bold"><?php echo t('cardinality'); ?></div>
 							<div class="col-md-9">
-								Lower: <?php echo isset($feature['cardinality']['lower']) ? html_escape($feature['cardinality']['lower']) : ''; ?>
-								Upper: <?php echo isset($feature['cardinality']['upper']) ? html_escape($feature['cardinality']['upper']) : ''; ?>
+								<?php echo t('cardinality_lower'); ?>: <?php echo isset($feature['cardinality']['lower']) ? html_escape($feature['cardinality']['lower']) : ''; ?>
+								<?php echo t('cardinality_upper'); ?>: <?php echo isset($feature['cardinality']['upper']) ? html_escape($feature['cardinality']['upper']) : ''; ?>
 							</div>
 						</div>
 					</div>
@@ -72,7 +61,7 @@ $(document).ready(function () {
 					<?php if (isset($feature['valueMeasurementUnit'])): ?>
 					<div class="col-md-12">
 						<div class="row">
-							<div class="col-md-3 font-weight-bold">Measurement unit</div>
+							<div class="col-md-3 font-weight-bold"><?php echo t('measurement_unit'); ?></div>
 							<div class="col"><?php echo html_escape($feature['valueMeasurementUnit']); ?></div>
 						</div>
 					</div>
@@ -80,22 +69,12 @@ $(document).ready(function () {
 					<?php if (isset($feature['valueType'])): ?>
 					<div class="col-md-12">
 						<div class="row">
-							<div class="col-md-3 font-weight-bold">Value type</div>
+							<div class="col-md-3 font-weight-bold"><?php echo t('value_type'); ?></div>
 							<div class="col"><?php echo html_escape($feature['valueType']); ?></div>
 						</div>
 					</div>
 					<?php endif; ?>
-					<?php if (isset($feature['listedValue']) && is_array($feature['listedValue'])): ?>
-					<div class="col-md-12">
-						<div class="border-bottom mt-3 font-weight-bold">Listed values</div>
-						<?php foreach ($feature['listedValue'] as $listed): ?>
-							<div class="row border-bottom">
-								<div class="col-md-2"><?php echo isset($listed['label']) ? html_escape($listed['label']) : ''; ?></div>
-								<div class="col"><?php echo isset($listed['definition']) ? html_escape($listed['definition']) : ''; ?></div>
-							</div>
-						<?php endforeach; ?>
-					</div>
-					<?php endif; ?>
+					<?php $this->load->view('survey_info/geospatial_listed_values', array('listed_values'=>isset($feature['listedValue']) ? $feature['listedValue'] : null)); ?>
 				</div>
 			<?php endforeach; ?>
 		<?php endforeach; ?>

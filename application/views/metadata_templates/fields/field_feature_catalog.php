@@ -97,10 +97,10 @@ $row_counter=0;
                     <?php if (isset($feature['cardinality'])):?>
                     <div class="col-md-12">
                         <div class="row">
-                            <div class="col-md-3 font-weight-bold">Cardinality</div>
+                            <div class="col-md-3 font-weight-bold"><?php echo t('cardinality'); ?></div>
                             <div class="col-md-9">
-                                Lower: <?php echo $feature['cardinality']['lower'];?>
-                                Upper: <?php echo $feature['cardinality']['upper'];?>                            
+                                <?php echo t('cardinality_lower'); ?>: <?php echo $feature['cardinality']['lower'];?>
+                                <?php echo t('cardinality_upper'); ?>: <?php echo $feature['cardinality']['upper'];?>                            
                             </div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@ $row_counter=0;
                     <?php if (isset($feature['valueMeasurementUnit'])):?>
                     <div class="col-md-12">
                         <div class="row">
-                            <div class="col-md-3 font-weight-bold">Measurement unit</div>
+                            <div class="col-md-3 font-weight-bold"><?php echo t('measurement_unit'); ?></div>
                             <div class="col"><?php echo $feature['valueMeasurementUnit'];?></div>
                         </div>
                     </div>
@@ -118,26 +118,14 @@ $row_counter=0;
                     <?php if (isset($feature['valueType'])):?>
                     <div class="col-md-12">
                         <div class="row">
-                            <div class="col-md-3 font-weight-bold">Value type</div>
+                            <div class="col-md-3 font-weight-bold"><?php echo t('value_type'); ?></div>
                             <div class="col"><?php echo $feature['valueType'];?></div>
                         </div>
                     </div>
                     <?php endif;?>
 
                     
-                    <?php if (isset($feature['listedValue'])):?>
-                    <div class="col-md-12">
-                        <div class="border-bottom mt-3 font-weight-bold">Listed values</div>
-                        
-                            <?php foreach($feature['listedValue'] as $row):?>
-                                <div class="row border-bottom">
-                                    <div class="col-md-2"><?php echo $row['label'];?></div>
-                                    <div class="col"><?php echo $row['definition'];?></div>
-                                </div>
-                            <?php endforeach;?>
-                        
-                    </div>
-                    <?php endif;?>
+                    <?php $this->load->view('survey_info/geospatial_listed_values', array('listed_values'=>isset($feature['listedValue']) ? $feature['listedValue'] : null)); ?>
 
                 </div>
             <?php endforeach;?>

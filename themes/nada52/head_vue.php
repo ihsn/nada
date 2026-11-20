@@ -23,6 +23,7 @@
 <?php endif; ?>
 
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/style.css?v20261113">
+<link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/study-metadata.css?v20261120">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/custom.css?v20260625">
 <link rel="stylesheet" href="<?php echo base_url().$bootstrap_theme ?>/css/variables.css?v07042021">
 <?php

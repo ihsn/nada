@@ -18,7 +18,7 @@
  $hide_column_headings=false;
 ?>
 
- <h4 class="field-caption" style="color:red;"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></h4>
+ <div class="field-title"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></div>
 
 <?php foreach($data as $row_idx=>$row):?>
     <?php foreach($columns as $column):?>
@@ -41,56 +41,8 @@
             ,true);
         ?>
         
-        <?php /* <pre style="border:1px solid pink;">
-            <?php echo $column['key'];?> - <?php echo $column['type'];?>
-            <?php var_dump( array_data_get($row, $column['key'])) ;?>
-            <hr/>
-            <?php //var_dump($row);?>
-        </pre>
-        */?>
+
         
         
     <?php endforeach;?>
 <?php endforeach;?>
-<?php return;?>
-
-<pre><?php var_dump($data);?></pre>
-<pre><?php var_dump($template);?></pre>
-
-
-
-
-<?php return;?>
-<?php if ($hide_field_title!=true):?>
-    <h4 class="field-caption"><?php echo t($template['title']);?></h4>
-    <?php echo $template['key'];?>
-<?php endif;?>
-<div class="table-responsive field field-<?php echo str_replace(".","_",$template['key']);?>">
-<table class="table table-bordered table-striped table-condensed xsl-table table-grid">
-    <tr>
-        <?php foreach($columns as $column):?>            
-        <th><?php echo $column['title'];?></th>
-        <?php endforeach;?>
-    </tr>
-    <?php foreach($data as $row):?>
-    <tr>
-        <?php foreach($columns as $column):?>        
-        <td>
-            <?php if (in_array($column['type'],array('array','nested_array','simple_array','object'))):?>
-                <?php 
-                    $column['hide_column_headings']=true;
-                    $column['hide_field_title']=true;
-                ?>
-                <?php  echo $this->load->view('display_templates/fields/field_'.$column['type'],array('data'=>isset($row[$column['key']]) ? $row[$column['key']] : [] ,'template'=>$column),true);?>
-            <?php else:?>
-                <?php echo isset($row[$column['key']]) ? $row[$column['key']] : '';?>
-            <?php endif;?>
-        </td>
-        <?php endforeach;?>
-    </tr>
-    <?php endforeach;?>    
-</table>
-
-<pre><?php var_dump($data);?></pre>
-
-</div>

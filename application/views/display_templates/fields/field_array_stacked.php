@@ -4,6 +4,7 @@
  * Columns use the same display_options as top-level fields.
  *
  * display_options.header_fields — column keys for each record heading (first non-empty).
+ * display_options.hide_field_title — hide the field caption (e.g. when it repeats the section title).
  */
 $this->load->helper('display_template');
 $this->load->helper('display_date');
@@ -25,12 +26,16 @@ if (count($data) < 1) {
 $field_key = isset($template['key']) ? (string) $template['key'] : 'field';
 $css_id = str_replace('.', '_', $field_key);
 $root_title = display_template_resolve_title($field_key, isset($template['title']) ? $template['title'] : '');
+$display_opts = isset($template['display_options']) && is_array($template['display_options']) ? $template['display_options'] : array();
+$hide_field_title = !empty($template['hide_field_title']) || !empty($display_opts['hide_field_title']);
 $view_data = array(
 	'resources' => isset($resources) ? $resources : array(),
 );
 ?>
 <div id="<?php echo html_escape($css_id);?>" class="mb-3 field field-array-stacked field-<?php echo html_escape($css_id);?>">
+	<?php if (!$hide_field_title):?>
 	<div class="field-title"><?php echo $root_title;?></div>
+	<?php endif;?>
 	<?php foreach ($data as $row):?>
 		<?php if (!is_array($row)) { continue; } ?>
 		<?php

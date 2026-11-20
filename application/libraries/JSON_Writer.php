@@ -51,13 +51,15 @@ class JSON_Writer
             throw new Exception("FAILED_TO_OPEN_OUTPUT: " . $output_path);
         }
 
-        $metadata = $this->ci->Dataset_model->get_metadata($sid);
-        $basic_info = array(
-            'type' => $dataset['type'],
-        );
-
-        // Metadata first so export-only keys (e.g. schematype) cannot overwrite dataset type.
-        $output = array_merge($metadata, $basic_info);
+        $metadata = $this->_get_export_metadata($sid, $dataset['type']);
+        // schematype and type first; type always comes from the dataset row, not the metadata blob
+        $output = array();
+        if (isset($metadata['schematype'])) {
+            $output['schematype'] = $metadata['schematype'];
+        }
+        $output['type'] = $dataset['type'];
+        $output += $metadata;
+        $output['type'] = $dataset['type'];
 
         if ($this->_dataset_is_timeseries($dataset)) {
             $this->_apply_timeseries_dsd_export((int) $sid, $output, $dsd_export);
@@ -148,7 +150,7 @@ class JSON_Writer
             throw new Exception("FAILED_TO_OPEN_OUTPUT: " . $output_path);
         }
 
-        $metadata = $this->ci->Dataset_model->get_metadata($sid);
+        $metadata = $this->_get_export_metadata($sid, $dataset['type']);
         $basic_info = array(
             'schema_type' => $dataset['type'],
             'id' => $dataset['id'],
@@ -216,6 +218,22 @@ class JSON_Writer
     }
 
     /**
+     * Dataset metadata for export.
+     *
+     * Geospatial feature types and attributes are stored in data_files and
+     * variables, not in the metadata blob. The geospatial model puts them back
+     * under description.feature_catalogue.featureType.
+     */
+    private function _get_export_metadata($sid, $type)
+    {
+        if ($type === 'geospatial') {
+            $this->ci->load->model('Dataset_geospatial_model');
+            return $this->ci->Dataset_geospatial_model->get_metadata($sid);
+        }
+        return $this->ci->Dataset_model->get_metadata($sid);
+    }
+
+    /**
      * Download JSON/JSONL with caching support
      * Checks if cached file exists and is current, generates if needed, then streams to output
      * 
@@ -259,6 +277,9 @@ class JSON_Writer
             if (!file_exists($json_path)) {
                 $generate_file = true;
             } elseif (filemtime($json_path) < $dataset['changed']) {
+                $generate_file = true;
+            } elseif (filemtime($json_path) < filemtime(__FILE__)) {
+                // export format changed since the file was cached
                 $generate_file = true;
             }
         }

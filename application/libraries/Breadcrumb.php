@@ -201,7 +201,16 @@ class Breadcrumb
 							}
 						}						
 						
-						if (isset($segments[3]) && ( in_array($segments[3],array('datafiles','data_dictionary','datafile')) ))
+						// geospatial: Feature catalogue / feature type / attribute
+						$geo_crumbs=false;
+						if (isset($segments[3]) && in_array($segments[3],array('variable','data-dictionary','data_dictionary'))){
+							$geo_crumbs=$this->get_geospatial_crumbs($segments);
+							if ($geo_crumbs){
+								$breadcrumbs=array_merge($breadcrumbs,$geo_crumbs);
+							}
+						}
+
+						if (!$geo_crumbs && isset($segments[3]) && ( in_array($segments[3],array('datafiles','data_dictionary','datafile')) ))
 						{
 							$breadcrumbs['catalog/'.$segments[2].'/data_dictionary']=t('Data Dictionary');
 							
@@ -226,7 +235,7 @@ class Breadcrumb
 							}
 						}
 						
-						if (isset($segments[3]) && $segments[3]=='variable')
+						if (!$geo_crumbs && isset($segments[3]) && $segments[3]=='variable')
 						{
 							if (isset($segments[4]))
 							{
@@ -674,7 +683,7 @@ class Breadcrumb
 		$n = count($paths);
 		$i = 0;
 		foreach ($crumbs as $path => $title) {
-			$title_plain = strip_tags((string) $title);
+			$title_plain = html_entity_decode(strip_tags((string) $title), ENT_QUOTES, 'UTF-8');
 			$is_last = ($i === $n - 1);
 			$row = array('title' => $title_plain);
 			if ($is_last) {
@@ -725,6 +734,59 @@ class Breadcrumb
 		return ($sid === false) ? false : $sid;
 	}
 	
+	/**
+	 * Breadcrumbs for geospatial feature catalogue pages:
+	 * catalog/{sid}/data-dictionary[/{file_id}] and catalog/{sid}/variable/{file_id}/{vid}.
+	 *
+	 * Titles are HTML-escaped (the breadcrumbs view prints them as-is).
+	 *
+	 * @return array|false false when the study is not geospatial
+	 */
+	private function get_geospatial_crumbs($segments)
+	{
+		$sid = $this->parse_study_id(isset($segments[2]) ? $segments[2] : null);
+		if ($sid === false) {
+			return false;
+		}
+
+		$this->ci->load->model('Dataset_model');
+		if ($this->ci->Dataset_model->get_type($sid) !== 'geospatial') {
+			return false;
+		}
+
+		$this->ci->lang->load('catalog_search');
+		$crumbs = array();
+		$crumbs['catalog/'.$sid.'/data-dictionary'] = t('feature_catalogue');
+
+		$file_id = isset($segments[4]) ? (string) $segments[4] : '';
+		if ($file_id === '') {
+			return $crumbs;
+		}
+
+		$this->ci->load->model('Data_file_model');
+		$file = $this->ci->Data_file_model->get_file_by_id($sid, $file_id);
+		if (!$file) {
+			return $crumbs;
+		}
+		$file_name = (string) $file['file_name'] !== '' ? (string) $file['file_name'] : $file_id;
+		$crumbs['catalog/'.$sid.'/data-dictionary/'.$file_id] = html_escape($file_name);
+
+		$vid = ($segments[3] === 'variable' && isset($segments[5])) ? (string) $segments[5] : '';
+		if ($vid === '') {
+			return $crumbs;
+		}
+
+		$row = $this->ci->db->select('name')
+			->where('sid', $sid)
+			->where('fid', $file_id)
+			->where('vid', $vid)
+			->get('variables')
+			->row_array();
+		$crumbs['catalog/'.$sid.'/variable/'.$file_id.'/'.$vid] = html_escape($row && $row['name'] !== '' ? $row['name'] : $vid);
+
+		return $crumbs;
+	}
+
 	/**
 	*
 	*Get Study Refno by ID

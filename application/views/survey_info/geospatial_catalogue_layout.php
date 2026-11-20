@@ -1,35 +1,9 @@
-<style>
-    .var-info-panel{display:none;}
-    .table-variable-list td{ cursor:pointer; }
-    .nada-list-group-item {
-        position: relative;
-        display: block;
-        padding: 5px 10px 5px 5px;
-        margin-bottom: -1px;
-        background-color: #fff;
-        border: 1px solid #ddd;
-        border-left:0px;
-        border-right:0px;
-        font-size: small;
-        border-bottom: 1px solid gainsboro;
-        word-wrap: break-word;
-    }
-    .nada-list-group-title{
-        font-weight:bold;
-        border-top:0px;
-    }
-    .table-variable-list .var-breadcrumb{ display:none; }
-    .var-id {
-        word-break: break-word!important;
-        overflow-wrap: break-word!important;
-    }
-</style>
 
-<div class="row">
-    <div class="col-sm-2 col-md-2 col-lg-2 tab-sidebar hidden-sm-down sidebar-files">
+<div class="row geo-catalogue">
+    <div class="col-12 col-md-3 col-lg-2 tab-sidebar sidebar-files">
         <form method="get" action="<?php echo site_url('catalog/'.$sid.'/search');?>" class="dictionary-search">
         <div class="input-group input-group-sm">
-            <input type="text" name="vk" class="form-control" placeholder="Search for...">
+            <input type="text" name="vk" class="form-control" placeholder="<?php echo html_escape(t('search_attributes'));?>" aria-label="<?php echo html_escape(t('search_attributes'));?>" value="<?php echo html_escape((string)$this->input->get('vk'));?>">
             <span class="input-group-btn">
                 <button class="btn btn-outline-primary btn-sm" type="submit"><i class="fa fa-search"></i></button>
             </span>
@@ -38,15 +12,17 @@
 
         <ul class="nada-list-group">
             <li class="nada-list-group-item nada-list-group-title"><?php echo t('feature_types');?></li>
+            <?php $current_file_id = isset($file_id) ? (string)$file_id : ''; ?>
             <?php foreach ((is_array($files) ? $files : array()) as $file_): ?>
-                <li class="nada-list-group-item">
-                    <a href="<?php echo site_url("catalog/$sid/data-dictionary/{$file_['file_id']}");?>?file_name=<?php echo html_escape($file_['file_name']);?>"><?php echo wordwrap($file_['file_name'],15,"<BR>");?></a>
+                <?php $is_current = $current_file_id !== '' && (string)$file_['file_id'] === $current_file_id; ?>
+                <li class="nada-list-group-item<?php echo $is_current ? ' active' : '';?>">
+                    <a href="<?php echo site_url("catalog/$sid/data-dictionary/".rawurlencode($file_['file_id']));?>?file_name=<?php echo rawurlencode($file_['file_name']);?>"<?php echo $is_current ? ' aria-current="page"' : '';?>><?php echo html_escape($file_['file_name']);?></a>
                 </li>
             <?php endforeach; ?>
         </ul>
     </div>
 
-    <div class="col-sm-10 col-md-10 col-lg-10 wb-border-left tab-body body-files">
+    <div class="col-12 col-md-9 col-lg-10 wb-border-left tab-body body-files">
         <div class="variable-metadata">
             <?php echo $content;?>
         </div>

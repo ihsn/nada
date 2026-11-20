@@ -216,7 +216,8 @@ class Study extends MY_Controller {
 		$options['variable_groups_html']=$this->Variable_group_model->get_vgroup_tree_html($sid);
 		$options['file_list']=$this->Data_file_model->get_all_by_survey($sid);
         $options['file']=$this->Data_file_model->get_file_by_id($sid,$file_id);
-		$options['variables']=$this->Variable_model->paginate_file_variables($sid, $file_id,$limit,$offset);
+		$views=$this->data_dictionary_views($sid);
+		$options['variables']=$this->Variable_model->paginate_file_variables($sid, $file_id,$limit,$offset,$views['type']==='geospatial');
 		$options['file_variables_count']=$this->Variable_model->get_file_variables_count($sid,$file_id);
 
 		//variable pagination
@@ -236,7 +237,6 @@ class Study extends MY_Controller {
             show_404();
 		}
 
-		$views=$this->data_dictionary_views($sid);
 		if ($views['type']==='geospatial'){
 			$options['files']=$options['file_list'];
 			$this->apply_geospatial_catalogue_context($sid, $options, $views['type']);
@@ -299,6 +299,7 @@ class Study extends MY_Controller {
 		}
 
 		if($this->input->is_ajax_request()){
+			$options['in_panel']=true;
 			$content=$this->load->view($views['variable'],$options,TRUE);
 			return $this->render_page($sid, $content,'data_dictionary', $survey);
 		}
@@ -1260,6 +1261,7 @@ class Study extends MY_Controller {
 		$this->_require_public_study_view($id);
 		$survey=$this->get_survey_info($id);
 		$this->load->helper('form');
+		$this->lang->load('ddibrowser');
 		$this->load->model("Data_file_model");
 		$params=array(
 			'study_keywords'=>$this->input->get_post('vk'),

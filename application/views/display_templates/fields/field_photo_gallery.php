@@ -42,15 +42,6 @@ if (count($slides) < 1) {
 	return;
 }
 ?>
-<style>
-.carousel-container { border: 1px solid gainsboro; padding: 5px; }
-.carousel-inner { max-height: 300px; overflow: hidden !important; height: 300px; }
-.carousel-img { max-height: 300px; width: auto; margin: auto; }
-.carousel-indicators { bottom: -5px; }
-.icon-wrap { background: #545b62; padding: 10px; padding-bottom: 5px; border: 1px solid white; }
-.gallery-indicators li { height: 11px; border: 1px solid #ced4da; background-color: #6c757d; }
-.carousel-indicators .active { background-color: #f8f9fa; }
-</style>
 <div class="field resource-photo field-<?php echo str_replace('.', '__', html_escape($field_key)); ?>">
 	<div class="field-title"><?php echo display_template_resolve_title($field_key, $field_title); ?></div>
 	<div class="field-value">

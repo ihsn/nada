@@ -123,7 +123,10 @@ class Catalog extends MY_REST_Controller
 				throw new Exception("DATASET_NOT_FOUND");
 			}
 
-			$result['metadata']=$this->Dataset_model->get_metadata($sid);
+			// geospatial: rebuilds feature types from data_files/variables
+			$result['metadata']=$result['type']==='geospatial'
+				? $this->dataset_manager->get_metadata($sid,'geospatial')
+				: $this->Dataset_model->get_metadata($sid);
 			
 			$response=array(
 				'status'=>'success',

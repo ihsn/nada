@@ -338,9 +338,9 @@ class Variable_model extends CI_Model {
      * @offset - starting row position
      * 
      */
-    function paginate_file_variables($sid, $file_id, $limit=null,$offset=0)
+    function paginate_file_variables($sid, $file_id, $limit=null,$offset=0,$with_metadata=false)
     {
-        $this->db->select("uid,vid,name,labl,qstn");
+        $this->db->select($with_metadata ? "uid,vid,name,labl,qstn,metadata" : "uid,vid,name,labl,qstn");
         $this->db->where("sid",$sid);
         $this->db->where("fid",$file_id);
         $this->db->order_by("uid");
@@ -349,7 +349,13 @@ class Variable_model extends CI_Model {
             $this->db->limit($limit, (int)$offset);
         }
 
-        return $this->db->get("variables")->result_array();
+        $rows=$this->db->get("variables")->result_array();
+        if ($with_metadata){
+            foreach($rows as $key=>$row){
+                $rows[$key]['metadata']=empty($row['metadata']) ? array() : $this->Dataset_model->decode_metadata($row['metadata']);
+            }
+        }
+        return $rows;
     }
 
     /**

@@ -20,6 +20,8 @@
                         "items": [
                             { "key": "description.identificationInfo.citation.title", "title": "Title", "type": "string" },
                             { "key": "description.identificationInfo.citation.alternateTitle", "title": "Alternate title", "type": "simple_array" },
+                            { "key": "description.identificationInfo.abstract", "title": "Abstract", "type": "string" },
+                            { "key": "description.dataSetURI", "title": "Dataset URI", "type": "string", "display_options": { "is_uri": true, "uri_as_icon": false } },
                             { "key": "description.identificationInfo.citation.identifier", "title": "Identifier", "type": "array", "props": [
                                 { "key": "code", "title": "Identifier", "type": "string", "prop_key": "description.identificationInfo.citation.identifier.code" },
                                 { "key": "authority", "title": "Authority", "type": "string", "prop_key": "description.identificationInfo.citation.identifier.authority" }
@@ -64,7 +66,6 @@
                             { "key": "description.identificationInfo.citation.collectiveTitle", "title": "Collective title", "type": "string" },
                             { "key": "description.identificationInfo.citation.ISBN", "title": "ISBN", "type": "string" },
                             { "key": "description.identificationInfo.citation.ISSN", "title": "ISSN", "type": "string" },
-                            { "key": "description.identificationInfo.abstract", "title": "Abstract", "type": "string" },
                             { "key": "description.identificationInfo.purpose", "title": "Purpose", "type": "string" },
                             { "key": "description.identificationInfo.credit", "title": "Credit", "type": "string" },
                             {
@@ -77,7 +78,7 @@
                                 "key": "description.identificationInfo.resourceMaintenance",
                                 "title": "Resource maintenance",
                                 "type": "nested_array",
-                                "display_options": { "renderer": "field_array_stacked", "header_fields": ["maintenanceAndUpdateFrequency"] },
+                                "display_options": { "renderer": "field_array_stacked", "hide_field_title": true },
                                 "props": [
                                     { "key": "maintenanceAndUpdateFrequency", "title": "Update frequency", "type": "string", "prop_key": "description.identificationInfo.resourceMaintenance.maintenanceAndUpdateFrequency" }
                                 ]
@@ -95,6 +96,7 @@
                                 "key": "description.identificationInfo.descriptiveKeywords",
                                 "title": "Descriptive keywords",
                                 "type": "array",
+                                "display_options": { "renderer": "field_array_tags", "tag_column": "keyword" },
                                 "props": [
                                     { "key": "type", "title": "Type", "type": "string", "prop_key": "description.identificationInfo.descriptiveKeywords.type" },
                                     { "key": "keyword", "title": "Keyword", "type": "string", "prop_key": "description.identificationInfo.descriptiveKeywords.keyword" },
@@ -113,13 +115,22 @@
                     {
                         "type": "section",
                         "key": "spatial_extent",
-                        "title": "Spatial extent",
+                        "title": "Extent",
                         "items": [
                             {
                                 "key": "description.identificationInfo.extent.geographicElement",
                                 "title": "Bounding box",
                                 "type": "nested_array",
                                 "display_options": { "renderer": "field_geospatial_bbox" }
+                            },
+                            {
+                                "key": "description.identificationInfo.extent.temporalElementExtent",
+                                "title": "Temporal extent",
+                                "type": "array",
+                                "props": [
+                                    { "key": "beginPosition", "title": "Start", "type": "string", "prop_key": "description.identificationInfo.extent.temporalElementExtent.beginPosition" },
+                                    { "key": "endPosition", "title": "End", "type": "string", "prop_key": "description.identificationInfo.extent.temporalElementExtent.endPosition" }
+                                ]
                             },
                             {
                                 "key": "description.referenceSystemInfo",
@@ -141,11 +152,11 @@
                                 "key": "description.identificationInfo.resourceConstraints",
                                 "title": "Constraints",
                                 "type": "nested_array",
-                                "display_options": { "renderer": "field_array_stacked" },
+                                "display_options": { "renderer": "field_array_stacked", "hide_field_title": true },
                                 "props": [
-                                    { "key": "legalConstraints.accessConstraints", "title": "Access constraints", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.accessConstraints" },
-                                    { "key": "legalConstraints.useConstraints", "title": "Use constraints", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.useConstraints" },
-                                    { "key": "legalConstraints.useLimitation", "title": "Use limitations", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.useLimitation" }
+                                    { "key": "legalConstraints.accessConstraints", "title": "Access constraints", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.accessConstraints", "display_options": { "linkify": true } },
+                                    { "key": "legalConstraints.useConstraints", "title": "Use constraints", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.useConstraints", "display_options": { "linkify": true } },
+                                    { "key": "legalConstraints.useLimitation", "title": "Use limitations", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.useLimitation", "display_options": { "linkify": true } }
                                 ]
                             }
                         ]
@@ -211,6 +222,7 @@
                             { "key": "description.idno", "title": "File identifier", "type": "string" },
                             { "key": "description.metadataStandardName", "title": "Metadata standard", "type": "string" },
                             { "key": "description.dateStamp", "title": "Date stamp", "type": "string" },
+                            { "key": "description.metadataMaintenance.maintenanceAndUpdateFrequency", "title": "Metadata update frequency", "type": "string" },
                             { "key": "description.language", "title": "Language", "type": "string" },
                             { "key": "description.characterSet.codeListValue", "title": "Character set", "type": "string" },
                             {
