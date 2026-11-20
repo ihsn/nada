@@ -661,11 +661,19 @@ class Codelists extends MY_REST_Controller {
 				}
 				$search_nf = is_string($search_nf) ? $search_nf : '';
 				$with_translations_nf = $this->get('with_translations') !== '0' && $this->get('with_translations') !== false;
+				$sort_by_nf = $this->get('sort_by');
+				$sort_by_nf = is_string($sort_by_nf) ? strtolower(trim($sort_by_nf)) : '';
+				if (!in_array($sort_by_nf, Codelist_item_model::list_sort_fields(), true)) {
+					$sort_by_nf = '';
+				}
+				$sort_order_nf = strtolower((string) $this->get('sort_order')) === 'desc' ? 'desc' : 'asc';
 				$p_nf = $this->Codelist_item_model->get_items_by_codelist_paged($cid, [
 					'page'              => $page_nf,
 					'per_page'          => $per_page_nf,
 					'search'            => $search_nf,
 					'with_translations' => $with_translations_nf,
+					'sort_by'           => $sort_by_nf,
+					'sort_order'        => $sort_order_nf,
 				]);
 				$this->set_response([
 					'status' => 'success',
@@ -734,6 +742,85 @@ class Codelists extends MY_REST_Controller {
 				'status' => 'success',
 				'result' => ['item' => $row],
 			], REST_Controller::HTTP_CREATED);
+		} catch (Exception $e) {
+			$this->set_response([
+				'status'  => 'error',
+				'message' => $e->getMessage(),
+			], REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * POST /api/admin/codelists/item/{codelist_id}/items_batch — batch update items, matched by code.
+	 *
+	 * Body: {
+	 *   "items": [ { "code", "title?", "sort_order?", "new_code?" }, ... ],
+	 *   "delete_missing": bool  (default false) — delete items whose code is not listed,
+	 *   "dry_run": bool         (default false) — return counts without writing
+	 * }
+	 * Existing items keep id, translations and group membership. Validation errors → 400, nothing written.
+	 */
+	public function items_batch_post($codelist_id)
+	{
+		$this->require_access('codelist', 'edit');
+
+		try {
+			$cid = (int) $codelist_id;
+			if (!$this->Codelist_model->get_codelist_by_id($cid)) {
+				$this->set_response(['status' => 'error', 'message' => 'Codelist not found'], REST_Controller::HTTP_NOT_FOUND);
+				return;
+			}
+			$this->_assert_codelist_mutable($cid);
+			$input = $this->raw_json_input();
+			if (!$input || !is_array($input) || !isset($input['items']) || !is_array($input['items'])) {
+				throw new Exception('JSON body required: items[]');
+			}
+			if (count($input['items']) > 20000) {
+				throw new Exception('Too many items (max 20000 per request).');
+			}
+			$summary = $this->Codelist_item_model->batch_upsert_items($cid, $input['items'], [
+				'delete_missing' => $this->_boolish($input['delete_missing'] ?? null, false),
+				'dry_run'        => $this->_boolish($input['dry_run'] ?? null, false),
+			]);
+			if (!empty($summary['errors'])) {
+				$this->set_response([
+					'status'  => 'error',
+					'message' => 'Validation failed; no changes were saved.',
+					'errors'  => $summary['errors'],
+				], REST_Controller::HTTP_BAD_REQUEST);
+				return;
+			}
+			$summary['dry_run'] = $this->_boolish($input['dry_run'] ?? null, false);
+			$this->set_response(['status' => 'success', 'result' => $summary], REST_Controller::HTTP_OK);
+		} catch (Exception $e) {
+			$this->set_response([
+				'status'  => 'error',
+				'message' => $e->getMessage(),
+			], REST_Controller::HTTP_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * POST /api/admin/codelists/item/{codelist_id}/items_resort — renumber sort_order.
+	 * Body: { "by": "code|title", "order": "asc|desc", "step": 10 }
+	 */
+	public function items_resort_post($codelist_id)
+	{
+		$this->require_access('codelist', 'edit');
+
+		try {
+			$cid = (int) $codelist_id;
+			$this->_assert_codelist_mutable($cid);
+			$input = $this->raw_json_input();
+			$input = is_array($input) ? $input : [];
+			$by = isset($input['by']) && $input['by'] === 'title' ? 'title' : 'code';
+			$order = isset($input['order']) && strtolower((string) $input['order']) === 'desc' ? 'desc' : 'asc';
+			$step = isset($input['step']) ? (int) $input['step'] : 10;
+			$changed = $this->Codelist_item_model->resequence_items($cid, $by, $order, $step);
+			$this->set_response([
+				'status' => 'success',
+				'result' => ['updated' => $changed, 'by' => $by, 'order' => $order, 'step' => max(1, $step)],
+			], REST_Controller::HTTP_OK);
 		} catch (Exception $e) {
 			$this->set_response([
 				'status'  => 'error',

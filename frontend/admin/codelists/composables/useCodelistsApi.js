@@ -124,7 +124,7 @@ export function useCodelistsApi() {
    * Paginated full item rows for a codelist (admin detail table).
    * @returns {Promise<{ items: array, total: number, page: number, per_page: number }>}
    */
-  async function fetchItemsPage(codelistId, { page = 1, per_page = 25, search = '' } = {}) {
+  async function fetchItemsPage(codelistId, { page = 1, per_page = 25, search = '', sort_by = '', sort_order = 'asc' } = {}) {
     if (codelistId == null) throw new Error('codelist id required');
     const params = {
       page: String(Math.max(1, parseInt(String(page), 10) || 1)),
@@ -132,6 +132,10 @@ export function useCodelistsApi() {
     };
     const q = typeof search === 'string' ? search.trim() : '';
     if (q) params.search = q;
+    if (sort_by) {
+      params.sort_by = sort_by;
+      params.sort_order = sort_order === 'desc' ? 'desc' : 'asc';
+    }
     const { data } = await axios.get(`${base()}/item_items/${encodeURIComponent(codelistId)}`, { params });
     if (data.status !== 'success') throw new Error(data.message || 'Failed to fetch items');
     const r = data.result ?? {};
@@ -279,6 +283,42 @@ export function useCodelistsApi() {
     return data.result?.item;
   }
 
+  /**
+   * Batch update items of a codelist, matched by code.
+   * @param {Array<{code:string,title?:string,sort_order?:number,new_code?:string}>} items
+   * @returns {Promise<{created:number,updated:number,unchanged:number,deleted:number,dry_run:boolean}>}
+   */
+  async function batchUpdateItems(codelistId, items, { delete_missing = false, dry_run = false } = {}) {
+    if (codelistId == null) throw new Error('codelist id required');
+    const { data } = await axios.post(
+      `${base()}/item/${encodeURIComponent(codelistId)}/items_batch`,
+      { items, delete_missing, dry_run },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Batch update failed');
+    return data.result;
+  }
+
+  /** Renumber sort_order for all items by code/title, asc/desc. */
+  async function resortItems(codelistId, { by = 'code', order = 'asc', step = 10 } = {}) {
+    const { data } = await axios.post(
+      `${base()}/item/${encodeURIComponent(codelistId)}/items_resort`,
+      { by, order, step },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    if (data.status !== 'success') throw new Error(data.message || 'Resort failed');
+    return data.result;
+  }
+
+  /** All items of a codelist (unpaginated, no translations) — for export. */
+  async function fetchAllItems(codelistId) {
+    const { data } = await axios.get(`${base()}/item_items/${encodeURIComponent(codelistId)}`, {
+      params: { with_translations: '0' },
+    });
+    if (data.status !== 'success') throw new Error(data.message || 'Failed to fetch items');
+    return data.result?.items ?? [];
+  }
+
   async function updateItem(itemId, payload) {
     if (itemId == null) throw new Error('item id required');
     const { data } = await axios.put(
@@ -400,6 +440,9 @@ export function useCodelistsApi() {
     fetchCodelistVersions,
     fetchCodelist,
     fetchItemsPage,
+    fetchAllItems,
+    batchUpdateItems,
+    resortItems,
     fetchGroupsPage,
     fetchCodelistByIdno,
     fetchCodelistByName,

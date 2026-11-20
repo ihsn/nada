@@ -444,6 +444,8 @@ $route['api/admin/display_templates/(:any)']                          = 'api/adm
 // REST_Controller::_remap: map to versions/$1 (not versions_get/$1) so versions_get is invoked.
 $route['api/admin/codelists/versions/(:any)']             = 'api/admin/codelists/versions/$1';
 $route['api/admin/codelists/item/(:num)/restore']         = 'api/admin/codelists/item_restore/$1';
+$route['api/admin/codelists/item/(:num)/items_resort']    = 'api/admin/codelists/items_resort/$1';
+$route['api/admin/codelists/item/(:num)/items_batch']     = 'api/admin/codelists/items_batch/$1';
 $route['api/admin/codelists/item/(:num)/items']           = 'api/admin/codelists/item_items/$1';
 $route['api/admin/codelists/item/(:num)/groups']          = 'api/admin/codelists/item_groups/$1';
 $route['api/admin/codelists/items/(:num)/translations/(:any)'] = 'api/admin/codelists/items_translation/$1/$2';

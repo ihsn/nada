@@ -144,6 +144,7 @@
           ref="itemsTableRef"
           class="mb-8"
           :codelist-id="codelist.id"
+          :codelist-name="codelist.name"
           :reload-tick="reloadTick"
           :enabled-languages="enabledLanguages"
           :read-only="isLocked"
@@ -151,7 +152,7 @@
           @item-form-saved="onItemFormSaved"
           @add-translation="onAddTranslation"
           @remove-translation="onRemoveTranslation"
-          @update-item-sort="onUpdateItemSort"
+          @items-changed="emit('refresh')"
         />
       </v-window-item>
 
@@ -367,12 +368,6 @@ async function doDeleteItem() {
   } finally {
     deleteItemDialog.saving = false;
   }
-}
-
-function onUpdateItemSort({ itemId, sort_order }) {
-  updateItem(itemId, { sort_order })
-    .then(() => emit('refresh'))
-    .catch((e) => emit('error', e?.response?.data?.message || e?.message));
 }
 
 function onItemFormSaved(payload) {
