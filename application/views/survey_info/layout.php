@@ -1,82 +1,3 @@
-<style>
-.metadata-sidebar-container .nav .active{
-	background:#e9ecef;		
-}
-.study-metadata-page .page-header .nav-tabs .active a {
-	background: white;
-	font-weight: bold;
-	border-top: 2px solid #0071bc;
-	border-left:1px solid gainsboro;
-	border-right:1px solid gainsboro;
-}
-
-.study-info-content {
-    font-size: 14px;
-}
-
-.study-subtitle{
-	font-size:.7em;
-	margin-bottom:10px;
-}
-
-.badge-outline{
-	background:transparent;
-	color:#03a9f4;
-	border:1px solid #9e9e9e;
-}
-.study-header-right-bar span{
-	display:block;
-	margin-bottom:15px;
-}
-.study-header-right-bar{
-	font-size:14px;
-	color:gray;
-}
-.get-microdata-btn{
-	font-size:14px;
-}
-
-.link-col .badge{
-	font-size:14px;
-	font-weight:normal;
-	background:transparent;
-	border:1px solid #9E9E9E;
-	color:#03a9f4;
-}
-
-.link-col .badge:hover{
-	background:#03a9f4;
-	color:#ffffff;
-}
-
-.study-header-right-bar .stat{
-	margin-bottom:10px;
-	font-size:small;
-}
-
-.study-header-right-bar .stat .stat-label{
-	font-weight:bold;
-	text-transform:uppercase;
-}
-
-.field-metadata__table_description__ref_country .field-value,
-.field-metadata__study_desc__study_info__nation .field-value{
-	max-height:350px;
-	overflow:auto;
-}
-.field-metadata__table_description__ref_country .field-value  ::-webkit-scrollbar,
-.field-metadata__study_desc__study_info__nation .field-value ::-webkit-scrollbar {
-  -webkit-appearance: none;
-  width: 7px;
-}
-
-.field-metadata__table_description__ref_country .field-value  ::-webkit-scrollbar-thumb,
-.field-metadata__study_desc__study_info__nation .field-value ::-webkit-scrollbar-thumb {
-  border-radius: 4px;
-  background-color: rgba(0, 0, 0, .5);
-  box-shadow: 0 0 1px rgba(255, 255, 255, .5);
-}
-</style>
 <?php
 /*
  * survey info page template
@@ -93,9 +14,9 @@ if(isset($survey['nation']) &&  trim($survey['nation']) !='' ){
 <div class="page-body-full study-metadata-page">
 	<span 
 		id="dataset-metadata-info" 
-		data-repositoryid="<?php echo $survey['owner_repo']['repositoryid'];?>"
-		data-id="<?php echo $survey['id'];?>"
-		data-idno="<?php echo $survey['idno'];?>"
+		data-repositoryid="<?php echo html_escape($survey['owner_repo']['repositoryid']);?>"
+		data-id="<?php echo (int)$survey['id'];?>"
+		data-idno="<?php echo html_escape($survey['idno']);?>"
 	></span>
 
 <div class="container-fluid page-header">
@@ -179,24 +100,7 @@ if($this->config->item("guests_hide_microdata_tab")=='yes' && !$this->ion_auth->
 ?>
 
 
-<!-- Nav tabs -->
-<ul class="nav nav-tabs wb-nav-tab-space flex-wrap" role="tablist">
-	<?php foreach($page_tabs as $tab_name=>$tab):?>
-		<?php if ($tab['show_tab']==0){continue;};?>
-		<?php if($tab_name=='get_microdata'):?>
-			<li class="nav-item nav-item-get-microdata tab-<?php echo $tab_name;?> <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" >
-				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase " role="tab" data-id="related-materials" >
-					<span class="get-microdata icon-da-<?php echo $data_access_type;?>"></span> <?php echo $tab['label'];?>
-				</a>
-			</li>                            
-		<?php else:?>
-			<li class="nav-item tab-<?php echo $tab_name;?> <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>"  >
-				<a href="<?php echo $tab['url'];?>" class="nav-link wb-nav-link wb-text-link-uppercase <?php echo ($tab_name==$active_tab) ? $active_tab_class : '';?>" role="tab"  data-id="related-materials" ><?php echo $tab['label'];?></a>
-			</li>
-		<?php endif;?>
-	<?php endforeach;?>
-</ul>
-<!-- end nav tabs -->
+<?php $this->load->view('survey_info/study_tabs', array('page_tabs'=>$page_tabs, 'active_tab'=>$active_tab, 'active_tab_class'=>$active_tab_class, 'data_access_type'=>isset($data_access_type) ? $data_access_type : '')); ?>
 </div>
 </div>
 

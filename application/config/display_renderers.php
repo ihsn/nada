@@ -58,6 +58,26 @@ $config['display_renderers'] = array(
 				'label' => 'Tag column key',
 				'description' => 'Which array column to show as the tag text. Default is name.',
 			),
+			'group_column' => array(
+				'type' => 'text',
+				'label' => 'Group by column',
+				'description' => 'Optional. Group tags under this column\'s value, e.g. vocab for topics.',
+			),
+			'group_link_column' => array(
+				'type' => 'text',
+				'label' => 'Group link column',
+				'description' => 'Optional. Column with a URL for the group label, e.g. uri (the vocabulary link).',
+			),
+			'link_column' => array(
+				'type' => 'text',
+				'label' => 'Tag link column',
+				'description' => 'Optional. Column with a URL for each tag.',
+			),
+			'dedupe' => array(
+				'type' => 'text',
+				'label' => 'Remove duplicates',
+				'description' => 'Repeated tags are shown once. Set to 0 to keep repeats.',
+			),
 		),
 		'supports_layout_builder' => true,
 		'status' => 'active',
@@ -97,7 +117,7 @@ $config['display_renderers'] = array(
 		'kind' => 'composite',
 		'label' => 'Stacked records',
 		'field_template' => 'field_array_stacked',
-		'supported_source_types' => array('nested_array'),
+		'supported_source_types' => array('array', 'nested_array'),
 		'handler' => array('type' => 'php_composite', 'id' => 'field_array_stacked'),
 		'default_params' => array(),
 		'params' => array(

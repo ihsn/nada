@@ -32,7 +32,17 @@ if (!empty($display_template_info) && is_array($display_template_info)) {
 <div class="container-fluid display-template-page"<?php echo $dti_attrs; ?>>
     <div class="row">
         <div class="col-md-3">
-            <div class="sticky-top metadata-sidebar-container">
+            <?php if (!empty($sidebar)):?>
+            <div class="d-md-none metadata-section-select">
+                <select class="form-control form-control-sm" aria-label="<?php echo html_escape(t('on_this_page'));?>" onchange="if(this.value){var el=document.getElementById(this.value.substr(1));if(el){el.scrollIntoView();}this.selectedIndex=0;}">
+                    <option value=""><?php echo html_escape(t('on_this_page'));?></option>
+                    <?php foreach($sidebar as $key=>$item):?>
+                    <option value="#<?php echo html_escape($key);?>"><?php echo strip_tags(display_template_resolve_section_title($key, $item));?></option>
+                    <?php endforeach;?>
+                </select>
+            </div>
+            <?php endif;?>
+            <div class="sticky-top metadata-sidebar-container d-none d-md-block">
             <nav class="nav flex-column" id="dataset-metadata-sidebar">
             <?php foreach($sidebar as $key=>$item):?>
                 <a class="nav-link" href="#<?php echo html_escape($key);?>"><?php echo display_template_resolve_section_title($key, $item);?></a>

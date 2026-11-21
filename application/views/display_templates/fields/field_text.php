@@ -9,6 +9,7 @@
 <div class="mb-2 field field-<?php echo str_replace(".'","-",$template['key']);?>">
     <div class="font-weight-bold field-title"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></div>
     <div class="field-value">
+        <?php ob_start();?>
         <?php if (is_array($data)):?>
         <?php foreach($data as $value):?>
             <?php if (is_array($value)){
@@ -24,6 +25,7 @@
             <?php endif;?>
 
         <?php endif;?>
+        <?php echo display_template_clamp_long_value(display_template_autolink_html(ob_get_clean()), $template);?>
     </div>
 </div>
 <?php endif;?>

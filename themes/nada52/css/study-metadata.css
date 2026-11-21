@@ -23,16 +23,27 @@
    ============================================================ */
 
 .display-template-page h2 {
+    font-size: 1.5rem;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-    margin-bottom: 25px;
-    padding-top: 20px;
+    padding-bottom: .35rem;
+    margin-bottom: .5rem;
+    padding-top: 1.25rem;
 }
 
+/* gap before a section heading ~2rem (was ~3rem); sections only add a small bottom pad */
+.display-template-page .field-section-container {
+    padding-bottom: .5rem !important;
+}
+
+/* field label: small bold uppercase in the body text color; size and case set it apart from the value */
 .display-template-page .field-title {
     text-transform: uppercase;
-    margin-top: 15px;
-    font-weight: bold;
+    margin-top: 1rem;
+    margin-bottom: .15rem;
+    font-size: .75rem;
+    letter-spacing: .03em;
+    font-weight: 700 !important;
+    color: var(--color-main);
 }
 
 .display-template-page h4.field-title {
@@ -40,7 +51,8 @@
 }
 
 .display-template-page .field-section-container .field-section-container h2 {
-    font-size: 22px;
+    font-size: 1.15rem;
+    padding-top: 1rem;
 }
 
 /* Same gap between every field: spacing comes from the field title; renderers' own bottom margins are reset */
@@ -70,6 +82,95 @@
     width: auto;
     margin: 0;
     min-width: 8rem;
+}
+
+/* Tables: horizontal rules only, plain header */
+.display-template-page .table-grid {
+    border: 0;
+    font-size: .875rem;
+    margin-bottom: 0;
+}
+
+.display-template-page .table-grid th,
+.display-template-page .table-grid td {
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    border-bottom: 1px solid var(--border-color);
+    padding: .4rem .6rem .4rem 0;
+}
+
+.display-template-page .table-grid tr:first-child th {
+    background: #fff;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    font-size: .8125rem;
+}
+
+.display-template-page .table-grid tr,
+.display-template-page .table-grid tr:nth-child(odd) td,
+.display-template-page .table-grid tr:nth-child(even) td {
+    background: transparent;
+}
+
+.display-template-page .field-array-nested .table-grid td,
+.display-template-page .field-array-nested .table-grid th {
+    padding: .2rem .4rem .2rem 0;
+}
+
+/* long tables scroll; header stays visible */
+.display-template-page .table-overflow-max-height-400 {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.display-template-page .table-overflow-max-height-400 .table-grid {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.display-template-page .table-overflow-max-height-400 tr:first-child th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+/* single-column tables rendered as a list */
+.display-template-page .field-value-list {
+    padding-left: 1.1rem;
+    margin-bottom: 0;
+}
+
+/* long text: first lines with a "Show more" toggle */
+.display-template-page .field-clamp-body {
+    max-height: 22rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 75%, transparent);
+    mask-image: linear-gradient(to bottom, #000 75%, transparent);
+}
+
+.display-template-page .field-clamp-open .field-clamp-body {
+    max-height: none !important;
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+
+.display-template-page .field-clamp-toggle {
+    padding: 0;
+    font-size: .875rem;
+}
+
+.display-template-page .field-clamp-less,
+.display-template-page .field-clamp-open .field-clamp-more {
+    display: none;
+}
+
+.display-template-page .field-clamp-open .field-clamp-less {
+    display: inline;
+}
+
+/* phone: section dropdown instead of the link list */
+.display-template-page .metadata-section-select {
+    margin: .75rem 0 .25rem;
 }
 
 /* Section menu (scrollspy) */
@@ -750,4 +851,368 @@
 
 .variable-container .var-cat-table tr:nth-child(even) td {
     background: #fff;
+}
+
+/* tags grouped by a column, e.g. topics by vocabulary (field_array_tags) */
+.display-template-page .tag-group {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    margin-bottom: .35rem;
+}
+
+.display-template-page .tag-group-label {
+    flex: 0 0 auto;
+    min-width: 6rem;
+    margin-right: .75rem;
+    font-size: .8125rem;
+    font-weight: 600;
+    color: hsl(0, 0%, 36%);
+}
+
+.display-template-page .tag-group-tags {
+    flex: 1 1 0;
+    min-width: 12rem;
+}
+
+.display-template-page .field-tags .badge-tags {
+    margin: 0 .25rem .3rem 0;
+    white-space: normal;
+    text-align: left;
+}
+
+.display-template-page .field-tags .badge-tags a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--border-color);
+}
+
+/* rich text cells (e.g. Role) arrive as <p>: keep the cell's font size, no paragraph gap */
+.display-template-page .table-grid td p,
+.display-template-page .table-grid td ul,
+.display-template-page .table-grid td ol,
+.display-template-page .table-grid td li {
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.display-template-page .table-grid td p:last-child,
+.display-template-page .table-grid td ul:last-child,
+.display-template-page .table-grid td ol:last-child {
+    margin-bottom: 0;
+}
+
+/* no row stripes: beat bootstrap's .table-striped tbody tr:nth-of-type(odd) */
+.display-template-page .table-grid.table-striped tbody tr:nth-of-type(odd),
+.display-template-page .table-grid.table-striped tbody tr:nth-of-type(even) {
+    background-color: transparent;
+}
+
+
+/* ============================================================
+   Study page shell and header panel (survey_info/layout.php, info.php)
+   Moved from inline <style> blocks.
+   ============================================================ */
+
+.study-metadata-page .metadata-sidebar-container .nav .active {
+    background: #e9ecef;
+}
+
+/* --- study page tabs (survey_info/study_tabs.php): underline style --- */
+
+.study-metadata-page .study-tabs-nav {
+    position: relative;
+    margin-top: 1.5rem;
+}
+
+.study-metadata-page .page-header .study-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    border-bottom: 0;
+}
+
+.study-metadata-page .page-header .study-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.study-metadata-page .page-header .study-tabs .nav-item,
+.study-metadata-page .page-header .study-tabs .nav-item.active {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 0;
+    font-weight: normal;
+}
+
+.study-metadata-page .page-header .study-tabs .nav-link {
+    padding: .6rem 1rem;
+    margin-bottom: 0;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: hsl(0, 0%, 33%);
+    font-size: .9375rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.study-metadata-page .page-header .study-tabs .nav-link:hover,
+.study-metadata-page .page-header .study-tabs .nav-link:focus {
+    color: var(--color-main);
+    border-bottom-color: #d0d5da;
+    text-decoration: none;
+}
+
+.study-metadata-page .page-header .study-tabs .nav-link.active {
+    color: var(--action-color);
+    font-weight: 600;
+    border-bottom-color: var(--action-color);
+    background: transparent;
+}
+
+.study-metadata-page .page-header .study-tabs .get-microdata {
+    margin-right: .15rem;
+}
+
+/* phone: fade at the right edge while more tabs are scrolled out of view */
+.study-metadata-page .study-tabs-nav::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 3px;
+    width: 2.5rem;
+    pointer-events: none;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0), #fff);
+    opacity: 0;
+    transition: opacity .15s;
+}
+
+.study-metadata-page .study-tabs-nav.has-more::after {
+    opacity: 1;
+}
+
+.study-metadata-page .study-subtitle {
+    font-size: .7em;
+    margin-bottom: 10px;
+}
+
+.study-metadata-page .badge-outline {
+    background: transparent;
+    color: #03a9f4;
+    border: 1px solid #9e9e9e;
+}
+
+.study-metadata-page .get-microdata-btn {
+    font-size: 14px;
+}
+
+.study-metadata-page .study-header-right-bar {
+    font-size: 14px;
+    color: gray;
+}
+
+.study-metadata-page .study-header-right-bar span {
+    display: block;
+    margin-bottom: 15px;
+}
+
+.study-metadata-page .study-header-right-bar .stat {
+    margin-bottom: 10px;
+    font-size: small;
+}
+
+.study-metadata-page .study-header-right-bar .stat .stat-label {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.study-metadata-page .field-metadata__table_description__ref_country .field-value,
+.study-metadata-page .field-metadata__study_desc__study_info__nation .field-value {
+    max-height: 350px;
+    overflow: auto;
+}
+
+/* --- header info rows: label | value --- */
+
+.study-info .study-info-content {
+    font-size: 14px;
+    margin-top: 1.25rem;
+    padding-right: 2rem;
+}
+
+.study-info .study-info-row {
+    display: flex;
+    align-items: baseline;
+    padding: .5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.study-info .study-info-label {
+    flex: 0 0 9rem;
+    max-width: 9rem;
+    padding-right: 1rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--color-main);
+}
+
+.study-info .study-info-value {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.study-info .study-copy-btn {
+    padding: 0 .25rem;
+    margin-left: .25rem;
+    font-size: .8rem;
+    line-height: 1;
+    color: var(--color-label);
+    vertical-align: baseline;
+}
+
+.study-info .study-copy-btn:hover,
+.study-info .study-copy-btn:focus {
+    color: var(--action-color);
+}
+
+/* collections: navigation links, shown as plain tags */
+.study-info .study-collection {
+    display: inline-block;
+    margin: 0 .35rem .25rem 0;
+    padding: .1rem .55rem;
+    border-radius: 1rem;
+    background: var(--wbg-lightbluegray);
+    color: var(--action-color);
+    font-size: .8125rem;
+}
+
+.study-info .study-collection:hover {
+    background: var(--wbg-lightblue);
+    text-decoration: none;
+}
+
+/* downloads: one button style, icon per file type */
+.study-info .study-dl-btn {
+    display: inline-block;
+    margin: 0 .35rem .25rem 0;
+    padding: .15rem .6rem;
+    border: 1px solid var(--action-color);
+    border-radius: var(--border-radius);
+    color: var(--action-color);
+    font-size: .8125rem;
+    white-space: nowrap;
+}
+
+.study-info .study-dl-btn:hover {
+    background: var(--action-color);
+    color: #fff;
+    text-decoration: none;
+}
+
+.study-info .study-dl-btn i {
+    margin-right: .2rem;
+}
+
+@media (max-width: 767.98px) {
+    /* phone: thumbnail column is hidden (d-none d-md-block in info.php) */
+
+    .study-info .study-info-content {
+        padding-right: 0;
+    }
+
+    /* phone: label above value */
+    .study-info .study-info-row {
+        display: block;
+    }
+
+    .study-info .study-info-label {
+        max-width: none;
+        margin-bottom: .15rem;
+    }
+}
+
+/* created / updated / views / downloads: icon items under the title */
+.study-info .study-stats {
+    clear: both;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem 1.25rem;
+    padding-top: .5rem;
+    font-size: .8125rem;
+    color: var(--color-label);
+}
+
+.study-info .study-stats-sep {
+    display: none;
+}
+
+.study-info .study-stats .stat {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.study-info .study-stats .stat i {
+    color: var(--action-color);
+}
+
+.study-info .study-stats .stat-value {
+    color: var(--color-main);
+}
+
+/* country/years line + action button: wrap without leftover indent */
+.study-info .study-title-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .35rem 1rem;
+}
+
+.study-info .study-title-meta::after {
+    display: none;
+}
+
+.study-info .study-title-meta > * {
+    float: none !important;
+    margin-left: 0 !important;
+}
+
+.study-info .study-title-meta .sub-title {
+    margin-bottom: 0;
+}
+
+@media (max-width: 767.98px) {
+    .study-info .study-stats {
+        gap: .25rem 1rem;
+    }
+
+    .study-info .study-info-content {
+        margin-top: 1rem;
+    }
+}
+
+/* study title: 28px desktop, 24px phone (subtitle scales with it at .7em) */
+.study-info #dataset-title {
+    font-size: 1.75rem;
+    line-height: 1.2;
+}
+
+@media (max-width: 767.98px) {
+    .study-info #dataset-title {
+        font-size: 1.5rem;
+        line-height: 1.25;
+    }
+
+    /* keep section headings below the title size on phones */
+    .display-template-page h2 {
+        font-size: 1.3rem;
+    }
 }

@@ -31,7 +31,10 @@ $hide_column_headings = isset($template['hide_column_headings']) ? $template['hi
 
 $non_empty_columns = array();
 foreach ($columns as $column) {
-	$column_data = array_filter(array_column($data, $column['key']));
+	//whitespace-only values count as empty
+	$column_data = array_filter(array_column($data, $column['key']), function ($v) {
+		return is_array($v) ? !empty($v) : trim((string) $v) !== '';
+	});
 	if (!empty($column_data)) {
 		$non_empty_columns[] = $column;
 	}
@@ -45,7 +48,11 @@ if (count($data) < 1) {
 	return false;
 }
 
-$table_scrollable = !$is_nested_cell && !empty($template['display_options']['scrollable']);
+//long tables scroll inside a fixed height (not in PDF output)
+$table_scrollable = !$is_nested_cell && (
+	!empty($template['display_options']['scrollable'])
+	|| (count($data) > 15 && !display_template_is_pdf_context())
+);
 $table_container_class = $table_scrollable ? 'table-overflow-max-height-400' : '';
 $field_key = isset($template['key']) ? (string) $template['key'] : 'field';
 $wrapper_class = $is_nested_cell
@@ -57,6 +64,37 @@ if ($is_nested_cell) {
 }
 
 $nested_column_types = array('array', 'nested_array', 'simple_array', 'object');
+
+//a single plain column renders as a value or a list instead of a one-column table
+if (!$is_nested_cell && count($columns) === 1 && !in_array($columns[0]['type'], $nested_column_types, true)) {
+	$single_values = array();
+	foreach ($data as $row) {
+		$cell_val = isset($row[$columns[0]['key']]) ? $row[$columns[0]['key']] : '';
+		$cell_html = display_template_render_scalar_value($cell_val, $columns[0], array('mode' => 'cell'));
+		if (trim(strip_tags($cell_html, '<a><img>')) !== '') {
+			$single_values[] = $cell_html;
+		}
+	}
+	if (count($single_values) < 1) {
+		return false;
+	}
+	echo '<div class="mb-2 field field-' . html_escape(str_replace('.', '_', $field_key)) . '">';
+	if ($hide_field_title != true) {
+		echo '<div class="font-weight-bold field-title">' . display_template_resolve_title($template['key'], $template['title']) . '</div>';
+	}
+	echo '<div class="field-value">';
+	if (count($single_values) === 1) {
+		echo $single_values[0];
+	} else {
+		echo '<ul class="field-value-list">';
+		foreach ($single_values as $v) {
+			echo '<li>' . $v . '</li>';
+		}
+		echo '</ul>';
+	}
+	echo '</div></div>';
+	return;
+}
 ?>
 <div class="<?php echo html_escape($wrapper_class); ?>">
 <?php if ($hide_field_title != true): ?>
@@ -104,7 +142,7 @@ $nested_column_types = array('array', 'nested_array', 'simple_array', 'object');
 			<?php else: ?>
 				<?php
 					$cell_val = isset($row[$column['key']]) ? $row[$column['key']] : '';
-					echo display_template_render_scalar_value($cell_val, $column, array('mode' => 'cell'));
+					echo display_template_clamp_long_value(display_template_render_scalar_value($cell_val, $column, array('mode' => 'cell')), $column);
 				?>
 			<?php endif; ?>
 		</td>

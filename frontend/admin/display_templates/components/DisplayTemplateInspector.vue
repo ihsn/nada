@@ -424,6 +424,39 @@
               </div>
             </div>
 
+            <div v-if="showCollapseControls" class="dt-opt-row">
+              <div class="dt-opt-label">Collapse long text</div>
+              <div class="dt-opt-control">
+                <v-switch
+                  :model-value="displayCollapse"
+                  color="primary"
+                  density="compact"
+                  hide-details
+                  class="dt-opt-switch"
+                  :disabled="readonly"
+                  @update:model-value="onDisplayCollapseChange"
+                />
+              </div>
+              <p class="dt-opt-hint">Show the first lines with a "Show more" link when the text is long.</p>
+            </div>
+
+            <div v-if="showCollapseControls && displayCollapse" class="dt-opt-row is-nested">
+              <div class="dt-opt-label">Collapse after (lines)</div>
+              <div class="dt-opt-control">
+                <v-text-field
+                  :model-value="displayCollapseLines"
+                  type="number"
+                  min="1"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  :disabled="readonly"
+                  @update:model-value="onDisplayCollapseLinesChange"
+                />
+              </div>
+              <p class="dt-opt-hint">Default is {{ DEFAULT_COLLAPSE_LINES }}.</p>
+            </div>
+
             <div v-if="showScrollableControls" class="dt-opt-row">
               <div class="dt-opt-label">Scrollable table</div>
               <div class="dt-opt-control">
@@ -581,6 +614,23 @@ const showLinkifyControls = computed(
 );
 
 const showScrollableControls = computed(() => supportsScrollable(node.value));
+
+/** Long text collapse ("Show more"): off by default, collapse_lines defaults to 16. */
+const DEFAULT_COLLAPSE_LINES = 16;
+
+const showCollapseControls = computed(
+  () => displayValueMode.value === 'text' && supportsDisplayFormat(node.value)
+);
+
+const displayCollapse = computed(() => {
+  const v = node.value?.display_options?.collapse_long_text;
+  return v === true || v === 1 || v === '1' || v === 'true';
+});
+
+const displayCollapseLines = computed(() => {
+  const v = Number(node.value?.display_options?.collapse_lines);
+  return Number.isFinite(v) && v > 0 ? Math.round(v) : DEFAULT_COLLAPSE_LINES;
+});
 
 const showFieldLayoutControls = computed(
   () =>
@@ -857,6 +907,32 @@ function onDisplayLinkifyChange(value) {
   const n = node.value;
   if (!n || props.readonly) return;
   ensureDisplayOptionsObject(n).linkify = !!value;
+  emit('dirty');
+}
+
+function onDisplayCollapseChange(value) {
+  const n = node.value;
+  if (!n || props.readonly) return;
+  const o = ensureDisplayOptionsObject(n);
+  if (value) {
+    o.collapse_long_text = true;
+  } else {
+    delete o.collapse_long_text;
+    delete o.collapse_lines;
+  }
+  emit('dirty');
+}
+
+function onDisplayCollapseLinesChange(value) {
+  const n = node.value;
+  if (!n || props.readonly) return;
+  const o = ensureDisplayOptionsObject(n);
+  const lines = Math.round(Number(value));
+  if (!Number.isFinite(lines) || lines < 1 || lines === DEFAULT_COLLAPSE_LINES) {
+    delete o.collapse_lines;
+  } else {
+    o.collapse_lines = lines;
+  }
   emit('dirty');
 }
 

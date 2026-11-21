@@ -197,6 +197,12 @@
                                 "key": "study_desc.study_info.topics",
                                 "title": "Topics",
                                 "type": "array",
+                                "display_options": {
+                                    "renderer": "field_array_tags",
+                                    "tag_column": "topic",
+                                    "group_column": "vocab",
+                                    "group_link_column": "uri"
+                                },
                                 "props": [
                                     {
                                         "key": "topic",
@@ -1258,6 +1264,9 @@
                                 "key": "study_desc.data_access.dataset_use.conf_dec",
                                 "type": "array",
                                 "title": "Confidentiality declaration",
+                                "display_options": {
+                                    "renderer": "field_array_stacked"
+                                },
                                 "help_text": "This element is used to determine if signing of a confidentiality declaration is needed to access a resource. We may indicate here what Affidavit of Confidentiality must be signed before the data can be accessed. Another option is to include this information in the element \"Access conditions\". If there is no confidentiality issue, this field can be left blank.",
                                 "props": [
                                     {

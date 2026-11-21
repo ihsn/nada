@@ -805,18 +805,24 @@ if (!function_exists('display_template_format_single_scalar')) {
 		$format = display_template_effective_scalar_format($field_def);
 		$ci =& get_instance();
 
+		//bare URLs, emails and DOIs become links unless the field sets linkify: false
+		$autolink = !(array_key_exists('linkify', $opts) && $opts['linkify'] === false);
+
 		if ($format === 'html') {
-			return display_template_prepare_markup_source($value);
+			$out = display_template_prepare_markup_source($value);
+			return $autolink ? display_template_autolink_html($out) : $out;
 		}
 
 		if ($format === 'richtext') {
 			$ci->load->helper('markdown');
-			return markdown_parse_richtext(display_template_prepare_markup_source($value));
+			$out = markdown_parse_richtext(display_template_prepare_markup_source($value));
+			return $autolink ? display_template_autolink_html($out) : $out;
 		}
 
 		if ($format === 'markdown') {
 			$ci->load->helper('markdown');
-			return markdown_parse(display_template_prepare_markup_source($value));
+			$out = markdown_parse(display_template_prepare_markup_source($value));
+			return $autolink ? display_template_autolink_html($out) : $out;
 		}
 
 		$escaped = html_escape($value);
@@ -824,8 +830,114 @@ if (!function_exists('display_template_format_single_scalar')) {
 		if (display_template_field_linkify_enabled($field_def)) {
 			$ci->load->helper('url');
 			$out = linkify($out);
+		} elseif ($autolink) {
+			$out = display_template_autolink_html($out);
 		}
 		return $out;
+	}
+}
+
+if (!function_exists('display_template_autolink_html')) {
+	/**
+	 * Link bare URLs, email addresses and DOIs ("doi:10.x/y") in rendered HTML.
+	 * Only text outside tags and outside existing <a> elements is changed.
+	 *
+	 * @param string $html already-escaped / rendered HTML
+	 * @return string
+	 */
+	function display_template_autolink_html($html)
+	{
+		$html = (string) $html;
+		if ($html === '' || !preg_match('~https?://|ftps?://|@|doi:~i', $html)) {
+			return $html;
+		}
+		$parts = preg_split('~(<[^>]+>)~', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+		$in_anchor = 0;
+		foreach ($parts as $i => $part) {
+			if ($part === '') {
+				continue;
+			}
+			if ($part[0] === '<') {
+				if (preg_match('~^<a[\s>]~i', $part)) {
+					$in_anchor++;
+				} elseif (preg_match('~^</a\s*>~i', $part) && $in_anchor > 0) {
+					$in_anchor--;
+				}
+				continue;
+			}
+			if ($in_anchor > 0) {
+				continue;
+			}
+			$parts[$i] = preg_replace_callback(
+				'~\b(?:https?|ftps?)://[^\s<>"\']+|\bdoi:\s?(10\.\d{4,9}/[^\s<>"\']+)|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}~i',
+				function ($m) {
+					$text = $m[0];
+					$trail = '';
+					if (preg_match('~(?:[.,;:!?)\]]|&quot;|&#0?39;)+$~', $text, $t)) {
+						$trail = $t[0];
+						$text = substr($text, 0, -strlen($trail));
+					}
+					if (!empty($m[1])) {
+						$doi = substr($m[1], 0, strlen($m[1]) - strlen($trail));
+						$href = 'https://doi.org/' . $doi;
+					} elseif (strpos($text, '@') !== false && strpos($text, '://') === false) {
+						$href = 'mailto:' . $text;
+						return '<a href="' . $href . '">' . $text . '</a>' . $trail;
+					} else {
+						$href = $text;
+					}
+					return '<a href="' . $href . '" target="_blank" rel="noopener noreferrer">' . $text . '</a>' . $trail;
+				},
+				$part
+			);
+		}
+		return implode('', $parts);
+	}
+}
+
+if (!function_exists('display_template_clamp_long_value')) {
+	/**
+	 * Wrap a long text value so it shows the first lines with a "Show more" toggle.
+	 * Not applied in PDF output.
+	 *
+	 * display_options:
+	 *  - collapse_long_text (bool, default false) - set true to collapse long text
+	 *  - collapse_lines (int, default 16) - collapse when the text is longer than this many lines
+	 *
+	 * @param string $value_html
+	 * @param array<string, mixed> $field_def
+	 * @return string
+	 */
+	function display_template_clamp_long_value($value_html, $field_def = array())
+	{
+		if (function_exists('display_template_is_pdf_context') && display_template_is_pdf_context()) {
+			return $value_html;
+		}
+		$opts = display_template_field_display_options(is_array($field_def) ? $field_def : array());
+		if (!isset($opts['collapse_long_text'])
+			|| !in_array($opts['collapse_long_text'], array(true, 1, '1', 'true'), true)) {
+			return $value_html;
+		}
+		$max_lines = 16;
+		if (isset($opts['collapse_lines']) && is_numeric($opts['collapse_lines']) && (int) $opts['collapse_lines'] > 0) {
+			$max_lines = (int) $opts['collapse_lines'];
+		}
+		//rough line estimate: explicit breaks plus wrapped lines (~110 chars per line)
+		$text = trim(strip_tags(preg_replace('~<(br|/p|/li|/tr)\b[^>]*>~i', "\n", $value_html)));
+		$lines = 0;
+		foreach (preg_split('~\n~', $text) as $line) {
+			$lines += max(1, (int) ceil(mb_strlen(trim($line)) / 110));
+		}
+		if ($lines <= $max_lines) {
+			return $value_html;
+		}
+		//collapsed height follows the line setting (1.6em per line)
+		return '<div class="field-clamp">'
+			. '<div class="field-clamp-body" style="max-height:' . round($max_lines * 1.6 * 0.85, 1) . 'em">' . $value_html . '</div>'
+			. '<button type="button" class="btn btn-link field-clamp-toggle" onclick="this.parentNode.classList.toggle(\'field-clamp-open\');return false;">'
+			. '<span class="field-clamp-more">' . t('show_more') . '</span>'
+			. '<span class="field-clamp-less">' . t('show_less') . '</span>'
+			. '</button></div>';
 	}
 }
 
@@ -1125,7 +1237,7 @@ if (!function_exists('display_template_render_scalar_field')) {
 
 		return '<div class="mb-2 field field-' . $css . '">'
 			. '<div class="font-weight-bold field-title">' . $label . '</div>'
-			. '<div class="field-value">' . $value_html . '</div>'
+			. '<div class="field-value">' . display_template_clamp_long_value($value_html, $field_def) . '</div>'
 			. '</div>';
 	}
 }

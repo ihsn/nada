@@ -6,15 +6,18 @@ if ($doi === '' && isset($metadata['doi'])) {
 if ($doi === '' && isset($data) && is_array($data)) {
     $doi = display_template_doi_from_identifiers($data);
 }
-if ($doi === '') {
+//accept bare DOIs and doi.org / doi: forms; anything that is not a 10.xxxx/... DOI is skipped
+$doi = preg_replace('~^(?:https?://(?:dx\.)?doi\.org/|doi:\s*)~i', '', $doi);
+if ($doi === '' || !preg_match('~^10\.\d{4,9}/\S+$~', $doi)) {
     return false;
 }
+$doi_js = json_encode($doi, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 ?>
 
-<div class="mb-2 field field-<?php echo str_replace(".'","-",$template['key']);?>">
+<div class="mb-2 field field-doi-citation-widget field-<?php echo html_escape(str_replace(".'","-",$template['key']));?>">
     <div class="font-weight-bold field-title"><?php echo display_template_resolve_title(isset($template['key']) ? $template['key'] : '', $template['title']);?></div>
 
-    <div class="doi-citation" ><a target="_blank" href="https://citation.crosscite.org/?doi=<?php echo $doi;?>"><i class="fas fa-spinner fa-spin"></i> loading, please wait...</a></div>
+    <div class="doi-citation" ><a target="_blank" href="https://citation.crosscite.org/?doi=<?php echo html_escape(rawurlencode($doi));?>"><i class="fas fa-spinner fa-spin"></i> loading, please wait...</a></div>
 
     <div class="pt-2" style="font-size:small;display:none">
         <span class="btn btn-sm btn-outline-secondary collapsed" data-toggle="collapse" data-target="#citation_options" aria-expanded="false" aria-controls="citation_options">Citation format <i class="fas fa-cog"></i></span>
@@ -66,7 +69,7 @@ if ($doi === '') {
 
     function get_citation_by_doi()
     {        
-        var doi='<?php echo $doi;?>';
+        var doi=<?php echo $doi_js;?>;
         var url='https://doi.org/'+doi;
         var doi_citation=$('.doi-citation');
 
@@ -79,21 +82,18 @@ if ($doi === '') {
                 Accept: 'text/x-bibliography; style='+$('#doi_format').val()
             },
             success: function(data){
-                console.log("success",data);
                 var citation=data;
                 doi_citation.html(citation);
             },
             error: function(data){
-                console.log("error",data);
-                doi_citation.html('<i class="fas fa-exclamation-triangle"></i> Citation is not available.');
-                doi_citation.toggle();
+                hide_doi_citation();
             }
         });
     }
 
     function citation_export(format='txt')
     {
-        var doi='<?php echo $doi;?>';
+        var doi=<?php echo $doi_js;?>;
         var url='https://doi.org/'+doi;
         var citation_export_status=$('#export-citation-status');
         var formats={
@@ -123,6 +123,22 @@ if ($doi === '') {
                 citation_export_status.html('<i class="fas fa-exclamation-triangle"></i> Citation is not available.');                                
             }
         });
+    }
+
+    //DOI not resolvable: remove the widget, and its section + menu entry when nothing else is left
+    function hide_doi_citation()
+    {
+        var widget=$('.field-doi-citation-widget');
+        var section=widget.closest('.field-section-container');
+        widget.remove();
+        if (section.length && section.find('.field').length===0){
+            var heading_id=section.find('.field-section').first().attr('id');
+            section.hide();
+            if (heading_id){
+                $('#dataset-metadata-sidebar a[href="#'+heading_id+'"]').hide();
+                $('.metadata-section-select option[value="#'+heading_id+'"]').remove();
+            }
+        }
     }
 
     function js_download(filename, text) 

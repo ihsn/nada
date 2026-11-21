@@ -807,7 +807,8 @@ class Breadcrumb
 			return $id;
 		}
 		
-		return strtoupper($survey['idno']);
+		//keep the reference id's case: ids are case-sensitive
+		return html_escape($survey['idno']);
 	}
 	
 	
