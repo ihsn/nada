@@ -6,10 +6,13 @@
  *  - application/views/display_templates/index.php
  *  - application/views/display_templates/fields/field_*.php
  *  - application/views/survey_info/geospatial_*.php
+ *  - application/views/survey_info/data_dictionary_layout.php,
+ *    variables_by_file.php, variable_ddi.php
  *
  * Description rules are scoped to .display-template-page (the display
  * template container); feature catalogue rules to .geo-catalogue or geo-*
- * classes, so nothing leaks to other study tabs.
+ * classes; data dictionary rules to .dd-catalogue, .variables-container or
+ * .variable-container, so nothing leaks to other study tabs.
  *
  * Colors use the theme variables from _variables.css.
  */
@@ -184,26 +187,31 @@
    Geospatial feature catalogue tab
    ============================================================ */
 
-/* --- Layout: sidebar + body (geospatial_catalogue_layout) --- */
+/* --- Layout: sidebar + body (geospatial_catalogue_layout, data_dictionary_layout) --- */
 
-.geo-catalogue .var-info-panel {
+.geo-catalogue .var-info-panel,
+.dd-catalogue .var-info-panel {
     display: none;
 }
 
-.geo-catalogue .table-variable-list td {
+.geo-catalogue .table-variable-list td,
+.dd-catalogue .table-variable-list td {
     cursor: pointer;
 }
 
-.geo-catalogue .table-variable-list .var-breadcrumb {
+.geo-catalogue .table-variable-list .var-breadcrumb,
+.dd-catalogue .table-variable-list .var-breadcrumb {
     display: none;
 }
 
-.geo-catalogue .var-id {
+.geo-catalogue .var-id,
+.dd-catalogue .var-id {
     word-break: break-word !important;
     overflow-wrap: break-word !important;
 }
 
-.geo-catalogue .nada-list-group-item {
+.geo-catalogue .nada-list-group-item,
+.dd-catalogue .nada-list-group-item {
     position: relative;
     display: block;
     padding: 5px 10px 5px 5px;
@@ -216,39 +224,71 @@
     word-wrap: break-word;
 }
 
-.geo-catalogue .nada-list-group-title {
+.geo-catalogue .nada-list-group-title,
+.dd-catalogue .nada-list-group-title {
     font-weight: bold;
     border-top: 0;
 }
 
-.geo-catalogue .sidebar-files .nada-list-group-item a {
+.geo-catalogue .sidebar-files .nada-list-group-item a,
+.dd-catalogue .sidebar-files .nada-list-group-item a {
     display: block;
     word-break: break-word;
     overflow-wrap: break-word;
 }
 
-.geo-catalogue .sidebar-files .nada-list-group-item.active {
+.geo-catalogue .sidebar-files .nada-list-group-item.active,
+.dd-catalogue .sidebar-files .nada-list-group-item.active {
     background: var(--wbg-lightbluegray);
     border-left: 3px solid var(--action-color);
     padding-left: 8px;
 }
 
-.geo-catalogue .sidebar-files .nada-list-group-item.active a {
+.geo-catalogue .sidebar-files .nada-list-group-item.active a,
+.dd-catalogue .sidebar-files .nada-list-group-item.active a {
     color: var(--color-main);
     font-weight: 600;
 }
 
+/* variable groups tree (data_dictionary_layout) */
+.dd-catalogue .nada-list-vgroup {
+    padding-inline-start: 0;
+    font-size: small;
+    list-style-type: none;
+}
+
+.dd-catalogue .nada-list-subgroup {
+    padding-left: 10px;
+}
+
+.dd-catalogue .nada-list-subgroup .nada-list-vgroup-item {
+    padding-left: 24px;
+    position: relative;
+    list-style: none;
+}
+
+.dd-catalogue .nada-list-subgroup .nada-list-vgroup-item:before {
+    position: absolute;
+    font-family: 'FontAwesome';
+    top: 0;
+    left: 10px;
+    content: "\f105";
+}
+
 @media (max-width: 767.98px) {
     /* stacked: sidebar above content */
-    .geo-catalogue .sidebar-files {
+    .geo-catalogue .sidebar-files,
+    .dd-catalogue .sidebar-files {
         margin-bottom: 1.25rem;
     }
 
-    .geo-catalogue .body-files.wb-border-left {
+    .geo-catalogue .body-files.wb-border-left,
+    .dd-catalogue .body-files.wb-border-left {
         border-left: 0;
     }
 
-    .geo-catalogue .sidebar-files .nada-list-group {
+    .geo-catalogue .sidebar-files .nada-list-group,
+    .dd-catalogue .sidebar-files .nada-list-group {
         max-height: 12rem;
         overflow-y: auto;
     }
@@ -424,4 +464,290 @@
     padding: 0;
     margin-top: .35rem;
     font-size: .875rem;
+}
+
+
+/* ============================================================
+   Data dictionary: variable list and variable detail
+   ============================================================ */
+
+/* --- Data file header (variables_by_file) --- */
+
+.dd-file-header {
+    margin-bottom: 1.5rem;
+}
+
+.dd-file-label {
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--color-label);
+}
+
+.dd-file-name {
+    margin: 0 0 .25rem;
+}
+
+.dd-file-desc {
+    margin: 0 0 .5rem;
+}
+
+.dd-file-info {
+    display: flex;
+    flex-wrap: wrap;
+    margin: .5rem 0 0;
+}
+
+.dd-file-info > div {
+    margin-right: 2rem;
+}
+
+.dd-file-info dt {
+    font-weight: normal;
+    font-size: .8rem;
+    color: var(--color-label);
+}
+
+.dd-file-info dd {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.dd-file-notes {
+    margin-top: .75rem;
+}
+
+/* --- Variable list rows (variables_by_file) --- */
+
+.dd-catalogue .variables-container .var-row {
+    padding: 2px 40px 2px 0;
+}
+
+.dd-catalogue .variables-container .var-row > [class*="col"] {
+    padding-top: .3rem;
+    padding-bottom: .3rem;
+}
+
+.dd-catalogue .variables-container .var-id {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: .875rem;
+}
+
+.dd-catalogue .variables-container .var-label {
+    color: var(--color-main);
+}
+
+.dd-catalogue .variables-container .icon-toggle {
+    top: 50%;
+    transform: translateY(-50%);
+    right: 14px;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.dd-catalogue .variables-container .var-row:hover a {
+    color: var(--action-color);
+}
+
+/* --- Active row + expanded panel (both catalogues) --- */
+
+.variables-container .var-row.pnl-active {
+    background: var(--wbg-lightblue);
+    box-shadow: inset 3px 0 0 var(--action-color);
+    font-weight: normal;
+    border-bottom: 0;
+}
+
+.variables-container .var-row.pnl-active a {
+    color: var(--action-color);
+    font-weight: 600;
+}
+
+.variables-container .var-row.pnl-active .var-label {
+    font-weight: 600;
+}
+
+.variables-container .table-variable-list .var-info-panel {
+    background: var(--wbg-lightbluegray);
+    box-shadow: inset 3px 0 0 var(--action-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dd-catalogue .var-info-panel .panel-td {
+    width: 100%;
+    padding: 1rem 1rem 1rem 1.25rem;
+}
+
+/* --- Variable detail (variable_ddi) --- */
+
+.variable-container .fld-inline .fld-name {
+    color: var(--color-label);
+}
+
+.variable-container .xsl-subtitle {
+    margin-top: 1.25rem;
+}
+
+.variable-in-panel > .xsl-subtitle:first-child {
+    margin-top: 0;
+}
+
+.variable-container .var-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+    gap: .5rem 1.5rem;
+    margin: .5rem 0 1rem;
+}
+
+.variable-container .var-overview .sum-stat {
+    font-size: .9rem;
+}
+
+.variable-container .var-overview dt {
+    font-weight: normal;
+    font-size: .8rem;
+}
+
+.variable-container .var-overview dd {
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.variable-container .bar-container {
+    min-width: 150px;
+}
+
+/* categories (metadata_templates/fields/field_var_category) */
+
+.variable-container .var-cat-table {
+    background: #fff;
+    margin-bottom: 0;
+    font-size: .875rem;
+    border: 1px solid var(--border-color);
+}
+
+.variable-container .var-cat-table td,
+.variable-container .var-cat-table th {
+    padding: .3rem .6rem;
+    vertical-align: middle;
+}
+
+.variable-container .var-cat-table .var-cat-value {
+    width: 1%;
+    white-space: nowrap;
+    padding-right: 1.5rem;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: .85rem;
+}
+
+.variable-container .var-cat-table th.var-cat-value {
+    font-family: inherit;
+    font-size: .8125rem;
+}
+
+/* long category lists scroll inside a fixed height; header stays visible */
+.var-cat-scroll {
+    max-height: 26rem;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.var-cat-scroll .var-cat-head th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #fff;
+    box-shadow: inset 0 -1px 0 var(--border-color);
+}
+
+.var-cat-scroll .var-cat-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.var-cat-scroll .var-cat-table td,
+.var-cat-scroll .var-cat-table th {
+    border-top: 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* counts and percent bars */
+.variable-container .var-cat-table .var-cat-num {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    padding-left: 1.5rem;
+}
+
+.variable-container .var-cat-table .var-cat-pct {
+    width: 12rem;
+    min-width: 9rem;
+    padding-left: 1.5rem;
+}
+
+.variable-container .var-cat-pct-wrap {
+    display: flex;
+    align-items: center;
+}
+
+.variable-container .var-cat-bar {
+    flex: 1 1 auto;
+    height: 8px;
+    border-radius: 4px;
+    background: #e9ecef;
+    overflow: hidden;
+}
+
+.variable-container .var-cat-bar > span {
+    display: block;
+    height: 100%;
+    min-width: 2px;
+    border-radius: 4px;
+    background: var(--action-color);
+}
+
+.variable-container .var-cat-pct-text {
+    flex: 0 0 3.5rem;
+    text-align: right;
+    font-size: .8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-label);
+}
+
+.variable-container .xsl-warning.var-cat-note {
+    margin: .5rem 0 0;
+    font-size: .8rem;
+    color: var(--color-label);
+}
+
+/* readability: darker secondary text inside variable details (labels, captions, percents, note) */
+.variable-container {
+    --color-label: hsl(0, 0%, 33%);
+}
+
+.var-info-panel .variable-container .xsl-caption {
+    color: var(--color-label);
+}
+
+.variable-container .var-cat-table th {
+    font-size: .8125rem;
+}
+
+.variable-container .var-cat-table td,
+.variable-container .var-cat-table th {
+    padding-top: .35rem;
+    padding-bottom: .35rem;
+}
+
+/* table sits on the tinted panel: white rows with a faint stripe */
+.variable-container .var-cat-table tr:nth-child(odd) td {
+    background: #fafbfc;
+}
+
+.variable-container .var-cat-table tr:nth-child(even) td {
+    background: #fff;
 }

@@ -259,6 +259,7 @@ $lang['n_values']="%d values";
 $lang['show_all_n']="Show all %d";
 $lang['show_fewer']="Show fewer";
 $lang['search_attributes']="Search attributes";
+$lang['search_variables']="Search variables";
 $lang['contact_phone']="Phone";
 $lang['contact_fax']="Fax";
 $lang['cardinality_lower']="Lower";

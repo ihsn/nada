@@ -76,80 +76,77 @@
 
             ?>
 
-            <table class="table table-stripped xsl-table">
-                <tr>
-                    <th><?php echo t('value');?></th>
+            <?php $cat_scroll=!empty($options['scroll']) && count($data)>15; ?>
+            <div class="var-cat<?php echo $cat_scroll ? ' var-cat-scroll' : '';?>">
+            <?php
+            $has_cases=$show_stats && $sum_cases>0;
+            $has_wgtd=$show_stats && $sum_cases_wgtd>0;
+            $has_bar=$has_cases || $has_wgtd;
+            //percent label; tiny non-zero shares are shown as <0.1%
+            $fmt_pct=function($count,$total){
+                if (!is_numeric($count) || $total<=0){
+                    return '';
+                }
+                $pct=$count/$total*100;
+                if ($pct>0 && $pct<0.05){
+                    return '&lt;0.1%';
+                }
+                return round($pct,1).'%';
+            };
+            ?>
+            <table class="table table-stripped xsl-table var-cat-table<?php echo $has_bar ? ' var-cat-has-stats' : '';?>">
+                <tr class="var-cat-head">
+                    <th class="var-cat-value"><?php echo t('value');?></th>
                     <th><?php echo t('category');?></th>
-                    <?php if($show_stats && $sum_cases>0):?>
-                        <th><?php echo t('cases');?></th>                    
+                    <?php if($has_cases):?>
+                        <th class="var-cat-num"><?php echo t('cases');?></th>
                     <?php endif;?>
-                    <?php if($show_stats && $sum_cases_wgtd>0):?>
-                        <th><?php echo t('weighted');?></th>                                            
+                    <?php if($has_wgtd):?>
+                        <th class="var-cat-num"><?php echo t('weighted');?></th>
                     <?php endif;?>
-                    <?php if($show_stats && ($sum_cases>0) ):?>
-                        <th></th>
+                    <?php if($has_bar):?>
+                        <th class="var-cat-pct">%</th>
                     <?php endif;?>
                 </tr>
                 <?php foreach($data as $cat):?>
                     <?php
                     $cat=(object)$cat;
-
-                    if($show_stats && $sum_cases>0){
-                        $percent=@round($cat->stats_non_wgtd_value/$sum_cases * 100,1);
-                        $width=@round($cat->stats_non_wgtd_value/$max_value * 100,1);                        
-                    }
-
-                    if ($show_stats && $sum_cases_wgtd>0){
-                        $percent_wgtd=@round($cat->stats_wgtd_value/$sum_cases_wgtd * 100,1);
-                        $width_wgtd=@round($cat->stats_wgtd_value/$max_value_wgtd * 100,1);
-                    }
+                    //bar and percent follow the weighted figures when present
+                    $bar_count=$has_wgtd ? $cat->stats_wgtd_value : $cat->stats_non_wgtd_value;
+                    $bar_total=$has_wgtd ? $sum_cases_wgtd : $sum_cases;
+                    $bar_max=$has_wgtd ? $max_value_wgtd : $max_value;
+                    $bar_width=(is_numeric($bar_count) && $bar_max>0) ? round($bar_count/$bar_max*100,1) : 0;
                     ?>
 
                     <tr>
-                        <td><?php echo isset($cat->value) ? $cat->value : '';?></td>
+                        <td class="var-cat-value"><?php echo isset($cat->value) ? $cat->value : '';?></td>
                         <td><?php echo isset($cat->labl) ? $cat->labl : '';?> <?php echo isset($cat->label) ? $cat->label : '';?></td>
-                        
-                        <?php if($show_stats && $sum_cases>0):?>
-                        <td><?php echo (int)$cat->stats_non_wgtd_value;?></td>
-                        <?php endif;?>    
-                        
-                        <!--weighted-->
-                        <?php if($show_stats && $sum_cases_wgtd>0 ):?>
-                            <td><?php echo round($cat->stats_wgtd_value);?></td>
-                            <?php if (empty($cat->is_missing)):?>
-                            <td class="bar-container">
-                                <?php if(is_numeric($cat->stats_wgtd_value)):?>
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" style="width: <?php echo $percent_wgtd;?>%;" aria-valuenow="<?php echo $percent_wgtd;?>;" aria-valuemin="0" aria-valuemax="100"></div>
-                                    <span class="progress-text"><?php echo $percent_wgtd;?>%</span>
-                                </div>
-                                <?php endif;?>
-                            </td>
-                            <?php else:?>
-                            <td></td>
-                            <?php endif?>
 
+                        <?php if($has_cases):?>
+                        <td class="var-cat-num"><?php echo is_numeric($cat->stats_non_wgtd_value) ? (int)$cat->stats_non_wgtd_value : '';?></td>
                         <?php endif;?>
 
-                        <!--non-weighted-->
-                        <?php if($show_stats && $sum_cases>0 && (int)$sum_cases_wgtd<1):?>
-                            <?php if(empty($cat->is_missing)):?>
-                            <td class="bar-container">
-                                <?php if(is_numeric($cat->stats_non_wgtd_value)):?>
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" style="width: <?php echo $width;?>%;" aria-valuenow="<?php echo $width;?>;" aria-valuemin="0" aria-valuemax="100"></div>
-                                    <span class="progress-text"><?php echo $percent;?>%</span>
-                                </div>
-                                <?php endif;?>
-                            </td>
-                            <?php else:?>
-                            <td></td>
+                        <?php if($has_wgtd):?>
+                        <td class="var-cat-num"><?php echo is_numeric($cat->stats_wgtd_value) ? round($cat->stats_wgtd_value) : '';?></td>
+                        <?php endif;?>
+
+                        <?php if($has_bar):?>
+                        <td class="var-cat-pct bar-container">
+                            <?php if(empty($cat->is_missing) && is_numeric($bar_count)):?>
+                            <div class="var-cat-pct-wrap">
+                                <div class="var-cat-bar" aria-hidden="true"><span style="width: <?php echo $bar_width;?>%;"></span></div>
+                                <span class="var-cat-pct-text"><?php echo $fmt_pct($bar_count,$bar_total);?></span>
+                            </div>
                             <?php endif;?>
-                        <?php endif;?>    
+                        </td>
+                        <?php endif;?>
                     </tr>
                 <?php endforeach;?>
             </table>
-            <div class="xsl-warning"><?php echo t('warning_figures_indicate_number_of_cases_found');?></div>
+            </div>
+            <?php if ($has_bar):?>
+            <div class="xsl-warning var-cat-note"><i class="fas fa-info-circle" aria-hidden="true"></i> <?php echo t('warning_figures_indicate_number_of_cases_found');?></div>
+            <?php endif;?>
     </div>
 </div>
 <?php endif;?>

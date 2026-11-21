@@ -1,87 +1,23 @@
-<style>
-    .data-file-bg1 tr,.data-file-bg1 td {vertical-align: top;}
-    .data-file-bg1 .col-1{width:100px;}
-    .data-file-bg1 {margin-bottom:20px;}
-    .var-info-panel{display:none;}
-    .table-variable-list td{
-        cursor:pointer;
-    }
-    
-    .nada-list-group-item {
-        position: relative;
-        display: block;
-        padding: 10px 15px;
-        margin-bottom: -1px;
-        background-color: #fff;
-        border: 1px solid #ddd;
-        border-left:0px;
-        border-right:0px;
-        font-size: small;
-        border-bottom: 1px solid gainsboro;
-        word-wrap: break-word;
-        padding: 5px;
-        padding-right: 10px;
+<div class="row dd-catalogue">
 
-    }
-
-    .nada-list-group-title{
-        font-weight:bold;
-        border-top:0px;
-    }
-
-    .variable-groups-sidebar
-    .nada-list-vgroup {
-        padding-inline-start: 0px;
-        font-size:small;
-        list-style-type: none;
-    }
-
-    .nada-list-vgroup {
-        list-style-type: none;
-    }
-
-    .nada-list-subgroup{
-        padding-left:10px;
-    }
-    
-    .table-variable-list .var-breadcrumb{
-        display:none;
-    }
-
-    .nada-list-subgroup .nada-list-vgroup-item {
-        padding-left: 24px;
-        position: relative;
-        list-style:none;
-    }
-
-    .nada-list-subgroup .nada-list-vgroup-item:before {
-        position: absolute;
-        font-family: 'FontAwesome';
-        top: 0;
-        left: 10px;
-        content: "\f105";
-    }
-
-</style>
-
-<div class="row">
-
-    <div class="col-sm-2 col-md-2 col-lg-2 tab-sidebar hidden-sm-down sidebar-files">       
+    <div class="col-12 col-md-3 col-lg-2 tab-sidebar sidebar-files">
 
         <form method="get" action="<?php echo site_url('catalog/'.$sid.'/search');?>" class="dictionary-search">
-        <div class="input-group input-group-sm">            
-            <input type="text" name="vk" class="form-control" placeholder="Search for...">
+        <div class="input-group input-group-sm">
+            <input type="text" name="vk" class="form-control" placeholder="<?php echo html_escape(t('search_variables'));?>" aria-label="<?php echo html_escape(t('search_variables'));?>" value="<?php echo html_escape((string)$this->input->get('vk'));?>">
             <span class="input-group-btn">
                 <button class="btn btn-outline-primary btn-sm" type="submit"><i class="fa fa-search"></i></button>
             </span>
         </div>
         </form>
-        
+
         <ul class="nada-list-group">
             <li class="nada-list-group-item nada-list-group-title"><?php echo t('data_files');?></li>
-            <?php foreach($files as $file_):?>
-                <li class="nada-list-group-item">
-                    <a href="<?php echo site_url("catalog/$sid/data-dictionary/{$file_['file_id']}");?>?file_name=<?php echo html_escape($file_['file_name']);?>"><?php echo wordwrap($file_['file_name'],15,"<BR>");?></a>
+            <?php $current_file_id = isset($file_id) ? (string)$file_id : ''; ?>
+            <?php foreach((isset($files) && is_array($files) ? $files : array()) as $file_):?>
+                <?php $is_current = $current_file_id !== '' && (string)$file_['file_id'] === $current_file_id; ?>
+                <li class="nada-list-group-item<?php echo $is_current ? ' active' : '';?>">
+                    <a href="<?php echo site_url("catalog/$sid/data-dictionary/".rawurlencode($file_['file_id']));?>?file_name=<?php echo rawurlencode($file_['file_name']);?>"<?php echo $is_current ? ' aria-current="page"' : '';?>><?php echo html_escape($file_['file_name']);?></a>
                 </li>
             <?php endforeach;?>
         </ul>
@@ -95,8 +31,8 @@
 
     </div>
 
-    <div class="col-sm-10 col-md-10 col-lg-10 wb-border-left tab-body body-files">
-        
+    <div class="col-12 col-md-9 col-lg-10 wb-border-left tab-body body-files">
+
         <div class="variable-metadata">
             <?php echo $content;?>
         </div>
@@ -108,9 +44,13 @@
     $(document).ready(function () {
 
         //show/hide variable info
-        $(document.body).on("click",".data-dictionary .var-row", function(){
-            var variable=$(this).find(".var-id");
-            if(variable){
+        $(document.body).on("click",".data-dictionary .var-row", function(e){
+            //let ctrl/cmd-click on the name link open the variable page
+            if ($(e.target).closest("a").length && (e.ctrlKey || e.metaKey || e.shiftKey)){
+                return true;
+            }
+            var variable=$(this).find(".var-id").first();
+            if(variable.length){
                 get_variable(variable);
             }
             return false;
@@ -121,37 +61,35 @@
     function get_variable(var_obj)
     {
         var i18n={
-		'js_loading':"<?php echo t('js_loading');?>",
-		};
+            'js_loading':"<?php echo t('js_loading');?>"
+        };
 
         //panel id
         var pnl="#pnl-"+var_obj.attr("id");
         var pnl_body=$(pnl).find(".panel-td");
+        var row=$(var_obj).closest(".var-row");
 
         //collapse
-        if ($(var_obj).closest(".var-row").is(".pnl-active")){
-            $(var_obj).closest(".var-row").toggleClass("pnl-active");
+        if (row.is(".pnl-active")){
+            row.removeClass("pnl-active");
             $(pnl).hide();
             return;
         }
 
         //hide any open panels
         $('.data-dictionary .var-info-panel').hide();
-
-        //unset any active panels
         $(".data-dictionary .var-row").removeClass("pnl-active");
 
         //error handler
         variable_error_handler(pnl_body);
 
         $(pnl).show();
-        $(var_obj).closest(".var-row").toggleClass("pnl-active");
-        $(pnl_body).html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> '+ i18n.js_loading); 
+        row.addClass("pnl-active");
+        $(pnl_body).html('<i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i> '+ i18n.js_loading);
         $(pnl_body).load(var_obj.attr("href")+'&ajax=true', function(){
-            var fooOffset = jQuery('.pnl-active').offset(),
-                destination = fooOffset.top;
+            var destination = row.offset().top;
             $('html,body').animate({scrollTop: destination-50}, 500);
-        })
+        });
     }
 
 

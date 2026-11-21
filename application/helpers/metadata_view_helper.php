@@ -341,10 +341,10 @@ if ( ! function_exists('merge_var_catgry_invd_sysmiss_display'))
 
 if ( ! function_exists('render_var_category'))
 {
-    function render_var_category($name, $data)
+    function render_var_category($name, $data, $options=array())
     {
         $ci =& get_instance();
-        return $ci->load->view('metadata_templates/fields/field_var_category',array('name'=>$name, 'data'=>$data), TRUE);
+        return $ci->load->view('metadata_templates/fields/field_var_category',array('name'=>$name, 'data'=>$data, 'options'=>is_array($options) ? $options : array()), TRUE);
     }
 }
 

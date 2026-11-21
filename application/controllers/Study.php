@@ -237,15 +237,12 @@ class Study extends MY_Controller {
             show_404();
 		}
 
+		$options['files']=$options['file_list'];
 		if ($views['type']==='geospatial'){
-			$options['files']=$options['file_list'];
 			$this->apply_geospatial_catalogue_context($sid, $options, $views['type']);
-			$options['content']=$this->load->view($views['file'],$options,TRUE);
-			$content=$this->load->view($views['layout'],$options,TRUE);
 		}
-		else{
-			$content=$this->load->view($views['file'],$options,TRUE);
-		}
+		$options['content']=$this->load->view($views['file'],$options,TRUE);
+		$content=$this->load->view($views['layout'],$options,TRUE);
         $this->render_page($sid, $content,'data_dictionary', $survey);
     }
 
