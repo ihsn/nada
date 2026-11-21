@@ -17,30 +17,28 @@
       </v-chip>
 
       <div class="study-card-inner">
-        <div class="study-card-type-icon flex-shrink-0" :title="typeLabel || undefined">
-          <v-icon :icon="datasetTypeIconName" size="28" class="type-icon-glyph" />
+        <div
+          class="study-card-type-icon flex-shrink-0"
+          :title="typeLabel || undefined"
+          :role="typeLabel ? 'img' : undefined"
+          :aria-label="typeLabel || undefined"
+        >
+          <v-icon :icon="datasetTypeIconName" size="28" class="type-icon-glyph" aria-hidden="true" />
         </div>
 
         <div class="study-card-content">
-          <div v-if="accessLabel || typeLabel || dataClassBadge" class="study-card-chips">
+          <div v-if="accessLabel || dataClassBadge" class="study-card-chips">
             <v-chip
               v-if="accessLabel"
               size="x-small"
               variant="flat"
               class="study-access-chip font-weight-medium"
-              :style="{ '--chip-bg': accessInfo.bg }"
+              :style="{ '--chip-fg': accessInfo.fg, '--chip-bg': accessInfo.bg }"
+              :title="accessTitle"
+              :aria-label="accessTitle"
             >
-              <v-icon start size="12">{{ accessInfo.icon }}</v-icon>
+              <v-icon size="13" class="study-access-chip__icon">{{ accessInfo.icon }}</v-icon>
               {{ accessLabel }}
-            </v-chip>
-            <v-chip
-              v-if="typeLabel"
-              size="x-small"
-              color="secondary"
-              variant="tonal"
-              class="font-weight-medium"
-            >
-              {{ typeLabel }}
             </v-chip>
             <v-chip
               v-if="dataClassBadge"
@@ -48,6 +46,7 @@
               variant="flat"
               class="study-card-data-class font-weight-medium"
               :class="`study-card-data-class--${dataClassBadge.code}`"
+              :title="dataClassBadge.note || undefined"
             >
               {{ dataClassBadge.title }}
             </v-chip>
@@ -63,18 +62,28 @@
           </div>
 
           <div
-            v-if="row.nation || yearRange || row.authoring_entity"
+            v-if="row.nation || yearRange || producers.length"
             class="study-card-meta"
           >
             <div v-if="row.nation || yearRange" class="study-meta-line study-meta-line--place">
-              <span v-if="row.nation" class="study-meta-line__icon-box">
-                <v-icon size="14" class="study-meta-line__icon">$mdi-map-marker-outline</v-icon>
-              </span>
               <!-- one text run so long country lists wrap naturally; keep on one line (whitespace matters) -->
               <span class="study-meta-line__text"><span v-if="row.nation">{{ nationLabel }}</span> <span v-if="yearRange" class="study-meta-line__years"><span v-if="row.nation" class="study-meta-line__sep">&middot;&nbsp;</span>{{ yearRange }}</span></span>
             </div>
-            <div v-if="row.authoring_entity" class="study-meta-line study-meta-line--author">
-              {{ row.authoring_entity }}
+            <div
+              v-if="producers.length"
+              class="study-meta-line study-meta-line--author"
+              :title="producersHidden > 0 ? row.authoring_entity : undefined"
+            >
+              <span>{{ visibleProducers.join(', ') }}</span>
+              <button
+                v-if="producersHidden > 0 || producersExpanded"
+                type="button"
+                class="study-meta-more"
+                :aria-expanded="producersExpanded"
+                @click.stop="producersExpanded = !producersExpanded"
+              >
+                {{ producersExpanded ? t('show_fewer', 'Show fewer') : t('n_more', '+%d more', producersHidden) }}
+              </button>
             </div>
           </div>
 
@@ -127,19 +136,32 @@
             </template>
           </div>
 
-          <div v-if="collections.length" class="study-collections">
-            <v-chip
-              v-for="col in collections"
-              :key="col.repositoryid + col.title"
-              size="x-small"
-              variant="outlined"
+          <div v-if="uniqueCollections.length" class="study-collections">
+            <v-icon
+              icon="$mdi-folder-outline"
+              size="14"
+              class="study-collections__icon"
+              :title="t('collections', 'Collections')"
+              :aria-label="t('collections', 'Collections')"
+            />
+            <a
+              v-for="col in visibleCollections"
+              :key="col.repositoryid"
               :href="collectionUrl(col.repositoryid)"
-              tag="a"
               class="collection-chip"
-              @click.prevent="goToCollection(col.repositoryid)"
+              :title="col.title"
             >
               {{ col.title }}
-            </v-chip>
+            </a>
+            <button
+              v-if="hiddenCollectionCount > 0 || collectionsExpanded"
+              type="button"
+              class="collection-chip collection-chip--more"
+              :aria-expanded="collectionsExpanded"
+              @click.stop="collectionsExpanded = !collectionsExpanded"
+            >
+              {{ collectionsExpanded ? t('show_fewer', 'Show fewer') : t('n_more', '+%d more', hiddenCollectionCount) }}
+            </button>
           </div>
 
           <div class="study-card-footer">
@@ -234,33 +256,45 @@ const thumbnailFailed = ref(false);
 
 watch(
   () => props.row.id,
-  () => { thumbnailFailed.value = false; }
+  () => {
+    thumbnailFailed.value = false;
+    collectionsExpanded.value = false;
+    producersExpanded.value = false;
+  }
 );
 
-/** Solid backgrounds — nada52 corporate palette; white text for readability. */
+/**
+ * Tonal access badges: tinted background, coloured text/icon. Hues follow the nada52
+ * palette but each access type gets its own so they stay distinguishable.
+ */
 const ACCESS_MAP = {
-  open:                { icon: '$mdi-lock-open-variant',    bg: '#814C89' }, // accent-01
-  cc40:                { icon: '$mdi-creative-commons',     bg: '#814C89' },
-  public:              { icon: '$mdi-account-check',        bg: '#529600' }, // accent-03
-  direct:              { icon: '$mdi-database-arrow-down',  bg: '#7FB142' }, // accent-04
-  licensed:            { icon: '$mdi-lock',                 bg: '#0079BD' }, // action-color
-  enclave:             { icon: '$mdi-shield-lock',          bg: '#283593' },
-  remote:              { icon: '$mdi-link-variant',         bg: '#0079BD' },
-  data_na:             { icon: '$mdi-minus-circle-outline', bg: '#546E7A' }, // secondary
-  research:            { icon: '$mdi-flask-outline',        bg: '#0079BD' },
-  research_public:     { icon: '$mdi-flask-outline',        bg: '#529600' },
-  research_license:    { icon: '$mdi-flask-outline',        bg: '#0079BD' },
-  research_public_lic: { icon: '$mdi-flask-outline',        bg: '#0079BD' },
+  open:                { icon: '$mdi-lock-open-variant',    fg: '#6b3a73', bg: '#f4edf5' },
+  cc40:                { icon: '$mdi-creative-commons',     fg: '#6b3a73', bg: '#f4edf5' },
+  public:              { icon: '$mdi-account-check',        fg: '#3f6f00', bg: '#eef5e4' },
+  direct:              { icon: '$mdi-database-arrow-down',  fg: '#00695c', bg: '#e6f4f1' },
+  licensed:            { icon: '$mdi-lock',                 fg: '#005a8c', bg: '#e5f1f9' },
+  enclave:             { icon: '$mdi-shield-lock',          fg: '#283593', bg: '#ebedf8' },
+  data_enclave:        { icon: '$mdi-shield-lock',          fg: '#283593', bg: '#ebedf8' },
+  remote:              { icon: '$mdi-open-in-new',          fg: '#3d5a6c', bg: '#ebf0f3' },
+  data_na:             { icon: '$mdi-minus-circle-outline', fg: '#5b6770', bg: '#eff1f3' },
+  research:            { icon: '$mdi-flask-outline',        fg: '#005a8c', bg: '#e5f1f9' },
+  research_public:     { icon: '$mdi-flask-outline',        fg: '#3f6f00', bg: '#eef5e4' },
+  research_license:    { icon: '$mdi-flask-outline',        fg: '#005a8c', bg: '#e5f1f9' },
+  research_public_lic: { icon: '$mdi-flask-outline',        fg: '#005a8c', bg: '#e5f1f9' },
 };
 
-const DEFAULT_ACCESS = { icon: '$mdi-file-document-outline', bg: '#546E7A' };
+/** Empty/unknown form_model is shown as "not available", so use the same icon. */
+const accessKey = computed(() => props.row.form_model || 'data_na');
 
-const accessInfo = computed(() => ACCESS_MAP[props.row.form_model] ?? DEFAULT_ACCESS);
+const accessInfo = computed(() => ACCESS_MAP[accessKey.value] ?? ACCESS_MAP.data_na);
 
+/** Full legend text, e.g. "Data available from external repository" (tooltip / a11y). */
+const accessTitle = computed(() => t('legend_data_' + accessKey.value, accessKey.value));
+
+/** Short card label, e.g. "External repository"; falls back to the full legend text. */
 const accessLabel = computed(() => {
   if (datasetType.value === 'timeseries') return '';
-  const key = 'legend_data_' + (props.row.form_model || 'data_na');
-  return t(key, props.row.form_model ?? '');
+  return t('access_short_' + accessKey.value, accessTitle.value);
 });
 
 const datasetType = computed(() => props.row.type || props.row.dtype || 'survey');
@@ -291,7 +325,9 @@ const dataClassBadge = computed(() => {
   const item = props.dataClassifications[id] ?? props.dataClassifications[String(id)];
   if (!item?.code || !item?.title) return null;
   const code = String(item.code).toLowerCase();
-  return { code, title: t('data_class_' + code, item.title) };
+  const noteKey = 'data_class_note_' + code;
+  const note = t(noteKey, '');
+  return { code, title: t('data_class_' + code, item.title), note: note === noteKey ? '' : note };
 });
 
 const citationCount = computed(() => {
@@ -309,6 +345,36 @@ const citationsUrl = computed(() =>
 // Keep the "+N more" suffix (added by Dataset_model::get_country_names_string) on the last name's line.
 const nationLabel = computed(() =>
   String(props.row.nation || '').replace(/ \+(\d+)$/, ' +$1')
+);
+
+/** Producers are stored joined with ", "; split, trim and drop exact duplicates. */
+const PRODUCERS_VISIBLE = 2;
+const producersExpanded = ref(false);
+
+const producers = computed(() => {
+  const seen = new Set();
+  return String(props.row.authoring_entity || '')
+    .split(/,\s+/)
+    .map((p) => p.trim())
+    .filter((p) => {
+      const key = p.toLowerCase();
+      if (!p || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+});
+
+/** Only collapse when it saves at least two names; otherwise "+1 more" costs as much as the name. */
+const producersCollapsible = computed(() => producers.value.length > PRODUCERS_VISIBLE + 1);
+
+const visibleProducers = computed(() =>
+  producersExpanded.value || !producersCollapsible.value
+    ? producers.value
+    : producers.value.slice(0, PRODUCERS_VISIBLE)
+);
+
+const producersHidden = computed(() =>
+  producersCollapsible.value ? producers.value.length - PRODUCERS_VISIBLE : 0
 );
 
 const yearRange = computed(() =>
@@ -336,12 +402,32 @@ const abstractNeedsTruncation = computed(() =>
 const changedLabel = computed(() => formatCatalogDate(props.row.changed));
 const createdLabel = computed(() => formatCatalogDate(props.row.created));
 
+const COLLECTIONS_VISIBLE = 3;
+const collectionsExpanded = ref(false);
+
+/** One pill per collection id; skip entries without an id or title. */
+const uniqueCollections = computed(() => {
+  const seen = new Set();
+  return (props.collections || []).filter((col) => {
+    const id = col?.repositoryid;
+    if (!id || !col.title || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+});
+
+const visibleCollections = computed(() =>
+  collectionsExpanded.value
+    ? uniqueCollections.value
+    : uniqueCollections.value.slice(0, COLLECTIONS_VISIBLE)
+);
+
+const hiddenCollectionCount = computed(() =>
+  Math.max(0, uniqueCollections.value.length - COLLECTIONS_VISIBLE)
+);
+
 function collectionUrl(repositoryid) {
   return catalogSearchUrl(siteUrl.value, repositoryid);
-}
-
-function goToCollection(repositoryid) {
-  window.location.assign(collectionUrl(repositoryid));
 }
 </script>
 
@@ -381,27 +467,6 @@ function goToCollection(repositoryid) {
   text-decoration: underline;
 }
 
-.collection-chip {
-  text-decoration: none;
-  position: relative;
-  z-index: 1;
-}
-
-.collection-chip:hover {
-  background-color: #000 !important;
-  border-color: #000 !important;
-  color: #fff !important;
-}
-
-.collection-chip:hover :deep(.v-chip__overlay),
-.collection-chip:hover :deep(.v-chip__underlay) {
-  opacity: 0 !important;
-}
-
-.collection-chip:hover :deep(.v-chip__content) {
-  color: #fff !important;
-}
-
 .abstract-toggle {
   font-size: var(--catalog-font-ui, 0.875rem);
   color: var(--catalog-link, #1565c0);
@@ -421,16 +486,16 @@ function goToCollection(repositoryid) {
 }
 
 .study-card-type-icon {
-  width: 36px;
+  width: 32px;
   flex-shrink: 0;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 3px;
+  padding-top: 1px;
 }
 
 .type-icon-glyph {
-  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68)) !important;
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62)) !important;
 }
 
 .study-card-content {
@@ -446,7 +511,6 @@ function goToCollection(repositoryid) {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin-bottom: 2px;
   width: 100%;
 }
 
@@ -456,23 +520,30 @@ function goToCollection(repositoryid) {
 
 .study-access-chip {
   background-color: var(--chip-bg) !important;
-  color: #fff !important;
+  color: var(--chip-fg) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chip-fg) 18%, transparent);
 }
 
-.study-access-chip :deep(.v-icon) {
-  color: #fff !important;
+.study-access-chip :deep(.v-chip__underlay),
+.study-access-chip :deep(.v-chip__overlay) {
+  opacity: 0 !important;
+}
+
+.study-access-chip__icon {
+  margin-inline-end: 4px;
+  color: var(--chip-fg) !important;
 }
 
 .study-card-heading {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .study-card-meta {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .study-meta-line {
@@ -480,14 +551,9 @@ function goToCollection(repositoryid) {
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
-  font-size: var(--catalog-font-body, 1rem);
+  font-size: var(--catalog-font-ui, 0.875rem);
   line-height: 1.5;
   color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
-}
-
-.study-meta-line__icon {
-  opacity: 0.55;
-  flex-shrink: 0;
 }
 
 .study-meta-line__sep {
@@ -499,32 +565,38 @@ function goToCollection(repositoryid) {
   align-items: flex-start;
 }
 
-/* One line tall, so the icon lines up with the first line of wrapped text */
-.study-meta-line__icon-box {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  height: calc(var(--catalog-font-body, 1rem) * 1.5);
-}
-
 .study-meta-line__text {
   min-width: 0;
 }
 
 .study-meta-line__years {
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .study-meta-line--author {
-  font-size: var(--catalog-font-ui, 0.875rem);
-  font-style: italic;
+  display: block;
   color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
 }
 
+.study-meta-more {
+  margin-inline-start: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--catalog-link, #1565c0);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.study-meta-more:hover {
+  text-decoration: underline;
+}
+
 .study-abstract {
-  font-size: var(--catalog-font-body, 1rem);
-  line-height: 1.5;
-  margin-top: 2px;
+  font-size: 0.9375rem;
+  line-height: 1.55;
   color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
 }
 
@@ -533,7 +605,6 @@ function goToCollection(repositoryid) {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin-top: 2px;
 }
 
 .study-dimension-chip {
@@ -541,9 +612,17 @@ function goToCollection(repositoryid) {
   line-height: 1.2;
 }
 
+/* Outline (not filled) so it reads as a different kind of label from the access badge */
 .study-card-data-class {
-  margin-left: auto;
   flex-shrink: 0;
+  background-color: transparent !important;
+  /* Same border strength as the access badge, so neither looks larger */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 35%, transparent);
+}
+
+.study-card-data-class :deep(.v-chip__underlay),
+.study-card-data-class :deep(.v-chip__overlay) {
+  opacity: 0 !important;
 }
 
 .study-card-data-class :deep(.v-chip__content) {
@@ -551,25 +630,75 @@ function goToCollection(repositoryid) {
 }
 
 .study-card-data-class--public {
-  background-color: #f3edf4 !important;
-  color: #714177 !important;
+  color: #6b3a73 !important;
 }
 
 .study-card-data-class--official {
-  background-color: #e8f5e9 !important;
-  color: #2e7d32 !important;
+  color: #2e6b30 !important;
 }
 
 .study-card-data-class--confidential {
-  background-color: #f1f8e9 !important;
-  color: #558b2f !important;
+  color: #8a5300 !important;
 }
 
 .study-collections {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
-  margin-top: 2px;
+}
+
+.study-collections__icon {
+  color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62)) !important;
+  margin-inline-end: 2px;
+}
+
+/* Soft secondary tags: they label the study, they shouldn't outweigh the title */
+.study-card .collection-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 260px;
+  height: 22px;
+  padding: 0 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 11px;
+  background: rgba(15, 23, 42, 0.04);
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 20px;
+  color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.study-card .collection-chip:hover {
+  background: rgba(21, 101, 192, 0.08);
+  border-color: rgba(21, 101, 192, 0.3);
+  color: var(--catalog-link, #1565c0);
+}
+
+.study-card .collection-chip:focus-visible {
+  outline: 2px solid var(--catalog-link, #1565c0);
+  outline-offset: 1px;
+}
+
+.study-card .collection-chip--more {
+  background: transparent;
+  border-color: transparent;
+  color: var(--catalog-link, #1565c0);
+  padding: 0 4px;
+}
+
+.study-card .collection-chip--more:hover {
+  background: transparent;
+  border-color: transparent;
+  text-decoration: underline;
 }
 
 .study-card-media {
@@ -595,6 +724,7 @@ function goToCollection(repositoryid) {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-wrap: pretty;
 }
 
 .study-title:hover {
@@ -604,8 +734,8 @@ function goToCollection(repositoryid) {
 .study-subtitle {
   margin: 0;
   font-size: var(--catalog-font-ui, 0.875rem);
-  line-height: 1.4;
-  color: var(--catalog-text-muted, rgba(26, 35, 50, 0.68));
+  line-height: 1.45;
+  color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
 }
 
 .study-card-footer {
@@ -614,16 +744,13 @@ function goToCollection(repositoryid) {
   align-items: center;
   gap: 4px 16px;
   margin-top: 4px;
-  padding-top: 6px;
+  padding-top: 8px;
   border-top: 1px solid var(--catalog-border-subtle, rgba(15, 23, 42, 0.11));
   font-size: var(--catalog-font-small, 0.75rem);
   line-height: 1.5;
   color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
 }
 
-.collection-chip :deep(.v-chip__content) {
-  font-size: 0.75rem;
-}
 
 .study-card-footer__item {
   display: inline-flex;

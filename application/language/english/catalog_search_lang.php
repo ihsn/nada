@@ -119,6 +119,21 @@ $lang['legend_data_research_public']="Public research microdata";
 $lang['legend_data_research_license']="Research microdata with license";
 $lang['legend_data_research_public_lic']="Public research microdata with license";
 
+// Short access labels for catalog cards (full legend_data_* text is shown as tooltip)
+$lang['access_short_direct']="Direct access";
+$lang['access_short_public']="Public use";
+$lang['access_short_licensed']="Licensed";
+$lang['access_short_enclave']="Data enclave";
+$lang['access_short_data_enclave']="Data enclave";
+$lang['access_short_open']="Open access";
+$lang['access_short_remote']="External repository";
+$lang['access_short_data_na']="No data available";
+$lang['access_short_cc40']="CC BY 4.0";
+$lang['access_short_research']="Research";
+$lang['access_short_research_public']="Public research";
+$lang['access_short_research_license']="Licensed research";
+$lang['access_short_research_public_lic']="Public research (licensed)";
+
 $lang['data_class_public']="Public";
 $lang['data_class_official']="Official";
 $lang['data_class_confidential']="Confidential";
@@ -258,6 +273,7 @@ $lang['n_value']="%d value";
 $lang['n_values']="%d values";
 $lang['show_all_n']="Show all %d";
 $lang['show_fewer']="Show fewer";
+$lang['n_more']="+%d more";
 $lang['search_attributes']="Search attributes";
 $lang['search_variables']="Search variables";
 $lang['show_more']="Show more";
@@ -443,6 +459,18 @@ $lang['sort_study_title_az']="Study title (A-Z)";
 $lang['sort_study_title_za']="Study title (Z-A)";
 $lang['sort_variable_name_az']="Variable name (A-Z)";
 $lang['sort_variable_name_za']="Variable name (Z-A)";
+
+// Study card: matching variables panel
+$lang['variable_matching_n']="%s matching variable";
+$lang['variables_matching_n']="%s matching variables";
+$lang['of_n_in_study']="of %s in this study";
+$lang['show_variables']="Show variables";
+$lang['hide_variables']="Hide variables";
+$lang['showing_first_n_of_m']="Showing the first %s of %s matches";
+$lang['compare_select_hint']="Select 2 or more variables to compare";
+$lang['compare_select_one_more']="1 selected, select 1 more to compare";
+$lang['compare_n']="Compare (%d)";
+$lang['clear_selection']="Clear selection";
 
 /* End of file catalog_search_lang.php */
 /* Location: ./application/language/english/catalog_search_lang.php */

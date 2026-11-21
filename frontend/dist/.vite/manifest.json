@@ -2482,7 +2482,7 @@
     ]
   },
   "catalog-search/components/CatalogImageGallery.vue": {
-    "file": "assets/public/CatalogImageGallery-CVhOnDfJ.js",
+    "file": "assets/public/CatalogImageGallery-B_7sjgqv.js",
     "name": "CatalogImageGallery",
     "src": "catalog-search/components/CatalogImageGallery.vue",
     "isDynamicEntry": true,
@@ -2504,7 +2504,7 @@
     ]
   },
   "catalog-search/components/CatalogStudyVariableMatches.vue": {
-    "file": "assets/public/CatalogStudyVariableMatches-Bf-GnObx.js",
+    "file": "assets/public/CatalogStudyVariableMatches-DnzL9McI.js",
     "name": "CatalogStudyVariableMatches",
     "src": "catalog-search/components/CatalogStudyVariableMatches.vue",
     "isDynamicEntry": true,
@@ -2514,7 +2514,6 @@
       "_useI18n-i9ffYxm0.js",
       "catalog-search/main.js",
       "_VChip-DSMdhWS7.js",
-      "_VCheckbox-BPzWLVK4.js",
       "_VMain-riEDzwko.js",
       "_VSelect-Dscq2PeB.js",
       "_VRow-F0gBzTOI.js",
@@ -2525,11 +2524,11 @@
       "catalog-search/components/CatalogVariableDetailDialog.vue"
     ],
     "css": [
-      "assets/public/CatalogStudyVariableMatches-DUyaTKcl.css"
+      "assets/public/CatalogStudyVariableMatches-CsHaRokv.css"
     ]
   },
   "catalog-search/components/CatalogVariableCompareCart.vue": {
-    "file": "assets/public/CatalogVariableCompareCart-D3GfgcmA.js",
+    "file": "assets/public/CatalogVariableCompareCart-BJE2K_cA.js",
     "name": "CatalogVariableCompareCart",
     "src": "catalog-search/components/CatalogVariableCompareCart.vue",
     "isDynamicEntry": true,
@@ -2553,7 +2552,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableDetailDialog.vue": {
-    "file": "assets/public/CatalogVariableDetailDialog-CU8NM_fi.js",
+    "file": "assets/public/CatalogVariableDetailDialog-DfuQpKiL.js",
     "name": "CatalogVariableDetailDialog",
     "src": "catalog-search/components/CatalogVariableDetailDialog.vue",
     "isDynamicEntry": true,
@@ -2575,7 +2574,7 @@
     ]
   },
   "catalog-search/components/CatalogVariableResultsList.vue": {
-    "file": "assets/public/CatalogVariableResultsList-0Suh9-FH.js",
+    "file": "assets/public/CatalogVariableResultsList-2BPI6tTn.js",
     "name": "CatalogVariableResultsList",
     "src": "catalog-search/components/CatalogVariableResultsList.vue",
     "isDynamicEntry": true,
@@ -2626,7 +2625,7 @@
     ]
   },
   "catalog-search/main.js": {
-    "file": "assets/public/catalog_search-DXgrvoDd.js",
+    "file": "assets/public/catalog_search-MIalWGLu.js",
     "name": "catalog_search",
     "src": "catalog-search/main.js",
     "isEntry": true,
@@ -2651,7 +2650,7 @@
       "catalog-search/components/CatalogVariableCompareCart.vue"
     ],
     "css": [
-      "assets/public/catalog_search-BlM1Y3lT.css"
+      "assets/public/catalog_search-5EZcWGoK.css"
     ]
   },
   "catalog/study_indicator_data_public/main.js": {
