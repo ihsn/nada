@@ -10,7 +10,7 @@ $date_formatter=class_exists('IntlDateFormatter')
         <a class="home-section-link" href="<?php echo site_url('catalog/history');?>"><?php echo t('home_view_all');?> <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
     </div>
 
-<?php if (isset($rows) && count($rows)>0): ?>
+<?php if (!empty($rows) && is_array($rows)): ?>
     <ul class="home-latest-list">
     <?php foreach($rows as $row): ?>
         <?php

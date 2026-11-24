@@ -60,7 +60,14 @@ class Page extends MY_Controller {
 						redirect($data['url']);
 					}
 				}
-			}			
+
+				//nothing to redirect to: show the built-in home page (views/static/home.php or its custom override)
+				if (empty($data) || $data['linktype']==1){
+					if ($this->static_page('home')){
+						return;
+					}
+				}
+			}
 			else{
 				//static pages in the database
 				$data=$this->Menu_model->get_page($page_);
@@ -151,9 +158,17 @@ class Page extends MY_Controller {
 	 * Create or copy the page under views/static/custom folder with the same name
 	 * 
 	 */
-	function static_page()
+	function static_page($page=NULL)
 	{
-		$page=$this->uri->segment(1);
+		if ($page===NULL){
+			$page=$this->uri->segment(1);
+		}
+
+		//no page name: application/views/static/.php never exists
+		if (!is_string($page) || $page===''){
+			return FALSE;
+		}
+
 		$data=array();
 
 		$this->load->model("repository_model");
@@ -178,6 +193,8 @@ class Page extends MY_Controller {
 			$this->template->render();
 			return true;
 		}
+
+		return FALSE;
 	}
 }
 /* End of file page.php */
