@@ -558,7 +558,7 @@ class Datasets extends MY_REST_Controller
 			}
 
 			if (!empty($options['access_policy'])) {
-				$this->dataset_manager->validate_indicator_access_policy($type, $options['access_policy']);
+				$this->dataset_manager->validate_access_policy($type, $options['access_policy']);
 				$formid = $this->dataset_manager->get_data_access_type_id($options['access_policy']);
 				if ($formid) {
 					$options['formid'] = $formid;
@@ -648,7 +648,7 @@ class Datasets extends MY_REST_Controller
 			}
 
 			if (!empty($options['access_policy'])) {
-				$this->dataset_manager->validate_indicator_access_policy($dataset['type'], $options['access_policy']);
+				$this->dataset_manager->validate_access_policy($dataset['type'], $options['access_policy'], $sid);
 				$formid = $this->dataset_manager->get_data_access_type_id($options['access_policy']);
 				if ($formid) {
 					$options['formid'] = $formid;

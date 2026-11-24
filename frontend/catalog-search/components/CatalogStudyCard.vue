@@ -163,35 +163,6 @@
               {{ collectionsExpanded ? t('show_fewer', 'Show fewer') : t('n_more', '+%d more', hiddenCollectionCount) }}
             </button>
           </div>
-
-          <div class="study-card-footer">
-            <span v-if="row.idno" class="study-card-footer__item study-card-footer__idno">
-              <span class="study-card-footer__label">{{ t('id') }}:</span>
-              <span class="study-card-footer__value">{{ row.idno }}</span>
-            </span>
-            <span v-if="changedLabel" class="study-card-footer__item">
-              <span class="study-card-footer__label">{{ t('last_modified') }}:</span>
-              <span class="study-card-footer__value">{{ changedLabel }}</span>
-            </span>
-            <span v-else-if="createdLabel" class="study-card-footer__item">
-              <span class="study-card-footer__label">{{ t('created_on') }}:</span>
-              <span class="study-card-footer__value">{{ createdLabel }}</span>
-            </span>
-            <span v-if="row.total_views > 0" class="study-card-footer__item">
-              <span class="study-card-footer__label">{{ t('views') }}:</span>
-              <span class="study-card-footer__value">{{ Number(row.total_views).toLocaleString() }}</span>
-            </span>
-            <span v-if="citationCount > 0" class="study-card-footer__item">
-              <span class="study-card-footer__label">{{ t('citations') }}:</span>
-              <a
-                :href="citationsUrl"
-                class="study-card-footer__link"
-                :title="t('related_citations', 'Related citations')"
-              >
-                {{ citationCount.toLocaleString() }}
-              </a>
-            </span>
-          </div>
         </div>
 
         <div
@@ -207,6 +178,48 @@
             @error="thumbnailFailed = true"
           />
         </div>
+      </div>
+
+      <div class="study-card-footer">
+        <span v-if="row.idno" class="study-card-footer__item study-card-footer__idno">
+          <span class="study-card-footer__label">{{ t('id') }}:</span>
+          <span class="study-card-footer__value">{{ row.idno }}</span>
+        </span>
+        <span v-if="changedLabel" class="study-card-footer__item">
+          <span class="study-card-footer__label">{{ t('last_modified') }}:</span>
+          <span class="study-card-footer__value">{{ changedLabel }}</span>
+        </span>
+        <span v-else-if="createdLabel" class="study-card-footer__item">
+          <span class="study-card-footer__label">{{ t('created_on') }}:</span>
+          <span class="study-card-footer__value">{{ createdLabel }}</span>
+        </span>
+        <span v-if="row.total_views > 0" class="study-card-footer__item">
+          <span class="study-card-footer__label">{{ t('views') }}:</span>
+          <span class="study-card-footer__value">{{ Number(row.total_views).toLocaleString() }}</span>
+        </span>
+        <span v-if="citationCount > 0" class="study-card-footer__item">
+          <span class="study-card-footer__label">{{ t('citations') }}:</span>
+          <a
+            :href="citationsUrl"
+            class="study-card-footer__link"
+            :title="t('related_citations', 'Related citations')"
+          >
+            {{ citationCount.toLocaleString() }}
+          </a>
+        </span>
+        <span v-if="quickLinks.length" class="study-card-links">
+          <a
+            v-for="link in quickLinks"
+            :key="link.key"
+            :href="link.href"
+            class="study-card-link"
+            :class="`study-card-link--${link.key}`"
+            :title="link.label"
+            :aria-label="link.label"
+          >
+            <v-icon :icon="link.icon" size="16" aria-hidden="true" />
+          </a>
+        </span>
       </div>
     </v-card-text>
 
@@ -229,6 +242,7 @@ import { resolveStudyThumbnailUrl } from '../catalogThumbnail';
 import { datasetTypeIcon } from '../catalogDatasetTypeIcons';
 import { joinSiteUrl, catalogSearchUrl } from '../catalogUrls';
 import { catalogDatasetTypeLabel } from '../catalogDatasetTypeLabel';
+import { buildPdfViewerUrl } from '@/shared/pdf-viewer/pdfViewerUrl';
 
 const CatalogStudySemanticPages = defineAsyncComponent(
   () => import('./CatalogStudySemanticPages.vue')
@@ -283,6 +297,9 @@ const ACCESS_MAP = {
   research_public_lic: { icon: '$mdi-flask-outline',        fg: '#005a8c', bg: '#e5f1f9' },
 };
 
+/** Dataset types whose cards do not show the data access pill. */
+const NO_ACCESS_PILL_TYPES = new Set(['timeseries', 'table', 'document', 'image', 'video', 'script']);
+
 /** Empty/unknown form_model is shown as "not available", so use the same icon. */
 const accessKey = computed(() => props.row.form_model || 'data_na');
 
@@ -293,7 +310,7 @@ const accessTitle = computed(() => t('legend_data_' + accessKey.value, accessKey
 
 /** Short card label, e.g. "External repository"; falls back to the full legend text. */
 const accessLabel = computed(() => {
-  if (datasetType.value === 'timeseries') return '';
+  if (NO_ACCESS_PILL_TYPES.has(datasetType.value)) return '';
   return t('access_short_' + accessKey.value, accessTitle.value);
 });
 
@@ -341,6 +358,73 @@ const citationCount = computed(() => {
 const citationsUrl = computed(() =>
   joinSiteUrl(siteUrl.value, `catalog/${props.row.id}/related_citations`)
 );
+
+/** Study types whose page has the data dictionary, get microdata and data API tabs. */
+const MICRODATA_TYPES = ['survey', 'microdata', 'geospatial'];
+
+/**
+ * Icon-only links at the end of the footer, always in this order: data dictionary, PDF, API, get microdata.
+ * has_data_api and pdf are added by the server (one query per page); the rest come from the row's own columns.
+ */
+const quickLinks = computed(() => {
+  const row = props.row;
+  const type = datasetType.value;
+  const studyUrl = (tab) => joinSiteUrl(siteUrl.value, `catalog/${row.id}/${tab}`);
+  const dataUnavailable = !row.form_model || row.form_model === 'data_na';
+  const links = [];
+
+  const varcount = Number(row.varcount) || 0;
+  if (MICRODATA_TYPES.includes(type) && varcount > 0) {
+    links.push({
+      key: 'dictionary',
+      icon: '$mdi-format-list-bulleted',
+      href: studyUrl('data-dictionary'),
+      label: type === 'geospatial'
+        ? t('card_link_feature_catalogue', 'Feature catalogue')
+        : t('card_link_data_dictionary', 'Data dictionary (%s variables)', varcount.toLocaleString()),
+    });
+  }
+
+  const pdf = row.pdf;
+  if (type === 'document' && pdf?.resource_id) {
+    const count = Number(pdf.count) || 1;
+    links.push({
+      key: 'pdf',
+      icon: '$mdi-file-pdf-box',
+      href: buildPdfViewerUrl(siteUrl.value, { sid: row.id, resourceId: pdf.resource_id }),
+      label: count > 1
+        ? t('card_link_pdf_n', 'Open PDF in viewer (%d PDFs)', count)
+        : t('card_link_pdf', 'Open PDF in viewer'),
+    });
+  }
+
+  if (MICRODATA_TYPES.includes(type) && Number(row.has_data_api) > 0) {
+    links.push({
+      key: 'api',
+      icon: '$mdi-api',
+      href: studyUrl('data-api'),
+      label: t('card_link_data_api', 'Data available via API'),
+    });
+  } else if (type === 'timeseries' && Number(row.ts_data_count) > 0 && row.form_model !== 'data_na') {
+    links.push({
+      key: 'api',
+      icon: '$mdi-api',
+      href: studyUrl('indicator-data-api'),
+      label: t('card_link_data_api', 'Data available via API'),
+    });
+  }
+
+  if ((type === 'survey' || type === 'microdata') && !dataUnavailable) {
+    links.push({
+      key: 'microdata',
+      icon: '$mdi-database-arrow-down',
+      href: studyUrl('get-microdata'),
+      label: t('card_link_get_microdata', 'Get microdata'),
+    });
+  }
+
+  return links;
+});
 
 // Keep the "+N more" suffix (added by Dataset_model::get_country_names_string) on the last name's line.
 const nationLabel = computed(() =>
@@ -743,9 +827,13 @@ function collectionUrl(repositoryid) {
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 16px;
-  margin-top: 4px;
+  /* Below the text and the thumbnail, so it is full width with or without one; lined up with the text
+     (type icon 32px + gap 12px) */
+  margin-top: 12px;
+  margin-inline-start: 44px;
   padding-top: 8px;
-  border-top: 1px solid var(--catalog-border-subtle, rgba(15, 23, 42, 0.11));
+  /* faint: separates the footer without drawing the eye (~0.07 alpha on the default) */
+  border-top: 1px solid color-mix(in srgb, var(--catalog-border-subtle, rgba(15, 23, 42, 0.11)) 64%, transparent);
   font-size: var(--catalog-font-small, 0.75rem);
   line-height: 1.5;
   color: var(--catalog-text-faint, rgba(26, 35, 50, 0.62));
@@ -778,6 +866,49 @@ function collectionUrl(repositoryid) {
 
 .study-card-footer__link:hover {
   text-decoration: underline;
+}
+
+/* Quick links: icon-only, pushed to the end of the footer */
+.study-card-links {
+  margin-inline-start: auto;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.study-card .study-card-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--catalog-border-subtle, rgba(15, 23, 42, 0.11));
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.02);
+  color: var(--catalog-text-secondary, rgba(26, 35, 50, 0.82));
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.study-card .study-card-link:hover {
+  border-color: rgba(21, 101, 192, 0.35);
+  background: rgba(21, 101, 192, 0.06);
+}
+
+.study-card .study-card-link:focus-visible {
+  outline: 2px solid var(--catalog-link, #1565c0);
+  outline-offset: 1px;
+}
+
+.study-card-link--dictionary :deep(.v-icon) { color: #1565c0; }
+.study-card-link--pdf :deep(.v-icon)        { color: #c62828; }
+.study-card-link--api :deep(.v-icon)        { color: #00695c; }
+.study-card-link--microdata :deep(.v-icon)  { color: #005a8c; }
+
+/* Larger tap targets on phones, where there is no hover tooltip */
+@media (max-width: 600px) {
+  .study-card .study-card-link {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .study-card-footer__idno .study-card-footer__value {

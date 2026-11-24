@@ -17,6 +17,9 @@ class Data_table_mongo_model extends CI_Model {
 
     private $db_name;
 
+    // lower-case missing-value codes, see missing_value_codes()
+    private $missing_value_codes_cache = null;
+
     public function __construct() 
     {
         parent::__construct();
@@ -180,6 +183,9 @@ class Data_table_mongo_model extends CI_Model {
                 }
             }
             throw new Exception("ERROR::". utf8_encode($e->getMessage()));
+        } finally {
+            // rows changed (also runs for each chunk of a CSV import)
+            $this->clear_table_api_cache($db_id, $table_id);
         }
     }
 
@@ -240,6 +246,10 @@ class Data_table_mongo_model extends CI_Model {
             'renameCollection'=> $db_name.'.'.$old_name,
             'to'=> $db_name.'.'.$new_name)
         );
+
+        $this->table_api_cache()->clear_collection($old_name);
+        $this->table_api_cache()->clear_collection($new_name);
+
         return $result->toArray()[0];
     }
 
@@ -264,6 +274,78 @@ class Data_table_mongo_model extends CI_Model {
     * Return the table definition
     *
     */
+   /**
+    * Columns offered as filters on the public Data API page (the API itself accepts any
+    * dictionary column).
+    *
+    * - no data dictionary: none
+    * - tables below tables_filter_index_min_rows rows (default 100,000): every dictionary column
+    * - larger tables: dictionary columns that are the first field of an index (a compound index
+    *   only helps its leading field). _id and text/geo indexes are not counted.
+    *
+    * @return array column names in dictionary order
+    */
+   function get_filterable_fields($db_id, $table_id, $field_metadata_map = null)
+   {
+       if ($field_metadata_map === null) {
+           $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
+       }
+       if (empty($field_metadata_map)) {
+           return array();
+       }
+       $dictionary_names = array_keys($field_metadata_map);
+
+       $min_rows = $this->config->item('tables_filter_index_min_rows');
+       $min_rows = ($min_rows === null || $min_rows === '') ? 100000 : (int) $min_rows;
+
+       $collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
+       if ((int) $collection->estimatedDocumentCount() < $min_rows) {
+           return $dictionary_names;
+       }
+
+       $leading = array();
+       foreach ($collection->listIndexes() as $index) {
+           $key = (array) $index->getKey();
+           $first_field = key($key);
+           $direction = reset($key);
+           if ($first_field === null || $first_field === '_id') {
+               continue;
+           }
+           // regular ascending/descending indexes only (not text, 2dsphere, hashed)
+           if (!is_numeric($direction)) {
+               continue;
+           }
+           $leading[strtolower($first_field)] = true;
+       }
+
+       $output = array();
+       foreach ($dictionary_names as $name) {
+           if (isset($leading[strtolower($name)])) {
+               $output[] = $name;
+           }
+       }
+       return $output;
+   }
+
+   /**
+    * Table exists when it has a definition (table_types) or a data collection.
+    * (A collection can exist without a definition, e.g. data loaded directly into MongoDB.)
+    */
+   function table_exists($db_id, $table_id)
+   {
+       $name = $this->get_table_name($db_id, $table_id);
+       $db = $this->mongo_client->{$this->get_db_name()};
+
+       if ($db->table_types->countDocuments(array('_id' => $name), array('limit' => 1)) > 0) {
+           return true;
+       }
+
+       foreach ($db->listCollectionNames(array('filter' => array('name' => $name))) as $found) {
+           return true;
+       }
+       return false;
+   }
+
    function get_table_type($db_id,$table_id)
    {
        $collection=$this->mongo_client->{$this->get_db_name()}->{'table_types'};
@@ -1169,63 +1251,33 @@ class Data_table_mongo_model extends CI_Model {
         //get table type info
         $this->table_type_obj= $this->get_table_type($db_id,$table_id);
 
-        $fields=$this->get_table_field_names($db_id,$table_id);
         $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
+        $feature_filters = $this->get_filters($db_id, $table_id, $options, $field_metadata_map);
 
-        $feature_filters=array();
-        $filter_options = $this->build_filter_options_from_request($options, $field_metadata_map);
-
-        $tmp_feature_filters=array();
-
-        foreach($filter_options as $feature_key=>$value){
-            $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value,$field_metadata_map);
-        }
-
-        if(isset($options['ft_query']) && !empty($options['ft_query'])){
-            $tmp_feature_filters['ft_query'][]['$text']=$this->text_search($options['ft_query']);
-        }
-        
-        $feature_filters=array();
-
-        if (!empty($tmp_feature_filters)){
-
-            $feature_filters=array(
-                '$and'=> array()
-            );
-
-            foreach($tmp_feature_filters as $feature_key=>$filter){
-                $feature_filters['$and'][]['$or']=$filter;
-            }
-        }
-        
-
-        /*
-        $feature_filters_example=array(
-
-            '$and'=> array(
-                array(
-                '$or'=> array(
-                    array( 
-                        'sex' => array( '$in' => array(1) ), 
-                        'age'=> array(
-                            '$gte' => 10,
-                            '$lte' => 15                    
-                        )
-                    ) 
-                )
-                )
-            )
-        );
-        */
-
-        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};        
+        $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
 
         if (!isset($options['fields'])){
             $options['fields']="";
         }
 
+        // fields=: unknown names are ignored (error only if none are valid)
+        $requested_fields = $this->resolve_requested_fields($options['fields'], $db_id, $table_id, $field_metadata_map);
+
+        // large requests (e.g. widgets with limit=10000) are served from the server cache
+        $cache_params = $this->table_api_cache_params($options, $limit, $offset);
+        $use_cache = !isset($options['debug'])
+            && !$this->is_table_import_in_progress()
+            && $limit >= $this->table_api_cache()->min_limit();
+
+        if ($use_cache) {
+            $cached = $this->table_api_cache()->get($db_id, $table_id, 'data', $cache_params);
+            if (is_array($cached)) {
+                return $cached;
+            }
+        }
+
         //which fields to display
-        $output_fields=$this->get_projection_fields($options['fields']);
+        $output_fields=$this->get_projection_fields(implode(',', $requested_fields['fields']));
 
         $cursor = $collection->find(
             $feature_filters,
@@ -1240,25 +1292,124 @@ class Data_table_mongo_model extends CI_Model {
 
         if (isset($options['debug'])){
             $output['options']=$options;
-            $output['features']=$features;        
             $output['feature_filters']=$feature_filters;
         }
+
+        // total from collection metadata (no scan); found only needs a count when filtered
+        $total = (int) $collection->estimatedDocumentCount();
 
         $output['rows_count']=0;
         $output['limit']=$limit;
         $output['offset']=$offset;
-        $output['found']=$collection->count($feature_filters);
-        $output['total']=$collection->count();        
+        $output['found']=empty($feature_filters)
+            ? $total
+            : $this->count_filtered_rows($db_id, $table_id, $collection, $feature_filters, !isset($options['debug']));
+        $output['total']=$total;
         $output['data']=array();
-        
+
         foreach ($cursor as $document) {
             //convert to array from mongodb object
             $output['data'][]= iterator_to_array($document);
         }
 
         $output['rows_count']=count($output['data']);
+
+        if (!empty($requested_fields['ignored'])) {
+            $output['ignored_fields'] = $requested_fields['ignored'];
+        }
+
+        if ($use_cache) {
+            $this->table_api_cache()->save($db_id, $table_id, 'data', $cache_params, $output);
+        }
+
         return $output;
-   } 
+   }
+
+
+   /**
+    * Server-side cache for the tables API (see libraries/Table_api_cache.php).
+    *
+    * @return Table_api_cache
+    */
+   private function table_api_cache()
+   {
+       $this->load->library('Table_api_cache');
+       return $this->table_api_cache;
+   }
+
+   /**
+    * Clear all cached API responses, filtered counts and bulk export files for a table.
+    * Called whenever the table's data or dictionary changes.
+    */
+   public function clear_table_api_cache($db_id, $table_id)
+   {
+       $deleted = 0;
+       try {
+           $deleted = $this->table_api_cache()->clear($db_id, $table_id);
+       } catch (Exception $e) {
+           log_message('error', 'clear_table_api_cache: ' . $e->getMessage());
+       }
+
+       // bulk export files (export_data) for this table
+       $prefix = 'datafiles/tmp/' . strtolower($db_id) . '_' . strtolower($table_id) . '_';
+       foreach (array('json', 'csv') as $ext) {
+           foreach (glob($prefix . '*.' . $ext) ?: array() as $file) {
+               if (@unlink($file)) {
+                   $deleted++;
+               }
+           }
+       }
+
+       return $deleted;
+   }
+
+   /**
+    * Request params that identify a cached response (output format is not part of the key).
+    */
+   private function table_api_cache_params($options, $limit, $offset)
+   {
+       unset($options['format'], $options['disposition'], $options['debug']);
+       $options['limit'] = (int) $limit;
+       $options['offset'] = (int) $offset;
+       return $options;
+   }
+
+   /**
+    * True while a chunked CSV import is running, or when the last import failed:
+    * the table may hold partial data, which must not be cached.
+    * Uses the table definition loaded into $this->table_type_obj.
+    */
+   private function is_table_import_in_progress()
+   {
+       $progress = isset($this->table_type_obj['import_progress']) ? $this->table_type_obj['import_progress'] : null;
+       return is_array($progress)
+           && isset($progress['import_status'])
+           && in_array($progress['import_status'], array('in_progress', 'failed'), true);
+   }
+
+   /**
+    * Count rows matching a filter; the count is cached per filter so paging
+    * through a filtered result counts only once.
+    */
+   private function count_filtered_rows($db_id, $table_id, $collection, $feature_filters, $allow_cache = true)
+   {
+       $allow_cache = $allow_cache && !$this->is_table_import_in_progress();
+
+       if ($allow_cache) {
+           $cached = $this->table_api_cache()->get($db_id, $table_id, 'count', $feature_filters);
+           if (is_int($cached)) {
+               return $cached;
+           }
+       }
+
+       $count = (int) $collection->countDocuments($feature_filters);
+
+       if ($allow_cache) {
+           $this->table_api_cache()->save($db_id, $table_id, 'count', $feature_filters, $count);
+       }
+
+       return $count;
+   }
 
 
    /**
@@ -1273,7 +1424,8 @@ class Data_table_mongo_model extends CI_Model {
     {
         $table_id = strtolower($table_id);
     
-        $output_file_name = $db_id . '_' . $table_id . '_' . base64_encode(json_encode($options)) . '.' . $output_format;
+        // hash the options: base64 can contain '/' and long option sets exceed filename limits
+        $output_file_name = strtolower($db_id) . '_' . $table_id . '_' . md5(json_encode($options)) . '.' . $output_format;
         $output_file_name = 'datafiles/tmp/' . $output_file_name;
         $download_file_name = $db_id . '_' . $table_id . '_' . date('Y-m-d') . '.' . $output_format;
     
@@ -1288,31 +1440,8 @@ class Data_table_mongo_model extends CI_Model {
         }
     
         $this->table_type_obj = $this->get_table_type($db_id, $table_id);    
-        $fields = $this->get_table_field_names($db_id, $table_id);
         $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
-    
-        $feature_filters = array();
-        $filter_options = $this->build_filter_options_from_request($options, $field_metadata_map);
-
-        $tmp_feature_filters = array();
-
-        foreach ($filter_options as $feature_key => $value) {
-            $tmp_feature_filters[$feature_key] = $this->apply_feature_filter($feature_key, $value, $field_metadata_map);
-        }
-
-        if (isset($options['ft_query']) && !empty($options['ft_query'])) {
-            $tmp_feature_filters['ft_query'][]['$text'] = $this->text_search($options['ft_query']);
-        }
-
-        $feature_filters = array();
-
-        if (!empty($tmp_feature_filters)) {
-            $feature_filters = array('$and' => array());
-
-            foreach ($tmp_feature_filters as $feature_key => $filter) {
-                $feature_filters['$and'][]['$or'] = $filter;
-            }
-        }
+        $feature_filters = $this->get_filters($db_id, $table_id, $options, $field_metadata_map);
 
         $collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
     
@@ -1320,8 +1449,9 @@ class Data_table_mongo_model extends CI_Model {
             $options['fields'] = "";
         }
     
-        // Which fields to display
-        $output_fields = $this->get_projection_fields($options['fields']);
+        // Which fields to display (unknown names ignored)
+        $requested_fields = $this->resolve_requested_fields($options['fields'], $db_id, $table_id, $field_metadata_map);
+        $output_fields = $this->get_projection_fields(implode(',', $requested_fields['fields']));
     
         $cursor = $collection->find(
             $feature_filters,
@@ -1331,8 +1461,6 @@ class Data_table_mongo_model extends CI_Model {
         );
 
         $file_handle = fopen($output_file_name, 'w');
-
-        $rows_found= $collection->count($feature_filters);
 
         if ($output_format === 'json') {
             // Start JSON array for output
@@ -1436,7 +1564,7 @@ class Data_table_mongo_model extends CI_Model {
 
         // Set headers for download
         header('Content-Description: File Transfer');
-        header('Content-Type: application/' . $output_format);
+        header('Content-Type: ' . ($output_format === 'csv' ? 'text/csv; charset=utf-8' : 'application/' . $output_format));
         header('Content-Disposition: attachment; filename=' . $download_file_name);
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
@@ -1447,6 +1575,89 @@ class Data_table_mongo_model extends CI_Model {
         exit;
     }
    
+
+   /**
+    * Resolve a fields= value (comma-separated) against the table's columns.
+    *
+    * Matching is case-insensitive and returns the dictionary spelling. Unknown names are
+    * ignored and reported; only when none of the requested names are valid is it an error
+    * (an empty list would otherwise mean "all columns").
+    *
+    * @return array{fields: string[], ignored: string[]} fields is empty when nothing was requested
+    */
+   private function resolve_requested_fields($fields_param, $db_id, $table_id, $field_metadata_map = null)
+   {
+       if (is_array($fields_param)) {
+           $fields_param = implode(',', $fields_param);
+       }
+       $requested = array_values(array_filter(array_map('trim', explode(',', (string) $fields_param)), 'strlen'));
+       if (empty($requested)) {
+           return array('fields' => array(), 'ignored' => array());
+       }
+
+       if ($field_metadata_map === null) {
+           $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
+       }
+       $known = array_keys($field_metadata_map);
+       if (empty($known)) {
+           // no data dictionary: fall back to the columns of a stored row
+           $known = array_values(array_diff(array_values($this->get_table_field_names($db_id, $table_id)), array('_id')));
+       }
+
+       $lookup = array();
+       foreach ($known as $name) {
+           $lookup[strtolower($name)] = $name;
+       }
+
+       $fields = array();
+       $ignored = array();
+       foreach ($requested as $name) {
+           $key = strtolower($name);
+           if (isset($lookup[$key])) {
+               $fields[$lookup[$key]] = $lookup[$key];
+           } else {
+               $ignored[$name] = $name;
+           }
+       }
+
+       if (empty($fields)) {
+           throw new Exception("No valid fields in 'fields'. Unknown: " . implode(', ', $ignored));
+       }
+
+       return array('fields' => array_values($fields), 'ignored' => array_values($ignored));
+   }
+
+   /**
+    * CSV header columns for a data or aggregate response, independent of the rows returned
+    * (so an empty result still has a header, and every row is written in the same order).
+    *
+    * data:      requested fields (fields=), else all dictionary fields in dictionary order
+    * aggregate: requested group fields + count
+    */
+   function get_csv_columns($db_id, $table_id, $options, $type = 'data')
+   {
+       $db_id = strtolower($db_id);
+       $table_id = strtolower($table_id);
+       $fields_param = isset($options['fields']) ? $options['fields'] : '';
+
+       $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
+       try {
+           $requested = $this->resolve_requested_fields($fields_param, $db_id, $table_id, $field_metadata_map);
+           $columns = $requested['fields'];
+       } catch (Exception $e) {
+           $columns = array();
+       }
+
+       if ($type === 'aggregate') {
+           $columns[] = 'count';
+           return $columns;
+       }
+
+       if (empty($columns)) {
+           $columns = array_keys($field_metadata_map);
+       }
+       return $columns;
+   }
 
    function get_projection_fields($fields)
    {
@@ -1493,37 +1704,24 @@ class Data_table_mongo_model extends CI_Model {
                 continue;
             }
 			
-			//gte or lte 
-			if (substr($val,0,1)=='>' && is_numeric(substr($val,1))){
+            // >5 / >=5 / <5 / <=5 (also HTML-encoded &gt; / &lt;, as the input filter may encode them).
+            // > and < include the boundary (same as >= and <=), kept for backward compatibility.
+            if (preg_match('/^\s*(>|<|&gt;|&lt;)=?\s*(.+?)\s*$/', $val, $cmp) && is_numeric($cmp[2])) {
                 $output[]=array(
-                    'type'=>'gte',
-                    'value'=>substr($val,1)
+                    'type'=>($cmp[1]=='>' || $cmp[1]=='&gt;') ? 'gte' : 'lte',
+                    'value'=>$cmp[2]
                 );
                 continue;
             }
-			
-			if (substr($val,0,1)=='<' && is_numeric(substr($val,1))){
-                $output[]=array(
-                    'type'=>'lte',
-                    'value'=>substr($val,1)
-                );
-                continue;
-            }
-            if (substr($val,0,4)=='&lt;' && is_numeric(substr($val,4))){
-                $output[]=array(
-                    'type'=>'lte',
-                    'value'=>substr($val,4)
-                );
-                continue;
-            }
-            
-            $range=explode("-",$val);
 
-            if(count($range)==2){
+            // a range only when both ends are numbers (negatives and decimals allowed): 1-5, 0.2-0.3, -3.5--1
+            // anything else with a hyphen (2020-01, Abu-Dhabi, -5) is an exact value
+            if (preg_match('/^\s*(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)\s*$/', $val, $range)) {
                 $output[]=array(
                     'type'=>'range',
-                    'start'=>$range[0],
-                    'end'=>$range[1]
+                    'start'=>$range[1],
+                    'end'=>$range[2],
+                    'raw'=>$val
                 );
             }else{
                 $output[]=array(
@@ -1552,12 +1750,26 @@ class Data_table_mongo_model extends CI_Model {
    }
 
 
+   /**
+    * Filter value for a numeric column: keeps decimals, whole numbers as int.
+    * MongoDB compares int and double values numerically, so this matches both.
+    */
+   private function filter_number($value)
+   {
+        $number = (float) $value;
+        if ($number == floor($number) && abs($number) < PHP_INT_MAX) {
+            return (int) $number;
+        }
+        return $number;
+   }
+
    function apply_feature_filter($feature_name,$value,$field_metadata_map=null)
    {
         $parsed_val=$this->parse_filter_value($value);
 
         $output=array();
         $values=array();
+        $values_nin=array();
 
         $field_type = null;
         if ($field_metadata_map && isset($field_metadata_map[$feature_name])) {
@@ -1572,67 +1784,47 @@ class Data_table_mongo_model extends CI_Model {
             }
         }
 
+        $is_numeric_field = ($field_type === 'int' || $field_type === 'float');
+
         foreach($parsed_val as $val){
-            if($val['type']=='range')
+            // on non-numeric columns "2007-01" or "10-20" is a code/text value, not a range
+            if ($val['type']=='range' && !$is_numeric_field) {
+                $val = array('type'=>'value', 'value'=>$val['raw']);
+            }
+
+            if($val['type']=='range' || $val['type']=='gte' || $val['type']=='lte')
             {
-                $start=(int)$val['start'];
-                $end=(int)$val['end'];
-            
-                $output[][$feature_name]= array(
-                        '$gte' => $start,
-                        '$lte' => $end
-                );
+                // comparisons only make sense on numeric columns; on text they silently
+                // matched nothing (ranges) or compared alphabetically (> / <)
+                if (!$is_numeric_field) {
+                    throw new Exception(
+                        "Filters with > or < need a numeric data type (integer or float) on field '" . $feature_name . "'"
+                    );
+                }
+
+                if ($val['type']=='range') {
+                    $output[][$feature_name]= array(
+                        '$gte' => $this->filter_number($val['start']),
+                        '$lte' => $this->filter_number($val['end'])
+                    );
+                } elseif ($val['type']=='gte') {
+                    $output[][$feature_name]= array('$gte' => $this->filter_number($val['value']));
+                } else {
+                    $output[][$feature_name]= array('$lte' => $this->filter_number($val['value']));
+                }
             }else if($val['type']=='value'){
                 $val_value = $val['value'];
                 if (is_numeric($val_value)) {
                     if ($field_type === 'string') {
                         $values[] = (string)$val_value;
-                    } elseif ($field_type === 'int') {
-                        $values[] = (int)$val_value;
-                    } elseif ($field_type === 'float') {
-                        $values[] = (float)$val_value;
+                    } elseif ($is_numeric_field) {
+                        $values[] = $this->filter_number($val_value);
                     } else {
                         $values[] = (int)$val_value;
                     }
                 } else {
                     $values[] = $val_value;
                 }
-            }
-			else if($val['type']=='gte'){
-                $val_value = $val['value'];
-                $gte_value = $val_value;
-                if (is_numeric($val_value)) {
-                    if ($field_type === 'string') {
-                        $gte_value = (string)$val_value;
-                    } elseif ($field_type === 'int') {
-                        $gte_value = (int)$val_value;
-                    } elseif ($field_type === 'float') {
-                        $gte_value = (float)$val_value;
-                    } else {
-                        $gte_value = (int)$val_value;
-                    }
-                }
-				$output[][$feature_name]= array(
-                        '$gte' => $gte_value                        
-                );
-            }
-			else if($val['type']=='lte'){
-                $val_value = $val['value'];
-                $lte_value = $val_value;
-                if (is_numeric($val_value)) {
-                    if ($field_type === 'string') {
-                        $lte_value = (string)$val_value;
-                    } elseif ($field_type === 'int') {
-                        $lte_value = (int)$val_value;
-                    } elseif ($field_type === 'float') {
-                        $lte_value = (float)$val_value;
-                    } else {
-                        $lte_value = (int)$val_value;
-                    }
-                }
-				$output[][$feature_name]= array(
-                        '$lte' => $lte_value                        
-                );
             }
         }
 
@@ -1648,10 +1840,8 @@ class Data_table_mongo_model extends CI_Model {
                     if (is_numeric($nin_)) {
                         if ($field_type === 'string') {
                             $nin_ = (string)$nin_;
-                        } elseif ($field_type === 'int') {
-                            $nin_ = (int)$nin_;
-                        } elseif ($field_type === 'float') {
-                            $nin_ = (float)$nin_;
+                        } elseif ($is_numeric_field) {
+                            $nin_ = $this->filter_number($nin_);
                         } else {
                             $nin_ = $nin_ + 0;
                         }
@@ -1670,27 +1860,26 @@ class Data_table_mongo_model extends CI_Model {
                         '$in'=>$values_in
                 );
             }
-            if (count($values_nin)>0){
-                $output[][$feature_name]= 
-                    array(
-                        '$nin'=>$values_nin
-                );
-            }
         }
 
-        return $output;
+        // One condition for the field: (any included value / range / comparison) AND (none of the
+        // exclusions). Returned as a list (empty when nothing to filter); get_filters() AND's them.
+        // Before, exclusions were OR'ed with the included values: uid=5,7,!7 returned every row.
+        $exclude = !empty($values_nin) ? array($feature_name => array('$nin' => $values_nin)) : null;
 
-        
-        if (count($output)==1){
-            return $output[0];
+        if (empty($output)) {
+            return $exclude ? array($exclude) : array();
         }
-        else if (count($output)>1){
-            return $output;
-            return array(
-                '$and' => 
-                    array('$or'=>$output)
-            );
+
+        $include = (count($output) == 1) ? $output[0] : array('$or' => $output);
+
+        if (!$exclude) {
+            return array($include);
         }
+
+        return array(
+            array('$and' => array($include, $exclude))
+        );
    }
 
     
@@ -2004,10 +2193,14 @@ class Data_table_mongo_model extends CI_Model {
         }
 
         if (!empty($unknown_fields)) {
+            // filters need the data dictionary (types decide how values are matched)
+            if (empty($field_metadata_map)) {
+                throw new Exception('Filtering needs a data dictionary for this table');
+            }
             $unknown_fields = array_values(array_unique($unknown_fields));
             sort($unknown_fields);
             throw new Exception(
-                'UNKNOWN_FILTER_FIELD: ' . implode(', ', $unknown_fields)
+                'Unknown column in filter: ' . implode(', ', $unknown_fields)
             );
         }
 
@@ -2024,6 +2217,7 @@ class Data_table_mongo_model extends CI_Model {
 
         $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};
         $result = $collection->drop();
+        $this->clear_table_api_cache($db_id, $table_id);
         return $result;
     }
 
@@ -2036,6 +2230,7 @@ class Data_table_mongo_model extends CI_Model {
         // Delete table definition from table_types
         $collection = $this->mongo_client->{$this->get_db_name()}->{'table_types'};
         $result = $collection->deleteOne(['_id' => $this->get_table_name($db_id, $table_id)]);
+        $this->clear_table_api_cache($db_id, $table_id);
         return $result->getDeletedCount();
     }
 
@@ -2076,6 +2271,13 @@ class Data_table_mongo_model extends CI_Model {
        $batch_failed = 0;
        $batch_warned = 0;
        $batch_read = 0;
+
+       // fail fast: stop the import once this many rows were rejected (0 = no limit)
+       $max_invalid_rows = $this->import_max_invalid_rows();
+       $limit_reached = false;
+       $invalid_columns = $this->invalid_columns_to_map(
+           isset($resume['invalid_columns']) ? $resume['invalid_columns'] : array()
+       );
 
        set_time_limit(0);
 
@@ -2197,9 +2399,15 @@ class Data_table_mongo_model extends CI_Model {
                    $table_id,
                    $csv_row_num
                ));
+               if ($max_invalid_rows > 0 && $rows_failed >= $max_invalid_rows) {
+                   $limit_reached = true;
+                   break;
+               }
                continue;
            }
 
+           $column = null;
+           $data_type = 'string';
            try {
                foreach ($row as $column => $cell) {
                    $data_type = isset($import_type_map[$column])
@@ -2210,6 +2418,7 @@ class Data_table_mongo_model extends CI_Model {
            } catch (Exception $e) {
                $rows_failed++;
                $batch_failed++;
+               $this->record_invalid_column_value($invalid_columns, $column, $data_type, isset($cell) ? $cell : '');
                $this->append_import_error($db_id, $table_id, array(
                    'csv_row' => $csv_row_num,
                    'byte_offset' => $record_start,
@@ -2224,6 +2433,10 @@ class Data_table_mongo_model extends CI_Model {
                    $csv_row_num,
                    $e->getMessage()
                ));
+               if ($max_invalid_rows > 0 && $rows_failed >= $max_invalid_rows) {
+                   $limit_reached = true;
+                   break;
+               }
                continue;
            }
            $chunked_rows[] = $row;
@@ -2243,19 +2456,42 @@ class Data_table_mongo_model extends CI_Model {
                    'rows_failed' => $rows_failed,
                    'rows_warned' => $rows_warned,
                    'last_csv_row' => $csv_row_num,
-                   'file_size' => $file_size
+                   'file_size' => $file_size,
+                   'invalid_columns' => array_values($invalid_columns)
                ));
+               // rows MongoDB refused to insert also count toward the limit
+               if ($max_invalid_rows > 0 && $rows_failed >= $max_invalid_rows) {
+                   $limit_reached = true;
+                   break;
+               }
            }
        }
 
+       // insert valid rows read before stopping; nothing is removed when the limit is reached
        $this->flush_import_chunk($db_id, $table_id, $chunked_rows, $chunked_meta, $rows_inserted, $rows_failed, $batch_inserted, $batch_failed);
+       if ($max_invalid_rows > 0 && $rows_failed >= $max_invalid_rows) {
+           $limit_reached = true;
+       }
 
        $next_byte_offset = $timed_out ? $record_start : ftell($handle);
        if (!$timed_out && ($next_byte_offset >= $file_size || feof($handle))) {
            $has_more = false;
        }
+       if ($limit_reached) {
+           $has_more = false;
+       }
        } finally {
            fclose($handle);
+       }
+
+       if ($limit_reached) {
+           $this->append_import_error($db_id, $table_id, array(
+               'csv_row' => $csv_row_num,
+               'byte_offset' => $next_byte_offset,
+               'reason' => 'import_stopped',
+               'detail' => $this->import_invalid_rows_message($rows_failed, $max_invalid_rows, array_values($invalid_columns)),
+               'preview' => ''
+           ));
        }
 
        $this->persist_import_chunk_progress($db_id, $table_id, array(
@@ -2266,7 +2502,8 @@ class Data_table_mongo_model extends CI_Model {
            'rows_failed' => $rows_failed,
            'rows_warned' => $rows_warned,
            'last_csv_row' => $csv_row_num,
-           'file_size' => $file_size
+           'file_size' => $file_size,
+           'invalid_columns' => array_values($invalid_columns)
        ));
 
        $execution_time = microtime(true) - $start_time;
@@ -2290,8 +2527,108 @@ class Data_table_mongo_model extends CI_Model {
            'progress_percent' => round(($next_byte_offset / $denom) * 100, 2),
            'has_more' => $has_more,
            'execution_time_seconds' => round($execution_time, 2),
-           'execution_time_formatted' => $this->format_execution_time($execution_time)
+           'execution_time_formatted' => $this->format_execution_time($execution_time),
+           'limit_reached' => $limit_reached,
+           'max_invalid_rows' => $max_invalid_rows,
+           'invalid_columns' => array_values($invalid_columns)
        );
+   }
+
+   /**
+    * Max rejected rows before a CSV import fails (config tables_import_max_invalid_rows; 0 = no limit).
+    */
+   private function import_max_invalid_rows()
+   {
+       $limit = $this->config->item('tables_import_max_invalid_rows');
+       if ($limit === null || $limit === '' || !is_numeric($limit)) {
+           return 50;
+       }
+       return max(0, (int) $limit);
+   }
+
+   /**
+    * Stored list [{column, data_type, count, examples}] → map keyed by column.
+    * (Stored as a list: column names may contain characters MongoDB keys can't.)
+    */
+   private function invalid_columns_to_map($list)
+   {
+       $map = array();
+       foreach ((array) $list as $entry) {
+           $entry = $this->mongo_document_to_array($entry);
+           if (!is_array($entry) || !isset($entry['column'])) {
+               continue;
+           }
+           $entry['examples'] = isset($entry['examples']) ? array_values((array) $this->mongo_document_to_array($entry['examples'])) : array();
+           $entry['count'] = isset($entry['count']) ? (int) $entry['count'] : 0;
+           $map[(string) $entry['column']] = $entry;
+       }
+       return $map;
+   }
+
+   /**
+    * Count an invalid value for a column and keep up to 3 distinct examples.
+    */
+   private function record_invalid_column_value(array &$invalid_columns, $column, $data_type, $value)
+   {
+       if ($column === null) {
+           return;
+       }
+       $column = (string) $column;
+       if (!isset($invalid_columns[$column])) {
+           $invalid_columns[$column] = array(
+               'column' => $column,
+               'data_type' => $this->normalize_field_data_type($data_type),
+               'count' => 0,
+               'examples' => array()
+           );
+       }
+       $invalid_columns[$column]['count']++;
+
+       $example = mb_substr(trim((string) $value), 0, 50);
+       if (count($invalid_columns[$column]['examples']) < 3 && !in_array($example, $invalid_columns[$column]['examples'], true)) {
+           $invalid_columns[$column]['examples'][] = $example;
+       }
+   }
+
+   /**
+    * Message stored on the table when an import fails at the invalid-rows limit.
+    */
+   private function import_invalid_rows_message($rows_failed, $max_invalid_rows, array $invalid_columns)
+   {
+       $message = sprintf(
+           'Import failed: %d rows had invalid values (limit %d). Rows imported before the failure remain in the table. '
+           . 'Fix the data type in the data dictionary or the CSV file, then reload the import.',
+           $rows_failed,
+           $max_invalid_rows
+       );
+
+       usort($invalid_columns, function ($a, $b) {
+           return $b['count'] - $a['count'];
+       });
+
+       $parts = array();
+       $by_column = 0;
+       foreach ($invalid_columns as $entry) {
+           $by_column += (int) $entry['count'];
+           $examples = array_map(function ($v) {
+               return '"' . $v . '"';
+           }, $entry['examples']);
+           $parts[] = sprintf(
+               '%s (%s): %d rows%s',
+               $entry['column'],
+               $entry['data_type'],
+               $entry['count'],
+               $examples ? ', e.g. ' . implode(', ', $examples) : ''
+           );
+       }
+       if ($rows_failed > $by_column) {
+           $parts[] = sprintf('%d rows malformed or rejected by the database', $rows_failed - $by_column);
+       }
+       if ($parts) {
+           $message .= ' ' . implode('; ', $parts) . '.';
+       }
+
+       return $message;
    }
 
 /**
@@ -2383,7 +2720,7 @@ function format_execution_time($seconds)
 		$offset = isset($stats['byte_offset_end']) ? (int) $stats['byte_offset_end'] : 0;
 		$denom = $file_size > 0 ? $file_size : 1;
 
-		$this->update_import_progress($db_id, $table_id, array(
+		$progress = array(
 			'byte_offset_end' => $offset,
 			'total_rows_processed' => (int) $stats['rows_inserted'],
 			'csv_records_read' => (int) $stats['csv_records_read'],
@@ -2395,7 +2732,11 @@ function format_execution_time($seconds)
 			'progress_percent' => round(($offset / $denom) * 100, 2),
 			'import_status' => 'in_progress',
 			'errors_file' => $this->get_import_errors_relative_path($db_id, $table_id)
-		));
+		);
+		if (isset($stats['invalid_columns'])) {
+			$progress['invalid_columns'] = $stats['invalid_columns'];
+		}
+		$this->update_import_progress($db_id, $table_id, $progress);
 	}
 
 	public function get_import_errors_relative_path($db_id, $table_id)
@@ -2465,7 +2806,11 @@ function format_execution_time($seconds)
 			'last_import_at' => null,
 			'progress_percent' => 0,
 			'errors_file' => null,
-			'balanced' => true
+			'balanced' => true,
+			// set when an import fails (e.g. too_many_invalid_rows); reset on each new import
+			'failure_reason' => null,
+			'failure_message' => null,
+			'invalid_columns' => array()
 		), $overrides);
 	}
 
@@ -2512,7 +2857,13 @@ function format_execution_time($seconds)
 			'has_more' => $has_more,
 			'errors_file' => isset($import_progress['errors_file']) ? $import_progress['errors_file'] : $this->get_import_errors_relative_path($db_id, $table_id),
 			'errors_count' => $failed + $blank + $warned,
-			'errors_download_url' => $this->import_errors_download_url($db_id, $table_id)
+			'errors_download_url' => $this->import_errors_download_url($db_id, $table_id),
+			'failure_reason' => isset($import_progress['failure_reason']) ? $import_progress['failure_reason'] : null,
+			'failure_message' => isset($import_progress['failure_message']) ? $import_progress['failure_message'] : null,
+			'max_invalid_rows' => isset($import_progress['max_invalid_rows']) ? (int) $import_progress['max_invalid_rows'] : $this->import_max_invalid_rows(),
+			'invalid_columns' => isset($import_progress['invalid_columns'])
+				? array_values($this->invalid_columns_to_map($import_progress['invalid_columns']))
+				: array()
 		);
 	}
 
@@ -2533,39 +2884,17 @@ function format_execution_time($seconds)
             throw new Exception("fields parameter is required");
         }
 
-        $group_fields=explode(",",$options['fields']);
-
         //get table type info
         $this->table_type_obj= $this->get_table_type($db_id,$table_id);
 
-        //get table fields list
-        $fields=$this->get_table_field_names($db_id,$table_id);
+        $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
 
-        if (!empty($fields) && isset($fields['_id'])){
-            unset($fields['_id']);
-        }
-
-        $group_fields=array_intersect($group_fields,$fields);
-
-        if (empty($group_fields)){
-            throw new Exception("No valid field values provided. Valid values are: ". implode(", ",$fields));
-        }
+        // group fields: unknown names are ignored (error only if none are valid)
+        $requested_fields = $this->resolve_requested_fields($options['fields'], $db_id, $table_id, $field_metadata_map);
+        $group_fields = $requested_fields['fields'];
 
         $collection=$this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id,$table_id)};        
 
-        /*
-        $cond = array(
-            //array('$match' => array('page_id' =>123456)),
-            array(
-                '$group' => array(
-                    '_id' => array("ctry_code" => '$ctry_code', 'country'=>'$ctry_name'),
-                'total' => array('$sum' => '$ctry_code'),
-                //'count' => "total_count"
-                'count' => array('$sum' => 1),
-                )
-            ),
-        );
-        */
 
         $groups_arr=array();
         foreach($group_fields as $f){
@@ -2580,14 +2909,26 @@ function format_execution_time($seconds)
             array('$limit'=>$limit)
         );
 
-        $filters=$this->get_filters($db_id,$table_id,$options);
+        $filters=$this->get_filters($db_id,$table_id,$options,$field_metadata_map);
 
         if ($filters){
             //must be added at the beginning of the conditions to work
             array_unshift($cond,array('$match'=>$filters));
         }
 
-        $cursor = $collection->aggregate($cond);
+        // aggregates group the whole table: always served from the server cache when available
+        $cache_params = $this->table_api_cache_params($options, $limit, $offset);
+        $use_cache = !isset($options['debug']) && !$this->is_table_import_in_progress();
+
+        if ($use_cache) {
+            $cached = $this->table_api_cache()->get($db_id, $table_id, 'aggregate', $cache_params);
+            if (is_array($cached)) {
+                return $cached;
+            }
+        }
+
+        // allowDiskUse: large $group stages can exceed MongoDB's 100MB in-memory limit
+        $cursor = $collection->aggregate($cond, array('allowDiskUse' => true));
 
         $output['rows']=0;
         $output['limit']=$limit;
@@ -2611,41 +2952,107 @@ function format_execution_time($seconds)
         }
 
         $output['rows']=$k;
-        return $output;
-   } 
 
-
-   function get_filters($db_id, $table_id,$options)
-   {
-        $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
-
-        $feature_filters=array();
-        $filter_options = $this->build_filter_options_from_request($options, $field_metadata_map);
-
-        $tmp_feature_filters=array();
-
-        foreach($filter_options as $feature_key=>$value){
-            $tmp_feature_filters[$feature_key]=$this->apply_feature_filter($feature_key,$value,$field_metadata_map);
+        if (!empty($requested_fields['ignored'])) {
+            $output['ignored_fields'] = $requested_fields['ignored'];
         }
 
-        if(isset($options['ft_query']) && !empty($options['ft_query'])){
-            $tmp_feature_filters['ft_query'][]['$text']=$this->text_search($options['ft_query']);
-        }
-        
-        $feature_filters=array();
-
-        if (!empty($tmp_feature_filters)){
-
-            $feature_filters=array(
-                '$and'=> array()
+        // total number of groups, so clients can page through grouped results
+        if ($offset === 0 && $k < $limit) {
+            // the first page already holds every group: no extra query
+            $output['found'] = $k;
+        } else {
+            $output['found'] = $this->count_aggregate_groups(
+                $db_id, $table_id, $collection, $filters, $groups_arr, $use_cache
             );
+        }
 
-            foreach($tmp_feature_filters as $feature_key=>$filter){
-                $feature_filters['$and'][]['$or']=$filter;
+        if ($use_cache) {
+            $this->table_api_cache()->save($db_id, $table_id, 'aggregate', $cache_params, $output);
+        }
+
+        return $output;
+   }
+
+
+   /**
+    * Number of groups an aggregate returns for the given filters and group fields.
+    * Cached per filter + group fields, so paging through the groups counts only once.
+    */
+   private function count_aggregate_groups($db_id, $table_id, $collection, $filters, $groups_arr, $allow_cache = true)
+   {
+       $cache_params = array('filters' => $filters, 'group' => array_keys($groups_arr));
+
+       if ($allow_cache) {
+           $cached = $this->table_api_cache()->get($db_id, $table_id, 'aggcount', $cache_params);
+           if (is_int($cached)) {
+               return $cached;
+           }
+       }
+
+       $pipeline = array();
+       if ($filters) {
+           $pipeline[] = array('$match' => $filters);
+       }
+       $pipeline[] = array('$group' => array('_id' => $groups_arr));
+       $pipeline[] = array('$count' => 'found');
+
+       $count = 0;
+       foreach ($collection->aggregate($pipeline, array('allowDiskUse' => true)) as $document) {
+           $count = (int) $document['found'];
+       }
+
+       if ($allow_cache) {
+           $this->table_api_cache()->save($db_id, $table_id, 'aggcount', $cache_params, $count);
+       }
+
+       return $count;
+   }
+
+
+   private function has_text_index($db_id, $table_id)
+   {
+       $collection = $this->mongo_client->{$this->get_db_name()}->{$this->get_table_name($db_id, $table_id)};
+       foreach ($collection->listIndexes() as $index) {
+           if (in_array('text', array_values((array) $index->getKey()), true)) {
+               return true;
+           }
+       }
+       return false;
+   }
+
+   /**
+    * MongoDB filter for a data / aggregate / export request (used by all three).
+    *
+    * {$and: [condition per filtered field, {$text: ...}]}, or an empty array when nothing is filtered.
+    * Each field's condition comes from apply_feature_filter (included values/ranges AND NOT exclusions).
+    *
+    * @param array|null $field_metadata_map pass it when the caller has already loaded it
+    */
+   function get_filters($db_id, $table_id, $options, $field_metadata_map = null)
+   {
+        if ($field_metadata_map === null) {
+            $field_metadata_map = $this->get_field_metadata_map($db_id, $table_id);
+        }
+
+        $conditions = array();
+
+        $filter_options = $this->build_filter_options_from_request($options, $field_metadata_map);
+        foreach ($filter_options as $feature_key => $value) {
+            foreach ($this->apply_feature_filter($feature_key, $value, $field_metadata_map) as $condition) {
+                $conditions[] = $condition;
             }
         }
 
-        return $feature_filters;
+        if (isset($options['ft_query']) && !empty($options['ft_query'])) {
+            // MongoDB's own error ("text index required for $text query") is not returned to clients
+            if (!$this->has_text_index($db_id, $table_id)) {
+                throw new Exception("Full-text search (ft_query) is not available for this table");
+            }
+            $conditions[] = array('$text' => $this->text_search($options['ft_query']));
+        }
+
+        return empty($conditions) ? array() : array('$and' => $conditions);
    }
 	
    /**
@@ -2755,7 +3162,10 @@ function format_execution_time($seconds)
            ],
            ['upsert' => true]
        );
-       
+
+       // dictionary drives filter typing and allowed fields
+       $this->clear_table_api_cache($db_id, $table_id);
+
        return $result->getUpsertedCount() > 0 ? 1 : $result->getModifiedCount();
    }
 
@@ -2794,7 +3204,9 @@ function format_execution_time($seconds)
                '$unset' => array('format' => ''),
            ]
        );
-       
+
+       $this->clear_table_api_cache($db_id, $table_id);
+
        return $result->getModifiedCount();
    }
 
@@ -2812,7 +3224,9 @@ function format_execution_time($seconds)
        
        $field_id = $this->get_field_dictionary_id($db_id, $table_id, $field_name);
        $result = $collection->deleteOne(['_id' => $field_id]);
-       
+
+       $this->clear_table_api_cache($db_id, $table_id);
+
        return $result->getDeletedCount();
    }
 
@@ -2844,7 +3258,9 @@ function format_execution_time($seconds)
            'db_id' => strtolower($db_id),
            'table_id' => strtolower($table_id)
        ]);
-       
+
+       $this->clear_table_api_cache($db_id, $table_id);
+
        return $result->getDeletedCount();
    }
 	
@@ -2981,7 +3397,9 @@ function format_execution_time($seconds)
 				}
 			}
 		}
-		
+
+		$this->clear_table_api_cache($db_id, $table_id);
+
 		return $fields_created;
 	}
 
@@ -3162,6 +3580,44 @@ function format_execution_time($seconds)
 	}
 
 	/**
+	 * Codes treated as missing in numeric and boolean columns (compared case-insensitively).
+	 * Override with config item tables_missing_value_codes (array of strings).
+	 *
+	 * @return string[] lower-case codes, always including ''
+	 */
+	public function missing_value_codes()
+	{
+		if ($this->missing_value_codes_cache !== null) {
+			return $this->missing_value_codes_cache;
+		}
+		$codes = $this->config->item('tables_missing_value_codes');
+		if (!is_array($codes)) {
+			$codes = array('', 'na', 'n/a', 'nan', 'null', 'none', '.', '..', '...', '-');
+		}
+		$codes = array_map(function ($code) {
+			return strtolower(trim((string) $code));
+		}, $codes);
+		$codes[] = '';
+		$this->missing_value_codes_cache = array_values(array_unique($codes));
+		return $this->missing_value_codes_cache;
+	}
+
+	private function is_missing_value($raw)
+	{
+		return in_array(strtolower(trim((string) $raw)), $this->missing_value_codes(), true);
+	}
+
+	private function boolean_true_values()
+	{
+		return array('1', 'true', 'yes', 'y');
+	}
+
+	private function boolean_false_values()
+	{
+		return array('0', 'false', 'no', 'n');
+	}
+
+	/**
 	 * Coerce a CSV cell using dictionary data_type.
 	 *
 	 * @param mixed $value
@@ -3172,7 +3628,25 @@ function format_execution_time($seconds)
 	public function coerce_import_value($value, $data_type)
 	{
 		$data_type = $this->normalize_field_data_type($data_type);
+
+		// values that already have the right type (JSON insert API)
+		if ($data_type === 'boolean' && is_bool($value)) {
+			return $value;
+		}
+		if ($data_type === 'float' && (is_int($value) || is_float($value))) {
+			return (float) $value;
+		}
+		if ($data_type === 'integer' && is_int($value)) {
+			return $value;
+		}
+
 		$raw = $this->normalize_csv_cell_raw($value);
+
+		// numeric and boolean columns: empty cells and missing-value codes (NA, N/A, ...) are stored as null
+		if (in_array($data_type, array('integer', 'float', 'boolean'), true) && $this->is_missing_value($raw)) {
+			return null;
+		}
+
 		if ($raw === '') {
 			return '';
 		}
@@ -3181,12 +3655,19 @@ function format_execution_time($seconds)
 			case 'string':
 				return $raw;
 			case 'integer':
-				if (!preg_match('/^-?\d+$/', $raw)) {
+				// whole numbers, also written with a zero decimal part (12.0)
+				if (!preg_match('/^-?\d+(\.0+)?$/', $raw)) {
 					throw new Exception(
 						'Value "' . $raw . '" is not a valid integer'
 					);
 				}
-				return (int) $raw;
+				$number = (float) $raw;
+				if ($number > PHP_INT_MAX || $number < PHP_INT_MIN) {
+					throw new Exception(
+						'Value "' . $raw . '" is out of range for an integer'
+					);
+				}
+				return (int) $number;
 			case 'float':
 				if (!is_numeric($raw)) {
 					throw new Exception(
@@ -3196,10 +3677,10 @@ function format_execution_time($seconds)
 				return (float) $raw;
 			case 'boolean':
 				$lower = strtolower($raw);
-				if (in_array($lower, array('1', 'true', 'yes', 'y'), true)) {
+				if (in_array($lower, $this->boolean_true_values(), true)) {
 					return true;
 				}
-				if (in_array($lower, array('0', 'false', 'no', 'n'), true)) {
+				if (in_array($lower, $this->boolean_false_values(), true)) {
 					return false;
 				}
 				throw new Exception(
@@ -3904,6 +4385,10 @@ function format_execution_time($seconds)
 		$warned = isset($progress['rows_warned']) ? (int) $progress['rows_warned'] : 0;
 		$balanced = !empty($progress['balanced']);
 
+		if ($status === 'failed' && !empty($progress['failure_message'])) {
+			return $progress['failure_message'];
+		}
+
 		if ($status === 'failed' || !$balanced) {
 			return sprintf(
 				'Import finished with accounting mismatch: read %d CSV row(s), inserted %d, blank %d, failed %d. Use DELETE to reset and re-import.',
@@ -3964,7 +4449,8 @@ function format_execution_time($seconds)
 				'rows_blank' => isset($progress['rows_blank']) ? (int) $progress['rows_blank'] : 0,
 				'rows_failed' => isset($progress['rows_failed']) ? (int) $progress['rows_failed'] : 0,
 				'rows_warned' => isset($progress['rows_warned']) ? (int) $progress['rows_warned'] : 0,
-				'last_csv_row' => isset($progress['last_csv_row']) ? (int) $progress['last_csv_row'] : 0
+				'last_csv_row' => isset($progress['last_csv_row']) ? (int) $progress['last_csv_row'] : 0,
+				'invalid_columns' => isset($progress['invalid_columns']) ? $progress['invalid_columns'] : array()
 			);
 		}
 
@@ -4011,7 +4497,26 @@ function format_execution_time($seconds)
 			)
 		);
 
-		if (!$result['has_more']) {
+		if (!empty($result['limit_reached'])) {
+			// fail fast: too many rejected rows. Nothing is removed; restart with "reload import".
+			$progress_data['import_status'] = 'failed';
+			$progress_data['failure_reason'] = 'too_many_invalid_rows';
+			$progress_data['failure_message'] = $this->import_invalid_rows_message(
+				$failed,
+				(int) $result['max_invalid_rows'],
+				$result['invalid_columns']
+			);
+			$progress_data['invalid_columns'] = $result['invalid_columns'];
+			$progress_data['max_invalid_rows'] = (int) $result['max_invalid_rows'];
+			$progress_data['import_completed_at'] = date('Y-m-d H:i:s');
+			$progress_data['balanced'] = $accounts_match;
+			log_message('error', sprintf(
+				'CSV import stopped db=%s table=%s: %s',
+				$db_id,
+				$table_id,
+				$progress_data['failure_message']
+			));
+		} elseif (!$result['has_more']) {
 			$mongo_count = (int) $this->get_table_row_count_fast($db_id, $table_id);
 			$balanced = $accounts_match && ($mongo_count === $inserted);
 			$progress_data['balanced'] = $balanced;
@@ -4246,36 +4751,53 @@ function format_execution_time($seconds)
 			}
 			
 			try {
-				// Build update pipeline with $convert
-				$pipeline = [
-					[
-						'$set' => [
-							$field_name => [
-								'$convert' => [
-									'input' => '$' . $field_name,
-									'to' => $mongo_type,
-									'onError' => '$' . $field_name,  // Keep original value on error
-									'onNull' => '$' . $field_name    // Keep original value if null
-								]
-							]
+				$normalized_type = $this->normalize_field_data_type($data_type);
+
+				// integer / float / boolean follow the same rules as CSV import
+				// (missing values → null, explicit boolean words); other types use $convert
+				$conversion = $this->build_type_conversion_expression($field_name, $normalized_type);
+				if ($conversion === null) {
+					$conversion = [
+						'$convert' => [
+							'input' => '$' . $field_name,
+							'to' => $mongo_type,
+							'onError' => '$' . $field_name,  // Keep original value on error
+							'onNull' => '$' . $field_name    // Keep original value if null
 						]
-					]
+					];
+				}
+
+				$pipeline = [
+					['$set' => [$field_name => $conversion]]
 				];
-				
+
 				// Execute updateMany with pipeline
 				$result = $collection->updateMany([], $pipeline);
 				$modified_count = $result->getModifiedCount();
-				
+
 				$fields_converted++;
 				$total_modified += $modified_count;
-				
-				$field_results[] = [
+
+				$field_result = [
 					'field_name' => $field_name,
 					'data_type' => $data_type,
 					'mongo_type' => $mongo_type,
 					'status' => 'success',
 					'documents_modified' => $modified_count
 				];
+
+				// values that could not be converted are kept as text: report how many
+				if (in_array($normalized_type, array('integer', 'float', 'boolean'), true)) {
+					// left unconverted: text, plus decimals in an integer column
+					$invalid_types = $normalized_type === 'integer' ? ['string', 'double', 'decimal'] : ['string'];
+					$invalid = (int) $collection->countDocuments([$field_name => ['$type' => $invalid_types]]);
+					$field_result['invalid_values'] = $invalid;
+					if ($invalid > 0) {
+						$field_result['status'] = 'success_with_invalid_values';
+					}
+				}
+
+				$field_results[] = $field_result;
 			} catch (Exception $e) {
 				$field_results[] = [
 					'field_name' => $field_name,
@@ -4285,7 +4807,10 @@ function format_execution_time($seconds)
 				];
 			}
 		}
-		
+
+		// stored values changed type
+		$this->clear_table_api_cache($db_id, $table_id);
+
 		return [
 			'total_fields' => count($fields),
 			'fields_converted' => $fields_converted,
@@ -4296,6 +4821,108 @@ function format_execution_time($seconds)
 		];
 	}
 	
+	/**
+	 * Aggregation expression converting a stored field to integer, float or boolean with the
+	 * same rules as coerce_import_value():
+	 *  - missing field stays missing; empty values and missing-value codes (NA, N/A, ...) → null
+	 *  - integer: whole numbers, also "12.0" → stored as 64-bit integer (needs MongoDB 4.2+ for $regexMatch)
+	 *  - float: any number → double
+	 *  - boolean: explicit words only (1/true/yes/y, 0/false/no/n) — MongoDB's own $convert
+	 *    turns every non-empty string into true
+	 *  - anything else is kept unchanged (counted as invalid by the caller)
+	 *
+	 * @return array|null null for types not handled here
+	 */
+	private function build_type_conversion_expression($field_name, $data_type)
+	{
+		if (!in_array($data_type, array('integer', 'float', 'boolean'), true)) {
+			return null;
+		}
+
+		$field = '$' . $field_name;
+
+		// trimmed, lower-case text of the value ('' for null)
+		$text = [
+			'$toLower' => [
+				'$trim' => [
+					'input' => [
+						'$convert' => ['input' => $field, 'to' => 'string', 'onError' => '', 'onNull' => '']
+					]
+				]
+			]
+		];
+
+		if ($data_type === 'boolean') {
+			$converted = [
+				'$cond' => [
+					['$eq' => [['$type' => $field], 'bool']],
+					$field,
+					[
+						'$cond' => [
+							['$in' => ['$$text', $this->boolean_true_values()]],
+							true,
+							[
+								'$cond' => [
+									['$in' => ['$$text', $this->boolean_false_values()]],
+									false,
+									$field
+								]
+							]
+						]
+					]
+				]
+			];
+		} else {
+			$number = ['$convert' => ['input' => '$$text', 'to' => 'double', 'onError' => null, 'onNull' => null]];
+			if ($data_type === 'float') {
+				$converted = [
+					'$let' => [
+						'vars' => ['number' => $number],
+						'in' => ['$cond' => [['$eq' => ['$$number', null]], $field, '$$number']]
+					]
+				];
+			} else {
+				$converted = [
+					'$let' => [
+						'vars' => ['number' => $number],
+						'in' => [
+							'$cond' => [
+								[
+									'$and' => [
+										['$ne' => ['$$number', null]],
+										// same rule as import: whole numbers, optionally with .0
+										['$regexMatch' => ['input' => '$$text', 'regex' => '^-?[0-9]+(\\.0+)?$']]
+									]
+								],
+								['$toLong' => '$$number'],
+								$field
+							]
+						]
+					]
+				];
+			}
+		}
+
+		return [
+			'$let' => [
+				'vars' => ['text' => $text],
+				'in' => [
+					'$cond' => [
+						['$eq' => [['$type' => $field], 'missing']],
+						'$$REMOVE',
+						[
+							'$cond' => [
+								['$in' => ['$$text', $this->missing_value_codes()]],
+								null,
+								$converted
+							]
+						]
+					]
+				]
+			]
+		];
+	}
+
 	/**
 	 * Map metadata data_type to MongoDB BSON type for $convert operator
 	 * 

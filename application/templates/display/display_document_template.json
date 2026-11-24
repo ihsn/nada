@@ -230,9 +230,11 @@
                                     { "key": "initial", "title": "Initial", "type": "string", "prop_key": "document_description.contributors.initial" },
                                     { "key": "last_name", "title": "Last name", "type": "string", "prop_key": "document_description.contributors.last_name" },
                                     { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "document_description.contributors.affiliation" },
+                                    { "key": "role", "title": "Role", "type": "string", "prop_key": "document_description.contributors.role" },
                                     { "key": "contribution", "title": "Contribution", "type": "string", "prop_key": "document_description.contributors.contribution" }
                                 ]
                             },
+                            { "key": "document_description.acknowledgement_statement", "title": "Acknowledgement statement", "type": "string" },
                             {
                                 "key": "document_description.contacts",
                                 "title": "Contacts",

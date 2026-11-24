@@ -86,7 +86,7 @@ class Embed extends MY_Controller {
 			'survey_id' => $sid,
 			'idno' => isset($survey['idno']) ? (string) $survey['idno'] : '',
 			'indicator_main_view' => 'chart',
-			'catalog_page_title' => function_exists('t') ? t('tab_indicator_chart') : 'Chart & data',
+			'catalog_page_title' => function_exists('t') ? t('tab_indicator_chart') : 'Chart',
 			'study_title' => isset($survey['title']) ? (string) $survey['title'] : '',
 			'indicator_data_api_ui' => array(),
 			'embed_mode' => true,

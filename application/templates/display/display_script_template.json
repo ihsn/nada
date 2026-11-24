@@ -22,6 +22,48 @@
                         "type": "section",
                         "items": [
                             {
+                                "key": "project_desc.title_statement.title",
+                                "title": "Title",
+                                "type": "string",
+                                "help_text": "The name of the project, which may correspond to the title of an academic paper, of a project impact evaluation, etc.",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "project_desc.title_statement.sub_title",
+                                "title": "Subtitle",
+                                "type": "string",
+                                "help_text": "A short subtitle for the project.",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "project_desc.title_statement.idno",
+                                "title": "Project ID",
+                                "type": "string",
+                                "help_text": "A unique identifier for the project.",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "project_desc.title_statement.identifiers",
+                                "title": "Other identifiers",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "type",
+                                        "title": "Type",
+                                        "type": "string",
+                                        "prop_key": "project_desc.title_statement.identifiers.type",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "identifier",
+                                        "title": "Identifier",
+                                        "type": "string",
+                                        "prop_key": "project_desc.title_statement.identifiers.identifier",
+                                        "display_type": "text"
+                                    }
+                                ]
+                            },
+                            {
                                 "key": "project_desc.abstract",
                                 "title": "Abstract",
                                 "type": "string",
@@ -288,6 +330,19 @@
                                 "title": "Reproducibility",
                                 "type": "section",
                                 "items": [
+                                    {
+                                        "key": "project_desc.reproducibility_status.status",
+                                        "title": "Reproducibility status",
+                                        "type": "string",
+                                        "help_text": "Reproducibility status of the project, using a controlled vocabulary.",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "project_desc.reproducibility_status.note",
+                                        "title": "Note on reproducibility status",
+                                        "type": "string",
+                                        "display_type": "textarea"
+                                    },
                                     {
                                         "key": "project_desc.technology_environment",
                                         "title": "Technology environment",
@@ -662,6 +717,28 @@
                                         "help_text": "Depending on the agency policies, a researcher may provide a personal email or an agency email to field inquires related to the project.",
                                         "prop_key": "project_desc.authoring_entity.email",
                                         "display_type": "text"
+                                    },
+                                    {
+                                        "key": "author_id",
+                                        "title": "Author ID",
+                                        "type": "array",
+                                        "prop_key": "project_desc.authoring_entity.author_id",
+                                        "props": [
+                                            {
+                                                "key": "type",
+                                                "title": "Type",
+                                                "type": "string",
+                                                "prop_key": "project_desc.authoring_entity.author_id.type",
+                                                "display_type": "text"
+                                            },
+                                            {
+                                                "key": "id",
+                                                "title": "Identifier",
+                                                "type": "string",
+                                                "prop_key": "project_desc.authoring_entity.author_id.id",
+                                                "display_type": "text"
+                                            }
+                                        ]
                                     }
                                 ],
                                 "is_recommended": true
@@ -787,14 +864,50 @@
                                 "help_text": "A list of persons and/or organizations in charge of curating the resources associated with the project."
                             },
                             {
-                                "key": "project_desc.acknowledgment_statement",
-                                "title": "Acknowledgment statement",
+                                "key": "project_desc.sponsors",
+                                "title": "Sponsors / Funding agencies",
+                                "type": "array",
+                                "help_text": "The source(s) of funds for the project. If different agencies sponsored different stages, the role distinguishes them.",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "project_desc.sponsors.name",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "project_desc.sponsors.abbr",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "role",
+                                        "title": "Role",
+                                        "type": "string",
+                                        "prop_key": "project_desc.sponsors.role",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "grant_no",
+                                        "title": "Grant number",
+                                        "type": "string",
+                                        "prop_key": "project_desc.sponsors.grant_no",
+                                        "display_type": "text"
+                                    }
+                                ]
+                            },
+                            {
+                                "key": "project_desc.acknowledgement_statement",
+                                "title": "Acknowledgement statement",
                                 "type": "string",
                                 "help_text": "This field is used to provide acknowledgments in the form of an unstructured text. It is an alternative to the element \"Acknowledgments\" which provides a solution to itemize the acknowledgments.",
                                 "display_type": "textarea"
                             },
                             {
-                                "key": "project_desc.acknowledgments",
+                                "key": "project_desc.acknowledgements",
                                 "title": "Acknowledgments",
                                 "type": "array",
                                 "props": [
@@ -802,7 +915,7 @@
                                         "key": "name",
                                         "title": "Name",
                                         "type": "string",
-                                        "prop_key": "project_desc.acknowledgments.name",
+                                        "prop_key": "project_desc.acknowledgements.name",
                                         "help_text": "The name of the person or agency being recognized for supporting the project.",
                                         "display_type": "text"
                                     },
@@ -810,7 +923,7 @@
                                         "key": "affiliation",
                                         "title": "Affiliation",
                                         "type": "string",
-                                        "prop_key": "project_desc.acknowledgments.affiliation",
+                                        "prop_key": "project_desc.acknowledgements.affiliation",
                                         "help_text": "The affiliation of the person or agency being acknowledged.",
                                         "display_type": "text"
                                     },
@@ -818,7 +931,7 @@
                                         "key": "role",
                                         "title": "Role",
                                         "type": "string",
-                                        "prop_key": "project_desc.acknowledgments.role",
+                                        "prop_key": "project_desc.acknowledgements.role",
                                         "help_text": "A brief description of the role of the person or agency that is being recognized or acknowledged for supporting the project.",
                                         "display_type": "textarea"
                                     }
@@ -833,6 +946,27 @@
                                 "enum": [],
                                 "display_type": "text",
                                 "is_recommended": true
+                            },
+                            {
+                                "key": "project_desc.methods",
+                                "title": "Methods or algorithms applied",
+                                "type": "array",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Method name",
+                                        "type": "string",
+                                        "prop_key": "project_desc.methods.name",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "note",
+                                        "title": "Description",
+                                        "type": "string",
+                                        "prop_key": "project_desc.methods.note",
+                                        "display_type": "textarea"
+                                    }
+                                ]
                             },
                             {
                                 "key": "project_desc.process",
@@ -902,10 +1036,40 @@
                                         "prop_key": "project_desc.geographic_units.code",
                                         "help_text": "The code of the geographic area. For countries, it is recommended to use the ISO 3166 country codes and names.",
                                         "display_type": "text"
+                                    },
+                                    {
+                                        "key": "type",
+                                        "title": "Type",
+                                        "type": "string",
+                                        "prop_key": "project_desc.geographic_units.type",
+                                        "help_text": "Type of geographic unit, e.g. country, state, region, province, town.",
+                                        "display_type": "text"
                                     }
                                 ],
                                 "help_text": "The geographic areas covered by the project. When the project relates to one or more countries, or part of one or more countries, it is important to provide the country name. This means that for a project related to a specific province or town of a country, the country name will be entered in addition to the province or town (as separate entries in this repeatable block of elements). Note that the area does not have to be an administrative area; it can for example be an ocean).",
                                 "is_recommended": true
+                            },
+                            {
+                                "key": "project_desc.language",
+                                "title": "Language",
+                                "type": "array",
+                                "help_text": "Documentation language, e.g. English, French.",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "project_desc.language.name",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "code",
+                                        "title": "Code",
+                                        "type": "string",
+                                        "prop_key": "project_desc.language.code",
+                                        "display_type": "text"
+                                    }
+                                ]
                             },
                             {
                                 "key": "project_desc.keywords",
@@ -1398,6 +1562,12 @@
                         "title": "Information on metadata",
                         "expanded": true,
                         "items": [
+                            {
+                                "key": "doc_desc.title",
+                                "title": "Document title",
+                                "type": "string",
+                                "display_type": "text"
+                            },
                             {
                                 "key": "doc_desc.idno",
                                 "type": "string",

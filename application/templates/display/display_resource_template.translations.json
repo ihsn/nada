@@ -1,0 +1,23 @@
+{
+    "fr": {
+        "abstract": "Résumé",
+        "author": "Auteur",
+        "authors_and_rights": "Auteurs et droits",
+        "contributor": "Contributeurs",
+        "country": "Pays",
+        "coverage": "Couverture",
+        "dcdate": "Date",
+        "dcformat": "Format de la resource",
+        "dctype": "Type de ressource",
+        "description": "Description",
+        "filename": "Nom de fichier ou URL",
+        "iframe_embeds": "Widgets intégrés",
+        "language": "Langue",
+        "publisher": "Éditeur",
+        "resource": "Description de la ressource",
+        "rights": "Droits",
+        "title": "Titre",
+        "toc": "Table des matières",
+        "widgets.doi.citations": "Citation"
+    }
+}

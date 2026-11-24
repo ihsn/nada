@@ -61,6 +61,7 @@ CREATE TABLE dd_collaborators (
   access varchar(255) NOT NULL,
   PRIMARY KEY (id)
 );
+CREATE NONCLUSTERED INDEX idx_ddc_pid ON dd_collaborators (pid);
 
 CREATE TABLE dd_datadeposit_history (
   id int NOT NULL IDENTITY(1,1),
@@ -183,6 +184,9 @@ CREATE TABLE dd_projects (
   submission varchar(max),
   PRIMARY KEY (id)
 );
+CREATE NONCLUSTERED INDEX idx_ddp_created_on ON dd_projects (created_on)
+  INCLUDE (status, title, shortname, last_modified, created_by, is_embargoed, requested_reopen);
+CREATE NONCLUSTERED INDEX idx_ddp_status ON dd_projects (status) INCLUDE (requested_reopen, is_embargoed);
 
 CREATE TABLE dd_study (
   id int NOT NULL CONSTRAINT df_dd_study_id DEFAULT 0,
@@ -287,6 +291,7 @@ CREATE TABLE dd_tasks (
   comments varchar(max),
   PRIMARY KEY (id)
 );
+CREATE NONCLUSTERED INDEX idx_ddt_project_id ON dd_tasks (project_id) INCLUDE (user_id, status);
 
 CREATE TABLE dd_tasks_team (
   id int NOT NULL IDENTITY(1,1),

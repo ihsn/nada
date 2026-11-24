@@ -13,6 +13,11 @@ if (isset($template['hide_field_title'])) {
 	$hide_field_title = (bool) $options['hide_field_title'];
 }
 
+// A single responsible party (e.g. maintenance contact, format distributor) is an object, not a list.
+if (isset($data) && is_array($data) && $data !== array() && !isset($data[0])) {
+	$data = array($data);
+}
+
 $field_key = isset($template['key']) ? (string) $template['key'] : (isset($name) ? (string) $name : 'contact');
 $field_title = isset($template['title']) ? (string) $template['title'] : $field_key;
 ?>

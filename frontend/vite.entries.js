@@ -10,6 +10,7 @@ export const publicEntries = {
     __dirname,
     'catalog/study_indicator_data_public/main.js'
   ),
+  catalog_study_data_api: path.resolve(__dirname, 'catalog/study_data_api_public/main.js'),
   pdf_viewer: path.resolve(__dirname, 'pdf-viewer/main.js'),
   datadeposit: path.resolve(__dirname, 'datadeposit/main.js'),
 };

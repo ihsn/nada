@@ -141,8 +141,8 @@
             </td>
           </tr>
 
-          <tr>
-            <td class="sov-label-cell text-caption text-medium-emphasis">{{ lbl.data_access }}</td>
+          <tr v-if="!hasNoAccess || dcEnabled">
+            <td class="sov-label-cell text-caption text-medium-emphasis">{{ hasNoAccess ? lbl.data_classification : lbl.data_access }}</td>
             <td>
               <div v-if="dcEnabled" class="mb-2">
                 <div class="text-caption text-medium-emphasis mb-1">{{ lbl.data_classification }}</div>
@@ -160,24 +160,27 @@
                 />
               </div>
 
-              <div class="text-caption text-medium-emphasis mb-1">{{ lbl.data_access }}</div>
-              <v-select
-                v-model="selectedAccessModel"
-                :items="isIndicator ? indicatorAccessItems : accessSelectItems"
-                item-title="title"
-                item-value="value"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                :clearable="!isIndicator"
-                :error="indicatorAccessMismatch"
-                class="sov-field-full mb-2"
-                :placeholder="!isIndicator && accessSelectItems.length === 0 ? lbl.loading : undefined"
-              />
+              <template v-if="!hasNoAccess">
+                <div class="text-caption text-medium-emphasis mb-1">{{ lbl.data_access }}</div>
+                <v-select
+                  v-model="selectedAccessModel"
+                  :items="accessItemsForType"
+                  item-title="title"
+                  item-value="value"
+                  density="compact"
+                  variant="outlined"
+                  hide-details="auto"
+                  :clearable="!isRestrictedAccess && !hasLegacyNoAccess"
+                  :error="restrictedAccessMismatch"
+                  class="sov-field-full mb-2"
+                  :placeholder="!isRestrictedAccess && accessSelectItems.length === 0 ? lbl.loading : undefined"
+                />
 
-              <div v-if="isIndicator" class="sov-indicator-access-help text-caption text-medium-emphasis mb-2">{{ lbl.indicator_open_access_help }}</div>
+                <div v-if="isRestrictedAccess" class="sov-indicator-access-help text-caption text-medium-emphasis mb-2">{{ isIndicator ? lbl.indicator_open_access_help : lbl.table_open_access_help }}</div>
+                <div v-if="hasLegacyNoAccess" class="sov-indicator-access-help text-caption text-medium-emphasis mb-2">{{ lbl.legacy_access_help }}</div>
+              </template>
 
-              <div v-if="!isIndicator && isRemoteDataAccess" class="sov-remote-da-block">
+              <div v-if="!isRestrictedAccess && !isNoAccessType && isRemoteDataAccess" class="sov-remote-da-block">
                 <div class="text-caption text-medium-emphasis mb-1">{{ lbl.remote_data_access_url }}</div>
                 <v-text-field
                   id="remote-da"
@@ -200,7 +203,7 @@
               >{{ lbl.update }}</v-btn>
 
               <div
-                v-if="!isIndicator"
+                v-if="!isRestrictedAccess && !hasNoAccess"
                 :class="'study-microdata model-' + (dataset.data_access_type || '')"
                 class="sov-microdata-applies"
               >
@@ -409,27 +412,82 @@ const dcSelectItems = computed(() =>
   }))
 );
 
-const accessSelectItems = computed(() =>
+const accessOptionItems = computed(() =>
   (accessOptions.value || []).map((o) => ({
     title: o.fname,
     value: o.model,
   }))
 );
 
-/** Indicators (timeseries) allow only these data access types (enforced by the API) */
-const INDICATOR_ACCESS_MODELS = ['open', 'direct', 'data_na'];
-const isIndicator = computed(() => dataset.value?.type === 'timeseries');
+/** Stored data access model (lowercase) as loaded from the server */
+const storedAccessModel = ref('');
 
-/** Indicators: highlight the dropdown (red border) until an allowed type is selected */
-const indicatorAccessMismatch = computed(
-  () => isIndicator.value && !INDICATOR_ACCESS_MODELS.includes(String(selectedAccessModel.value || '').toLowerCase())
+/** Public use / licensed: a stored value is never changed automatically (only by an explicit admin choice) */
+const PROTECTED_ACCESS_MODELS = ['public', 'licensed'];
+const isProtectedStored = computed(() => PROTECTED_ACCESS_MODELS.includes(storedAccessModel.value));
+
+/** Option for the stored value; title from the options list, else the stored code */
+const storedAccessItem = computed(() => {
+  const v = storedAccessModel.value;
+  if (!v) return null;
+  const all = accessOptionItems.value;
+  return all.find((o) => String(o.value || '').toLowerCase() === v) || { title: v, value: v };
+});
+
+/** Options for the data classification, plus a stored public/licensed value the classification no longer offers */
+const accessSelectItems = computed(() => {
+  const items = accessOptionItems.value;
+  const stored = storedAccessItem.value;
+  if (isProtectedStored.value && stored && !items.some((o) => o.value === stored.value)) {
+    return [...items, stored];
+  }
+  return items;
+});
+
+/** Indicators (timeseries) and tables allow only these data access types (enforced by the API) */
+const RESTRICTED_ACCESS_MODELS = ['open', 'direct', 'data_na'];
+const RESTRICTED_ACCESS_TYPES = ['timeseries', 'table'];
+/** Dataset types without a data access type (only the data classification is shown) */
+const NO_ACCESS_TYPES = ['document', 'image', 'video'];
+
+const isIndicator = computed(() => dataset.value?.type === 'timeseries');
+const isRestrictedAccess = computed(() => RESTRICTED_ACCESS_TYPES.includes(dataset.value?.type));
+const isNoAccessType = computed(() => NO_ACCESS_TYPES.includes(dataset.value?.type));
+/** Document, image, video with nothing stored: the data access field is hidden */
+const hasNoAccess = computed(() => isNoAccessType.value && !storedAccessModel.value);
+/** Document, image, video that still have a stored (legacy) data access type: show it; it can only be kept or cleared */
+const hasLegacyNoAccess = computed(() => isNoAccessType.value && !!storedAccessModel.value);
+
+/** Legacy document/image/video: keep the stored value or clear it */
+const legacyAccessItems = computed(() => [
+  { title: ' ', value: '' },
+  ...(storedAccessItem.value ? [storedAccessItem.value] : []),
+]);
+
+/** Indicators, tables: highlight the dropdown (red border) until an allowed type is selected */
+const restrictedAccessMismatch = computed(
+  () => isRestrictedAccess.value && !RESTRICTED_ACCESS_MODELS.includes(String(selectedAccessModel.value || '').toLowerCase())
 );
 
-/** Indicators: empty plus the allowed types offered for the data classification (a stored disallowed type shows as empty) */
-const indicatorAccessItems = computed(() => [
-  { title: ' ', value: '' },
-  ...accessSelectItems.value.filter((o) => INDICATOR_ACCESS_MODELS.includes(String(o.value || '').toLowerCase())),
-]);
+/** Indicators, tables: empty plus the allowed types offered for the data classification, plus a stored legacy value (shown, never sent) */
+const restrictedAccessItems = computed(() => {
+  const items = [
+    { title: ' ', value: '' },
+    ...accessOptionItems.value.filter((o) => RESTRICTED_ACCESS_MODELS.includes(String(o.value || '').toLowerCase())),
+  ];
+  const stored = storedAccessItem.value;
+  if (stored && !RESTRICTED_ACCESS_MODELS.includes(stored.value)) {
+    items.push(stored);
+  }
+  return items;
+});
+
+/** Items for the data access select by dataset type */
+const accessItemsForType = computed(() => {
+  if (hasLegacyNoAccess.value) return legacyAccessItems.value;
+  if (isRestrictedAccess.value) return restrictedAccessItems.value;
+  return accessSelectItems.value;
+});
 
 /** Data access model `remote` — show external repository URL field */
 const isRemoteDataAccess = computed(() => String(selectedAccessModel.value || '').toLowerCase() === 'remote');
@@ -493,6 +551,8 @@ const lbl = computed(() => ({
   data_selection_apply_to_files: 'Applies to files',
   open_access: 'Open access',
   indicator_open_access_help: 'For indicators, only open access, direct access and data not available are supported. Data not available hides the indicator data and blocks the data API.',
+  table_open_access_help: 'For tables, only open access, direct access and data not available are supported. Data files are listed under Downloads unless data is not available.',
+  legacy_access_help: 'Documents, images and videos do not use a data access type. The stored value still applies to downloads (including the Get Microdata page) until you clear it.',
 
   study_no_data_files_assigned: 'No microdata files',
   ...((config.value && config.value.labels) || {}),
@@ -743,6 +803,7 @@ async function reloadAll() {
 
     selectedClassCode.value = study.data_class_code || '';
     selectedAccessModel.value = study.data_access_type || '';
+    storedAccessModel.value = String(study.data_access_type || '').trim().toLowerCase();
     remoteDa.value = study.remote_data_url || '';
     linkIndicator.value = study.link_indicator || '';
     linkStudy.value = study.link_study || '';
@@ -753,9 +814,14 @@ async function reloadAll() {
     await loadAccessOptionsForClass(daClass);
 
     const models = new Set((accessOptions.value || []).map((o) => o.model));
-    if (isIndicator.value) {
-      const stored = String(study.data_access_type || '').toLowerCase();
-      selectedAccessModel.value = INDICATOR_ACCESS_MODELS.includes(stored) ? stored : '';
+    if (hasNoAccess.value) {
+      selectedAccessModel.value = '';
+    } else if (hasLegacyNoAccess.value || isRestrictedAccess.value) {
+      //show the stored value as is (legacy values are listed but never sent)
+      selectedAccessModel.value = storedAccessModel.value;
+    } else if (isProtectedStored.value) {
+      //public/licensed: never preselect another value
+      selectedAccessModel.value = storedAccessModel.value;
     } else if (!models.has(selectedAccessModel.value)) {
       selectedAccessModel.value = accessOptions.value[0]?.model || '';
     }
@@ -783,7 +849,11 @@ async function loadAccessOptionsForClass(code) {
 
 async function onClassificationChange() {
   await loadAccessOptionsForClass(selectedClassCode.value);
-  if (isIndicator.value) {
+  if (isRestrictedAccess.value || isNoAccessType.value) {
+    return;
+  }
+  //public/licensed selection is kept; the admin changes it explicitly
+  if (PROTECTED_ACCESS_MODELS.includes(String(selectedAccessModel.value || '').toLowerCase())) {
     return;
   }
   const models = new Set((accessOptions.value || []).map((o) => o.model));
@@ -795,9 +865,15 @@ async function onClassificationChange() {
 async function saveDataAccess() {
   savingDa.value = true;
   try {
-    // Indicators: send access_policy only when an allowed type is selected; empty leaves the stored value unchanged
-    const payload = isIndicator.value
-      ? (INDICATOR_ACCESS_MODELS.includes(selectedAccessModel.value) ? { access_policy: selectedAccessModel.value } : {})
+    // Indicators, tables: send access_policy only when an allowed type is selected; empty leaves the stored value unchanged
+    // Document, image, video: no data access type, only the data classification is saved;
+    // a stored legacy value is kept unless the admin explicitly clears it
+    const payload = hasNoAccess.value
+      ? {}
+      : hasLegacyNoAccess.value
+      ? (selectedAccessModel.value ? {} : { access_policy: '' })
+      : isRestrictedAccess.value
+      ? (RESTRICTED_ACCESS_MODELS.includes(selectedAccessModel.value) ? { access_policy: selectedAccessModel.value } : {})
       : {
           access_policy: selectedAccessModel.value ?? '',
           data_remote_url: remoteDa.value ?? '',

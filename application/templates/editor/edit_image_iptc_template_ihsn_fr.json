@@ -295,7 +295,7 @@
                                             "display_type": "text"
                                         },
                                         {
-                                            "key": "image_description.creatorContactInfo",
+                                            "key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo",
                                             "title": "Contact",
                                             "class": "required",
                                             "type": "textarea",
@@ -304,7 +304,7 @@
                                                     "key": "country",
                                                     "title": "Pays",
                                                     "type": "string",
-                                                    "prop_key": "image_description.creatorContactInfo.country",
+                                                    "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.country",
                                                     "help_text": "Le nom du pays pour l'adresse de la personne qui a créé cette image.",
                                                     "display_type": "text"
                                                 },
@@ -312,7 +312,7 @@
                                                     "key": "emailwork",
                                                     "title": "E-mail",
                                                     "type": "string",
-                                                    "prop_key": "image_description.creatorContactInfo.emailwork",
+                                                    "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.emailwork",
                                                     "help_text": "La ou les adresses e-mail professionnelles du créateur de l'image. Plusieurs adresses e-mail peuvent être fournies, auquel cas elles doivent être séparées par une virgule.",
                                                     "display_type": "text"
                                                 },
@@ -320,7 +320,7 @@
                                                     "key": "region",
                                                     "title": "Région",
                                                     "type": "string",
-                                                    "prop_key": "image_description.creatorContactInfo.region",
+                                                    "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.region",
                                                     "help_text": "L'état ou la province de l'adresse du créateur de l'image.",
                                                     "display_type": "text"
                                                 },
@@ -328,7 +328,7 @@
                                                     "key": "phonework",
                                                     "title": "Téléphone",
                                                     "type": "string",
-                                                    "prop_key": "image_description.creatorContactInfo.phonework",
+                                                    "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.phonework",
                                                     "help_text": "Le ou les numéros de téléphone professionnels du créateur de l'image. Utilisez le format international incluant l'indicatif du pays, tel que +1 (123) 456789. Plusieurs numéros peuvent être donnés, auquel cas ils doivent être séparés par une virgule.",
                                                     "display_type": "text"
                                                 },
@@ -336,7 +336,7 @@
                                                     "key": "weburlwork",
                                                     "title": "URL",
                                                     "type": "string",
-                                                    "prop_key": "image_description.creatorContactInfo.weburlwork",
+                                                    "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.weburlwork",
                                                     "help_text": "Adresse Web professionnelle du créateur de l'image. Plusieurs adresses peuvent être données, auquel cas elles doivent être séparées par une virgule.",
                                                     "rules": {
                                                         "is_uri": true
@@ -347,7 +347,7 @@
                                                     "key": "address",
                                                     "title": "Addresse",
                                                     "type": "string",
-                                                    "prop_key": "image_description.creatorContactInfo.address",
+                                                    "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.address",
                                                     "help_text": "L'adresse du créateur de l'image. Cela peut comprendre un nom de société.",
                                                     "display_type": "text"
                                                 },
@@ -355,7 +355,7 @@
                                                     "key": "city",
                                                     "title": "Ville",
                                                     "type": "string",
-                                                    "prop_key": "image_description.creatorContactInfo.city",
+                                                    "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.city",
                                                     "help_text": "La ville pour l'adresse de la personne qui a créé l'image.",
                                                     "display_type": "text"
                                                 },
@@ -363,7 +363,7 @@
                                                     "key": "postalCode",
                                                     "title": "Code postal",
                                                     "type": "string",
-                                                    "prop_key": "image_description.creatorContactInfo.postalCode",
+                                                    "prop_key": "image_description.iptc.photoVideoMetadataIPTC.creatorContactInfo.postalCode",
                                                     "help_text": "Entrez le code postal local pour l'adresse de la personne qui a créé l'image.",
                                                     "display_type": "text"
                                                 }
@@ -486,13 +486,13 @@
                                             "type": "array",
                                             "props": [
                                                 {
-                                                    "key": "cvld",
+                                                    "key": "cvId",
                                                     "title": "ID du vocabulaire",
                                                     "class": "required",
                                                     "required": true,
                                                     "type": "string",
                                                     "help_text": "L'identifiant global unique du vocabulaire contrôlé d'où provient le terme.",
-                                                    "prop_key": "image_description.iptc.photoVideoMetadataIPTC.aboutCvTerms.cvld",
+                                                    "prop_key": "image_description.iptc.photoVideoMetadataIPTC.aboutCvTerms.cvId",
                                                     "display_type": "text"
                                                 },
                                                 {

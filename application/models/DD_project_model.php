@@ -851,8 +851,11 @@ class DD_project_model extends CI_Model {
 			'embargoed' => 0,
 		);
 
+		// One pass over the table for all tab counts.
 		$rows = $this->db
-			->select('status, COUNT(*) AS n')
+			->select('status, COUNT(*) AS n,'
+				.' SUM(CASE WHEN requested_reopen = 1 THEN 1 ELSE 0 END) AS n_requested,'
+				.' SUM(CASE WHEN is_embargoed = 1 THEN 1 ELSE 0 END) AS n_embargoed', FALSE)
 			->from('dd_projects')
 			->group_by('status')
 			->get()
@@ -861,19 +864,13 @@ class DD_project_model extends CI_Model {
 		foreach ($rows as $row) {
 			$n = (int) $row->n;
 			$counts['all'] += $n;
+			$counts['requested'] += (int) $row->n_requested;
+			$counts['embargoed'] += (int) $row->n_embargoed;
 			$key = strtolower((string) $row->status);
 			if (isset($counts[$key])) {
-				$counts[$key] = $n;
+				$counts[$key] += $n;
 			}
 		}
-
-		$counts['requested'] = (int) $this->db
-			->where('requested_reopen', 1)
-			->count_all_results('dd_projects');
-
-		$counts['embargoed'] = (int) $this->db
-			->where('is_embargoed', 1)
-			->count_all_results('dd_projects');
 
 		return $counts;
 	}
@@ -1002,13 +999,28 @@ class DD_project_model extends CI_Model {
 	private function _admin_projects_keyword_where($keyword)
 	{
 		$like = $this->db->escape('%'.$keyword.'%');
+
+		// The sqlsrv driver escapes strings as N'...'. Against these varchar columns that makes
+		// SQL Server convert every column value to nvarchar for each LIKE, which made a search
+		// take seconds. ASCII matches the same either way, so send it as a plain '...' literal;
+		// keep N'...' for non-ASCII keywords so those still match.
+		if ($this->db->dbdriver === 'sqlsrv' && !preg_match('/[^\x20-\x7E]/', $keyword)) {
+			$like = "'".$this->db->escape_str('%'.$keyword.'%')."'";
+		}
+
 		return sprintf(
 			'(dd_projects.title like %1$s OR dd_projects.description like %1$s OR dd_projects.shortname like %1$s'
 			.' OR dd_projects.created_by like %1$s'
 			.' OR EXISTS (SELECT 1 FROM dd_collaborators dc WHERE dc.pid = dd_projects.id AND dc.email like %1$s)'
+			// Depositor by email, then by username: separate EXISTS so each can seek its own
+			// users index (an OR across both columns forces a users scan per project).
 			.' OR EXISTS (SELECT 1 FROM users u'
 			.' LEFT JOIN meta m ON m.user_id = u.id'
-			.' WHERE (u.email = dd_projects.created_by OR u.username = dd_projects.created_by)'
+			.' WHERE u.email = dd_projects.created_by'
+			.' AND (u.email like %1$s OR u.username like %1$s OR m.first_name like %1$s OR m.last_name like %1$s))'
+			.' OR EXISTS (SELECT 1 FROM users u'
+			.' LEFT JOIN meta m ON m.user_id = u.id'
+			.' WHERE u.username = dd_projects.created_by'
 			.' AND (u.email like %1$s OR u.username like %1$s OR m.first_name like %1$s OR m.last_name like %1$s))'
 			.' OR EXISTS (SELECT 1 FROM dd_collaborators dc'
 			.' INNER JOIN users u ON u.email = dc.email'

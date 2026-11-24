@@ -247,12 +247,18 @@ class Dataset_model extends CI_Model {
 
 
 	/**
-	 * Data access models allowed for indicators (timeseries).
+	 * Data access models allowed for dataset types with a restricted list (indicators, tables).
 	 *
-	 * - open / direct: observations and data files are public
-	 * - data_na: metadata only; the public data API and data files are blocked
+	 * - open / direct: data files (and indicator observations) are public
+	 * - data_na: metadata only; data files (and the indicator data API) are blocked
 	 */
-	private $indicator_allowed_access_models=array('open', 'direct', 'data_na');
+	private $restricted_access_models=array('open', 'direct', 'data_na');
+
+	/** Dataset types limited to $restricted_access_models */
+	private $access_restricted_types=array('timeseries', 'table');
+
+	/** Dataset types without a data access type (formid is always NULL) */
+	private $no_access_types=array('document', 'image', 'video');
 
 	private $open_access_formid=null;
 
@@ -262,15 +268,92 @@ class Dataset_model extends CI_Model {
 	}
 
 	/**
-	 * Reject data access types that are not allowed for indicators.
+	 * True when the dataset type uses a data access type (false for document, image, video).
+	 */
+	public function type_has_data_access($type)
+	{
+		return !in_array((string) $type, $this->no_access_types, true);
+	}
+
+	/**
+	 * True when the dataset type is limited to open, direct and data_na (indicators, tables).
+	 */
+	public function is_access_restricted_type($type)
+	{
+		return in_array((string) $type, $this->access_restricted_types, true);
+	}
+
+	/**
+	 * Data access model codes allowed for a dataset type.
+	 *
+	 * @return array|null null = all types allowed; empty array = type has no data access
+	 */
+	public function get_allowed_access_models($type)
+	{
+		if (!$this->type_has_data_access($type)) {
+			return array();
+		}
+		if ($this->is_access_restricted_type($type)) {
+			return $this->restricted_access_models;
+		}
+		return null;
+	}
+
+	/**
+	 * Data access models that gate microdata behind a user agreement or request.
+	 * A stored value is never changed automatically and its download checks are never bypassed.
+	 */
+	private $protected_access_models=array('public', 'licensed');
+
+	/**
+	 * Stored type, formid and data access model for a dataset.
+	 *
+	 * @param int $sid
+	 * @return array|null type, formid, model
+	 */
+	public function get_access_row($sid)
+	{
+		$this->db->select('surveys.type, surveys.formid, forms.model');
+		$this->db->join('forms', 'forms.formid=surveys.formid', 'left');
+		$this->db->where('surveys.id', (int) $sid);
+		$row = $this->db->get('surveys')->row_array();
+
+		if (!$row) {
+			return null;
+		}
+
+		$row['model'] = strtolower(trim((string) $row['model']));
+		return $row;
+	}
+
+	/**
+	 * Data access model code for a formid or model code (lowercase; '' when unknown).
+	 */
+	private function access_model_code($access)
+	{
+		if (is_numeric($access)) {
+			$this->load->model('Form_model');
+			$form = $this->Form_model->get_single((int) $access);
+			return isset($form['model']) ? strtolower((string) $form['model']) : '';
+		}
+		return strtolower(trim((string) $access));
+	}
+
+	/**
+	 * Reject data access types that are not allowed for the dataset type.
+	 *
+	 * - indicators, tables: open, direct, data_na. Re-sending the value already stored on the
+	 *   dataset (e.g. a legacy `licensed` table) is accepted, since it changes nothing.
+	 * - document, image, video: any value is accepted; apply_access_policy() decides what is stored.
 	 *
 	 * @param string          $type   dataset type
 	 * @param string|int|null $access data access model code (e.g. `open`) or numeric formid; empty is skipped
+	 * @param int|null        $sid    existing dataset id (updates)
 	 * @throws ValidationException
 	 */
-	public function validate_indicator_access_policy($type, $access)
+	public function validate_access_policy($type, $access, $sid = null)
 	{
-		if (!$this->is_indicator_type($type)) {
+		if (!$this->is_access_restricted_type($type)) {
 			return;
 		}
 
@@ -278,42 +361,75 @@ class Dataset_model extends CI_Model {
 			return;
 		}
 
-		$code = strtolower(trim((string) $access));
+		$code = $this->access_model_code($access);
 
-		if (is_numeric($access)) {
-			$this->load->model('Form_model');
-			$form = $this->Form_model->get_single((int) $access);
-			$code = isset($form['model']) ? strtolower((string) $form['model']) : '';
+		if (in_array($code, $this->restricted_access_models, true)) {
+			return;
 		}
 
-		if (!in_array($code, $this->indicator_allowed_access_models, true)) {
-			$label = $code !== '' ? $code : (string) $access;
-			$message = "access_policy '" . $label . "' is not allowed for indicators."
-				. " Use one of: " . implode(', ', $this->indicator_allowed_access_models) . "."
-				. " To link to externally hosted data, use link_indicator.";
-			throw new ValidationException('INDICATOR_ACCESS_POLICY_NOT_ALLOWED: ' . $message, array('access_policy' => $message));
+		//unchanged stored value
+		if ($sid && $code !== '') {
+			$row = $this->get_access_row($sid);
+			if ($row && $row['model'] === $code) {
+				return;
+			}
 		}
+
+		$label = $code !== '' ? $code : (string) $access;
+		$type_label = $this->is_indicator_type($type) ? 'indicators' : $type . ' datasets';
+		$message = "access_policy '" . $label . "' is not allowed for " . $type_label . "."
+			. " Use one of: " . implode(', ', $this->restricted_access_models) . ".";
+		if ($this->is_indicator_type($type)) {
+			$message .= " To link to externally hosted data, use link_indicator.";
+		}
+		throw new ValidationException('ACCESS_POLICY_NOT_ALLOWED: ' . $message, array('access_policy' => $message));
 	}
 
 	/**
-	 * Check the data access form on indicator rows before saving.
+	 * Apply the dataset type's data access rules to a surveys row before saving.
 	 *
-	 * A formid that is set must be allowed for indicators (throws otherwise).
-	 * New indicators without a formid default to `open`.
+	 * A stored data access type is never changed automatically:
+	 * - document, image, video: new rows store NULL. On update a supplied value is ignored (the stored
+	 *   value is kept, including legacy `public`/`licensed`); an explicit empty value clears it.
+	 * - indicators, tables: a supplied formid must be open, direct or data_na, or equal the stored value
+	 *   (throws otherwise); not supplied on update keeps the stored value; new rows default to `open`.
+	 * - other types: unchanged.
 	 *
-	 * @param string $type   dataset type
-	 * @param array  $data   surveys row data (modified in place)
-	 * @param bool   $is_new true when inserting a new dataset
+	 * @param string   $type   dataset type
+	 * @param array    $data   surveys row data (modified in place)
+	 * @param bool     $is_new true when inserting a new dataset
+	 * @param int|null $sid    existing dataset id (updates)
 	 * @throws ValidationException
 	 */
-	public function apply_indicator_access_policy($type, array &$data, $is_new = false)
+	public function apply_access_policy($type, array &$data, $is_new = false, $sid = null)
 	{
-		if (!$this->is_indicator_type($type)) {
+		if (!$this->type_has_data_access($type)) {
+			if ($is_new) {
+				$data['formid'] = null;
+				$data['link_da'] = null;
+				return;
+			}
+
+			$clear = array_key_exists('formid', $data)
+				&& ($data['formid'] === null || trim((string) $data['formid']) === '');
+
+			if ($clear) {
+				//explicit clear by the user
+				$data['formid'] = null;
+				$data['link_da'] = null;
+			}
+			else {
+				unset($data['formid'], $data['link_da']);
+			}
+			return;
+		}
+
+		if (!$this->is_access_restricted_type($type)) {
 			return;
 		}
 
 		if (!empty($data['formid'])) {
-			$this->validate_indicator_access_policy($type, $data['formid']);
+			$this->validate_access_policy($type, $data['formid'], $is_new ? null : $sid);
 			return;
 		}
 
@@ -332,8 +448,71 @@ class Dataset_model extends CI_Model {
 			$data['formid'] = (int) $this->open_access_formid;
 		}
 		else {
-			log_message('error', 'apply_indicator_access_policy: data access form `open` not found in forms table');
+			log_message('error', 'apply_access_policy: data access form `open` not found in forms table');
 		}
+	}
+
+	/**
+	 * True when data files skip the data access checks: document, image, video with no stored
+	 * data access type. A dataset that still has a stored value (e.g. legacy `public`/`licensed`)
+	 * keeps the normal checks.
+	 *
+	 * @param int $sid
+	 * @return bool
+	 */
+	public function skips_data_access_check($sid)
+	{
+		$row = $this->get_access_row($sid);
+		if (!$row || $this->type_has_data_access($row['type'])) {
+			return false;
+		}
+		return empty($row['formid']);
+	}
+
+	/**
+	 * True when a table, document, image or video still has a data access type its dataset type
+	 * no longer offers (e.g. a legacy `licensed` table or `public` document). These keep the
+	 * Get Microdata tab and the request/download workflow of the stored type.
+	 *
+	 * @param int $sid
+	 * @return bool
+	 */
+	public function has_legacy_data_access($sid)
+	{
+		$row = $this->get_access_row($sid);
+		if (!$row) {
+			return false;
+		}
+
+		if (!$this->type_has_data_access($row['type'])) {
+			return !empty($row['formid']);
+		}
+
+		if ($row['type'] === 'table') {
+			return !empty($row['formid']) && !in_array($row['model'], $this->restricted_access_models, true);
+		}
+
+		return false;
+	}
+
+	/**
+	 * True when a table's data files are not listed under Downloads.
+	 *
+	 * Tables list their data files under Downloads only when data access is `open` or `direct`.
+	 * Other types return false.
+	 *
+	 * @param int $sid
+	 * @return bool
+	 */
+	public function is_table_data_disabled($sid)
+	{
+		$row = $this->get_access_row($sid);
+
+		if (!$row || $row['type'] !== 'table') {
+			return false;
+		}
+
+		return !in_array($row['model'], array('open', 'direct'), true);
 	}
 
 	/**
@@ -709,8 +888,8 @@ class Dataset_model extends CI_Model {
 			$data['abbreviation']=substr($data['abbreviation'],0,40);
 		}
 
-		//indicators: validate data access; new indicators default to open
-		$this->apply_indicator_access_policy($type, $data, true);
+		//data access rules per dataset type (indicators, tables: default open)
+		$this->apply_access_policy($type, $data, true);
 
 		//keywords
 		if (isset($data['metadata']) && !isset($data['keywords'])){
@@ -777,8 +956,8 @@ class Dataset_model extends CI_Model {
 			$data['abbreviation']=substr($data['abbreviation'],0,40);
 		}
 
-		//indicators: validate data access
-		$this->apply_indicator_access_policy($type, $data);
+		//data access rules per dataset type
+		$this->apply_access_policy($type, $data, false, $sid);
 
 		//keywords
 		if (!isset($data['keywords']) && isset($data['metadata'])){
@@ -2102,10 +2281,10 @@ class Dataset_model extends CI_Model {
 			unset($options['aliases']);
 		}
 
-		//indicators: reject data access types that are not allowed
-		if (array_key_exists('formid', $data)) {
+		//data access rules per dataset type
+		if (array_key_exists('formid', $data) || array_key_exists('link_da', $data)) {
 			$da_type = isset($data['type']) ? $data['type'] : $this->get_type($sid);
-			$this->apply_indicator_access_policy($da_type, $data);
+			$this->apply_access_policy($da_type, $data, false, $sid);
 		}
 
 		if (empty($data)) {

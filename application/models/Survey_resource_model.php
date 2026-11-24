@@ -44,6 +44,9 @@ class Survey_resource_model extends CI_Model {
 	/** @var bool */
 	private $_dctype_group_cache_loaded = false;
 
+	/** survey id => true when its data files skip the data access checks */
+	private $_skip_access_check_cache = array();
+
 	/**
 	 * Studies whose resources changed while a bulk operation runs (see pause_index_queue()), queued once at its end.
 	 * Null when nothing is paused.
@@ -1064,6 +1067,24 @@ class Survey_resource_model extends CI_Model {
 	}
 	
 	/**
+	 * True when the study's data files skip the data access checks: document, image or video
+	 * with no stored data access type. A stored value (e.g. legacy `public`/`licensed`) is
+	 * never bypassed.
+	 *
+	 * @param int $survey_id
+	 * @return bool
+	 */
+	function skips_data_access_check($survey_id)
+	{
+		$survey_id = (int) $survey_id;
+		if (!isset($this->_skip_access_check_cache[$survey_id])) {
+			$this->load->model('Dataset_model');
+			$this->_skip_access_check_cache[$survey_id] = $this->Dataset_model->skips_data_access_check($survey_id);
+		}
+		return $this->_skip_access_check_cache[$survey_id];
+	}
+
+	/**
 	*
 	* Check user has access to resource file
 	*
@@ -1078,6 +1099,11 @@ class Survey_resource_model extends CI_Model {
 
 		$dctype = isset($resource_obj['dctype']) ? $resource_obj['dctype'] : '';
 		if (!$this->is_microdata_resource($dctype)) {
+			return true;
+		}
+
+		//document, image, video with no stored data access type: data files download freely
+		if ($this->skips_data_access_check($survey_id)) {
 			return true;
 		}
 		
@@ -1138,6 +1164,14 @@ class Survey_resource_model extends CI_Model {
 			return array(
 				'access' => true,
 				'is_microdata' => false
+			);
+		}
+
+		//document, image, video with no stored data access type: data files download freely
+		if ($this->skips_data_access_check($survey_id)) {
+			return array(
+				'access' => true,
+				'is_microdata' => true
 			);
 		}
 		
@@ -1230,6 +1264,64 @@ class Survey_resource_model extends CI_Model {
 		));
 		force_download2($resource_path);
 		exit;
+	}
+
+
+	/**
+	 * First local PDF of each study, and how many it has, for the catalog cards: one query for a whole page.
+	 *
+	 * Uses the same test as get_local_pdf_resources() but does not check that the file is on disk, so a listing
+	 * never touches the file system; a missing file shows the PDF viewer's own error.
+	 *
+	 * @param int[] $survey_ids
+	 * @return array<int, array{resource_id: int, title: string, count: int}> keyed by study id
+	 */
+	function get_first_local_pdf_by_surveys(array $survey_ids)
+	{
+		$survey_ids = array_values(array_unique(array_filter(array_map('intval', $survey_ids))));
+		if (empty($survey_ids)) {
+			return array();
+		}
+
+		$this->db->select('survey_id, resource_id, title, filename, dcformat, dctype');
+		$this->db->from('resources');
+		$this->db->where_in('survey_id', $survey_ids);
+		$this->db->group_start();
+		$this->db->where('is_url', 0);
+		$this->db->or_where('is_url IS NULL', null, false);
+		$this->db->group_end();
+		$this->db->group_start();
+		$this->db->where('resource_type IS NULL', null, false);
+		$this->db->or_where_not_in('resource_type', $this->_get_microdata_resource_type_codes());
+		$this->db->group_end();
+		$this->db->group_start();
+		$this->db->like('dcformat', 'application/pdf');
+		$this->db->or_like('filename', '.pdf', 'before');
+		$this->db->group_end();
+		$this->db->order_by('survey_id', 'ASC');
+		$this->db->order_by('sort_order', 'ASC');
+		$this->db->order_by('resource_id', 'ASC');
+		$query = $this->db->get();
+		if (!$query) {
+			return array();
+		}
+
+		$output = array();
+		foreach ($query->result_array() as $row) {
+			if (!$this->is_local_pdf_resource($row) || $this->is_microdata_resource($row['dctype'] ?? '')) {
+				continue;
+			}
+			$sid = (int) $row['survey_id'];
+			if (!isset($output[$sid])) {
+				$output[$sid] = array(
+					'resource_id' => (int) $row['resource_id'],
+					'title'       => (string) $row['title'],
+					'count'       => 0,
+				);
+			}
+			$output[$sid]['count']++;
+		}
+		return $output;
 	}
 
 

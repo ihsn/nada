@@ -5,6 +5,7 @@
 import { aliases as vuetifyMdiAliases, mdi } from 'vuetify/iconsets/mdi-svg';
 import {
   mdiAccountCheck,
+  mdiApi,
   mdiArrowLeft,
   mdiChartPie,
   mdiChartTimelineVariant,
@@ -47,6 +48,7 @@ import {
 export const catalogMdiAliases = {
   'mdi-account-check': `svg:${mdiAccountCheck}`,
   'mdi-arrow-left': `svg:${mdiArrowLeft}`,
+  'mdi-api': `svg:${mdiApi}`,
   'mdi-chart-pie': `svg:${mdiChartPie}`,
   'mdi-chart-timeline-variant': `svg:${mdiChartTimelineVariant}`,
   'mdi-chevron-down': `svg:${mdiChevronDown}`,

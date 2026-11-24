@@ -388,9 +388,9 @@ class Study extends MY_Controller {
 		
 		$user=$this->ion_auth->current_user();
 		$options['user_id']=isset($user->id) ? $user->id : false;
-        //indicators: list data files first on the Downloads tab, unless data access is `data_na`
-        $include_microdata=isset($survey['type']) && $survey['type']==='timeseries'
-            && !$this->Dataset_model->is_indicator_data_disabled($sid);
+        //types without a Get Microdata tab list data files first on the Downloads tab:
+        //indicators unless data access is `data_na`, tables when `open`/`direct`, document/image/video always
+        $include_microdata=$this->study_lists_data_files_in_downloads($sid, isset($survey['type']) ? $survey['type'] : '');
         $options['resources']=$this->Survey_resource_model->get_grouped_resources_by_survey($sid, $include_microdata);
         $options['group_labels'] = $this->Survey_resource_model->get_group_labels(ci_lang_to_iso());
         $options['sid']=$sid;
@@ -525,23 +525,140 @@ class Study extends MY_Controller {
 			show_404();
 		}
 
+		// every table linked to the study; the page lets visitors choose (?table=db/table)
+		$tables=array();
+		foreach($api_dataset as $link){
+			$tables[]=array('db_id'=>(string) $link['db_id'], 'table_id'=>(string) $link['table_id']);
+		}
+
 		$options=array(
             'db_id'=>$api_dataset[0]['db_id'],
             'table_id'=>$api_dataset[0]['table_id'],
+			'tables'=>$tables,
 			'idno'=>$survey['idno'],
 			'sid'=>$sid
         );
 
-        $content=$this->load->view('data_api/preview', $options,true); 
+		$this->load->helper('vite_helper');
+		$options['study_title']=isset($survey['title']) ? (string) $survey['title'] : '';
+		$options['table_data_api_ui']=$this->table_data_api_ui_strings();
+
+        $content=$this->load->view('catalog/study_data_api_public', $options,true); 
 		$this->render_page($sid, $content,'data_api', $survey);
+	}
+
+	/**
+	 * Translated strings for the public data tables Data API page (Vue app in
+	 * frontend/catalog/study_data_api_public; English fallbacks in its uiDefaults.js).
+	 *
+	 * @return array<string, string>
+	 */
+	private function table_data_api_ui_strings()
+	{
+		$keys = array(
+			'pageHeading' => 'table_data_api_page_heading',
+			'noTable' => 'table_data_api_no_table',
+			'rowsLabel' => 'table_data_api_rows_label',
+			'columnsLabel' => 'table_data_api_columns_label',
+			'downloadCsv' => 'table_data_api_download_csv',
+			'downloadCsvUploaded' => 'table_data_api_download_csv_uploaded',
+			'updatedLabel' => 'table_data_api_updated_label',
+			'errorPrefix' => 'table_data_api_error_prefix',
+			'loading' => 'table_data_api_loading',
+			'explorerHeading' => 'table_data_api_explorer_heading',
+			'columnsButton' => 'table_data_api_columns_button',
+			'columnsHeading' => 'table_data_api_columns_heading',
+			'columnsSelected' => 'table_data_api_columns_selected',
+			'columnsSearch' => 'table_data_api_columns_search',
+			'selectAll' => 'table_data_api_select_all',
+			'selectDefault' => 'table_data_api_select_default',
+			'selectNone' => 'table_data_api_select_none',
+			'filtersHeading' => 'table_data_api_filters_heading',
+			'filterIndexedHint' => 'table_data_api_filter_indexed_hint',
+			'filterColumn' => 'table_data_api_filter_column',
+			'filterValue' => 'table_data_api_filter_value',
+			'filterNumericHint' => 'table_data_api_filter_numeric_hint',
+			'filterTextHint' => 'table_data_api_filter_text_hint',
+			'addFilter' => 'table_data_api_add_filter',
+			'removeFilter' => 'table_data_api_remove_filter',
+			'applyFilters' => 'table_data_api_apply_filters',
+			'clearFilters' => 'table_data_api_clear_filters',
+			'showing' => 'table_data_api_showing',
+			'showingFiltered' => 'table_data_api_showing_filtered',
+			'noRows' => 'table_data_api_no_rows',
+			'noData' => 'table_data_api_no_data',
+			'ignoredFields' => 'table_data_api_ignored_fields',
+			'developerHeading' => 'table_data_api_developer_heading',
+			'queryUrlLabel' => 'table_data_api_query_url_label',
+			'jsonResponseLabel' => 'table_data_api_json_response_label',
+			'cancel' => 'table_data_api_cancel',
+			'copy' => 'table_data_api_copy',
+			'copied' => 'table_data_api_copied',
+			'copyFailed' => 'table_data_api_copy_failed',
+			'open' => 'table_data_api_open',
+			'dictionaryHeading' => 'table_data_api_dictionary_heading',
+			'dictionarySearch' => 'table_data_api_dictionary_search',
+			'dictionaryEmpty' => 'table_data_api_dictionary_empty',
+			'colName' => 'table_data_api_col_name',
+			'colLabel' => 'table_data_api_col_label',
+			'colType' => 'table_data_api_col_type',
+			'colCodes' => 'table_data_api_col_codes',
+			'codeCol' => 'table_data_api_code_col',
+			'codesCount' => 'table_data_api_codes_count',
+			'apiHeading' => 'table_data_api_api_heading',
+			'apiInfoLabel' => 'table_data_api_api_info_label',
+			'apiDataLabel' => 'table_data_api_api_data_label',
+			'apiDictionaryLabel' => 'table_data_api_api_dictionary_label',
+			'apiDownloadLabel' => 'table_data_api_api_download_label',
+			'apiParamsHeading' => 'table_data_api_api_params_heading',
+			'parameterCol' => 'table_data_api_parameter_col',
+			'descriptionCol' => 'table_data_api_description_col',
+			'paramFields' => 'table_data_api_param_fields',
+			'paramLimit' => 'table_data_api_param_limit',
+			'paramOffset' => 'table_data_api_param_offset',
+			'paramFormat' => 'table_data_api_param_format',
+			'paramDisposition' => 'table_data_api_param_disposition',
+			'paramColumn' => 'table_data_api_param_column',
+			'paramC' => 'table_data_api_param_c',
+			'paramFtQuery' => 'table_data_api_param_ft_query',
+			'filterSyntaxHeading' => 'table_data_api_filter_syntax_heading',
+			'filterAnyOf' => 'table_data_api_filter_any_of',
+			'filterRange' => 'table_data_api_filter_range',
+			'filterGte' => 'table_data_api_filter_gte',
+			'filterExclude' => 'table_data_api_filter_exclude',
+			'filterQuoted' => 'table_data_api_filter_quoted',
+			'filterCombine' => 'table_data_api_filter_combine',
+			'examplesHeading' => 'table_data_api_examples_heading',
+			'exampleFirstRows' => 'table_data_api_example_first_rows',
+			'exampleNextPage' => 'table_data_api_example_next_page',
+			'exampleColumns' => 'table_data_api_example_columns',
+			'exampleCsv' => 'table_data_api_example_csv',
+			'exampleAggregate' => 'table_data_api_example_aggregate',
+			'bulkDownloadsHeading' => 'indicator_bulk_downloads_heading',
+			'bulkFileCol' => 'indicator_data_api_bulk_file',
+			'bulkDateCol' => 'indicator_data_api_bulk_date',
+			'bulkActionsCol' => 'indicator_data_api_bulk_actions',
+			'download' => 'indicator_data_api_download',
+			'link' => 'indicator_data_api_link',
+		);
+		$out = array();
+		foreach ($keys as $js_key => $lang_key) {
+			$text = function_exists('t') ? t($lang_key) : $lang_key;
+			// t() returns the key itself when a translation is missing: let the JS fallback apply
+			if ($text !== '' && $text !== $lang_key) {
+				$out[$js_key] = $text;
+			}
+		}
+		return $out;
 	}
 	
 	public function get_microdata($sid)
 	{
 		$survey=$this->get_survey_info($sid);
 
-		//indicators: data files are listed on the Downloads tab
-		if (isset($survey['type']) && $survey['type'] === 'timeseries'){
+		//indicators, tables, document/image/video: data files are listed on the Downloads tab,
+		//unless a stored legacy data access type (e.g. public/licensed) still applies
+		if (isset($survey['type']) && !$this->study_has_get_microdata_page($sid, $survey['type'])){
 			show_404();
 		}
 
@@ -778,7 +895,7 @@ class Study extends MY_Controller {
 	}
 
 	/**
-	 * Translated strings for the public indicator Data API Vue tab (aligned with data_api/preview.php).
+	 * Translated strings for the public indicator Data API Vue tab.
 	 *
 	 * @return array<string, string>
 	 */
@@ -978,7 +1095,12 @@ class Study extends MY_Controller {
 				break;
 			case 'video':
 			case 'image':
-				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources']);
+				//no data access type: data files are listed on Downloads; a stored legacy type keeps Get Microdata
+				$legacy_access=$this->Dataset_model->has_legacy_data_access($sid);
+				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources'] + ($legacy_access ? 0 : $counts['microdata']));
+				if ($legacy_access){
+					$tabs['get_microdata']=$this->study_page_tab($sid, 'get-microdata', t('get_microdata'), $counts['microdata']);
+				}
 				break;
 			case 'timeseries':
 				//data access `data_na`: hide data tabs and data files; structure stays visible
@@ -998,10 +1120,22 @@ class Study extends MY_Controller {
 				break;
 			case 'document':
 				$tabs['view_document']=$this->study_page_tab($sid, 'view-document', t('tab_view_document'), $counts['document_pdfs']);
-				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources']);
-				$tabs['get_microdata']=$this->study_page_tab($sid, 'get-microdata', t('get_microdata'), $counts['microdata']);
+				//no data access type: data files are listed on Downloads; a stored legacy type keeps Get Microdata
+				$legacy_access=$this->Dataset_model->has_legacy_data_access($sid);
+				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources'] + ($legacy_access ? 0 : $counts['microdata']));
+				if ($legacy_access){
+					$tabs['get_microdata']=$this->study_page_tab($sid, 'get-microdata', t('get_microdata'), $counts['microdata']);
+				}
 				break;
 			case 'table':
+				//data files are listed on Downloads when data access is `open` or `direct`;
+				//a stored legacy type (e.g. public/licensed) keeps Get Microdata
+				$table_data_disabled=$this->Dataset_model->is_table_data_disabled($sid);
+				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources'] + ($table_data_disabled ? 0 : $counts['microdata']));
+				if ($this->Dataset_model->has_legacy_data_access($sid)){
+					$tabs['get_microdata']=$this->study_page_tab($sid, 'get-microdata', t('get_microdata'), $counts['microdata']);
+				}
+				break;
 			case 'script':
 				$tabs['related_materials']=$this->study_page_tab($sid, 'related-materials', t('related_materials'), $counts['resources']);
 				$tabs['get_microdata']=$this->study_page_tab($sid, 'get-microdata', t('get_microdata'), $counts['microdata']);
@@ -1023,6 +1157,54 @@ class Study extends MY_Controller {
 
 
 	/**
+	 * True when the study's data files are listed on the Downloads tab (types without a Get Microdata tab).
+	 *
+	 * - timeseries: unless data access is `data_na`
+	 * - table: when data access is `open` or `direct`
+	 * - document, image, video: always (no data access type)
+	 *
+	 * @param int    $sid
+	 * @param string $type
+	 * @return bool
+	 */
+	private function study_lists_data_files_in_downloads($sid, $type)
+	{
+		if ($type === 'timeseries') {
+			return !$this->Dataset_model->is_indicator_data_disabled($sid);
+		}
+		if ($type === 'table') {
+			return !$this->Dataset_model->is_table_data_disabled($sid);
+		}
+		if (!$this->Dataset_model->type_has_data_access($type)) {
+			//a stored legacy type (e.g. public/licensed) keeps its Get Microdata workflow
+			return !$this->Dataset_model->has_legacy_data_access($sid);
+		}
+		return false;
+	}
+
+	/**
+	 * True when the study has a Get Microdata page.
+	 *
+	 * Indicators never do. Tables, document, image and video only while a stored legacy data access
+	 * type (e.g. public/licensed) still applies. All other types do.
+	 *
+	 * @param int    $sid
+	 * @param string $type
+	 * @return bool
+	 */
+	private function study_has_get_microdata_page($sid, $type)
+	{
+		if ($type === 'timeseries') {
+			return false;
+		}
+		if ($type === 'table' || !$this->Dataset_model->type_has_data_access($type)) {
+			return $this->Dataset_model->has_legacy_data_access($sid);
+		}
+		return true;
+	}
+
+
+	/**
 	 * Count keys required to decide tab visibility for a catalog type.
 	 *
 	 * @param string $type
@@ -1038,7 +1220,7 @@ class Study extends MY_Controller {
 				return array('datafiles', 'resources', 'microdata', 'citations', 'related_studies', 'data_api');
 			case 'video':
 			case 'image':
-				return array('resources');
+				return array('resources', 'microdata');
 			case 'timeseries':
 				return array('resources', 'microdata', 'indicator');
 			case 'timeseriesdb':

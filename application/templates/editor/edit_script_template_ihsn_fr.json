@@ -418,7 +418,7 @@
                             "help_text": "Une liste des personnes et\/ou organisations en charge de la conservation des ressources associées au projet."
                         },
                         {
-                            "key": "project_desc.acknowledgments",
+                            "key": "project_desc.acknowledgements",
                             "title": "Remerciements",
                             "type": "array",
                             "props": [
@@ -426,7 +426,7 @@
                                     "key": "name",
                                     "title": "Nom",
                                     "type": "string",
-                                    "prop_key": "project_desc.acknowledgments.name",
+                                    "prop_key": "project_desc.acknowledgements.name",
                                     "help_text": "Le nom de la personne ou de l'agence reconnue pour avoir soutenu le projet.",
                                     "display_type": "text"
                                 },
@@ -434,7 +434,7 @@
                                     "key": "affiliation",
                                     "title": "Affiliation",
                                     "type": "string",
-                                    "prop_key": "project_desc.acknowledgments.affiliation",
+                                    "prop_key": "project_desc.acknowledgements.affiliation",
                                     "help_text": "L'affiliation de la personne ou de l'agence reconnue.",
                                     "display_type": "text"
                                 },
@@ -442,7 +442,7 @@
                                     "key": "role",
                                     "title": "Rôle",
                                     "type": "string",
-                                    "prop_key": "project_desc.acknowledgments.role",
+                                    "prop_key": "project_desc.acknowledgements.role",
                                     "help_text": "Une brève description du rôle de la personne ou de l'agence reconnue ou reconnue pour avoir soutenu le projet.",
                                     "display_type": "textarea"
                                 }
@@ -450,7 +450,7 @@
                             "help_text": "Ce bloc répétable d'éléments est utilisé pour fournir une liste détaillée des personnes et des organisations dont la contribution au projet doit être reconnue. Notez que des éléments de métadonnées spécifiques sont disponibles pour répertorier les sponsors financiers et les principaux contributeurs à l'étude. Une alternative à ce champ est le champ \"Déclaration de remerciement\" (voir ci-dessous) qui peut être utilisé pour fournir l'accusé de réception sous la forme d'un texte non structuré."
                         },
                         {
-                            "key": "project_desc.acknowledgment_statement",
+                            "key": "project_desc.acknowledgement_statement",
                             "title": "Déclaration de remerciement",
                             "type": "string",
                             "help_text": "Ce champ est utilisé pour fournir des accusés de réception sous la forme d'un texte non structuré. C'est une alternative à l'élément \"Acknowledgements\" qui apporte une solution pour détailler les accusés de réception.",

@@ -220,6 +220,7 @@ CREATE TABLE meta (
   country varchar(100) DEFAULT NULL,
   PRIMARY KEY (id)
 );
+CREATE NONCLUSTERED INDEX idx_meta_user_id ON meta (user_id) INCLUDE (first_name, last_name);
 
 
 --
@@ -996,6 +997,8 @@ CREATE TABLE users (
 );
 CREATE NONCLUSTERED INDEX idx_authtype ON users (authtype);
 CREATE NONCLUSTERED INDEX idx_authtype_id ON users (authtype, authtype_id);
+CREATE NONCLUSTERED INDEX idx_users_email ON users (email);
+CREATE NONCLUSTERED INDEX idx_users_username ON users (username);
 
 
 --
@@ -2007,6 +2010,7 @@ CREATE TABLE survey_data_api (
   table_id varchar(100) DEFAULT NULL,
   PRIMARY KEY (id)
 );
+CREATE NONCLUSTERED INDEX idx_sda_sid ON survey_data_api (sid);
 
 
 -- ============================================================

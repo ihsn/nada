@@ -418,10 +418,10 @@
                                         "display_type": "text"
                                     },
                                     {
-                                        "key": "abbreviation",
+                                        "key": "abbr",
                                         "title": "Abbreviation",
                                         "type": "string",
-                                        "prop_key": "study_desc.production_statement.producers.abbreviation",
+                                        "prop_key": "study_desc.production_statement.producers.abbr",
                                         "help_text": "The official abbreviation of the organization mentioned in \"Name\".",
                                         "display_type": "text"
                                     },
@@ -443,6 +443,20 @@
                                     }
                                 ],
                                 "help_text": "This field is used to list other parties and persons that have played a significant but not the leading technical role in implementing and producing the data (which will be listed in \"Authoring entity\"). Do not include here the financial sponsors, who should be listed in \"Funding agencies\"."
+                            },
+                            {
+                                "key": "study_desc.production_statement.prod_date",
+                                "title": "Production date",
+                                "type": "string",
+                                "help_text": "Date when the data collection or other material(s) were produced (not distributed or archived).",
+                                "display_type": "date"
+                            },
+                            {
+                                "key": "study_desc.production_statement.prod_place",
+                                "title": "Production place",
+                                "type": "string",
+                                "help_text": "Address of the archive or organization that produced the work.",
+                                "display_type": "text"
                             },
                             {
                                 "key": "study_desc.production_statement.funding_agencies",
@@ -743,11 +757,25 @@
                                 "display_type": "textarea"
                             },
                             {
+                                "key": "study_desc.method.data_collection.instru_development_type",
+                                "title": "Instrument development type",
+                                "type": "string",
+                                "help_text": "Instrument development type.",
+                                "display_type": "text"
+                            },
+                            {
                                 "key": "study_desc.method.method_notes",
                                 "title": "Notes on methodology",
                                 "type": "string",
                                 "help_text": "This element is provided to capture any additional relevant information on the data collection methodology, which could not fit in the previous metadata elements.",
                                 "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.method.study_class",
+                                "title": "Class of the study",
+                                "type": "string",
+                                "help_text": "The data archive's class or study status number, which indicates the processing status of the study.",
+                                "display_type": "text"
                             }
                         ],
                         "help_text": ""
@@ -1005,6 +1033,49 @@
                                 "help_text": "A description of the methods used to clean or edit the data, e.g., consistency checking, wild code checking, etc. The data editing should contain information on how the data was treated or controlled for in terms of consistency and coherence. This item does not concern the data entry phase but only the editing of data whether manual or automatic. It should provide answers to questions like: Was a hot-deck or a cold-deck technique used to edit the data? Were corrections made automatically (by program), or by visual control of the questionnaire? What software was used? If materials are available (specifications for data editing, report on data editing, programs used for data editing), they should be listed here and provided as external resources in data catalogs (the best documentation of data editing consists of well-documented reproducible scripts).",
                                 "enum": [],
                                 "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.method.coding_instructions",
+                                "title": "Coding instructions",
+                                "type": "array",
+                                "help_text": "Specific coding instructions used in data processing, cleaning, assession, or tabulation.",
+                                "props": [
+                                    {
+                                        "key": "related_processes",
+                                        "title": "Related processes",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.coding_instructions.related_processes",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "type",
+                                        "title": "Type",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.coding_instructions.type",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "txt",
+                                        "title": "Instructions",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.coding_instructions.txt",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "command",
+                                        "title": "Command",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.coding_instructions.command",
+                                        "display_type": "textarea"
+                                    },
+                                    {
+                                        "key": "formal_language",
+                                        "title": "Language",
+                                        "type": "string",
+                                        "prop_key": "study_desc.method.coding_instructions.formal_language",
+                                        "display_type": "text"
+                                    }
+                                ]
                             }
                         ],
                         "help_text": ""
@@ -1658,11 +1729,64 @@
                         "type": "section",
                         "items": [
                             {
-                                "key": "study_description.study_notes",
+                                "key": "study_desc.study_notes",
                                 "title": "Notes on the study",
                                 "help_text": "This element can be used to provide additional information on the study which cannot be accommodated in the specific metadata elements of the schema, in the form of a free text field.",
                                 "type": "string",
                                 "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.bib_citation",
+                                "title": "Bibliographic citation",
+                                "type": "string",
+                                "help_text": "Complete bibliographic reference containing all of the standard elements of a citation that can be used to cite the work.",
+                                "display_type": "textarea"
+                            },
+                            {
+                                "key": "study_desc.bib_citation_format",
+                                "title": "Bibliographic citation format",
+                                "type": "string",
+                                "help_text": "The citation style used, e.g., APA, MLA, Chicago.",
+                                "display_type": "text"
+                            },
+                            {
+                                "key": "study_desc.holdings",
+                                "title": "Holdings",
+                                "type": "array",
+                                "help_text": "Information concerning either the physical or electronic holdings of the cited work.",
+                                "props": [
+                                    {
+                                        "key": "name",
+                                        "title": "Name",
+                                        "type": "string",
+                                        "prop_key": "study_desc.holdings.name",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "location",
+                                        "title": "Location",
+                                        "type": "string",
+                                        "prop_key": "study_desc.holdings.location",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "callno",
+                                        "title": "Call number",
+                                        "type": "string",
+                                        "prop_key": "study_desc.holdings.callno",
+                                        "display_type": "text"
+                                    },
+                                    {
+                                        "key": "uri",
+                                        "title": "URI",
+                                        "type": "string",
+                                        "prop_key": "study_desc.holdings.uri",
+                                        "display_type": "text",
+                                        "display_options": {
+                                            "is_uri": true
+                                        }
+                                    }
+                                ]
                             }
                         ],
                         "help_text": ""
@@ -1737,6 +1861,13 @@
                         "required": false,
                         "help_text": "",
                         "items": [
+                            {
+                                "key": "doc_desc.title",
+                                "title": "Document title",
+                                "type": "string",
+                                "help_text": "Title of the metadata document.",
+                                "display_type": "text"
+                            },
                             {
                                 "key": "doc_desc.idno",
                                 "title": "Document ID",

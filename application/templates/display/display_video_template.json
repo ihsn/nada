@@ -248,10 +248,17 @@
                                         "prop_key": "video_description.contributors.affiliation"
                                     },
                                     {
+                                        "key": "abbr",
+                                        "title": "Abbreviation",
+                                        "type": "string",
+                                        "prop_key": "video_description.contributors.abbr"
+                                    },
+                                    {
                                         "key": "abbreviation",
                                         "title": "Abbreviation",
                                         "type": "string",
-                                        "prop_key": "video_description.contributors.abbreviation"
+                                        "prop_key": "video_description.contributors.abbreviation",
+                                        "_note": "Legacy key saved by the metadata editor; schema uses abbr. Empty columns are hidden, so only one shows."
                                     },
                                     {
                                         "key": "role",

@@ -2880,7 +2880,7 @@
                             "display_type": "textarea"
                         },
                         {
-                            "key": "study_desc.method.data_collection.analysis_info.data_appraisal",
+                            "key": "study_desc.method.analysis_info.data_appraisal",
                             "title": "Other data appraisal",
                             "type": "string",
                             "help_text": "This section is used to report any other action taken to assess the reliability of the data, or any observations regarding data quality. Describe here issues such as response variance, interviewer and response bias, question bias, etc. For a population census, this can include information on the main results of a post enumeration survey (a report should be provided in external resources and mentioned here); it can also include relevant comparisons with data from other sources that can be used as benchmarks.",

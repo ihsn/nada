@@ -74,13 +74,6 @@ $config['survey'][] = array(
 );
 
 $config['survey'][] = array(
-	'uid'  => 'display-232ea3aaece0cdf1db157f797f6b92e5fr',
-	'name' => 'IHSN DDI 2.5 Modèle v01 FR',
-	'lang' => 'fr',
-	'file' => 'templates/editor/edit_survey_template_ihsn_2.5_v1_fr.json',
-);
-
-$config['survey'][] = array(
 	'uid'  => 'display-microdata-system-es',
 	'name' => 'Microdatos DDI 2.5 ES',
 	'lang' => 'es',
@@ -112,13 +105,6 @@ $config['timeseries'][] = array(
 	'file'        => 'templates/editor/edit_timeseries_template_ihsn.json',
 );
 
-$config['timeseries'][] = array(
-	'uid'  => 'display-b576eb7519fe8e761a239f9d36f032c3fr',
-	'name' => 'IHSN INDICATOR 1.0 Modèle v01 FR',
-	'lang' => 'fr',
-	'file' => 'templates/editor/edit_timeseries_template_ihsn_fr.json',
-);
-
 $config['timeseries-db'][] = array(
 	'uid'         => 'display-timeseries-db-system-en',
 	'name'        => 'Timeseries database display template',
@@ -134,13 +120,6 @@ $config['timeseries-db'][] = array(
 	'version'     => '1.0',
 	'description' => 'Database metadata schema for indicator time series containers.',
 	'file'        => 'templates/editor/edit_timeseries-db_template_ihsn.json',
-);
-
-$config['timeseries-db'][] = array(
-	'uid'  => 'display-776d77524fe8130f520035fb9b077d82',
-	'name' => 'IHSN BASE DE DONNEES 1.0 Modèle v01 FR',
-	'lang' => 'fr',
-	'file' => 'templates/editor/edit_timeseries-db_template_ihsn_fr.json',
 );
 
 // Alias used by some NADA code paths
@@ -172,13 +151,6 @@ $config['script'][] = array(
 	'name' => 'IHSN SCRIPT 1.0 Template v01 EN',
 	'lang' => 'en',
 	'file' => 'templates/editor/edit_script_template_ihsn.json',
-);
-
-$config['script'][] = array(
-	'uid'  => 'display-d31789f2d6dcdf3c7dc07a5729d09ac9fr',
-	'name' => 'IHSN SCRIPT 1.0 Modèle v01 FR',
-	'lang' => 'fr',
-	'file' => 'templates/editor/edit_script_template_ihsn_fr.json',
 );
 
 $config['geospatial'][] = array(
@@ -220,13 +192,6 @@ $config['document'][] = array(
 	'file' => 'templates/editor/edit_document_template_ihsn.json',
 );
 
-$config['document'][] = array(
-	'uid'  => 'display-4915f93564fbde26945dd9022b9d7fc1fr',
-	'name' => 'IHSN DOCUMENT 1.0 Modèle v01 FR',
-	'lang' => 'fr',
-	'file' => 'templates/editor/edit_document_template_ihsn_fr.json',
-);
-
 $config['table'][] = array(
 	'uid'         => 'display-table-system-en',
 	'name'        => 'Table display template',
@@ -240,13 +205,6 @@ $config['table'][] = array(
 	'name' => 'IHSN TABLE 1.0 Template v01 EN',
 	'lang' => 'en',
 	'file' => 'templates/editor/edit_table_template_ihsn.json',
-);
-
-$config['table'][] = array(
-	'uid'  => 'display-9454eee369c79c65cdc0b4ee23aed4e8fr',
-	'name' => 'IHSN TABLEAU 1.0 Modèle v01 FR',
-	'lang' => 'fr',
-	'file' => 'templates/editor/edit_table_template_ihsn_fr.json',
 );
 
 $config['image'][] = array(
@@ -279,24 +237,10 @@ $config['image'][] = array(
 );
 
 $config['image'][] = array(
-	'uid'  => 'display-6192765f2dbddb6bd93f3f92a29129d3fr',
-	'name' => 'IHSN IMAGE DCMI Modèle 1.0 FR',
-	'lang' => 'fr',
-	'file' => 'templates/editor/edit_image_dcmi_template_ihsn_fr.json',
-);
-
-$config['image'][] = array(
 	'uid'  => 'display-2bfd3fb47e291331a43e949e9e38675een',
 	'name' => 'IHSN IMAGE IPTC 2022.1 Template v01 EN',
 	'lang' => 'en',
 	'file' => 'templates/editor/edit_image_iptc_template_ihsn.json',
-);
-
-$config['image'][] = array(
-	'uid'  => 'display-21769091754bb7c998a1caf0fa75800cfr',
-	'name' => 'IHSN IMAGE IPTC 2022.1 Modèle v01 FR',
-	'lang' => 'fr',
-	'file' => 'templates/editor/edit_image_iptc_template_ihsn_fr.json',
 );
 
 $config['video'][] = array(
@@ -314,13 +258,6 @@ $config['video'][] = array(
 	'file' => 'templates/editor/edit_video_template_ihsn.json',
 );
 
-$config['video'][] = array(
-	'uid'  => 'display-e3e5a1d8bd0338c1b3a5d6bfff8e5517',
-	'name' => 'IHSN VIDEO 1.0 Modèle v01 FR',
-	'lang' => 'fr',
-	'file' => 'templates/editor/edit_video_template_ihsn_fr.json',
-);
-
 $config['resource'][] = array(
 	'uid'         => 'display-resource-system-en',
 	'name'        => 'Resource display template',
@@ -334,13 +271,6 @@ $config['resource'][] = array(
 	'name' => 'IHSN EXT RESOURCES 1.0 Template v01 EN',
 	'lang' => 'en',
 	'file' => 'templates/editor/edit_resource_template_ihsn.json',
-);
-
-$config['resource'][] = array(
-	'uid'  => 'display-453a8bf9f800465f3cb8dc37699cb574',
-	'name' => 'IHSN RESSOURCES EXT 1.0 Modèle v01 FR',
-	'lang' => 'fr',
-	'file' => 'templates/editor/edit_resource_template_ihsn_fr.json',
 );
 
 /*

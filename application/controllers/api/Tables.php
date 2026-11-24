@@ -87,12 +87,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/index');
 		}
 	}
 
@@ -124,7 +120,7 @@ class Tables extends MY_REST_Controller
 			if(isset($options['format']) && $options['format']=='csv'){
 
 				if ($this->input->get("disposition")=='inline'){
-					$this->export_data_to_csv(array_values($table_storage_info));
+					$this->output_table_csv(array_values($table_storage_info), array());
 					die();
 				}
 				
@@ -139,12 +135,8 @@ class Tables extends MY_REST_Controller
 			}
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/collection_tables');
 		}
 	}	
 
@@ -161,6 +153,7 @@ class Tables extends MY_REST_Controller
 			$options=$this->raw_json_input();						
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->require_table($db_id, $table_id);
 			$result=$this->Data_table_mongo_model->get_table_info($db_id,$table_id);
 
 			$metadata = $result['table_type'];
@@ -199,7 +192,13 @@ class Tables extends MY_REST_Controller
 				try {
 					$validated_path = validate_file_path($table_type_full['csv_file_path'], $db_id, $table_id);
 					$stored_csv['available'] = file_exists('datafiles/' . $validated_path);
-					$stored_csv['file_path'] = $validated_path;
+					if ($stored_csv['available']) {
+						$stored_csv['size_bytes'] = (int) @filesize('datafiles/' . $validated_path);
+					}
+					// the storage path is internal: admins only
+					if ($this->can_edit_tables()) {
+						$stored_csv['file_path'] = $validated_path;
+					}
 				} catch (Exception $e) {
 					$stored_csv['available'] = false;
 				}
@@ -209,6 +208,8 @@ class Tables extends MY_REST_Controller
 				'count'=>$result['count'],
 				'metadata'=>$metadata,
 				'stored_csv'=>$stored_csv,
+				// columns the public Data API page offers as filters (see get_filterable_fields)
+				'filterable_fields'=>$this->Data_table_mongo_model->get_filterable_fields($db_id, $table_id),
 			);
 			
 			$response=array(
@@ -218,12 +219,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/info');
 		}
 	}
 
@@ -239,6 +236,7 @@ class Tables extends MY_REST_Controller
 		try {
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->require_table($db_id, $table_id);
 
 			$report = $this->Data_table_mongo_model->validate_table($db_id, $table_id);
 
@@ -249,11 +247,8 @@ class Tables extends MY_REST_Controller
 				'issues' => $report['issues'],
 				'context' => $report['context'],
 			), REST_Controller::HTTP_OK);
-		} catch (Exception $e) {
-			$this->set_response(array(
-				'status' => 'failed',
-				'message' => $e->getMessage(),
-			), REST_Controller::HTTP_BAD_REQUEST);
+		} catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/validate');
 		}
 	}
 
@@ -280,12 +275,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/databases');
 		}
 	}
 
@@ -304,6 +295,7 @@ class Tables extends MY_REST_Controller
 
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->require_table($db_id, $table_id);
 			
 			$output=$this->Data_table_mongo_model->get_collection_indexes($db_id,$table_id);
 			
@@ -314,12 +306,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/indexes');
 		}
 	}
 
@@ -353,12 +341,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/indexes');
 		}
 	}
 
@@ -393,12 +377,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/text_index');
 		}
 	}
 
@@ -432,12 +412,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/indexes');
 		}
 	}
 
@@ -475,12 +451,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/indexes_delete_all');
 		}
 	}
 
@@ -512,12 +484,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/indexes_apply');
 		}
 	}
 
@@ -544,12 +512,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/indexes_sync_definition');
 		}
 	}
 
@@ -566,47 +530,36 @@ class Tables extends MY_REST_Controller
 	function data_get($db_id=null,$table_id=null,$limit=100,$offset=0)
 	{
 		try{
-			$get_params=array();
-			parse_str($_SERVER['QUERY_STRING'], $get_params);
-			
-			$options=array();			
-			foreach(array_keys($get_params) as $param){
-				$options[$param]=$this->input->get($param,true);
+			$options=$this->table_query_options();
+
+			$offset_param = $this->input->get("offset");
+			if (is_numeric($offset_param) && (int)$offset_param >= 0){
+				$offset=(int)$offset_param;
 			}
 
-			if ($this->input->get("offset") > 1){
-				$offset=(int)$this->input->get("offset");
-			}
-
-			if ($this->input->get("limit") > 1){
-				$limit=(int)$this->input->get("limit");
+			$limit_param = $this->input->get("limit");
+			if (is_numeric($limit_param) && (int)$limit_param >= 1){
+				$limit=(int)$limit_param;
 			}
 
 			$user_id=$this->get_api_user_id();			
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->require_table($db_id, $table_id);
 
+			$this->restrict_debug_option($options);
 			$response=$this->Data_table_mongo_model->get_table_data($db_id,$table_id,$limit,$offset,$options);
 			
-			if(isset($options['format']) && strtolower($options['format'])=='csv'){
-
-				if ($this->input->get("disposition")=='inline'){
-					$this->export_data_to_csv($response['data']);
-					die();
-				}
-				
-				header('Content-Disposition: attachment; filename=table-'."{$db_id}-{$table_id}-{$offset}".'.csv');
-				$response=$response['data'];
+			if($this->is_csv_request($options)){
+				$columns=$this->Data_table_mongo_model->get_csv_columns($db_id,$table_id,$options,'data');
+				$this->output_table_csv($response['data'], $columns, $this->csv_attachment_name($options, "table-{$db_id}-{$table_id}-{$offset}.csv"));
+				die();
 			}
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/data');
 		}
 	}
 
@@ -618,6 +571,34 @@ class Tables extends MY_REST_Controller
 	 * 
 	 * 
 	 */
+	/**
+	 * Clear the server-side cache for a table (cached data/aggregate responses,
+	 * filtered counts and bulk export files). Needed when data is loaded into
+	 * MongoDB outside the API; API writes clear the cache automatically.
+	 *
+	 * POST /api/tables/cache_clear/{db_id}/{table_id}
+	 */
+	function cache_clear_post($db_id=null, $table_id=null)
+	{
+		$this->require_access('table', 'edit');
+
+		try{
+			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
+			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+
+			$deleted = $this->Data_table_mongo_model->clear_table_api_cache($db_id, $table_id);
+
+			$this->set_response(array(
+				'status'=>'success',
+				'files_deleted'=>$deleted
+			), REST_Controller::HTTP_OK);
+		}
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/cache_clear');
+		}
+	}
+
+
 	function download_get($db_id=null, $table_id=null)
 	{
 		try{
@@ -626,13 +607,13 @@ class Tables extends MY_REST_Controller
 			$this->Data_table_mongo_model->download_csv_file($db_id, $table_id);
 			die();
 		}
-		catch(Exception $e){
+		catch (Api_exception $e) {
+			$this->api_error_response($e, 'tables/download');
+		}
+		catch (Throwable $e) {
+			// missing or invalid stored file: details stay in the log
 			log_message('error', 'Tables::download_get error: '.$e->getMessage());
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>'File is not available'
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+			$this->api_error_response(new Api_exception('File is not available', 404), 'tables/download');
 		}
 	}
 
@@ -649,19 +630,14 @@ class Tables extends MY_REST_Controller
 		try{
 			$this->require_access('table', 'edit');
 
-			$get_params=array();
-			parse_str($_SERVER['QUERY_STRING'], $get_params);
-			
-			$options=array();			
-			foreach(array_keys($get_params) as $param){
-				$options[$param]=$this->input->get($param,true);
-			}
+			$options=$this->table_query_options();
 
 			$user_id=$this->get_api_user_id();
 
 			
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->require_table($db_id, $table_id);
 
 			$data_format=isset($options['format']) ? $options['format'] : 'json';
 
@@ -672,12 +648,8 @@ class Tables extends MY_REST_Controller
 			$this->Data_table_mongo_model->export_data($db_id,$table_id,$data_format,$options);
 			die();
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/export');
 		}
 	}
 
@@ -686,67 +658,236 @@ class Tables extends MY_REST_Controller
 	{
 		try{
 			
-			$get_params=array();
-			parse_str($_SERVER['QUERY_STRING'], $get_params);
-			
-			$options=array();			
-			foreach(array_keys($get_params) as $param){
-				$options[$param]=$this->input->get($param,true);
+			$options=$this->table_query_options();
+
+			$offset_param = $this->input->get("offset");
+			if (is_numeric($offset_param) && (int)$offset_param >= 0){
+				$offset=(int)$offset_param;
 			}
 
-			if ($this->input->get("offset") > 1){
-				$offset=(int)$this->input->get("offset");
-			}
-
-			if ($this->input->get("limit") > 1){
-				$limit=(int)$this->input->get("limit");
+			$limit_param = $this->input->get("limit");
+			if (is_numeric($limit_param) && (int)$limit_param >= 1){
+				$limit=(int)$limit_param;
 			}
 
 			$user_id=$this->get_api_user_id();
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->require_table($db_id, $table_id);
 
+			$this->restrict_debug_option($options);
 			$response=$this->Data_table_mongo_model->get_table_aggregate($db_id,$table_id,$limit,$offset,$options);
 			
-			if(isset($options['format']) && $options['format']=='csv'){
-
-				if ($this->input->get("disposition")=='inline'){
-					$this->export_data_to_csv($response['data']);
-					die();
-				}
-				
-				header('Content-Disposition: attachment; filename=table-'."{$db_id}-{$table_id}-{$offset}".'.csv');
-				$response=$response['data'];
+			if($this->is_csv_request($options)){
+				$columns=$this->Data_table_mongo_model->get_csv_columns($db_id,$table_id,$options,'aggregate');
+				$this->output_table_csv($response['data'], $columns, $this->csv_attachment_name($options, "table-{$db_id}-{$table_id}-aggregate-{$offset}.csv"));
+				die();
 			}
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/aggregate');
 		}
 	}
 
 
-	private function export_data_to_csv($data,$filename='export',$delimiter = ',',$enclosure = '"')
+	/**
+	 * Query string options for data/aggregate/export, with array-shaped parameters cleaned up:
+	 *  - a column filter (or c[col]) given as a flat list is joined with commas: name[]=A&name[]=B -> name=A,B
+	 *  - fields[] is joined the same way
+	 *  - other reserved parameters (limit, offset, format, ...) must be a single value
+	 *  - nested arrays are rejected
+	 * Invalid input throws an Exception (400).
+	 */
+	private function table_query_options()
 	{
-		header("Content-Type: text/plain");
-		$fp = fopen("php://output", 'w');
-		fputcsv($fp,array_keys($data[0]),$delimiter,$enclosure);
-		foreach ($data as $row) {
-			foreach($row as $key=>$value){
+		$get_params=array();
+		parse_str(isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '', $get_params);
+
+		$reserved=$this->Data_table_mongo_model->get_reserved_table_query_params();
+		$options=array();
+
+		foreach(array_keys($get_params) as $param){
+			$value=$this->input->get($param,true);
+			$name=strtolower((string)$param);
+
+			if ($name==='c'){
 				if (is_array($value)){
-					$row[$key]=implode("|",$value);
+					foreach($value as $column=>$column_value){
+						$value[$column]=$this->join_query_list('c['.$column.']', $column_value);
+					}
+				}
+				$options[$param]=$value;
+				continue;
+			}
+
+			if (in_array($name, $reserved, true) && $name!=='fields'){
+				if (is_array($value)){
+					throw new Exception("Parameter '".$param."' must be a single value");
+				}
+				$options[$param]=$value;
+				continue;
+			}
+
+			$options[$param]=$this->join_query_list($param, $value);
+		}
+
+		return $options;
+	}
+
+	/**
+	 * A flat list of values -> comma separated string; nested lists are an error.
+	 */
+	private function join_query_list($param, $value)
+	{
+		if (!is_array($value)){
+			return $value;
+		}
+		foreach($value as $item){
+			if (is_array($item)){
+				throw new Exception("Parameter '".$param."' has an invalid format");
+			}
+		}
+		return implode(',', $value);
+	}
+
+	/**
+	 * 404 when the table has neither a definition nor a data collection.
+	 */
+	private function require_table($db_id, $table_id)
+	{
+		if (!$this->Data_table_mongo_model->table_exists($db_id, $table_id)) {
+			throw new Api_exception('Table not found: '.$db_id.'/'.$table_id, REST_Controller::HTTP_NOT_FOUND);
+		}
+	}
+
+	/**
+	 * ?debug returns the internal MongoDB query and skips the server cache:
+	 * only honour it for users who can edit tables.
+	 */
+	private function can_edit_tables()
+	{
+		try {
+			$this->has_access('table', 'edit');
+			return true;
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	private function restrict_debug_option(array &$options)
+	{
+		if (!isset($options['debug'])) {
+			return;
+		}
+		try {
+			$this->has_access('table', 'edit');
+		} catch (Exception $e) {
+			unset($options['debug']);
+		}
+	}
+
+
+	private function is_csv_request($options)
+	{
+		return isset($options['format']) && is_string($options['format']) && strtolower($options['format'])==='csv';
+	}
+
+	/**
+	 * Attachment filename for a CSV download, or NULL for disposition=inline.
+	 */
+	private function csv_attachment_name($options, $filename)
+	{
+		$disposition=isset($options['disposition']) ? strtolower((string)$options['disposition']) : '';
+		return $disposition==='inline' ? null : $filename;
+	}
+
+	/**
+	 * Write rows as UTF-8 CSV.
+	 *
+	 * - header = $columns, plus any other keys found in the rows (appended in the order seen)
+	 * - each row is written in header order; a missing field is an empty cell
+	 * - lists are joined with "|", objects/nested lists are JSON, booleans are true/false
+	 * - $attachment_name NULL: inline as text/plain (shown in the browser), otherwise a
+	 *   text/csv download with a UTF-8 byte order mark so Excel reads the encoding correctly
+	 */
+	private function output_table_csv($rows, array $columns, $attachment_name = null)
+	{
+		$rows = is_array($rows) ? $rows : array();
+
+		$header = array_values($columns);
+		$seen = array_fill_keys($header, true);
+		foreach ($rows as $row) {
+			foreach ((array)$row as $key => $value) {
+				if (!isset($seen[$key])) {
+					$seen[$key] = true;
+					$header[] = $key;
 				}
 			}
-			fputcsv($fp, $row,$delimiter,$enclosure);
+		}
+
+		if ($attachment_name === null) {
+			header('Content-Type: text/plain; charset=utf-8');
+			header('Content-Disposition: inline');
+		} else {
+			header('Content-Type: text/csv; charset=utf-8');
+			header('Content-Disposition: attachment; filename="'.str_replace('"', '', $attachment_name).'"');
+		}
+
+		$fp = fopen('php://output', 'w');
+		if ($attachment_name !== null) {
+			fwrite($fp, "\xEF\xBB\xBF");
+		}
+
+		if (!empty($header)) {
+			fputcsv($fp, $header, ',', '"', '');
+		}
+
+		foreach ($rows as $row) {
+			$row = (array)$row;
+			$line = array();
+			foreach ($header as $key) {
+				$line[] = array_key_exists($key, $row) ? $this->csv_cell_value($row[$key]) : '';
+			}
+			fputcsv($fp, $line, ',', '"', '');
 		}
 
 		fclose($fp);
 	}
+
+	private function csv_cell_value($value)
+	{
+		if ($value === null) {
+			return '';
+		}
+		if (is_bool($value)) {
+			return $value ? 'true' : 'false';
+		}
+		if (is_object($value)) {
+			$value = json_decode(json_encode($value), true);
+		}
+		if (is_array($value)) {
+			if (empty($value)) {
+				return '';
+			}
+			$is_flat_list = array_keys($value) === range(0, count($value) - 1);
+			if ($is_flat_list) {
+				foreach ($value as $item) {
+					if (is_array($item) || is_object($item)) {
+						$is_flat_list = false;
+						break;
+					}
+				}
+			}
+			if ($is_flat_list) {
+				return implode('|', array_map(function ($v) { return $this->csv_cell_value($v); }, $value));
+			}
+			return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		}
+		return (string)$value;
+	}
+
 
 
 
@@ -804,19 +945,8 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()				
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
-		}
-		catch(Error $e){
-			$error_output=array(
-				'status'=>'Error',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/insert');
 		}
 	}
 
@@ -890,13 +1020,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage(),
-				'files'=>$_FILES
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/upload');
 		}
 	}
 
@@ -911,12 +1036,8 @@ class Tables extends MY_REST_Controller
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
 			$this->Data_table_mongo_model->download_import_errors_file($db_id, $table_id);
 			die();
-		} catch (Exception $e) {
-			$error_output = array(
-				'status' => 'failed',
-				'message' => $e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		} catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/import_errors');
 		}
 	}
 
@@ -950,12 +1071,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($result, REST_Controller::HTTP_OK);
 
-		} catch (Exception $e) {
-			$error_output = array(
-				'status' => 'failed',
-				'message' => $e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		} catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/import');
 		}
 	}
 
@@ -985,12 +1102,8 @@ class Tables extends MY_REST_Controller
 			$result = $this->Data_table_mongo_model->process_import_reload_request($db_id, $table_id, $options);
 
 			$this->set_response($result, REST_Controller::HTTP_OK);
-		} catch (Exception $e) {
-			$error_output = array(
-				'status' => 'failed',
-				'message' => $e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		} catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/import_reload');
 		}
 	}
 
@@ -1034,12 +1147,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/rename_collection');
 		}
     }
 	
@@ -1132,12 +1241,8 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/create_table');
 		}
 	}
 
@@ -1188,12 +1293,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/update_table');
 		}
 	}
 
@@ -1217,6 +1318,7 @@ class Tables extends MY_REST_Controller
 			
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->require_table($db_id, $table_id);
 			
 			// Get table metadata
 			$table_type = $this->Data_table_mongo_model->get_table_type($db_id, $table_id);
@@ -1287,12 +1389,8 @@ class Tables extends MY_REST_Controller
 			echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 			exit;
 			
-		} catch(Exception $e){
-			$error_output = array(
-				'status' => 'failed',
-				'message' => $e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		} catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/export_definition');
 		}
 	}
 
@@ -1339,12 +1437,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/delete');
 		}
 	}
 
@@ -1412,12 +1506,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'error'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/attach_to_study');
 		}
 	}
 
@@ -1465,12 +1555,8 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'error'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/detach_from_study');
 		}
 	}
 
@@ -1498,6 +1584,7 @@ class Tables extends MY_REST_Controller
 
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->require_table($db_id, $table_id);
 
 			$result = $this->Survey_data_api_model->get_by_table($db_id, $table_id);
 
@@ -1509,12 +1596,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'error'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/studies');
 		}
 	}
 
@@ -1550,12 +1633,8 @@ class Tables extends MY_REST_Controller
 			);
 			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'error'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/list_by_study');
 		}
 
 	}
@@ -1841,6 +1920,7 @@ class Tables extends MY_REST_Controller
 			
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->require_table($db_id, $table_id);
 
 			// Get field metadata from table_dictionary collection
 			$fields = $this->Data_table_mongo_model->get_table_fields($db_id, $table_id);
@@ -1860,12 +1940,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/data_dictionary');
 		}
 	}
 
@@ -1888,6 +1964,7 @@ class Tables extends MY_REST_Controller
 			
 			$db_id = $this->Data_table_mongo_model->validate_and_normalize_id($db_id, 'db_id');
 			$table_id = $this->Data_table_mongo_model->validate_and_normalize_id($table_id, 'table_id');
+			$this->require_table($db_id, $table_id);
 
 			if(!$field_name){
 				throw new Exception("MISSING_PARAM:: field_name");
@@ -1906,12 +1983,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/field');
 		}
 	}
 
@@ -1966,12 +2039,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/fields');
 		}
 	}
 
@@ -2005,12 +2074,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/field');
 		}
 	}
 
@@ -2060,12 +2125,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/fields_reorder');
 		}
 	}
 
@@ -2094,12 +2155,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/create_dictionary_indexes');
 		}
 	}
 
@@ -2147,12 +2204,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/fields_sync');
 		}
 	}
 
@@ -2185,12 +2238,8 @@ class Tables extends MY_REST_Controller
 
 			$this->set_response($response, REST_Controller::HTTP_OK);
 		}
-		catch(Exception $e){
-			$error_output=array(
-				'status'=>'failed',
-				'message'=>$e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/fields_populate');
 		}
 	}
 
@@ -2230,12 +2279,8 @@ class Tables extends MY_REST_Controller
 			);
 			
 			$this->set_response($response, REST_Controller::HTTP_OK);
-		} catch (Exception $e) {
-			$error_output = array(
-				'status' => 'failed',
-				'message' => $e->getMessage()
-			);
-			$this->set_response($error_output, REST_Controller::HTTP_BAD_REQUEST);
+		} catch (Throwable $e) {
+			$this->api_error_response($e, 'tables/convert_field_types');
 		}
 	}
 }	

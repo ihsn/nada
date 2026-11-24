@@ -11,7 +11,7 @@ $_idno = isset($idno) ? (string) $idno : '';
 $_imv  = isset($indicator_main_view) ? (string) $indicator_main_view : 'chart';
 $_page_title = isset($catalog_page_title)
 	? $catalog_page_title
-	: (function_exists('t') ? t('tab_indicator_chart') : 'Chart & data');
+	: (function_exists('t') ? t('tab_indicator_chart') : 'Chart');
 
 $_study_title = isset($study_title) ? (string) $study_title : '';
 $_indicator_ui = isset($indicator_data_api_ui) && is_array($indicator_data_api_ui) ? $indicator_data_api_ui : array();

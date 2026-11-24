@@ -3,6 +3,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 require(APPPATH.'/libraries/REST_Controller.php');
+require_once(APPPATH.'/libraries/Api_exception.php');
 
 /**
  * 
@@ -321,6 +322,90 @@ abstract class MY_REST_Controller extends REST_Controller {
             );
             exit;
         }
+    }
+
+    /**
+     * Shared JSON error response for API controllers (always JSON, also for format=csv).
+     *
+     * In order:
+     *  - Api_exception                      its status and message (+ error_code)
+     *  - AclAccessDeniedException           403 ACCESS-DENIED
+     *  - MongoDB connection/auth errors     503 "The API is not available." (logged)
+     *  - other MongoDB errors               see $options['db_errors'] (logged)
+     *  - legacy text codes (legacy_codes)   IDNO-NOT-FOUND / "... not found" 404, ACCESS-DENIED /
+     *                                       "Access denied for resource" 403, INVALID_JSON_INPUT 400
+     *  - other Exception                    400 with its message (our own validation messages)
+     *  - PHP errors (TypeError etc.)        500 generic message (logged)
+     *
+     * @param Throwable $e
+     * @param string    $context  short name for the log, e.g. 'tables/data'
+     * @param array     $options
+     *   status_word   value of "status" in the body (default 'failed')
+     *   db_errors     'generic' (400 "The query could not be run."), 'message' (400 with the
+     *                 driver message, admin APIs) or 'unavailable' (503) - default 'generic'
+     *   legacy_codes  map the text codes above (default FALSE)
+     */
+    protected function api_error_response($e, $context = 'api', array $options = array())
+    {
+        $status_word = isset($options['status_word']) ? $options['status_word'] : 'failed';
+        $db_errors = isset($options['db_errors']) ? $options['db_errors'] : 'generic';
+        $legacy_codes = !empty($options['legacy_codes']);
+
+        $status = REST_Controller::HTTP_BAD_REQUEST;
+        $message = $e->getMessage();
+        $extra = array();
+
+        if ($e instanceof Api_exception) {
+            $status = $e->status;
+            if ($e->error_code) {
+                $extra['error_code'] = $e->error_code;
+            }
+        }
+        elseif ($e instanceof AclAccessDeniedException) {
+            $status = REST_Controller::HTTP_FORBIDDEN;
+            $message = 'ACCESS-DENIED';
+        }
+        elseif ($e instanceof MongoDB\Driver\Exception\ConnectionException
+            || $e instanceof MongoDB\Driver\Exception\AuthenticationException
+            || ($db_errors === 'unavailable' && $this->is_mongodb_exception($e))) {
+            log_message('error', $context . ' MongoDB error: ' . get_class($e) . ': ' . $message);
+            $status = REST_Controller::HTTP_SERVICE_UNAVAILABLE;
+            $message = 'The API is not available.';
+        }
+        elseif ($this->is_mongodb_exception($e)) {
+            log_message('error', $context . ' MongoDB error: ' . get_class($e) . ': ' . $message);
+            if ($db_errors !== 'message') {
+                $message = 'The query could not be run.';
+            }
+        }
+        elseif (!($e instanceof Exception)) {
+            log_message('error', $context . ': ' . get_class($e) . ': ' . $message . ' in ' . $e->getFile() . ':' . $e->getLine());
+            $status = REST_Controller::HTTP_INTERNAL_SERVER_ERROR;
+            $message = 'An unexpected error occurred while processing the request.';
+        }
+        elseif ($legacy_codes) {
+            if ($message === 'IDNO-NOT-FOUND' || stripos($message, 'not found') !== false) {
+                $status = REST_Controller::HTTP_NOT_FOUND;
+            }
+            if ($message === 'ACCESS-DENIED' || stripos($message, 'Access denied for resource') !== false) {
+                $status = REST_Controller::HTTP_FORBIDDEN;
+            }
+            if ($message === 'INVALID_JSON_INPUT') {
+                $message = 'Invalid JSON body';
+            }
+        }
+
+        $this->response->format = 'json';
+        $this->set_response(
+            array_merge(array('status' => $status_word, 'message' => $message), $extra),
+            $status
+        );
+    }
+
+    private function is_mongodb_exception($e)
+    {
+        return $e instanceof MongoDB\Driver\Exception\Exception
+            || $e instanceof MongoDB\Exception\Exception;
     }
 
     /**

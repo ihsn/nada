@@ -732,34 +732,19 @@ class Timeseries_public extends MY_REST_Controller {
 	private function _error_response(Exception $e)
 	{
 		// connection/config details stay in the log, not in the public response
-		if ($e instanceof MongoDB\Driver\Exception\Exception || $e->getCode() === Timeseries_mongo_model::ERR_NOT_CONFIGURED) {
+		if ($e->getCode() === Timeseries_mongo_model::ERR_NOT_CONFIGURED) {
 			log_message('error', 'Timeseries_public MongoDB error: ' . $e->getMessage());
-			$this->set_response([
-				'status'  => 'error',
-				'message' => 'The API is not available.',
-			], REST_Controller::HTTP_SERVICE_UNAVAILABLE);
-			return;
+			$e = new Api_exception('The API is not available.', REST_Controller::HTTP_SERVICE_UNAVAILABLE);
+		}
+		elseif ($e->getMessage() === 'DATA-NOT-AVAILABLE') {
+			$e = new Api_exception('Data is not available for this indicator.', REST_Controller::HTTP_FORBIDDEN, 'DATA-NOT-AVAILABLE');
 		}
 
-		$msg = $e->getMessage();
-		$code = REST_Controller::HTTP_BAD_REQUEST;
-		if ($msg === 'IDNO-NOT-FOUND' || stripos($msg, 'not found') !== false) {
-			$code = REST_Controller::HTTP_NOT_FOUND;
-		}
-		if ($msg === 'ACCESS-DENIED') {
-			$code = REST_Controller::HTTP_FORBIDDEN;
-		}
-		if ($msg === 'DATA-NOT-AVAILABLE') {
-			$this->set_response([
-				'status'  => 'error',
-				'error_code' => 'DATA-NOT-AVAILABLE',
-				'message' => 'Data is not available for this indicator.',
-			], REST_Controller::HTTP_FORBIDDEN);
-			return;
-		}
-		$this->set_response([
-			'status'  => 'error',
-			'message' => $msg === 'INVALID_JSON_INPUT' ? 'Invalid JSON body' : $msg,
-		], $code);
+		// shared rules (MY_REST_Controller): MongoDB errors 503, IDNO-NOT-FOUND / "not found" 404, ACCESS-DENIED 403
+		$this->api_error_response($e, 'timeseries_public', array(
+			'status_word'  => 'error',
+			'db_errors'    => 'unavailable',
+			'legacy_codes' => true,
+		));
 	}
 }

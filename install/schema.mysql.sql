@@ -219,7 +219,8 @@ CREATE TABLE `meta` (
   `company` varchar(100) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `country` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_meta_user_id` (`user_id`)
 ) DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -999,7 +1000,9 @@ CREATE TABLE `users` (
   `authtype_id` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_authtype` (`authtype`),
-  KEY `idx_authtype_id` (`authtype`,`authtype_id`)
+  KEY `idx_authtype_id` (`authtype`,`authtype_id`),
+  KEY `idx_users_email` (`email`),
+  KEY `idx_users_username` (`username`)
 ) AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1824,7 +1827,8 @@ CREATE TABLE `survey_data_api` (
   `description` varchar(500) DEFAULT NULL,
   `db_id` varchar(45) DEFAULT NULL,
   `table_id` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_sda_sid` (`sid`)
 ) AUTO_INCREMENT=1;
 
 

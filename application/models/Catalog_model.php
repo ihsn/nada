@@ -703,11 +703,11 @@ class Catalog_model extends CI_Model {
 			}
 		}
 
-		//indicators: reject data access types that are not allowed
-		if (array_key_exists('formid', $update_arr)) {
+		//data access rules per dataset type
+		if (array_key_exists('formid', $update_arr) || array_key_exists('link_da', $update_arr)) {
 			$this->load->model('Dataset_model');
 			$da_type = $this->Dataset_model->get_type($options[$key_field]);
-			$this->Dataset_model->apply_indicator_access_policy($da_type, $update_arr);
+			$this->Dataset_model->apply_access_policy($da_type, $update_arr, false, $options[$key_field]);
 		}
 
 		if (empty($update_arr)) {

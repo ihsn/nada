@@ -60,7 +60,8 @@ CREATE TABLE IF NOT EXISTS `dd_collaborators` (
   `pid` int(11) NOT NULL,
   `email` varchar(255) NOT NULL,
   `access` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_ddc_pid` (`pid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `dd_datadeposit_history` (
@@ -176,7 +177,9 @@ CREATE TABLE IF NOT EXISTS `dd_projects` (
   `requested_when` int(11) DEFAULT NULL,
   `metadata` mediumtext,
   `submission` mediumtext,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_ddp_created_on` (`created_on`),
+  KEY `idx_ddp_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `dd_study` (
@@ -278,7 +281,8 @@ CREATE TABLE IF NOT EXISTS `dd_tasks` (
   `date_completed` int(11) DEFAULT NULL,
   `status` int(11) NOT NULL,
   `comments` text,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_ddt_project_id` (`project_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `dd_tasks_team` (

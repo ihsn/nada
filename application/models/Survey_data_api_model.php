@@ -45,6 +45,34 @@ class survey_data_api_model extends CI_Model {
 		}		
 	}
 
+	/**
+	 * Which of the given studies have at least one data API table: one query for a whole page of studies.
+	 *
+	 * @param int[] $sids
+	 * @return array<int, true> keyed by study id
+	 */
+	function get_sids_with_data_api(array $sids)
+	{
+		$sids = array_values(array_unique(array_filter(array_map('intval', $sids))));
+		if (empty($sids)) {
+			return array();
+		}
+
+		$this->db->distinct();
+		$this->db->select('sid');
+		$this->db->where_in('sid', $sids);
+		$query = $this->db->get('survey_data_api');
+		if (!$query) {
+			return array();
+		}
+
+		$output = array();
+		foreach ($query->result_array() as $row) {
+			$output[(int) $row['sid']] = true;
+		}
+		return $output;
+	}
+
 	function get_by_table($db_id, $table_id)
 	{
 		$this->db->select('survey_data_api.*, surveys.idno, surveys.title, surveys.nation, surveys.year_start');

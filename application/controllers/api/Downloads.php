@@ -185,6 +185,11 @@ class Downloads extends MY_REST_Controller
 			return true;
 		}
 
+		//document, image, video with no stored data access type: data files download freely
+		if ($this->Survey_resource_model->skips_data_access_check($survey_id)) {
+			return true;
+		}
+
 		$access = isset($file['data_access_type']) ? strtolower(trim($file['data_access_type'])) : '';
 		$user_id = ($user && isset($user->id)) ? $user->id : false;
 

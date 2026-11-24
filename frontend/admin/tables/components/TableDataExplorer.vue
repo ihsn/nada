@@ -37,6 +37,40 @@
       </v-menu>
     </div>
     <div>
+      <v-alert
+        v-if="lastImportFailed && !importing"
+        type="error"
+        variant="tonal"
+        density="compact"
+        class="mb-3"
+      >
+        <ImportFailureDetails :progress="lastImport" fallback-message="The last import failed." />
+        <div class="d-flex flex-wrap ga-2 mt-3">
+          <v-btn
+            v-if="storedCsv?.available"
+            size="small"
+            color="error"
+            variant="flat"
+            prepend-icon="mdi-database-refresh"
+            @click="confirmReloadFromStored"
+          >
+            Re-import stored CSV
+          </v-btn>
+          <v-btn size="small" variant="outlined" prepend-icon="mdi-upload" @click="openUpload">
+            Upload a new file
+          </v-btn>
+          <v-btn
+            v-if="lastImport.errors_count > 0"
+            size="small"
+            variant="text"
+            prepend-icon="mdi-download"
+            :loading="downloadingErrors"
+            @click="downloadErrors"
+          >
+            Download error log
+          </v-btn>
+        </div>
+      </v-alert>
       <div v-if="tableStats && tableStats.count !== undefined" class="mb-3">
         <v-chip size="small" prepend-icon="mdi-database">
           Total rows: {{ tableStats.count.toLocaleString() }}
@@ -157,7 +191,13 @@
             Deleting existing data…
           </v-alert>
           <v-alert v-if="importStatus" :type="importAlertType" variant="tonal" density="compact" class="mt-4">
-            <div class="font-weight-medium mb-2">{{ importStatus.message }}</div>
+            <ImportFailureDetails
+              v-if="importStatus.import_status === 'failed' && importStatus.progress"
+              :progress="importStatus.progress"
+              :fallback-message="importStatus.message"
+              class="mb-2"
+            />
+            <div v-else class="font-weight-medium mb-2">{{ importStatus.message }}</div>
             <div v-if="importStatus.summary" class="text-caption mb-2">{{ importStatus.summary }}</div>
             <v-progress-linear
               v-if="importStatus.progress_percent !== undefined && importing"
@@ -250,8 +290,14 @@
           <v-alert type="warning" variant="tonal" density="compact" class="mb-3">
             This deletes all rows in the table and imports again from the CSV file saved at upload time.
           </v-alert>
-          <v-alert v-if="reloadStatus" :type="importAlertType" variant="tonal" density="compact">
-            <div class="font-weight-medium mb-1">{{ reloadStatus.message }}</div>
+          <v-alert v-if="reloadStatus" :type="reloadAlertType" variant="tonal" density="compact">
+            <ImportFailureDetails
+              v-if="reloadStatus.import_status === 'failed' && reloadStatus.progress"
+              :progress="reloadStatus.progress"
+              :fallback-message="reloadStatus.message"
+              class="mb-2"
+            />
+            <div v-else class="font-weight-medium mb-1">{{ reloadStatus.message }}</div>
             <div v-if="reloadStatus.summary" class="text-caption mb-2">{{ reloadStatus.summary }}</div>
             <v-progress-linear
               v-if="reloadStatus.progress_percent !== undefined && (reloading || importing)"
@@ -263,7 +309,9 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" :disabled="reloading || importing" @click="showReloadDialog = false">Cancel</v-btn>
+          <v-btn variant="text" :disabled="reloading || importing" @click="showReloadDialog = false">
+            {{ reloadStatus?.import_status === 'failed' ? 'Close' : 'Cancel' }}
+          </v-btn>
           <v-btn color="primary" :loading="reloading || importing" prepend-icon="mdi-database-refresh" @click="reloadFromStoredCsv">
             Re-import
           </v-btn>
@@ -317,6 +365,7 @@ import { ref, computed, watch, onMounted, inject } from 'vue';
 import axios from 'axios';
 import { useTablesApi } from '../composables/useTablesApi';
 import TablesFormField from './TablesFormField.vue';
+import ImportFailureDetails from './ImportFailureDetails.vue';
 import { normalizeFieldFromApi } from '../utils/fieldUtils';
 
 const props = defineProps({
@@ -355,6 +404,9 @@ const validationError = ref(null);
 const showReloadDialog = ref(false);
 const reloading = ref(false);
 const reloadStatus = ref(null);
+/** progress of the last import (from the server), used for the failed-import banner */
+const lastImport = ref(null);
+const lastImportFailed = computed(() => lastImport.value?.import_status === 'failed');
 const previewData = ref([]);
 const previewHeaders = ref([]);
 const previewLoading = ref(false);
@@ -377,14 +429,19 @@ const uploadAlertType = computed(() => {
   if (!uploadStatus.value) return 'info';
   return uploadStatus.value.status === 'success' ? 'success' : uploadStatus.value.status === 'error' ? 'error' : 'info';
 });
-const importAlertType = computed(() => {
-  if (!importStatus.value) return 'info';
-  const s = importStatus.value.status;
-  if (s === 'success') return 'success';
-  if (s === 'error') return 'error';
-  if (s === 'warning') return 'warning';
+const importAlertType = computed(() => alertTypeFor(importStatus.value?.status));
+
+function alertTypeFor(status) {
+  if (status === 'success') return 'success';
+  if (status === 'error') return 'error';
+  if (status === 'warning') return 'warning';
   return 'info';
-});
+}
+const reloadAlertType = computed(() => alertTypeFor(reloadStatus.value?.status));
+
+async function loadImportStatus() {
+  lastImport.value = await api.fetchImportStatus(props.dbId, props.tableId);
+}
 
 function formatImportCounts(progress) {
   const inserted = progress.rows_inserted ?? progress.total_rows_processed ?? 0;
@@ -525,16 +582,21 @@ async function reloadFromStoredCsv() {
           progress_percent: progress.progress_percent || 0,
           import_status: progress.import_status,
           errors_count: progress.errors_count || 0,
+          progress,
         };
       },
     });
-    showReloadDialog.value = false;
+    await loadImportStatus();
+    if (reloadStatus.value?.import_status !== 'failed') {
+      showReloadDialog.value = false;
+    }
     await refreshFieldMetaMap();
     await loadTableStats();
     await loadPreviewData();
     emit('fields-changed');
   } catch (e) {
     setMessage(e.response?.data?.message || e.message || 'Re-import failed', 'error');
+    await loadImportStatus();
   } finally {
     reloading.value = false;
     importing.value = false;
@@ -701,6 +763,7 @@ async function importData() {
           progress_percent: progress.progress_percent || 0,
           import_status: progress.import_status || 'in_progress',
           errors_count: progress.errors_count || 0,
+          progress,
         };
       },
     });
@@ -710,8 +773,10 @@ async function importData() {
       await loadPreviewData();
       return;
     }
+    const importFailed = importStatus.value?.import_status === 'failed';
     if (importResult?.status === 'success') {
-      if (syncFieldsAfterImport.value) {
+      // a failed import has partial data; syncing fields against it could drop dictionary fields
+      if (syncFieldsAfterImport.value && !importFailed) {
         try {
           const syncData = await api.syncFields(props.dbId, props.tableId);
           const removed = syncData.fields_removed || 0;
@@ -747,6 +812,7 @@ async function importData() {
   } finally {
     importing.value = false;
     importCancelled.value = false;
+    loadImportStatus();
   }
 }
 
@@ -792,6 +858,7 @@ async function deleteTableData() {
 onMounted(() => {
   loadTableStats();
   loadPreviewData();
+  loadImportStatus();
 });
 
 defineExpose({ loadPreviewData, loadTableStats, refreshFieldMetaMap });

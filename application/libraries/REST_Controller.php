@@ -991,7 +991,8 @@ abstract class REST_Controller extends CI_Controller {
         }
 
         // Get the format parameter named as 'format'
-        if (isset($this->_get_args['format']))
+        // must be a string: ?format[]=csv would make strtolower() throw a TypeError
+        if (isset($this->_get_args['format']) && is_string($this->_get_args['format']))
         {
             $format = strtolower($this->_get_args['format']);
 

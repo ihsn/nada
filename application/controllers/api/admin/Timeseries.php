@@ -1460,19 +1460,13 @@ class Timeseries extends MY_REST_Controller {
 
 	private function _error_response(Exception $e)
 	{
-		$msg = $e->getMessage();
-		$code = REST_Controller::HTTP_BAD_REQUEST;
-		if ($msg === 'IDNO-NOT-FOUND' || strpos($msg, 'not found') !== false) {
-			$code = REST_Controller::HTTP_NOT_FOUND;
-		}
-		if ($msg === 'ACCESS-DENIED'
-			|| stripos($msg, 'Access denied for resource') !== false) {
-			$code = REST_Controller::HTTP_FORBIDDEN;
-		}
-		$this->set_response([
-			'status'  => 'error',
-			'message' => $msg === 'INVALID_JSON_INPUT' ? 'Invalid JSON body' : $msg,
-		], $code);
+		// shared rules (MY_REST_Controller): "not found" 404, ACCESS-DENIED / "Access denied for resource" 403,
+		// MongoDB connection errors 503; other MongoDB errors keep their message (admin)
+		$this->api_error_response($e, 'admin/timeseries', array(
+			'status_word'  => 'error',
+			'db_errors'    => 'message',
+			'legacy_codes' => true,
+		));
 	}
 
 	/**

@@ -63,7 +63,8 @@
                             "props": [
                                 { "key": "period", "title": "Period", "type": "string", "prop_key": "database_description.periodicity.period" }
                             ]
-                        }
+                        },
+                        { "key": "database_description.release_calendar", "title": "Release calendar", "type": "string" }
                     ]
                 },
                 {
@@ -78,6 +79,7 @@
                             "props": [
                                 { "key": "id", "title": "ID", "type": "string", "prop_key": "database_description.themes.id" },
                                 { "key": "name", "title": "Theme", "type": "string", "prop_key": "database_description.themes.name" },
+                                { "key": "parent_id", "title": "Parent theme", "type": "string", "prop_key": "database_description.themes.parent_id" },
                                 { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "database_description.themes.vocabulary" },
                                 { "key": "uri", "title": "URI", "type": "string", "prop_key": "database_description.themes.uri" }
                             ]
@@ -184,7 +186,6 @@
                             "type": "array",
                             "props": [
                                 { "key": "name", "title": "Name", "type": "string", "prop_key": "database_description.authoring_entity.name" },
-                                { "key": "role", "title": "Role", "type": "string", "prop_key": "database_description.authoring_entity.role" },
                                 { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "database_description.authoring_entity.affiliation" },
                                 { "key": "abbreviation", "title": "Abbreviation", "type": "string", "prop_key": "database_description.authoring_entity.abbreviation" },
                                 { "key": "email", "title": "Email", "type": "string", "prop_key": "database_description.authoring_entity.email" },
@@ -264,6 +265,9 @@
                                 { "key": "note", "title": "Note", "type": "string", "prop_key": "database_description.license.note" }
                             ]
                         },
+                        { "key": "database_description.confidentiality", "title": "Confidentiality", "type": "string" },
+                        { "key": "database_description.confidentiality_status", "title": "Confidentiality status", "type": "string" },
+                        { "key": "database_description.confidentiality_note", "title": "Confidentiality note", "type": "string" },
                         { "key": "database_description.citation", "title": "Citation", "type": "string" },
                         { "key": "database_description.disclaimer", "title": "Disclaimer", "type": "string" },
                         { "key": "database_description.copyright", "title": "Copyright", "type": "string" }
@@ -320,8 +324,6 @@
                                 { "key": "code", "title": "Code", "type": "string", "prop_key": "database_description.languages.code" }
                             ]
                         },
-                        { "key": "published", "title": "Status", "type": "integer" },
-                        { "key": "overwrite", "title": "Overwrite", "type": "string" },
                         {
                             "key": "tags",
                             "title": "Tags",
@@ -331,7 +333,6 @@
                                 { "key": "tag_group", "title": "Tag group", "type": "string", "prop_key": "tags.tag_group" }
                             ]
                         },
-                        { "key": "datacite", "title": "DataCite", "type": "array" },
                         { "key": "additional", "title": "Additional metadata", "type": "object", "display_options": { "renderer": "field_object_additional" } },
                         { "key": "metadata_information.title", "title": "Document title", "type": "string" },
                         { "key": "metadata_information.idno", "title": "Document ID", "type": "string" },

@@ -2912,7 +2912,7 @@
                             "display_type": "textarea"
                         },
                         {
-                            "key": "study_desc.method.data_collection.analysis_info.data_appraisal",
+                            "key": "study_desc.method.analysis_info.data_appraisal",
                             "title": "Autre évaluation des données",
                             "type": "string",
                             "help_text": "Cette section est utilisée pour rendre compte de toute autre action entreprise pour évaluer la fiabilité des données, ou de toute observation concernant la qualité des données. Décrivez ici des problèmes tels que la variance des réponses, le biais de l'intervieweur et des réponses, le biais des questions, etc. Pour un recensement de la population, cela peut inclure des informations sur les principaux résultats d'une enquête post-censitaire (un rapport devrait être fourni en tant que ressource externe et mentionné ici) ; cela peut également inclure des comparaisons pertinentes avec des données provenant d'autres sources pouvant servir de référence.",

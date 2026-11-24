@@ -183,6 +183,25 @@ export function useTablesApi() {
     return lastResult;
   }
 
+  /**
+   * Last import progress (status only, nothing is imported). Returns null when the table has no stored CSV.
+   */
+  async function fetchImportStatus(dbId, tableId) {
+    try {
+      const { data } = await axios.post(
+        `${base()}/import/${dbId}/${tableId}`,
+        { status: true },
+        {
+          withCredentials: true,
+          headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
+        }
+      );
+      return data.status === 'success' ? data.progress || null : null;
+    } catch {
+      return null;
+    }
+  }
+
   async function updateTableInfo(dbId, tableId, payload) {
     const { data } = await axios.put(`${base()}/update_table/${dbId}/${tableId}`, payload);
     if (data.status !== 'success') {
@@ -416,6 +435,7 @@ export function useTablesApi() {
     storedCsvDownloadUrl,
     validateTable,
     runImportChunks,
+    fetchImportStatus,
     updateTableInfo,
     fetchFields,
     fetchField,

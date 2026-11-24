@@ -27,11 +27,14 @@
                                 { "key": "authority", "title": "Authority", "type": "string", "prop_key": "description.identificationInfo.citation.identifier.authority" }
                             ]},
                             { "key": "description.hierarchyLevel", "title": "Hierarchy level", "type": "string" },
+                            { "key": "description.hierarchyLevelName", "title": "Hierarchy level name", "type": "string" },
                             { "key": "description.identificationInfo.citation.edition", "title": "Edition", "type": "string" },
                             { "key": "description.identificationInfo.citation.editionDate", "title": "Edition date", "type": "string" },
                             { "key": "description.identificationInfo.status", "title": "Status", "type": "string" },
                             { "key": "description.identificationInfo.language", "title": "Language", "type": "string" },
-                            { "key": "description.identificationInfo.characterSet.codeListValue", "title": "Character set", "type": "string" },
+                            { "key": "description.identificationInfo.characterSet", "title": "Character set", "type": "array", "hide_column_headings": true, "props": [
+                                    { "key": "codeListValue", "title": "Character set", "type": "string", "prop_key": "description.identificationInfo.characterSet.codeListValue" }
+                            ]},
                             { "key": "description.identificationInfo.citation.date", "title": "Date", "type": "array", "props": [
                                 { "key": "date", "title": "Date", "type": "string", "prop_key": "description.identificationInfo.citation.date.date" },
                                 { "key": "type", "title": "Type", "type": "string", "prop_key": "description.identificationInfo.citation.date.type" }
@@ -42,6 +45,11 @@
                                 "type": "array",
                                 "display_options": { "renderer": "field_photo_gallery" }
                             },
+                            { "key": "description.identificationInfo.graphicOverview", "title": "Browse graphics", "type": "array", "props": [
+                                    { "key": "fileName", "title": "File", "type": "string", "prop_key": "description.identificationInfo.graphicOverview.fileName", "display_options": { "linkify": true } },
+                                    { "key": "fileDescription", "title": "Description", "type": "string", "prop_key": "description.identificationInfo.graphicOverview.fileDescription" },
+                                    { "key": "fileType", "title": "Type", "type": "string", "prop_key": "description.identificationInfo.graphicOverview.fileType" }
+                            ]},
                             {
                                 "key": "iframe_embeds",
                                 "title": "Embedded widgets",
@@ -62,12 +70,14 @@
                             },
                             { "key": "description.identificationInfo.citation.series.name", "title": "Series name", "type": "string" },
                             { "key": "description.identificationInfo.citation.series.issueIdentification", "title": "Series issue identification", "type": "string" },
+                            { "key": "description.identificationInfo.citation.series.page", "title": "Series page", "type": "string" },
                             { "key": "description.identificationInfo.citation.otherCitationDetails", "title": "Citation", "type": "string" },
                             { "key": "description.identificationInfo.citation.collectiveTitle", "title": "Collective title", "type": "string" },
                             { "key": "description.identificationInfo.citation.ISBN", "title": "ISBN", "type": "string" },
                             { "key": "description.identificationInfo.citation.ISSN", "title": "ISSN", "type": "string" },
                             { "key": "description.identificationInfo.purpose", "title": "Purpose", "type": "string" },
                             { "key": "description.identificationInfo.credit", "title": "Credit", "type": "string" },
+                            { "key": "description.identificationInfo.supplementalInformation", "title": "Supplemental information", "type": "string" },
                             {
                                 "key": "description.identificationInfo.pointOfContact",
                                 "title": "Point of contact",
@@ -80,16 +90,41 @@
                                 "type": "nested_array",
                                 "display_options": { "renderer": "field_array_stacked", "hide_field_title": true },
                                 "props": [
-                                    { "key": "maintenanceAndUpdateFrequency", "title": "Update frequency", "type": "string", "prop_key": "description.identificationInfo.resourceMaintenance.maintenanceAndUpdateFrequency" }
+                                    { "key": "maintenanceAndUpdateFrequency", "title": "Update frequency", "type": "string", "prop_key": "description.identificationInfo.resourceMaintenance.maintenanceAndUpdateFrequency" },
+                                    { "key": "userDefinedMaintenanceFrequency", "title": "User-defined frequency", "type": "string", "prop_key": "description.identificationInfo.resourceMaintenance.userDefinedMaintenanceFrequency" },
+                                    { "key": "dateOfNextUpdate", "title": "Next update", "type": "string", "prop_key": "description.identificationInfo.resourceMaintenance.dateOfNextUpdate" },
+                                    { "key": "updateScope", "title": "Update scope", "type": "array", "prop_key": "description.identificationInfo.resourceMaintenance.updateScope", "props": [
+                                            { "key": "scope", "title": "Scope", "type": "string", "prop_key": "description.identificationInfo.resourceMaintenance.updateScope.scope" },
+                                            { "key": "description", "title": "Description", "type": "string", "prop_key": "description.identificationInfo.resourceMaintenance.updateScope.description" }
+                                    ]},
+                                    { "key": "maintenanceNote", "title": "Maintenance note", "type": "string", "prop_key": "description.identificationInfo.resourceMaintenance.maintenanceNote" },
+                                    {
+                                        "key": "contact",
+                                        "title": "Maintenance contact",
+                                        "type": "nested_array",
+                                        "prop_key": "description.identificationInfo.resourceMaintenance.contact",
+                                        "display_options": { "renderer": "field_geog_contact" }
+                                    }
                                 ]
                             },
                             {
                                 "key": "description.identificationInfo.resourceFormat",
                                 "title": "Resource formats",
                                 "type": "array",
+                                "display_options": { "renderer": "field_array_stacked", "header_fields": ["name"] },
                                 "props": [
                                     { "key": "name", "title": "Name", "type": "string", "prop_key": "description.identificationInfo.resourceFormat.name" },
-                                    { "key": "specification", "title": "Specification", "type": "string", "prop_key": "description.identificationInfo.resourceFormat.specification" }
+                                    { "key": "version", "title": "Version", "type": "string", "prop_key": "description.identificationInfo.resourceFormat.version" },
+                                    { "key": "amendmentNumber", "title": "Amendment number", "type": "string", "prop_key": "description.identificationInfo.resourceFormat.amendmentNumber" },
+                                    { "key": "specification", "title": "Specification", "type": "string", "prop_key": "description.identificationInfo.resourceFormat.specification" },
+                                    { "key": "fileDecompressionTechnique", "title": "Compression", "type": "string", "prop_key": "description.identificationInfo.resourceFormat.fileDecompressionTechnique" },
+                                    {
+                                        "key": "FormatDistributor",
+                                        "title": "Distributor",
+                                        "type": "nested_array",
+                                        "prop_key": "description.identificationInfo.resourceFormat.FormatDistributor",
+                                        "display_options": { "renderer": "field_geog_contact" }
+                                    }
                                 ]
                             },
                             {
@@ -109,7 +144,29 @@
                                 "title": "Spatial resolution",
                                 "type": "object"
                             },
-                            { "key": "description.identificationInfo.topicCategory", "title": "Topic category", "type": "simple_array" }
+                            { "key": "description.identificationInfo.topicCategory", "title": "Topic category", "type": "simple_array" },
+                            {
+                                "key": "description.identificationInfo.resourceSpecificUsage",
+                                "title": "Specific usage",
+                                "type": "array",
+                                "display_options": { "renderer": "field_array_stacked" },
+                                "props": [
+                                    { "key": "specificUsage", "title": "Usage", "type": "string", "prop_key": "description.identificationInfo.resourceSpecificUsage.specificUsage" },
+                                    { "key": "usageDateTime", "title": "Date", "type": "string", "prop_key": "description.identificationInfo.resourceSpecificUsage.usageDateTime" },
+                                    { "key": "userDeterminedLimitations", "title": "User limitations", "type": "string", "prop_key": "description.identificationInfo.resourceSpecificUsage.userDeterminedLimitations" },
+                                    {
+                                        "key": "userContactInfo",
+                                        "title": "User contact",
+                                        "type": "nested_array",
+                                        "prop_key": "description.identificationInfo.resourceSpecificUsage.userContactInfo",
+                                        "display_options": { "renderer": "field_geog_contact" }
+                                    }
+                                ]
+                            },
+                            { "key": "description.identificationInfo.aggregationInfo.aggregateDataSetName", "title": "Aggregate dataset", "type": "string" },
+                            { "key": "description.identificationInfo.aggregationInfo.aggregateDataSetIdentifier", "title": "Aggregate dataset identifier", "type": "string" },
+                            { "key": "description.identificationInfo.aggregationInfo.associationType.codeListValue", "title": "Association type", "type": "string" },
+                            { "key": "description.identificationInfo.aggregationInfo.initiativeType.codeListValue", "title": "Initiative type", "type": "string" }
                         ]
                     },
                     {
@@ -123,6 +180,11 @@
                                 "type": "nested_array",
                                 "display_options": { "renderer": "field_geospatial_bbox" }
                             },
+                            { "key": "description.identificationInfo.extent.verticalElement", "title": "Vertical extent", "type": "array", "props": [
+                                    { "key": "minimumValue", "title": "Minimum", "type": "string", "prop_key": "description.identificationInfo.extent.verticalElement.minimumValue" },
+                                    { "key": "maximumValue", "title": "Maximum", "type": "string", "prop_key": "description.identificationInfo.extent.verticalElement.maximumValue" },
+                                    { "key": "verticalCRS", "title": "Vertical CRS", "type": "string", "prop_key": "description.identificationInfo.extent.verticalElement.verticalCRS" }
+                            ]},
                             {
                                 "key": "description.identificationInfo.extent.temporalElementExtent",
                                 "title": "Temporal extent",
@@ -140,6 +202,27 @@
                                     { "key": "code", "title": "Code", "type": "string", "prop_key": "description.referenceSystemInfo.code" },
                                     { "key": "codeSpace", "title": "Code space", "type": "string", "prop_key": "description.referenceSystemInfo.codeSpace" }
                                 ]
+                            },
+                            {
+                                "key": "description.spatialRepresentationInfo",
+                                "title": "Spatial representation",
+                                "type": "array",
+                                "display_options": { "renderer": "field_array_stacked" },
+                                "props": [
+                                    { "key": "vectorSpatialRepresentation.topologyLevel", "title": "Topology level", "type": "string", "prop_key": "description.spatialRepresentationInfo.vectorSpatialRepresentation.topologyLevel" },
+                                    { "key": "vectorSpatialRepresentation.geometricObjects", "title": "Geometric objects", "type": "array", "prop_key": "description.spatialRepresentationInfo.vectorSpatialRepresentation.geometricObjects", "props": [
+                                            { "key": "geometricObjectType", "title": "Type", "type": "string", "prop_key": "description.spatialRepresentationInfo.vectorSpatialRepresentation.geometricObjects.geometricObjectType" },
+                                            { "key": "geometricObjectCount", "title": "Count", "type": "string", "prop_key": "description.spatialRepresentationInfo.vectorSpatialRepresentation.geometricObjects.geometricObjectCount" }
+                                    ]},
+                                    { "key": "gridSpatialRepresentation.numberOfDimensions", "title": "Number of dimensions", "type": "string", "prop_key": "description.spatialRepresentationInfo.gridSpatialRepresentation.numberOfDimensions" },
+                                    { "key": "gridSpatialRepresentation.axisDimensionProperties", "title": "Axis dimensions", "type": "array", "prop_key": "description.spatialRepresentationInfo.gridSpatialRepresentation.axisDimensionProperties", "props": [
+                                            { "key": "dimensionName", "title": "Name", "type": "string", "prop_key": "description.spatialRepresentationInfo.gridSpatialRepresentation.axisDimensionProperties.dimensionName" },
+                                            { "key": "dimensionSize", "title": "Size", "type": "string", "prop_key": "description.spatialRepresentationInfo.gridSpatialRepresentation.axisDimensionProperties.dimensionSize" },
+                                            { "key": "resolution", "title": "Resolution", "type": "string", "prop_key": "description.spatialRepresentationInfo.gridSpatialRepresentation.axisDimensionProperties.resolution" }
+                                    ]},
+                                    { "key": "gridSpatialRepresentation.cellGeometry", "title": "Cell geometry", "type": "string", "prop_key": "description.spatialRepresentationInfo.gridSpatialRepresentation.cellGeometry" },
+                                    { "key": "gridSpatialRepresentation.transformationParameterAvailability", "title": "Transformation parameters available", "type": "boolean", "prop_key": "description.spatialRepresentationInfo.gridSpatialRepresentation.transformationParameterAvailability" }
+                                ]
                             }
                         ]
                     },
@@ -156,7 +239,13 @@
                                 "props": [
                                     { "key": "legalConstraints.accessConstraints", "title": "Access constraints", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.accessConstraints", "display_options": { "linkify": true } },
                                     { "key": "legalConstraints.useConstraints", "title": "Use constraints", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.useConstraints", "display_options": { "linkify": true } },
-                                    { "key": "legalConstraints.useLimitation", "title": "Use limitations", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.useLimitation", "display_options": { "linkify": true } }
+                                    { "key": "legalConstraints.useLimitation", "title": "Use limitations", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.useLimitation", "display_options": { "linkify": true } },
+                                    { "key": "legalConstraints.otherConstraints", "title": "Other constraints", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.legalConstraints.otherConstraints", "display_options": { "linkify": true } },
+                                    { "key": "securityConstraints.classification", "title": "Security classification", "type": "string", "prop_key": "description.identificationInfo.resourceConstraints.securityConstraints.classification" },
+                                    { "key": "securityConstraints.classificationSystem", "title": "Classification system", "type": "string", "prop_key": "description.identificationInfo.resourceConstraints.securityConstraints.classificationSystem" },
+                                    { "key": "securityConstraints.userNote", "title": "Security note", "type": "string", "prop_key": "description.identificationInfo.resourceConstraints.securityConstraints.userNote" },
+                                    { "key": "securityConstraints.handlingDescription", "title": "Handling description", "type": "string", "prop_key": "description.identificationInfo.resourceConstraints.securityConstraints.handlingDescription" },
+                                    { "key": "securityConstraints.useLimitation", "title": "Security use limitations", "type": "simple_array", "prop_key": "description.identificationInfo.resourceConstraints.securityConstraints.useLimitation" }
                                 ]
                             }
                         ]
@@ -170,10 +259,20 @@
                                 "key": "description.distributionInfo.distributionFormat",
                                 "title": "Distribution format",
                                 "type": "array",
+                                "display_options": { "renderer": "field_array_stacked", "header_fields": ["name"] },
                                 "props": [
                                     { "key": "name", "title": "Name", "type": "string", "prop_key": "description.distributionInfo.distributionFormat.name" },
+                                    { "key": "version", "title": "Version", "type": "string", "prop_key": "description.distributionInfo.distributionFormat.version" },
+                                    { "key": "amendmentNumber", "title": "Amendment number", "type": "string", "prop_key": "description.distributionInfo.distributionFormat.amendmentNumber" },
                                     { "key": "specification", "title": "Specification", "type": "string", "prop_key": "description.distributionInfo.distributionFormat.specification" },
-                                    { "key": "fileDecompressionTechnique", "title": "Compression", "type": "string", "prop_key": "description.distributionInfo.distributionFormat.fileDecompressionTechnique" }
+                                    { "key": "fileDecompressionTechnique", "title": "Compression", "type": "string", "prop_key": "description.distributionInfo.distributionFormat.fileDecompressionTechnique" },
+                                    {
+                                        "key": "FormatDistributor",
+                                        "title": "Distributor",
+                                        "type": "nested_array",
+                                        "prop_key": "description.distributionInfo.distributionFormat.FormatDistributor",
+                                        "display_options": { "renderer": "field_geog_contact" }
+                                    }
                                 ]
                             },
                             {
@@ -209,7 +308,100 @@
                                         "type": "nested_array",
                                         "prop_key": "description.dataQualityInfo.lineage.processStep",
                                         "display_options": { "renderer": "field_geo_lineage" }
+                                    },
+                                    {
+                                        "key": "report",
+                                        "title": "Quality reports",
+                                        "type": "array",
+                                        "prop_key": "description.dataQualityInfo.report",
+                                        "display_options": { "renderer": "field_array_stacked", "header_fields": ["dataQualityElement.nameOfMeasure"] },
+                                        "props": [
+                                                { "key": "dataQualityElement.nameOfMeasure", "title": "Measure", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.nameOfMeasure" },
+                                                { "key": "dataQualityElement.elementType", "title": "Element type", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.elementType" },
+                                                { "key": "dataQualityElement.measureIdentification", "title": "Measure identifier", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.measureIdentification" },
+                                                { "key": "dataQualityElement.measureDescription", "title": "Measure description", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.measureDescription" },
+                                                { "key": "dataQualityElement.evaluationMethodType", "title": "Evaluation method type", "type": "simple_array", "prop_key": "description.dataQualityInfo.report.dataQualityElement.evaluationMethodType" },
+                                                { "key": "dataQualityElement.evaluationMethodDescription", "title": "Evaluation method", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.evaluationMethodDescription" },
+                                                { "key": "dataQualityElement.dateTime", "title": "Date", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.dateTime" },
+                                                { "key": "dataQualityElement.conformanceResult.specification.title", "title": "Conformance specification", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.conformanceResult.specification.title" },
+                                                { "key": "dataQualityElement.conformanceResult.pass", "title": "Conformance passed", "type": "boolean", "prop_key": "description.dataQualityInfo.report.dataQualityElement.conformanceResult.pass" },
+                                                { "key": "dataQualityElement.conformanceResult.explanation", "title": "Conformance explanation", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.conformanceResult.explanation" },
+                                                { "key": "dataQualityElement.quantitativeResult.valueType", "title": "Value type", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.quantitativeResult.valueType" },
+                                                { "key": "dataQualityElement.quantitativeResult.value", "title": "Value", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.quantitativeResult.value" },
+                                                { "key": "dataQualityElement.quantitativeResult.valueUnit.name", "title": "Unit", "type": "string", "prop_key": "description.dataQualityInfo.report.dataQualityElement.quantitativeResult.valueUnit.name" }
+                                        ]
                                     }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "contentInfo",
+                        "title": "Content information",
+                        "items": [
+                            {
+                                "key": "description.contentInfo",
+                                "title": "Coverage description",
+                                "type": "array",
+                                "display_options": { "renderer": "field_array_stacked" },
+                                "props": [
+                                    { "key": "coverageDescription.attributeDescription", "title": "Attribute description", "type": "string", "prop_key": "description.contentInfo.coverageDescription.attributeDescription" },
+                                    { "key": "coverageDescription.contentType.codeListValue", "title": "Content type", "type": "string", "prop_key": "description.contentInfo.coverageDescription.contentType.codeListValue" },
+                                    {
+                                        "key": "coverageDescription.dimension",
+                                        "title": "Dimensions",
+                                        "type": "array",
+                                        "prop_key": "description.contentInfo.coverageDescription.dimension",
+                                        "display_options": { "renderer": "field_array_stacked" },
+                                        "props": [
+                                                { "key": "band.name", "title": "Band", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.name" },
+                                                { "key": "band.type", "title": "Band type", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.type" },
+                                                { "key": "band.description", "title": "Band description", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.description" },
+                                                { "key": "band.minimumValue", "title": "Band minimum", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.minimumValue" },
+                                                { "key": "band.maximumValue", "title": "Band maximum", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.maximumValue" },
+                                                { "key": "band.units", "title": "Band units", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.units" },
+                                                { "key": "band.bitsPerValue", "title": "Band bits per value", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.bitsPerValue" },
+                                                { "key": "band.scaleFactor", "title": "Band scale factor", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.scaleFactor" },
+                                                { "key": "band.offset", "title": "Band offset", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.offset" },
+                                                { "key": "band.peakResponse", "title": "Band peak response", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.peakResponse" },
+                                                { "key": "band.toneGradation", "title": "Band tone gradation", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.band.toneGradation" },
+                                                { "key": "rangeDimension.name", "title": "Range dimension", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.rangeDimension.name" },
+                                                { "key": "rangeDimension.type", "title": "Range dimension type", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.rangeDimension.type" },
+                                                { "key": "rangeDimension.description", "title": "Range dimension description", "type": "string", "prop_key": "description.contentInfo.coverageDescription.dimension.rangeDimension.description" }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "key": "serviceIdentification",
+                        "title": "Service",
+                        "items": [
+                            { "key": "description.identificationInfo.serviceIdentification.serviceType", "title": "Service type", "type": "string" },
+                            { "key": "description.identificationInfo.serviceIdentification.serviceTypeVersion", "title": "Service type version", "type": "string" },
+                            { "key": "description.identificationInfo.serviceIdentification.accessProperties.fees", "title": "Fees", "type": "string" },
+                            { "key": "description.identificationInfo.serviceIdentification.accessProperties.plannedAvailableDateTime", "title": "Planned availability", "type": "string" },
+                            { "key": "description.identificationInfo.serviceIdentification.accessProperties.orderingInstructions", "title": "Ordering instructions", "type": "string" },
+                            { "key": "description.identificationInfo.serviceIdentification.accessProperties.turnaround", "title": "Turnaround", "type": "string" },
+                            { "key": "description.identificationInfo.serviceIdentification.couplingType.codeListValue", "title": "Coupling type", "type": "string" },
+                            { "key": "description.identificationInfo.serviceIdentification.coupledResource", "title": "Coupled resources", "type": "array", "props": [
+                                    { "key": "operationName", "title": "Operation", "type": "string", "prop_key": "description.identificationInfo.serviceIdentification.coupledResource.operationName" },
+                                    { "key": "identifier", "title": "Identifier", "type": "string", "prop_key": "description.identificationInfo.serviceIdentification.coupledResource.identifier" }
+                            ]},
+                            {
+                                "key": "description.identificationInfo.serviceIdentification.containsOperations",
+                                "title": "Operations",
+                                "type": "array",
+                                "display_options": { "renderer": "field_array_stacked", "header_fields": ["operationName"] },
+                                "props": [
+                                    { "key": "operationName", "title": "Operation", "type": "string", "prop_key": "description.identificationInfo.serviceIdentification.containsOperations.operationName" },
+                                    { "key": "operationDescription", "title": "Description", "type": "string", "prop_key": "description.identificationInfo.serviceIdentification.containsOperations.operationDescription" },
+                                    { "key": "invocationName", "title": "Invocation name", "type": "string", "prop_key": "description.identificationInfo.serviceIdentification.containsOperations.invocationName" },
+                                    { "key": "connectPoint.linkage", "title": "Connect point", "type": "string", "prop_key": "description.identificationInfo.serviceIdentification.containsOperations.connectPoint.linkage", "display_options": { "is_uri": true } },
+                                    { "key": "connectPoint.protocol", "title": "Protocol", "type": "string", "prop_key": "description.identificationInfo.serviceIdentification.containsOperations.connectPoint.protocol" }
                                 ]
                             }
                         ]
@@ -219,10 +411,35 @@
                         "key": "metadata",
                         "title": "Metadata production",
                         "items": [
+                            { "key": "metadata_information.title", "title": "Metadata document title", "type": "string" },
+                            { "key": "metadata_information.idno", "title": "Metadata document ID", "type": "string" },
+                            { "key": "metadata_information.producers", "title": "Metadata producers", "type": "array", "props": [
+                                    { "key": "name", "title": "Name", "type": "string", "prop_key": "metadata_information.producers.name" },
+                                    { "key": "abbr", "title": "Abbreviation", "type": "string", "prop_key": "metadata_information.producers.abbr" },
+                                    { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "metadata_information.producers.affiliation" },
+                                    { "key": "role", "title": "Role", "type": "string", "prop_key": "metadata_information.producers.role" }
+                            ]},
+                            { "key": "metadata_information.production_date", "title": "Metadata production date", "type": "string" },
+                            { "key": "metadata_information.version", "title": "Metadata version", "type": "string" },
                             { "key": "description.idno", "title": "File identifier", "type": "string" },
+                            { "key": "description.parentIdentifier", "title": "Parent identifier", "type": "string" },
                             { "key": "description.metadataStandardName", "title": "Metadata standard", "type": "string" },
+                            { "key": "description.metadataStandardVersion", "title": "Metadata standard version", "type": "string" },
                             { "key": "description.dateStamp", "title": "Date stamp", "type": "string" },
                             { "key": "description.metadataMaintenance.maintenanceAndUpdateFrequency", "title": "Metadata update frequency", "type": "string" },
+                            { "key": "description.metadataMaintenance.userDefinedMaintenanceFrequency", "title": "Metadata user-defined frequency", "type": "string" },
+                            { "key": "description.metadataMaintenance.dateOfNextUpdate", "title": "Metadata next update", "type": "string" },
+                            { "key": "description.metadataMaintenance.updateScope", "title": "Metadata update scope", "type": "array", "props": [
+                                    { "key": "scope", "title": "Scope", "type": "string", "prop_key": "description.metadataMaintenance.updateScope.scope" },
+                                    { "key": "description", "title": "Description", "type": "string", "prop_key": "description.metadataMaintenance.updateScope.description" }
+                            ]},
+                            { "key": "description.metadataMaintenance.maintenanceNote", "title": "Metadata maintenance note", "type": "string" },
+                            {
+                                "key": "description.metadataMaintenance.contact",
+                                "title": "Metadata maintenance contact",
+                                "type": "nested_array",
+                                "display_options": { "renderer": "field_geog_contact" }
+                            },
                             { "key": "description.language", "title": "Language", "type": "string" },
                             { "key": "description.characterSet.codeListValue", "title": "Character set", "type": "string" },
                             {

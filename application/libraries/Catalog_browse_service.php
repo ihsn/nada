@@ -552,9 +552,60 @@ class Catalog_browse_service {
 		if (isset($data['surveys']['rows'])) {
 			$sid_arr = array_values(array_column($data['surveys']['rows'], 'id'));
 			$data['related_collections'] = $this->CI->Search_helper_model->related_collections($sid_arr);
+			$this->attach_card_links($data['surveys']['rows']);
+		}
+		if (!empty($data['featured_studies']) && is_array($data['featured_studies'])) {
+			$this->attach_card_links($data['featured_studies']);
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Flags for the quick links on the study cards, read with one query per kind for the whole page:
+	 *   has_data_api — survey, microdata or geospatial study with a data API table (study page tab data-api)
+	 *   pdf          — document's first local PDF {resource_id, title, count}, opened in the PDF viewer
+	 * Other links (data dictionary, get microdata, indicator API) come from columns the rows already have.
+	 *
+	 * @param array $rows study rows, changed in place
+	 */
+	protected function attach_card_links(array &$rows)
+	{
+		$api_sids = array();
+		$document_sids = array();
+		foreach ($rows as $row) {
+			$type = isset($row['type']) ? (string) $row['type'] : '';
+			$sid = isset($row['id']) ? (int) $row['id'] : 0;
+			if (!$sid) {
+				continue;
+			}
+			if (in_array($type, array('survey', 'microdata', 'geospatial'), true)) {
+				$api_sids[] = $sid;
+			} elseif ($type === 'document') {
+				$document_sids[] = $sid;
+			}
+		}
+
+		$with_api = array();
+		if ($api_sids) {
+			$this->CI->load->model('Survey_data_api_model');
+			$with_api = $this->CI->Survey_data_api_model->get_sids_with_data_api($api_sids);
+		}
+		$pdfs = array();
+		if ($document_sids) {
+			$this->CI->load->model('Survey_resource_model');
+			$pdfs = $this->CI->Survey_resource_model->get_first_local_pdf_by_surveys($document_sids);
+		}
+
+		foreach ($rows as $idx => $row) {
+			$sid = isset($row['id']) ? (int) $row['id'] : 0;
+			if (isset($with_api[$sid])) {
+				$rows[$idx]['has_data_api'] = 1;
+			}
+			if (isset($pdfs[$sid])) {
+				$rows[$idx]['pdf'] = $pdfs[$sid];
+			}
+		}
 	}
 
 	/**

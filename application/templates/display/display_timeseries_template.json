@@ -13,15 +13,25 @@
                     "title": "overview",
                     "items": [
                         { "key": "series_description.idno", "title": "ID", "type": "string" },
+                        { "key": "series_description.doi", "title": "DOI", "type": "string" },
                         { "key": "series_description.name", "title": "Name", "type": "string" },
+                        { "key": "series_description.display_name", "title": "Display name", "type": "string" },
                         {
                             "key": "series_description.databases",
                             "title": "Databases",
                             "type": "array",
                             "display_options": { "renderer": "field_ts_databases" }
                         },
+                        { "key": "series_description.date_last_update", "title": "Last updated", "type": "string" },
+                        { "key": "series_description.date_released", "title": "Date released", "type": "string" },
+                        { "key": "series_description.version_statement.version", "title": "Version", "type": "string" },
+                        { "key": "series_description.version_statement.version_date", "title": "Version date", "type": "string" },
+                        { "key": "series_description.version_statement.version_resp", "title": "Version responsibility", "type": "string" },
+                        { "key": "series_description.version_statement.version_notes", "title": "Version notes", "type": "string" },
                         { "key": "series_description.measurement_unit", "title": "Measurement unit", "type": "string" },
+                        { "key": "series_description.power_code", "title": "Power code", "type": "string" },
                         { "key": "series_description.periodicity", "title": "Periodicity", "type": "string" },
+                        { "key": "series_description.release_calendar", "title": "Release calendar", "type": "string" },
                         { "key": "series_description.base_period", "title": "Base period", "type": "string" },
                         {
                             "key": "iframe_embeds",
@@ -32,19 +42,91 @@
                         { "key": "series_description.definition_short", "title": "Short definition", "type": "string" },
                         { "key": "series_description.definition_long", "title": "Long definition", "type": "string" },
                         { "key": "series_description.statistical_concept", "title": "Statistical concept", "type": "string" },
+                        {
+                            "key": "series_description.statistical_concept_references",
+                            "title": "Statistical concept references",
+                            "type": "array",
+                            "props": [
+                                { "key": "source", "title": "Source", "type": "string", "prop_key": "series_description.statistical_concept_references.source" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.statistical_concept_references.uri", "display_options": { "is_uri": true } },
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.statistical_concept_references.note" }
+                            ]
+                        },
+                        { "key": "series_description.universe", "title": "Universe", "type": "string" },
+                        { "key": "series_description.data_collection.data_source", "title": "Data source", "type": "string" },
+                        { "key": "series_description.data_collection.method", "title": "Data collection method", "type": "string" },
+                        { "key": "series_description.data_collection.period", "title": "Data collection period", "type": "string" },
+                        { "key": "series_description.data_collection.note", "title": "Data collection note", "type": "string" },
+                        { "key": "series_description.data_collection.uri", "title": "Data collection URI", "type": "string", "display_options": { "is_uri": true } },
                         { "key": "series_description.methodology", "title": "Methodology", "type": "string" },
+                        {
+                            "key": "series_description.methodology_references",
+                            "title": "Methodology references",
+                            "type": "array",
+                            "props": [
+                                { "key": "source", "title": "Source", "type": "string", "prop_key": "series_description.methodology_references.source" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.methodology_references.uri", "display_options": { "is_uri": true } },
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.methodology_references.note" }
+                            ]
+                        },
                         { "key": "series_description.derivation", "title": "Derivation", "type": "string" },
+                        {
+                            "key": "series_description.derivation_references",
+                            "title": "Derivation references",
+                            "type": "array",
+                            "props": [
+                                { "key": "source", "title": "Source", "type": "string", "prop_key": "series_description.derivation_references.source" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.derivation_references.uri", "display_options": { "is_uri": true } },
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.derivation_references.note" }
+                            ]
+                        },
                         { "key": "series_description.imputation", "title": "Imputation", "type": "string" },
+                        {
+                            "key": "series_description.imputation_references",
+                            "title": "Imputation references",
+                            "type": "array",
+                            "props": [
+                                { "key": "source", "title": "Source", "type": "string", "prop_key": "series_description.imputation_references.source" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.imputation_references.uri", "display_options": { "is_uri": true } },
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.imputation_references.note" }
+                            ]
+                        },
+                        { "key": "series_description.seasonal_adjustment", "title": "Seasonal adjustment", "type": "string" },
+                        { "key": "series_description.adjustments", "title": "Other adjustments", "type": "simple_array" },
                         { "key": "series_description.missing", "title": "Missing data", "type": "string" },
+                        { "key": "series_description.validation_rules", "title": "Validation rules", "type": "simple_array" },
                         { "key": "series_description.quality_checks", "title": "Quality checks", "type": "string" },
                         { "key": "series_description.quality_note", "title": "Quality note", "type": "string" },
                         { "key": "series_description.sources_discrepancies", "title": "Sources discrepancies", "type": "string" },
                         { "key": "series_description.series_break", "title": "Series break", "type": "string" },
                         { "key": "series_description.limitation", "title": "Limitation", "type": "string" },
                         { "key": "series_description.relevance", "title": "Relevance", "type": "string" },
+                        { "key": "series_description.mandate.mandate", "title": "Mandate", "type": "string" },
+                        { "key": "series_description.mandate.uri", "title": "Mandate URI", "type": "string", "display_options": { "is_uri": true } },
                         { "key": "series_description.aggregation_method", "title": "Aggregation method", "type": "string" },
+                        {
+                            "key": "series_description.aggregation_method_references",
+                            "title": "Aggregation method references",
+                            "type": "array",
+                            "props": [
+                                { "key": "source", "title": "Source", "type": "string", "prop_key": "series_description.aggregation_method_references.source" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.aggregation_method_references.uri", "display_options": { "is_uri": true } },
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.aggregation_method_references.note" }
+                            ]
+                        },
                         { "key": "series_description.disaggregation", "title": "Disaggregation", "type": "string" },
                         { "key": "series_description.sources_note", "title": "Sources note", "type": "string" },
+                        {
+                            "key": "series_description.direct_sources",
+                            "title": "Direct sources",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.direct_sources.name" },
+                                { "key": "organization", "title": "Organization", "type": "string", "prop_key": "series_description.direct_sources.organization" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.direct_sources.uri", "display_options": { "is_uri": true } },
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.direct_sources.note" }
+                            ]
+                        },
                         {
                             "key": "series_description.aliases",
                             "title": "Aliases",
@@ -111,7 +193,9 @@
                             "props": [
                                 { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.themes.id" },
                                 { "key": "name", "title": "Theme", "type": "string", "prop_key": "series_description.themes.name" },
-                                { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "series_description.themes.vocabulary" }
+                                { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "series_description.themes.vocabulary" },
+                                { "key": "parent_id", "title": "Parent ID", "type": "string", "prop_key": "series_description.themes.parent_id" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.themes.uri", "display_options": { "is_uri": true } }
                             ]
                         },
                         {
@@ -121,7 +205,9 @@
                             "props": [
                                 { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.topics.id" },
                                 { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.topics.name" },
-                                { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "series_description.topics.vocabulary" }
+                                { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "series_description.topics.vocabulary" },
+                                { "key": "parent_id", "title": "Parent ID", "type": "string", "prop_key": "series_description.topics.parent_id" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.topics.uri", "display_options": { "is_uri": true } }
                             ]
                         },
                         {
@@ -129,7 +215,11 @@
                             "title": "Disciplines",
                             "type": "array",
                             "props": [
-                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.disciplines.name" }
+                                { "key": "id", "title": "ID", "type": "string", "prop_key": "series_description.disciplines.id" },
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.disciplines.name" },
+                                { "key": "parent_id", "title": "Parent ID", "type": "string", "prop_key": "series_description.disciplines.parent_id" },
+                                { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "series_description.disciplines.vocabulary" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.disciplines.uri", "display_options": { "is_uri": true } }
                             ]
                         },
                         {
@@ -138,7 +228,8 @@
                             "type": "array",
                             "props": [
                                 { "key": "start", "title": "Start", "type": "string", "prop_key": "series_description.time_periods.start" },
-                                { "key": "end", "title": "End", "type": "string", "prop_key": "series_description.time_periods.end" }
+                                { "key": "end", "title": "End", "type": "string", "prop_key": "series_description.time_periods.end" },
+                                { "key": "notes", "title": "Notes", "type": "string", "prop_key": "series_description.time_periods.notes" }
                             ]
                         },
                         {
@@ -157,9 +248,51 @@
                             "key": "series_description.sources",
                             "title": "Sources",
                             "type": "array",
+                            "display_options": { "renderer": "field_array_stacked", "header_fields": ["name"] },
                             "props": [
                                 { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.sources.name" },
-                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.sources.uri", "display_options": { "is_uri": true } }
+                                { "key": "idno", "title": "ID", "type": "string", "prop_key": "series_description.sources.idno" },
+                                {
+                                    "key": "other_identifiers",
+                                    "title": "Other identifiers",
+                                    "type": "array",
+                                    "prop_key": "series_description.sources.other_identifiers",
+                                    "props": [
+                                        { "key": "type", "title": "Type", "type": "string", "prop_key": "series_description.sources.other_identifiers.type" },
+                                        { "key": "identifier", "title": "Identifier", "type": "string", "prop_key": "series_description.sources.other_identifiers.identifier" }
+                                    ]
+                                },
+                                { "key": "type", "title": "Type", "type": "string", "prop_key": "series_description.sources.type" },
+                                { "key": "organization", "title": "Organization", "type": "string", "prop_key": "series_description.sources.organization" },
+                                {
+                                    "key": "authors",
+                                    "title": "Authors",
+                                    "type": "array",
+                                    "prop_key": "series_description.sources.authors",
+                                    "props": [
+                                        { "key": "full_name", "title": "Name", "type": "string", "prop_key": "series_description.sources.authors.full_name" },
+                                        { "key": "first_name", "title": "First name", "type": "string", "prop_key": "series_description.sources.authors.first_name" },
+                                        { "key": "initial", "title": "Initial", "type": "string", "prop_key": "series_description.sources.authors.initial" },
+                                        { "key": "last_name", "title": "Last name", "type": "string", "prop_key": "series_description.sources.authors.last_name" },
+                                        { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "series_description.sources.authors.affiliation" }
+                                    ]
+                                },
+                                {
+                                    "key": "datasets",
+                                    "title": "Datasets",
+                                    "type": "array",
+                                    "prop_key": "series_description.sources.datasets",
+                                    "props": [
+                                        { "key": "idno", "title": "ID", "type": "string", "prop_key": "series_description.sources.datasets.idno" },
+                                        { "key": "title", "title": "Title", "type": "string", "prop_key": "series_description.sources.datasets.title" },
+                                        { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.sources.datasets.uri", "display_options": { "is_uri": true } }
+                                    ]
+                                },
+                                { "key": "publisher", "title": "Publisher", "type": "string", "prop_key": "series_description.sources.publisher" },
+                                { "key": "publication_date", "title": "Publication date", "type": "string", "prop_key": "series_description.sources.publication_date" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.sources.uri", "display_options": { "is_uri": true } },
+                                { "key": "access_date", "title": "Access date", "type": "string", "prop_key": "series_description.sources.access_date" },
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.sources.note" }
                             ]
                         },
                         {
@@ -168,7 +301,8 @@
                             "type": "array",
                             "props": [
                                 { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.keywords.name" },
-                                { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "series_description.keywords.vocabulary" }
+                                { "key": "vocabulary", "title": "Vocabulary", "type": "string", "prop_key": "series_description.keywords.vocabulary" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.keywords.uri", "display_options": { "is_uri": true } }
                             ]
                         },
                         {
@@ -187,15 +321,30 @@
                             "type": "array",
                             "props": [
                                 { "key": "date", "title": "Date", "type": "string", "prop_key": "series_description.errata.date" },
-                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.errata.description" }
+                                { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.errata.description" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.errata.uri", "display_options": { "is_uri": true } }
                             ]
                         },
+                        {
+                            "key": "series_description.acknowledgements",
+                            "title": "Acknowledgements",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.acknowledgements.name" },
+                                { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "series_description.acknowledgements.affiliation" },
+                                { "key": "role", "title": "Role", "type": "string", "prop_key": "series_description.acknowledgements.role" }
+                            ]
+                        },
+                        { "key": "series_description.acknowledgement_statement", "title": "Acknowledgement statement", "type": "string" },
+                        { "key": "series_description.disclaimer", "title": "Disclaimer", "type": "string" },
                         {
                             "key": "series_description.notes",
                             "title": "Notes",
                             "type": "array",
                             "props": [
-                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.notes.note" }
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "series_description.notes.note" },
+                                { "key": "type", "title": "Type", "type": "string", "prop_key": "series_description.notes.type" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.notes.uri", "display_options": { "is_uri": true } }
                             ]
                         },
                         {
@@ -226,10 +375,23 @@
                             "key": "series_description.framework",
                             "title": "Framework",
                             "type": "array",
+                            "display_options": { "renderer": "field_array_stacked", "header_fields": ["name"] },
                             "props": [
                                 { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.framework.name" },
+                                { "key": "abbreviation", "title": "Abbreviation", "type": "string", "prop_key": "series_description.framework.abbreviation" },
+                                { "key": "custodian", "title": "Custodian", "type": "string", "prop_key": "series_description.framework.custodian" },
                                 { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.framework.description" },
-                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.framework.uri", "display_options": { "is_uri": true } }
+                                { "key": "goal_id", "title": "Goal ID", "type": "string", "prop_key": "series_description.framework.goal_id" },
+                                { "key": "goal_name", "title": "Goal", "type": "string", "prop_key": "series_description.framework.goal_name" },
+                                { "key": "goal_description", "title": "Goal description", "type": "string", "prop_key": "series_description.framework.goal_description" },
+                                { "key": "target_id", "title": "Target ID", "type": "string", "prop_key": "series_description.framework.target_id" },
+                                { "key": "target_name", "title": "Target", "type": "string", "prop_key": "series_description.framework.target_name" },
+                                { "key": "target_description", "title": "Target description", "type": "string", "prop_key": "series_description.framework.target_description" },
+                                { "key": "indicator_id", "title": "Indicator ID", "type": "string", "prop_key": "series_description.framework.indicator_id" },
+                                { "key": "indicator_name", "title": "Indicator", "type": "string", "prop_key": "series_description.framework.indicator_name" },
+                                { "key": "indicator_description", "title": "Indicator description", "type": "string", "prop_key": "series_description.framework.indicator_description" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.framework.uri", "display_options": { "is_uri": true } },
+                                { "key": "notes", "title": "Notes", "type": "string", "prop_key": "series_description.framework.notes" }
                             ]
                         },
                         {
@@ -241,6 +403,20 @@
                                 { "key": "description", "title": "Description", "type": "string", "prop_key": "series_description.series_groups.description" },
                                 { "key": "version", "title": "Version", "type": "string", "prop_key": "series_description.series_groups.version" },
                                 { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.series_groups.uri", "display_options": { "is_uri": true } }
+                            ]
+                        },
+                        {
+                            "key": "series_description.contacts",
+                            "title": "Contacts",
+                            "type": "array",
+                            "props": [
+                                { "key": "name", "title": "Name", "type": "string", "prop_key": "series_description.contacts.name" },
+                                { "key": "role", "title": "Role", "type": "string", "prop_key": "series_description.contacts.role" },
+                                { "key": "position", "title": "Position", "type": "string", "prop_key": "series_description.contacts.position" },
+                                { "key": "affiliation", "title": "Affiliation", "type": "string", "prop_key": "series_description.contacts.affiliation" },
+                                { "key": "email", "title": "Email", "type": "string", "prop_key": "series_description.contacts.email" },
+                                { "key": "telephone", "title": "Telephone", "type": "string", "prop_key": "series_description.contacts.telephone" },
+                                { "key": "uri", "title": "URI", "type": "string", "prop_key": "series_description.contacts.uri", "display_options": { "is_uri": true } }
                             ]
                         },
                         {
@@ -270,7 +446,18 @@
                         { "key": "data_structure_reference.name", "title": "Maintainable id", "type": "string" },
                         { "key": "data_structure_reference.version", "title": "Version", "type": "string" },
                         { "key": "data_structure_reference.uri", "title": "Source URI", "type": "string", "display_options": { "is_uri": true } },
-                        { "key": "data_structure_reference.notes", "title": "Notes", "type": "string" }
+                        { "key": "data_structure_reference.notes", "title": "Notes", "type": "string" },
+                        {
+                            "key": "data_notes",
+                            "title": "Data notes",
+                            "type": "array",
+                            "props": [
+                                { "key": "id", "title": "Note ID", "type": "string", "prop_key": "data_notes.id" },
+                                { "key": "scope", "title": "Scope", "type": "string", "prop_key": "data_notes.scope" },
+                                { "key": "column", "title": "Footnote column", "type": "string", "prop_key": "data_notes.column" },
+                                { "key": "note", "title": "Note", "type": "string", "prop_key": "data_notes.note" }
+                            ]
+                        }
                     ]
                 },
                 {
@@ -356,7 +543,8 @@
                         },
                         { "key": "series_description.confidentiality", "title": "Confidentiality", "type": "string" },
                         { "key": "series_description.confidentiality_status", "title": "Confidentiality status", "type": "string" },
-                        { "key": "series_description.confidentiality_note", "title": "Confidentiality note", "type": "string" }
+                        { "key": "series_description.confidentiality_note", "title": "Confidentiality note", "type": "string" },
+                        { "key": "series_description.citation_requirement", "title": "Citation requirement", "type": "string" }
                     ]
                 },
                 {
@@ -381,7 +569,8 @@
                         { "key": "metadata_information.version_statement.version", "title": "Version", "type": "string" },
                         { "key": "metadata_information.version_statement.version_date", "title": "Version date", "type": "string" },
                         { "key": "metadata_information.version_statement.version_resp", "title": "Version responsibility", "type": "string" },
-                        { "key": "metadata_information.version_statement.version_notes", "title": "Version notes", "type": "string" }
+                        { "key": "metadata_information.version_statement.version_notes", "title": "Version notes", "type": "string" },
+                        { "key": "metadata_information.checksum", "title": "Checksum", "type": "string" }
                     ]
                 }
             ]

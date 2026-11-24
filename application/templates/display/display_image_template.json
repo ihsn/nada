@@ -546,10 +546,17 @@
                                 "type": "array",
                                 "props": [
                                     {
+                                        "key": "cvId",
+                                        "title": "ID",
+                                        "type": "string",
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.aboutCvTerms.cvId"
+                                    },
+                                    {
                                         "key": "cvid",
                                         "title": "ID",
                                         "type": "string",
-                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.aboutCvTerms.cvid"
+                                        "prop_key": "image_description.iptc.photoVideoMetadataIPTC.aboutCvTerms.cvid",
+                                        "_note": "Legacy key saved by the metadata editor; schema uses cvId. Empty columns are hidden, so only one shows."
                                     },
                                     {
                                         "key": "cvTermName",
@@ -1029,7 +1036,7 @@
                                     },
                                     {
                                         "key": "characteristics",
-                                        "title": "Characterstics",
+                                        "title": "Characteristics",
                                         "type": "array",
                                         "props": [
                                             {
@@ -1042,7 +1049,7 @@
                                                 "key": "cvTermName",
                                                 "title": "CV-Term Name",
                                                 "type": "string",
-                                                "prop_key": "image_description.iptc.photoVideoMetadataIPTC.personsShown.characteristics.description"
+                                                "prop_key": "image_description.iptc.photoVideoMetadataIPTC.personsShown.characteristics.cvTermName"
                                             },
                                             {
                                                 "key": "cvTermId",
