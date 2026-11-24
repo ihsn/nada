@@ -268,17 +268,9 @@ class MY_Controller extends CI_Controller
 			return TRUE;
 		}
 
-		// No lock file, or one written for another database — check DB for app_installed row (the connection is open:
-		// Db_connection_guard, autoloaded, stops the request otherwise). On a database that is not installed the table
-		// is missing: that must send the request to the installer, not stop it with a db_debug error page.
-		$db_debug = $this->db->db_debug;
-		$this->db->db_debug = FALSE;
-		$this->db->select('name');
-		$this->db->where('name', 'app_installed');
-		$query = $this->db->get('configurations');
-		$this->db->db_debug = $db_debug;
-
-		if ($query && $query->num_rows() > 0)
+		// No lock file, or one written for another database (or an older lock file format) — check the database (the
+		// connection is open: Db_connection_guard, autoloaded, stops the request otherwise)
+		if ($this->install_lock->database_is_installed())
 		{
 			// Installed — (re)write the lock file for subsequent requests
 			$this->install_lock->write();

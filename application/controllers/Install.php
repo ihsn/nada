@@ -301,21 +301,17 @@ class Install extends CI_Controller {
 			show_error(html_escape($this->db_check['message']));
 		}
 
-		//test reading from database tables
-		$this->db->select("name");	
-		$this->db->where("name", "app_installed");
-		$query=$this->db->get("configurations");
-		
-		if ($query)
+		//installed: the install marker exists, or the database already has user accounts (an installed site whose marker
+		//is missing). The installer creates the admin account before complete() writes the marker, so complete() is
+		//the one step allowed while user accounts exist but the marker does not
+		$this->load->library('install_lock');
+		$is_complete_step = strtolower((string) $this->router->method) === 'complete';
+		if ($this->install_lock->has_install_marker()
+			|| (!$is_complete_step && $this->install_lock->has_user_accounts()))
 		{
-			$result=$query->row_array();
-			
-			if (isset($result['name']))
-			{
-				//Application is already installed, exit the installer
-				show_error(t('page_not_found').' - <a href="'.site_url().'">'.t('return_to_site').'</a>');
-				exit;
-			}
+			//Application is already installed, exit the installer
+			show_error(t('page_not_found').' - <a href="'.site_url().'">'.t('return_to_site').'</a>');
+			exit;
 		}
 
 	}
