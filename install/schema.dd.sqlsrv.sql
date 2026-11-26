@@ -59,9 +59,12 @@ CREATE TABLE dd_collaborators (
   pid int NOT NULL,
   email varchar(255) NOT NULL,
   access varchar(255) NOT NULL,
+  user_id int NULL,
   PRIMARY KEY (id)
 );
 CREATE NONCLUSTERED INDEX idx_ddc_pid ON dd_collaborators (pid);
+CREATE NONCLUSTERED INDEX idx_ddc_user_id ON dd_collaborators (user_id);
+CREATE NONCLUSTERED INDEX idx_ddc_email ON dd_collaborators (email);
 
 CREATE TABLE dd_datadeposit_history (
   id int NOT NULL IDENTITY(1,1),

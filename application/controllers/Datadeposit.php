@@ -46,12 +46,12 @@ class Datadeposit extends MY_Controller
 		if (!is_numeric($id)) {
 			show_error('INVALID ID');
 		}
-		if (!$this->DD_project_model->has_access($id, $this->session->userdata('email'))) {
+		if (!$this->DD_project_model->has_access($id, $this->session->userdata('email'), $this->session->userdata('user_id'))) {
 			$this->session->set_flashdata('error', t('dd_access_denied_project'));
 			redirect('datadeposit/projects');
 			return;
 		}
-		if ($this->DD_project_model->is_locked($id, $this->session->userdata('email'))) {
+		if ($this->DD_project_model->is_locked($id, $this->session->userdata('email'), $this->session->userdata('user_id'))) {
 			redirect('datadeposit/summary/'.$id);
 			return;
 		}
@@ -63,7 +63,7 @@ class Datadeposit extends MY_Controller
 		if (!is_numeric($id)) {
 			show_error('INVALID ID');
 		}
-		if (!$this->DD_project_model->has_access($id, $this->session->userdata('email'))) {
+		if (!$this->DD_project_model->has_access($id, $this->session->userdata('email'), $this->session->userdata('user_id'))) {
 			redirect('datadeposit/projects');
 			return;
 		}
@@ -75,7 +75,7 @@ class Datadeposit extends MY_Controller
 		if (!is_numeric($id)) {
 			show_error('INVALID ID');
 		}
-		if (!$this->DD_project_model->has_access($id, $this->session->userdata('email'))) {
+		if (!$this->DD_project_model->has_access($id, $this->session->userdata('email'), $this->session->userdata('user_id'))) {
 			redirect('datadeposit/projects');
 			return;
 		}
@@ -189,7 +189,7 @@ class Datadeposit extends MY_Controller
 	private function _deposit_project_spa_config($id, $page)
 	{
 		$email = $this->session->userdata('email');
-		$project = $this->DD_project_model->project_id($id, $email);
+		$project = $this->DD_project_model->project_id($id, $email, $this->session->userdata('user_id'));
 		if (!$project) {
 			show_error('PROJECT_NOT_FOUND');
 		}
@@ -219,7 +219,7 @@ class Datadeposit extends MY_Controller
 		return array(
 			'page'              => $page_out,
 			'initialStep'       => $initial,
-			'canEdit'           => !$this->DD_project_model->is_locked($id, $email),
+			'canEdit'           => !$this->DD_project_model->is_locked($id, $email, $this->session->userdata('user_id')),
 			'projectId'         => (int) $id,
 			'projectTitle'      => isset($project[0]->title) ? $project[0]->title : '',
 			'projectStatus'     => isset($project[0]->status) ? $project[0]->status : 'draft',

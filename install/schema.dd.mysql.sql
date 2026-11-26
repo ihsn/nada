@@ -60,8 +60,11 @@ CREATE TABLE IF NOT EXISTS `dd_collaborators` (
   `pid` int(11) NOT NULL,
   `email` varchar(255) NOT NULL,
   `access` varchar(255) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_ddc_pid` (`pid`)
+  KEY `idx_ddc_pid` (`pid`),
+  KEY `idx_ddc_user_id` (`user_id`),
+  KEY `idx_ddc_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `dd_datadeposit_history` (

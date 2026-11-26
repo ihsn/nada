@@ -68,15 +68,25 @@ class DD_project_model extends CI_Model {
 		
         
         
-	public function project_id ($id, $email) {
+	/**
+	 * Project rows (with the caller's access level) when the user is a member of the project.
+	 *
+	 * @param int $id project id
+	 * @param string $email the user's current email (matches invites not linked to an account yet)
+	 * @param int|null $user_id the user's id; looked up from $email when not given
+	 */
+	public function project_id ($id, $email, $user_id = null) {
 
-		$q = $this->db->select('dd_projects.*, dd_collaborators.access')
-			->from('dd_projects, dd_collaborators')
-			->where('dd_projects.id = dd_collaborators.pid')
-			->where('dd_collaborators.email', $email)
+		$user_id = $this->member_user_id($user_id, $email);
+		$this->link_collaborations_for_user($user_id);
+
+		$this->db->select('dd_projects.*, dd_collaborators.access')
+			->from('dd_projects')
+			->join('dd_collaborators', 'dd_collaborators.pid = dd_projects.id', 'inner')
 			->where('dd_collaborators.pid', $id);
-			
-		$query=$q->get();
+		$this->where_member($user_id, $email);
+
+		$query=$this->db->get();
 		
 		if ($query)
 		{
@@ -109,9 +119,9 @@ class DD_project_model extends CI_Model {
     
 
 	//project is locked for editing
-	public function is_locked($id, $email) 
+	public function is_locked($id, $email, $user_id = null)
 	{
-		$projects = $this->project_id($id, $email);
+		$projects = $this->project_id($id, $email, $user_id);
 		if (isset($projects[0]->id) && $projects[0]->status=='draft')
 		{
 			return false;
@@ -121,15 +131,15 @@ class DD_project_model extends CI_Model {
 	}
 
 
-	public function has_access($id, $email) 
+	public function has_access($id, $email, $user_id = null)
 	{
-		$projects = $this->project_id($id, $email);
+		$projects = $this->project_id($id, $email, $user_id);
 		return isset($projects[0]->id);
 	}
-	
-	public function has_access_or_die($id,$email)
+
+	public function has_access_or_die($id, $email, $user_id = null)
 	{
-		if(!$this->has_access($id,$email))
+		if(!$this->has_access($id, $email, $user_id))
 		{
 			show_error('ACCESS_DENIED');
 		}
@@ -160,6 +170,7 @@ class DD_project_model extends CI_Model {
 		if ($email === '') {
 			return array();
 		}
+		$this->link_collaborations_for_user($uid);
 
 		$allowed = array('title', 'created_by', 'status', 'created_on', 'last_modified', 'id');
 		if (!in_array($order, $allowed, true)) {
@@ -168,7 +179,7 @@ class DD_project_model extends CI_Model {
 		$order_by = strtolower((string) $order_by) === 'asc' ? 'asc' : 'desc';
 
 		$this->db->select('dd_projects.*, dd_collaborators.access');
-		$this->_projects_for_email($email, $keywords, $status);
+		$this->_projects_for_user($uid, $email, $keywords, $status);
 		$this->db->order_by('dd_projects.'.$order, $order_by);
 
 		$limit = (int) $limit;
@@ -186,9 +197,10 @@ class DD_project_model extends CI_Model {
 		if ($email === '') {
 			return 0;
 		}
+		$this->link_collaborations_for_user($uid);
 
 		$this->db->select('dd_projects.id');
-		$this->_projects_for_email($email, $keywords, $status);
+		$this->_projects_for_user($uid, $email, $keywords, $status);
 		return (int) $this->db->count_all_results();
 	}
 
@@ -202,11 +214,11 @@ class DD_project_model extends CI_Model {
 		return ($row && isset($row->email)) ? (string) $row->email : '';
 	}
 
-	private function _projects_for_email($email, $keywords = '', $status = '')
+	private function _projects_for_user($uid, $email, $keywords = '', $status = '')
 	{
 		$this->db->from('dd_projects');
-		$this->db->join('dd_collaborators', 'dd_collaborators.pid=dd_projects.id', 'left');
-		$this->db->where('dd_collaborators.email', $email);
+		$this->db->join('dd_collaborators', 'dd_collaborators.pid=dd_projects.id', 'inner');
+		$this->where_member($uid, $email);
 
 		$allowed_status = array('draft', 'submitted', 'accepted', 'processed', 'closed');
 		$status = strtolower(trim((string) $status));
@@ -231,17 +243,42 @@ class DD_project_model extends CI_Model {
 	
 	
 	public function get_collaborators($pid) {
-		$q = $this->db->select('*')
+		return $this->member_emails($pid, 'collaborator', 0);
+	}
+
+	/**
+	 * Member emails for a project. A row linked to an account reports the account's current
+	 * email (so notifications follow an email change); an unlinked invite reports the stored email.
+	 *
+	 * @param int $pid
+	 * @param string $access owner|collaborator
+	 * @param int $limit 0 = all
+	 * @return string[]
+	 */
+	private function member_emails($pid, $access, $limit = 0)
+	{
+		$linked = $this->collaborators_have_user_id();
+		$this->db->select($linked
+				? 'dd_collaborators.email AS stored_email, users.email AS user_email'
+				: 'dd_collaborators.email AS stored_email')
 			->from('dd_collaborators')
-			->where('pid', $pid)
-			->where('access', 'collaborator')
-			->order_by('id');
-		$result = $q->get()->result();
-		$collabs = array();
-		foreach($result as $collab) {
-			$collabs[] = $collab->email;
+			->where('dd_collaborators.pid', $pid)
+			->where('dd_collaborators.access', $access)
+			->order_by('dd_collaborators.id');
+		if ($linked) {
+			$this->db->join('users', 'users.id = dd_collaborators.user_id', 'left');
 		}
-		return $collabs;
+		if ($limit > 0) {
+			$this->db->limit($limit);
+		}
+		$emails = array();
+		foreach ($this->db->get()->result() as $row) {
+			$email = ($linked && !empty($row->user_email)) ? $row->user_email : $row->stored_email;
+			if ($email !== '' && !in_array($email, $emails, true)) {
+				$emails[] = $email;
+			}
+		}
+		return $emails;
 	}
 	
 	public function delete_collaborators($pid) {
@@ -252,45 +289,372 @@ class DD_project_model extends CI_Model {
 	
 	public function add_collaborator($pid,$email,$access='collaborator')
 	{
+		$email = trim((string) $email);
+		$user_id = $this->resolve_user_id_for_email($email);
+
 		//if collaborator is owner of the project, don't add
-		if ($this->is_owner($pid,$email))
+		if ($this->is_owner($pid, $email, $user_id))
 		{
 			return FALSE;
 		}
-	
+
+		//same account listed twice (e.g. old and new email domain)
+		if ($user_id && $this->member_row_count($pid, $user_id, '', null) > 0)
+		{
+			return FALSE;
+		}
+
 		$options=array(
 			'pid'		=>	$pid,
 			'email'		=>	$email,
 			'access'	=>	$access
 		);
-		
-		return $this->db->insert('dd_collaborators',$options);	
-	}
-	
-	
-	public function get_owner($pid) {
-		$q = $this->db->select('*')
-			->from('dd_collaborators')
-			->where('pid', $pid)
-			->where('access', 'owner')
-			->order_by('id')
-			->limit(1);
-		$result = $q->get()->result();
-		$collabs = array();
-		foreach($result as $collab) {
-			$collabs[] = $collab->email;
+		if ($this->collaborators_have_user_id()) {
+			$options['user_id'] = $user_id;
 		}
-		return $collabs;		
+
+		return $this->db->insert('dd_collaborators',$options);
 	}
-	
+
+
+	public function get_owner($pid) {
+		return $this->member_emails($pid, 'owner', 1);
+	}
+
 	public function has_collaborator($pid, $email) {
-		$q = $this->db->select('*')
+		$email = trim((string) $email);
+		return $this->member_row_count($pid, $this->resolve_user_id_for_email($email), $email, 'collaborator');
+	}
+
+	/**
+	 * Rows on a project for an account (by user id) or an unlinked invite (by email).
+	 *
+	 * @param int $pid
+	 * @param int|null $user_id
+	 * @param string $email
+	 * @param string|null $access null = any
+	 * @return int
+	 */
+	private function member_row_count($pid, $user_id, $email, $access)
+	{
+		$this->db->from('dd_collaborators')->where('dd_collaborators.pid', $pid);
+		if ($access !== null) {
+			$this->db->where('dd_collaborators.access', $access);
+		}
+		$this->where_member($user_id, $email);
+		return (int) $this->db->count_all_results();
+	}
+
+
+	/* ------------------------------------------------------------------
+	 * Collaborator accounts (dd_collaborators.user_id)
+	 *
+	 * Membership is by user id. An email with no account yet is stored with user_id NULL
+	 * (an invite); it is linked to the account the first time that user uses data deposit,
+	 * or when the account exists at the time the email is added. Linked rows keep working
+	 * when the account's email changes (for example a move to a new email domain).
+	 *
+	 * Optional: config email_domain_equivalence (auth.php / auth.local.php) treats the same
+	 * mailbox name across the listed domains as one person, so an invite to user@old.org
+	 * links to the account user@new.org. An ambiguous name (accounts in more than one of the
+	 * domains) is not linked unless require_unique_local_part is false.
+	 * ------------------------------------------------------------------ */
+
+	/** @var bool|null */
+	private $collab_user_id_column = null;
+
+	/** @var array user ids already linked in this request */
+	private $linked_user_ids = array();
+
+	/** @var array|null */
+	private $domain_equivalence = null;
+
+	/**
+	 * True once the dd_collaborators.user_id migration has run.
+	 */
+	public function collaborators_have_user_id()
+	{
+		if ($this->collab_user_id_column === null) {
+			$this->collab_user_id_column = $this->db->table_exists('dd_collaborators')
+				&& $this->db->field_exists('user_id', 'dd_collaborators');
+		}
+		return $this->collab_user_id_column;
+	}
+
+	/**
+	 * Restrict the current query to dd_collaborators rows of one member: rows linked to the
+	 * user id, plus unlinked invites to the email. Runs no query of its own.
+	 *
+	 * @param int|null $user_id
+	 * @param string $email
+	 */
+	public function where_member($user_id, $email)
+	{
+		$user_id = (int) $user_id;
+		$email = trim((string) $email);
+
+		if (!$this->collaborators_have_user_id()) {
+			$this->db->where('dd_collaborators.email', $email);
+			return;
+		}
+
+		$parts = array();
+		if ($user_id > 0) {
+			$parts[] = 'dd_collaborators.user_id = ' . $user_id;
+		}
+		if ($email !== '') {
+			$parts[] = '(dd_collaborators.user_id IS NULL AND dd_collaborators.email = ' . $this->db->escape($email) . ')';
+		}
+		if (empty($parts)) {
+			$parts[] = '1 = 0';
+		}
+		$this->db->where('(' . implode(' OR ', $parts) . ')', null, false);
+	}
+
+	/**
+	 * Link the user's pending invites (user_id NULL, email matching the account) to the account.
+	 * Cheap to call on every request; runs at most once per user per request.
+	 *
+	 * @param int $user_id
+	 * @return int rows linked
+	 */
+	public function link_collaborations_for_user($user_id)
+	{
+		$user_id = (int) $user_id;
+		if ($user_id < 1 || isset($this->linked_user_ids[$user_id]) || !$this->collaborators_have_user_id()) {
+			return 0;
+		}
+		$this->linked_user_ids[$user_id] = true;
+
+		$email = $this->normalize_email($this->_user_email_by_uid($user_id));
+		if ($email === '') {
+			return 0;
+		}
+
+		$claim = array();
+		foreach ($this->email_variants($email) as $variant) {
+			if ($variant === $email || $this->resolve_user_id_for_email($variant) === $user_id) {
+				$claim[] = $variant;
+			}
+		}
+
+		$this->db->where('user_id IS NULL', null, false)
+			->where_in('email', $claim)
+			->update('dd_collaborators', array('user_id' => $user_id));
+		$linked = (int) $this->db->affected_rows();
+
+		if ($linked > 0) {
+			$this->remove_duplicate_memberships($user_id);
+		}
+		return $linked;
+	}
+
+	/**
+	 * Link every unlinked collaborator row whose email belongs to an account.
+	 * Used by the migration and by `php index.php cli/datadeposit/link_collaborators`.
+	 * Safe to run again (for example after enabling email_domain_equivalence).
+	 *
+	 * @return array counts: emails, linked_rows, unmatched_emails, duplicates_removed
+	 */
+	public function link_all_collaborators()
+	{
+		$this->collab_user_id_column = null;
+		$stats = array('emails' => 0, 'linked_rows' => 0, 'unmatched_emails' => 0, 'duplicates_removed' => 0);
+		if (!$this->collaborators_have_user_id()) {
+			return $stats;
+		}
+
+		$rows = $this->db->distinct()->select('email')
 			->from('dd_collaborators')
-			->where('pid', $pid)
-			->where('access', 'collaborator')
-			->where('email', $email);
-		$result = $q->get()->result();
-		return sizeof($result);
+			->where('user_id IS NULL', null, false)
+			->get()->result();
+
+		$touched = array();
+		foreach ($rows as $row) {
+			$stats['emails']++;
+			$user_id = $this->resolve_user_id_for_email($row->email);
+			if (!$user_id) {
+				$stats['unmatched_emails']++;
+				continue;
+			}
+			$this->db->where('user_id IS NULL', null, false)
+				->where('email', $row->email)
+				->update('dd_collaborators', array('user_id' => $user_id));
+			$stats['linked_rows'] += (int) $this->db->affected_rows();
+			$touched[$user_id] = true;
+		}
+
+		foreach (array_keys($touched) as $user_id) {
+			$stats['duplicates_removed'] += $this->remove_duplicate_memberships($user_id);
+		}
+		return $stats;
+	}
+
+	/**
+	 * Account id for an email: an active account with that email, else (with domain equivalence)
+	 * the single active account with the same mailbox name in an equivalent domain.
+	 *
+	 * @param string $email
+	 * @return int|null
+	 */
+	public function resolve_user_id_for_email($email)
+	{
+		$email = $this->normalize_email($email);
+		if ($email === '' || strpos($email, '@') === false) {
+			return null;
+		}
+
+		$row = $this->db->select('id')->from('users')
+			->where('email', $email)
+			->where('active', 1)
+			->order_by('id')
+			->limit(1)
+			->get()->row();
+		if ($row) {
+			return (int) $row->id;
+		}
+
+		$others = array_values(array_diff($this->email_variants($email), array($email)));
+		if (empty($others)) {
+			return null;
+		}
+
+		$rows = $this->db->select('id')->from('users')
+			->where_in('email', $others)
+			->where('active', 1)
+			->order_by('id')
+			->get()->result();
+		if (count($rows) === 1) {
+			return (int) $rows[0]->id;
+		}
+		if (count($rows) > 1) {
+			$equiv = $this->get_domain_equivalence();
+			if (empty($equiv['require_unique_local_part'])) {
+				return (int) $rows[0]->id;
+			}
+			log_message('error', 'dd_collaborators: ' . $email . ' matches more than one account across equivalent domains; not linked');
+		}
+		return null;
+	}
+
+	/**
+	 * The email plus the same mailbox name in each equivalent domain (lower case).
+	 *
+	 * @param string $email
+	 * @return string[]
+	 */
+	private function email_variants($email)
+	{
+		$email = $this->normalize_email($email);
+		$out = array($email);
+		$pos = strrpos($email, '@');
+		if ($pos === false || $pos === 0) {
+			return $out;
+		}
+		$local = substr($email, 0, $pos);
+		$domain = substr($email, $pos + 1);
+
+		$equiv = $this->get_domain_equivalence();
+		if (empty($equiv['domains']) || !in_array($domain, $equiv['domains'], true)) {
+			return $out;
+		}
+		foreach ($equiv['domains'] as $d) {
+			$out[] = $local . '@' . $d;
+		}
+		return array_values(array_unique($out));
+	}
+
+	/**
+	 * @return array domains (empty when not enabled), require_unique_local_part
+	 */
+	private function get_domain_equivalence()
+	{
+		if ($this->domain_equivalence !== null) {
+			return $this->domain_equivalence;
+		}
+
+		$cfg = $this->config->item('email_domain_equivalence');
+		if (!is_array($cfg)) {
+			$this->config->load('auth', FALSE, TRUE);
+			$cfg = $this->config->item('email_domain_equivalence');
+		}
+
+		$out = array('domains' => array(), 'require_unique_local_part' => true);
+		if (is_array($cfg) && !empty($cfg['enabled'])
+			&& (!isset($cfg['local_part_cross_domain']) || $cfg['local_part_cross_domain'])) {
+			$domains = isset($cfg['domains']) && is_array($cfg['domains']) ? $cfg['domains'] : array();
+			foreach ($domains as $d) {
+				$d = strtolower(trim((string) $d));
+				if ($d !== '') {
+					$out['domains'][] = $d;
+				}
+			}
+			$out['domains'] = array_values(array_unique($out['domains']));
+			$out['require_unique_local_part'] = !isset($cfg['require_unique_local_part']) || $cfg['require_unique_local_part'];
+		}
+		return $this->domain_equivalence = $out;
+	}
+
+	/**
+	 * One row per project for a user: keep the owner row (else the oldest), delete the rest.
+	 *
+	 * @param int $user_id
+	 * @return int rows deleted
+	 */
+	private function remove_duplicate_memberships($user_id)
+	{
+		$rows = $this->db->select('id, pid, access')
+			->from('dd_collaborators')
+			->where('user_id', (int) $user_id)
+			->order_by('pid')
+			->order_by('id')
+			->get()->result();
+
+		$keep = array();
+		foreach ($rows as $row) {
+			$pid = (int) $row->pid;
+			if (!isset($keep[$pid]) || ($row->access === 'owner' && $keep[$pid]->access !== 'owner')) {
+				$keep[$pid] = $row;
+			}
+		}
+
+		$delete = array();
+		foreach ($rows as $row) {
+			if ((int) $keep[(int) $row->pid]->id !== (int) $row->id) {
+				$delete[] = (int) $row->id;
+			}
+		}
+		if (!empty($delete)) {
+			$this->db->where_in('id', $delete)->delete('dd_collaborators');
+		}
+		return count($delete);
+	}
+
+	/**
+	 * @param int|null $user_id
+	 * @param string $email
+	 * @return int|null
+	 */
+	private function member_user_id($user_id, $email)
+	{
+		if ((int) $user_id > 0) {
+			return (int) $user_id;
+		}
+		$email = $this->normalize_email($email);
+		if ($email === '') {
+			return null;
+		}
+		$row = $this->db->select('id')->from('users')
+			->where('email', $email)
+			->order_by('id')
+			->limit(1)
+			->get()->row();
+		return $row ? (int) $row->id : null;
+	}
+
+	private function normalize_email($email)
+	{
+		return strtolower(trim((string) $email));
 	}
 	
 	
@@ -449,13 +813,17 @@ class DD_project_model extends CI_Model {
         }
 
         //return the new project id
-        return $this->insert($options,$options['owner_email']);
+        return $this->insert(
+            $options,
+            $options['owner_email'],
+            isset($options['owner_user_id']) ? $options['owner_user_id'] : null
+        );
     }
 
 
 
     //create a new project
-	public function insert ($data,$owner_email) 
+	public function insert ($data, $owner_email, $owner_user_id = null)
 	{
 		$options=array();
 		foreach($data as $key=>$value)
@@ -496,7 +864,7 @@ class DD_project_model extends CI_Model {
 		//add project owner and collaborators/////////////////////
 
 		//add project owner
-		$this->set_owner($id,$owner_email);
+		$this->set_owner($id, $owner_email, $owner_user_id);
 
         if(!isset($data['collaborators']))
         {
@@ -553,33 +921,41 @@ class DD_project_model extends CI_Model {
 	
 	
 	//assign owner for a project
-	public function set_owner($pid,$email)
+	public function set_owner($pid, $email, $user_id = null)
 	{
+		$email = trim((string) $email);
+		if ((int) $user_id < 1) {
+			$user_id = $this->resolve_user_id_for_email($email);
+		}
+
 		//delete existing project owner if any
 		$this->db->where('pid', $pid);
 		$this->db->where('access', 'owner');
 		$this->db->delete('dd_collaborators');
-		
+
 		//assign owner
 		$options=array(
 			'pid'		=> $pid,
 			'email'		=> $email,
-			'access'	=> 'owner'		
+			'access'	=> 'owner'
 		);
-		 
+		if ($this->collaborators_have_user_id()) {
+			$options['user_id'] = $user_id ? (int) $user_id : null;
+		}
+
 		return $this->db->insert('dd_collaborators',$options);
 	}
 
-	
-	//test if email is owner of the project
-	public function is_owner($pid,$email)
+
+	//test if email (or account) is owner of the project
+	public function is_owner($pid, $email, $user_id = null)
 	{
-		$this->db->select('count(*) as found');
-		$this->db->where('pid', $pid);
-		$this->db->where('access', 'owner');
-		$this->db->where('email', $email);
-		$result=$this->db->get('dd_collaborators')->row_array();
-		
+		$email = trim((string) $email);
+		if ((int) $user_id < 1) {
+			$user_id = $this->resolve_user_id_for_email($email);
+		}
+		$result = array('found' => $this->member_row_count($pid, $user_id, $email, 'owner'));
+
 		if ($result['found']>0)
 		{
 			return TRUE;

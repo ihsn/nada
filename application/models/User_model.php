@@ -342,6 +342,12 @@ class User_model extends CI_Model {
 				$this->db->where('user_id', $id);
 				$this->db->delete('api_keys');
 			}
+
+			// Data deposit memberships fall back to the stored email (an invite)
+			if ($this->db->table_exists('dd_collaborators') && $this->db->field_exists('user_id', 'dd_collaborators')) {
+				$this->db->where('user_id', $id);
+				$this->db->update('dd_collaborators', array('user_id' => null));
+			}
 		}
 
 		return $deleted;

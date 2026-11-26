@@ -1193,6 +1193,11 @@ class Ion_auth_model extends CI_Model
 		
 		$this->db->delete($this->tables['meta'], array($this->meta_join => $id));
 		$this->db->delete($this->tables['users'], array('id' => $id));
+
+		// Data deposit memberships fall back to the stored email (an invite)
+		if ($this->db->table_exists('dd_collaborators') && $this->db->field_exists('user_id', 'dd_collaborators')) {
+			$this->db->update('dd_collaborators', array('user_id' => null), array('user_id' => (int) $id));
+		}
 		
 		if ($this->db->trans_status() === FALSE)
 		{

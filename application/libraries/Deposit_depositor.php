@@ -255,7 +255,7 @@ class Deposit_depositor
 			'data_type'     => $data_type ? $data_type : 'survey',
 		);
 
-		$new_id = $this->ci->DD_project_model->insert($options, $user['email']);
+		$new_id = $this->ci->DD_project_model->insert($options, $user['email'], $user['id']);
 		if (!$new_id) {
 			$this->fail('SAVE_FAILED', 500);
 		}
@@ -299,7 +299,7 @@ class Deposit_depositor
 				'data_type'        => $data_type,
 				'data_type_label'  => isset($type_labels[$data_type]) ? $type_labels[$data_type] : $data_type,
 				'schema_version'   => isset($row['schema_version']) ? (int) $row['schema_version'] : 1,
-				'can_edit'         => $status === 'draft' && !$this->ci->DD_project_model->is_locked($id, $email),
+				'can_edit'         => $status === 'draft' && !$this->ci->DD_project_model->is_locked($id, $email, isset($user['id']) ? $user['id'] : null),
 				'can_export'       => true,
 				'can_export_ddi'   => $data_type === 'survey',
 				'files'            => $this->files_payload($id),
@@ -1715,7 +1715,7 @@ class Deposit_depositor
 			$this->ci->db->select('dd_projects.id, dd_projects.title, dd_projects.shortname, dd_projects.status, dd_projects.data_type, dd_projects.last_modified');
 			$this->ci->db->from('dd_projects');
 			$this->ci->db->join('dd_collaborators', 'dd_collaborators.pid = dd_projects.id', 'inner');
-			$this->ci->db->where('dd_collaborators.email', $user['email']);
+			$this->ci->DD_project_model->where_member($user['id'], $user['email']);
 			$this->ci->db->where('dd_projects.id !=', (int) $id);
 			$this->ci->db->group_start();
 			$this->ci->db->where('dd_projects.data_type', $data_type);
@@ -2194,9 +2194,9 @@ class Deposit_depositor
 			return false;
 		}
 		$m = $this->ci->DD_project_model;
-		return $m->has_access($id, $user['email'])
+		return $m->has_access($id, $user['email'], $user['id'])
 			&& $m->get_schema_version($id) >= 2
-			&& !$m->is_locked($id, $user['email']);
+			&& !$m->is_locked($id, $user['email'], $user['id']);
 	}
 
 	/**
@@ -2226,10 +2226,10 @@ class Deposit_depositor
 		if (!is_numeric($id)) {
 			$this->fail('INVALID_PROJECT', 400);
 		}
-		if (!$this->ci->DD_project_model->has_access($id, $user['email'])) {
+		if (!$this->ci->DD_project_model->has_access($id, $user['email'], $user['id'])) {
 			$this->fail('ACCESS_DENIED', 403);
 		}
-		return $this->ci->DD_project_model->project_id($id, $user['email']);
+		return $this->ci->DD_project_model->project_id($id, $user['email'], $user['id']);
 	}
 
 	protected function require_v2_access(array $user, $id)
@@ -2242,14 +2242,14 @@ class Deposit_depositor
 
 	protected function require_draft(array $user, $id)
 	{
-		if ($this->ci->DD_project_model->is_locked($id, $user['email'])) {
+		if ($this->ci->DD_project_model->is_locked($id, $user['email'], $user['id'])) {
 			$this->fail('PROJECT_LOCKED', 403);
 		}
 	}
 
 	protected function project_status(array $user, $id)
 	{
-		$project = $this->ci->DD_project_model->project_id($id, $user['email']);
+		$project = $this->ci->DD_project_model->project_id($id, $user['email'], $user['id']);
 		if (isset($project[0]->status)) {
 			return $project[0]->status;
 		}
@@ -2392,7 +2392,7 @@ class Deposit_depositor
 
 	protected function complete_submission(array $user, $id, array $update, $cc)
 	{
-		$data['project'] = $this->ci->DD_project_model->project_id($id, $user['email']);
+		$data['project'] = $this->ci->DD_project_model->project_id($id, $user['email'], $user['id']);
 
 		if (!$this->ci->DD_project_model->submit_project($id, $update)) {
 			return false;

@@ -44,6 +44,9 @@ class Datadeposit extends CI_Controller
 		echo "  php index.php cli/datadeposit/old_folder_paths      List legacy md5 folders\n";
 		echo "  php index.php cli/datadeposit/update_folder_paths   Write missing data_folder_path\n";
 		echo "\n";
+		echo "Collaborator accounts (dd_collaborators.user_id):\n";
+		echo "  php index.php cli/datadeposit/link_collaborators   Link email invites to existing accounts\n";
+		echo "\n";
 		echo "Dump directory: ".$this->deposit_legacy_dump->get_dump_directory()."\n";
 		echo "Guide: install/DATADEPOSIT_MIGRATION.md\n";
 		echo "\n";
@@ -234,6 +237,24 @@ class Datadeposit extends CI_Controller
 		echo json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n";
 		echo "\n--- submission ---\n";
 		echo json_encode($submission, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n";
+	}
+
+	/**
+	 * Link collaborator rows (user_id NULL) to accounts by email, including
+	 * email_domain_equivalence when enabled. Safe to run again.
+	 */
+	public function link_collaborators()
+	{
+		$this->load->model('DD_project_model');
+		if (!$this->DD_project_model->collaborators_have_user_id()) {
+			echo "dd_collaborators.user_id not found. Run the database migrations first.\n";
+			exit(1);
+		}
+		$stats = $this->DD_project_model->link_all_collaborators();
+		echo "unlinked emails checked : ".$stats['emails']."\n";
+		echo "rows linked             : ".$stats['linked_rows']."\n";
+		echo "emails with no account  : ".$stats['unmatched_emails']."\n";
+		echo "duplicate rows removed  : ".$stats['duplicates_removed']."\n";
 	}
 
 	public function old_folder_paths()
