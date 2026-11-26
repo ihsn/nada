@@ -196,6 +196,7 @@ class Migration_Citations_csl extends MY_Migration {
 	{
 		$this->emit("2. widen columns\n");
 		if ($this->is_mysql()) {
+			$this->fill_nulls('title');
 			$this->mysql_modify_if('title', 'varchar', 1000, 'VARCHAR(1000) NOT NULL');
 			$this->mysql_modify_if('url', 'varchar', 2048, 'VARCHAR(2048) NULL');
 			$this->mysql_modify_if('flag', 'varchar', 64, 'VARCHAR(64) NULL');
@@ -226,9 +227,34 @@ class Migration_Citations_csl extends MY_Migration {
 			}
 			$type = $length === 0 ? 'NVARCHAR(MAX)' : 'NVARCHAR(' . max($length, $current) . ')';
 
+			if ($not_null) {
+				$this->fill_nulls($column);
+			}
 			$this->sqlsrv_alter_column($column, $type . ($not_null ? ' NOT NULL' : ' NULL'));
 			$this->emit("   ~ citations.{$column} {$type}\n");
 		}
+	}
+
+	/**
+	 * Give NULLs in a column about to become NOT NULL a value: uuid gets a new GUID per row (same
+	 * format as Citation_model::GUID), title/ctype get '' (backfill sets title and ctype afterwards).
+	 */
+	private function fill_nulls($column)
+	{
+		$count = (int) $this->db->query('SELECT COUNT(*) AS n FROM citations WHERE ' . $this->db->protect_identifiers($column) . ' IS NULL')->row()->n;
+		if ($count === 0) {
+			return;
+		}
+		if ($column === 'uuid') {
+			$value = $this->is_sqlsrv() ? 'UPPER(CONVERT(VARCHAR(36), NEWID()))' : 'UPPER(UUID())';
+		} else {
+			$value = "''";
+		}
+		$this->assert_db_query(
+			$this->db->query('UPDATE citations SET ' . $this->db->protect_identifiers($column) . ' = ' . $value . ' WHERE ' . $this->db->protect_identifiers($column) . ' IS NULL'),
+			'fill NULL citations.' . $column
+		);
+		$this->emit("   filled {$count} NULL citations.{$column}\n");
 	}
 
 	/**
@@ -253,10 +279,24 @@ class Migration_Citations_csl extends MY_Migration {
 			$this->assert_db_query($this->db->query('ALTER TABLE citations DROP CONSTRAINT [' . $default['name'] . ']'), 'drop default of citations.' . $column);
 		}
 
-		$this->assert_db_query(
-			$this->db->query('ALTER TABLE citations ALTER COLUMN [' . $column . '] ' . $type_sql),
-			'alter citations.' . $column
-		);
+		try {
+			$this->assert_db_query(
+				$this->db->query('ALTER TABLE citations ALTER COLUMN [' . $column . '] ' . $type_sql),
+				'alter citations.' . $column
+			);
+		} catch (Exception $e) {
+			// put back what was dropped so a re-run starts from the same state
+			if ($default) {
+				$this->db->query('ALTER TABLE citations ADD CONSTRAINT [' . $default['name'] . '] DEFAULT ' . $default['definition'] . ' FOR [' . $column . ']');
+			}
+			foreach ($indexes as $index) {
+				$this->db->query(
+					'CREATE ' . ($index['is_unique'] ? 'UNIQUE ' : '') . 'NONCLUSTERED INDEX [' . $index['name'] . '] ON citations ('
+					. implode(', ', array_map(function ($c) { return '[' . $c . ']'; }, $index['columns'])) . ')'
+				);
+			}
+			throw $e;
+		}
 
 		if ($restore_default && $default && strtoupper(trim($default['definition'], '() ')) !== 'NULL') {
 			$this->assert_db_query(
