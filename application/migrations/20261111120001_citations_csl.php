@@ -225,7 +225,7 @@ class Migration_Citations_csl extends MY_Migration {
 			if ($row['t'] === 'nvarchar' && $wide_enough) {
 				continue;
 			}
-			$type = $length === 0 ? 'NVARCHAR(MAX)' : 'NVARCHAR(' . max($length, $current) . ')';
+			$type = $this->sqlsrv_nvarchar_type($column, $length, $current);
 
 			if ($not_null) {
 				$this->fill_nulls($column);
@@ -233,6 +233,26 @@ class Migration_Citations_csl extends MY_Migration {
 			$this->sqlsrv_alter_column($column, $type . ($not_null ? ' NOT NULL' : ' NULL'));
 			$this->emit("   ~ citations.{$column} {$type}\n");
 		}
+	}
+
+	/**
+	 * Target nvarchar type: the planned length, widened to fit the column's current size. Legacy text/ntext and
+	 * (n)varchar(max) columns report sizes like 2147483647 or -1, so for those the longest stored value is used
+	 * instead; anything over 4000 characters (the nvarchar(n) limit) becomes NVARCHAR(MAX).
+	 */
+	private function sqlsrv_nvarchar_type($column, $length, $current)
+	{
+		if ($length === 0) {
+			return 'NVARCHAR(MAX)';
+		}
+		$needed = $current;
+		if ($current === -1 || $current > 4000) {
+			// DATALENGTH is in bytes, so at least the character count; works on text/ntext where LEN does not
+			$row = $this->db->query('SELECT MAX(DATALENGTH([' . $column . '])) AS n FROM citations')->row_array();
+			$needed = (int) $row['n'];
+		}
+		$size = max($length, $needed);
+		return $size > 4000 ? 'NVARCHAR(MAX)' : 'NVARCHAR(' . $size . ')';
 	}
 
 	/**
