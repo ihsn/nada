@@ -6,7 +6,56 @@ info:
 
 
     Find out more about NADA at [http://nada.ihsn.org](http://nada.ihsn.org).
-  version: "5.5"
+
+
+    ## Study identifiers
+
+
+    Endpoints that take `{IDNo}` accept the study's unique IDNo. Add `id_format=id` to pass the numeric
+    study ID (the `id` field of search results) instead; a value that is not a positive whole number then
+    fails with `INVALID_ID_FORMAT_ID`. An IDNo that does not exist fails with `IDNO-NOT-FOUND`.
+
+
+    ## Access
+
+
+    No API key is needed to read published studies. Unpublished studies are returned only to a signed-in
+    user (session) or an API key (`X-API-KEY` header) with permission to view them; everyone else gets the
+    same error as for a study that does not exist.
+
+
+    ## Errors
+
+
+    Errors are returned with HTTP status **400**, including "not found" errors (there are no 404 responses).
+    The body always has `status: failed`. The error text is in `message` for study, data file, variable and
+    PDF documentation endpoints, and in `errors` for the others; each endpoint's 400 response says which.
+    `GET /catalog/collections` is an exception: its error body is the error text as a plain JSON string.
+
+
+    Paging errors from search endpoints also carry `error_code` (`page_out_of_range` or `cursor_invalid`)
+    and a `message`.
+
+
+    Error texts are short codes (e.g. `IDNO-NOT-FOUND`, `REPOSITORY-NOT-FOUND`) or a sentence. Clients should
+    rely on the HTTP status, `status` and `error_code`, not on the exact text.
+
+
+    ## Response format
+
+
+    Responses are JSON unless stated otherwise. Fields not described here may be present; they are not part
+    of the documented API and may change.
+
+
+    **Numbers.** Fields documented as integers are read from the database. With MySQL they are returned as
+    JSON strings (`"841"`); with SQL Server they are JSON numbers. Clients should accept both for any
+    integer field, except the values of `/catalog/stats`, which are always JSON numbers.
+
+
+    **Dates.** `created` and `changed` are ISO 8601 date-times (e.g. `2026-11-27T14:05:00-05:00`, in the
+    server's time zone), except in `/catalog/latest`, which uses `Nov-27-2026`.
+  version: "5.9"
   title: NADA Catalog API
   x-logo:
     url: ""
@@ -43,7 +92,7 @@ paths:
       tags:
         - Collections
       summary: List all collections
-      description: Returns a list of all collections
+      description: Returns all published collections.
       operationId: listCollections
       responses:
         "200":
@@ -51,19 +100,38 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Collection"
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  total:
+                    type: integer
+                    description: Number of collections
+                  collections:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Collection"
+        "400":
+          description: Error. The body is the error text as a JSON string (not an object).
+          content:
+            application/json:
+              schema:
+                type: string
 
   /catalog/collections/{repoId}:
     get:
       tags:
         - Collections
       summary: Get a collection
-      description: Get info for a single collection
+      description: >-
+        Get a single collection by its `repositoryid`. The collection object is returned directly,
+        without a `status` wrapper.
       operationId: SingleCollection
       parameters:
         - name: repoId
           in: path
-          description: Collection ID
+          description: Collection ID (`repositoryid`)
           required: true
           schema:
             type: string
@@ -74,6 +142,67 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Collection"
+        "400":
+          description: "`REPOSITORY-NOT-FOUND`, or `MISSING_PARAM: repositoryId`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
+
+  /catalog/datasets/{repoId}:
+    get:
+      tags:
+        - Collections
+      summary: List studies in a collection
+      description: >-
+        All published studies in a collection, without paging. To search or page within a collection, use
+        [Search catalog](#operation/CatalogSearch) with `collection`.
+      operationId: listCollectionStudies
+      parameters:
+        - name: repoId
+          in: path
+          description: Collection ID (`repositoryid`)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  total:
+                    type: integer
+                  datasets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: Numeric study ID
+                        idno:
+                          type: string
+                        repositoryid:
+                          type: string
+                          description: The collection ID that was asked for
+                        title:
+                          type: string
+                        nation:
+                          type: string
+                        year_start:
+                          type: integer
+        "400":
+          description: "`REPOSITORY-NOT-FOUND`, or `MISSING_PARAM: repositoryId`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
 
   /catalog/search:
     get:
@@ -436,6 +565,12 @@ paths:
             Bad input. A paging error carries `error_code`: `page_out_of_range` (a page past `max_offset`; a browse
             continues with `next_cursor`) or `cursor_invalid` (the cursor is not one of this search; start again from
             the first page).
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorErrors"
+                  - $ref: "#/components/schemas/PagingError"
 
   /catalog/stats:
     get:
@@ -452,52 +587,374 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  values:
+                    type: object
+                    properties:
+                      studies:
+                        type: integer
+                      variables:
+                        type: integer
+                      citations:
+                        type: integer
+                      countries_with_data:
+                        type: integer
+                      year_range:
+                        type: object
+                        properties:
+                          min:
+                            type: integer
+                          max:
+                            type: integer
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
 
   /catalog/country_codes:
     get:
       tags:
         - Catalog
       summary: List country codes
-      description: List of country codes
+      description: All countries known to the catalog, with their ISO 3 codes.
       operationId: listCountryCodes
       responses:
         "200":
-          description: Successful operation
+          description: >-
+            Successful operation. When there are no countries, `country_codes` is
+            `{ "error": "NO_RECORDS_FOUND" }` instead of an array.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CountryCode"
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  country_codes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CountryCode"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
 
   /catalog/latest:
     get:
       tags:
         - Catalog
       summary: Latest catalog entries
-      description: Latest studies added to the catalog
+      description: Most recently added published studies, newest first. This response has no `status` field.
       operationId: latestStudies
+      parameters:
+        - name: limit
+          in: query
+          description: Number of studies to return. Default 15.
+          schema:
+            type: integer
+        - name: country
+          in: query
+          description: Only studies whose `nation` is exactly this value
+          schema:
+            type: string
       responses:
         "200":
-          description: Successful operation
+          description: >-
+            Successful operation. When no study matches, `result` is `{ "error": "NO_RECORDS_FOUND" }` and
+            `found` is 1.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Catalog"
+                type: object
+                properties:
+                  limit:
+                    type: integer
+                  found:
+                    type: integer
+                    description: Number of studies in `result`
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        idno:
+                          type: string
+                        title:
+                          type: string
+                        nation:
+                          type: string
+                        created:
+                          type: string
+                          description: Date added, as `Mon-DD-YYYY` (e.g. `Nov-27-2026`), not ISO 8601
+                          example: "Nov-27-2026"
+                        changed:
+                          type: string
+                          description: Date last changed, as `Mon-DD-YYYY`
+                          example: "Nov-27-2026"
+                        url:
+                          type: string
+                          description: Study page URL
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
 
   /catalog/data_access_codes:
     get:
       tags:
         - Catalog
       summary: List data access types
-      description: Data access types list
+      description: Data access types. This response has no `status` field.
       operationId: listDataAccessTypes
+      responses:
+        "200":
+          description: >-
+            Successful operation. When there are no access types, `codes` is
+            `{ "error": "NO_RECORDS_FOUND" }`.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  codes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DataAccessCode"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
+
+  /catalog/list_idno:
+    get:
+      tags:
+        - Catalog
+      summary: List all study IDNos
+      description: IDNo, numeric ID and type of every published study, without paging.
+      operationId: listStudyIdnos
       responses:
         "200":
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DataAccessCode"
+                $ref: "#/components/schemas/IdnoList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
+  /catalog/list_idno/{type}:
+    get:
+      tags:
+        - Catalog
+      summary: List study IDNos of one type
+      description: Same as [List all study IDNos](#operation/listStudyIdnos), limited to one dataset type.
+      operationId: listStudyIdnosByType
+      parameters:
+        - name: type
+          in: path
+          required: true
+          description: Dataset type, e.g. `survey`, `geospatial`, `timeseries`, `document`
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdnoList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
+  /catalog/filters:
+    get:
+      tags:
+        - Catalog
+      summary: List search filter names
+      description: >-
+        Names of the filters that [Filter values](#operation/getFilterValues) accepts: the built-in filters
+        and the user-defined facets.
+      operationId: listFilters
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  values:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Please provide a filter name
+                      filters:
+                        type: array
+                        description: Filter names
+                        items:
+                          type: string
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
+
+  /catalog/filters/{filterName}:
+    get:
+      tags:
+        - Catalog
+      summary: Filter values
+      description: >-
+        Values of one search filter, with the number of published studies for each. Built-in filters
+        return the shapes below. A user-defined facet returns `{ type, title, values[] }`, where each value
+        has `id`, `title` and `found`.
+
+
+        Lists keyed by ID (`country`, `collection`, `dtype`, `region`) are JSON objects, not arrays:
+        `{ "4": {...}, "12": {...} }`. When a list is empty, `values` is `false`.
+      operationId: getFilterValues
+      parameters:
+        - name: filterName
+          in: path
+          required: true
+          description: A name from [List search filter names](#operation/listFilters), e.g. `country`, `year`, `collection`, `dtype`, `region`
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  values:
+                    oneOf:
+                      - type: object
+                        title: country
+                        description: Countries, keyed by country ID
+                        additionalProperties:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            title:
+                              type: string
+                            iso3:
+                              type: string
+                            found:
+                              type: integer
+                      - type: object
+                        title: year
+                        properties:
+                          min_year:
+                            type: integer
+                          max_year:
+                            type: integer
+                      - type: object
+                        title: collection
+                        description: Collections, keyed by `repositoryid`
+                        additionalProperties:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Collection ID (`repositoryid`)
+                            pid:
+                              type: integer
+                            title:
+                              type: string
+                            repositoryid:
+                              type: string
+                            found:
+                              type: integer
+                            group_name:
+                              type: string
+                              nullable: true
+                      - type: object
+                        title: dtype
+                        description: Data access types, keyed by access type ID
+                        additionalProperties:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            code:
+                              type: string
+                            title:
+                              type: string
+                      - type: object
+                        title: region
+                        description: Regions, keyed by region ID
+                        additionalProperties:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            title:
+                              type: string
+                            group_name:
+                              type: string
+                            weight:
+                              type: integer
+                            found:
+                              type: integer
+                      - type: object
+                        title: user-defined facet
+                        properties:
+                          type:
+                            type: string
+                            enum: [user]
+                          title:
+                            type: string
+                          values:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                title:
+                                  type: string
+                                found:
+                                  type: integer
+        "400":
+          description: "`FILTER_NOT_FOUND`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
 
   /catalog/{IDNo}:
     get:
@@ -506,33 +963,112 @@ paths:
         - Metadata
       summary: Get study information
       description: >-
-        Get study level metadata for a dataset. The study data files and variables metadata
-        can be accessed via the following endpoints.
+        Study-level information and metadata. The data files and variables can be read with:
 
 
         * [Data files](#operation/listDataFiles) - Metadata for data files
 
-        * [Variables](#operation/listDataFileVariables) - Metadata for variables
+        * [Variables](#operation/listVariables) - Metadata for variables
+
+
+        `metadata` is the study's metadata document, in the JSON schema of its type (`survey` for
+        microdata, `geospatial`, `timeseries`, `document`, `table`, `image`, `video`, `script`, ...). For
+        geospatial studies it is rebuilt from the data files and variables.
       operationId: singleDataset
       parameters:
-        - name: IDNo
-          in: path
-          description: Study unique ID number
-          required: true
-          schema:
-            type: string
-        - name: id_format
-          in: query
-          description: Set to `id` to use the numeric study ID instead of IDNo
-          schema:
-            type: string
+        - $ref: "#/components/parameters/IDNo"
+        - $ref: "#/components/parameters/id_format"
       responses:
         "200":
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: "../catalog-admin/survey-schema.json"
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  dataset:
+                    $ref: "#/components/schemas/Study"
+        "400":
+          description: "`IDNO-NOT-FOUND`, `INVALID_ID_FORMAT_ID`, or `DATASET_NOT_FOUND` (missing or not visible)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
+  /catalog/thumbnail/{IDNo}:
+    get:
+      tags:
+        - Metadata
+      summary: Get study thumbnail URL
+      description: URL of the study's thumbnail image. Returns JSON with the URL, not the image itself.
+      operationId: getThumbnail
+      parameters:
+        - $ref: "#/components/parameters/IDNo"
+        - $ref: "#/components/parameters/id_format"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  thumbnail:
+                    type: string
+                    description: Absolute URL of the image, under `files/thumbnails/`
+        "400":
+          description: "`THUMBNAIL_NOT_FOUND` (the study has no thumbnail), or a study ID error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
+
+  /catalog/pdf_documentation/{IDNo}:
+    get:
+      tags:
+        - Metadata
+      summary: Study PDF documentation status
+      description: >-
+        Whether a PDF of the study documentation (generated from the DDI) exists in the site language, and
+        whether it is up to date with the DDI. Returns status information only, not the PDF.
+        The IDNo can also be passed as `?idno=` to `/catalog/pdf_documentation`.
+      operationId: getPdfDocumentationStatus
+      parameters:
+        - $ref: "#/components/parameters/IDNo"
+        - $ref: "#/components/parameters/id_format"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  pdf_documentation:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [uptodate, outdated, na]
+                        description: "`na`: no PDF; `outdated`: the DDI changed after the PDF was made"
+                      filename:
+                        type: string
+                        description: PDF file name; only present when the PDF exists
+        "400":
+          description: "`IDNO-NOT-PROVIDED`, or a study ID error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
 
   /catalog/{IDNo}/data_files:
     get:
@@ -540,27 +1076,32 @@ paths:
         - Catalog
         - Metadata
       summary: List data files
-      description: List all data files for a study
+      description: All data files of a study.
       operationId: listDataFiles
       parameters:
-        - name: IDNo
-          in: path
-          description: Study unique ID number
-          required: true
-          schema:
-            type: string
-        - name: id_format
-          in: query
-          description: Set to `id` to use the numeric study ID instead of IDNo
-          schema:
-            type: string
+        - $ref: "#/components/parameters/IDNo"
+        - $ref: "#/components/parameters/id_format"
       responses:
         "200":
-          description: Successful operation
+          description: >-
+            Successful operation. This response has no `status` field. `datafiles` is a JSON object keyed by
+            file ID (`F1`, `F2`, ...), in natural order, not an array. A study without data files returns
+            `datafiles: false`.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Catalog"
+                type: object
+                properties:
+                  datafiles:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/DataFile"
+        "400":
+          description: "`STUDY_NOT_FOUND`, `DATASET_NOT_FOUND`, or a study ID error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
 
   /catalog/{IDNo}/data_files/{fileId}:
     get:
@@ -568,33 +1109,33 @@ paths:
         - Catalog
         - Metadata
       summary: Get single data file info
-      description: Get metadata for a single data file
+      description: Metadata for a single data file.
       operationId: singleDataFile
       parameters:
-        - name: IDNo
-          in: path
-          description: Study unique ID number
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/IDNo"
         - name: fileId
           in: path
-          description: File ID number
+          description: File ID (`file_id`, e.g. `F1`)
           required: true
           schema:
             type: string
-        - name: id_format
-          in: query
-          description: Set to `id` to use the numeric study ID instead of IDNo
-          schema:
-            type: string
+        - $ref: "#/components/parameters/id_format"
       responses:
         "200":
-          description: Successful operation
+          description: Successful operation. This response has no `status` field.
           content:
             application/json:
               schema:
-                $ref: "../catalog-admin/datafile-schema.json"
+                type: object
+                properties:
+                  datafile:
+                    $ref: "#/components/schemas/DataFile"
+        "400":
+          description: "`ID-NOT-FOUND` (no such file), `STUDY_NOT_FOUND`, or a study ID error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
 
   /catalog/{IDNo}/data_files/{fileId}/variables:
     get:
@@ -603,34 +1144,45 @@ paths:
         - Metadata
       summary: Get variables by data file
       description: >-
-        Get variables attached to a single data file.
+        All variables of one data file, without paging.
         To find all variables for a study, use [Variables by study](#operation/listVariables).
       operationId: listDataFileVariables
       parameters:
-        - name: IDNo
-          in: path
-          description: Study unique ID number
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/IDNo"
         - name: fileId
           in: path
-          description: File ID number
+          description: File ID (`file_id`, e.g. `F1`)
           required: true
           schema:
             type: string
-        - name: id_format
+        - name: metadata_detailed
           in: query
-          description: Set to `id` to use the numeric study ID instead of IDNo
+          description: Set to `true` to include each variable's `metadata`
           schema:
             type: string
+            enum: ["true"]
+        - $ref: "#/components/parameters/id_format"
       responses:
         "200":
-          description: Successful operation
+          description: Successful operation. This response has no `status` field.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Catalog"
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: Number of variables returned
+                  variables:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VariableListItem"
+        "400":
+          description: "`FILE-ID-REQUIRED`, `STUDY_NOT_FOUND`, or a study ID error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
 
   /catalog/variables:
     get:
@@ -815,6 +1367,12 @@ paths:
             Bad input. A paging error carries `error_code`: `page_out_of_range` (a page past `max_offset`, with
             `max_offset`; page further with `next_cursor`) or `cursor_invalid` (the cursor is not one of this search;
             start again from the first page).
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorErrors"
+                  - $ref: "#/components/schemas/PagingError"
 
   /catalog/{IDNo}/variables:
     get:
@@ -823,17 +1381,17 @@ paths:
         - Metadata
       summary: List or search variables by study
       description: >-
-        List all variables for a study, or search within them using `?sk=`.
+        Without `sk`: all variables of the study, paged by `page` and `ps` (default 100 per page, up to 1,000).
+        With `sk`: a keyword search within the study's variables (default 15 per page, up to 100), with the
+        same paging rules as [Search variables](#operation/searchVariables), including `cursor`.
+
+
         To find variables by data file, use [Variables by data file](#operation/listDataFileVariables).
         For catalog-wide variable search (without an IDNo), use [Search variables](#operation/searchVariables).
+        This response has no `status` field.
       operationId: listVariables
       parameters:
-        - name: IDNo
-          in: path
-          description: Study unique ID number
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/IDNo"
         - name: sk
           in: query
           description: Keyword search within the study's variables (name, label, question text)
@@ -847,30 +1405,35 @@ paths:
             enum: [name, labl]
         - name: sort_order
           in: query
-          description: Sort direction
+          description: Sort direction, when `sk` is provided
           schema:
             type: string
             enum: [asc, desc]
         - name: ps
           in: query
-          description: Number of results per page when `sk` is provided, 1 to 100 (larger values give 100). Default is 15
+          description: >-
+            Results per page. Without `sk`: 1 to 1,000, default 100 (values outside the range give 100).
+            With `sk`: 1 to 100 (larger values give 100), default 15.
           schema:
             type: integer
         - name: page
           in: query
-          description: Page number when `sk` is provided
+          description: Page number. With `sk`, for the first `max_offset` results.
           schema:
             type: integer
-        - name: id_format
+        - name: cursor
           in: query
-          description: Set to `id` to use the numeric study ID instead of IDNo
+          description: >-
+            With `sk` only: `next_cursor` or `prev_cursor` of the previous page of this search, in place of
+            `page`, to page past `max_offset` results
           schema:
             type: string
+        - $ref: "#/components/parameters/id_format"
       responses:
         "200":
           description: >-
-            Without `sk`: `{ found, total, variables[] }`.
-            With `sk`: `{ found, total, limit, offset, page, variables[] }`.
+            Without `sk`: `{ found, total, limit, offset, page, variables[] }`, where `found` equals `total`.
+            With `sk`: the same fields plus `found_is_lower_bound`, `max_offset`, `next_cursor` and `prev_cursor`.
           content:
             application/json:
               schema:
@@ -878,7 +1441,10 @@ paths:
                 properties:
                   found:
                     type: integer
-                    description: Variables matching the keyword (equals total when no sk)
+                    description: Variables matching the keyword (equals `total` without `sk`)
+                  found_is_lower_bound:
+                    type: boolean
+                    description: With `sk` only. True when `found` is a lower bound (a very broad search)
                   total:
                     type: integer
                     description: Total variables in the study
@@ -888,23 +1454,35 @@ paths:
                     type: integer
                   page:
                     type: integer
+                  max_offset:
+                    type: integer
+                    nullable: true
+                    description: With `sk` only. Results reachable by `page`; null when unlimited
+                  next_cursor:
+                    type: string
+                    nullable: true
+                    description: With `sk` only
+                  prev_cursor:
+                    type: string
+                    nullable: true
+                    description: With `sk` only
                   variables:
                     type: array
+                    description: >-
+                      Without `sk`, items have `uid`, `sid`, `fid`, `vid`, `name`, `labl`. With `sk`, items have
+                      `uid`, `vid`, `fid`, `name`, `labl`, `qstn` and `file_name`.
                     items:
-                      type: object
-                      properties:
-                        uid:
-                          type: integer
-                        vid:
-                          type: string
-                        fid:
-                          type: string
-                        name:
-                          type: string
-                        labl:
-                          type: string
-                        qstn:
-                          type: string
+                      $ref: "#/components/schemas/VariableListItem"
+        "400":
+          description: >-
+            `STUDY_NOT_FOUND`, a study ID error, or (with `sk`) a paging error with `error_code`
+            (`page_out_of_range` or `cursor_invalid`)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorMessage"
+                  - $ref: "#/components/schemas/PagingError"
 
   /catalog/{IDNo}/variables/{varId}:
     get:
@@ -913,82 +1491,19 @@ paths:
         - Metadata
       summary: Get a single variable
       description: >-
-        Get full metadata for a single variable.
-        Alternatively, supply both `idno` and `var_id` as query parameters to
-        `/api/catalog/variables?idno={IDNo}&var_id={varId}`.
+        Full metadata for a single variable. The same variable is returned by
+        `/catalog/{IDNo}/variable/{varId}` and by `/catalog/variables?idno={IDNo}&var_id={varId}`.
+        This response has no `status` field.
       operationId: findSingleVariable
       parameters:
-        - name: IDNo
-          in: path
-          description: Study unique ID number
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/IDNo"
         - name: varId
           in: path
-          description: Variable ID
+          description: Variable ID (`vid`, e.g. `V1`)
           required: true
           schema:
             type: string
-        - name: id_format
-          in: query
-          description: Set to `id` to use the numeric study ID instead of IDNo
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "../catalog-admin/variable-schema.json"
-
-  /catalog/ddi/{IDNo}:
-    get:
-      tags:
-        - Metadata
-      summary: Download DDI/XML
-      description: Download DDI 2.5 CodeBook XML (available for microdata studies only)
-      operationId: downloadDDI
-      parameters:
-        - name: IDNo
-          in: path
-          description: Study unique ID number
-          required: true
-          schema:
-            type: string
-        - name: id_format
-          in: query
-          description: Set to `id` to use the numeric study ID instead of IDNo
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/xml:
-              schema:
-                type: string
-
-  /catalog/json/{IDNo}:
-    get:
-      tags:
-        - Metadata
-      summary: Download JSON
-      description: Download study metadata as JSON
-      operationId: downloadJSON
-      parameters:
-        - name: IDNo
-          in: path
-          description: Study unique ID number
-          required: true
-          schema:
-            type: string
-        - name: id_format
-          in: query
-          description: Set to `id` to use the numeric study ID instead of IDNo
-          schema:
-            type: string
+        - $ref: "#/components/parameters/id_format"
       responses:
         "200":
           description: Successful operation
@@ -996,9 +1511,542 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  variable:
+                    $ref: "#/components/schemas/Variable"
+        "400":
+          description: "`VARIABLE-NOT-FOUND`, `MISSING_PARAM::VAR_ID`, or a study ID error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
+  /catalog/{IDNo}/resources:
+    get:
+      tags:
+        - Metadata
+      summary: List study resources
+      description: >-
+        External resources of a study (questionnaires, reports, data files, links), sorted by title. For
+        studies with licensed data access, microdata resources are left out. The same list is returned by
+        `/catalog/resources/{IDNo}`.
+      operationId: listResources
+      parameters:
+        - $ref: "#/components/parameters/IDNo"
+        - $ref: "#/components/parameters/id_format"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  total:
+                    type: integer
+                  resources:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StudyResource"
+        "400":
+          description: A study ID error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
+
+  /catalog/{IDNo}/resources/{resourceId}/pdf-stream:
+    get:
+      tags:
+        - Metadata
+      summary: Stream a PDF resource
+      description: >-
+        Returns a PDF resource of the study inline (`Content-Disposition: inline`), for viewing in the
+        browser, e.g. with PDF.js. Only resources stored on the site are streamed, not external URLs. The same
+        access rules apply as for downloading the file: resources of studies with public or licensed access
+        need a signed-in user, and licensed files need an approved request.
+      operationId: streamPdfResource
+      parameters:
+        - $ref: "#/components/parameters/IDNo"
+        - name: resourceId
+          in: path
+          required: true
+          description: Resource ID (`resource_id`)
+          schema:
+            type: integer
+        - $ref: "#/components/parameters/id_format"
+      responses:
+        "200":
+          description: The PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: >-
+            `RESOURCE_ID_NOT_PROVIDED`, `RESOURCE_NOT_FOUND`, `RESOURCE_NOT_PDF_STREAMABLE` (not a PDF, or an
+            external URL), `FILE_NOT_AVAILABLE`, `RESOURCE_FILE_NOT_FOUND`, `LOGIN_REQUIRED`, a permission
+            error, or a study ID error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
+
+  /catalog/ddi/{IDNo}:
+    get:
+      tags:
+        - Metadata
+      summary: Download DDI/XML
+      description: DDI 2.5 CodeBook XML. Available for microdata (`survey`) studies only.
+      operationId: downloadDDI
+      parameters:
+        - $ref: "#/components/parameters/IDNo"
+        - $ref: "#/components/parameters/id_format"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/xml:
+              schema:
+                type: string
+        "400":
+          description: "`DDI is only available for Survey/MICRODATA types`, `IDNO_NOT_FOUND`, or a study ID error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
+
+  /catalog/json/{IDNo}:
+    get:
+      tags:
+        - Metadata
+      summary: Download JSON
+      description: >-
+        The study's full metadata as JSON (or JSON Lines), for all study types: study metadata, data files,
+        variables and, optionally, resources.
+      operationId: downloadJSON
+      parameters:
+        - $ref: "#/components/parameters/IDNo"
+        - name: format
+          in: query
+          description: "`json` (default) or `jsonl` (JSON Lines)"
+          schema:
+            type: string
+            enum: [json, jsonl]
+        - name: pretty
+          in: query
+          description: "`true` or `1` to pretty-print (JSON format only)"
+          schema:
+            type: string
+            enum: ["true", "1"]
+        - name: download
+          in: query
+          description: "`true` or `1` to send the file as a download (`Content-Disposition: attachment`)"
+          schema:
+            type: string
+            enum: ["true", "1"]
+        - name: include_resources
+          in: query
+          description: "`true` or `1` to include the study's resources as `external_resources`"
+          schema:
+            type: string
+            enum: ["true", "1"]
+        - name: dsd_export
+          in: query
+          description: >-
+            Timeseries studies only: `reference` (default) refers to the data structure definition;
+            `inline` includes the full definition, its components and codelists
+          schema:
+            type: string
+            enum: [reference, inline]
+        - $ref: "#/components/parameters/id_format"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+            application/x-ndjson:
+              schema:
+                type: string
+                description: JSON Lines, with `format=jsonl`
+        "400":
+          description: A study ID error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
+
+  /catalog/rdf/{IDNo}:
+    get:
+      tags:
+        - Metadata
+      summary: Download resources as RDF
+      description: >-
+        The study's external resources as RDF/XML (Dublin Core), sent as a download named `study-{IDNo}.rdf`.
+      operationId: downloadRDF
+      parameters:
+        - $ref: "#/components/parameters/IDNo"
+        - $ref: "#/components/parameters/id_format"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/xml:
+              schema:
+                type: string
+        "400":
+          description: A study ID error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorErrors"
 
 components:
+  parameters:
+    IDNo:
+      name: IDNo
+      in: path
+      description: Study IDNo, or the numeric study ID with `id_format=id`
+      required: true
+      schema:
+        type: string
+    id_format:
+      name: id_format
+      in: query
+      description: Set to `id` to use the numeric study ID instead of the IDNo
+      schema:
+        type: string
+        enum: [id]
+
   schemas:
+    ErrorMessage:
+      type: object
+      description: Error body with the error text in `message`
+      required: [status, message]
+      properties:
+        status:
+          type: string
+          enum: [failed]
+        message:
+          type: string
+          example: IDNO-NOT-FOUND
+
+    ErrorErrors:
+      type: object
+      description: Error body with the error text in `errors`
+      required: [status, errors]
+      properties:
+        status:
+          type: string
+          enum: [failed]
+        errors:
+          type: string
+          example: REPOSITORY-NOT-FOUND
+
+    PagingError:
+      type: object
+      description: >-
+        Paging error from a search. Catalog-wide searches also repeat the text in `errors`.
+      required: [status, error_code, message]
+      properties:
+        status:
+          type: string
+          enum: [failed]
+        error_code:
+          type: string
+          enum: [page_out_of_range, cursor_invalid]
+        message:
+          type: string
+        errors:
+          type: string
+        max_offset:
+          type: integer
+          description: With `page_out_of_range`, the number of results reachable by `page`
+
+    IdnoList:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success]
+        total:
+          type: integer
+        records:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Numeric study ID
+              idno:
+                type: string
+              type:
+                type: string
+                description: Dataset type
+
+    Study:
+      type: object
+      description: >-
+        A study, as returned by [Get study information](#operation/singleDataset). `created` and `changed`
+        are ISO 8601 date-times.
+      properties:
+        id:
+          type: integer
+          description: Numeric study ID
+        idno:
+          type: string
+        doi:
+          type: string
+          nullable: true
+        type:
+          type: string
+          description: Dataset type, e.g. `survey`, `geospatial`, `timeseries`, `document`
+        title:
+          type: string
+        subtitle:
+          type: string
+          nullable: true
+        nation:
+          type: string
+          description: Country or countries, as one display string
+        year_start:
+          type: integer
+        year_end:
+          type: integer
+        authoring_entity:
+          type: string
+          nullable: true
+        repositoryid:
+          type: string
+          description: ID of the collection that owns the study
+        data_access_type:
+          type: string
+          nullable: true
+          description: Data access type code, e.g. `open`, `direct`, `public`, `licensed`, `enclave`, `remote`, `data_na`
+        remote_data_url:
+          type: string
+          nullable: true
+          description: For remote access, the URL where the data can be requested
+        data_class_code:
+          type: string
+          nullable: true
+          description: Data classification code, when classifications are used
+        data_class_title:
+          type: string
+          nullable: true
+        published:
+          type: integer
+          enum: [0, 1]
+        created:
+          type: string
+          format: date-time
+        changed:
+          type: string
+          format: date-time
+        varcount:
+          type: integer
+          nullable: true
+          description: Number of variables (microdata)
+        total_views:
+          type: integer
+        total_downloads:
+          type: integer
+        thumbnail:
+          type: string
+          nullable: true
+          description: Thumbnail file name (use [Get study thumbnail URL](#operation/getThumbnail) for the URL)
+        abstract:
+          type: string
+          nullable: true
+        link_study:
+          type: string
+          nullable: true
+        link_indicator:
+          type: string
+          nullable: true
+        link_report:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          description: >-
+            The study's metadata document, in the JSON schema of its type: `survey-schema.json` for
+            microdata, `geospatial-schema.json`, `timeseries-schema.json`, `document-schema.json`, and so on.
+            The schemas are served at `/index.php/schemas/{name}`.
+
+    DataFile:
+      type: object
+      properties:
+        sid:
+          type: integer
+          description: Numeric study ID
+        file_id:
+          type: string
+          description: File ID within the study, e.g. `F1`
+        file_name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        case_count:
+          type: integer
+          nullable: true
+        var_count:
+          type: integer
+          nullable: true
+        producer:
+          type: string
+          nullable: true
+        data_checks:
+          type: string
+          nullable: true
+        missing_data:
+          type: string
+          nullable: true
+        version:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+
+    VariableListItem:
+      type: object
+      properties:
+        uid:
+          type: integer
+          description: Unique variable row ID
+        sid:
+          type: integer
+          description: Numeric study ID
+        fid:
+          type: string
+          description: Data file ID, e.g. `F1`
+        vid:
+          type: string
+          description: Variable ID within the study, e.g. `V1`
+        name:
+          type: string
+        labl:
+          type: string
+          description: Variable label
+        qstn:
+          type: string
+          description: Question text (keyword searches only)
+        file_name:
+          type: string
+          description: Data file name (keyword searches only)
+        metadata:
+          type: object
+          description: >-
+            Variable metadata ([Variables by data file](#operation/listDataFileVariables) with
+            `metadata_detailed=true` only)
+
+    Variable:
+      type: object
+      properties:
+        uid:
+          type: integer
+        sid:
+          type: integer
+        fid:
+          type: string
+        vid:
+          type: string
+        name:
+          type: string
+        labl:
+          type: string
+        qstn:
+          type: string
+          nullable: true
+        metadata:
+          $ref: "../catalog-admin/variable-schema.json"
+
+    StudyResource:
+      type: object
+      description: An external resource of a study. `created` and `changed` are ISO 8601 date-times.
+      properties:
+        resource_id:
+          type: integer
+        survey_id:
+          type: integer
+          description: Numeric study ID
+        title:
+          type: string
+        subtitle:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        dcdate:
+          type: string
+          nullable: true
+          description: Resource date, as entered
+        dctype:
+          type: string
+          description: >-
+            Resource type: a Dublin Core type code such as `doc/qst` (questionnaire), sometimes stored with
+            its label, e.g. `Document, Questionnaire [doc/qst]`
+        dcformat:
+          type: string
+          nullable: true
+          description: File format
+        resource_type:
+          type: string
+          nullable: true
+        filename:
+          type: string
+          description: File name, or the full URL for external links
+        filesize:
+          type: integer
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        language:
+          type: string
+          nullable: true
+        contributor:
+          type: string
+          nullable: true
+        publisher:
+          type: string
+          nullable: true
+        rights:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        abstract:
+          type: string
+          nullable: true
+        toc:
+          type: string
+          nullable: true
+        subjects:
+          type: string
+          nullable: true
+        created:
+          type: string
+          format: date-time
+        changed:
+          type: string
+          format: date-time
+        url:
+          type: string
+          description: >-
+            Download URL. For external links, the link itself; otherwise
+            `{site}/catalog/{id}/download/{resource_id}/{filename}`
 
     CatalogSearchRow:
       type: object
@@ -1217,36 +2265,15 @@ components:
         ts_db_study_id: 12
         ts_db_title: "World Bank Open Data"
 
-    Catalog:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-          readOnly: true
-        idno:
-          type: string
-        title:
-          type: string
-        nation:
-          type: string
-        created:
-          type: string
-          format: date-time
-        changed:
-          type: string
-          format: date-time
-
     Collection:
       type: object
       properties:
         id:
           type: integer
-          format: int64
-          readOnly: true
-        repositoryID:
+          description: Internal numeric collection ID
+        repositoryid:
           type: string
-          description: Collection unique ID
+          description: Collection unique ID, used in URLs and in the `collection` search filter
         title:
           type: string
           description: Collection title
@@ -1265,7 +2292,6 @@ components:
       properties:
         countryid:
           type: integer
-          format: int64
         name:
           type: string
           description: Country name
@@ -1276,237 +2302,12 @@ components:
     DataAccessCode:
       type: object
       properties:
+        id:
+          type: integer
+          description: Data access type ID
         type:
           type: string
-          description: Data access type
+          description: Data access type code, e.g. `direct`, `public`, `licensed`
         title:
           type: string
           description: Title
-
-    AuthenticationResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-          readOnly: true
-        user_id:
-          type: integer
-        username:
-          type: string
-        api-keys:
-          type: object
-
-    Project:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-          readOnly: true
-        project_type:
-          type: string
-          enum: [survey, geospatial]
-        title:
-          type: string
-        description:
-          type: string
-        shortname:
-          type: string
-        collaborators:
-          type: array
-          items:
-            type: string
-            format: email
-          example:
-            - user@example.com
-            - user2@example.com
-        status:
-          type: string
-          readOnly: true
-          description: >-
-            Project status codes
-
-            * `draft` - Draft mode
-
-            * `submitted` - Project is submitted and locked for user to make any further changes
-
-            * `processed` - Project accepted and is being processed
-
-            * `closed` - Processing completed and project is completed
-
-            * `published` - Project published to one or more catalogs
-
-            * `cancelled` - Project was cancelled
-          enum: [draft, submitted, processed, closed, cancelled, published]
-        created:
-          type: string
-          format: date-time
-          readOnly: true
-        changed:
-          type: string
-          format: date-time
-          readOnly: true
-
-    ProjectAccessPolicy:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-          readOnly: true
-        access_policy:
-          type: string
-          description: >-
-            Select the access policy suitable for your data.
-
-            * `direct` - Direct access
-
-            * `public` - Public access
-
-            * `licensed` - Licensed access, require users to register and submit request for access
-
-            * `enclave` - Data Enclave
-
-            * `remote` - Data available from remote repository
-
-            * `other` - Other
-          enum: [open, direct, public, licensed, enclave, remote, other]
-        to_catalog:
-          type: string
-          description: >-
-            Select catalog for publishing the data
-
-            * `internal` - Internal catalog
-
-            * `external` - External public catalog
-          enum: [internal, external]
-        is_embargoed:
-          type: boolean
-          description: Is the data embargoed?
-        embargoed_notes:
-          type: string
-          description: Indicate the terms of the embargo e.g. time period and any other special instructions.
-        disclosure_risk:
-          type: string
-          description: List any identifying or sensitive variables so that access to these can be suppressed.
-        library_notes:
-          type: string
-          description: Notes for the deposit reviewers
-        cc:
-          type: string
-          description: Email addresses (semicolon-separated) to receive a copy of the submission.
-        created:
-          type: string
-          format: date-time
-          readOnly: true
-        changed:
-          type: string
-          format: date-time
-          readOnly: true
-
-    Resource:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-          readOnly: true
-        pid:
-          type: integer
-          format: int64
-          description: Project ID
-        resource_type:
-          type: string
-          enum: [microdata, questionnaire, report, table, other]
-        title:
-          type: string
-        description:
-          type: string
-        filename:
-          type: string
-        created:
-          type: string
-          format: date-time
-        changed:
-          type: string
-          format: date-time
-
-    Citation:
-      type: object
-      required:
-        - pid
-        - title
-      properties:
-        id:
-          type: integer
-          format: int64
-          readOnly: true
-        pid:
-          type: integer
-          format: int64
-          description: Project ID
-        citation_type:
-          type: string
-          enum: [book, journal, article, website, other]
-        title:
-          type: string
-        subtitle:
-          type: string
-        authors:
-          type: array
-          items:
-            type: object
-            properties:
-              fname:
-                type: string
-              lname:
-                type: string
-        volume:
-          type: string
-        issue:
-          type: string
-        idnumber:
-          type: string
-        edition:
-          type: string
-        pub_place:
-          type: string
-        publisher:
-          type: string
-        pub_medium:
-          type: string
-        url:
-          type: string
-        page_from:
-          type: integer
-        page_to:
-          type: integer
-        pub_date:
-          type: string
-          example: "Full or partial date e.g. Month/Year or Year"
-        abstract:
-          type: string
-        keywords:
-          type: string
-        doi:
-          type: string
-        country:
-          type: string
-        created:
-          type: string
-          format: date-time
-        changed:
-          type: string
-          format: date-time
-
-    ApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-          format: int32
-        type:
-          type: string
-        message:
-          type: string
