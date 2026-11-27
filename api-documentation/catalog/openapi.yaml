@@ -19,9 +19,9 @@ info:
     ## Access
 
 
-    No API key is needed to read published studies. Unpublished studies are returned only to a signed-in
-    user (session) or an API key (`X-API-KEY` header) with permission to view them; everyone else gets the
-    same error as for a study that does not exist.
+    No API key is needed: this API is public and reads published studies. Unpublished studies are returned
+    only to a user signed in to the site (browser session) with permission to view them; everyone else gets
+    the same error as for a study that does not exist. An `X-API-KEY` header is not read by this API.
 
 
     ## Errors
@@ -156,7 +156,9 @@ paths:
       summary: List studies in a collection
       description: >-
         All published studies in a collection, without paging. To search or page within a collection, use
-        [Search catalog](#operation/CatalogSearch) with `collection`.
+        [Search catalog](#operation/CatalogSearch) with `collection`. The default collection `central` is
+        not a collection here and gives `REPOSITORY-NOT-FOUND`; use [List all study IDNos](#operation/listStudyIdnos)
+        for the whole catalog.
       operationId: listCollectionStudies
       parameters:
         - name: repoId
@@ -406,17 +408,19 @@ paths:
                     type: object
                     properties:
                       found:
-                        type: string
+                        type: integer
                         description: Number of studies matching the current filters
-                        example: "196"
+                        example: 196
                       total:
-                        type: string
-                        description: Total published studies in the catalog (unfiltered)
+                        type: integer
+                        description: >-
+                          Total published studies in the catalog (unfiltered). A JSON string on MySQL
+                          (e.g. `"1380"`), like other database integers
                         example: "1380"
                       limit:
-                        type: string
+                        type: integer
                         description: Page size used for this response
-                        example: "15"
+                        example: 15
                       offset:
                         type: integer
                         description: Zero-based offset of the first result
@@ -833,8 +837,9 @@ paths:
         - Catalog
       summary: Filter values
       description: >-
-        Values of one search filter, with the number of published studies for each. Built-in filters
-        return the shapes below. A user-defined facet returns `{ type, title, values[] }`, where each value
+        Values of one search filter, with the number of published studies for each. Only the names returned
+        by [List search filter names](#operation/listFilters) are accepted; others give `FILTER_NOT_FOUND`.
+        Built-in filters return the shapes below. A user-defined facet returns `{ type, title, values[] }`, where each value
         has `id`, `title` and `found`.
 
 
@@ -845,7 +850,7 @@ paths:
         - name: filterName
           in: path
           required: true
-          description: A name from [List search filter names](#operation/listFilters), e.g. `country`, `year`, `collection`, `dtype`, `region`
+          description: A name from [List search filter names](#operation/listFilters), e.g. `country`, `year`, `collection`, `dtype`
           schema:
             type: string
       responses:
@@ -904,7 +909,9 @@ paths:
                               nullable: true
                       - type: object
                         title: dtype
-                        description: Data access types, keyed by access type ID
+                        description: >-
+                          Data access types, keyed by access type ID. `title` is a translation key such as
+                          `legend_data_direct`, not a display text
                         additionalProperties:
                           type: object
                           properties:
@@ -916,7 +923,9 @@ paths:
                               type: string
                       - type: object
                         title: region
-                        description: Regions, keyed by region ID
+                        description: >-
+                          Regions, keyed by region ID. Only when the site has a facet named `region` (not in a
+                          default install)
                         additionalProperties:
                           type: object
                           properties:
@@ -1093,9 +1102,13 @@ paths:
                 type: object
                 properties:
                   datafiles:
-                    type: object
-                    additionalProperties:
-                      $ref: "#/components/schemas/DataFile"
+                    oneOf:
+                      - type: object
+                        additionalProperties:
+                          $ref: "#/components/schemas/DataFile"
+                      - type: boolean
+                        enum: [false]
+                        description: The study has no data files
         "400":
           description: "`STUDY_NOT_FOUND`, `DATASET_NOT_FOUND`, or a study ID error"
           content:
@@ -1601,18 +1614,22 @@ paths:
       tags:
         - Metadata
       summary: Download DDI/XML
-      description: DDI 2.5 CodeBook XML. Available for microdata (`survey`) studies only.
+      description: >-
+        DDI 2.5 CodeBook XML, sent as a download (`Content-Type: application/octet-stream`,
+        `Content-Disposition: attachment; filename="{IDNo}.xml"`). Available for microdata (`survey`) studies
+        only.
       operationId: downloadDDI
       parameters:
         - $ref: "#/components/parameters/IDNo"
         - $ref: "#/components/parameters/id_format"
       responses:
         "200":
-          description: Successful operation
+          description: The DDI XML file
           content:
-            application/xml:
+            application/octet-stream:
               schema:
                 type: string
+                format: binary
         "400":
           description: "`DDI is only available for Survey/MICRODATA types`, `IDNO_NOT_FOUND`, or a study ID error"
           content:
@@ -1994,8 +2011,8 @@ components:
         dctype:
           type: string
           description: >-
-            Resource type: a Dublin Core type code such as `doc/qst` (questionnaire), sometimes stored with
-            its label, e.g. `Document, Questionnaire [doc/qst]`
+            Resource type: its label followed by the Dublin Core type code in brackets, e.g.
+            `Document, Questionnaire [doc/qst]` or `Web Site [web]`
         dcformat:
           type: string
           nullable: true
@@ -2111,7 +2128,10 @@ components:
           example: "central"
         repo_title:
           type: string
-          description: Human-readable title of the repository
+          nullable: true
+          description: >-
+            Title of the collection that owns the study; null for studies owned by the default
+            collection `central`, which has no collection record
           example: "Central Data Catalog"
         thumbnail:
           type: string
@@ -2285,6 +2305,7 @@ components:
           description: Detailed description for the collection in HTML format
         thumbnail:
           type: string
+          nullable: true
           description: Collection thumbnail
 
     CountryCode:
